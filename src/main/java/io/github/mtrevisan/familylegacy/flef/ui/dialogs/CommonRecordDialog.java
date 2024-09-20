@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
@@ -50,6 +52,7 @@ import java.awt.event.ItemEvent;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -57,6 +60,7 @@ import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -65,7 +69,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRestriction;
@@ -133,10 +136,10 @@ public abstract class CommonRecordDialog extends JDialog{
 	//record components:
 	protected final JPanel recordPanel = new JPanel();
 
-	protected final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-	private Consumer<Map<String, Object>> onCloseGracefully;
+	private BiConsumer<Map<String, Object>, Integer> onCloseGracefully;
 
 	protected Map<String, Object> selectedRecord;
+	protected Integer selectedRecordID;
 	protected Map<String, Object> selectedRecordLink;
 	protected long selectedRecordHash;
 
@@ -146,10 +149,8 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected volatile boolean ignoreEvents;
 
 
-	protected CommonRecordDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	protected CommonRecordDialog(final Frame parent){
 		super(parent, true);
-
-		this.store = store;
 	}
 
 	protected void initialize(){
@@ -165,7 +166,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		this.newRecordDefault = newRecordDefault;
 	}
 
-	protected void setOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	protected void setOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 	}
 
@@ -190,20 +191,20 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected final void manageRestrictionCheckBox(final ItemEvent evt){
-		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(EntityManager.TABLE_NAME_RESTRICTION));
+		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(EntityManager.NODE_NAME_RESTRICTION));
 
 		if(evt.getStateChange() == ItemEvent.SELECTED){
 			if(recordRestriction != null)
 				insertRecordRestriction(recordRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
 			else{
-				final NavigableMap<Integer, Map<String, Object>> storeRestrictions = getRecords(EntityManager.TABLE_NAME_RESTRICTION);
 				//create a new record
 				final Map<String, Object> newRestriction = new HashMap<>();
-				insertRecordID(newRestriction, extractNextRecordID(storeRestrictions));
 				insertRecordRestriction(newRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
-				insertRecordReferenceTable(newRestriction, getTableName());
-				insertRecordReferenceID(newRestriction, extractRecordID(selectedRecord));
-				storeRestrictions.put(extractRecordID(newRestriction), newRestriction);
+				final int newRestrictionID = Repository.save(EntityManager.NODE_NAME_RESTRICTION, newRestriction);
+				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
+					EntityManager.NODE_NAME_RESTRICTION, newRestrictionID,
+					EntityManager.RELATIONSHIP_NAME_FOR, Collections.emptyMap(),
+					GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 			}
 		}
 		else if(recordRestriction != null)
@@ -251,7 +252,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			okAction(askForModificationNote);
 
 			if(onCloseGracefully != null)
-				onCloseGracefully.accept(selectedRecord);
+				onCloseGracefully.accept(selectedRecord, selectedRecordID);
 
 			return true;
 		}
@@ -261,7 +262,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	public abstract void loadData();
 
 	protected final NavigableMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
+		return Repository.findAllNavigable(tableName);
 	}
 
 	protected final NavigableMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
@@ -287,6 +288,7 @@ public abstract class CommonRecordDialog extends JDialog{
 				return;
 
 			selectedRecord = new HashMap<>(record);
+			selectedRecordID = extractRecordID(record);
 			selectedRecordLink = null;
 
 			selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
@@ -353,27 +355,23 @@ public abstract class CommonRecordDialog extends JDialog{
 		if(selectedRecord == null || !dataHasChanged())
 			return;
 
-		final Integer recordID = extractRecordID(selectedRecord);
+		final Integer selectedRecordID = extractRecordID(selectedRecord);
 		if(!ignoreEvents && saveData()){
 			selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
 
 			//save `selectedRecord` into `store`
 			final String tableName = getTableName();
-			store.get(tableName)
-				.put(recordID, selectedRecord);
+			Repository.save(tableName, selectedRecord);
 			//save `selectRecordLink` into `store`
-			if(selectedRecordLink != null){
-				final String junctionTableName = getJunctionTableName();
-				final TreeMap<Integer, Map<String, Object>> records = store.get(junctionTableName);
-				if(records != null)
-					records.put(extractRecordID(selectedRecordLink), selectedRecordLink);
-			}
+			if(selectedRecordLink != null)
+				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
+					EntityManager.NODE_NAME_RESTRICTION, selectedRecordID,
+					getJunctionTableName(), new HashMap<>(selectedRecordLink),
+					GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 			LOGGER.debug("Saved data {}", selectedRecord);
-			if(selectedRecordLink != null){
+			if(selectedRecordLink != null)
 				LOGGER.debug("Saved link {}", selectedRecordLink);
-				LOGGER.debug("Store {}", store);
-			}
 
 			//fire event only if something's changed
 			EventBusService.publish(EditEvent.create(EditEvent.EditType.SEARCH, getTableName(), selectedRecord));
@@ -381,30 +379,30 @@ public abstract class CommonRecordDialog extends JDialog{
 
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final String recordTableName = getTableName();
-		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(EntityManager.TABLE_NAME_MODIFICATION);
+		final SortedMap<Integer, Map<String, Object>> recordModification = extractReferences(EntityManager.NODE_NAME_MODIFICATION);
 		if(recordModification.isEmpty()){
 			//create a new record
-			final NavigableMap<Integer, Map<String, Object>> storeModifications = getRecords(EntityManager.TABLE_NAME_MODIFICATION);
 			final Map<String, Object> newModification = new HashMap<>();
-			insertRecordID(newModification, extractNextRecordID(storeModifications));
 			insertRecordReferenceTable(newModification, recordTableName);
-			insertRecordReferenceID(newModification, recordID);
+			insertRecordReferenceID(newModification, selectedRecordID);
 			insertRecordCreationDate(newModification, now);
-			storeModifications.put(extractRecordID(newModification), newModification);
+			Repository.save(EntityManager.NODE_NAME_MODIFICATION, newModification);
 		}
 		else{
 			if(askForModificationNote){
 				//ask for a modification note
 				//show note record dialog
-				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(store, (Frame)getParent())
-					.withOnCloseGracefully(record -> {
+				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly((Frame)getParent())
+					.withOnCloseGracefully((record, recordID) -> {
 						if(record != null){
 							insertRecordReferenceTable(record, recordTableName);
 							insertRecordReferenceID(record, recordID);
 						}
+						else if(recordID != null)
+							Repository.deleteNode(getTableName(), recordID);
 					});
 				final String title = StringUtils.capitalize(StringUtils.replace(recordTableName, "_", StringUtils.SPACE));
-				changeNoteDialog.setTitle("Change note for " + title + " " + recordID);
+				changeNoteDialog.setTitle("Change note for " + title + " " + selectedRecordID);
 				changeNoteDialog.showNewRecord();
 
 				changeNoteDialog.showDialog();

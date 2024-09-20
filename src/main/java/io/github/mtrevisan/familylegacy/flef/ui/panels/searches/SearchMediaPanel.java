@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -42,9 +44,10 @@ import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTitle;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
@@ -64,13 +67,13 @@ public class SearchMediaPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
 
 
-	public static SearchMediaPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchMediaPanel(store);
+	public static SearchMediaPanel create(){
+		return new SearchMediaPanel();
 	}
 
 
-	private SearchMediaPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private SearchMediaPanel(){
+		super();
 
 
 		initComponents();
@@ -85,7 +88,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.TABLE_NAME_MEDIA;
+		return EntityManager.NODE_NAME_MEDIA;
 	}
 
 	@Override
@@ -111,34 +114,30 @@ public class SearchMediaPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_MEDIA);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_MEDIA);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
+		for(int i = 0, length = records.size(); i < length; i ++){
+			final Map<String, Object> record = records.get(i);
 
-			final String identifier = extractRecordIdentifier(container);
-			final String title = extractRecordTitle(container);
-			final String type = extractRecordType(container);
-			final FilterString filter = FilterString.create()
-				.add(key)
-				.add(identifier)
-				.add(title)
-				.add(type);
+			final Integer recordID = extractRecordID(record);
+			final String identifier = extractRecordIdentifier(record);
+			final String title = extractRecordTitle(record);
+			final String type = extractRecordType(record);
+			final FilterString filter = FilterString.create().add(recordID).add(identifier).add(title).add(type);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 			model.setValueAt(title, row, TABLE_INDEX_TITLE);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
-			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_MEDIA, filterData, title));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_MEDIA, filterData, title));
 
-			row ++;
+			row++;
 		}
 	}
 
@@ -152,31 +151,28 @@ public class SearchMediaPanel extends CommonSearchPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		media.put((Integer)media1.get("id"), media1);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		media.put((Integer)media2.get("id"), media2);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		media.put((Integer)media3.get("id"), media3);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media3);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -192,7 +188,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final SearchMediaPanel panel = create(store);
+			final SearchMediaPanel panel = create();
 			panel.setLinkListener(linkListener);
 			panel.loadData();
 
@@ -205,6 +201,8 @@ public class SearchMediaPanel extends CommonSearchPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

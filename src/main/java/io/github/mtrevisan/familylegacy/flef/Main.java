@@ -613,7 +613,7 @@ public final class Main{
 		final List<Map<String, Object>> flefGroups = output.computeIfAbsent("group", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefGroupJunctions = output.computeIfAbsent("group_junction", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefAssertions = output.computeIfAbsent("assertion", k -> new ArrayList<>());
+		final List<Map<String, Object>> flefAssertions = output.computeIfAbsent(EntityManager.NODE_NAME_ASSERTION, k -> new ArrayList<>());
 		final List<Map<String, Object>> flefCitations = output.computeIfAbsent("citation", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefEvents = output.computeIfAbsent("event", k -> new ArrayList<>());

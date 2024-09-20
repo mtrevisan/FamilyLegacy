@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.LabelAutoToolTip;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
@@ -161,20 +163,18 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private final JMenuItem unlinkFromSiblingGroupItem = new JMenuItem("Unlink from sibling Group", 'G');
 
 	private final BoxPanelType boxType;
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
 	private Map<String, Object> person = new HashMap<>(0);
 
 
-	static PersonPanel create(final BoxPanelType boxType, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new PersonPanel(boxType, store);
+	static PersonPanel create(final BoxPanelType boxType){
+		return new PersonPanel(boxType);
 	}
 
 
-	private PersonPanel(final BoxPanelType boxType, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	private PersonPanel(final BoxPanelType boxType){
 		this.boxType = boxType;
 		person.clear();
-		this.store = store;
 
 
 		initComponents();
@@ -261,8 +261,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 								insertRecordPhotoID(person, null);
 								insertRecordPhotoCrop(person, null);
 
-								getRecords(EntityManager.TABLE_NAME_MEDIA)
-									.remove(photoID);
+								Repository.deleteNode(EntityManager.NODE_NAME_MEDIA, photoID);
 
 								imageLabel.setIcon(ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize()));
 							}
@@ -367,7 +366,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	public void loadData(final Integer personID){
 		final Map<String, Object> person = (personID != null
-			? store.get(EntityManager.TABLE_NAME_PERSON).get(personID)
+			? Repository.findByID(EntityManager.NODE_NAME_PERSON, personID)
 			: Collections.emptyMap());
 
 		prepareData(person);
@@ -438,12 +437,11 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final Integer photoID = extractRecordPhotoID(person);
 		if(photoID != null){
 			//recover image URI
-			final TreeMap<Integer, Map<String, Object>> media = getRecords(EntityManager.TABLE_NAME_MEDIA);
-			final Map<String, Object> md = media.get(photoID);
-			if(md == null)
+			final Map<String, Object> media = Repository.findByID(EntityManager.NODE_NAME_MEDIA, photoID);
+			if(media == null)
 				LOGGER.error("Cannot find media ID {}", photoID);
 			else{
-				final String identifier = FileHelper.getTargetPath(FileHelper.documentsDirectory(), extractRecordIdentifier(md));
+				final String identifier = FileHelper.getTargetPath(FileHelper.documentsDirectory(), extractRecordIdentifier(media));
 				icon = ResourceHelper.getImage(identifier, imageLabel.getPreferredSize());
 			}
 		}
@@ -462,7 +460,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			return;
 
 		final boolean hasData = !person.isEmpty();
-		final boolean hasPersons = !getRecords(EntityManager.TABLE_NAME_PERSON).isEmpty();
+		final boolean hasPersons = (Repository.count(EntityManager.NODE_NAME_PERSON) > 0);
 		final boolean hasParentGroup = hasParentGroup(person);
 		final boolean hasSiblingGroup = hasSiblingGroup(person);
 		editPersonItem.setEnabled(hasData);
@@ -476,8 +474,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private String extractIdentifier(final Integer selectedRecordID){
 		final StringJoiner identifier = new StringJoiner(" / ");
-		getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
-			.values().stream()
+		Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+			.stream()
 			.filter(record -> Objects.equals(selectedRecordID, extractRecordPersonID(record)))
 			.forEach(record -> identifier.add(extractName(record)));
 		return identifier.toString();
@@ -502,26 +500,22 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 				LOGGER.warn("Person {} belongs to more than one parents (this cannot be), select the first and hope for the best", childID);
 
 			final Integer parentsID = (!parentsIDs.isEmpty()? parentsIDs.getFirst(): null);
-			if(parentsID != null){
-				final Map<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-				hasParentGroup = groups.containsKey(parentsID);
-			}
+			if(parentsID != null)
+				hasParentGroup = (Repository.findByID(EntityManager.NODE_NAME_GROUP, parentsID) != null);
 			else{
 				//prefer first adopting family
 				final List<Integer> unionIDs = getParentsIDs(childID, EntityManager.GROUP_ROLE_ADOPTEE);
-				if(!unionIDs.isEmpty()){
-					final Map<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-					hasParentGroup = groups.containsKey(unionIDs.getFirst());
-				}
+				if(!unionIDs.isEmpty())
+					hasParentGroup = (Repository.findByID(EntityManager.NODE_NAME_GROUP, unionIDs.getFirst()) != null);
 			}
 		}
 		return hasParentGroup;
 	}
 
 	private List<Integer> getParentsIDs(final Integer personID, final String personRole){
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(personRole, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
@@ -531,20 +525,16 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private boolean hasSiblingGroup(final Map<String, Object> partner){
 		final Integer partnerID = extractRecordID(partner);
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(partnerID, extractRecordReferenceID(entry)))
 			.anyMatch(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)));
 	}
 
-	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
-		final Integer filterReferenceID){
-		return getRecords(tableName)
+			final Integer filterReferenceID){
+		return Repository.findAllNavigable(tableName)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
@@ -608,8 +598,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private Map<String, Object> extractEarliestBirthDateAndPlace(final Integer personID){
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
-		final TreeMap<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_NAME_PLACE);
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> event = entry.getValue();
@@ -627,8 +617,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private Map<String, Object> extractLatestDeathDateAndPlace(final Integer personID){
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
-		final TreeMap<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_NAME_PLACE);
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> event = entry.getValue();
@@ -647,13 +637,12 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
-		final Map<Integer, Map<String, Object>> calendars = getRecords(EntityManager.TABLE_NAME_CALENDAR);
+		final Map<Integer, Map<String, Object>> storeEventTypes = Repository.findAllNavigable(EntityManager.NODE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_NAME_HISTORIC_DATE);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
-		return getRecords(EntityManager.TABLE_NAME_EVENT)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+		return Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
@@ -673,8 +662,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	}
 
 	private Set<String> getEventTypes(final String category){
-		return getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
-			.values().stream()
+		return Repository.findAll(EntityManager.NODE_NAME_EVENT_TYPE)
+			.stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
 			.map(EntityManager::extractRecordType)
 			.collect(Collectors.toSet());
@@ -698,18 +687,13 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
-		store.put("person", persons);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
 		person1.put("photo_id", 3);
 		person1.put("photo_crop", "0 0 5 10");
-		persons.put((Integer)person1.get("id"), person1);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
 
-		final TreeMap<Integer, Map<String, Object>> personNames = new TreeMap<>();
-		store.put("person_name", personNames);
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
@@ -717,7 +701,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		personName1.put("family_name", "bruxatin");
 		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
-		personNames.put((Integer)personName1.get("id"), personName1);
+		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
@@ -725,10 +709,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		personName2.put("family_name", "bruciatino");
 		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
-		personNames.put((Integer)personName2.get("id"), personName2);
+		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName2);
 
-		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
-		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
 		event1.put("type_id", 1);
@@ -736,7 +718,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		event1.put("place_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 1);
-		events.put((Integer)event1.get("id"), event1);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event1);
 		final Map<String, Object> event2 = new HashMap<>();
 		event2.put("id", 2);
 		event2.put("type_id", 2);
@@ -745,74 +727,62 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		event2.put("place_id", 2);
 		event2.put("reference_table", "person");
 		event2.put("reference_id", 1);
-		events.put((Integer)event2.get("id"), event2);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event2);
 
-		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
-		store.put("event_type", eventTypes);
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("type", "birth");
 		eventType1.put("category", EVENT_TYPE_CATEGORY_BIRTH);
-		eventTypes.put((Integer)eventType1.get("id"), eventType1);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType1);
 		final Map<String, Object> eventType2 = new HashMap<>();
 		eventType2.put("id", 2);
 		eventType2.put("type", "death");
 		eventType2.put("category", EVENT_TYPE_CATEGORY_DEATH);
-		eventTypes.put((Integer)eventType2.get("id"), eventType2);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType2);
 
-		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();
-		store.put("historic_date", dates);
 		final Map<String, Object> date1 = new HashMap<>();
 		date1.put("id", 1);
 		date1.put("date", "1 JAN 2000");
-		dates.put((Integer)date1.get("id"), date1);
+		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, date1);
 		final Map<String, Object> date2 = new HashMap<>();
 		date2.put("id", 2);
 		date2.put("date", "31 JAN 2010");
-		dates.put((Integer)date2.get("id"), date2);
+		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, date2);
 
-		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
-		store.put("place", places);
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "qua");
-		places.put((Integer)place1.get("id"), place1);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
 		final Map<String, Object> place2 = new HashMap<>();
 		place2.put("id", 2);
 		place2.put("identifier", "place 2");
 		place2.put("name", "là");
-		places.put((Integer)place2.get("id"), place2);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place2);
 
-		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put("localized_text", localizedTexts);
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
 		localizedText1.put("text", "true name");
 		localizedText1.put("locale", "en");
-		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("id", 2);
 		localizedText2.put("text", "fake name");
 		localizedText2.put("locale", "en");
-		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
 
-		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
-		store.put("localized_text_junction", localizedTextJunctions);
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("id", 1);
-		localizedTextJunction1.put("localized_text_id", 1);
 		localizedTextJunction1.put("reference_type", "name");
-		localizedTextJunction1.put("reference_table", "person_name");
-		localizedTextJunction1.put("reference_id", 1);
-		localizedTextJunctions.put((Integer)localizedTextJunction1.get("id"), localizedTextJunction1);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
+			EntityManager.NODE_NAME_PERSON_NAME, extractRecordID(personName1),
+			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("id", 2);
-		localizedTextJunction2.put("localized_text_id", 2);
 		localizedTextJunction2.put("reference_type", "name");
-		localizedTextJunction2.put("reference_table", "person_name");
-		localizedTextJunction2.put("reference_id", 1);
-		localizedTextJunctions.put((Integer)localizedTextJunction2.get("id"), localizedTextJunction2);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
+			EntityManager.NODE_NAME_PERSON_NAME, extractRecordID(personName1),
+			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction2,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
@@ -879,7 +849,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 
 		EventQueue.invokeLater(() -> {
-			final PersonPanel panel = create(boxType, store);
+			final PersonPanel panel = create(boxType);
 			panel.loadData(1);
 			panel.setPersonListener(personListener);
 
@@ -894,6 +864,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

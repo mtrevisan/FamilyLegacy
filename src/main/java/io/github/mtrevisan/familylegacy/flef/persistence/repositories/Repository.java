@@ -24,147 +24,244 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.repositories;
 
-import io.github.mtrevisan.familylegacy.flef.persistence.db.JPAUtil;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.Transactional;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.AbstractEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.AssertionEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.CalendarEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.CulturalNormEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.CulturalNormJunctionEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.EventEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.EventSuperTypeEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.EventTypeEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.GroupEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.GroupJunctionEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.HistoricDateEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.LocalizedPersonNameEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.LocalizedTextEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.LocalizedTextJunctionEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.MediaEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.MediaJunctionEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.ModificationEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.NoteEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.PersonEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.PersonNameEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.PlaceEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.ProjectEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.RepositoryEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.ResearchStatusEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.RestrictionEntity;
-import io.github.mtrevisan.familylegacy.flef.persistence.models.SourceEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 
-//https://www.infoworld.com/article/2260064/java-persistence-with-jpa-and-hibernate-part-2-persisting-data-to-a-database.html
 public class Repository{
 
-	//https://www.marcobehler.com/guides/spring-transaction-management-transactional-in-depth
-	/*
-        // Creazione del proxy del servizio
-        Repository repo = TransactionHandler.createProxy(Repository.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(Repository.class);
 
-        // Creazione di un utente
-        repo.createUser(1L, "John Doe", "john.doe@example.com");
+	public static final int SAVING_ERROR = -1;
 
-        // Recupero dell'utente
-        User retrievedUser = repo.getUser(1L);
-	*/
 
-	@Transactional
-	public <T extends AbstractEntity> void save(final T entity){
-		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			entityManager.persist(entity);
+	private Repository(){}
+
+
+	public static boolean load(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+		store.forEach((tableName, records) -> records.forEach((recordID, record) -> {
+			//TODO
+			save(tableName, record);
+		}));
+
+		return true;
+	}
+
+	public static int count(final String tableName){
+		return GraphDatabaseManager.count(tableName);
+	}
+
+
+	public static int save(final String tableName, final Map<String, Object> record){
+		try{
+			final int nextID = GraphDatabaseManager.count(tableName) + 1;
+			if(((Number)record.get(EntityManager.PROPERTY_NAME_PRIMARY_KEY)).intValue() != nextID)
+				System.out.println();
+			record.put(EntityManager.PROPERTY_NAME_PRIMARY_KEY, nextID);
+			GraphDatabaseManager.insert(tableName, record);
+
+			return nextID;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while inserting record: {}", e.getMessage(), e);
+
+			return SAVING_ERROR;
 		}
 	}
 
-	@Transactional
-	public <T extends AbstractEntity> void update(final T entity){
-		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			entityManager.merge(entity);
+	public static boolean update(final String tableName, final Map<String, Object> record){
+		try{
+			GraphDatabaseManager.update(tableName, EntityManager.PROPERTY_NAME_PRIMARY_KEY, record);
+
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while updating record: {}", e.getMessage(), e);
+
+			return false;
 		}
 	}
 
-	public <T extends AbstractEntity> T findByID(final Class<T> entityClass, final Long id){
-		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			final T entity = entityManager.find(entityClass, id);
+	public static Map<String, Object> findByID(final String tableName, final Integer recordID){
+		try{
+			return GraphDatabaseManager.findBy(tableName, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordID);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching record: {}", e.getMessage(), e);
 
-			//recover referenced record
-			if(entity != null){
-				final String tableName = entity.getReferenceTable();
-				final Long referenceID = entity.getReferenceID();
+			return null;
+		}
+	}
 
-				if(tableName != null && referenceID != null){
-					final AbstractEntity referencedEntity = findReferencedEntity(tableName, referenceID);
-					entity.setReferencedEntity(referencedEntity);
-				}
+	public static List<Map<String, Object>> findAll(final String tableName){
+		try{
+			return GraphDatabaseManager.findAll(tableName);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching all records: {}", e.getMessage(), e);
+
+			return Collections.emptyList();
+		}
+	}
+
+	public static NavigableMap<Integer, Map<String, Object>> findAllNavigable(final String tableName){
+		try{
+			return GraphDatabaseManager.findAllNavigable(tableName);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching all records: {}", e.getMessage(), e);
+
+			return Collections.emptyNavigableMap();
+		}
+	}
+
+	public static List<Map<String, Object>> findAllBy(final String tableName, final String propertyName, final Object propertyValue){
+		try{
+			return GraphDatabaseManager.findAllBy(tableName, propertyName, propertyValue);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching all records: {}", e.getMessage(), e);
+
+			return Collections.emptyList();
+		}
+	}
+
+	public static boolean deleteNode(final String tableName, final int recordID){
+		try{
+			GraphDatabaseManager.delete(tableName, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordID);
+
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while deleting record: {}", e.getMessage(), e);
+
+			return false;
+		}
+	}
+
+	public static boolean deleteNodes(final String tableName, final List<Integer> recordIDs){
+		try{
+			for(int i = 0, length = recordIDs.size(); i < length; i ++){
+				final Object recordID = recordIDs.get(i);
+
+				GraphDatabaseManager.delete(tableName, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordID);
 			}
 
-			return entity;
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while deleting record: {}", e.getMessage(), e);
+
+			return false;
 		}
 	}
 
-	private AbstractEntity findReferencedEntity(final String tableName, final Long referenceID){
-		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			final Class<? extends AbstractEntity> entityClass = getEntityClassFromTableName(tableName);
-			return (entityClass != null? entityManager.find(entityClass, referenceID): null);
+
+	public static boolean upsertRelationship(final String tableNameStart, final Integer recordIDStart,
+			final String tableNameEnd, final Integer recordIDEnd,
+			final String relationshipName, final Map<String, Object> record,
+			final GraphDatabaseManager.OnDeleteType onDelete){
+		try{
+			GraphDatabaseManager.upsertRelationship(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart,
+				tableNameEnd, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDEnd,
+				relationshipName, record, onDelete, onDelete);
+
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while upserting relationship: {}", e.getMessage(), e);
+
+			return false;
 		}
 	}
 
-	private Class<? extends AbstractEntity> getEntityClassFromTableName(final String tableName){
-		return switch(tableName){
-			case "assertion" -> AssertionEntity.class;
-			case "calendar" -> CalendarEntity.class;
-			case "cultural_norm" -> CulturalNormEntity.class;
-			case "cultural_norm_junction" -> CulturalNormJunctionEntity.class;
-			case "event" -> EventEntity.class;
-			case "event_super_type" -> EventSuperTypeEntity.class;
-			case "event_type" -> EventTypeEntity.class;
-			case "group" -> GroupEntity.class;
-			case "group_junction" -> GroupJunctionEntity.class;
-			case "historic_date" -> HistoricDateEntity.class;
-			case "localized_person_name" -> LocalizedPersonNameEntity.class;
-			case "localized_text" -> LocalizedTextEntity.class;
-			case "localized_text_junction" -> LocalizedTextJunctionEntity.class;
-			case "media" -> MediaEntity.class;
-			case "media_junction" -> MediaJunctionEntity.class;
-			case "modification" -> ModificationEntity.class;
-			case "note" -> NoteEntity.class;
-			case "person" -> PersonEntity.class;
-			case "person_name" -> PersonNameEntity.class;
-			case "place" -> PlaceEntity.class;
-			case "project" -> ProjectEntity.class;
-			case "repository" -> RepositoryEntity.class;
-			case "research_status" -> ResearchStatusEntity.class;
-			case "restriction" -> RestrictionEntity.class;
-			case "source" -> SourceEntity.class;
-			default -> throw new IllegalArgumentException("Unknown table name: " + tableName);
-		};
-	}
+	public static boolean upsertRelationship(final String tableNameStart, final Integer recordIDStart,
+			final String tableNameEnd, final Integer recordIDEnd,
+			final String relationshipName, final Map<String, Object> record,
+			final GraphDatabaseManager.OnDeleteType onDeleteStart, final GraphDatabaseManager.OnDeleteType onDeleteEnd){
+		try{
+			GraphDatabaseManager.upsertRelationship(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart,
+				tableNameEnd, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDEnd,
+				relationshipName, record, onDeleteStart, onDeleteEnd);
 
-	public <T extends AbstractEntity> List<T> findAll(final Class<T> entityClass){
-		final String tableName = entityClass.getAnnotation(Entity.class)
-			.name();
-		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			final TypedQuery<T> query = entityManager.createQuery("SELECT t FROM " + tableName + " t", entityClass);
-			return query.getResultList();
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while upserting relationship: {}", e.getMessage(), e);
+
+			return false;
 		}
 	}
 
-	@Transactional
-	public <T extends AbstractEntity> void delete(final T entity){
-		try(final EntityManager entityManager = JPAUtil.getEntityManager()){
-			if(entityManager.contains(entity))
-				entityManager.remove(entity);
-			else{
-				final AbstractEntity managedEntity = entityManager.find(entity.getClass(), entity.getID());
-				if(managedEntity != null)
-					entityManager.remove(managedEntity);
-			}
+	public static boolean deleteRelationship(final String tableNameStart, final Integer recordIDStart,
+			final String tableNameEnd, final Integer recordIDEnd){
+		try{
+			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart,
+				tableNameEnd, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDEnd, null);
+
+			return true;
 		}
+		catch(final Exception e){
+			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);
+
+			return false;
+		}
+	}
+
+	public static boolean deleteRelationship(final String tableNameStart, final Integer recordIDStart,
+			final String tableNameEnd, final Integer recordIDEnd,
+			final String relationshipName){
+		try{
+			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart,
+				tableNameEnd, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDEnd,
+				relationshipName);
+
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);
+
+			return false;
+		}
+	}
+
+
+	public static Map<String, Object> findReferencedRecord(final String tableNameStart, final Integer recordIDStart,
+			final String relationshipName){
+		try{
+			return GraphDatabaseManager.findOtherRecord(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart, relationshipName);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching other node in a relationship: {}", e.getMessage(), e);
+
+			return null;
+		}
+	}
+
+	public static Map<String, Object> findReferencedRecord(final String tableNameStart, final Integer recordIDStart,
+			final String relationshipName, final String propertyName, final Object propertyValue){
+		try{
+			return GraphDatabaseManager.findOtherRecord(tableNameStart, EntityManager.PROPERTY_NAME_PRIMARY_KEY, recordIDStart, relationshipName,
+				propertyName, propertyValue);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching other node in a relationship: {}", e.getMessage(), e);
+
+			return null;
+		}
+	}
+
+
+	public static String logDatabase(){
+		return GraphDatabaseManager.logDatabase();
 	}
 
 }

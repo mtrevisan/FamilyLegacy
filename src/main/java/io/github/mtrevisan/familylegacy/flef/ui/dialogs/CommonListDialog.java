@@ -24,9 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.Inject;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreException;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -88,13 +86,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
 
 
 public abstract class CommonListDialog extends CommonRecordDialog implements ValidDataListenerInterface{
@@ -155,12 +150,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	private ResearchStatusPanel researchStatusPanel;
 
 
-	@Inject
-	private StoreManagerInterface storeManager;
-
-
-	protected CommonListDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	protected CommonListDialog(final Frame parent){
+		super(parent);
 
 		showRecordHistory = true;
 		showRecordResearchStatus = true;
@@ -197,9 +188,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id, "showOnly", false)));
 			}
 		};
-		historyPanel = HistoryPanel.create(store)
+		historyPanel = HistoryPanel.create()
 			.withLinkListener(modificationLinkListener);
-		researchStatusPanel = ResearchStatusPanel.create(store)
+		researchStatusPanel = ResearchStatusPanel.create()
 			.withLinkListener(researchStatusLinkListener);
 
 		initRecordComponents();
@@ -514,12 +505,13 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		}
 
 		final String tableName = getTableName();
-		final Map<String, Object> record = store.get(tableName)
+		final Map<String, Object> record = getRecords(tableName)
 			.get(id);
 		final String capitalizedTableName = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 		setTitle((id != null? capitalizedTableName + " ID " + id: StringHelper.pluralize(capitalizedTableName)));
 
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
+		selectedRecordID = extractRecordID(selectedRecord);
 		selectedRecordLink = null;
 
 		selectActionInner();
@@ -546,6 +538,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 				return;
 
 			selectedRecord = new HashMap<>(record);
+			selectedRecordID = extractRecordID(record);
 			selectedRecordLink = null;
 
 			GUIHelper.setEnabled(recordPanel, (!showRecordOnly || !selectRecordOnly));
@@ -623,11 +616,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		ignoreEvents = true;
 
 		//create a new record
-		final NavigableMap<Integer, Map<String, Object>> storeTables = getRecords(getTableName());
-		final int nextRecordID = extractNextRecordID(storeTables);
-		final Map<String, Object> newRecord = new HashMap<>();
-		insertRecordID(newRecord, nextRecordID);
-		storeTables.put(nextRecordID, newRecord);
+		final int nextRecordID = Repository.save(getTableName(), new HashMap<>());
 
 		//reset filter
 		filterField.setText(null);
@@ -696,36 +685,13 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		deleteRecordButton.setEnabled(false);
 		setMandatoryFieldsBackgroundColor(Color.WHITE);
 
-		try{
-			storeManager.delete(getTableName(), recordID);
-			//TODO remove linked records from ASSERTION, NOTE, EVENT, plus all *_JUNCTION
-			//remove data from linked records
-			//localized text through junction of type "extract" if citation is removed
-			//localized text through junction of type "name" if place is removed
-			//person name if person is removed
-			//localized person name if person name is removed
-			//through junction: media, group, cultural norm, contact
-			//notes, restriction, modification, research status
 
-//			final Map<Integer, Map<String, Object>> storeNotes = getRecords(EntityManager.TABLE_NAME_NOTE);
-//			final Map<Integer, Map<String, Object>> recordNotes = extractReferences(EntityManager.TABLE_NAME_NOTE);
-//			for(final Integer noteID : recordNotes.keySet())
-//				storeNotes.remove(noteID);
-//			final Map<Integer, Map<String, Object>> storeMediaJunction = getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
-//			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
-//			for(final Integer mediaJunctionID : recordMediaJunction.keySet())
-//				storeMediaJunction.remove(mediaJunctionID);
-//			final Map<Integer, Map<String, Object>> storeRestriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION);
-//			final Map<Integer, Map<String, Object>> recordRestriction = extractReferences(EntityManager.TABLE_NAME_RESTRICTION);
-//			for(final Integer restrictionID : recordRestriction.keySet())
-//				storeRestriction.remove(restrictionID);
-
+		//remove from database
+		//TODO test
+		final String tableName = getTableName();
+		if(Repository.deleteNode(tableName, recordID))
 			//remove row from table
 			model.removeRow(modelRowIndex);
-		}
-		catch(final StoreException se){
-			LOGGER.error("Error while deleting record", se);
-		}
 	}
 
 	@Override

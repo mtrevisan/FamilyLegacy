@@ -49,7 +49,7 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-deploy-plugin -->
 		<maven-deploy-plugin.version>3.1.3</maven-deploy-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin -->
-		<maven-gpg-plugin.version>3.2.5</maven-gpg-plugin.version>
+		<maven-gpg-plugin.version>3.2.6</maven-gpg-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.sonatype.plugins/nexus-staging-maven-plugin -->
 		<sonatype.nexus-staging-maven-plugin.version>1.7.0</sonatype.nexus-staging-maven-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
@@ -71,23 +71,11 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
 		<apache.tika-core.version>2.9.2</apache.tika-core.version>
 
-		<!-- Jakarta -->
-		<!-- https://mvnrepository.com/artifact/jakarta.persistence/jakarta.persistence-api -->
-		<jakarta.persistence.version>3.2.0</jakarta.persistence.version>
-		<!-- https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api -->
-		<jakarta.transaction.version>2.0.1</jakarta.transaction.version>
-
-		<!-- Hibernate -->
-		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>6.6.0.Final</hibernate.hibernate-core.version>
-
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
 		<bytedeco.opencv.version>4.9.0-1.5.10</bytedeco.opencv.version>
 
 		<!-- Database -->
-		<!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-		<h2.version>2.3.232</h2.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j -->
 		<neo4j.version>5.23.0</neo4j.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-core -->
@@ -359,35 +347,17 @@
 			<version>${apache.tika-core.version}</version>
 		</dependency>
 
-		<!-- Jakarta -->
-		<dependency>
-			<groupId>jakarta.persistence</groupId>
-			<artifactId>jakarta.persistence-api</artifactId>
-			<version>${jakarta.persistence.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>jakarta.transaction</groupId>
-			<artifactId>jakarta.transaction-api</artifactId>
-			<version>${jakarta.transaction.version}</version>
-		</dependency>
-
-		<!-- Hibernate -->
-		<dependency>
-			<groupId>org.hibernate.orm</groupId>
-			<artifactId>hibernate-core</artifactId>
-			<version>${hibernate.hibernate-core.version}</version>
-		</dependency>
-
 		<!-- Database -->
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<version>${h2.version}</version>
-		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
 			<artifactId>neo4j</artifactId>
 			<version>${neo4j.version}</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>neo4j-slf4j-provider</artifactId>
+					<groupId>org.neo4j</groupId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j</groupId>
@@ -399,18 +369,17 @@
 			<artifactId>neo4j-ogm-embedded-driver</artifactId>
 			<version>${neo4j.ogm-embedded-driver.version}</version>
 		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.jgrapht</groupId>-->
+<!--			<artifactId>jgrapht-core</artifactId>-->
+<!--			<version>${org.jgrapht.version}</version>-->
+<!--		</dependency>-->
 
 		<!-- Image processing -->
 		<dependency>
 			<groupId>org.bytedeco</groupId>
 			<artifactId>opencv</artifactId>
 			<version>${bytedeco.opencv.version}</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.jgrapht</groupId>
-			<artifactId>jgrapht-core</artifactId>
-			<version>${org.jgrapht.version}</version>
 		</dependency>
 
 		<!-- Layout -->

@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;
@@ -76,22 +78,17 @@ public class ChildrenPanel extends JPanel{
 	static final int UNION_ARROW_HEIGHT = ICON_UNION.getIconHeight() + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION;
 
 
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-
 	private PersonPanel[] childBoxes;
 	private boolean[] adoptions;
 	private PersonListenerInterface personListener;
 
 
-	static ChildrenPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new ChildrenPanel(store);
+	static ChildrenPanel create(){
+		return new ChildrenPanel();
 	}
 
 
-	private ChildrenPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		this.store = store;
-
-
+	private ChildrenPanel(){
 		initComponents();
 	}
 
@@ -186,7 +183,7 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private PersonPanel createChildPersonPanel(final Integer childID){
-		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY, store);
+		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY);
 		childBox.loadData(childID);
 
 		EventBusService.subscribe(childBox);
@@ -208,11 +205,11 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private Set<Integer> extractAdoptionEventIDs(){
-		final Map<Integer, Map<String, Object>> eventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> eventTypes = Repository.findAllNavigable(EntityManager.NODE_NAME_EVENT_TYPE);
 		final Set<String> eventTypesAdoptions = getEventTypes(EntityManager.EVENT_TYPE_CATEGORY_ADOPTION);
-		return getRecords(EntityManager.TABLE_NAME_EVENT)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+		return Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
+			.filter(entry -> EntityManager.NODE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
 				final String recordType = extractRecordType(eventTypes.get(recordTypeID));
@@ -224,19 +221,19 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private boolean hasUnion(final Integer childID){
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
 			.anyMatch(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)));
 	}
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object>[] extractChildren(final Integer unionID){
-		final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_NAME_PERSON);
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> EntityManager.NODE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(entry -> persons.get(extractRecordReferenceID(entry)))
@@ -252,13 +249,9 @@ public class ChildrenPanel extends JPanel{
 		return (index < adoptions.length && adoptions[index]);
 	}
 
-	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 			final Integer filterReferenceID){
-		return getRecords(tableName)
+		return Repository.findAllNavigable(tableName)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
@@ -266,8 +259,8 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private Set<String> getEventTypes(final String category){
-		return getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
-			.values().stream()
+		return Repository.findAll(EntityManager.NODE_NAME_EVENT_TYPE)
+			.stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
 			.map(EntityManager::extractRecordType)
 			.collect(Collectors.toSet());
@@ -294,115 +287,80 @@ public class ChildrenPanel extends JPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
-		store.put("person", persons);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
-		persons.put((Integer)person1.get("id"), person1);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
 		final Map<String, Object> person2 = new HashMap<>();
 		person2.put("id", 2);
-		persons.put((Integer)person2.get("id"), person2);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person2);
 		final Map<String, Object> person3 = new HashMap<>();
 		person3.put("id", 3);
-		persons.put((Integer)person3.get("id"), person3);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person3);
 		final Map<String, Object> person4 = new HashMap<>();
 		person4.put("id", 4);
-		persons.put((Integer)person4.get("id"), person4);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person4);
 		final Map<String, Object> person5 = new HashMap<>();
 		person5.put("id", 5);
-		persons.put((Integer)person5.get("id"), person5);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person5);
 		final Map<String, Object> person6 = new HashMap<>();
 		person6.put("id", 6);
-		persons.put((Integer)person6.get("id"), person6);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person6);
 
-		final TreeMap<Integer, Map<String, Object>> groups = new TreeMap<>();
-		store.put("group", groups);
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("id", 1);
 		group1.put("type", "family");
-		groups.put((Integer)group1.get("id"), group1);
+		Repository.save(EntityManager.NODE_NAME_GROUP, group1);
 		final Map<String, Object> group2 = new HashMap<>();
 		group2.put("id", 2);
 		group2.put("type", "family");
-		groups.put((Integer)group2.get("id"), group2);
+		Repository.save(EntityManager.NODE_NAME_GROUP, group2);
 
-		final TreeMap<Integer, Map<String, Object>> groupJunctions = new TreeMap<>();
-		store.put("group_junction", groupJunctions);
 		final Map<String, Object> groupJunction11 = new HashMap<>();
-		groupJunction11.put("id", 1);
-		groupJunction11.put("group_id", 1);
-		groupJunction11.put("reference_table", "person");
-		groupJunction11.put("reference_id", 1);
 		groupJunction11.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction11.get("id"), groupJunction11);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 1,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction2 = new HashMap<>();
-		groupJunction2.put("id", 2);
-		groupJunction2.put("group_id", 1);
-		groupJunction2.put("reference_table", "person");
-		groupJunction2.put("reference_id", 2);
 		groupJunction2.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction2.get("id"), groupJunction2);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 2,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction13 = new HashMap<>();
-		groupJunction13.put("id", 3);
-		groupJunction13.put("group_id", 2);
-		groupJunction13.put("reference_table", "person");
-		groupJunction13.put("reference_id", 1);
 		groupJunction13.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction13.get("id"), groupJunction13);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 1,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction3 = new HashMap<>();
-		groupJunction3.put("id", 4);
-		groupJunction3.put("group_id", 2);
-		groupJunction3.put("reference_table", "person");
-		groupJunction3.put("reference_id", 3);
 		groupJunction3.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 3,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction4 = new HashMap<>();
-		groupJunction4.put("id", 5);
-		groupJunction4.put("group_id", 1);
-		groupJunction4.put("reference_table", "person");
-		groupJunction4.put("reference_id", 4);
 		groupJunction4.put("role", "child");
-		groupJunctions.put((Integer)groupJunction4.get("id"), groupJunction4);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 4,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction5 = new HashMap<>();
-		groupJunction5.put("id", 6);
-		groupJunction5.put("group_id", 1);
-		groupJunction5.put("reference_table", "person");
-		groupJunction5.put("reference_id", 5);
 		groupJunction5.put("role", "child");
-		groupJunctions.put((Integer)groupJunction5.get("id"), groupJunction5);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 5,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction6 = new HashMap<>();
-		groupJunction6.put("id", 7);
-		groupJunction6.put("group_id", 1);
-		groupJunction6.put("reference_table", "person");
-		groupJunction6.put("reference_id", 6);
 		groupJunction6.put("role", "child");
-		groupJunctions.put((Integer)groupJunction6.get("id"), groupJunction6);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 6,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction7 = new HashMap<>();
-		groupJunction7.put("id", 8);
-		groupJunction7.put("group_id", 2);
-		groupJunction7.put("reference_table", "person");
-		groupJunction7.put("reference_id", 4);
 		groupJunction7.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction7.get("id"), groupJunction7);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 4,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction7, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
-		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
 		event1.put("type_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 5);
-		events.put((Integer)event1.get("id"), event1);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event1);
 
-		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
-		store.put("event_type", eventTypes);
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("type", "adoption");
 		eventType1.put("category", "adoption");
-		eventTypes.put((Integer)eventType1.get("id"), eventType1);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType1);
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
@@ -466,7 +424,7 @@ public class ChildrenPanel extends JPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final ChildrenPanel panel = create(store);
+			final ChildrenPanel panel = create();
 			panel.loadData(extractRecordID(group1));
 			panel.setPersonListener(personListener);
 
@@ -481,6 +439,8 @@ public class ChildrenPanel extends JPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

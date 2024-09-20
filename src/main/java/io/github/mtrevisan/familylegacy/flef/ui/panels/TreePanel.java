@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CitationDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CommonListDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.CulturalNormDialog;
@@ -140,18 +142,15 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	private Map<String, Object> partner1 = new HashMap<>(0);
 	private Map<String, Object> partner2 = new HashMap<>(0);
 	private final int generations;
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
 
-	public static TreePanel create(final int generations, final Map<String, TreeMap<Integer, Map<String, Object>>> store,
-			final Frame parentFrame){
-		return new TreePanel(generations, store, parentFrame);
+	public static TreePanel create(final int generations, final Frame parentFrame){
+		return new TreePanel(generations, parentFrame);
 	}
 
 
-	private TreePanel(final int generations, final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parentFrame){
+	private TreePanel(final int generations, final Frame parentFrame){
 		this.generations = generations;
-		this.store = store;
 
 
 		initComponents(parentFrame);
@@ -190,7 +189,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			}
 		});
 
-		searchDialog = SearchDialog.create(store, parentFrame)
+		searchDialog = SearchDialog.create(parentFrame)
 			.withLinkListener(TreePanel.this);
 		GUIHelper.addDoubleShiftListener(this, () -> {
 			searchDialog.loadData();
@@ -201,13 +200,13 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private void initComponents3Generations(){
-		partner1PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner1PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner1PartnersPanel);
-		partner2PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner2PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner2PartnersPanel);
-		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY, store);
+		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY);
 		EventBusService.subscribe(homeGroupPanel);
-		childrenPanel = ChildrenPanel.create(store);
+		childrenPanel = ChildrenPanel.create();
 //		navigationPanel = GenealogyNavigationPanel.create(this);
 		genealogyNavigation = new GenealogyNavigation();
 
@@ -245,21 +244,21 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private void initComponents4Generations(){
-		partner1Partner1Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner1Partner1Panel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner1Partner1Panel);
-		partner1Partner2Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner1Partner2Panel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner1Partner2Panel);
-		partner2Partner1Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner2Partner1Panel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner2Partner1Panel);
-		partner2Partner2Panel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner2Partner2Panel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner2Partner2Panel);
-		partner1PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner1PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner1PartnersPanel);
-		partner2PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY, store);
+		partner2PartnersPanel = GroupPanel.create(BoxPanelType.SECONDARY);
 		EventBusService.subscribe(partner2PartnersPanel);
-		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY, store);
+		homeGroupPanel = GroupPanel.create(BoxPanelType.PRIMARY);
 		EventBusService.subscribe(homeGroupPanel);
-		childrenPanel = ChildrenPanel.create(store);
+		childrenPanel = ChildrenPanel.create();
 //		navigationPanel = GenealogyNavigationPanel.create(this);
 		genealogyNavigation = new GenealogyNavigation();
 
@@ -336,10 +335,10 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object>[] extractChildren(final Integer unionID){
-		final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_NAME_PERSON);
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> EntityManager.NODE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
@@ -493,12 +492,11 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 	private <T> T extractData(final Integer referenceID, final Collection<String> eventTypes, final Comparator<LocalDate> comparator,
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
-		final Map<Integer, Map<String, Object>> calendars = getRecords(EntityManager.TABLE_NAME_CALENDAR);
-		return getRecords(EntityManager.TABLE_NAME_EVENT)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+		final Map<Integer, Map<String, Object>> storeEventTypes = Repository.findAllNavigable(EntityManager.NODE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_NAME_HISTORIC_DATE);
+		return Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
@@ -578,7 +576,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			}
 
 			if(partner1.isEmpty() || partner2.isEmpty()){
-				final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
+				final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_NAME_PERSON);
 
 				//extract the first two persons from the union:
 				if(!partner1.isEmpty())
@@ -661,9 +659,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
-		return new ArrayList<>(getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+		return new ArrayList<>(Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> EntityManager.NODE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
@@ -671,20 +669,20 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private void loadData(){
-		final Integer partner1ParentsID = extractParentsGroupID(partner1, store);
-		final Integer partner2ParentsID = extractParentsGroupID(partner2, store);
+		final Integer partner1ParentsID = extractParentsGroupID(partner1);
+		final Integer partner2ParentsID = extractParentsGroupID(partner2);
 		if(generations > 3){
 			final List<Integer> personIDsInGroup1 = getPartnerIDs(partner1ParentsID);
 			final int personInGroup1Count = personIDsInGroup1.size();
-			final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
+			final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_NAME_PERSON);
 			final Map<String, Object> partner1Partner1 = (personInGroup1Count > 0
 				? persons.get(personIDsInGroup1.get(0))
 				: Collections.emptyMap());
 			final Map<String, Object> partner1Partner2 = (personInGroup1Count > 1
 				? persons.get(personIDsInGroup1.get(1))
 				: Collections.emptyMap());
-			final Integer partner1Partner1ParentsID = extractParentsGroupID(partner1Partner1, store);
-			final Integer partner1Partner2ParentsID = extractParentsGroupID(partner1Partner2, store);
+			final Integer partner1Partner1ParentsID = extractParentsGroupID(partner1Partner1);
+			final Integer partner1Partner2ParentsID = extractParentsGroupID(partner1Partner2);
 
 			final List<Integer> personIDsInGroup2 = getPartnerIDs(partner2ParentsID);
 			final int personInGroup2Count = personIDsInGroup2.size();
@@ -694,8 +692,8 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			final Map<String, Object> partner2Partner2 = (personInGroup2Count > 1
 				? persons.get(personIDsInGroup2.get(1))
 				: Collections.emptyMap());
-			final Integer partner2Partner1ParentsID = extractParentsGroupID(partner2Partner1, store);
-			final Integer partner2Partner2ParentsID = extractParentsGroupID(partner2Partner2, store);
+			final Integer partner2Partner1ParentsID = extractParentsGroupID(partner2Partner1);
+			final Integer partner2Partner2ParentsID = extractParentsGroupID(partner2Partner2);
 
 			partner1Partner1Panel.loadData(partner1Partner1ParentsID);
 			partner1Partner1Panel.setVisible(partner1ParentsID != null);
@@ -733,7 +731,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 	public void refresh(){
 		final Integer homeUnionID = extractRecordID(homeUnion);
-		final Map<String, Object> union = (homeUnionID != null && !getRecords(EntityManager.TABLE_NAME_GROUP).containsKey(homeUnionID)
+		final Map<String, Object> union = (homeUnionID != null && Repository.findByID(EntityManager.NODE_NAME_GROUP, homeUnionID) != null
 			? Collections.emptyMap()
 			: homeUnion);
 		loadData(union, partner1, partner2);
@@ -744,15 +742,11 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		final Integer lastUnionID = genealogyNavigation.getLastUnionID();
 
 		Map<String, Object> lastPerson = Collections.emptyMap();
-		if(lastPersonID != null){
-			final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
-			lastPerson = persons.get(lastPersonID);
-		}
+		if(lastPersonID != null)
+			lastPerson = Repository.findByID(EntityManager.NODE_NAME_PERSON, lastPersonID);
 		Map<String, Object> lastUnion = Collections.emptyMap();
-		if(lastUnionID != null){
-			final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-			lastUnion = groups.get(lastUnionID);
-		}
+		if(lastUnionID != null)
+			lastUnion = Repository.findByID(EntityManager.NODE_NAME_GROUP, lastUnionID);
 		prepareData(lastUnion, lastPerson, Collections.emptyMap());
 
 		loadData();
@@ -764,13 +758,11 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 		switch(table){
 			case "person" -> {
-				final TreeMap<Integer, Map<String, Object>> persons = getRecords(EntityManager.TABLE_NAME_PERSON);
-				final Map<String, Object> person = persons.get(id);
+				final Map<String, Object> person = Repository.findByID(EntityManager.NODE_NAME_PERSON, id);
 				loadData(Collections.emptyMap(), person, Collections.emptyMap());
 			}
 			case "group" -> {
-				final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-				final Map<String, Object> union = groups.get(id);
+				final Map<String, Object> union = Repository.findByID(EntityManager.NODE_NAME_GROUP, id);
 				loadData(union, Collections.emptyMap(), Collections.emptyMap());
 			}
 		}
@@ -782,18 +774,18 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 		CommonListDialog recordDialog = null;
 		switch(table){
-			case "repository" -> recordDialog = RepositoryDialog.createEditOnly(store, null);
-			case "source" -> recordDialog = SourceDialog.createEditOnly(store, null);
-			case "citation" -> recordDialog = CitationDialog.createEditOnly(store, null);
-			case "place" -> recordDialog = PlaceDialog.createEditOnly(store, null);
-			case "media" -> recordDialog = MediaDialog.createEditOnly(store, null)
+			case "repository" -> recordDialog = RepositoryDialog.createEditOnly(null);
+			case "source" -> recordDialog = SourceDialog.createEditOnly(null);
+			case "citation" -> recordDialog = CitationDialog.createEditOnly(null);
+			case "place" -> recordDialog = PlaceDialog.createEditOnly(null);
+			case "media" -> recordDialog = MediaDialog.createEditOnly(null)
 				.withBasePath(FileHelper.documentsDirectory());
-			case "note" -> recordDialog = NoteDialog.createEditOnly(store, null);
-			case "person" -> recordDialog = PersonDialog.createEditOnly(store, null);
-			case "group" -> recordDialog = GroupDialog.createEditOnly(store, null);
-			case "event" -> recordDialog = EventDialog.createEditOnly(store, null);
-			case "cultural_norm" -> recordDialog = CulturalNormDialog.createEditOnly(store, null);
-			case "research_status" -> recordDialog = ResearchStatusDialog.createEditOnly(store, null);
+			case "note" -> recordDialog = NoteDialog.createEditOnly(null);
+			case "person" -> recordDialog = PersonDialog.createEditOnly(null);
+			case "group" -> recordDialog = GroupDialog.createEditOnly(null);
+			case "event" -> recordDialog = EventDialog.createEditOnly(null);
+			case "cultural_norm" -> recordDialog = CulturalNormDialog.createEditOnly(null);
+			case "research_status" -> recordDialog = ResearchStatusDialog.createEditOnly(null);
 		}
 		if(recordDialog != null){
 			recordDialog.loadData(id);
@@ -804,9 +796,9 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 
 	private List<Integer> getPartnerIDs(final Integer groupID){
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> EntityManager.NODE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
@@ -814,21 +806,20 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private List<Map<String, Object>> extractReferences(final String fromTable, final int personID, final String eventType){
-		return getRecords(fromTable)
-			.values().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
+		return Repository.findAll(fromTable)
+			.stream()
+			.filter(entry -> EntityManager.NODE_NAME_PERSON.equals(extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(eventType, extractRecordType(entry)))
 			.toList();
 	}
 
-	static Integer extractParentsGroupID(final Map<String, Object> child,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
+	static Integer extractParentsGroupID(final Map<String, Object> child){
 		Integer parentsGroupID = null;
 		if(!child.isEmpty()){
 			final Integer childID = extractRecordID(child);
 			//prefer biological family
-			final List<Integer> parentsIDs = getParentsIDs(childID, EntityManager.GROUP_ROLE_CHILD, store);
+			final List<Integer> parentsIDs = getParentsIDs(childID, EntityManager.GROUP_ROLE_CHILD);
 			if(parentsIDs.size() > 1)
 				LOGGER.warn("Person {} belongs to more than one parents (this cannot be), select the first and hope for the best", childID);
 
@@ -837,7 +828,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 				parentsGroupID = parentsID;
 			else{
 				//prefer first adopting family
-				final List<Integer> unionIDs = getParentsIDs(childID, EntityManager.GROUP_ROLE_ADOPTEE, store);
+				final List<Integer> unionIDs = getParentsIDs(childID, EntityManager.GROUP_ROLE_ADOPTEE);
 				if(!unionIDs.isEmpty())
 					parentsGroupID = unionIDs.getFirst();
 			}
@@ -855,10 +846,10 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	private List<Map<String, Object>> getGroupIDs(final Integer personID){
-		final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP, store);
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION, store)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+		final Map<Integer, Map<String, Object>> groups = Repository.findAllNavigable(EntityManager.NODE_NAME_GROUP);
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
@@ -866,28 +857,19 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			.toList();
 	}
 
-	private static List<Integer> getParentsIDs(final Integer personID, final String personRole,
-			final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION, store)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+	private static List<Integer> getParentsIDs(final Integer personID, final String personRole){
+		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
 			.filter(entry -> Objects.equals(personRole, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordGroupID)
 			.toList();
 	}
 
-	private static TreeMap<Integer, Map<String, Object>> getRecords(final String tableName, final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
-	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-	}
-
 	protected final TreeMap<Integer, Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
 		final Integer filterReferenceID){
-		return getRecords(tableName)
+		return Repository.findAllNavigable(tableName)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry.getValue())))
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry.getValue())))
@@ -904,105 +886,73 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
-		store.put("person", persons);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
-		persons.put((Integer)person1.get("id"), person1);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
 		final Map<String, Object> person2 = new HashMap<>();
 		person2.put("id", 2);
-		persons.put((Integer)person2.get("id"), person2);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person2);
 		final Map<String, Object> person3 = new HashMap<>();
 		person3.put("id", 3);
-		persons.put((Integer)person3.get("id"), person3);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person3);
 		final Map<String, Object> person4 = new HashMap<>();
 		person4.put("id", 4);
-		persons.put((Integer)person4.get("id"), person4);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person4);
 		final Map<String, Object> person5 = new HashMap<>();
 		person5.put("id", 5);
-		persons.put((Integer)person5.get("id"), person5);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person5);
 
-		final TreeMap<Integer, Map<String, Object>> groups = new TreeMap<>();
-		store.put("group", groups);
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("id", 1);
 		group1.put("type", "family");
-		groups.put((Integer)group1.get("id"), group1);
+		Repository.save(EntityManager.NODE_NAME_GROUP, group1);
 		final Map<String, Object> group2 = new HashMap<>();
 		group2.put("id", 2);
 		group2.put("type", "family");
-		groups.put((Integer)group2.get("id"), group2);
+		Repository.save(EntityManager.NODE_NAME_GROUP, group2);
 
-		final TreeMap<Integer, Map<String, Object>> groupJunctions = new TreeMap<>();
-		store.put("group_junction", groupJunctions);
 		final Map<String, Object> groupJunction11 = new HashMap<>();
-		groupJunction11.put("id", 1);
-		groupJunction11.put("group_id", 1);
-		groupJunction11.put("reference_table", "person");
-		groupJunction11.put("reference_id", 1);
 		groupJunction11.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction11.get("id"), groupJunction11);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 1,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction2 = new HashMap<>();
-		groupJunction2.put("id", 2);
-		groupJunction2.put("group_id", 1);
-		groupJunction2.put("reference_table", "person");
-		groupJunction2.put("reference_id", 2);
 		groupJunction2.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction2.get("id"), groupJunction2);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 2,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction13 = new HashMap<>();
-		groupJunction13.put("id", 3);
-		groupJunction13.put("group_id", 2);
-		groupJunction13.put("reference_table", "person");
-		groupJunction13.put("reference_id", 1);
 		groupJunction13.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction13.get("id"), groupJunction13);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 1,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction3 = new HashMap<>();
-		groupJunction3.put("id", 4);
-		groupJunction3.put("group_id", 2);
-		groupJunction3.put("reference_table", "person");
-		groupJunction3.put("reference_id", 3);
 		groupJunction3.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction3.get("id"), groupJunction3);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 3,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction4 = new HashMap<>();
-		groupJunction4.put("id", 5);
-		groupJunction4.put("group_id", 1);
-		groupJunction4.put("reference_table", "person");
-		groupJunction4.put("reference_id", 4);
 		groupJunction4.put("role", "child");
-		groupJunctions.put((Integer)groupJunction4.get("id"), groupJunction4);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 4,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction5 = new HashMap<>();
-		groupJunction5.put("id", 6);
-		groupJunction5.put("group_id", 1);
-		groupJunction5.put("reference_table", "person");
-		groupJunction5.put("reference_id", 5);
 		groupJunction5.put("role", "child");
-		groupJunctions.put((Integer)groupJunction5.get("id"), groupJunction5);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 5,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction6 = new HashMap<>();
-		groupJunction6.put("id", 7);
-		groupJunction6.put("group_id", 2);
-		groupJunction6.put("reference_table", "person");
-		groupJunction6.put("reference_id", 4);
 		groupJunction6.put("role", "partner");
-		groupJunctions.put((Integer)groupJunction6.get("id"), groupJunction6);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 4,
+			EntityManager.RELATIONSHIP_NAME_OF, groupJunction6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
-		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
 		event1.put("type_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 5);
-		events.put((Integer)event1.get("id"), event1);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event1);
 
-		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
-		store.put("event_type", eventTypes);
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("type", "adoption");
 		eventType1.put("category", "adoption");
-		eventTypes.put((Integer)eventType1.get("id"), eventType1);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType1);
 
 		final GroupListenerInterface unionListener = new GroupListenerInterface(){
 			@Override
@@ -1112,7 +1062,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 
 
 		EventQueue.invokeLater(() -> {
-			final TreePanel panel = create(4, store, null);
+			final TreePanel panel = create(4, null);
 			panel.loadDataFromUnion(group1);
 			panel.setUnionListener(unionListener);
 			panel.setPersonListener(personListener);
@@ -1128,6 +1078,8 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

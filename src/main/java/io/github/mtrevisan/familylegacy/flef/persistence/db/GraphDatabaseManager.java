@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
+import io.github.mtrevisan.familylegacy.flef.helpers.JavaHelper;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
@@ -37,7 +39,6 @@ import org.neo4j.graphdb.ResourceIterator;
 import org.neo4j.graphdb.Result;
 import org.neo4j.graphdb.Transaction;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayDeque;
@@ -47,31 +48,38 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.Objects;
+import java.util.StringJoiner;
+import java.util.TreeMap;
+
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 
 
-//https://www.tutorialspoint.com/sql/sql-backup-database.htm
-//https://www.postgresql.org/docs/current/sql-createtable.html
-//https://neo4j.com/docs/java-manual/current/
-//https://neo4j.com/docs/getting-started/languages-guides/java/neo4j-ogm/
-//https://neo4j.com/docs/ogm-manual/current/tutorial/
-//https://neo4j.com/docs/java-reference/current/java-embedded/setup/
 public class GraphDatabaseManager{
 
 	public enum OnDeleteType{CASCADE, RELATIONSHIP_ONLY, RESTRICT}
 
-	private static final String PROPERTY_ON_DELETE = "___onDelete__";
+	private static final String PROPERTY_ON_DELETE = "onDelete";
+	private static final String PROPERTY_ON_DELETE_START = "onDeleteStart";
+	private static final String PROPERTY_ON_DELETE_END = "onDeleteEnd";
+	private static final String QUERY_COUNT_PARAMETER = "nodeCount";
+	private static final String QUERY_COUNT = "MATCH (n:{}) RETURN COUNT(n) AS " + QUERY_COUNT_PARAMETER;
 
 
 	private static GraphDatabaseService graphDB;
 
 
-	public static Transaction getTransaction(){
+	private GraphDatabaseManager(){}
+
+
+	static Transaction getTransaction(){
 		if(graphDB == null){
-			final Path path = new File("genealogy_db")
-				.toPath();
+			final Path path = Path.of("genealogy_db");
 			final DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(path)
 				.setConfig(GraphDatabaseSettings.transaction_timeout, Duration.ofSeconds(60))
 				.setConfig(GraphDatabaseSettings.preallocate_logical_logs, true)
+				.setConfig(GraphDatabaseSettings.pagecache_buffered_flush_enabled, true)
 				.build();
 			Runtime.getRuntime()
 				.addShutdownHook(new Thread(managementService::shutdown));
@@ -91,6 +99,18 @@ public class GraphDatabaseManager{
 		}
 	}
 
+
+	public static int count(final String tableName){
+		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
+			final Result result = tx.execute(JavaHelper.textFormat(QUERY_COUNT, tableName));
+
+			return (result.hasNext()
+				? ((Number)result.next().get(QUERY_COUNT_PARAMETER)).intValue()
+				: 0);
+		}
+	}
+
+
 	public static void insert(final String tableName, final Map<String, Object> record){
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
 			final Node node = tx.createNode(Label.label(tableName));
@@ -103,12 +123,12 @@ public class GraphDatabaseManager{
 
 	public static void update(final String tableName, final String primaryColumnName, final Map<String, Object> record)
 			throws StoreException{
-		final Object nodeID = record.get(primaryColumnName);
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
+			final Object nodeID = record.get(primaryColumnName);
 			final Node node = tx.findNode(Label.label(tableName), primaryColumnName, nodeID);
 			if(node == null)
-				throw StoreException.create("Node with " + primaryColumnName.toUpperCase(Locale.ROOT) + " " + nodeID
-					+ " not found in " + tableName.toUpperCase(Locale.ROOT));
+				throw StoreException.create("Node with {} {} not found in {}", primaryColumnName.toUpperCase(Locale.ROOT), nodeID,
+					tableName.toUpperCase(Locale.ROOT));
 
 			for(final Map.Entry<String, Object> entry : record.entrySet())
 				node.setProperty(entry.getKey(), entry.getValue());
@@ -117,17 +137,43 @@ public class GraphDatabaseManager{
 		}
 	}
 
-	public static Map<String, Object> findBy(final String tableName, final String primaryPropertyName, final Object nodeID){
+	public static Map<String, Object> findBy(final String tableName, final String primaryPropertyName, final Object propertyValue){
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
-			final Node node = tx.findNode(Label.label(tableName), primaryPropertyName, nodeID);
-			return node.getAllProperties();
+			final Node node = tx.findNode(Label.label(tableName), primaryPropertyName, propertyValue);
+			return (node != null? node.getAllProperties(): null);
+		}
+	}
+
+	public static List<Map<String, Object>> findAll(final String tableName){
+		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
+			final ResourceIterator<Node> itr = tx.findNodes(Label.label(tableName));
+
+			final List<Map<String, Object>> records = new ArrayList<>(0);
+			while(itr.hasNext())
+				records.add(itr.next().getAllProperties());
+			return records;
+		}
+	}
+
+	//FIXME to be removed?
+	public static NavigableMap<Integer, Map<String, Object>> findAllNavigable(final String tableName){
+		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
+			final ResourceIterator<Node> itr = tx.findNodes(Label.label(tableName));
+
+			final NavigableMap<Integer, Map<String, Object>> records = new TreeMap<>();;
+			while(itr.hasNext()){
+				final Map<String, Object> record = itr.next().getAllProperties();
+				records.put(extractRecordID(record), record);
+			}
+			return records;
 		}
 	}
 
 	public static List<Map<String, Object>> findAllBy(final String tableName, final String propertyName, final Object propertyValue){
-		final List<Map<String, Object>> records = new ArrayList<>(0);
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
 			final ResourceIterator<Node> itr = tx.findNodes(Label.label(tableName), propertyName, propertyValue);
+
+			final List<Map<String, Object>> records = new ArrayList<>(0);
 			while(itr.hasNext())
 				records.add(itr.next().getAllProperties());
 			return records;
@@ -138,8 +184,8 @@ public class GraphDatabaseManager{
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
 			final Node node = tx.findNode(Label.label(tableName), primaryPropertyName, nodeID);
 			if(node == null)
-				throw StoreException.create("Node with " + primaryPropertyName.toUpperCase(Locale.ROOT) + " " + nodeID
-					+ " not found in " + tableName);
+				throw StoreException.create("Node with {} {} not found in {}", primaryPropertyName.toUpperCase(Locale.ROOT), nodeID,
+					tableName.toUpperCase(Locale.ROOT));
 
 			final Deque<Node> nodesToDelete = new ArrayDeque<>();
 			nodesToDelete.push(node);
@@ -149,8 +195,13 @@ public class GraphDatabaseManager{
 					final Node otherNode = relationship.getOtherNode(currentNode);
 
 					if(otherNode != null && otherNode != currentNode){
-						final OnDeleteType onDelete = (relationship.hasProperty(PROPERTY_ON_DELETE)
-							? OnDeleteType.valueOf((String)relationship.getProperty(PROPERTY_ON_DELETE))
+						String onDeletePropertyName = (relationship.getStartNode().equals(currentNode)
+							? PROPERTY_ON_DELETE_START
+							: PROPERTY_ON_DELETE_END);
+						if(!relationship.hasProperty(onDeletePropertyName))
+							onDeletePropertyName = PROPERTY_ON_DELETE;
+						final OnDeleteType onDelete = (relationship.hasProperty(onDeletePropertyName)
+							? OnDeleteType.valueOf((String)relationship.getProperty(onDeletePropertyName))
 							: OnDeleteType.RESTRICT);
 						switch(onDelete){
 							case CASCADE -> nodesToDelete.push(otherNode);
@@ -159,7 +210,7 @@ public class GraphDatabaseManager{
 								//produce an error indicating that the deletion would create a foreign key constraint violation (this is the
 								// default action)
 								throw StoreException.create("Cannot remove node, there's a reference to it from node with {} {}, relation {} ",
-									primaryPropertyName.toUpperCase(Locale.ROOT), nodeID, relationship);
+									primaryPropertyName.toUpperCase(Locale.ROOT), nodeID, relationship.toString().toUpperCase(Locale.ROOT));
 						}
 					}
 
@@ -176,16 +227,17 @@ public class GraphDatabaseManager{
 
 	public static void upsertRelationship(final String tableNameStart, final String primaryPropertyNameStart, final Object nodeIDStart,
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
-			final String relationshipName, final Map<String, Object> record, final OnDeleteType onDelete) throws StoreException{
+			final String relationshipName, final Map<String, Object> record, final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd)
+			throws StoreException{
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
 			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
 			if(nodeStart == null)
 				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
-					nodeIDStart, tableNameStart);
+					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
 			final Node nodeEnd = tx.findNode(Label.label(tableNameEnd), primaryPropertyNameEnd, nodeIDEnd);
 			if(nodeEnd == null)
 				throw StoreException.create("End node with {} {} not found in {}", primaryPropertyNameEnd.toUpperCase(Locale.ROOT),
-					nodeIDEnd, tableNameEnd);
+					nodeIDEnd, tableNameEnd.toUpperCase(Locale.ROOT));
 
 			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
 			final boolean hasRelationships = relationships.iterator()
@@ -193,7 +245,7 @@ public class GraphDatabaseManager{
 			final Relationship relationship = (hasRelationships
 				? findRelationship(relationships, nodeEnd)
 				: nodeStart.createRelationshipTo(nodeEnd, RelationshipType.withName(relationshipName)));
-			setRelationshipProperties(relationship, record, onDelete);
+			setRelationshipProperties(relationship, record, onDeleteStart, onDeleteEnd);
 
 			tx.commit();
 		}
@@ -207,10 +259,15 @@ public class GraphDatabaseManager{
 	}
 
 	private static void setRelationshipProperties(final Relationship relationship, final Map<String, Object> record,
-			final OnDeleteType onDelete){
+			final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd){
 		if(relationship != null){
 			final Map<String, Object> rec = (record == null? new HashMap<>(1): new HashMap<>(record));
-			rec.put(PROPERTY_ON_DELETE, onDelete.toString());
+			if(Objects.equals(onDeleteStart, onDeleteEnd))
+				rec.put(PROPERTY_ON_DELETE, onDeleteStart.toString());
+			else{
+				rec.put(PROPERTY_ON_DELETE_START, onDeleteStart.toString());
+				rec.put(PROPERTY_ON_DELETE_END, onDeleteEnd.toString());
+			}
 			for(final Map.Entry<String, Object> entry : rec.entrySet())
 				relationship.setProperty(entry.getKey(), entry.getValue());
 		}
@@ -218,18 +275,22 @@ public class GraphDatabaseManager{
 
 	public static boolean deleteRelationship(final String tableNameStart, final String primaryPropertyNameStart, final Object nodeIDStart,
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
-			final String relationshipName) throws StoreException{
+			final String relationshipName){
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
 			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
 			if(nodeStart == null)
-				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
-					nodeIDStart, tableNameStart);
+//				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
+//					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
+				return false;
 			final Node nodeEnd = tx.findNode(Label.label(tableNameEnd), primaryPropertyNameEnd, nodeIDEnd);
 			if(nodeEnd == null)
-				throw StoreException.create("End node with {} {} not found in {}", primaryPropertyNameEnd.toUpperCase(Locale.ROOT),
-					nodeIDEnd, tableNameEnd);
+//				throw StoreException.create("End node with {} {} not found in {}", primaryPropertyNameEnd.toUpperCase(Locale.ROOT),
+//					nodeIDEnd, tableNameEnd.toUpperCase(Locale.ROOT));
+				return false;
 
-			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
+			final ResourceIterable<Relationship> relationships = (relationshipName != null
+				? nodeStart.getRelationships(RelationshipType.withName(relationshipName))
+				: nodeStart.getRelationships());
 			final boolean hasRelationships = relationships.iterator()
 				.hasNext();
 			for(final Relationship relationship : relationships)
@@ -248,19 +309,18 @@ public class GraphDatabaseManager{
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
 			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
 			if(nodeStart == null)
-				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
-					nodeIDStart, tableNameStart);
+//				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
+//					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
+				return null;
 
 			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
 			if(relationships.stream().count() > 1)
-				throw StoreException.create("More than one node found");
+				throw StoreException.create("More than one node found from {} {} with relationship {}",
+					primaryPropertyNameStart.toUpperCase(Locale.ROOT), nodeIDStart, relationshipName.toUpperCase(Locale.ROOT));
 			Map<String, Object> otherRecord = null;
 			for(final Relationship relationship : relationships)
 				otherRecord = relationship.getEndNode()
 					.getAllProperties();
-
-			tx.commit();
-
 			return otherRecord;
 		}
 	}
@@ -270,8 +330,9 @@ public class GraphDatabaseManager{
 		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
 			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
 			if(nodeStart == null)
-				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
-					nodeIDStart, tableNameStart);
+//				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
+//					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
+				return null;
 
 			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
 			if(relationships.stream().count() > 1)
@@ -281,104 +342,25 @@ public class GraphDatabaseManager{
 				if(relationship.getProperty(propertyName).equals(propertyValue))
 					otherRecord = relationship.getEndNode()
 						.getAllProperties();
-
-			tx.commit();
-
 			return otherRecord;
 		}
 	}
 
 
-	public static void main(String[] args) throws StoreException{
-		GraphDatabaseManager.clearDatabase();
+	public static String logDatabase(){
+		try(final Transaction tx = GraphDatabaseManager.getTransaction()){
+			final StringJoiner sj = new StringJoiner("\n");
+			Result result = tx.execute("MATCH (n) RETURN n");
+			while(result.hasNext())
+				sj.add(result.next().get("n").toString());
 
-		Map<String, Object> carRecord = new HashMap<>(3);
-		carRecord.put("id", 1);
-		carRecord.put("make", "tesla");
-		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert("Car", carRecord);
+			sj.add(StringUtils.EMPTY);
 
-		carRecord.put("model", "model4");
-		GraphDatabaseManager.update("Car", "id", carRecord);
+			result = tx.execute("MATCH ()-[r]->() RETURN r");
+			while(result.hasNext())
+				sj.add(result.next().get("r").toString());
 
-		Map<String, Object> ownerRecord = new HashMap<>(3);
-		ownerRecord.put("id", 2);
-		ownerRecord.put("firstName", "baeldung");
-		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert("Person", ownerRecord);
-
-		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", 1);
-		Map<String, Object> carTesla = GraphDatabaseManager.findBy("Car", "id", 1);
-
-		Map<String, Object> relationshipRecord = new HashMap<>(1);
-		relationshipRecord.put("licenseID", 12345);
-		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
-			"Car", "id", 1,
-			"owner", relationshipRecord, OnDeleteType.CASCADE);
-
-		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", 2,
-			"Car", "id", 1,
-			"owner");
-
-		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
-			"Car", "id", 1,
-			"owner", relationshipRecord, OnDeleteType.CASCADE);
-
-		GraphDatabaseManager.findOtherRecord("Person", "id", 2,
-			"owner");
-		GraphDatabaseManager.findOtherRecord("Person", "id", 2,
-			"owner", "licenseID", 12345);
-
-		try(final Transaction tx = getTransaction()){
-			final Result result = tx.execute(
-				"MATCH (c:Car) <-[owner]- (p:Person) "
-					+ "WHERE c.make = 'tesla'"
-					+ "RETURN p.firstName, p.lastName");
-			while(result.hasNext()){
-				final Map<String, Object> row = result.next();
-				System.out.println("First Name: " + row.get("p.firstName"));
-				System.out.println("Last Name: " + row.get("p.lastName"));
-			}
-
-			tx.commit();
-		}
-
-		try(Transaction tx = GraphDatabaseManager.getTransaction()){
-			Result nodeCountResult = tx.execute("MATCH (n) RETURN count(n) AS nodeCount");
-			Object nodeCount = nodeCountResult.stream().iterator().next().get("nodeCount");
-
-			Result res2 = tx.execute("MATCH ()-[r]-() RETURN r");
-			while(res2.hasNext()){
-				final Object row = res2.next();
-				System.out.println("First Name: " + row);
-			}
-			Result relationshipCountResult = tx.execute("MATCH ()-[r]-() RETURN count(r) AS relationshipCount");
-			Object relationshipCount = relationshipCountResult.stream().iterator().next().get("relationshipCount");
-
-			System.out.println(nodeCount + "/" + relationshipCount);
-			tx.commit();
-		}
-
-//		GraphDatabaseManager.deleteRelationship("Person", "id", 2,
-//			"Car", "id", 1,
-//			"owner");
-
-		GraphDatabaseManager.delete("Car", "id", 1);
-
-		try(Transaction tx = GraphDatabaseManager.getTransaction()){
-			Result nodeCountResult = tx.execute("MATCH (n) RETURN count(n) AS nodeCount");
-			Object nodeCount = nodeCountResult.stream().iterator().next().get("nodeCount");
-
-			Result res2 = tx.execute("MATCH ()-[r]-() RETURN r");
-			while(res2.hasNext()){
-				final Object row = res2.next();
-				System.out.println("First Name: " + row);
-			}
-			Result relationshipCountResult = tx.execute("MATCH ()-[r]-() RETURN count(r) AS relationshipCount");
-			Object relationshipCount = relationshipCountResult.stream().iterator().next().get("relationshipCount");
-
-			System.out.println(nodeCount + "/" + relationshipCount);
-			tx.commit();
+			return sj.toString();
 		}
 	}
 

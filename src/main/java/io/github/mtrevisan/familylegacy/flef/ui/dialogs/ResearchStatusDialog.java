@@ -24,10 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -56,7 +55,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DocumentFilter;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -64,8 +62,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCreationDate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
@@ -98,23 +95,23 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	private final JTextField priorityField = new JTextField();
 
 
-	public static ResearchStatusDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+	public static ResearchStatusDialog create(final Frame parent){
+		final ResearchStatusDialog dialog = new ResearchStatusDialog(parent);
 		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static ResearchStatusDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+	public static ResearchStatusDialog createSelectOnly(final Frame parent){
+		final ResearchStatusDialog dialog = new ResearchStatusDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static ResearchStatusDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+	public static ResearchStatusDialog createShowOnly(final Frame parent){
+		final ResearchStatusDialog dialog = new ResearchStatusDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.showRecordResearchStatus = false;
@@ -122,8 +119,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static ResearchStatusDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final ResearchStatusDialog dialog = new ResearchStatusDialog(store, parent);
+	public static ResearchStatusDialog createEditOnly(final Frame parent){
+		final ResearchStatusDialog dialog = new ResearchStatusDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
@@ -131,12 +128,12 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	}
 
 
-	private ResearchStatusDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private ResearchStatusDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public ResearchStatusDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public ResearchStatusDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -144,7 +141,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_RESEARCH_STATUS;
+		return EntityManager.NODE_NAME_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -207,7 +204,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_RESEARCH_STATUS);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_RESEARCH_STATUS);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -355,30 +352,18 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
-		store.put("research_status", researchStatuses);
-		final Map<String, Object> researchStatus = new HashMap<>();
-		researchStatus.put("id", 1);
-		researchStatus.put("reference_table", "date");
-		researchStatus.put("reference_id", 1);
-		researchStatus.put("identifier", "research 1");
-		researchStatus.put("description", "see people, do things");
-		researchStatus.put("status", "open");
-		researchStatus.put("priority", 2);
-		researchStatus.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		GraphDatabaseManager.clearDatabase();
+		final Map<String, Object> researchStatus1 = new HashMap<>();
+		researchStatus1.put("id", 1);
+		researchStatus1.put("reference_table", "date");
+		researchStatus1.put("reference_id", 1);
+		researchStatus1.put("identifier", "research 1");
+		researchStatus1.put("description", "see people, do things");
+		researchStatus1.put("status", "open");
+		researchStatus1.put("priority", 2);
+		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -395,17 +380,17 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			};
 			EventBusService.subscribe(listener);
 
-			final ResearchStatusDialog dialog = create(store, parent);
-//			final ResearchStatusDialog dialog = createRecordOnly(store, parent);
-			injector.injectDependencies(dialog);
+			final ResearchStatusDialog dialog = create(parent);
+//			final ResearchStatusDialog dialog = createRecordOnly(parent);
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(researchStatus)))
+			if(!dialog.selectData(extractRecordID(researchStatus1)))
 				dialog.showNewRecord();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

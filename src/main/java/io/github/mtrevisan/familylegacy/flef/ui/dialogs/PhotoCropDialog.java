@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
@@ -36,6 +38,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ScaledImage;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.imageio.ImageIO;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -47,13 +50,16 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
+
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 
 
 public final class PhotoCropDialog extends JDialog{
@@ -67,33 +73,31 @@ public final class PhotoCropDialog extends JDialog{
 
 	private ScaledImage imageHolder;
 
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 	private Map<String, Object> selectedRecord;
+	private Integer selectedRecordID;
 
-	private Consumer<Map<String, Object>> onCloseGracefully;
+	private BiConsumer<Map<String, Object>, Integer> onCloseGracefully;
 
 
-	public static PhotoCropDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PhotoCropDialog dialog = new PhotoCropDialog(store, parent);
+	public static PhotoCropDialog create(final Frame parent){
+		final PhotoCropDialog dialog = new PhotoCropDialog(parent);
 		dialog.initialize(false);
 		return dialog;
 	}
 
-	public static PhotoCropDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PhotoCropDialog dialog = new PhotoCropDialog(store, parent);
+	public static PhotoCropDialog createSelectOnly(final Frame parent){
+		final PhotoCropDialog dialog = new PhotoCropDialog(parent);
 		dialog.initialize(true);
 		return dialog;
 	}
 
 
-	private PhotoCropDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	private PhotoCropDialog(final Frame parent){
 		super(parent, true);
-
-		this.store = store;
 	}
 
 
-	public PhotoCropDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public PhotoCropDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 
 		return this;
@@ -136,19 +140,29 @@ public final class PhotoCropDialog extends JDialog{
 
 	private boolean closeAction(){
 		if(onCloseGracefully != null)
-			onCloseGracefully.accept(selectedRecord);
+			onCloseGracefully.accept(selectedRecord, selectedRecordID);
 
 		return true;
 	}
 
 	public void loadData(final int photoID, final String photoCrop) throws IOException{
-		final Map<String, Object> record = store.get(EntityManager.TABLE_NAME_MEDIA)
-			.get(photoID);
+		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_NAME_MEDIA, photoID);
 		selectedRecord = (record != null? new HashMap<>(record): null);
+		selectedRecordID = extractRecordID(record);
 		if(selectedRecord != null){
-			final String filePath = EntityManager.extractRecordIdentifier(selectedRecord);
+			final byte[] payload = EntityManager.extractRecordPayload(selectedRecord);
+			if(payload == null || payload.length == 0){
+				final String filePath = EntityManager.extractRecordIdentifier(selectedRecord);
 
-			loadData(filePath);
+				loadData(filePath);
+			}
+			else{
+				//load image from payload
+				final ByteArrayInputStream bais = new ByteArrayInputStream(payload);
+         	final BufferedImage image = ImageIO.read(bais);
+
+				loadData(image);
+			}
 
 			if(photoCrop != null){
 				//draw crop box
@@ -169,7 +183,11 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 	public void loadData(final File file) throws IOException{
-		imageHolder.setRectangularImage(ResourceHelper.readImage(file));
+		loadData(ResourceHelper.readImage(file));
+	}
+
+	public void loadData(final BufferedImage image) throws IOException{
+		imageHolder.setRectangularImage(image);
 	}
 
 	public Rectangle getCrop(){
@@ -190,23 +208,20 @@ public final class PhotoCropDialog extends JDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		media.put((Integer)media1.get("id"), media1);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final PhotoCropDialog dialog = create(store, parent);
-//			final PhotoCropDialog dialog = createSelectOnly(store, parent);
+			final PhotoCropDialog dialog = create(parent);
+//			final PhotoCropDialog dialog = createSelectOnly(parent);
 			try{
 				dialog.loadData("/images/addPhoto.boy.jpg");
 			}
@@ -229,7 +244,8 @@ public final class PhotoCropDialog extends JDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

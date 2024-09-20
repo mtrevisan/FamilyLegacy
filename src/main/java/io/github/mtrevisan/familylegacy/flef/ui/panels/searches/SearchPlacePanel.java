@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -47,9 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.function.Function;
 
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
@@ -76,13 +78,13 @@ public class SearchPlacePanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_TYPE = 180;
 
 
-	public static SearchPlacePanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchPlacePanel(store);
+	public static SearchPlacePanel create(){
+		return new SearchPlacePanel();
 	}
 
 
-	private SearchPlacePanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private SearchPlacePanel(){
+		super();
 
 
 		initComponents();
@@ -98,7 +100,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.TABLE_NAME_PLACE;
+		return EntityManager.NODE_NAME_PLACE;
 	}
 
 	@Override
@@ -125,23 +127,21 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_PLACE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
-
-			final String identifier = extractRecordIdentifier(container);
-			final String name = extractRecordName(container);
-			final String nameLocale = extractRecordLocale(container);
-			final List<Map<String, Object>> transcribedNames = extractReferences(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
-				key, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
-			final String type = extractRecordType(container);
+		for(final Map<String, Object> record : records){
+			final Integer recordID = extractRecordID(record);
+			final String identifier = extractRecordIdentifier(record);
+			final String name = extractRecordName(record);
+			final String nameLocale = extractRecordLocale(record);
+			final List<Map<String, Object>> transcribedNames = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
+				recordID, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+			final String type = extractRecordType(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier)
 				.add(name)
 				.add(nameLocale);
@@ -150,13 +150,13 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			filter.add(type);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 			model.setValueAt(name, row, TABLE_INDEX_NAME);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
-			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_PLACE, filterData, name));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_PLACE, filterData, name));
 
 			row ++;
 		}
@@ -166,16 +166,18 @@ public class SearchPlacePanel extends CommonSearchPanel{
 	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final NavigableMap<Integer, Map<String, Object>> localizedTexts = getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT);
-		final NavigableMap<Integer, Map<String, Object>> records = getRecords(fromTable);
-		records.forEach((key, value) -> {
-			if(((filter == null || Objects.equals(filterValue, filter.apply(value)))
-					&& EntityManager.TABLE_NAME_PLACE.equals(extractRecordReferenceTable(value))
-					&& Objects.equals(selectedRecordID, extractRecordReferenceID(value)))){
-				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(value));
+		final NavigableMap<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_NAME_LOCALIZED_TEXT);
+		final List<Map<String, Object>> records = Repository.findAll(fromTable);
+		for(int i = 0, length = records.size(); i < length; i ++){
+			final Map<String, Object> record = records.get(i);
+
+			if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
+					&& EntityManager.NODE_NAME_PLACE.equals(extractRecordReferenceTable(record))
+					&& Objects.equals(selectedRecordID, extractRecordReferenceID(record)))){
+				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(record));
 				matchedRecords.add(localizedText);
 			}
-		});
+		}
 		return matchedRecords;
 	}
 
@@ -189,10 +191,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
-		store.put("source", sources);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> source1 = new HashMap<>();
 		source1.put("id", 1);
 		source1.put("identifier", "source 1");
@@ -201,25 +200,21 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		source1.put("place_id", 1);
 		source1.put("date_id", 1);
 		source1.put("location", "location 1");
-		sources.put((Integer)source1.get("id"), source1);
+		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("id", 2);
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2");
 		source2.put("location", "location 2");
-		sources.put((Integer)source2.get("id"), source2);
+		Repository.save(EntityManager.NODE_NAME_SOURCE, source2);
 
-		final TreeMap<Integer, Map<String, Object>> repositories = new TreeMap<>();
-		store.put("repository", repositories);
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		repositories.put((Integer)repository1.get("id"), repository1);
+		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
 
-		final TreeMap<Integer, Map<String, Object>> historicDates = new TreeMap<>();
-		store.put("historic_date", historicDates);
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
@@ -227,10 +222,8 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
+		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
 
-		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
-		store.put("place", places);
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place");
@@ -240,7 +233,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		places.put((Integer)place1.get("id"), place1);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -256,7 +249,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final SearchPlacePanel panel = create(store);
+			final SearchPlacePanel panel = create();
 			panel.setLinkListener(linkListener);
 			panel.loadData();
 
@@ -269,6 +262,8 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

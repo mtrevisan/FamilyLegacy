@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -42,10 +44,11 @@ import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPriority;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordStatus;
@@ -67,13 +70,13 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_PRIORITY = 43;
 
 
-	public static SearchResearchStatusPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchResearchStatusPanel(store);
+	public static SearchResearchStatusPanel create(){
+		return new SearchResearchStatusPanel();
 	}
 
 
-	private SearchResearchStatusPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private SearchResearchStatusPanel(){
+		super();
 
 
 		initComponents();
@@ -89,7 +92,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.TABLE_NAME_RESEARCH_STATUS;
+		return EntityManager.NODE_NAME_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -116,35 +119,34 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_RESEARCH_STATUS);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_RESEARCH_STATUS);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
+		for(final Map<String, Object> record : records){
 
-			final String identifier = extractRecordIdentifier(container);
-			final String description = extractRecordDescription(container);
-			final String status = extractRecordStatus(container);
-			final Integer priority = extractRecordPriority(container);
+			final Integer recordID = extractRecordID(record);
+			final String identifier = extractRecordIdentifier(record);
+			final String description = extractRecordDescription(record);
+			final String status = extractRecordStatus(record);
+			final Integer priority = extractRecordPriority(record);
 			final FilterString filter = FilterString.create()
-				.add(key)
+				.add(recordID)
 				.add(identifier)
 				.add(description)
 				.add(status)
 				.add(priority);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
 			model.setValueAt(description, row, TABLE_INDEX_DESCRIPTION);
 			model.setValueAt(status, row, TABLE_INDEX_STATUS);
 			model.setValueAt((priority != null? String.valueOf(priority): null), row, TABLE_INDEX_PRIORITY);
 
-			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_RESEARCH_STATUS, filterData, identifier));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_RESEARCH_STATUS, filterData, identifier));
 
 			row ++;
 		}
@@ -159,19 +161,15 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
-		store.put("research_status", researchStatuses);
-		final Map<String, Object> researchStatus = new HashMap<>();
-		researchStatus.put("id", 1);
-		researchStatus.put("reference_table", "date");
-		researchStatus.put("reference_id", 1);
-		researchStatus.put("identifier", "research 1");
-		researchStatus.put("description", "see people, do things");
-		researchStatus.put("status", "open");
-		researchStatus.put("priority", 2);
-		researchStatuses.put((Integer)researchStatus.get("id"), researchStatus);
+		GraphDatabaseManager.clearDatabase();
+		final Map<String, Object> researchStatus1 = new HashMap<>();
+		researchStatus1.put("reference_table", "date");
+		researchStatus1.put("reference_id", 1);
+		researchStatus1.put("identifier", "research 1");
+		researchStatus1.put("description", "see people, do things");
+		researchStatus1.put("status", "open");
+		researchStatus1.put("priority", 2);
+		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -187,7 +185,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final SearchResearchStatusPanel panel = create(store);
+			final SearchResearchStatusPanel panel = create();
 			panel.setLinkListener(linkListener);
 			panel.loadData();
 
@@ -200,6 +198,8 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

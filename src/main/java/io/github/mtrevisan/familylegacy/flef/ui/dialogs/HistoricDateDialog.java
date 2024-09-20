@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CertaintyComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
@@ -55,15 +54,13 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
@@ -105,22 +102,22 @@ public final class HistoricDateDialog extends CommonListDialog{
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 
-	public static HistoricDateDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+	public static HistoricDateDialog create(final Frame parent){
+		final HistoricDateDialog dialog = new HistoricDateDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static HistoricDateDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+	public static HistoricDateDialog createSelectOnly(final Frame parent){
+		final HistoricDateDialog dialog = new HistoricDateDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.calendarOriginalButton, dialog.noteButton, dialog.assertionButton);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static HistoricDateDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final HistoricDateDialog dialog = new HistoricDateDialog(store, parent);
+	public static HistoricDateDialog createRecordOnly(final Frame parent){
+		final HistoricDateDialog dialog = new HistoricDateDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
@@ -128,12 +125,12 @@ public final class HistoricDateDialog extends CommonListDialog{
 	}
 
 
-	private HistoricDateDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private HistoricDateDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public HistoricDateDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public HistoricDateDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -141,7 +138,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_HISTORIC_DATE;
+		return EntityManager.NODE_NAME_HISTORIC_DATE;
 	}
 
 	@Override
@@ -182,7 +179,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		calendarOriginalButton.setToolTipText("Calendar original");
 		calendarOriginalButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.TABLE_NAME_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.NODE_NAME_HISTORIC_DATE, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 
@@ -191,11 +188,11 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_HISTORIC_DATE, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_HISTORIC_DATE, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -227,7 +224,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_HISTORIC_DATE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -270,21 +267,21 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -370,10 +367,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> historicDates = new TreeMap<>();
-		store.put("historic_date", historicDates);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
@@ -381,63 +376,46 @@ public final class HistoricDateDialog extends CommonListDialog{
 		historicDate1.put("calendar_original_id", 2);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
+		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
 
-		final TreeMap<Integer, Map<String, Object>> calendars = new TreeMap<>();
-		store.put("calendar", calendars);
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
-		calendars.put((Integer)calendar1.get("id"), calendar1);
+		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar1);
 		final Map<String, Object> calendar2 = new HashMap<>();
 		calendar2.put("id", 2);
 		calendar2.put("type", "julian");
-		calendars.put((Integer)calendar2.get("id"), calendar2);
+		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar2);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("id", 3);
 		calendar3.put("type", "venetan");
-		calendars.put((Integer)calendar3.get("id"), calendar3);
+		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar3);
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "historic_date");
 		note2.put("reference_id", 1);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
-		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "historic_date");
 		restriction1.put("reference_id", 1);
-		restrictions.put((Integer)restriction1.get("id"), restriction1);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final HistoricDateDialog dialog = create(store, parent);
-//			final HistoricDateDialog dialog = createRecordOnly(store, parent);
-			injector.injectDependencies(dialog);
+			final HistoricDateDialog dialog = create(parent);
+//			final HistoricDateDialog dialog = createRecordOnly(parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(historicDate1)))
 				dialog.showNewRecord();
@@ -456,18 +434,16 @@ public final class HistoricDateDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(store, parent)
-									: AssertionDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_HISTORIC_DATE, historicDateID);
-							injector.injectDependencies(assertionDialog);
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_HISTORIC_DATE, historicDateID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case CALENDAR_ORIGINAL -> {
-							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
-								.withOnCloseGracefully(record -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
-							injector.injectDependencies(calendarDialog);
+							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
+								.withOnCloseGracefully((record, recordID) -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
 							calendarDialog.loadData();
 							calendarDialog.selectData(extractRecordCalendarOriginalID(container));
 
@@ -475,16 +451,15 @@ public final class HistoricDateDialog extends CommonListDialog{
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
-									? NoteDialog.createSelectOnly(store, parent)
-									: NoteDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_HISTORIC_DATE, historicDateID)
-								.withOnCloseGracefully(record -> {
+									? NoteDialog.createSelectOnly(parent)
+									: NoteDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_HISTORIC_DATE, historicDateID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_HISTORIC_DATE);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_HISTORIC_DATE);
 										insertRecordReferenceID(record, historicDateID);
 									}
 								});
-							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
@@ -494,11 +469,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + historicDateID);
-							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -509,11 +483,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + historicDateID);
-							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 
@@ -527,7 +500,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

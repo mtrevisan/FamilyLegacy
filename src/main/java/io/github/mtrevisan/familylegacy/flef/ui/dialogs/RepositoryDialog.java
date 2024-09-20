@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -53,14 +52,12 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
@@ -102,14 +99,14 @@ public final class RepositoryDialog extends CommonListDialog{
 	private final JButton sourcesButton = new JButton("Sources", ICON_SOURCE);
 
 
-	public static RepositoryDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+	public static RepositoryDialog create(final Frame parent){
+		final RepositoryDialog dialog = new RepositoryDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static RepositoryDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+	public static RepositoryDialog createSelectOnly(final Frame parent){
+		final RepositoryDialog dialog = new RepositoryDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.referencePersonButton, dialog.placeButton, dialog.noteButton, dialog.mediaButton,
 			dialog.sourcesButton);
@@ -117,28 +114,28 @@ public final class RepositoryDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static RepositoryDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+	public static RepositoryDialog createShowOnly(final Frame parent){
+		final RepositoryDialog dialog = new RepositoryDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static RepositoryDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final RepositoryDialog dialog = new RepositoryDialog(store, parent);
+	public static RepositoryDialog createEditOnly(final Frame parent){
+		final RepositoryDialog dialog = new RepositoryDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
 
-	private RepositoryDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private RepositoryDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public RepositoryDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public RepositoryDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -146,7 +143,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_REPOSITORY;
+		return EntityManager.NODE_NAME_REPOSITORY;
 	}
 
 	@Override
@@ -182,26 +179,26 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		referencePersonButton.setToolTipText("Reference person");
 		referencePersonButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PERSON, EntityManager.TABLE_NAME_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PERSON, EntityManager.NODE_NAME_REPOSITORY, selectedRecord)));
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.TABLE_NAME_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_NAME_REPOSITORY, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_REPOSITORY, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_REPOSITORY, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		sourcesButton.setToolTipText("Sources");
 		sourcesButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.SOURCE, EntityManager.TABLE_NAME_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.SOURCE, EntityManager.NODE_NAME_REPOSITORY, selectedRecord)));
 	}
 
 	@Override
@@ -231,7 +228,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_REPOSITORY);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_REPOSITORY);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -270,26 +267,26 @@ public final class RepositoryDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final Integer personID = extractRecordPersonID(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_REPOSITORY, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(repositoryID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
 			.orElse(null);
-		final boolean hasSources = (getRecords(EntityManager.TABLE_NAME_SOURCE)
+		final boolean hasSources = (getRecords(EntityManager.NODE_NAME_SOURCE)
 			.values().stream()
 			.filter(record -> Objects.equals(repositoryID, extractRecordRepositoryID(record)))
 			.findFirst()
@@ -376,30 +373,26 @@ public final class RepositoryDialog extends CommonListDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> repositories = new TreeMap<>();
-		store.put("repository", repositories);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
 		repository1.put("person_id", 1);
 		repository1.put("place_id", 2);
-		repositories.put((Integer)repository1.get("id"), repository1);
+		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
 		final Map<String, Object> repository2 = new HashMap<>();
 		repository2.put("id", 2);
 		repository2.put("identifier", "repo 2");
 		repository2.put("type", "college library");
-		repositories.put((Integer)repository2.get("id"), repository2);
+		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository2);
 		final Map<String, Object> repository3 = new HashMap<>();
 		repository3.put("id", 3);
 		repository3.put("identifier", "repo 3");
 		repository3.put("type", "private library");
-		repositories.put((Integer)repository3.get("id"), repository3);
+		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository3);
 
-		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
-		store.put("place", places);
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place ident");
@@ -411,24 +404,20 @@ public final class RepositoryDialog extends CommonListDialog{
 		place1.put("coordinate_credibility", "certain");
 		place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
-		places.put((Integer)place1.get("id"), place1);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
 		final Map<String, Object> place2 = new HashMap<>();
 		place2.put("id", 2);
 		place2.put("identifier", "another place ident");
 		place2.put("name", "name of another place");
 		place2.put("locale", "en-US");
 		place2.put("type", "custom");
-		places.put((Integer)place2.get("id"), place2);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place2);
 
-		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
-		store.put("person", persons);
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
 		person1.put("photo_crop", "0 0 5 10");
-		persons.put((Integer)person1.get("id"), person1);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
 
-		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put("localized_text", localizedTexts);
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
 		localizedText1.put("text", "place name 1");
@@ -436,7 +425,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("id", 2);
 		localizedText2.put("text", "place name 2");
@@ -444,40 +433,34 @@ public final class RepositoryDialog extends CommonListDialog{
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "IPA");
 		localizedText2.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
 		final Map<String, Object> localizedText3 = new HashMap<>();
 		localizedText3.put("id", 3);
 		localizedText3.put("text", "true name");
 		localizedText3.put("locale", "en");
-		localizedTexts.put((Integer)localizedText3.get("id"), localizedText3);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText3);
 
-		final TreeMap<Integer, Map<String, Object>> personNames = new TreeMap<>();
-		store.put("person_name", personNames);
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
 		personName1.put("personal_name", "personal name");
 		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
-		personNames.put((Integer)personName1.get("id"), personName1);
+		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName1);
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "repository");
 		note2.put("reference_id", 1);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
@@ -485,29 +468,20 @@ public final class RepositoryDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		media.put((Integer)media1.get("id"), media1);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
 
-		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
-		store.put("media_junction", mediaJunctions);
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		mediaJunction1.put("id", 1);
-		mediaJunction1.put("media_id", 1);
 		mediaJunction1.put("photo_crop", "0 0 10 20");
-		mediaJunction1.put("reference_table", "repository");
-		mediaJunction1.put("reference_id", 1);
-		mediaJunctions.put((Integer)mediaJunction1.get("id"), mediaJunction1);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, extractRecordID(media1), EntityManager.NODE_NAME_REPOSITORY, 1,
+			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "repository");
 		restriction1.put("reference_id", 1);
-		restrictions.put((Integer)restriction1.get("id"), restriction1);
+		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
 
-		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
-		store.put("source", sources);
 		final Map<String, Object> source1 = new HashMap<>();
 		source1.put("id", 1);
 		source1.put("identifier", "source 1");
@@ -517,7 +491,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		source1.put("date_id", 1);
 		source1.put("repository_id", 1);
 		source1.put("location", "location 1");
-		sources.put((Integer)source1.get("id"), source1);
+		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("id", 2);
 		source2.put("identifier", "source 2");
@@ -527,24 +501,13 @@ public final class RepositoryDialog extends CommonListDialog{
 		source2.put("date_id", 2);
 		source2.put("repository_id", 2);
 		source2.put("location", "location 2");
-		sources.put((Integer)source2.get("id"), source2);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		Repository.save(EntityManager.NODE_NAME_SOURCE, source2);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-//			final RepositoryDialog dialog = create(store, parent);
-			final RepositoryDialog dialog = createShowOnly(store, parent);
-			injector.injectDependencies(dialog);
+//			final RepositoryDialog dialog = create(parent);
+			final RepositoryDialog dialog = createShowOnly(parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(repository1)))
 				dialog.showNewRecord();
@@ -564,10 +527,9 @@ public final class RepositoryDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case PERSON -> {
 							final PersonDialog personDialog = (dialog.showRecordOnly
-									? PersonDialog.createShowOnly(store, parent)
-									: PersonDialog.create(store, parent))
-								.withOnCloseGracefully(record -> insertRecordPersonID(container, extractRecordID(record)));
-							injector.injectDependencies(personDialog);
+									? PersonDialog.createShowOnly(parent)
+									: PersonDialog.create(parent))
+								.withOnCloseGracefully((record, recordID) -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
 							final Integer personID = extractRecordPersonID(container);
 							if(personID != null)
@@ -577,10 +539,9 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 						case PLACE -> {
 							final PlaceDialog placeDialog = (dialog.showRecordOnly
-									? PlaceDialog.createShowOnly(store, parent)
-									: PlaceDialog.create(store, parent))
-								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
-							injector.injectDependencies(placeDialog);
+									? PlaceDialog.createShowOnly(parent)
+									: PlaceDialog.create(parent))
+								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -590,45 +551,42 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
-									? NoteDialog.createSelectOnly(store, parent)
-									: NoteDialog.create(store, parent))
+									? NoteDialog.createSelectOnly(parent)
+									: NoteDialog.create(parent))
 								.withReference(tableName, repositoryID)
-								.withOnCloseGracefully(record -> {
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										insertRecordReferenceTable(record, tableName);
 										insertRecordReferenceID(record, repositoryID);
 									}
 								});
-							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-									? MediaDialog.createSelectOnlyForMedia(store, parent)
-									: MediaDialog.createForMedia(store, parent))
+									? MediaDialog.createSelectOnlyForMedia(parent)
+									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, repositoryID)
-								.withOnCloseGracefully(record -> {
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_REPOSITORY);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_REPOSITORY);
 										insertRecordReferenceID(record, repositoryID);
 									}
 								});
-							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
 						case SOURCE -> {
-							final SourceDialog sourceDialog = SourceDialog.create(store, parent)
+							final SourceDialog sourceDialog = SourceDialog.create(parent)
 								.withFilterOnRepositoryID(repositoryID)
-								.withOnCloseGracefully(record -> {
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										record.put("repository_id", repositoryID);
 								});
-							injector.injectDependencies(sourceDialog);
 							sourceDialog.loadData();
 
 							sourceDialog.showDialog();
@@ -637,11 +595,10 @@ public final class RepositoryDialog extends CommonListDialog{
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + repositoryID);
-							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -651,11 +608,10 @@ public final class RepositoryDialog extends CommonListDialog{
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + repositoryID);
-							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 
@@ -669,7 +625,8 @@ public final class RepositoryDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

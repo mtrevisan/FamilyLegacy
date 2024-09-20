@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 
@@ -41,9 +43,10 @@ import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
 
@@ -56,19 +59,19 @@ public class SearchNotePanel extends CommonSearchPanel{
 	private static final int TABLE_INDEX_NOTE = 2;
 
 
-	public static SearchNotePanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchNotePanel(store);
+	public static SearchNotePanel create(){
+		return new SearchNotePanel();
 	}
 
 
-	private SearchNotePanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private SearchNotePanel(){
+		super();
 	}
 
 
 	@Override
 	public String getTableName(){
-		return EntityManager.TABLE_NAME_NOTE;
+		return EntityManager.NODE_NAME_NOTE;
 	}
 
 	@Override
@@ -94,30 +97,27 @@ public class SearchNotePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_NOTE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_NOTE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> record : records.entrySet()){
-			final Integer key = record.getKey();
-			final Map<String, Object> container = record.getValue();
+		for(int i = 0, length = records.size(); i < length; i ++){
+			final Map<String, Object> record = records.get(i);
 
-			final String note = extractRecordNote(container);
-			final String noteLocale = extractRecordLocale(container);
-			final FilterString filter = FilterString.create()
-				.add(key)
-				.add(note)
-				.add(noteLocale);
+			final Integer recordID = extractRecordID(record);
+			final String note = extractRecordNote(record);
+			final String noteLocale = extractRecordLocale(record);
+			final FilterString filter = FilterString.create().add(recordID).add(note).add(noteLocale);
 			final String filterData = filter.toString();
 
-			model.setValueAt(key, row, TABLE_INDEX_ID);
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
-			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_NOTE, filterData, note));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_NOTE, filterData, note));
 
-			row ++;
+			row++;
 		}
 	}
 
@@ -131,22 +131,19 @@ public class SearchNotePanel extends CommonSearchPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "note");
 		note2.put("reference_id", 2);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -162,7 +159,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final SearchNotePanel panel = create(store);
+			final SearchNotePanel panel = create();
 			panel.setLinkListener(linkListener);
 			panel.loadData();
 
@@ -175,6 +172,8 @@ public class SearchNotePanel extends CommonSearchPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

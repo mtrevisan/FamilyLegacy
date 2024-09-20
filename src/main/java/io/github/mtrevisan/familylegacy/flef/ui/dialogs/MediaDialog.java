@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -70,26 +69,28 @@ import java.io.Serial;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIncludeMediaPayload;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordMediaID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
@@ -98,11 +99,9 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordReferenceTable;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTitle;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPayload;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoMediaID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoProjection;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordReferenceTable;
@@ -155,16 +154,16 @@ public final class MediaDialog extends CommonListDialog{
 	private String mediaType = EntityManager.MEDIA_TYPE_LINK;
 
 
-	public static MediaDialog createForMedia(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final MediaDialog dialog = new MediaDialog(store, parent);
+	public static MediaDialog createForMedia(final Frame parent){
+		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
 			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static MediaDialog createForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final MediaDialog dialog = new MediaDialog(store, parent);
+	public static MediaDialog createForPhoto(final Frame parent){
+		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.restrictToPhoto = true;
 		dialog.mediaType = EntityManager.MEDIA_TYPE_PHOTO;
@@ -179,8 +178,8 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createSelectOnlyForMedia(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final MediaDialog dialog = new MediaDialog(store, parent);
+	public static MediaDialog createSelectOnlyForMedia(final Frame parent){
+		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
@@ -189,8 +188,8 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createEditOnlyForPhoto(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final MediaDialog dialog = new MediaDialog(store, parent);
+	public static MediaDialog createEditOnlyForPhoto(final Frame parent){
+		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
@@ -206,8 +205,8 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final MediaDialog dialog = new MediaDialog(store, parent);
+	public static MediaDialog createShowOnly(final Frame parent){
+		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
@@ -216,8 +215,8 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static MediaDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final MediaDialog dialog = new MediaDialog(store, parent);
+	public static MediaDialog createEditOnly(final Frame parent){
+		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
 			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
@@ -226,30 +225,24 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 
-	private MediaDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private MediaDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public MediaDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		final Consumer<Map<String, Object>> innerOnCloseGracefully = record -> {
-			final NavigableMap<Integer, Map<String, Object>> mediaJunctions = getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION);
-			final int mediaJunctionID = extractNextRecordID(mediaJunctions);
-			if(selectedRecord == null)
-				mediaJunctions.remove(mediaJunctionID);
-			else{
-				final Integer mediaID = extractRecordID(selectedRecord);
-				final Map<String, Object> mediaJunction = new HashMap<>();
-				insertRecordID(mediaJunction, mediaJunctionID);
-				insertRecordPhotoMediaID(mediaJunction, mediaID);
-				insertRecordReferenceTable(mediaJunction, filterReferenceTable);
-				insertRecordReferenceID(mediaJunction, filterReferenceID);
-				mediaJunctions.put(mediaJunctionID, mediaJunction);
-
-				if(onCloseGracefully != null)
-					onCloseGracefully.accept(record);
-			}
+	public MediaDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
+			if(selectedRecord != null)
+				Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, recordID,
+					filterReferenceTable, filterReferenceID,
+					EntityManager.RELATIONSHIP_NAME_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			else if(recordID != null)
+				Repository.deleteRelationship(EntityManager.NODE_NAME_MEDIA, recordID,
+					filterReferenceTable, filterReferenceID,
+					EntityManager.RELATIONSHIP_NAME_FOR);
 		};
+		if(onCloseGracefully != null)
+			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
 
 		setOnCloseGracefully(innerOnCloseGracefully);
 
@@ -276,7 +269,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_MEDIA;
+		return EntityManager.NODE_NAME_MEDIA;
 	}
 
 	@Override
@@ -411,27 +404,27 @@ public final class MediaDialog extends CommonListDialog{
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.TABLE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.TABLE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
 		photoCropButton.setToolTipText("Define a crop");
 		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, EntityManager.TABLE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
 		photoCropButton.setEnabled(false);
 	}
 
@@ -486,9 +479,9 @@ public final class MediaDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.TABLE_NAME_MEDIA));
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.NODE_NAME_MEDIA));
 		if(filterReferenceTable != null){
-			final Set<Integer> filteredMedia = getFilteredRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION, filterReferenceTable,
+			final Set<Integer> filteredMedia = getFilteredRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION, filterReferenceTable,
 					filterReferenceID)
 				.values().stream()
 				.map(EntityManager::extractRecordID)
@@ -543,7 +536,7 @@ public final class MediaDialog extends CommonListDialog{
 				return;
 		}
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_MEDIA);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_MEDIA);
 		if(records.containsKey(recordID)){
 			final int oldSize = model.getRowCount();
 			final String identifier = extractRecordIdentifier(record);
@@ -570,27 +563,27 @@ public final class MediaDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_MEDIA, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_MEDIA, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.TABLE_NAME_EVENT)
+		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_MEDIA, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_MEDIA, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -621,7 +614,7 @@ public final class MediaDialog extends CommonListDialog{
 		final File file = FileHelper.loadFile(identifier);
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
-			final Map<Integer, Map<String, Object>> recordMediaJunction = getFilteredRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION,
+			final Map<Integer, Map<String, Object>> recordMediaJunction = getFilteredRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION,
 					filterReferenceTable, filterReferenceID)
 				.entrySet().stream()
 				.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry.getValue())))
@@ -722,8 +715,11 @@ public final class MediaDialog extends CommonListDialog{
 		//read record panel:
 		final String identifier = GUIHelper.getTextTrimmed(fileField);
 		final String title = GUIHelper.getTextTrimmed(titleField);
-		//TODO extract payload (ask if payload should be included)
-		final byte[] payload = null;
+		final Map<String, Object> project = getRecords(EntityManager.NODE_NAME_PROJECT)
+			.get(1);
+		final byte[] payload = (extractRecordIncludeMediaPayload(project) == 1
+			? extractPayload(identifier)
+			: null);
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
 		final String photoProjection = GUIHelper.getTextTrimmed(photoProjectionComboBox);
 
@@ -752,6 +748,21 @@ public final class MediaDialog extends CommonListDialog{
 		return true;
 	}
 
+	private byte[] extractPayload(String mediaPath){
+		if(mediaPath != null && (mediaPath.charAt(0) == '/' || mediaPath.charAt(0) == '\\'))
+			mediaPath = basePath + mediaPath;
+		final File file = FileHelper.loadFile(mediaPath);
+		byte[] payload = null;
+		if(file != null && file.isFile()){
+			try{
+      		payload = Files.readAllBytes(file.toPath());
+      	}
+      	catch(final IOException ioe){
+				LOGGER.error("Cannot extract payload from '{}'", mediaPath, ioe);
+      	}
+		}
+		return payload;
+	}
 
 
 	public static void main(final String[] args){
@@ -761,10 +772,8 @@ public final class MediaDialog extends CommonListDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "media 1");
@@ -772,7 +781,7 @@ public final class MediaDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		media.put((Integer)media1.get("id"), media1);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
@@ -780,7 +789,7 @@ public final class MediaDialog extends CommonListDialog{
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
 		media2.put("date_id", 1);
-		media.put((Integer)media2.get("id"), media2);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
@@ -788,59 +797,39 @@ public final class MediaDialog extends CommonListDialog{
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
 		media3.put("date_id", 1);
-		media.put((Integer)media3.get("id"), media3);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media3);
 
-		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
-		store.put("media_junction", mediaJunctions);
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		mediaJunction1.put("id", 1);
-		mediaJunction1.put("media_id", 1);
-		mediaJunction1.put("reference_table", "media");
-		mediaJunction1.put("reference_id", 1);
 		mediaJunction1.put("photo_crop", "0 0 10 50");
-		mediaJunctions.put((Integer)mediaJunction1.get("id"), mediaJunction1);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, 1, EntityManager.NODE_NAME_MEDIA, 1,
+			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "media");
 		note2.put("reference_id", 1);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
-		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "media");
 		restriction1.put("reference_id", 1);
-		restrictions.put((Integer)restriction1.get("id"), restriction1);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final MediaDialog dialog = createForMedia(store, parent)
-//			final MediaDialog dialog = createRecordForPhoto(store, parent)
+			final MediaDialog dialog = createForMedia(parent)
+//			final MediaDialog dialog = createRecordForPhoto(parent)
 				.withBasePath(FileHelper.documentsDirectory());
-			injector.injectDependencies(dialog);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(mediaJunction1)))
 				dialog.showNewRecord();
@@ -858,8 +847,7 @@ public final class MediaDialog extends CommonListDialog{
 					final int mediaID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							injector.injectDependencies(historicDateDialog);
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -869,25 +857,24 @@ public final class MediaDialog extends CommonListDialog{
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
-									? NoteDialog.createSelectOnly(store, parent)
-									: NoteDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_MEDIA, mediaID)
-								.withOnCloseGracefully(record -> {
+									? NoteDialog.createSelectOnly(parent)
+									: NoteDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_MEDIA, mediaID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_MEDIA);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_MEDIA);
 										insertRecordReferenceID(record, mediaID);
 									}
 								});
-							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
-								? PhotoCropDialog.createSelectOnly(store, parent)
-								: PhotoCropDialog.create(store, parent));
-							photoCropDialog.withOnCloseGracefully(record -> {
+								? PhotoCropDialog.createSelectOnly(parent)
+								: PhotoCropDialog.create(parent));
+							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
 								final Rectangle crop = photoCropDialog.getCrop();
 								if(crop != null){
 									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -912,20 +899,18 @@ public final class MediaDialog extends CommonListDialog{
 						}
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(store, parent)
-									: AssertionDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_MEDIA, mediaID);
-							injector.injectDependencies(assertionDialog);
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_MEDIA, mediaID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case EVENT -> {
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
-									? EventDialog.createSelectOnly(store, parent)
-									: EventDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_MEDIA, mediaID);
-							injector.injectDependencies(eventDialog);
+									? EventDialog.createSelectOnly(parent)
+									: EventDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_MEDIA, mediaID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
@@ -935,11 +920,10 @@ public final class MediaDialog extends CommonListDialog{
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + mediaID);
-							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -950,11 +934,10 @@ public final class MediaDialog extends CommonListDialog{
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + mediaID);
-							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 
@@ -968,7 +951,8 @@ public final class MediaDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

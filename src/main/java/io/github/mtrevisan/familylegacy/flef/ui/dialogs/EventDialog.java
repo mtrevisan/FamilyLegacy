@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -56,14 +55,13 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
@@ -151,14 +149,14 @@ public final class EventDialog extends CommonListDialog{
 	private int filterReferenceID;
 
 
-	public static EventDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final EventDialog dialog = new EventDialog(store, parent);
+	public static EventDialog create(final Frame parent){
+		final EventDialog dialog = new EventDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static EventDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final EventDialog dialog = new EventDialog(store, parent);
+	public static EventDialog createSelectOnly(final Frame parent){
+		final EventDialog dialog = new EventDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateButton, dialog.noteButton, dialog.mediaButton);
@@ -166,28 +164,28 @@ public final class EventDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static EventDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final EventDialog dialog = new EventDialog(store, parent);
+	public static EventDialog createShowOnly(final Frame parent){
+		final EventDialog dialog = new EventDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static EventDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final EventDialog dialog = new EventDialog(store, parent);
+	public static EventDialog createEditOnly(final Frame parent){
+		final EventDialog dialog = new EventDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
 
-	private EventDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private EventDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public EventDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public EventDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -206,7 +204,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_EVENT;
+		return EntityManager.NODE_NAME_EVENT;
 	}
 
 	@Override
@@ -239,15 +237,18 @@ public final class EventDialog extends CommonListDialog{
 		GUIHelper.bindLabelSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 		addMandatoryField(typeComboBox);
 		addTypeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT_TYPE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT_TYPE, EntityManager.NODE_NAME_EVENT, selectedRecord)));
 		removeTypeButton.addActionListener(evt -> {
 			//remove selected item from `typeComboBox`
 			final String type = GUIHelper.getTextTrimmed(typeComboBox);
 			if(type != null && (!type.startsWith(MENU_SEPARATOR_START) || !type.endsWith(MENU_SEPARATOR_END))){
 				//remove data from store
-				getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
-					.values()
-					.removeIf(entry -> Objects.equals(type, extractRecordType(entry)));
+				final List<Integer> ids = getRecords(EntityManager.NODE_NAME_EVENT_TYPE)
+					.values().stream()
+					.filter(entry -> Objects.equals(type, extractRecordType(entry)))
+					.map(EntityManager::extractRecordID)
+					.toList();
+				Repository.deleteNodes(EntityManager.NODE_NAME_EVENT_TYPE, ids);
 
 				typeComboBox.removeItem(type);
 				typeComboBox.setSelectedItem(null);
@@ -258,20 +259,20 @@ public final class EventDialog extends CommonListDialog{
 
 		placeButton.setToolTipText("Event place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_NAME_EVENT, selectedRecord)));
 
 		dateButton.setToolTipText("Event date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_NAME_EVENT, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_EVENT, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_EVENT, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -302,9 +303,9 @@ public final class EventDialog extends CommonListDialog{
 		unselectAction();
 
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(EntityManager.TABLE_NAME_EVENT)
-			: getFilteredRecords(EntityManager.TABLE_NAME_EVENT, filterReferenceTable, filterReferenceID));
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
+			? getRecords(EntityManager.NODE_NAME_EVENT)
+			: getFilteredRecords(EntityManager.NODE_NAME_EVENT, filterReferenceTable, filterReferenceID));
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.NODE_NAME_EVENT_TYPE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -339,7 +340,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.NODE_NAME_EVENT_TYPE);
 
 		final Integer eventID = extractRecordID(selectedRecord);
 		final Integer typeID = extractRecordTypeID(selectedRecord);
@@ -347,21 +348,21 @@ public final class EventDialog extends CommonListDialog{
 		final String description = extractRecordDescription(selectedRecord);
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_EVENT, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_EVENT, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_EVENT, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_EVENT, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(eventID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -415,7 +416,7 @@ public final class EventDialog extends CommonListDialog{
 
 		//read record panel:
 		final String type = GUIHelper.getTextTrimmed(typeComboBox);
-		final Integer typeID = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
+		final Integer typeID = getRecords(EntityManager.NODE_NAME_EVENT_TYPE)
 			.values().stream()
 			.filter(entry -> Objects.equals(type, extractRecordType(entry)))
 			.findFirst()
@@ -438,165 +439,138 @@ public final class EventDialog extends CommonListDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
-		store.put("event", events);
-		final Map<String, Object> event = new HashMap<>();
-		event.put("id", 1);
-		event.put("type_id", 1);
-		event.put("description", "a birth");
-		event.put("place_id", 1);
-		event.put("date_id", 1);
-		event.put("reference_table", "person");
-		event.put("reference_id", 1);
-		events.put((Integer)event.get("id"), event);
+		GraphDatabaseManager.clearDatabase();
+		final Map<String, Object> event1 = new HashMap<>();
+		event1.put("id", 1);
+		event1.put("type_id", 1);
+		event1.put("description", "a birth");
+		event1.put("place_id", 1);
+		event1.put("date_id", 1);
+		event1.put("reference_table", "person");
+		event1.put("reference_id", 1);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event1);
 
-		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
-		store.put("event_type", eventTypes);
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("super_type_id", 2);
 		eventType1.put("type", "birth");
 		eventType1.put("category", "birth");
-		eventTypes.put((Integer)eventType1.get("id"), eventType1);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType1);
 
-		final TreeMap<Integer, Map<String, Object>> eventSuperTypes = new TreeMap<>();
-		store.put("event_super_type", eventSuperTypes);
 		final Map<String, Object> eventSuperType1 = new HashMap<>();
 		eventSuperType1.put("id", 1);
 		eventSuperType1.put("super_type", "Historical events");
-		eventSuperTypes.put((Integer)eventSuperType1.get("id"), eventSuperType1);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType1);
 		final Map<String, Object> eventSuperType2 = new HashMap<>();
 		eventSuperType2.put("id", 2);
 		eventSuperType2.put("super_type", "Personal origins");
-		eventSuperTypes.put((Integer)eventSuperType2.get("id"), eventSuperType2);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType2);
 		final Map<String, Object> eventSuperType3 = new HashMap<>();
 		eventSuperType3.put("id", 3);
 		eventSuperType3.put("super_type", "Physical description");
-		eventSuperTypes.put((Integer)eventSuperType3.get("id"), eventSuperType3);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType3);
 		final Map<String, Object> eventSuperType4 = new HashMap<>();
 		eventSuperType4.put("id", 4);
 		eventSuperType4.put("super_type", "Citizenship and migration");
-		eventSuperTypes.put((Integer)eventSuperType4.get("id"), eventSuperType4);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType4);
 		final Map<String, Object> eventSuperType5 = new HashMap<>();
 		eventSuperType5.put("id", 5);
 		eventSuperType5.put("super_type", "Real estate assets");
-		eventSuperTypes.put((Integer)eventSuperType5.get("id"), eventSuperType5);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType5);
 		final Map<String, Object> eventSuperType6 = new HashMap<>();
 		eventSuperType6.put("id", 6);
 		eventSuperType6.put("super_type", "Education");
-		eventSuperTypes.put((Integer)eventSuperType6.get("id"), eventSuperType6);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType6);
 		final Map<String, Object> eventSuperType7 = new HashMap<>();
 		eventSuperType7.put("id", 7);
 		eventSuperType7.put("super_type", "Work and Career");
-		eventSuperTypes.put((Integer)eventSuperType7.get("id"), eventSuperType7);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType7);
 		final Map<String, Object> eventSuperType8 = new HashMap<>();
 		eventSuperType8.put("id", 8);
 		eventSuperType8.put("super_type", "Legal Events and Documents");
-		eventSuperTypes.put((Integer)eventSuperType8.get("id"), eventSuperType8);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType8);
 		final Map<String, Object> eventSuperType9 = new HashMap<>();
 		eventSuperType9.put("id", 9);
 		eventSuperType9.put("super_type", "Health problems and habits");
-		eventSuperTypes.put((Integer)eventSuperType9.get("id"), eventSuperType9);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType9);
 		final Map<String, Object> eventSuperType10 = new HashMap<>();
 		eventSuperType10.put("id", 10);
 		eventSuperType10.put("super_type", "Marriage and family life");
-		eventSuperTypes.put((Integer)eventSuperType10.get("id"), eventSuperType10);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType10);
 		final Map<String, Object> eventSuperType11 = new HashMap<>();
 		eventSuperType11.put("id", 11);
 		eventSuperType11.put("super_type", "Military");
-		eventSuperTypes.put((Integer)eventSuperType11.get("id"), eventSuperType11);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType11);
 		final Map<String, Object> eventSuperType12 = new HashMap<>();
 		eventSuperType12.put("id", 12);
 		eventSuperType12.put("super_type", "Confinement");
-		eventSuperTypes.put((Integer)eventSuperType12.get("id"), eventSuperType12);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType12);
 		final Map<String, Object> eventSuperType13 = new HashMap<>();
 		eventSuperType13.put("id", 13);
 		eventSuperType13.put("super_type", "Transfers and travel");
-		eventSuperTypes.put((Integer)eventSuperType13.get("id"), eventSuperType13);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType13);
 		final Map<String, Object> eventSuperType14 = new HashMap<>();
 		eventSuperType14.put("id", 14);
 		eventSuperType14.put("super_type", "Accolades");
-		eventSuperTypes.put((Integer)eventSuperType14.get("id"), eventSuperType14);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType14);
 		final Map<String, Object> eventSuperType15 = new HashMap<>();
 		eventSuperType15.put("id", 15);
 		eventSuperType15.put("super_type", "Death and burial");
-		eventSuperTypes.put((Integer)eventSuperType15.get("id"), eventSuperType15);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType15);
 		final Map<String, Object> eventSuperType16 = new HashMap<>();
 		eventSuperType16.put("id", 16);
 		eventSuperType16.put("super_type", "Others");
-		eventSuperTypes.put((Integer)eventSuperType16.get("id"), eventSuperType16);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType16);
 		final Map<String, Object> eventSuperType17 = new HashMap<>();
 		eventSuperType17.put("id", 17);
 		eventSuperType17.put("super_type", "Religious events");
-		eventSuperTypes.put((Integer)eventSuperType17.get("id"), eventSuperType17);
+		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType17);
 
-		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
-		store.put("place", places);
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		places.put((Integer)place1.get("id"), place1);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
 
-		final TreeMap<Integer, Map<String, Object>> dates = new TreeMap<>();
-		store.put("historic_date", dates);
 		final Map<String, Object> date1 = new HashMap<>();
 		date1.put("id", 1);
 		date1.put("date", "18 OCT 2000");
-		dates.put((Integer)date1.get("id"), date1);
+		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, date1);
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "event");
 		note2.put("reference_id", 1);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
-		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "event");
 		restriction1.put("reference_id", 1);
-		restrictions.put((Integer)restriction1.get("id"), restriction1);
+		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
 
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
-		final Map<String, Object> m1 = new HashMap<>();
-		m1.put("id", 1);
-		m1.put("identifier", "custom media");
-		media.put((Integer)m1.get("id"), m1);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		final Map<String, Object> media1 = new HashMap<>();
+		media1.put("id", 1);
+		media1.put("identifier", "custom media");
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final EventDialog dialog = create(store, parent);
-//			final EventDialog dialog = createRecordOnly(store, parent);
-			injector.injectDependencies(dialog);
+			final EventDialog dialog = create(parent);
+//			final EventDialog dialog = createRecordOnly(parent);
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(event)))
+			if(!dialog.selectData(extractRecordID(event1)))
 				dialog.showNewRecord();
 
 			final Object listener = new Object(){
@@ -612,8 +586,7 @@ public final class EventDialog extends CommonListDialog{
 					final int eventID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.create(store, parent);
-							injector.injectDependencies(placeDialog);
+							final PlaceDialog placeDialog = PlaceDialog.create(parent);
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -622,8 +595,7 @@ public final class EventDialog extends CommonListDialog{
 							placeDialog.showDialog();
 						}
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							injector.injectDependencies(historicDateDialog);
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -633,47 +605,45 @@ public final class EventDialog extends CommonListDialog{
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
-									? NoteDialog.createSelectOnly(store, parent)
-									: NoteDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_EVENT, eventID)
-								.withOnCloseGracefully(record -> {
+									? NoteDialog.createSelectOnly(parent)
+									: NoteDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_EVENT, eventID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_EVENT);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_EVENT);
 										insertRecordReferenceID(record, eventID);
 									}
 								});
-							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-									? MediaDialog.createSelectOnlyForMedia(store, parent)
-									: MediaDialog.createForMedia(store, parent))
+									? MediaDialog.createSelectOnlyForMedia(parent)
+									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.TABLE_NAME_EVENT, eventID)
-								.withOnCloseGracefully(record -> {
+								.withReference(EntityManager.NODE_NAME_EVENT, eventID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_EVENT);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_EVENT);
 										insertRecordReferenceID(record, eventID);
 									}
 								});
-							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
 						case EVENT_TYPE -> {
 							//if type is not present in the list, show a dialog to insert it within its appropriate super-type
-							final EventTypeDialog eventSuperTypeDialog = EventTypeDialog.create(store, parent)
-								.withOnCloseGracefully(record -> {
+							final EventTypeDialog eventSuperTypeDialog = EventTypeDialog.create(parent)
+								.withOnCloseGracefully((record, recordID) -> {
 									final String newType = extractRecordType(record);
 									final Integer superTypeID = extractRecordSuperTypeID(record);
-									final Map<Integer, Map<String, Object>> storeEventSuperTypes = getRecords(
-										EntityManager.TABLE_NAME_EVENT_SUPER_TYPE, store);
+									final Map<String, Object> storeEventSuperType = Repository.findByID(EntityManager.NODE_NAME_EVENT_SUPER_TYPE,
+										superTypeID);
 									final String superTypeMenuItemText = MENU_SEPARATOR_START
-										+ extractRecordSuperType(storeEventSuperTypes.get(superTypeID))
+										+ extractRecordSuperType(storeEventSuperType)
 										+ MENU_SEPARATOR_END;
 
 									//add `newType` at the end of the `superTypeMenuItemText` section
@@ -702,11 +672,10 @@ public final class EventDialog extends CommonListDialog{
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + eventID);
-							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -717,11 +686,10 @@ public final class EventDialog extends CommonListDialog{
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + eventID);
-							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 
@@ -729,18 +697,14 @@ public final class EventDialog extends CommonListDialog{
 						}
 					}
 				}
-
-				private static Map<Integer, Map<String, Object>> getRecords(final String tableName,
-						final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-					return store.computeIfAbsent(tableName, k -> new TreeMap<>());
-				}
 			};
 			EventBusService.subscribe(listener);
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

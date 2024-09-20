@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -55,15 +54,14 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtract;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractLocale;
@@ -109,14 +107,14 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	private Integer filterSourceID;
 
 
-	public static CitationDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final CitationDialog dialog = new CitationDialog(store, parent);
+	public static CitationDialog create(final Frame parent){
+		final CitationDialog dialog = new CitationDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static CitationDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final CitationDialog dialog = new CitationDialog(store, parent);
+	public static CitationDialog createSelectOnly(final Frame parent){
+		final CitationDialog dialog = new CitationDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.transcribedExtractButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton);
@@ -124,28 +122,28 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		return dialog;
 	}
 
-	public static CitationDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final CitationDialog dialog = new CitationDialog(store, parent);
+	public static CitationDialog createShowOnly(final Frame parent){
+		final CitationDialog dialog = new CitationDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static CitationDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final CitationDialog dialog = new CitationDialog(store, parent);
+	public static CitationDialog createEditOnly(final Frame parent){
+		final CitationDialog dialog = new CitationDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
 
-	private CitationDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private CitationDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public CitationDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public CitationDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -162,7 +160,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_CITATION;
+		return EntityManager.NODE_NAME_CITATION;
 	}
 
 	@Override
@@ -202,24 +200,24 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
 		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, EntityManager.NODE_NAME_CITATION, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_CITATION, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_CITATION, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_CITATION, selectedRecord)));
 	}
 
 	@Override
@@ -252,10 +250,14 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.TABLE_NAME_CITATION));
-		if(filterSourceID != null)
-			records.values()
-				.removeIf(entry -> !filterSourceID.equals(extractRecordSourceID(entry)));
+		final Map<Integer, Map<String, Object>> records = new HashMap<>(getRecords(EntityManager.NODE_NAME_CITATION));
+		if(filterSourceID != null){
+			final List<Integer> ids = records.values().stream()
+				.filter(entry -> !filterSourceID.equals(extractRecordSourceID(entry)))
+				.map(EntityManager::extractRecordID)
+				.toList();
+			Repository.deleteNodes(EntityManager.NODE_NAME_CITATION, ids);
+		}
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -303,35 +305,35 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final String extract = extractRecordExtract(selectedRecord);
 		final String extractLocale = extractRecordExtractLocale(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
-		final boolean hasTranscribedExtracts = (getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION)
+		final boolean hasTranscribedExtracts = (getRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.filter(record -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT, extractRecordReferenceType(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
 			.orElse(null);
-		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_CITATION, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CITATION, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(citationID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
@@ -398,7 +400,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-				final Map<String, Object> updatedCitationRecord = getRecords(EntityManager.TABLE_NAME_CITATION).get(recordID);
+				final Map<String, Object> updatedCitationRecord = getRecords(EntityManager.NODE_NAME_CITATION).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
 				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
 				identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
@@ -432,7 +434,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		if(sourceID == null)
 			return null;
 
-		final Map<Integer, Map<String, Object>> sources = getRecords(EntityManager.TABLE_NAME_SOURCE);
+		final Map<Integer, Map<String, Object>> sources = getRecords(EntityManager.NODE_NAME_SOURCE);
 		final Map<String, Object> source = sources.get(sourceID);
 		if(source == null)
 			return null;
@@ -449,49 +451,39 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> citations = new TreeMap<>();
-		store.put("citation", citations);
-		final Map<String, Object> citation = new HashMap<>();
-		citation.put("id", 1);
-		citation.put("source_id", 1);
-		citation.put("location", "here");
-		citation.put("extract", "text 1");
-		citation.put("extract_locale", "en-US");
-		citation.put("extract_type", "transcript");
-		citations.put((Integer)citation.get("id"), citation);
+		GraphDatabaseManager.clearDatabase();
+		final Map<String, Object> citation1 = new HashMap<>();
+		citation1.put("id", 1);
+		citation1.put("source_id", 1);
+		citation1.put("location", "here");
+		citation1.put("extract", "text 1");
+		citation1.put("extract_locale", "en-US");
+		citation1.put("extract_type", "transcript");
+		Repository.save(EntityManager.NODE_NAME_CITATION, citation1);
 
-		final TreeMap<Integer, Map<String, Object>> assertions = new TreeMap<>();
-		store.put("assertion", assertions);
-		final Map<String, Object> assertion = new HashMap<>();
-		assertion.put("id", 1);
-		assertion.put("citation_id", 1);
-		assertion.put("reference_table", "table");
-		assertion.put("reference_id", 1);
-		assertion.put("role", "father");
-		assertion.put("certainty", "certain");
-		assertion.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		assertions.put((Integer)assertion.get("id"), assertion);
+		final Map<String, Object> assertion1 = new HashMap<>();
+		assertion1.put("id", 1);
+		assertion1.put("citation_id", 1);
+		assertion1.put("reference_table", "table");
+		assertion1.put("reference_id", 1);
+		assertion1.put("role", "father");
+		assertion1.put("certainty", "certain");
+		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		Repository.save(EntityManager.NODE_NAME_ASSERTION, assertion1);
 
-		final TreeMap<Integer, Map<String, Object>> sources = new TreeMap<>();
-		store.put("source", sources);
-		final Map<String, Object> source = new HashMap<>();
-		source.put("id", 1);
-		source.put("repository_id", 1);
-		source.put("identifier", "source 1");
-		sources.put((Integer)source.get("id"), source);
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("id", 1);
+		source1.put("repository_id", 1);
+		source1.put("identifier", "source 1");
+		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
 
-		final TreeMap<Integer, Map<String, Object>> repositories = new TreeMap<>();
-		store.put("repository", repositories);
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		repositories.put((Integer)repository1.get("id"), repository1);
+		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
 
-		final TreeMap<Integer, Map<String, Object>> localizedTexts = new TreeMap<>();
-		store.put("localized_text", localizedTexts);
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
 		localizedText1.put("text", "text 1");
@@ -499,7 +491,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localizedText1.get("id"), localizedText1);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("id", 2);
 		localizedText2.put("text", "text 2");
@@ -507,62 +499,44 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "kana");
 		localizedText2.put("transcription_type", "romanized");
-		localizedTexts.put((Integer)localizedText2.get("id"), localizedText2);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
 
-		final TreeMap<Integer, Map<String, Object>> localizedTextJunctions = new TreeMap<>();
-		store.put("localized_text_junction", localizedTextJunctions);
 		final Map<String, Object> localizedTextJunction = new HashMap<>();
-		localizedTextJunction.put("id", 1);
-		localizedTextJunction.put("localized_text_id", 2);
 		localizedTextJunction.put("reference_type", "extract");
-		localizedTextJunction.put("reference_table", "citation");
-		localizedTextJunction.put("reference_id", 1);
-		localizedTextJunctions.put((Integer)localizedTextJunction.get("id"), localizedTextJunction);
+		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
+			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
+			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "citation");
 		note2.put("reference_id", 1);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
-		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "citation");
 		restriction1.put("reference_id", 1);
-		restrictions.put((Integer)restriction1.get("id"), restriction1);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-//			final CitationDialog dialog = create(store, parent);
-			final CitationDialog dialog = createSelectOnly(store, parent);
-//			final CitationDialog dialog = createRecordOnly(store, parent);
+//			final CitationDialog dialog = create(parent);
+			final CitationDialog dialog = createSelectOnly(parent);
+//			final CitationDialog dialog = createRecordOnly(parent);
 //			dialog.withFilterOnSourceID(filterSourceID);
-			injector.injectDependencies(dialog);
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(source)))
+			if(!dialog.selectData(extractRecordID(source1)))
 				dialog.showNewRecord();
 
 			final Object listener = new Object(){
@@ -578,11 +552,11 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 					final int citationID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case LOCALIZED_EXTRACT -> {
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference(EntityManager.TABLE_NAME_CITATION, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
-								.withOnCloseGracefully(record -> {
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
+								.withReference(EntityManager.NODE_NAME_CITATION, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CITATION);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_CITATION);
 										insertRecordReferenceID(record, citationID);
 									}
 								});
@@ -592,12 +566,12 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
-									? NoteDialog.createSelectOnly(store, parent)
-									: NoteDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_CITATION, citationID)
-								.withOnCloseGracefully(record -> {
+									? NoteDialog.createSelectOnly(parent)
+									: NoteDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_CITATION, citationID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CITATION);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_CITATION);
 										insertRecordReferenceID(record, citationID);
 									}
 								});
@@ -607,13 +581,13 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-									? MediaDialog.createSelectOnlyForMedia(store, parent)
-									: MediaDialog.createForMedia(store, parent))
+									? MediaDialog.createSelectOnlyForMedia(parent)
+									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.TABLE_NAME_CITATION, citationID)
-								.withOnCloseGracefully(record -> {
+								.withReference(EntityManager.NODE_NAME_CITATION, citationID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_CITATION);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_CITATION);
 										insertRecordReferenceID(record, citationID);
 									}
 								});
@@ -623,9 +597,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(store, parent)
-									: AssertionDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_CITATION, citationID);
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_CITATION, citationID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -635,8 +609,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + citationID);
 							changeNoteDialog.loadData();
@@ -649,8 +623,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + citationID);
 							researchStatusDialog.loadData();
@@ -666,7 +640,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

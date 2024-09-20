@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -51,11 +53,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
@@ -81,13 +82,13 @@ public class HistoryPanel extends CommonSearchPanel{
 	private int filterReferenceID;
 
 
-	public static HistoryPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new HistoryPanel(store);
+	public static HistoryPanel create(){
+		return new HistoryPanel();
 	}
 
 
-	private HistoryPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private HistoryPanel(){
+		super();
 
 
 		initComponents();
@@ -118,7 +119,7 @@ public class HistoryPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.TABLE_NAME_MODIFICATION;
+		return EntityManager.NODE_NAME_MODIFICATION;
 	}
 
 	@Override
@@ -145,30 +146,29 @@ public class HistoryPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> recordModifications = getRecords(EntityManager.TABLE_NAME_MODIFICATION)
-			.entrySet().stream()
-			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue()))
-				&& filterReferenceID == extractRecordReferenceID(entry.getValue()))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-		final Map<Integer, Map<String, Object>> recordsNotes = getRecords(EntityManager.TABLE_NAME_NOTE)
-			.entrySet().stream()
-			.filter(entry -> EntityManager.TABLE_NAME_MODIFICATION.equals(extractRecordReferenceTable(entry.getValue())))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		final List<Map<String, Object>> recordModifications = Repository.findAll(EntityManager.NODE_NAME_MODIFICATION)
+			.stream()
+			.filter(record -> filterReferenceTable.equals(extractRecordReferenceTable(record))
+				&& filterReferenceID == extractRecordReferenceID(record))
+			.toList();
+		final List<Map<String, Object>> recordsNotes = Repository.findAll(EntityManager.NODE_NAME_NOTE)
+			.stream()
+			.filter(record -> EntityManager.NODE_NAME_MODIFICATION.equals(extractRecordReferenceTable(record)))
+			.toList();
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(recordModifications.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> recordModification : recordModifications.entrySet()){
-			final Integer key = recordModification.getKey();
-			final Map<String, Object> containerModification = recordModification.getValue();
-			final Map<String, Object> containerNote = recordsNotes.values().stream()
-				.filter(record -> Objects.equals(key, extractRecordReferenceID(record)))
+		for(final Map<String, Object> recordModification : recordModifications){
+			final Integer recordModificationID = extractRecordID(recordModification);
+			final Map<String, Object> containerNote = recordsNotes.stream()
+				.filter(record -> Objects.equals(recordModificationID, extractRecordReferenceID(record)))
 				.findFirst()
 				.orElse(Collections.emptyMap());
 
 			final Integer noteID = extractRecordID(containerNote);
 			final String note = extractRecordNote(containerNote);
-			final String recordUpdateDate = extractRecordUpdateDate(containerModification);
+			final String recordUpdateDate = extractRecordUpdateDate(recordModification);
 			final String humanReadableDateTime = (recordUpdateDate != null
 				? HUMAN_DATE_FORMATTER.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(recordUpdateDate))
 				: null);
@@ -183,7 +183,7 @@ public class HistoryPanel extends CommonSearchPanel{
 			model.setValueAt(humanReadableDateTime, row, TABLE_INDEX_DATE);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
-			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_MODIFICATION, filterData, note));
+			tableData.add(new SearchAllRecord(recordModificationID, EntityManager.NODE_NAME_MODIFICATION, filterData, note));
 
 			row ++;
 		}
@@ -198,37 +198,32 @@ public class HistoryPanel extends CommonSearchPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> modifications = new TreeMap<>();
-		store.put("modification", modifications);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> modification1 = new HashMap<>();
 		modification1.put("id", 1);
 		modification1.put("reference_table", "person_name");
 		modification1.put("reference_id", 1);
 		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		modifications.put((Integer)modification1.get("id"), modification1);
+		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification1);
 		final Map<String, Object> modification2 = new HashMap<>();
 		modification2.put("id", 2);
 		modification2.put("reference_table", "person_name");
 		modification2.put("reference_id", 1);
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		modifications.put((Integer)modification2.get("id"), modification2);
+		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification2);
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "something to say");
 		note1.put("reference_table", "modification");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "something more to say");
 		note2.put("reference_table", "modification");
 		note2.put("reference_id", 2);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -244,8 +239,8 @@ public class HistoryPanel extends CommonSearchPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final HistoryPanel panel = create(store)
-				.withReference(EntityManager.TABLE_NAME_PERSON_NAME, 1)
+			final HistoryPanel panel = create()
+				.withReference(EntityManager.NODE_NAME_PERSON_NAME, 1)
 				.withLinkListener(linkListener);
 			panel.loadData();
 
@@ -258,6 +253,8 @@ public class HistoryPanel extends CommonSearchPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

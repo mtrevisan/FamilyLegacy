@@ -24,37 +24,63 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
+
+import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 
 public class EntityManager{
 
-	public static final String TABLE_NAME_NOTE = "note";
-	public static final String TABLE_NAME_MEDIA_JUNCTION = "media_junction";
-	public static final String TABLE_NAME_RESTRICTION = "restriction";
-	public static final String TABLE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
-	public static final String TABLE_NAME_MODIFICATION = "modification";
-	public static final String TABLE_NAME_ASSERTION = "assertion";
-	public static final String TABLE_NAME_CITATION = "citation";
-	public static final String TABLE_NAME_SOURCE = "source";
-	public static final String TABLE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
-	public static final String TABLE_NAME_CULTURAL_NORM = "cultural_norm";
-	public static final String TABLE_NAME_EVENT = "event";
-	public static final String TABLE_NAME_EVENT_TYPE = "event_type";
-	public static final String TABLE_NAME_EVENT_SUPER_TYPE = "event_super_type";
-	public static final String TABLE_NAME_GROUP = "group";
-	public static final String TABLE_NAME_GROUP_JUNCTION = "group_junction";
-	public static final String TABLE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
-	public static final String TABLE_NAME_HISTORIC_DATE = "historic_date";
-	public static final String TABLE_NAME_CALENDAR = "calendar";
-	public static final String TABLE_NAME_LOCALIZED_TEXT = "localized_text";
-	public static final String TABLE_NAME_MEDIA = "media";
-	public static final String TABLE_NAME_PERSON = "person";
-	public static final String TABLE_NAME_PERSON_NAME = "person_name";
-	public static final String TABLE_NAME_PLACE = "place";
-	public static final String TABLE_NAME_REPOSITORY = "repository";
-	public static final String TABLE_NAME_RESEARCH_STATUS = "research_status";
-	public static final String TABLE_NAME_PROJECT = "project";
+	public static final String PROPERTY_NAME_PRIMARY_KEY = "id";
+
+	public static final String NODE_NAME_ASSERTION = "assertion";
+	public static final String RELATIONSHIP_NAME_INFERRED_FROM = "inferred_from";
+	public static final String RELATIONSHIP_NAME_SUPPORTED_BY = "supported_by";
+	public static final String NODE_NAME_CITATION = "citation";
+	public static final String RELATIONSHIP_NAME_QUOTES = "quotes";
+	public static final String NODE_NAME_SOURCE = "source";
+	public static final String RELATIONSHIP_NAME_STORED_IN = "stored_in";
+	public static final String RELATIONSHIP_NAME_CREATED_IN = "created_in";
+	public static final String RELATIONSHIP_NAME_CREATED_ON = "created_on";
+	public static final String NODE_NAME_REPOSITORY = "repository";
+	public static final String RELATIONSHIP_NAME_OWNS = "owns";
+	public static final String RELATIONSHIP_NAME_LOCATED_IN = "located_in";
+	public static final String NODE_NAME_HISTORIC_DATE = "historic_date";
+	public static final String RELATIONSHIP_NAME_EXPRESSED_IN = "expressed_in";
+	public static final String NODE_NAME_CALENDAR = "calendar";
+	public static final String NODE_NAME_PLACE = "place";
+	public static final String RELATIONSHIP_NAME_DEPICTED_BY = "depicted_by";
+	public static final String NODE_NAME_LOCALIZED_TEXT = "localized_text";
+	public static final String RELATIONSHIP_NAME_FOR = "for";
+	public static final String NODE_NAME_LOCALIZED_TEXT_JUNCTION = "localized_text_junction";
+	public static final String NODE_NAME_NOTE = "note";
+	public static final String NODE_NAME_MEDIA = "media";
+	public static final String NODE_NAME_MEDIA_JUNCTION = "media_junction";
+	public static final String NODE_NAME_PERSON = "person";
+	public static final String NODE_NAME_PERSON_NAME = "person_name";
+	public static final String NODE_NAME_LOCALIZED_PERSON_NAME = "localized_person_name";
+	public static final String RELATIONSHIP_NAME_TRANSCRIPTION_FOR = "transcription_for";
+	public static final String NODE_NAME_GROUP = "group";
+	public static final String RELATIONSHIP_NAME_OF = "of";
+	public static final String NODE_NAME_GROUP_JUNCTION = "group_junction";
+	public static final String NODE_NAME_EVENT = "event";
+	public static final String RELATIONSHIP_NAME_OF_TYPE = "of_type";
+	public static final String RELATIONSHIP_NAME_HAPPENED_IN = "happened_in";
+	public static final String RELATIONSHIP_NAME_HAPPENED_ON = "happened_on";
+	public static final String NODE_NAME_EVENT_TYPE = "event_type";
+	public static final String NODE_NAME_EVENT_SUPER_TYPE = "event_super_type";
+	public static final String NODE_NAME_CULTURAL_NORM = "cultural_norm";
+	public static final String RELATIONSHIP_NAME_APPLIES_IN = "applies_in";
+	public static final String RELATIONSHIP_NAME_STARTED_ON = "started_on";
+	public static final String RELATIONSHIP_NAME_ENDED_ON = "ended_on";
+	public static final String NODE_NAME_CULTURAL_NORM_JUNCTION = "cultural_norm_junction";
+	public static final String RELATIONSHIP_NAME_ACCREDITED_FOR = "accredited_for";
+	public static final String NODE_NAME_RESTRICTION = "restriction";
+	public static final String NODE_NAME_MODIFICATION = "modification";
+	public static final String NODE_NAME_RESEARCH_STATUS = "research_status";
+	public static final String NODE_NAME_PROJECT = "project";
 
 	public static final String SEX_MALE = "male";
 	public static final String SEX_FEMALE = "female";
@@ -182,7 +208,7 @@ public class EntityManager{
 	}
 
 	public static String extractRecordSuperType(final Map<String, Object> record){
-		return (String)record.get("super_type");
+		return (record != null? (String)record.get("super_type"): null);
 	}
 
 	public static String extractRecordCategory(final Map<String, Object> record){
@@ -307,6 +333,11 @@ public class EntityManager{
 
 	public static String extractRecordAuthor(final Map<String, Object> record){
 		return (String)record.get("author");
+	}
+
+	public static int extractRecordIncludeMediaPayload(final Map<String, Object> record){
+		final Integer includeMediaPayload = (Integer)record.get("include_media_payload");
+		return (includeMediaPayload != null? includeMediaPayload: 0);
 	}
 
 
@@ -544,6 +575,40 @@ public class EntityManager{
 
 	public static void insertRecordMediaID(final Map<String, Object> record, final Integer mediaID){
 		record.put("media_id", mediaID);
+	}
+
+	public static void insertRecordIncludeMediaPayload(final Map<String, Object> record, final int includeMediaPayloadID){
+		record.put("include_media_payload", includeMediaPayloadID);
+	}
+
+
+	public static void addRecord(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final String tableName,
+			final Map<String, Object> record){
+		//TODO remove
+		final TreeMap<Integer, Map<String, Object>> records = store.computeIfAbsent(tableName, k -> new TreeMap<>());
+		final Integer recordID = extractRecordID(record);
+		records.put(recordID, record);
+
+		Repository.save(tableName, record);
+	}
+
+	public static void removeRecord(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final String tableName,
+			final int recordID){
+		//TODO remove
+		final TreeMap<Integer, Map<String, Object>> records = store.computeIfAbsent(tableName, k -> new TreeMap<>());
+		records.remove(recordID);
+
+		Repository.deleteNode(tableName, recordID);
+	}
+
+	public static void removeRecord(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final String tableName,
+			final List<Integer> recordIDs){
+		//TODO remove
+		final TreeMap<Integer, Map<String, Object>> records = store.computeIfAbsent(tableName, k -> new TreeMap<>());
+		for(int i = 0, length = recordIDs.size(); i < length; i ++)
+			records.remove(recordIDs.get(i));
+
+		Repository.deleteNodes(tableName, recordIDs);
 	}
 
 }

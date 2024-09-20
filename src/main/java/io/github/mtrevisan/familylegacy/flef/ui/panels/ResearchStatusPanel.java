@@ -25,6 +25,8 @@
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -50,10 +52,9 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCreationDate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -85,13 +86,13 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 	private int filterReferenceID;
 
 
-	public static ResearchStatusPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new ResearchStatusPanel(store);
+	public static ResearchStatusPanel create(){
+		return new ResearchStatusPanel();
 	}
 
 
-	private ResearchStatusPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private ResearchStatusPanel(){
+		super();
 
 
 		initComponents();
@@ -124,7 +125,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.TABLE_NAME_RESEARCH_STATUS;
+		return EntityManager.NODE_NAME_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -152,24 +153,24 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> recordResearchStatuses = getRecords(EntityManager.TABLE_NAME_RESEARCH_STATUS)
-			.entrySet().stream()
-			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry.getValue()))
-				&& filterReferenceID == extractRecordReferenceID(entry.getValue()))
-			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+		final List<Map<String, Object>> recordResearchStatuses = Repository.findAll(EntityManager.NODE_NAME_RESEARCH_STATUS)
+			.stream()
+			.filter(record -> filterReferenceTable.equals(extractRecordReferenceTable(record))
+				&& filterReferenceID == extractRecordReferenceID(record))
+			.toList();
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(recordResearchStatuses.size());
 		int row = 0;
-		for(final Map.Entry<Integer, Map<String, Object>> recordResearchStatus : recordResearchStatuses.entrySet()){
-			final Integer key = recordResearchStatus.getKey();
-			final Map<String, Object> container = recordResearchStatus.getValue();
+		for(int i = 0, length = recordResearchStatuses.size(); i < length; i ++){
+			final Map<String, Object> recordResearchStatus = recordResearchStatuses.get(i);
 
-			final Integer researchStatusID = extractRecordID(container);
-			final String identifier = extractRecordIdentifier(container);
-			final String status = extractRecordStatus(container);
-			final Integer priority = extractRecordPriority(container);
-			final String recordCreationDate = extractRecordCreationDate(container);
+			final Integer recordID = extractRecordID(recordResearchStatus);
+			final Integer researchStatusID = extractRecordID(recordResearchStatus);
+			final String identifier = extractRecordIdentifier(recordResearchStatus);
+			final String status = extractRecordStatus(recordResearchStatus);
+			final Integer priority = extractRecordPriority(recordResearchStatus);
+			final String recordCreationDate = extractRecordCreationDate(recordResearchStatus);
 			final String humanReadableDateTime = (recordCreationDate != null
 				? HUMAN_DATE_FORMATTER.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME.parse(recordCreationDate))
 				: null);
@@ -188,9 +189,9 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 			model.setValueAt(priority, row, TABLE_INDEX_PRIORITY);
 			model.setValueAt(humanReadableDateTime, row, TABLE_INDEX_CREATION_DATE);
 
-			tableData.add(new SearchAllRecord(key, EntityManager.TABLE_NAME_RESEARCH_STATUS, filterData, identifier));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_RESEARCH_STATUS, filterData, identifier));
 
-			row ++;
+			row++;
 		}
 	}
 
@@ -204,10 +205,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> researchStatuses = new TreeMap<>();
-		store.put("research_status", researchStatuses);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> researchStatus1 = new HashMap<>();
 		researchStatus1.put("id", 1);
 		researchStatus1.put("reference_table", "person_name");
@@ -217,7 +215,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 0);
 		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		researchStatuses.put((Integer)researchStatus1.get("id"), researchStatus1);
+		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
 		researchStatus2.put("id", 2);
 		researchStatus2.put("reference_table", "person_name");
@@ -227,7 +225,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		researchStatus2.put("status", "active");
 		researchStatus2.put("priority", 1);
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		researchStatuses.put((Integer)researchStatus2.get("id"), researchStatus2);
+		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus2);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -243,8 +241,8 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final ResearchStatusPanel panel = create(store)
-				.withReference(EntityManager.TABLE_NAME_PERSON_NAME, 1)
+			final ResearchStatusPanel panel = create()
+				.withReference(EntityManager.NODE_NAME_PERSON_NAME, 1)
 				.withLinkListener(linkListener);
 			panel.loadData();
 
@@ -257,6 +255,8 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

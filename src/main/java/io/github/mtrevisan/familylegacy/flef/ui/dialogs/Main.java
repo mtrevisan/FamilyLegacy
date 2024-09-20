@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
@@ -41,10 +40,8 @@ import javax.swing.UIManager;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCitationID;
@@ -74,33 +71,23 @@ public class Main{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		GraphDatabaseManager.clearDatabase();
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final RepositoryDialog dialog = RepositoryDialog.create(store, parent);
-//			final HistoricDateDialog dialog = HistoricDateDialog.create(store, parent);
-//			final PlaceDialog dialog = PlaceDialog.create(store, parent);
-//			final MediaDialog dialog = MediaDialog.create(store, parent);
-//			final PersonDialog dialog = PersonDialog.create(store, parent);
-//			final GroupDialog dialog = GroupDialog.create(store, parent);
-//			final EventDialog dialog = EventDialog.create(store, parent);
-//			final CulturalNormDialog dialog = CulturalNormDialog.create(store, parent);
-//			final ResearchStatusDialog dialog = ResearchStatusDialog.create(store, parent);
-//			final ProjectDialog dialog = ProjectDialog.create(store, parent);
-//			final AssertionDialog dialog = AssertionDialog.create(store, parent);
-			injector.injectDependencies(dialog);
+			final RepositoryDialog dialog = RepositoryDialog.create(parent);
+//			final HistoricDateDialog dialog = HistoricDateDialog.create(parent);
+//			final PlaceDialog dialog = PlaceDialog.create(parent);
+//			final MediaDialog dialog = MediaDialog.create(parent);
+//			final PersonDialog dialog = PersonDialog.create(parent);
+//			final GroupDialog dialog = GroupDialog.create(parent);
+//			final EventDialog dialog = EventDialog.create(parent);
+//			final CulturalNormDialog dialog = CulturalNormDialog.create(parent);
+//			final ResearchStatusDialog dialog = ResearchStatusDialog.create(parent);
+//			final ProjectDialog dialog = ProjectDialog.create(parent);
+//			final AssertionDialog dialog = AssertionDialog.create(parent);
 			dialog.loadData();
 
 			final Object listener = new Object(){
@@ -114,12 +101,11 @@ public class Main{
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
 					final String tableName = editCommand.getIdentifier();
-					final Integer recordID = extractRecordID(container);
+					final Integer containerID = extractRecordID(container);
 					switch(editCommand.getType()){
 						//from: ?
 //						case REPOSITORY -> {
-//							final RepositoryDialog repositoryDialog = RepositoryDialog.create(store, parent);
-//							injector.injectDependencies(repositoryDialog);
+//							final RepositoryDialog repositoryDialog = RepositoryDialog.create(parent);
 //							repositoryDialog.loadData();
 //							final Integer repositoryID = extractRecordRepositoryID(container);
 //							if(repositoryID != null)
@@ -130,13 +116,12 @@ public class Main{
 
 						//from: repository
 						case SOURCE -> {
-							final SourceDialog sourceDialog = SourceDialog.create(store, parent)
-								.withFilterOnRepositoryID(recordID)
-								.withOnCloseGracefully(record -> {
+							final SourceDialog sourceDialog = SourceDialog.create(parent)
+								.withFilterOnRepositoryID(containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										record.put("repository_id", recordID);
 								});
-							injector.injectDependencies(sourceDialog);
 							sourceDialog.loadData();
 							final Integer sourceID = extractRecordSourceID(container);
 							if(sourceID != null)
@@ -147,13 +132,12 @@ public class Main{
 
 						//from: source
 						case CITATION -> {
-							final CitationDialog citationDialog = CitationDialog.create(store, parent)
-								.withFilterOnSourceID(recordID)
-								.withOnCloseGracefully(record -> {
+							final CitationDialog citationDialog = CitationDialog.create(parent)
+								.withFilterOnSourceID(containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										record.put("source_id", recordID);
 								});
-							injector.injectDependencies(dialog);
 							citationDialog.loadData();
 							final Integer citationID = extractRecordCitationID(container);
 							if(citationID != null)
@@ -164,9 +148,8 @@ public class Main{
 
 						//from: citation, person, person name, group, media, place, cultural norm, historic date, calendar
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = AssertionDialog.create(store, parent)
-								.withReference(tableName, recordID);
-							injector.injectDependencies(assertionDialog);
+							final AssertionDialog assertionDialog = AssertionDialog.create(parent)
+								.withReference(tableName, containerID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -175,8 +158,7 @@ public class Main{
 
 						//from: source, event, cultural norm, media
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(store, parent);
-							injector.injectDependencies(historicDateDialog);
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
 							final Integer dateID = extractRecordDateID(container);
 							if(dateID != null)
@@ -187,9 +169,8 @@ public class Main{
 
 						//from: historic date
 						case CALENDAR_ORIGINAL -> {
-							final CalendarDialog calendarDialog = CalendarDialog.create(store, parent)
-								.withOnCloseGracefully(record -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
-							injector.injectDependencies(calendarDialog);
+							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
+								.withOnCloseGracefully((record, recordID) -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
 							calendarDialog.loadData();
 							final Integer calendarID = extractRecordCalendarOriginalID(container);
 							if(calendarID != null)
@@ -201,9 +182,8 @@ public class Main{
 
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.create(store, parent)
-								.withOnCloseGracefully(record -> insertRecordPlaceID(container, extractRecordID(record)));
-							injector.injectDependencies(placeDialog);
+							final PlaceDialog placeDialog = PlaceDialog.create(parent)
+								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
 							final Integer placeID = extractRecordPlaceID(container);
 							if(placeID != null)
@@ -216,15 +196,14 @@ public class Main{
 						//from: repository, source, citation, assertion, historic date, calendar, person, person name, group, event,
 						// cultural norm, media, place
 						case NOTE -> {
-							final NoteDialog noteDialog = NoteDialog.create(store, parent)
-								.withReference(tableName, recordID)
-								.withOnCloseGracefully(record -> {
+							final NoteDialog noteDialog = NoteDialog.create(parent)
+								.withReference(tableName, containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);
 										record.put("reference_id", recordID);
 									}
 								});
-							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
@@ -233,15 +212,14 @@ public class Main{
 
 						//from: citation
 						case LOCALIZED_EXTRACT -> {
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference(EntityManager.TABLE_NAME_CITATION, recordID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
-								.withOnCloseGracefully(record -> {
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
+								.withReference(EntityManager.NODE_NAME_CITATION, containerID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);
 										record.put("reference_id", recordID);
 									}
 								});
-							injector.injectDependencies(localizedTextDialog);
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
@@ -249,13 +227,12 @@ public class Main{
 
 						//from: person name
 						case LOCALIZED_PERSON_NAME -> {
-							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.create(store, parent)
-								.withReference(recordID)
-								.withOnCloseGracefully(record -> {
+							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.create(parent)
+								.withReference(containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										insertRecordPersonNameID(record, recordID);
 								});
-							injector.injectDependencies(localizedTextDialog);
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
@@ -263,15 +240,14 @@ public class Main{
 
 						//from: place
 						case LOCALIZED_PLACE_NAME -> {
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference(tableName, recordID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
-								.withOnCloseGracefully(record -> {
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
+								.withReference(tableName, containerID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);
 										record.put("reference_id", recordID);
 									}
 								});
-							injector.injectDependencies(localizedTextDialog);
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
@@ -280,16 +256,15 @@ public class Main{
 
 						//from: repository, source, citation, assertion, person, person name, group, event, cultural norm, note, place
 						case MEDIA -> {
-							final MediaDialog mediaDialog = MediaDialog.createForMedia(store, parent)
+							final MediaDialog mediaDialog = MediaDialog.createForMedia(parent)
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(tableName, recordID)
-								.withOnCloseGracefully(record -> {
+								.withReference(tableName, containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);
 										record.put("reference_id", recordID);
 									}
 								});
-							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 							final Integer mediaID = extractRecordMediaID(container);
 							if(mediaID != null)
@@ -300,22 +275,21 @@ public class Main{
 
 						//from: person, group, place
 						case PHOTO -> {
-							final MediaDialog photoDialog = MediaDialog.createForPhoto(store, parent)
+							final MediaDialog photoDialog = MediaDialog.createForPhoto(parent)
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(tableName, recordID)
-								.withOnCloseGracefully(record -> {
+								.withReference(tableName, containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);
 										record.put("reference_id", recordID);
 									}
 								});
-							injector.injectDependencies(photoDialog);
 							photoDialog.loadData();
 							final Integer photoID = extractRecordPhotoID(container);
 							if(photoID != null){
 								//add photo manually because is not retrievable through a junction
 								photoDialog.addData(container);
-								photoDialog.selectData(recordID);
+								photoDialog.selectData(containerID);
 							}
 							else
 								photoDialog.showNewRecord();
@@ -325,8 +299,8 @@ public class Main{
 
 						//from: person, group, media, place
 						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(store, parent);
-							photoCropDialog.withOnCloseGracefully(record -> {
+							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(parent);
+							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
 								final Rectangle crop = photoCropDialog.getCrop();
 								if(crop != null){
 									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -338,9 +312,9 @@ public class Main{
 								}
 							});
 							try{
-								if(recordID != null){
+								if(containerID != null){
 									final String photoCrop = extractRecordPhotoCrop(container);
-									photoCropDialog.loadData(recordID, photoCrop);
+									photoCropDialog.loadData(containerID, photoCrop);
 								}
 
 								photoCropDialog.setSize(420, 295);
@@ -352,9 +326,8 @@ public class Main{
 
 						//from: repository
 						case PERSON -> {
-							final PersonDialog personDialog = PersonDialog.create(store, parent)
-								.withOnCloseGracefully(record -> insertRecordPersonID(container, extractRecordID(record)));
-							injector.injectDependencies(personDialog);
+							final PersonDialog personDialog = PersonDialog.create(parent)
+								.withOnCloseGracefully((record, recordID) -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
 							final Integer personID = extractRecordPersonID(container);
 							if(personID != null)
@@ -365,15 +338,14 @@ public class Main{
 
 						//from: person
 						case PERSON_NAME -> {
-							final PersonNameDialog personNameDialog = PersonNameDialog.create(store, parent)
-								.withReference(recordID)
-								.withOnCloseGracefully(record -> {
+							final PersonNameDialog personNameDialog = PersonNameDialog.create(parent)
+								.withReference(containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									insertRecordPersonID(record, recordID);
 
 									//update table identifier
 									dialog.loadData();
 								});
-							injector.injectDependencies(personNameDialog);
 							personNameDialog.loadData();
 
 							personNameDialog.showDialog();
@@ -382,9 +354,8 @@ public class Main{
 
 						//from: person, group, place
 						case GROUP -> {
-							final GroupDialog groupDialog = GroupDialog.create(store, parent)
-								.withReference(tableName, recordID);
-							injector.injectDependencies(groupDialog);
+							final GroupDialog groupDialog = GroupDialog.create(parent)
+								.withReference(tableName, containerID);
 							groupDialog.loadData();
 							final Integer groupID = extractRecordGroupID(container);
 							if(groupID != null)
@@ -396,9 +367,8 @@ public class Main{
 
 						//from: calendar, person, person name, group, cultural norm, media, place
 						case EVENT -> {
-							final EventDialog eventDialog = EventDialog.create(store, parent)
-								.withReference(tableName, recordID);
-							injector.injectDependencies(eventDialog);
+							final EventDialog eventDialog = EventDialog.create(parent)
+								.withReference(tableName, containerID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
@@ -407,15 +377,14 @@ public class Main{
 
 						//from: assertion, person name, group, note
 						case CULTURAL_NORM -> {
-							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(store, parent)
-								.withReference(EntityManager.TABLE_NAME_PERSON_NAME, recordID)
-								.withOnCloseGracefully(record -> {
+							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
+								.withReference(EntityManager.NODE_NAME_PERSON_NAME, containerID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);
 										record.put("reference_id", recordID);
 									}
 								});
-							injector.injectDependencies(culturalNormDialog);
 							culturalNormDialog.loadData();
 							final Integer culturalNormID = extractRecordCulturalNormID(container);
 							if(culturalNormID != null)
@@ -442,7 +411,8 @@ public class Main{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

@@ -51,6 +51,7 @@ public final class FileHelper{
 	private static final String URL_CONNECTIVITY_TEST = "https://www.google.com/";
 
 	private static final Tika TIKA = new Tika();
+	private static final String MIME_TYPE_IMAGE = "image/";
 
 
 	private FileHelper(){}
@@ -80,7 +81,7 @@ public final class FileHelper{
 	public static boolean isPhoto(final File file){
 		try{
 			final String mimeType = TIKA.detect(file);
-			return (mimeType != null && mimeType.startsWith("image/"));
+			return (mimeType != null && mimeType.startsWith(MIME_TYPE_IMAGE));
 		}
 		catch(final IOException ignored){
 			return false;

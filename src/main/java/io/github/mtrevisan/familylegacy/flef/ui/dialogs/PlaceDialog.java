@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
@@ -54,14 +53,12 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCoordinate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCoordinateCredibility;
@@ -123,14 +120,14 @@ public final class PlaceDialog extends CommonListDialog{
 	private Integer filterPlaceID;
 
 
-	public static PlaceDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PlaceDialog dialog = new PlaceDialog(store, parent);
+	public static PlaceDialog create(final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static PlaceDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PlaceDialog dialog = new PlaceDialog(store, parent);
+	public static PlaceDialog createSelectOnly(final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton,
 			dialog.groupButton);
@@ -138,36 +135,35 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PlaceDialog dialog = new PlaceDialog(store, parent);
+	public static PlaceDialog createShowOnly(final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static PlaceDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PlaceDialog dialog = new PlaceDialog(store, parent);
+	public static PlaceDialog createEditOnly(final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static PlaceDialog createWithPlace(final Map<String, TreeMap<Integer, Map<String, Object>>> store,
-			final Integer filterPlaceID, final Frame parent){
-		final PlaceDialog dialog = new PlaceDialog(store, parent);
+	public static PlaceDialog createWithPlace(final Integer filterPlaceID, final Frame parent){
+		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.filterPlaceID = filterPlaceID;
 		dialog.initialize();
 		return dialog;
 	}
 
 
-	private PlaceDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private PlaceDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public PlaceDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public PlaceDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -175,7 +171,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_PLACE;
+		return EntityManager.NODE_NAME_PLACE;
 	}
 
 	@Override
@@ -214,7 +210,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, EntityManager.TABLE_NAME_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, EntityManager.NODE_NAME_PLACE, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
 
@@ -225,28 +221,28 @@ public final class PlaceDialog extends CommonListDialog{
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO, EntityManager.TABLE_NAME_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PHOTO, EntityManager.NODE_NAME_PLACE, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.TABLE_NAME_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_PLACE, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_PLACE, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.TABLE_NAME_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_PLACE, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.TABLE_NAME_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_NAME_PLACE, selectedRecord)));
 
 		groupButton.setToolTipText("Groups");
 		groupButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.GROUP, EntityManager.TABLE_NAME_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.GROUP, EntityManager.NODE_NAME_PLACE, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -286,7 +282,7 @@ public final class PlaceDialog extends CommonListDialog{
 	@Override
 	protected Map<String, Object> getSelectedRecord(){
 		if(filterPlaceID != null)
-			return getRecords(EntityManager.TABLE_NAME_PLACE)
+			return getRecords(EntityManager.NODE_NAME_PLACE)
 				.get(filterPlaceID);
 		else
 			return super.getSelectedRecord();
@@ -296,7 +292,7 @@ public final class PlaceDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.NODE_NAME_PLACE);
 		if(filterPlaceID != null)
 			selectAction();
 		else{
@@ -343,46 +339,46 @@ public final class PlaceDialog extends CommonListDialog{
 		final String coordinateCredibility = extractRecordCoordinateCredibility(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
 		final String photoCrop = extractRecordPhotoCrop(selectedRecord);
-		final boolean hasNotes = (getRecords(EntityManager.TABLE_NAME_NOTE)
+		final boolean hasNotes = (getRecords(EntityManager.NODE_NAME_NOTE)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_PLACE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasTranscribedNames = (getRecords(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION)
+		final boolean hasTranscribedNames = (getRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_PLACE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.filter(record -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_NAME, extractRecordReferenceType(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_PLACE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasAssertions = (getRecords(EntityManager.TABLE_NAME_ASSERTION)
+		final boolean hasAssertions = (getRecords(EntityManager.NODE_NAME_ASSERTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_PLACE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasEvents = (getRecords(EntityManager.TABLE_NAME_EVENT)
+		final boolean hasEvents = (getRecords(EntityManager.NODE_NAME_EVENT)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_PLACE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasGroups = (getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
+		final boolean hasGroups = (getRecords(EntityManager.NODE_NAME_GROUP_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_PLACE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_PLACE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PLACE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(placeID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -496,10 +492,8 @@ public final class PlaceDialog extends CommonListDialog{
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
-		store.put("place", places);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place");
@@ -511,10 +505,8 @@ public final class PlaceDialog extends CommonListDialog{
 		place1.put("coordinate_credibility", "certain");
 		place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
-		places.put((Integer)place1.get("id"), place1);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
 
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "/images/addPhoto.boy.jpg");
@@ -522,41 +514,27 @@ public final class PlaceDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		media.put((Integer)media1.get("id"), media1);
+		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "place");
 		note2.put("reference_id", 1);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
-		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "place");
 		restriction1.put("reference_id", 1);
-		restrictions.put((Integer)restriction1.get("id"), restriction1);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -564,10 +542,9 @@ public final class PlaceDialog extends CommonListDialog{
 			final Integer filterPlaceID = null;
 			final PlaceDialog dialog;
 			if(filterPlaceID == null)
-				dialog = create(store, parent);
+				dialog = create(parent);
 			else
-				dialog = createWithPlace(store, filterPlaceID, parent);
-			injector.injectDependencies(dialog);
+				dialog = createWithPlace(filterPlaceID, parent);
 			dialog.loadData();
 			if(filterPlaceID == null && !dialog.selectData(extractRecordID(place1)))
 				dialog.showNewRecord();
@@ -587,35 +564,32 @@ public final class PlaceDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(store, parent)
-									: AssertionDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_PLACE, placeID);
-							injector.injectDependencies(assertionDialog);
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_PLACE, placeID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 						case LOCALIZED_PLACE_NAME -> {
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(store, parent)
-								.withReference(EntityManager.TABLE_NAME_PLACE, placeID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
-								.withOnCloseGracefully(record -> {
+							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
+								.withReference(EntityManager.NODE_NAME_PLACE, placeID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_PLACE);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_PLACE);
 										insertRecordReferenceID(record, placeID);
 									}
 								});
-							injector.injectDependencies(localizedTextDialog);
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createEditOnlyForPhoto(store, parent)
-									: MediaDialog.createForPhoto(store, parent))
+									? MediaDialog.createEditOnlyForPhoto(parent)
+									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.TABLE_NAME_PLACE, placeID);
-							injector.injectDependencies(photoDialog);
+								.withReference(EntityManager.NODE_NAME_PLACE, placeID);
 							photoDialog.loadData();
 							if(photoID != null){
 								//add photo manually because is not retrievable through a junction
@@ -629,9 +603,9 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 //						case PHOTO_CROP -> {
 //							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
-//								? PhotoCropDialog.createSelectOnly(store, parent)
-//								: PhotoCropDialog.create(store, parent));
-//							photoCropDialog.withOnCloseGracefully(record -> {
+//								? PhotoCropDialog.createSelectOnly(parent)
+//								: PhotoCropDialog.create(parent));
+//							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
 //								final Rectangle crop = photoCropDialog.getCrop();
 //								if(crop != null){
 //									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -655,53 +629,49 @@ public final class PlaceDialog extends CommonListDialog{
 //						}
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
-									? NoteDialog.createSelectOnly(store, parent)
-									: NoteDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_PLACE, placeID)
-								.withOnCloseGracefully(record -> {
+									? NoteDialog.createSelectOnly(parent)
+									: NoteDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_PLACE, placeID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_PLACE);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_PLACE);
 										insertRecordReferenceID(record, placeID);
 									}
 								});
-							injector.injectDependencies(noteDialog);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-									? MediaDialog.createSelectOnlyForMedia(store, parent)
-									: MediaDialog.createForMedia(store, parent))
+									? MediaDialog.createSelectOnlyForMedia(parent)
+									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.TABLE_NAME_PLACE, placeID)
-								.withOnCloseGracefully(record -> {
+								.withReference(EntityManager.NODE_NAME_PLACE, placeID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_PLACE);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_PLACE);
 										insertRecordReferenceID(record, placeID);
 									}
 								});
-							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
 						case EVENT -> {
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
-									? EventDialog.createSelectOnly(store, parent)
-									: EventDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_PLACE, placeID);
-							injector.injectDependencies(eventDialog);
+									? EventDialog.createSelectOnly(parent)
+									: EventDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_PLACE, placeID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
 						}
 						case GROUP -> {
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
-									? GroupDialog.createSelectOnly(store, parent)
-									: GroupDialog.create(store, parent))
-								.withReference(EntityManager.TABLE_NAME_PLACE, placeID);
-							injector.injectDependencies(groupDialog);
+									? GroupDialog.createSelectOnly(parent)
+									: GroupDialog.create(parent))
+								.withReference(EntityManager.NODE_NAME_PLACE, placeID);
 							groupDialog.loadData();
 
 							groupDialog.showDialog();
@@ -711,11 +681,10 @@ public final class PlaceDialog extends CommonListDialog{
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + placeID);
-							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
@@ -726,11 +695,10 @@ public final class PlaceDialog extends CommonListDialog{
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + placeID);
-							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 
@@ -744,7 +712,8 @@ public final class PlaceDialog extends CommonListDialog{
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

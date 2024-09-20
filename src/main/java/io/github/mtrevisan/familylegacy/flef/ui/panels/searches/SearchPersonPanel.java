@@ -26,6 +26,8 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -49,11 +51,9 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -92,13 +92,13 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
 
 
-	public static SearchPersonPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchPersonPanel(store);
+	public static SearchPersonPanel create(){
+		return new SearchPersonPanel();
 	}
 
 
-	private SearchPersonPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private SearchPersonPanel(){
+		super();
 
 
 		initComponents();
@@ -115,7 +115,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.TABLE_NAME_PERSON;
+		return EntityManager.NODE_NAME_PERSON;
 	}
 
 	@Override
@@ -147,12 +147,15 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final Map<Integer, Map<String, Object>> records = getRecords(EntityManager.TABLE_NAME_PERSON);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_PERSON);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
-		for(final Integer personID : records.keySet()){
+		for(int i = 0, length = records.size(); i < length; i ++){
+			final Map<String, Object> record = records.get(i);
+
+			final Integer personID = extractRecordID(record);
 			final String personName = extractFirstName(personID);
 			final List<String> personAllNames = extractAllNames(personID);
 			final Map<String, Object> earliestPersonBirthYearAndPlace = extractEarliestBirthYearAndPlace(personID);
@@ -161,14 +164,10 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			final String personBirthPlace = extractRecordPlace(earliestPersonBirthYearAndPlace);
 			final String personDeathYear = extractRecordYear(latestPersonDeathYearAndPlace);
 			final String personDeathPlace = extractRecordPlace(latestPersonDeathYearAndPlace);
-			final FilterString filter = FilterString.create()
-				.add(personID);
+			final FilterString filter = FilterString.create().add(personID);
 			for(final String name : personAllNames)
 				filter.add(name);
-			filter.add(personBirthYear)
-				.add(personBirthPlace)
-				.add(personDeathYear)
-				.add(personDeathPlace);
+			filter.add(personBirthYear).add(personBirthPlace).add(personDeathYear).add(personDeathPlace);
 			final String filterData = filter.toString();
 
 			model.setValueAt(personID, row, TABLE_INDEX_ID);
@@ -179,16 +178,16 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			model.setValueAt((personDeathYear != null? personDeathYear: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_YEAR);
 			model.setValueAt((personDeathPlace != null? personDeathPlace: NO_DATA), row, TABLE_INDEX_PERSON_DEATH_PLACE);
 
-			tableData.add(new SearchAllRecord(personID, EntityManager.TABLE_NAME_PERSON, filterData, personName));
+			tableData.add(new SearchAllRecord(personID, EntityManager.NODE_NAME_PERSON, filterData, personName));
 
-			row ++;
+			row++;
 		}
 	}
 
 
 	private String extractFirstName(final Integer personID){
-		return getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
-			.values().stream()
+		return Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+			.stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
 			.map(SearchPersonPanel::extractName)
 			.findFirst()
@@ -196,10 +195,10 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	}
 
 	private List<String> extractAllNames(final Integer personID){
-		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = getRecords(EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME);
+		final List<Map<String, Object>> localizedPersonNames = Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME);
 		final List<String> names = new ArrayList<>(0);
-		getRecords(EntityManager.TABLE_NAME_PERSON_NAME)
-			.values().stream()
+		Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+			.stream()
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				names.add(extractName(record));
@@ -207,7 +206,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 				//extract transliterations
 				final Integer personNameID = extractRecordID(record);
 				localizedPersonNames
-					.values().stream()
+					.stream()
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
 					.map(SearchPersonPanel::extractName)
 					.filter(name -> !name.isEmpty())
@@ -229,7 +228,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private Map<String, Object> extractEarliestBirthYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_NAME_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
@@ -245,7 +244,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private Map<String, Object> extractLatestDeathYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = getRecords(EntityManager.TABLE_NAME_PLACE);
+		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_NAME_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
@@ -261,12 +260,12 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		final Map<Integer, Map<String, Object>> storeEventTypes = getRecords(EntityManager.TABLE_NAME_EVENT_TYPE);
-		final Map<Integer, Map<String, Object>> historicDates = getRecords(EntityManager.TABLE_NAME_HISTORIC_DATE);
+		final Map<Integer, Map<String, Object>> storeEventTypes = Repository.findAllNavigable(EntityManager.NODE_NAME_EVENT_TYPE);
+		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_NAME_HISTORIC_DATE);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
-		return getRecords(EntityManager.TABLE_NAME_EVENT)
-			.values().stream()
-			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_PERSON, extractRecordReferenceTable(entry)))
+		return Repository.findAll(EntityManager.NODE_NAME_EVENT)
+			.stream()
+			.filter(entry -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(entry)))
 			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
@@ -286,8 +285,8 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	}
 
 	private Set<String> getEventTypes(final String category){
-		return getRecords(EntityManager.TABLE_NAME_EVENT_TYPE)
-			.values().stream()
+		return Repository.findAll(EntityManager.NODE_NAME_EVENT_TYPE)
+			.stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))
 			.map(EntityManager::extractRecordType)
 			.collect(Collectors.toSet());
@@ -311,73 +310,64 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		catch(final Exception ignored){}
 
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> persons = new TreeMap<>();
-		store.put("person", persons);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
-		persons.put((Integer)person1.get("id"), person1);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
 		final Map<String, Object> person2 = new HashMap<>();
 		person2.put("id", 2);
-		persons.put((Integer)person2.get("id"), person2);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person2);
 		final Map<String, Object> person3 = new HashMap<>();
 		person3.put("id", 3);
-		persons.put((Integer)person3.get("id"), person3);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person3);
 		final Map<String, Object> person4 = new HashMap<>();
 		person4.put("id", 4);
-		persons.put((Integer)person4.get("id"), person4);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person4);
 		final Map<String, Object> person5 = new HashMap<>();
 		person5.put("id", 5);
-		persons.put((Integer)person5.get("id"), person5);
+		Repository.save(EntityManager.NODE_NAME_PERSON, person5);
 
-		final TreeMap<Integer, Map<String, Object>> personNames = new TreeMap<>();
-		store.put("person_name", personNames);
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
 		personName1.put("person_id", 1);
 		personName1.put("personal_name", "personal name");
 		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
-		personNames.put((Integer)personName1.get("id"), personName1);
+		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
 		personName2.put("personal_name", "personal name 2");
 		personName2.put("family_name", "family name 2");
 		personName2.put("type", "death name");
-		personNames.put((Integer)personName2.get("id"), personName2);
+		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName2);
 		final Map<String, Object> personName3 = new HashMap<>();
 		personName3.put("id", 3);
 		personName3.put("person_id", 2);
 		personName3.put("personal_name", "personal name 3");
 		personName3.put("family_name", "family name 3");
 		personName3.put("type", "other name");
-		personNames.put((Integer)personName3.get("id"), personName3);
+		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName3);
 
-		final TreeMap<Integer, Map<String, Object>> localizedPersonNames = new TreeMap<>();
-		store.put("localized_person_name", localizedPersonNames);
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
 		localizedPersonName1.put("person_name_id", 1);
-		localizedPersonNames.put((Integer)localizedPersonName1.get("id"), localizedPersonName1);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName1);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
 		localizedPersonName2.put("id", 2);
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
 		localizedPersonName2.put("person_name_id", 1);
-		localizedPersonNames.put((Integer)localizedPersonName2.get("id"), localizedPersonName2);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName2);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
 		localizedPersonName3.put("id", 3);
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
 		localizedPersonName3.put("person_name_id", 1);
-		localizedPersonNames.put((Integer)localizedPersonName3.get("id"), localizedPersonName3);
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName3);
 
-		final TreeMap<Integer, Map<String, Object>> events = new TreeMap<>();
-		store.put("event", events);
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
 		event1.put("type_id", 1);
@@ -386,7 +376,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		event1.put("date_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 1);
-		events.put((Integer)event1.get("id"), event1);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event1);
 		final Map<String, Object> event2 = new HashMap<>();
 		event2.put("id", 2);
 		event2.put("type_id", 1);
@@ -395,14 +385,14 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		event2.put("date_id", 2);
 		event2.put("reference_table", "person");
 		event2.put("reference_id", 1);
-		events.put((Integer)event2.get("id"), event2);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event2);
 		final Map<String, Object> event3 = new HashMap<>();
 		event3.put("id", 3);
 		event3.put("type_id", 2);
 		event3.put("date_id", 1);
 		event3.put("reference_table", "person");
 		event3.put("reference_id", 2);
-		events.put((Integer)event3.get("id"), event3);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event3);
 		final Map<String, Object> event4 = new HashMap<>();
 		event4.put("id", 4);
 		event4.put("type_id", 3);
@@ -410,57 +400,49 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		event4.put("place_id", 1);
 		event4.put("reference_table", "group");
 		event4.put("reference_id", 1);
-		events.put((Integer)event4.get("id"), event4);
+		Repository.save(EntityManager.NODE_NAME_EVENT, event4);
 
-		final TreeMap<Integer, Map<String, Object>> eventTypes = new TreeMap<>();
-		store.put("event_type", eventTypes);
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("type", "birth");
 		eventType1.put("category", EVENT_TYPE_CATEGORY_BIRTH);
-		eventTypes.put((Integer)eventType1.get("id"), eventType1);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType1);
 		final Map<String, Object> eventType2 = new HashMap<>();
 		eventType2.put("id", 2);
 		eventType2.put("type", "death");
 		eventType2.put("category", EVENT_TYPE_CATEGORY_DEATH);
-		eventTypes.put((Integer)eventType2.get("id"), eventType2);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType2);
 		final Map<String, Object> eventType3 = new HashMap<>();
 		eventType3.put("id", 3);
 		eventType3.put("type", "marriage");
 		eventType3.put("category", "union");
-		eventTypes.put((Integer)eventType3.get("id"), eventType3);
+		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType3);
 
-		final TreeMap<Integer, Map<String, Object>> places = new TreeMap<>();
-		store.put("place", places);
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		places.put((Integer)place1.get("id"), place1);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
 		final Map<String, Object> place2 = new HashMap<>();
 		place2.put("id", 2);
 		place2.put("identifier", "another place 1");
 		place2.put("name", "name of the another place");
-		places.put((Integer)place2.get("id"), place2);
+		Repository.save(EntityManager.NODE_NAME_PLACE, place2);
 
-		final TreeMap<Integer, Map<String, Object>> historicDates = new TreeMap<>();
-		store.put("historic_date", historicDates);
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
-		historicDates.put((Integer)historicDate1.get("id"), historicDate1);
+		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
 		final Map<String, Object> historicDate2 = new HashMap<>();
 		historicDate2.put("id", 2);
 		historicDate2.put("date", "1 JAN 1800");
-		historicDates.put((Integer)historicDate2.get("id"), historicDate2);
+		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate2);
 
-		final TreeMap<Integer, Map<String, Object>> calendars = new TreeMap<>();
-		store.put("calendar", calendars);
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
-		calendars.put((Integer)calendar1.get("id"), calendar1);
+		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar1);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -476,7 +458,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final SearchPersonPanel panel = create(store);
+			final SearchPersonPanel panel = create();
 			panel.setLinkListener(linkListener);
 			panel.loadData();
 
@@ -489,6 +471,8 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			frame.addWindowListener(new WindowAdapter(){
 				@Override
 				public void windowClosing(final WindowEvent e){
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

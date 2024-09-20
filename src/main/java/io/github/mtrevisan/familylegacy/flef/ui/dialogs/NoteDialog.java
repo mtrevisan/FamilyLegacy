@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -54,14 +53,12 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
@@ -95,14 +92,14 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	private int filterReferenceID;
 
 
-	public static NoteDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final NoteDialog dialog = new NoteDialog(store, parent);
+	public static NoteDialog create(final Frame parent){
+		final NoteDialog dialog = new NoteDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static NoteDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final NoteDialog dialog = new NoteDialog(store, parent);
+	public static NoteDialog createSelectOnly(final Frame parent){
+		final NoteDialog dialog = new NoteDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.mediaButton, dialog.culturalNormButton);
@@ -110,23 +107,23 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return dialog;
 	}
 
-	public static NoteDialog createShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final NoteDialog dialog = new NoteDialog(store, parent);
+	public static NoteDialog createShowOnly(final Frame parent){
+		final NoteDialog dialog = new NoteDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static NoteDialog createEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final NoteDialog dialog = new NoteDialog(store, parent);
+	public static NoteDialog createEditOnly(final Frame parent){
+		final NoteDialog dialog = new NoteDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static NoteDialog createModificationNoteShowOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final NoteDialog dialog = new NoteDialog(store, parent);
+	public static NoteDialog createModificationNoteShowOnly(final Frame parent){
+		final NoteDialog dialog = new NoteDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
 		dialog.showRecordHistory = false;
@@ -134,8 +131,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		return dialog;
 	}
 
-	public static NoteDialog createModificationNoteEditOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final NoteDialog dialog = new NoteDialog(store, parent);
+	public static NoteDialog createModificationNoteEditOnly(final Frame parent){
+		final NoteDialog dialog = new NoteDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.showRecordHistory = false;
 		dialog.initialize();
@@ -143,12 +140,12 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	}
 
 
-	private NoteDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private NoteDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public NoteDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public NoteDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -167,7 +164,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_NOTE;
+		return EntityManager.NODE_NAME_NOTE;
 	}
 
 	@Override
@@ -205,11 +202,11 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.TABLE_NAME_NOTE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_NOTE, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.TABLE_NAME_NOTE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_NAME_NOTE, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -236,8 +233,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		unselectAction();
 
 		final Map<Integer, Map<String, Object>> records = (filterReferenceTable == null
-			? getRecords(EntityManager.TABLE_NAME_NOTE)
-			: getFilteredRecords(EntityManager.TABLE_NAME_NOTE, filterReferenceTable, filterReferenceID));
+			? getRecords(EntityManager.NODE_NAME_NOTE)
+			: getFilteredRecords(EntityManager.NODE_NAME_NOTE, filterReferenceTable, filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -274,21 +271,21 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		final Integer noteID = extractRecordID(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final boolean hasMedia = (getRecords(EntityManager.TABLE_NAME_MEDIA_JUNCTION)
+		final boolean hasMedia = (getRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_NOTE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final boolean hasCulturalNorms = (getRecords(EntityManager.TABLE_NAME_CULTURAL_NORM_JUNCTION)
+		final boolean hasCulturalNorms = (getRecords(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_NOTE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
 			.findFirst()
 			.orElse(null) != null);
-		final String restriction = getRecords(EntityManager.TABLE_NAME_RESTRICTION)
+		final String restriction = getRecords(EntityManager.NODE_NAME_RESTRICTION)
 			.values().stream()
-			.filter(record -> Objects.equals(EntityManager.TABLE_NAME_NOTE, extractRecordReferenceTable(record)))
+			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
 			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
 			.findFirst()
 			.map(EntityManager::extractRecordRestriction)
@@ -368,48 +365,33 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> notes = new TreeMap<>();
-		store.put("note", notes);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		notes.put((Integer)note1.get("id"), note1);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "note");
 		note2.put("reference_id", 2);
-		notes.put((Integer)note2.get("id"), note2);
+		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
 
-		final TreeMap<Integer, Map<String, Object>> restrictions = new TreeMap<>();
-		store.put("restriction", restrictions);
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "note");
 		restriction1.put("reference_id", 1);
-		restrictions.put((Integer)restriction1.get("id"), restriction1);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final NoteDialog dialog = create(store, parent);
-//			final NoteDialog dialog = createRecordOnly(store, parent);
-			injector.injectDependencies(dialog);
+			final NoteDialog dialog = create(parent);
+//			final NoteDialog dialog = createRecordOnly(parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(note1)))
 				dialog.showNewRecord();
@@ -427,32 +409,30 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 					final int noteID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case CULTURAL_NORM -> {
-							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(store, parent)
-								.withReference(EntityManager.TABLE_NAME_NOTE, noteID)
-								.withOnCloseGracefully(record -> {
+							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
+								.withReference(EntityManager.NODE_NAME_NOTE, noteID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_NOTE);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_NOTE);
 										insertRecordReferenceID(record, noteID);
 									}
 								});
-							injector.injectDependencies(culturalNormDialog);
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();
 						}
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-									? MediaDialog.createSelectOnlyForMedia(store, parent)
-									: MediaDialog.createForMedia(store, parent))
+									? MediaDialog.createSelectOnlyForMedia(parent)
+									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.TABLE_NAME_NOTE, noteID)
-								.withOnCloseGracefully(record -> {
+								.withReference(EntityManager.NODE_NAME_NOTE, noteID)
+								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.TABLE_NAME_NOTE);
+										insertRecordReferenceTable(record, EntityManager.NODE_NAME_NOTE);
 										insertRecordReferenceID(record, noteID);
 									}
 								});
-							injector.injectDependencies(mediaDialog);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
@@ -462,11 +442,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							final Integer modificationNoteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + noteID);
-							injector.injectDependencies(changeNoteDialog);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(modificationNoteID);
 
@@ -477,11 +456,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + noteID);
-							injector.injectDependencies(researchStatusDialog);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 
@@ -495,7 +473,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

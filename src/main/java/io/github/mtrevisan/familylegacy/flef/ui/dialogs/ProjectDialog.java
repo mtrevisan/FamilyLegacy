@@ -24,10 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
@@ -38,6 +37,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExcep
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -46,21 +46,21 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCopyright;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIncludeMediaPayload;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordUpdateDate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCopyright;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIncludeMediaPayload;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordNote;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordProtocolName;
@@ -80,21 +80,23 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	private final TextPreviewPane noteTextPreview = TextPreviewPane.createWithPreview(ProjectDialog.this);
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final JTextField localeField = new JTextField();
+	private final JLabel includeMediaPayloadLabel = new JLabel("Include media payload:");
+	private final JComboBox<String> includeMediaPayloadComboBox = new JComboBox<>(new String[]{"FALSE", "TRUE"});
 
 
-	public static ProjectDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final ProjectDialog dialog = new ProjectDialog(store, parent);
+	public static ProjectDialog create(final Frame parent){
+		final ProjectDialog dialog = new ProjectDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
 
-	private ProjectDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private ProjectDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public ProjectDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public ProjectDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -102,7 +104,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_PROJECT;
+		return EntityManager.NODE_NAME_PROJECT;
 	}
 
 	@Override
@@ -117,6 +119,8 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		noteTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
 		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
+
+		GUIHelper.bindLabelSelectionChange(includeMediaPayloadLabel, includeMediaPayloadComboBox, this::saveData);
 	}
 
 	@Override
@@ -127,12 +131,14 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		recordPanel.add(noteLabel, "align label,top,sizegroup lbl,split 2");
 		recordPanel.add(noteTextPreview, "grow,wrap related");
 		recordPanel.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(localeField, "grow");
+		recordPanel.add(localeField, "grow,wrap paragraph");
+		recordPanel.add(includeMediaPayloadLabel, "align label,sizegroup lbl,split 2");
+		recordPanel.add(includeMediaPayloadComboBox);
 	}
 
 	@Override
 	public void loadData(){
-		final Map<String, Object> record = getRecords(EntityManager.TABLE_NAME_PROJECT)
+		final Map<String, Object> record = getRecords(EntityManager.NODE_NAME_PROJECT)
 			.get(1);
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 
@@ -150,10 +156,12 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String copyright = extractRecordCopyright(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
+		final int includeMediaPayload = extractRecordIncludeMediaPayload(selectedRecord);
 
 		copyrightField.setText(copyright);
 		noteTextPreview.setText("Project note", note, locale);
 		localeField.setText(locale);
+		includeMediaPayloadComboBox.setSelectedIndex(includeMediaPayload);
 	}
 
 	@Override
@@ -161,6 +169,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		copyrightField.setText(null);
 		noteTextPreview.clear();
 		localeField.setText(null);
+		includeMediaPayloadComboBox.setSelectedIndex(0);
 	}
 
 	@Override
@@ -178,6 +187,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String copyright = GUIHelper.getTextTrimmed(copyrightField);
 		final String note = noteTextPreview.getTextTrimmed();
 		final String locale = GUIHelper.getTextTrimmed(localeField);
+		final int includeMediaPayload = includeMediaPayloadComboBox.getSelectedIndex();
 		final String updateDate = extractRecordUpdateDate(selectedRecord);
 
 		insertRecordProtocolName(selectedRecord, EntityManager.PROTOCOL_NAME_DEFAULT);
@@ -185,6 +195,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		insertRecordCopyright(selectedRecord, copyright);
 		insertRecordNote(selectedRecord, note);
 		insertRecordLocale(selectedRecord, locale);
+		insertRecordIncludeMediaPayload(selectedRecord, includeMediaPayload);
 		if(updateDate == null)
 			insertRecordCreationDate(selectedRecord, now);
 		else
@@ -207,31 +218,19 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> projects = new TreeMap<>();
-		store.put("project", projects);
-		final Map<String, Object> project = new HashMap<>();
-		project.put("id", 1);
-		project.put("protocol_name", EntityManager.PROTOCOL_NAME_DEFAULT);
-		project.put("protocol_version", EntityManager.PROTOCOL_VERSION_DEFAULT);
-		project.put("copyright", "(c) 2024");
-		project.put("note", "some notes");
-		project.put("locale", "en-US");
+		GraphDatabaseManager.clearDatabase();
+		final Map<String, Object> project1 = new HashMap<>();
+		project1.put("protocol_name", EntityManager.PROTOCOL_NAME_DEFAULT);
+		project1.put("protocol_version", EntityManager.PROTOCOL_VERSION_DEFAULT);
+		project1.put("copyright", "(c) 2024");
+		project1.put("note", "some notes");
+		project1.put("locale", "en-US");
+		project1.put("include_media_payload", 1);
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
-		project.put("creation_date", now);
-		project.put("update_date", now);
-		projects.put((Integer)project.get("id"), project);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		project1.put("creation_date", now);
+		project1.put("update_date", now);
+		Repository.save(EntityManager.NODE_NAME_PROJECT, project1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -248,14 +247,14 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 			};
 			EventBusService.subscribe(listener);
 
-			final ProjectDialog dialog = create(store, parent);
-			injector.injectDependencies(dialog);
+			final ProjectDialog dialog = create(parent);
 			dialog.loadData();
 
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

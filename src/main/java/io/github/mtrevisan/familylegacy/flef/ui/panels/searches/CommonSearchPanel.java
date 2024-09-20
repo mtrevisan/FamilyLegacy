@@ -60,8 +60,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.TreeMap;
 
 
 public abstract class CommonSearchPanel extends JPanel implements FilteredTablePanelInterface{
@@ -81,17 +79,13 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 
 
 	protected JTable recordTable;
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
 
 	private RecordListenerInterface linkListener;
 
 	protected final List<SearchAllRecord> tableData = new ArrayList<>();
 
 
-	protected CommonSearchPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		this.store = store;
-
-
+	protected CommonSearchPanel(){
 		initComponents();
 	}
 
@@ -314,11 +308,6 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 		final TableRowSorter<DefaultTableModel> sorter = (TableRowSorter<DefaultTableModel>)recordTable.getRowSorter();
 		sorter.setRowFilter(filter);
 		sorter.setSortKeys(!sortKeys.isEmpty()? sortKeys: null);
-	}
-
-
-	protected NavigableMap<Integer, Map<String, Object>> getRecords(final String tableName){
-		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 
 }

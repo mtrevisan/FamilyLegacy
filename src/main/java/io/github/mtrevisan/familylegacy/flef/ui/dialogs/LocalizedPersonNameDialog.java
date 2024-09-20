@@ -24,10 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
@@ -51,7 +50,6 @@ import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
-import java.io.IOException;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -59,7 +57,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.TreeMap;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
@@ -104,34 +102,34 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	private int filterReferenceID;
 
 
-	public static LocalizedPersonNameDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(store, parent);
+	public static LocalizedPersonNameDialog create(final Frame parent){
+		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(parent);
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static LocalizedPersonNameDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(store, parent);
+	public static LocalizedPersonNameDialog createSelectOnly(final Frame parent){
+		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.hideUnselectButton = true;
 		dialog.initialize();
 		return dialog;
 	}
 
-	public static LocalizedPersonNameDialog createRecordOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(store, parent);
+	public static LocalizedPersonNameDialog createRecordOnly(final Frame parent){
+		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(parent);
 		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
 
 
-	private LocalizedPersonNameDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		super(store, parent);
+	private LocalizedPersonNameDialog(final Frame parent){
+		super(parent);
 	}
 
 
-	public LocalizedPersonNameDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
+	public LocalizedPersonNameDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -149,7 +147,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME;
+		return EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME;
 	}
 
 	@Override
@@ -215,7 +213,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		unselectAction();
 
 		final Map<Integer, Map<String, Object>> records = (filterReferenceID <= 0
-			? getRecords(EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME)
+			? getRecords(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
 			: getFilteredRecords(filterReferenceID));
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -249,7 +247,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	}
 
 	private Map<Integer, Map<String, Object>> getFilteredRecords(final int filterReferenceID){
-		return getRecords(EntityManager.TABLE_NAME_LOCALIZED_PERSON_NAME)
+		return getRecords(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
 			.entrySet().stream()
 			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonNameID(entry.getValue())))
 			.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a, TreeMap::new));
@@ -279,7 +277,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceID <= 0){
-			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.TABLE_NAME_LOCALIZED_TEXT_JUNCTION,
+			final Map<Integer, Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
 				EntityManager::extractRecordPersonNameID, localizedPersonNameID);
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
@@ -373,10 +371,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		}
 		catch(final Exception ignored){}
 
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
 
-		final TreeMap<Integer, Map<String, Object>> localizedPersonNames = new TreeMap<>();
-		store.put("localized_person_name", localizedPersonNames);
+		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "personal name");
@@ -385,24 +381,13 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		localizedPersonName1.put("type", "original");
 		localizedPersonName1.put("transcription", "IPA");
 		localizedPersonName1.put("transcription_type", "romanized");
-		localizedPersonNames.put((Integer)localizedPersonName1.get("id"), localizedPersonName1);
-
-
-		final DependencyInjector injector = new DependencyInjector();
-		try{
-			final StoreManager storeManager = StoreManager.create("src/main/resources/gedg/treebard/FLeF.sql", store);
-			injector.register(StoreManagerInterface.class, storeManager);
-		}
-		catch(final IOException e){
-			throw new RuntimeException(e);
-		}
+		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final LocalizedPersonNameDialog dialog = create(store, parent);
-//			final LocalizedPersonNameDialog dialog = createRecordOnly(store, parent);
-			injector.injectDependencies(dialog);
+			final LocalizedPersonNameDialog dialog = create(parent);
+//			final LocalizedPersonNameDialog dialog = createRecordOnly(parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedPersonName1)))
 				dialog.showNewRecord();
@@ -424,8 +409,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(store, parent)
-								: NoteDialog.createModificationNoteEditOnly(store, parent));
+								? NoteDialog.createModificationNoteShowOnly(parent)
+								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + localizedPersonNameID);
 							changeNoteDialog.loadData();
@@ -438,8 +423,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(store, parent)
-								: ResearchStatusDialog.createEditOnly(store, parent));
+								? ResearchStatusDialog.createShowOnly(parent)
+								: ResearchStatusDialog.createEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + localizedPersonNameID);
 							researchStatusDialog.loadData();
@@ -455,7 +440,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
 				@Override
 				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
+					System.out.println(Repository.logDatabase());
+
 					System.exit(0);
 				}
 			});

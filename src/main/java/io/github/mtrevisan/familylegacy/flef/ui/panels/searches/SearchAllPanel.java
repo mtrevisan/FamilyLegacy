@@ -33,8 +33,6 @@ import javax.swing.table.DefaultTableModel;
 import java.io.Serial;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 
 public class SearchAllPanel extends CommonSearchPanel{
@@ -47,13 +45,13 @@ public class SearchAllPanel extends CommonSearchPanel{
 	private static final int TABLE_PREFERRED_WIDTH_TABLE_NAME = 90;
 
 
-	public static SearchAllPanel create(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		return new SearchAllPanel(store);
+	public static SearchAllPanel create(){
+		return new SearchAllPanel();
 	}
 
 
-	private SearchAllPanel(final Map<String, TreeMap<Integer, Map<String, Object>>> store){
-		super(store);
+	private SearchAllPanel(){
+		super();
 
 
 		initComponents();
