@@ -229,7 +229,7 @@ MATCH (cn:CulturalNorm {id: $culturalNormID}), (g:Group {id: $groupID})
 CREATE (cn)<-[:SUPPORTED_BY {certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]-(g);
 
 
-CREATE (rst:Restriction {id: $id, restriction: $restriction});
+CREATE (rst:Restriction&Application {id: $id, restriction: $restriction});
 CREATE CONSTRAINT ON (rst:Restriction) ASSERT rst.id IS UNIQUE;
 CREATE CONSTRAINT ON (rst:Restriction) ASSERT exists(rst.restriction);
 MATCH (rst:Restriction {id: $restrictionID}), (a:Assertion {id: $assertionID})
@@ -259,7 +259,7 @@ CREATE (rst)-[:FOR]->(g);
 MATCH (rst:Restriction {id: $restrictionID}), (m:Media {id: $mediaID})
 CREATE (rst)-[:FOR]->(m);
 
-CREATE (mdf:Modification {id: $id, creationDate: $creationDate, updateDate: $updateDate});
+CREATE (mdf:Modification&Application {id: $id, creationDate: $creationDate, updateDate: $updateDate});
 CREATE CONSTRAINT ON (mdf:Modification) ASSERT mdf.id IS UNIQUE;
 CREATE CONSTRAINT ON (mdf:Modification) ASSERT exists(mdf.creationDate);
 MATCH (mdf:Modification {id: $modificationID}), (a:Assertion {id: $assertionID})
@@ -307,7 +307,7 @@ CREATE (mdf)-[:FOR]->(ctc);
 MATCH (mdf:Modification {id: $modificationID}), (prj:Project {id: $projectID})
 CREATE (mdf)-[:FOR]->(prj);
 
-CREATE (rs:ResearchStatus {id: $id, identifier: $identifier, description: $description, status: $status, priority: $priority, creationDate: $creationDate});
+CREATE (rs:ResearchStatus&Application {id: $id, identifier: $identifier, description: $description, status: $status, priority: $priority, creationDate: $creationDate});
 CREATE CONSTRAINT ON (rs:ResearchStatus) ASSERT rs.id IS UNIQUE;
 CREATE CONSTRAINT ON (rs:ResearchStatus) ASSERT exists(rs.identifier);
 CREATE CONSTRAINT ON (rs:ResearchStatus) ASSERT exists(rs.creationDate);
@@ -357,7 +357,7 @@ CREATE (rs)-[:FOR]->(ctc);
 MATCH (rs:ResearchStatus {id: $researchStatusID}), (prj:Project {id: $projectID})
 CREATE (rs)-[:FOR]->(prj);
 
-CREATE (ctc:Contact {id: $id, callerID: $callerID, note: $note});
+CREATE (ctc:Contact&Application {id: $id, callerID: $callerID, note: $note});
 CREATE CONSTRAINT ON (ctc:Contact) ASSERT ctc.id IS UNIQUE;
 CREATE CONSTRAINT ON (ctc:Contact) ASSERT exists(ctc.callerID);
 

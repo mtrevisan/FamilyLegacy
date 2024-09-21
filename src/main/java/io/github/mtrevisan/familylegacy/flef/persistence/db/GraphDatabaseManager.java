@@ -51,6 +51,7 @@ import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +72,8 @@ public class GraphDatabaseManager{
 
 	public enum OnDeleteType{CASCADE, RELATIONSHIP_ONLY, RESTRICT}
 
+	public static final String LABEL_APPLICATION = "Application";
+
 	private static final String PROPERTY_ON_DELETE = "onDelete";
 	private static final String PROPERTY_ON_DELETE_START = PROPERTY_ON_DELETE + "Start";
 	private static final String PROPERTY_ON_DELETE_END = PROPERTY_ON_DELETE + "End";
@@ -84,6 +87,8 @@ public class GraphDatabaseManager{
 	private static final String QUERY_COUNT_NODES = "MATCH (" + QUERY_COUNT_PARAMETER_NODE + ":{}) RETURN COUNT("
 		+ QUERY_COUNT_PARAMETER_NODE + ") AS " + QUERY_COUNT_PARAMETER;
 	private static final String QUERY_ALL_NODES = "MATCH (" + QUERY_COUNT_PARAMETER_NODE + ") RETURN " + QUERY_COUNT_PARAMETER_NODE;
+	private static final String QUERY_ALL_NODES_EXCLUDE_LABEL = "MATCH (" + QUERY_COUNT_PARAMETER_NODE + ") WHERE '{}' NOT IN labels("
+		+ QUERY_COUNT_PARAMETER_NODE + ") RETURN " + QUERY_COUNT_PARAMETER_NODE;
 	private static final String QUERY_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_COUNT_PARAMETER_RELATIONSHIP + "]-() RETURN "
 		+ QUERY_COUNT_PARAMETER_RELATIONSHIP;
 
@@ -116,9 +121,9 @@ public class GraphDatabaseManager{
 	}
 
 
-	public static byte[] store() throws IOException{
+	public static byte[] store(final String excludeLabel) throws IOException{
 		try{
-			final String content = logDatabase();
+			final String content = logDatabase(excludeLabel);
 			return LZMAManager.compress(content);
 		}
 		catch(final JsonProcessingException jpe){
@@ -208,9 +213,13 @@ public class GraphDatabaseManager{
 	}
 
 
-	public static void insert(final String tableName, final Map<String, Object> record){
+	public static void insert(final Map<String, Object> record, final String... tableNames){
 		try(final Transaction tx = getTransaction()){
-			final Node node = tx.createNode(Label.label(tableName));
+			final Label[] labels = Arrays.stream(tableNames)
+				.map(Label::label)
+				.toArray(Label[]::new);
+
+			final Node node = tx.createNode(labels);
 			for(final Map.Entry<String, Object> entry : record.entrySet())
 				node.setProperty(entry.getKey(), entry.getValue());
 
@@ -455,11 +464,13 @@ public class GraphDatabaseManager{
 	}
 
 
-	public static String logDatabase() throws JsonProcessingException{
+	public static String logDatabase(final String excludeLabel) throws JsonProcessingException{
 		try(final Transaction tx = getTransaction()){
 			final StringJoiner sj = new StringJoiner(LINE_SEPARATOR);
 
-			Result result = tx.execute(QUERY_ALL_NODES);
+			Result result = tx.execute(excludeLabel == null
+				? QUERY_ALL_NODES
+				: JavaHelper.textFormat(QUERY_ALL_NODES_EXCLUDE_LABEL, excludeLabel));
 			while(result.hasNext()){
 				final Node node = (Node)result.next().get(QUERY_COUNT_PARAMETER_NODE);
 				final String nodeID = node.getElementId();

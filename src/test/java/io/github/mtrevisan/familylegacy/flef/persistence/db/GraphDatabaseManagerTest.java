@@ -68,7 +68,7 @@ class GraphDatabaseManagerTest{
 		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert("Car", carRecord);
+		GraphDatabaseManager.insert(carRecord, "Car");
 
 
 		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", 1);
@@ -89,7 +89,7 @@ class GraphDatabaseManagerTest{
 		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert("Car", carRecord);
+		GraphDatabaseManager.insert(carRecord, "Car");
 
 		carRecord.put("model", "model4");
 		GraphDatabaseManager.update("Car", "id", carRecord);
@@ -113,13 +113,13 @@ class GraphDatabaseManagerTest{
 		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert("Car", carRecord);
+		GraphDatabaseManager.insert(carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
 		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert("Person", ownerRecord);
+		GraphDatabaseManager.insert(ownerRecord, "Person");
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
@@ -127,10 +127,11 @@ class GraphDatabaseManagerTest{
 			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findOtherNode("Car", "id", 1,
+		Map.Entry<String, Map<String, Object>> carTesla = GraphDatabaseManager.findOtherNode(
+			"Car", "id", 1,
 			"owner");
 		Assertions.assertNotNull(carTesla);
-		Assertions.assertFalse(carTesla.isEmpty());
+		Assertions.assertFalse(carTesla.getValue().isEmpty());
 	}
 
 	@Test
@@ -141,13 +142,13 @@ class GraphDatabaseManagerTest{
 		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert("Car", carRecord);
+		GraphDatabaseManager.insert(carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
 		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert("Person", ownerRecord);
+		GraphDatabaseManager.insert(ownerRecord, "Person");
 
 		Map<String, Object> relationshipRecord = new HashMap<>(1);
 		relationshipRecord.put("licenseID", 12345);
@@ -157,10 +158,11 @@ class GraphDatabaseManagerTest{
 			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findOtherNode("Car", "id", 1,
+		Map.Entry<String, Map<String, Object>> carTesla = GraphDatabaseManager.findOtherNode(
+			"Car", "id", 1,
 			"owner", "licenseID", 12345);
 		Assertions.assertNotNull(carTesla);
-		Assertions.assertFalse(carTesla.isEmpty());
+		Assertions.assertFalse(carTesla.getValue().isEmpty());
 	}
 
 	@Test
@@ -171,13 +173,13 @@ class GraphDatabaseManagerTest{
 		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert("Car", carRecord);
+		GraphDatabaseManager.insert(carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
 		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert("Person", ownerRecord);
+		GraphDatabaseManager.insert(ownerRecord, "Person");
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
@@ -190,7 +192,8 @@ class GraphDatabaseManagerTest{
 			"owner");
 		Assertions.assertTrue(deleted);
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findOtherNode("Car", "id", 1,
+		Map.Entry<String, Map<String, Object>> carTesla = GraphDatabaseManager.findOtherNode(
+			"Car", "id", 1,
 			"owner");
 		Assertions.assertNull(carTesla);
 	}
@@ -203,13 +206,13 @@ class GraphDatabaseManagerTest{
 		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert("Car", carRecord);
+		GraphDatabaseManager.insert(carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
 		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert("Person", ownerRecord);
+		GraphDatabaseManager.insert(ownerRecord, "Person");
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,

@@ -48,7 +48,18 @@ public class Repository{
 
 	public static byte[] store(){
 		try{
-			return GraphDatabaseManager.store();
+			return GraphDatabaseManager.store(null);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while storing database: {}", e.getMessage(), e);
+
+			return null;
+		}
+	}
+
+	public static byte[] storeGenealogyDataOnly(){
+		try{
+			return GraphDatabaseManager.store(GraphDatabaseManager.LABEL_APPLICATION);
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while storing database: {}", e.getMessage(), e);
@@ -81,7 +92,7 @@ public class Repository{
 			if(((Number)record.get(EntityManager.PROPERTY_NAME_PRIMARY_KEY)).intValue() != nextID)
 				System.out.println();
 			record.put(EntityManager.PROPERTY_NAME_PRIMARY_KEY, nextID);
-			GraphDatabaseManager.insert(tableName, record);
+			GraphDatabaseManager.insert(record, tableName);
 
 			return nextID;
 		}
@@ -278,7 +289,18 @@ public class Repository{
 
 	public static String logDatabase(){
 		try{
-			return GraphDatabaseManager.logDatabase();
+			return GraphDatabaseManager.logDatabase(null);
+		}
+		catch(final JsonProcessingException jpe){
+			LOGGER.error("Error while printing database", jpe);
+
+			throw new RuntimeException(jpe);
+		}
+	}
+
+	public static String logDatabaseGenealogyDataOnly(){
+		try{
+			return GraphDatabaseManager.logDatabase(GraphDatabaseManager.LABEL_APPLICATION);
 		}
 		catch(final JsonProcessingException jpe){
 			LOGGER.error("Error while printing database", jpe);
