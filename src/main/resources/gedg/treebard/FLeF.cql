@@ -406,8 +406,10 @@ CREATE (ctc)-[:FOR {onDelete: "RELATIONSHIP_ONLY"}]->(rs);
 MATCH (ctc:Contact {id: $contactID}), (prj:Project {id: $projectID})
 CREATE (ctc)-[:FOR {onDelete: "RELATIONSHIP_ONLY"}]->(prj);
 
-CREATE (prj:Project {id: $id, protocolName: $protocolName, protocolVersion: $protocolVersion, copyright: $copyright, note: $note, locale: $locale, creationDate: $creationDate, updateDate: $updateDate});
+CREATE (prj:Project {id: $id, protocolName: $protocolName, protocolVersion: $protocolVersion, copyright: $copyright, note: $note, locale: $locale, includeMediaPayload: $includeMediaPayload, creationDate: $creationDate, updateDate: $updateDate});
 CREATE CONSTRAINT ON (prj:Project) ASSERT prj.id IS UNIQUE;
 CREATE CONSTRAINT ON (prj:Project) ASSERT exists(prj.protocolName);
 CREATE CONSTRAINT ON (prj:Project) ASSERT exists(prj.protocolVersion);
 CREATE CONSTRAINT ON (prj:Project) ASSERT exists(prj.creationDate);
+MATCH (prj:Project {id: $projectID}), (prs:Person {id: $personID})
+CREATE (prj)<-[:HOME_PERSON_OF]-(prs);

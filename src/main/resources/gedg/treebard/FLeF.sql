@@ -361,9 +361,11 @@ CREATE TABLE PROJECT
  COPYRIGHT             text,						-- A copyright statement.
  NOTE                  text,						-- Text following markdown language.
  LOCALE                text,						-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).
- INCLUDE_MEDIA_PAYLOAD tinyint(1) DEFAULT 0	-- Whether to include the payload in the table for the media.
+ INCLUDE_MEDIA_PAYLOAD tinyint(1) DEFAULT 0,	-- Whether to include the payload in the table for the media.
+ HOME_PERSON_ID        bigint,					-- An xref ID of the default home person.
  CREATION_DATE         timestamp NOT NULL,	-- The creation date of the project.
- UPDATE_DATE           timestamp					-- The changing date of the project.
+ UPDATE_DATE           timestamp,				-- The changing date of the project.
+ FOREIGN KEY (PERSON_ID) REFERENCES PERSON ( "ID" ) ON DELETE SET NULL
 );
 
 
