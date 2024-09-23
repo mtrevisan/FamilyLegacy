@@ -95,7 +95,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_CULTURAL_NORM;
+		return EntityManager.NODE_CULTURAL_NORM;
 	}
 
 	@Override
@@ -121,8 +121,8 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM);
-		final List<Map<String, Object>> places = Repository.findAll(EntityManager.NODE_NAME_PLACE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_CULTURAL_NORM);
+		final List<Map<String, Object>> places = Repository.findAll(EntityManager.NODE_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -154,7 +154,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			model.setValueAt(description, row, TABLE_INDEX_DESCRIPTION);
 			model.setValueAt(placeName, row, TABLE_INDEX_PLACE);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_CULTURAL_NORM, filterData, identifier));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_CULTURAL_NORM, filterData, identifier));
 
 			row++;
 		}
@@ -165,10 +165,10 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
 		final List<Map<String, Object>> records = Repository.findAll(fromTable);
-		final Map<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_NAME_LOCALIZED_TEXT);
+		final Map<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_LOCALIZED_TEXT);
 		records.forEach(record -> {
 			if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
-					&& EntityManager.NODE_NAME_PLACE.equals(extractRecordReferenceTable(record))
+					&& EntityManager.NODE_PLACE.equals(extractRecordReferenceTable(record))
 					&& Objects.equals(selectedRecordID, extractRecordReferenceID(record)))){
 				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(record));
 				matchedRecords.add(localizedText);
@@ -195,14 +195,14 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		culturalNorm1.put("place_id", 1);
 		culturalNorm1.put("certainty", "certain");
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNorm1);
+		Repository.save(EntityManager.NODE_CULTURAL_NORM, culturalNorm1);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
+		Repository.save(EntityManager.NODE_PLACE, place1);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
@@ -211,7 +211,7 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("id", 2);
 		localizedText2.put("text", "place name 2");
@@ -219,19 +219,19 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "IPA");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
 		localizedTextJunction1.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
-			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
+			EntityManager.NODE_PLACE, extractRecordID(place1),
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
 		localizedTextJunction2.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
-			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction2,
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
+			EntityManager.NODE_PLACE, extractRecordID(place1),
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){

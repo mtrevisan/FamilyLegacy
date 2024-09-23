@@ -12,12 +12,12 @@ MATCH (a:Assertion {id: $assertionID}), (cld:Calendar {id: $calendarID})
 CREATE (a)<-[:SUPPORTED_BY]-(cld);
 MATCH (a:Assertion {id: $assertionID}), (prs:Person {id: $personID})
 CREATE (a)<-[:SUPPORTED_BY]-(prs);
+MATCH (a:Assertion {id: $assertionID}), (pn:PersonName {id: $personNameID})
+CREATE (a)<-[:SUPPORTED_BY]-(pn);
 MATCH (a:Assertion {id: $assertionID}), (g:Group {id: $groupID})
 CREATE (a)<-[:SUPPORTED_BY]-(g);
 MATCH (a:Assertion {id: $assertionID}), (m:Media {id: $mediaID})
 CREATE (a)<-[:SUPPORTED_BY]-(m);
-MATCH (a:Assertion {id: $assertionID}), (pn:PersonName {id: $personNameID})
-CREATE (a)<-[:SUPPORTED_BY]-(pn);
 
 CREATE (c:Citation {id: $id, location: $location, extract: $extract, extractLocale: $extractLocale, extractType: $extractType});
 CREATE CONSTRAINT ON (c:Citation) ASSERT c.id IS UNIQUE;
@@ -72,11 +72,11 @@ CREATE CONSTRAINT ON (lt:LocalizedText) ASSERT lt.id IS UNIQUE;
 CREATE CONSTRAINT ON (lt:LocalizedText) ASSERT exists(lt.text);
 
 MATCH (lt:LocalizedText {id: $localizedTextID}), (c:Citation {id: $citationID})
-CREATE (lt)-[:FOR {type: "extract", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(c);
-CREATE CONSTRAINT ON (lt)-[rel:FOR]->(c) ASSERT exists(rel.type);
+CREATE (lt)-[:TRANSCRIPTION_FOR {type: "extract", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(c);
+CREATE CONSTRAINT ON (lt)-[rel:TRANSCRIPTION_FOR]->(c) ASSERT exists(rel.type);
 MATCH (lt:LocalizedText {id: $localizedTextID}), (p:Place {id: $placeID})
-CREATE (lt)-[:FOR {type: "name", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(p);
-CREATE CONSTRAINT ON (lt)-[rel:FOR]->(p) ASSERT exists(rel.type);
+CREATE (lt)-[:TRANSCRIPTION_FOR {type: "name", onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(p);
+CREATE CONSTRAINT ON (lt)-[rel:TRANSCRIPTION_FOR]->(p) ASSERT exists(rel.type);
 
 CREATE (n:Note {id: $id, note: $note, locale: $locale});
 CREATE CONSTRAINT ON (n:Note) ASSERT n.id IS UNIQUE;
@@ -99,16 +99,16 @@ MATCH (n:Note {id: $noteID}), (r:Repository {id: $repositoryID})
 CREATE (n)-[:FOR]->(r);
 MATCH (n:Note {id: $noteID}), (p:Place {id: $placeID})
 CREATE (n)-[:FOR]->(p);
-MATCH (n:Note {id: $noteID}), (pn:PersonName {id: $personNameID})
-CREATE (n)-[:FOR]->(pn);
 MATCH (n:Note {id: $noteID}), (p:Person {id: $personID})
 CREATE (n)-[:FOR]->(p);
+MATCH (n:Note {id: $noteID}), (pn:PersonName {id: $personNameID})
+CREATE (n)-[:FOR]->(pn);
 MATCH (n:Note {id: $noteID}), (g:Group {id: $groupID})
 CREATE (n)-[:FOR]->(g);
-MATCH (n:Note {id: $noteID}), (rs:ResearchStatus {id: $researchStatusID})
-CREATE (n)-[:FOR]->(rs);
 MATCH (n:Note {id: $noteID}), (m:Media {id: $mediaID})
 CREATE (n)-[:FOR]->(m);
+MATCH (n:Note {id: $noteID}), (rs:ResearchStatus {id: $researchStatusID})
+CREATE (n)-[:FOR]->(rs);
 
 
 CREATE (m:Media {id: $id, identifier: $identifier, title: $title, payload: $payload, type: $type, photoProjection: $photoProjection});
@@ -183,18 +183,16 @@ MATCH (e:Event {id: $eventID}), (hd:HistoricDate {id: $historicDateID})
 CREATE (e)-[:HAPPENED_ON]->(hd);
 MATCH (e:Event {id: $eventID}), (prs:Person {id: $personID})
 CREATE (e)-[:FOR]->(prs);
+MATCH (e:Event {id: $eventID}), (pn:PersonName {id: $personNameID})
+CREATE (e)-[:FOR]->(pn);
 MATCH (e:Event {id: $eventID}), (g:Group {id: $groupID})
 CREATE (e)-[:FOR]->(g);
-MATCH (e:Event {id: $eventID}), (p:Place {id: $placeID})
-CREATE (e)-[:FOR]->(p);
 MATCH (e:Event {id: $eventID}), (cn:CulturalNorm {id: $culturalNormID})
 CREATE (e)-[:FOR]->(cn);
 MATCH (e:Event {id: $eventID}), (cld:Calendar {id: $calendarID})
 CREATE (e)-[:FOR]->(cld);
 MATCH (e:Event {id: $eventID}), (m:Media {id: $mediaID})
 CREATE (e)-[:FOR]->(m);
-MATCH (e:Event {id: $eventID}), (pn:PersonName {id: $personNameID})
-CREATE (e)-[:FOR]->(pn);
 
 CREATE (et:EventType {id: $id, type: $type, category: $category});
 CREATE CONSTRAINT ON (et:EventType) ASSERT et.id IS UNIQUE;
@@ -262,6 +260,8 @@ CREATE (rst)-[:FOR]->(m);
 CREATE (mdf:Modification&Application {id: $id, creationDate: $creationDate, updateDate: $updateDate});
 CREATE CONSTRAINT ON (mdf:Modification) ASSERT mdf.id IS UNIQUE;
 CREATE CONSTRAINT ON (mdf:Modification) ASSERT exists(mdf.creationDate);
+MATCH (mdf:Modification {id: $modificationID}), (n:Note {id: $noteID})
+CREATE (mdf)<-[:CHANGELOG_FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]-(n);
 MATCH (mdf:Modification {id: $modificationID}), (a:Assertion {id: $assertionID})
 CREATE (mdf)-[:FOR]->(a);
 MATCH (mdf:Modification {id: $modificationID}), (c:Citation {id: $citationID})

@@ -98,7 +98,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_PLACE;
+		return EntityManager.NODE_PLACE;
 	}
 
 	@Override
@@ -125,7 +125,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_PLACE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -154,7 +154,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			model.setValueAt(name, row, TABLE_INDEX_NAME);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_PLACE, filterData, name));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_PLACE, filterData, name));
 
 			row ++;
 		}
@@ -164,13 +164,13 @@ public class SearchPlacePanel extends CommonSearchPanel{
 	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final NavigableMap<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_NAME_LOCALIZED_TEXT);
+		final NavigableMap<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_LOCALIZED_TEXT);
 		final List<Map<String, Object>> records = Repository.findAll(fromTable);
 		for(int i = 0, length = records.size(); i < length; i ++){
 			final Map<String, Object> record = records.get(i);
 
 			if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
-					&& EntityManager.NODE_NAME_PLACE.equals(extractRecordReferenceTable(record))
+					&& EntityManager.NODE_PLACE.equals(extractRecordReferenceTable(record))
 					&& Objects.equals(selectedRecordID, extractRecordReferenceID(record)))){
 				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(record));
 				matchedRecords.add(localizedText);
@@ -198,20 +198,20 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		source1.put("place_id", 1);
 		source1.put("date_id", 1);
 		source1.put("location", "location 1");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
+		Repository.save(EntityManager.NODE_SOURCE, source1);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("id", 2);
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2");
 		source2.put("location", "location 2");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source2);
+		Repository.save(EntityManager.NODE_SOURCE, source2);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
+		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
@@ -220,7 +220,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
+		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
@@ -231,7 +231,7 @@ public class SearchPlacePanel extends CommonSearchPanel{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
+		Repository.save(EntityManager.NODE_PLACE, place1);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

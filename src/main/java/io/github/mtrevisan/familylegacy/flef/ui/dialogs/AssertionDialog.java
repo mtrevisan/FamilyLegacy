@@ -57,11 +57,11 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
@@ -147,7 +147,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_ASSERTION;
+		return EntityManager.NODE_ASSERTION;
 	}
 
 	@Override
@@ -185,15 +185,15 @@ public final class AssertionDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_ASSERTION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_ASSERTION, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_ASSERTION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_ASSERTION, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_NAME_ASSERTION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_ASSERTION, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -223,8 +223,10 @@ public final class AssertionDialog extends CommonListDialog{
 		unselectAction();
 
 		final List<Map<String, Object>> records = (filterReferenceTable == null
-			? Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
-			: getFilteredRecords(EntityManager.NODE_NAME_ASSERTION, filterReferenceTable, filterReferenceID));
+			? Repository.findAll(EntityManager.NODE_ASSERTION)
+			: Repository.findReferencingNodes(EntityManager.NODE_ASSERTION,
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_SUPPORTED_BY));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -233,9 +235,9 @@ public final class AssertionDialog extends CommonListDialog{
 			final Integer recordID = extractRecordID(record);
 			final String sourceIdentifier = extractRecordSourceIdentifier(record);
 			final String location = extractRecordLocation(record);
-			final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_NAME_ASSERTION,
-				recordID, EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY);
-			final String referenceTable = referencedNode.getKey();
+			final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_ASSERTION,
+				recordID, EntityManager.RELATIONSHIP_SUPPORTED_BY);
+			final String referenceTable = (referencedNode != null? referencedNode.getKey(): null);
 			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 				+ (location != null? location: StringUtils.EMPTY)
@@ -271,31 +273,10 @@ public final class AssertionDialog extends CommonListDialog{
 		final String role = extractRecordRole(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasCulturalNorms = (Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_ASSERTION, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(assertionID, extractRecordReferenceID(record)))
-			.findFirst()
-			.map(EntityManager::extractRecordRestriction)
-			.orElse(null);
+		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_ASSERTION, assertionID);
+		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_ASSERTION, assertionID);
+		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_ASSERTION, assertionID);
+		final String restriction = Repository.getRestriction(EntityManager.NODE_ASSERTION, assertionID);
 
 		roleField.setText(role);
 		certaintyComboBox.setSelectedItem(certainty);
@@ -342,12 +323,12 @@ public final class AssertionDialog extends CommonListDialog{
 			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
 
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
-				final Map<String, Object> updatedAssertionRecord = Repository.findByID(EntityManager.NODE_NAME_ASSERTION, recordID);
+				final Map<String, Object> updatedAssertionRecord = Repository.findByID(EntityManager.NODE_ASSERTION, recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
 				final String location = extractRecordLocation(updatedAssertionRecord);
-				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_NAME_ASSERTION,
-					recordID, EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY);
-				final String referenceTable = referencedNode.getKey();
+				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_ASSERTION,
+					recordID, EntityManager.RELATIONSHIP_SUPPORTED_BY);
+				final String referenceTable = (referencedNode != null? referencedNode.getKey(): null);
 				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 					+ (location != null? location: StringUtils.EMPTY)
@@ -373,7 +354,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(citationID == null)
 			return null;
 
-		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_NAME_CITATION, citationID);
+		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_CITATION, citationID);
 		if(citation == null)
 			return null;
 
@@ -385,7 +366,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(citationID == null)
 			return null;
 
-		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_NAME_CITATION, citationID);
+		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_CITATION, citationID);
 		if(citation == null)
 			return null;
 
@@ -393,7 +374,7 @@ public final class AssertionDialog extends CommonListDialog{
 		if(sourceID == null)
 			return null;
 
-		final Map<String, Object> source = Repository.findByID(EntityManager.NODE_NAME_SOURCE, sourceID);
+		final Map<String, Object> source = Repository.findByID(EntityManager.NODE_SOURCE, sourceID);
 		if(source == null)
 			return null;
 
@@ -419,7 +400,7 @@ public final class AssertionDialog extends CommonListDialog{
 		assertion1.put("role", "father");
 		assertion1.put("certainty", "certain");
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_ASSERTION, assertion1);
+		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
 
 		final Map<String, Object> citation1 = new HashMap<>();
 		citation1.put("id", 1);
@@ -428,19 +409,19 @@ public final class AssertionDialog extends CommonListDialog{
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_NAME_CITATION, citation1);
+		Repository.save(EntityManager.NODE_CITATION, citation1);
 
 		final Map<String, Object> source1 = new HashMap<>();
 		source1.put("id", 1);
 		source1.put("repository_id", 1);
 		source1.put("identifier", "source");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
+		Repository.save(EntityManager.NODE_SOURCE, source1);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
+		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
 
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
@@ -448,12 +429,12 @@ public final class AssertionDialog extends CommonListDialog{
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
 		mediaJunction1.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, 1, EntityManager.NODE_NAME_ASSERTION, 1,
-			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, 1, EntityManager.NODE_ASSERTION, 1,
+			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
@@ -462,54 +443,54 @@ public final class AssertionDialog extends CommonListDialog{
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", EntityManager.NODE_NAME_ASSERTION);
+		note2.put("reference_table", EntityManager.NODE_ASSERTION);
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 		final Map<String, Object> note3 = new HashMap<>();
 		note3.put("id", 3);
 		note3.put("note", "something to say");
 		note3.put("reference_table", "modification");
 		note3.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note3);
+		Repository.save(EntityManager.NODE_NOTE, note3);
 		final Map<String, Object> note4 = new HashMap<>();
 		note4.put("id", 4);
 		note4.put("note", "something more to say");
 		note4.put("reference_table", "modification");
 		note4.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note4);
+		Repository.save(EntityManager.NODE_NOTE, note4);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", EntityManager.NODE_NAME_ASSERTION);
+		restriction1.put("reference_table", EntityManager.NODE_ASSERTION);
 		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
+		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
 
 		final Map<String, Object> modification1 = new HashMap<>();
 		modification1.put("id", 1);
-		modification1.put("reference_table", EntityManager.NODE_NAME_ASSERTION);
+		modification1.put("reference_table", EntityManager.NODE_ASSERTION);
 		modification1.put("reference_id", 1);
 		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
 		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification1);
+		Repository.save(EntityManager.NODE_MODIFICATION, modification1);
 		final Map<String, Object> modification2 = new HashMap<>();
 		modification2.put("id", 2);
-		modification2.put("reference_table", EntityManager.NODE_NAME_ASSERTION);
+		modification2.put("reference_table", EntityManager.NODE_ASSERTION);
 		modification2.put("reference_id", 1);
 		modification2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification2);
+		Repository.save(EntityManager.NODE_MODIFICATION, modification2);
 
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
 		culturalNorm1.put("id", 1);
@@ -517,38 +498,38 @@ public final class AssertionDialog extends CommonListDialog{
 		culturalNorm1.put("description", "rule 1");
 		culturalNorm1.put("certainty", "certain");
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNorm1);
+		Repository.save(EntityManager.NODE_CULTURAL_NORM, culturalNorm1);
 
 		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
 		culturalNormJunction1.put("id", 1);
 		culturalNormJunction1.put("cultural_norm_id", 1);
-		culturalNormJunction1.put("reference_table", EntityManager.NODE_NAME_ASSERTION);
+		culturalNormJunction1.put("reference_table", EntityManager.NODE_ASSERTION);
 		culturalNormJunction1.put("reference_id", 1);
 		culturalNormJunction1.put("certainty", "probable");
 		culturalNormJunction1.put("credibility", "probable");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_CULTURAL_NORM, 1, EntityManager.NODE_NAME_ASSERTION, 1,
-			EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, 1, EntityManager.NODE_ASSERTION, 1,
+			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> researchStatus1 = new HashMap<>();
 		researchStatus1.put("id", 1);
-		researchStatus1.put("reference_table", EntityManager.NODE_NAME_ASSERTION);
+		researchStatus1.put("reference_table", EntityManager.NODE_ASSERTION);
 		researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "identifier 1");
 		researchStatus1.put("description", "some description");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 0);
 		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
 		researchStatus2.put("id", 2);
-		researchStatus2.put("reference_table", EntityManager.NODE_NAME_ASSERTION);
+		researchStatus2.put("reference_table", EntityManager.NODE_ASSERTION);
 		researchStatus2.put("reference_id", 1);
 		researchStatus2.put("identifier", "identifier 2");
 		researchStatus2.put("description", "another description");
 		researchStatus2.put("status", "active");
 		researchStatus2.put("priority", 1);
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus2);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus2);
 
 
 		EventQueue.invokeLater(() -> {
@@ -575,12 +556,12 @@ public final class AssertionDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_ASSERTION, assertionID)
+								.withReference(EntityManager.NODE_ASSERTION, assertionID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_ASSERTION);
-										insertRecordReferenceID(record, assertionID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_ASSERTION, assertionID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -591,12 +572,12 @@ public final class AssertionDialog extends CommonListDialog{
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.NODE_NAME_ASSERTION, assertionID)
+								.withReference(EntityManager.NODE_ASSERTION, assertionID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_ASSERTION);
-										insertRecordReferenceID(record, assertionID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_ASSERTION, assertionID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 
@@ -604,12 +585,12 @@ public final class AssertionDialog extends CommonListDialog{
 						}
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
-								.withReference(EntityManager.NODE_NAME_ASSERTION, assertionID)
+								.withReference(EntityManager.NODE_ASSERTION, assertionID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_ASSERTION);
-										insertRecordReferenceID(record, assertionID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertionID,
+											EntityManager.NODE_CULTURAL_NORM, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							culturalNormDialog.loadData();
 

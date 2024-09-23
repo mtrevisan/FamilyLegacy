@@ -123,7 +123,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_RESEARCH_STATUS;
+		return EntityManager.NODE_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -151,11 +151,9 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> recordResearchStatuses = Repository.findAll(EntityManager.NODE_NAME_RESEARCH_STATUS)
-			.stream()
-			.filter(record -> filterReferenceTable.equals(extractRecordReferenceTable(record))
-				&& filterReferenceID == extractRecordReferenceID(record))
-			.toList();
+		final List<Map<String, Object>> recordResearchStatuses = Repository.findReferencingNodes(EntityManager.NODE_RESEARCH_STATUS,
+			filterReferenceTable, filterReferenceID,
+			EntityManager.RELATIONSHIP_FOR);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(recordResearchStatuses.size());
@@ -187,7 +185,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 			model.setValueAt(priority, row, TABLE_INDEX_PRIORITY);
 			model.setValueAt(humanReadableDateTime, row, TABLE_INDEX_CREATION_DATE);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_RESEARCH_STATUS, filterData, identifier));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_RESEARCH_STATUS, filterData, identifier));
 
 			row++;
 		}
@@ -213,7 +211,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 0);
 		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
 		researchStatus2.put("id", 2);
 		researchStatus2.put("reference_table", "person_name");
@@ -223,7 +221,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		researchStatus2.put("status", "active");
 		researchStatus2.put("priority", 1);
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus2);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus2);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -240,7 +238,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 		EventQueue.invokeLater(() -> {
 			final ResearchStatusPanel panel = create()
-				.withReference(EntityManager.NODE_NAME_PERSON_NAME, 1)
+				.withReference(EntityManager.NODE_PERSON_NAME, 1)
 				.withLinkListener(linkListener);
 			panel.loadData();
 

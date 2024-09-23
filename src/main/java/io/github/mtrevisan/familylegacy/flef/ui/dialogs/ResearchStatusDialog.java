@@ -142,7 +142,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_RESEARCH_STATUS;
+		return EntityManager.NODE_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -205,7 +205,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_RESEARCH_STATUS);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_RESEARCH_STATUS);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -362,7 +362,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 2);
 		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
 
 
 		EventQueue.invokeLater(() -> {

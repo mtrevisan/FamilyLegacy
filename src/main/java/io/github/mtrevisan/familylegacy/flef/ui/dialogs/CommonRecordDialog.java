@@ -51,7 +51,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -187,7 +186,7 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected final void manageRestrictionCheckBox(final ItemEvent evt){
-		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(EntityManager.NODE_NAME_RESTRICTION));
+		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(EntityManager.NODE_RESTRICTION));
 
 		if(evt.getStateChange() == ItemEvent.SELECTED){
 			if(recordRestriction != null)
@@ -196,10 +195,10 @@ public abstract class CommonRecordDialog extends JDialog{
 				//create a new record
 				final Map<String, Object> newRestriction = new HashMap<>();
 				insertRecordRestriction(newRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
-				final int newRestrictionID = Repository.save(EntityManager.NODE_NAME_RESTRICTION, newRestriction);
+				final int newRestrictionID = Repository.save(EntityManager.NODE_RESTRICTION, newRestriction);
 				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
-					EntityManager.NODE_NAME_RESTRICTION, newRestrictionID,
-					EntityManager.RELATIONSHIP_NAME_FOR, Collections.emptyMap(),
+					EntityManager.NODE_RESTRICTION, newRestrictionID,
+					EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 					GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 			}
 		}
@@ -257,15 +256,6 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	public abstract void loadData();
 
-	protected final List<Map<String, Object>> getFilteredRecords(final String tableName, final String filterReferenceTable,
-			final int filterReferenceID){
-		return Repository.findAll(tableName)
-			.stream()
-			.filter(entry -> Objects.equals(filterReferenceTable, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(filterReferenceID, extractRecordReferenceID(entry)))
-			.toList();
-	}
-
 	protected static int extractNextRecordID(final NavigableMap<Integer, Map<String, Object>> records){
 		return (records.isEmpty()? 1: records.lastKey() + 1);
 	}
@@ -311,17 +301,14 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected final <T> List<Map<String, Object>> extractReferences(final String fromTable,
 			final Function<Map<String, Object>, T> filter, final T filterValue){
-		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
+		List<Map<String, Object>> matchedRecords = Collections.emptyList();
 		if(selectedRecord != null){
-			final Integer selectedRecordID = extractRecordID(selectedRecord);
 			final String tableName = getTableName();
-			final List<Map<String, Object>> records = Repository.findAll(fromTable);
-			records.forEach(record -> {
-				if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
-						&& tableName.equals(extractRecordReferenceTable(record))
-						&& Objects.equals(selectedRecordID, extractRecordReferenceID(record))))
-					matchedRecords.add(record);
-			});
+			final Integer selectedRecordID = extractRecordID(selectedRecord);
+			matchedRecords = Repository.findAll(fromTable)
+				.removeIf(record -> filter != null && !Objects.equals(filterValue, filter.apply(record))
+					|| !Objects.equals(tableName, extractRecordReferenceTable(record))
+					|| !Objects.equals(selectedRecordID, extractRecordReferenceID(record)));
 		}
 		return matchedRecords;
 	}
@@ -359,7 +346,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			//save `selectRecordLink` into `store`
 			if(selectedRecordLink != null)
 				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
-					EntityManager.NODE_NAME_RESTRICTION, selectedRecordID,
+					EntityManager.NODE_RESTRICTION, selectedRecordID,
 					getJunctionTableName(), new HashMap<>(selectedRecordLink),
 					GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
@@ -373,14 +360,15 @@ public abstract class CommonRecordDialog extends JDialog{
 
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final String recordTableName = getTableName();
-		final List<Map<String, Object>> recordModification = extractReferences(EntityManager.NODE_NAME_MODIFICATION);
+		final List<Map<String, Object>> recordModification = extractReferences(EntityManager.NODE_MODIFICATION);
 		if(recordModification.isEmpty()){
 			//create a new record
 			final Map<String, Object> newModification = new HashMap<>();
-			insertRecordReferenceTable(newModification, recordTableName);
-			insertRecordReferenceID(newModification, selectedRecordID);
 			insertRecordCreationDate(newModification, now);
-			Repository.save(EntityManager.NODE_NAME_MODIFICATION, newModification);
+			final int newModificationID = Repository.save(EntityManager.NODE_MODIFICATION, newModification);
+			Repository.upsertRelationship(recordTableName, selectedRecordID,
+				EntityManager.NODE_MODIFICATION, newModificationID,
+				EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 		else{
 			if(askForModificationNote){
@@ -388,10 +376,11 @@ public abstract class CommonRecordDialog extends JDialog{
 				//show note record dialog
 				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly((Frame)getParent())
 					.withOnCloseGracefully((record, recordID) -> {
-						if(record != null){
-							insertRecordReferenceTable(record, recordTableName);
-							insertRecordReferenceID(record, recordID);
-						}
+						if(record != null)
+							Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								EntityManager.NODE_MODIFICATION, recordID,
+								EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(),
+								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 						else if(recordID != null)
 							Repository.deleteNode(getTableName(), recordID);
 					});

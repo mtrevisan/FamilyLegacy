@@ -91,7 +91,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_CITATION;
+		return EntityManager.NODE_CITATION;
 	}
 
 	@Override
@@ -117,7 +117,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_CITATION);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_CITATION);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -129,17 +129,22 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			final String extract = extractRecordExtract(record);
 			final String extractLocale = extractRecordExtractLocale(record);
 			final String extractType = extractRecordExtractType(record);
-			final List<Map<String, Object>> transcribedExtracts = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION, recordID, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
+			final List<Map<String, Object>> transcribedExtracts = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION, recordID,
+				EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
 			final FilterString filter = FilterString.create().add(recordID).add(extract).add(extractLocale).add(extractType);
 			for(final Map<String, Object> transcribedExtract : transcribedExtracts)
-				filter.add(extractRecordText(transcribedExtract)).add(extractRecordLocale(transcribedExtract)).add(extractRecordType(transcribedExtract)).add(extractRecordTranscription(transcribedExtract)).add(extractRecordTranscriptionType(transcribedExtract));
+				filter.add(extractRecordText(transcribedExtract))
+					.add(extractRecordLocale(transcribedExtract))
+					.add(extractRecordType(transcribedExtract))
+					.add(extractRecordTranscription(transcribedExtract))
+					.add(extractRecordTranscriptionType(transcribedExtract));
 			final String filterData = filter.toString();
 
 			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(extract, row, TABLE_INDEX_EXTRACT);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_CITATION, filterData, extract));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_CITATION, filterData, extract));
 
 			row++;
 		}
@@ -150,10 +155,10 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			final Function<Map<String, Object>, T> filter, final T filterValue){
 		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
 		final List<Map<String, Object>> records = Repository.findAll(fromTable);
-		final Map<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_NAME_LOCALIZED_TEXT);
+		final Map<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_LOCALIZED_TEXT);
 		records.forEach(record -> {
 			if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
-					&& EntityManager.NODE_NAME_CITATION.equals(extractRecordReferenceTable(record))
+					&& EntityManager.NODE_CITATION.equals(extractRecordReferenceTable(record))
 					&& Objects.equals(selectedRecordID, extractRecordReferenceID(record)))){
 				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(record));
 				matchedRecords.add(localizedText);
@@ -180,7 +185,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_NAME_CITATION, citation1);
+		Repository.save(EntityManager.NODE_CITATION, citation1);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
 		assertion1.put("id", 1);
@@ -190,19 +195,19 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		assertion1.put("role", "father");
 		assertion1.put("certainty", "certain");
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_ASSERTION, assertion1);
+		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
 
 		final Map<String, Object> source1 = new HashMap<>();
 		source1.put("id", 1);
 		source1.put("repository_id", 1);
 		source1.put("identifier", "source 1");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
+		Repository.save(EntityManager.NODE_SOURCE, source1);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
+		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
@@ -211,7 +216,7 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("id", 2);
 		localizedText2.put("text", "text 2");
@@ -219,13 +224,13 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "kana");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> localizedTextJunction = new HashMap<>();
 		localizedTextJunction.put("type", "extract");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
-			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
-			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction,
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
+			EntityManager.NODE_CITATION, extractRecordID(citation1),
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
@@ -233,13 +238,13 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "citation");
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

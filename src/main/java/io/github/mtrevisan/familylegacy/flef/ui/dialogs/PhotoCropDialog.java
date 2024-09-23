@@ -146,7 +146,7 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 	public void loadData(final int photoID, final String photoCrop) throws IOException{
-		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_NAME_MEDIA, photoID);
+		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_MEDIA, photoID);
 		selectedRecord = (record != null? new HashMap<>(record): null);
 		selectedRecordID = extractRecordID(record);
 		if(selectedRecord != null){
@@ -215,7 +215,7 @@ public final class PhotoCropDialog extends JDialog{
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 
 
 		EventQueue.invokeLater(() -> {

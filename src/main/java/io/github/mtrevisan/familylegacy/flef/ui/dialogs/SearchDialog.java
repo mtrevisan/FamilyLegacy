@@ -286,7 +286,7 @@ public final class SearchDialog extends JDialog{
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_NAME_CITATION, citation1);
+		Repository.save(EntityManager.NODE_CITATION, citation1);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
 		assertion1.put("id", 1);
@@ -296,7 +296,7 @@ public final class SearchDialog extends JDialog{
 		assertion1.put("role", "father");
 		assertion1.put("certainty", "certain");
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_ASSERTION, assertion1);
+		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
@@ -305,7 +305,7 @@ public final class SearchDialog extends JDialog{
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("id", 2);
 		localizedText2.put("text", "text 2");
@@ -313,37 +313,37 @@ public final class SearchDialog extends JDialog{
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "kana");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
+		Repository.save(EntityManager.NODE_PLACE, place1);
 		final Map<String, Object> place2 = new HashMap<>();
 		place2.put("id", 2);
 		place2.put("identifier", "another place 1");
 		place2.put("name", "name of the another place");
-		Repository.save(EntityManager.NODE_NAME_PLACE, place2);
+		Repository.save(EntityManager.NODE_PLACE, place2);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
 		localizedTextJunction1.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
-			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
+			EntityManager.NODE_PLACE, extractRecordID(place1),
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
 		localizedTextJunction2.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
-			EntityManager.NODE_NAME_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction2,
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
+			EntityManager.NODE_PLACE, extractRecordID(place1),
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextJunction3 = new HashMap<>();
 		localizedTextJunction3.put("type", "extract");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText2),
-			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
-			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction3,
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
+			EntityManager.NODE_CITATION, extractRecordID(citation1),
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction3,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> source1 = new HashMap<>();
@@ -355,7 +355,7 @@ public final class SearchDialog extends JDialog{
 		source1.put("place_id", 1);
 		source1.put("date_id", 1);
 		source1.put("location", "location 1");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
+		Repository.save(EntityManager.NODE_SOURCE, source1);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("id", 2);
 		source2.put("repository_id", 1);
@@ -363,7 +363,7 @@ public final class SearchDialog extends JDialog{
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2");
 		source2.put("location", "location 2");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source2);
+		Repository.save(EntityManager.NODE_SOURCE, source2);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
@@ -371,63 +371,63 @@ public final class SearchDialog extends JDialog{
 		repository1.put("type", "public library");
 		repository1.put("person_id", 1);
 		repository1.put("place_id", 1);
-		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
+		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
 
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
 		person1.put("photo_id", 3);
 		person1.put("photo_crop", "0 0 5 10");
-		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
+		Repository.save(EntityManager.NODE_PERSON, person1);
 		final Map<String, Object> person2 = new HashMap<>();
 		person2.put("id", 2);
-		Repository.save(EntityManager.NODE_NAME_PERSON, person2);
+		Repository.save(EntityManager.NODE_PERSON, person2);
 		final Map<String, Object> person3 = new HashMap<>();
 		person3.put("id", 3);
-		Repository.save(EntityManager.NODE_NAME_PERSON, person3);
+		Repository.save(EntityManager.NODE_PERSON, person3);
 		final Map<String, Object> person4 = new HashMap<>();
 		person4.put("id", 4);
-		Repository.save(EntityManager.NODE_NAME_PERSON, person4);
+		Repository.save(EntityManager.NODE_PERSON, person4);
 		final Map<String, Object> person5 = new HashMap<>();
 		person5.put("id", 5);
-		Repository.save(EntityManager.NODE_NAME_PERSON, person5);
+		Repository.save(EntityManager.NODE_PERSON, person5);
 
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("id", 1);
 		group1.put("type", "family");
-		Repository.save(EntityManager.NODE_NAME_GROUP, group1);
+		Repository.save(EntityManager.NODE_GROUP, group1);
 		final Map<String, Object> group2 = new HashMap<>();
 		group2.put("id", 2);
 		group2.put("type", "family");
-		Repository.save(EntityManager.NODE_NAME_GROUP, group2);
+		Repository.save(EntityManager.NODE_GROUP, group2);
 
 		final Map<String, Object> groupJunction11 = new HashMap<>();
 		groupJunction11.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 1,
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 1,
+			EntityManager.RELATIONSHIP_OF, groupJunction11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction2 = new HashMap<>();
 		groupJunction2.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 2,
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 2,
+			EntityManager.RELATIONSHIP_OF, groupJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction13 = new HashMap<>();
 		groupJunction13.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 1,
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 1,
+			EntityManager.RELATIONSHIP_OF, groupJunction13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction3 = new HashMap<>();
 		groupJunction3.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 3,
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 3,
+			EntityManager.RELATIONSHIP_OF, groupJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction4 = new HashMap<>();
 		groupJunction4.put("role", "child");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 4,
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 4,
+			EntityManager.RELATIONSHIP_OF, groupJunction4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction5 = new HashMap<>();
 		groupJunction5.put("role", "child");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1), EntityManager.NODE_NAME_PERSON, 5,
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 5,
+			EntityManager.RELATIONSHIP_OF, groupJunction5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction6 = new HashMap<>();
 		groupJunction6.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2), EntityManager.NODE_NAME_PERSON, 4,
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 4,
+			EntityManager.RELATIONSHIP_OF, groupJunction6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
@@ -435,40 +435,40 @@ public final class SearchDialog extends JDialog{
 		personName1.put("personal_name", "personal name");
 		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName1);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
 		personName2.put("personal_name", "personal name 2");
 		personName2.put("family_name", "family name 2");
 		personName2.put("type", "death name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName2);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName2);
 		final Map<String, Object> personName3 = new HashMap<>();
 		personName3.put("id", 3);
 		personName3.put("person_id", 2);
 		personName3.put("personal_name", "personal name 3");
 		personName3.put("family_name", "family name 3");
 		personName3.put("type", "other name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName3);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName3);
 
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
 		localizedPersonName1.put("person_name_id", 1);
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName1);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
 		localizedPersonName2.put("id", 2);
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
 		localizedPersonName2.put("person_name_id", 1);
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName2);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName2);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
 		localizedPersonName3.put("id", 3);
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
 		localizedPersonName3.put("person_name_id", 1);
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName3);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName3);
 
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("id", 1);
@@ -478,7 +478,7 @@ public final class SearchDialog extends JDialog{
 		event1.put("date_id", 1);
 		event1.put("reference_table", "person");
 		event1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_EVENT, event1);
+		Repository.save(EntityManager.NODE_EVENT, event1);
 		final Map<String, Object> event2 = new HashMap<>();
 		event2.put("id", 2);
 		event2.put("type_id", 1);
@@ -487,14 +487,14 @@ public final class SearchDialog extends JDialog{
 		event2.put("date_id", 2);
 		event2.put("reference_table", "person");
 		event2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_EVENT, event2);
+		Repository.save(EntityManager.NODE_EVENT, event2);
 		final Map<String, Object> event3 = new HashMap<>();
 		event3.put("id", 3);
 		event3.put("type_id", 2);
 		event3.put("date_id", 1);
 		event3.put("reference_table", "person");
 		event3.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NAME_EVENT, event3);
+		Repository.save(EntityManager.NODE_EVENT, event3);
 		final Map<String, Object> event4 = new HashMap<>();
 		event4.put("id", 4);
 		event4.put("type_id", 3);
@@ -502,95 +502,95 @@ public final class SearchDialog extends JDialog{
 		event4.put("place_id", 1);
 		event4.put("reference_table", "group");
 		event4.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_EVENT, event4);
+		Repository.save(EntityManager.NODE_EVENT, event4);
 
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("id", 1);
 		eventType1.put("super_type_id", 2);
 		eventType1.put("type", "birth");
 		eventType1.put("category", "birth");
-		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType1);
+		Repository.save(EntityManager.NODE_EVENT_TYPE, eventType1);
 		final Map<String, Object> eventType2 = new HashMap<>();
 		eventType2.put("id", 2);
 		eventType2.put("super_type_id", 15);
 		eventType2.put("type", "death");
 		eventType2.put("category", "death");
-		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType2);
+		Repository.save(EntityManager.NODE_EVENT_TYPE, eventType2);
 		final Map<String, Object> eventType3 = new HashMap<>();
 		eventType3.put("id", 3);
 		eventType3.put("super_type_id", 10);
 		eventType3.put("type", "marriage");
 		eventType3.put("category", "union");
-		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType3);
+		Repository.save(EntityManager.NODE_EVENT_TYPE, eventType3);
 
 		final Map<String, Object> eventSuperType1 = new HashMap<>();
 		eventSuperType1.put("id", 1);
 		eventSuperType1.put("super_type", "Historical events");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType1);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType1);
 		final Map<String, Object> eventSuperType2 = new HashMap<>();
 		eventSuperType2.put("id", 2);
 		eventSuperType2.put("super_type", "Personal origins");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType2);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType2);
 		final Map<String, Object> eventSuperType3 = new HashMap<>();
 		eventSuperType3.put("id", 3);
 		eventSuperType3.put("super_type", "Physical description");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType3);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType3);
 		final Map<String, Object> eventSuperType4 = new HashMap<>();
 		eventSuperType4.put("id", 4);
 		eventSuperType4.put("super_type", "Citizenship and migration");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType4);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType4);
 		final Map<String, Object> eventSuperType5 = new HashMap<>();
 		eventSuperType5.put("id", 5);
 		eventSuperType5.put("super_type", "Real estate assets");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType5);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType5);
 		final Map<String, Object> eventSuperType6 = new HashMap<>();
 		eventSuperType6.put("id", 6);
 		eventSuperType6.put("super_type", "Education");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType6);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType6);
 		final Map<String, Object> eventSuperType7 = new HashMap<>();
 		eventSuperType7.put("id", 7);
 		eventSuperType7.put("super_type", "Work and Career");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType7);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType7);
 		final Map<String, Object> eventSuperType8 = new HashMap<>();
 		eventSuperType8.put("id", 8);
 		eventSuperType8.put("super_type", "Legal Events and Documents");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType8);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType8);
 		final Map<String, Object> eventSuperType9 = new HashMap<>();
 		eventSuperType9.put("id", 9);
 		eventSuperType9.put("super_type", "Health problems and habits");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType9);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType9);
 		final Map<String, Object> eventSuperType10 = new HashMap<>();
 		eventSuperType10.put("id", 10);
 		eventSuperType10.put("super_type", "Marriage and family life");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType10);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType10);
 		final Map<String, Object> eventSuperType11 = new HashMap<>();
 		eventSuperType11.put("id", 11);
 		eventSuperType11.put("super_type", "Military");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType11);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType11);
 		final Map<String, Object> eventSuperType12 = new HashMap<>();
 		eventSuperType12.put("id", 12);
 		eventSuperType12.put("super_type", "Confinement");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType12);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType12);
 		final Map<String, Object> eventSuperType13 = new HashMap<>();
 		eventSuperType13.put("id", 13);
 		eventSuperType13.put("super_type", "Transfers and travel");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType13);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType13);
 		final Map<String, Object> eventSuperType14 = new HashMap<>();
 		eventSuperType14.put("id", 14);
 		eventSuperType14.put("super_type", "Accolades");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType14);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType14);
 		final Map<String, Object> eventSuperType15 = new HashMap<>();
 		eventSuperType15.put("id", 15);
 		eventSuperType15.put("super_type", "Death and burial");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType15);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType15);
 		final Map<String, Object> eventSuperType16 = new HashMap<>();
 		eventSuperType16.put("id", 16);
 		eventSuperType16.put("super_type", "Others");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType16);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType16);
 		final Map<String, Object> eventSuperType17 = new HashMap<>();
 		eventSuperType17.put("id", 17);
 		eventSuperType17.put("super_type", "Religious events");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType17);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType17);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
@@ -599,55 +599,55 @@ public final class SearchDialog extends JDialog{
 		historicDate1.put("calendar_original_id", 2);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
+		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
 		final Map<String, Object> historicDate2 = new HashMap<>();
 		historicDate2.put("id", 2);
 		historicDate2.put("date", "1 JAN 1800");
-		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate2);
+		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate2);
 
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar1);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar1);
 		final Map<String, Object> calendar2 = new HashMap<>();
 		calendar2.put("id", 2);
 		calendar2.put("type", "julian");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar2);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar2);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("id", 3);
 		calendar3.put("type", "venetan");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar3);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar3);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "note");
 		note2.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 		final Map<String, Object> note3 = new HashMap<>();
 		note3.put("id", 3);
 		note3.put("note", "note for repository");
 		note3.put("reference_table", "repository");
 		note3.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note3);
+		Repository.save(EntityManager.NODE_NOTE, note3);
 		final Map<String, Object> note4 = new HashMap<>();
 		note4.put("id", 4);
 		note4.put("note", "something to say");
 		note4.put("reference_table", "modification");
 		note4.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note4);
+		Repository.save(EntityManager.NODE_NOTE, note4);
 		final Map<String, Object> note5 = new HashMap<>();
 		note5.put("id", 5);
 		note5.put("note", "something more to say");
 		note5.put("reference_table", "modification");
 		note5.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note5);
+		Repository.save(EntityManager.NODE_NOTE, note5);
 
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
@@ -655,26 +655,26 @@ public final class SearchDialog extends JDialog{
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media2);
+		Repository.save(EntityManager.NODE_MEDIA, media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media3);
+		Repository.save(EntityManager.NODE_MEDIA, media3);
 
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
 		mediaJunction1.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, extractRecordID(media3), EntityManager.NODE_NAME_REPOSITORY, 1,
-			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media3), EntityManager.NODE_REPOSITORY, 1,
+			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
 
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
@@ -684,15 +684,15 @@ public final class SearchDialog extends JDialog{
 		culturalNorm1.put("place_id", 1);
 		culturalNorm1.put("certainty", "certain");
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNorm1);
+		Repository.save(EntityManager.NODE_CULTURAL_NORM, culturalNorm1);
 
 		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
 		culturalNormJunction1.put("id", 1);
 		culturalNormJunction1.put("certainty", "probable");
 		culturalNormJunction1.put("credibility", "probable");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordID(culturalNorm1),
-			EntityManager.NODE_NAME_PERSON_NAME, extractRecordID(personName1),
-			EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY, culturalNormJunction1,
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, extractRecordID(culturalNorm1),
+			EntityManager.NODE_PERSON_NAME, extractRecordID(personName1),
+			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> modification1 = new HashMap<>();
@@ -700,13 +700,13 @@ public final class SearchDialog extends JDialog{
 		modification1.put("reference_table", "repository");
 		modification1.put("reference_id", 1);
 		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification1);
+		Repository.save(EntityManager.NODE_MODIFICATION, modification1);
 		final Map<String, Object> modification2 = new HashMap<>();
 		modification2.put("id", 2);
 		modification2.put("reference_table", "repository");
 		modification2.put("reference_id", 1);
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification2);
+		Repository.save(EntityManager.NODE_MODIFICATION, modification2);
 
 		final Map<String, Object> researchStatus1 = new HashMap<>();
 		researchStatus1.put("id", 1);
@@ -716,7 +716,7 @@ public final class SearchDialog extends JDialog{
 		researchStatus1.put("description", "see people, do things");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 2);
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
 		researchStatus2.put("id", 2);
 		researchStatus2.put("reference_table", "repository");
@@ -726,7 +726,7 @@ public final class SearchDialog extends JDialog{
 		researchStatus2.put("status", "open");
 		researchStatus2.put("priority", 0);
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus2);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus2);
 		final Map<String, Object> researchStatus3 = new HashMap<>();
 		researchStatus3.put("id", 3);
 		researchStatus3.put("reference_table", "repository");
@@ -736,7 +736,7 @@ public final class SearchDialog extends JDialog{
 		researchStatus3.put("status", "active");
 		researchStatus3.put("priority", 1);
 		researchStatus3.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus3);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus3);
 
 
 		EventQueue.invokeLater(() -> {

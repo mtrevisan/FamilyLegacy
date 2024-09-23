@@ -117,7 +117,7 @@ public class HistoryPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_MODIFICATION;
+		return EntityManager.NODE_MODIFICATION;
 	}
 
 	@Override
@@ -144,14 +144,12 @@ public class HistoryPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> recordModifications = Repository.findAll(EntityManager.NODE_NAME_MODIFICATION)
+		final List<Map<String, Object>> recordModifications = Repository.findReferencingNodes(EntityManager.NODE_MODIFICATION,
+			filterReferenceTable, filterReferenceID,
+			EntityManager.RELATIONSHIP_FOR);
+		final List<Map<String, Object>> recordsNotes = Repository.findAll(EntityManager.NODE_NOTE)
 			.stream()
-			.filter(record -> filterReferenceTable.equals(extractRecordReferenceTable(record))
-				&& filterReferenceID == extractRecordReferenceID(record))
-			.toList();
-		final List<Map<String, Object>> recordsNotes = Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> EntityManager.NODE_NAME_MODIFICATION.equals(extractRecordReferenceTable(record)))
+			.filter(record -> EntityManager.NODE_MODIFICATION.equals(extractRecordReferenceTable(record)))
 			.toList();
 
 		final DefaultTableModel model = getRecordTableModel();
@@ -181,7 +179,7 @@ public class HistoryPanel extends CommonSearchPanel{
 			model.setValueAt(humanReadableDateTime, row, TABLE_INDEX_DATE);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
-			tableData.add(new SearchAllRecord(recordModificationID, EntityManager.NODE_NAME_MODIFICATION, filterData, note));
+			tableData.add(new SearchAllRecord(recordModificationID, EntityManager.NODE_MODIFICATION, filterData, note));
 
 			row ++;
 		}
@@ -202,26 +200,26 @@ public class HistoryPanel extends CommonSearchPanel{
 		modification1.put("reference_table", "person_name");
 		modification1.put("reference_id", 1);
 		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification1);
+		Repository.save(EntityManager.NODE_MODIFICATION, modification1);
 		final Map<String, Object> modification2 = new HashMap<>();
 		modification2.put("id", 2);
 		modification2.put("reference_table", "person_name");
 		modification2.put("reference_id", 1);
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification2);
+		Repository.save(EntityManager.NODE_MODIFICATION, modification2);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "something to say");
 		note1.put("reference_table", "modification");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "something more to say");
 		note2.put("reference_table", "modification");
 		note2.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
@@ -238,7 +236,7 @@ public class HistoryPanel extends CommonSearchPanel{
 
 		EventQueue.invokeLater(() -> {
 			final HistoryPanel panel = create()
-				.withReference(EntityManager.NODE_NAME_PERSON_NAME, 1)
+				.withReference(EntityManager.NODE_PERSON_NAME, 1)
 				.withLinkListener(linkListener);
 			panel.loadData();
 

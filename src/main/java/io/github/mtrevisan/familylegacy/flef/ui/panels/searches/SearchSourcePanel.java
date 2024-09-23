@@ -98,7 +98,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_SOURCE;
+		return EntityManager.NODE_SOURCE;
 	}
 
 	@Override
@@ -126,9 +126,9 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_SOURCE);
-		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_NAME_PLACE);
-		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_NAME_HISTORIC_DATE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_SOURCE);
+		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
+		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_HISTORIC_DATE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -163,7 +163,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
 			model.setValueAt(year, row, TABLE_INDEX_DATE);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_SOURCE, filterData, identifier));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_SOURCE, filterData, identifier));
 
 			row ++;
 		}
@@ -187,20 +187,20 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		source1.put("place_id", 1);
 		source1.put("date_id", 1);
 		source1.put("location", "location 1");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
+		Repository.save(EntityManager.NODE_SOURCE, source1);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("id", 2);
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2");
 		source2.put("location", "location 2");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source2);
+		Repository.save(EntityManager.NODE_SOURCE, source2);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
+		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
@@ -209,7 +209,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
+		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
@@ -220,7 +220,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
+		Repository.save(EntityManager.NODE_PLACE, place1);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

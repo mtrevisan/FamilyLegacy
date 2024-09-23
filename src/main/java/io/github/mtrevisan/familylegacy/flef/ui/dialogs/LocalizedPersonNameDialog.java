@@ -62,7 +62,6 @@ import java.util.function.BiConsumer;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
@@ -146,7 +145,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME;
+		return EntityManager.NODE_LOCALIZED_PERSON_NAME;
 	}
 
 	@Override
@@ -212,8 +211,11 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		unselectAction();
 
 		final List<Map<String, Object>> records = (filterReferenceID <= 0
-			? Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
-			: getFilteredRecords(filterReferenceID));
+			? Repository.findAll(EntityManager.NODE_LOCALIZED_PERSON_NAME)
+			: Repository.findReferencingNodes(EntityManager.NODE_NOTE,
+				EntityManager.NODE_PERSON, filterReferenceID,
+				EntityManager.RELATIONSHIP_FOR));
+
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -243,13 +245,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 			selectFirstData();
 	}
 
-	private List<Map<String, Object>> getFilteredRecords(final int filterReferenceID){
-		return Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME)
-			.stream()
-			.filter(entry -> Objects.equals(filterReferenceID, extractRecordPersonNameID(entry)))
-			.toList();
-	}
-
 	@Override
 	protected void requestFocusAfterSelect(){
 		//set focus on first field
@@ -273,9 +268,11 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionComboBox.setSelectedItem(transcription);
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
-		if(filterReferenceID <= 0){
-			final List<Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
-				EntityManager::extractRecordPersonNameID, localizedPersonNameID);
+		if(filterReferenceID > 0){
+			final List<Map<String, Object>> recordMediaJunction = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
+				EntityManager.NODE_PERSON_NAME, filterReferenceID,
+				EntityManager.RELATIONSHIP_FOR, EntityManager.PROPERTY_TYPE, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+			recordMediaJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordPersonNameID(record), localizedPersonNameID));
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
@@ -378,7 +375,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		localizedPersonName1.put("type", "original");
 		localizedPersonName1.put("transcription", "IPA");
 		localizedPersonName1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName1);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1);
 
 
 		EventQueue.invokeLater(() -> {

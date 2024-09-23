@@ -57,6 +57,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -155,12 +156,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	public CulturalNormDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
 			if(selectedRecord != null)
-				Repository.upsertRelationship(EntityManager.NODE_NAME_CULTURAL_NORM, recordID,
+				Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY, new HashMap<>(selectedRecordLink),
+					EntityManager.RELATIONSHIP_SUPPORTED_BY, new HashMap<>(selectedRecordLink),
 					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 			else if(selectedRecordID != null)
-				Repository.deleteRelationship(EntityManager.NODE_NAME_CULTURAL_NORM, recordID,
+				Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
 					filterReferenceTable, filterReferenceID);
 		};
 		if(onCloseGracefully != null)
@@ -180,12 +181,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_CULTURAL_NORM;
+		return EntityManager.NODE_CULTURAL_NORM;
 	}
 
 	@Override
 	protected String getJunctionTableName(){
-		return EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY;
+		return EntityManager.RELATIONSHIP_SUPPORTED_BY;
 	}
 
 	@Override
@@ -223,15 +224,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_NAME_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		dateStartButton.setToolTipText("Start date");
 		dateStartButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_NAME_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		dateEndButton.setToolTipText("End date");
 		dateEndButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_NAME_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
@@ -239,19 +240,19 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_NAME_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
@@ -297,7 +298,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_CULTURAL_NORM);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -337,37 +338,11 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Integer dateEndID = extractRecordDateEndID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(culturalNormID, extractRecordReferenceID(record)))
-			.findFirst()
-			.map(EntityManager::extractRecordRestriction)
-			.orElse(null);
+		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+		final String restriction = Repository.getRestriction(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
 
 		identifierField.setText(identifier);
 		descriptionTextPreview.setText("Cultural norm " + culturalNormID, description, null);
@@ -386,8 +361,10 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final List<Map<String, Object>> recordCulturalNormJunction = extractReferences(
-				EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION, EntityManager::extractRecordCulturalNormID, culturalNormID);
+			final List<Map<String, Object>> recordCulturalNormJunction = Repository.findReferencingNodes(EntityManager.NODE_CULTURAL_NORM,
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_SUPPORTED_BY);
+			recordCulturalNormJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordCulturalNormID(record), culturalNormID));
 			if(recordCulturalNormJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -454,14 +431,13 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
 			final String linkCredibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
 
-			if(selectedRecordLink == null){
-				selectedRecordLink = new HashMap<>(4);
-				insertRecordReferenceTable(selectedRecordLink, filterReferenceTable);
-				insertRecordReferenceID(selectedRecordLink, extractRecordID(selectedRecord));
-			}
-
+			if(selectedRecordLink == null)
+				selectedRecordLink = new HashMap<>(2);
 			insertRecordCertainty(selectedRecordLink, linkCertainty);
 			insertRecordCredibility(selectedRecordLink, linkCredibility);
+			Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, extractRecordID(selectedRecord),
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_FOR, selectedRecordLink, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 
 		//update table:
@@ -513,7 +489,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		culturalNorm1.put("date_end_id", 1);
 		culturalNorm1.put("certainty", "certain");
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNorm1);
+		Repository.save(EntityManager.NODE_CULTURAL_NORM, culturalNorm1);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
 		assertion1.put("id", 1);
@@ -523,15 +499,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		assertion1.put("role", "father");
 		assertion1.put("certainty", "certain");
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_ASSERTION, assertion1);
+		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
 
 		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
 		culturalNormJunction1.put("id", 1);
 		culturalNormJunction1.put("certainty", "probable");
 		culturalNormJunction1.put("credibility", "probable");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_CULTURAL_NORM, extractRecordID(culturalNorm1),
-			EntityManager.NODE_NAME_ASSERTION, extractRecordID(assertion1),
-			EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY, culturalNormJunction1,
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, extractRecordID(culturalNorm1),
+			EntityManager.NODE_ASSERTION, extractRecordID(assertion1),
+			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> place1 = new HashMap<>();
@@ -539,44 +515,44 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
+		Repository.save(EntityManager.NODE_PLACE, place1);
 
 		final Map<String, Object> date1 = new HashMap<>();
 		date1.put("id", 1);
 		date1.put("date", "18 OCT 2000");
-		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, date1);
+		Repository.save(EntityManager.NODE_HISTORIC_DATE, date1);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "cultural_norm");
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "cultural_norm");
 		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
+		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
 
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
 		media1.put("identifier", "custom media");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 //			final CulturalNormDialog dialog = create(parent);
 			final CulturalNormDialog dialog = createShowOnly(parent)
-				.withReference(EntityManager.NODE_NAME_CULTURAL_NORM, 1);
+				.withReference(EntityManager.NODE_CULTURAL_NORM, 1);
 			dialog.loadData(1);
 //			if(!dialog.selectData(extractRecordID(culturalNorm)))
 //				dialog.showNewRecord();
@@ -597,7 +573,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNormID);
+								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -624,12 +600,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNormID)
+								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_CULTURAL_NORM);
-										insertRecordReferenceID(record, culturalNormID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -640,12 +616,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNormID)
+								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_CULTURAL_NORM);
-										insertRecordReferenceID(record, culturalNormID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 
@@ -655,7 +631,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_CULTURAL_NORM, culturalNormID);
+								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();

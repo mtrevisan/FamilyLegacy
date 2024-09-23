@@ -50,18 +50,17 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
@@ -132,7 +131,7 @@ public final class PersonDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_PERSON;
+		return EntityManager.NODE_PERSON;
 	}
 
 	@Override
@@ -163,32 +162,32 @@ public final class PersonDialog extends CommonListDialog{
 	protected void initRecordComponents(){
 		personNameButton.setToolTipText("Names");
 		personNameButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PERSON_NAME, EntityManager.NODE_NAME_PERSON, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PERSON_NAME, EntityManager.NODE_PERSON, selectedRecord)));
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO, EntityManager.NODE_NAME_PERSON, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PHOTO, EntityManager.NODE_PERSON, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_PERSON, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_PERSON, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_PERSON, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_PERSON, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_PERSON, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_PERSON, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_NAME_PERSON, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_PERSON, selectedRecord)));
 
 		groupButton.setToolTipText("Groups");
 		groupButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.GROUP, EntityManager.NODE_NAME_PERSON, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.GROUP, EntityManager.NODE_PERSON, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -215,7 +214,7 @@ public final class PersonDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_PERSON);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_PERSON);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -243,48 +242,13 @@ public final class PersonDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer personID = extractRecordID(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
-		final boolean hasPersonNames = (Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
-			.stream()
-			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasGroups = (Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_PERSON, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(personID, extractRecordReferenceID(record)))
-			.findFirst()
-			.map(EntityManager::extractRecordRestriction)
-			.orElse(null);
+		final boolean hasPersonNames = Repository.hasPersonNames(EntityManager.NODE_PERSON, personID);
+		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PERSON, personID);
+		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PERSON, personID);
+		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_PERSON, personID);
+		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_PERSON, personID);
+		final boolean hasGroups = Repository.hasGroups(EntityManager.NODE_PERSON, personID);
+		final String restriction = Repository.getRestriction(EntityManager.NODE_PERSON, personID);
 
 		setButtonEnableAndBorder(personNameButton, hasPersonNames);
 		setButtonEnableAndBorder(photoButton, photoID != null);
@@ -322,19 +286,20 @@ public final class PersonDialog extends CommonListDialog{
 
 	private String extractIdentifier(final Integer personID){
 		final StringJoiner identifier = new StringJoiner(" / ");
-		final NavigableMap<Integer, Map<String, Object>> localizedPersonNames = Repository.findAllNavigable(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME);
-		Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+		Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				//extract transliterations
+				final List<Map<String, Object>> localizedPersonNames = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_PERSON_NAME,
+					EntityManager.NODE_PERSON_NAME, extractRecordID(record),
+					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
+
 				final StringJoiner subIdentifier = new StringJoiner(", ");
-				final Integer personNameID = extractRecordID(record);
-				getFilteredRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION, EntityManager.NODE_NAME_PERSON_NAME, personNameID)
-					.stream()
-					.filter(record2 -> Objects.equals(EntityManager.LOCALIZED_TEXT_TYPE_NAME, extractRecordReferenceType(record2)))
-					.map(record2 -> localizedPersonNames.get(extractRecordLocalizedTextID(record2)))
-					.forEach(record2 -> subIdentifier.add(extractName(record2)));
+				for(int i = 0, length = localizedPersonNames.size(); i < length; i ++){
+					final Map<String, Object> localizedPersonName = localizedPersonNames.get(i);
+					subIdentifier.add(extractName(localizedPersonName));
+				}
 
 				identifier.add(extractName(record) + (subIdentifier.length() > 0? " (" + subIdentifier + ")": StringUtils.EMPTY));
 			});
@@ -367,7 +332,7 @@ public final class PersonDialog extends CommonListDialog{
 		person1.put("id", 1);
 		person1.put("photo_id", 3);
 		person1.put("photo_crop", "0 0 5 10");
-		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
+		Repository.save(EntityManager.NODE_PERSON, person1);
 
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("id", 1);
@@ -376,7 +341,7 @@ public final class PersonDialog extends CommonListDialog{
 		personName1.put("family_name", "bruxatin");
 		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName1);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
@@ -384,37 +349,37 @@ public final class PersonDialog extends CommonListDialog{
 		personName2.put("family_name", "bruciatino");
 		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName2);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName2);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("id", 1);
 		localizedText1.put("text", "true name");
 		localizedText1.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("id", 2);
 		localizedText2.put("text", "fake name");
 		localizedText2.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText2);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
 
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
 		localizedPersonName1.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName1);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
 		localizedPersonName2.put("id", 2);
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
 		localizedPersonName2.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName2);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName2);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
 		localizedPersonName3.put("id", 3);
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
 		localizedPersonName3.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName3);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName3);
 
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
@@ -423,7 +388,7 @@ public final class PersonDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
@@ -431,7 +396,7 @@ public final class PersonDialog extends CommonListDialog{
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
 		media2.put("date_id", 1);
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media2);
+		Repository.save(EntityManager.NODE_MEDIA, media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
@@ -439,38 +404,38 @@ public final class PersonDialog extends CommonListDialog{
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
 		media3.put("date_id", 1);
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media3);
+		Repository.save(EntityManager.NODE_MEDIA, media3);
 
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, extractRecordID(media1), EntityManager.NODE_NAME_PERSON, 1,
-			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media1), EntityManager.NODE_PERSON, 1,
+			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> mediaJunction2 = new HashMap<>();
 		mediaJunction2.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, extractRecordID(media2), EntityManager.NODE_NAME_PERSON, 1,
-			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media2), EntityManager.NODE_PERSON, 1,
+			EntityManager.RELATIONSHIP_FOR, mediaJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> mediaJunction3 = new HashMap<>();
-		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, extractRecordID(media3), EntityManager.NODE_NAME_PERSON, 1,
-			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media3), EntityManager.NODE_PERSON, 1,
+			EntityManager.RELATIONSHIP_FOR, mediaJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "person");
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "person");
 		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
+		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -499,7 +464,7 @@ public final class PersonDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_PERSON, personID);
+								.withReference(EntityManager.NODE_PERSON, personID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -524,7 +489,7 @@ public final class PersonDialog extends CommonListDialog{
 									? MediaDialog.createEditOnlyForPhoto(parent)
 									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.NODE_NAME_PERSON, personID)
+								.withReference(EntityManager.NODE_PERSON, personID)
 								.withOnCloseGracefully((record, recordID) -> {
 									final Integer newPhotoID = extractRecordID(record);
 									insertRecordPhotoID(container, newPhotoID);
@@ -570,12 +535,12 @@ public final class PersonDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_PERSON, personID)
+								.withReference(EntityManager.NODE_PERSON, personID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_PERSON);
-										insertRecordReferenceID(record, personID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_PERSON, personID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -586,12 +551,12 @@ public final class PersonDialog extends CommonListDialog{
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.NODE_NAME_PERSON, personID)
+								.withReference(EntityManager.NODE_PERSON, personID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_PERSON);
-										insertRecordReferenceID(record, personID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_PERSON, personID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 
@@ -601,7 +566,7 @@ public final class PersonDialog extends CommonListDialog{
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_PERSON, personID);
+								.withReference(EntityManager.NODE_PERSON, personID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
@@ -610,7 +575,7 @@ public final class PersonDialog extends CommonListDialog{
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
 									? GroupDialog.createSelectOnly(parent)
 									: GroupDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_PERSON, personID);
+								.withReference(EntityManager.NODE_PERSON, personID);
 							groupDialog.loadData();
 
 							groupDialog.showDialog();

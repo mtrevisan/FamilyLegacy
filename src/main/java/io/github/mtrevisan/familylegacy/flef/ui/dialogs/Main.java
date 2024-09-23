@@ -213,7 +213,7 @@ public class Main{
 						//from: citation
 						case LOCALIZED_EXTRACT -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
-								.withReference(EntityManager.NODE_NAME_CITATION, containerID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
+								.withReference(EntityManager.NODE_CITATION, containerID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);
@@ -378,7 +378,7 @@ public class Main{
 						//from: assertion, person name, group, note
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
-								.withReference(EntityManager.NODE_NAME_PERSON_NAME, containerID)
+								.withReference(EntityManager.NODE_PERSON_NAME, containerID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null){
 										record.put("reference_table", tableName);

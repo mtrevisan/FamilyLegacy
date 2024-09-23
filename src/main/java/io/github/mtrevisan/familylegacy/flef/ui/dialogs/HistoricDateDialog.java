@@ -56,6 +56,7 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -135,7 +136,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_HISTORIC_DATE;
+		return EntityManager.NODE_HISTORIC_DATE;
 	}
 
 	@Override
@@ -176,7 +177,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		calendarOriginalButton.setToolTipText("Calendar original");
 		calendarOriginalButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.NODE_NAME_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
 
 		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
 
@@ -185,11 +186,11 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -221,7 +222,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_HISTORIC_DATE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_HISTORIC_DATE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -262,25 +263,9 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_HISTORIC_DATE, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(historicDateID, extractRecordReferenceID(record)))
-			.findFirst()
-			.map(EntityManager::extractRecordRestriction)
-			.orElse(null);
+		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_HISTORIC_DATE, historicDateID);
+		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_HISTORIC_DATE, historicDateID);
+		final String restriction = Repository.getRestriction(EntityManager.NODE_HISTORIC_DATE, historicDateID);
 
 		dateField.setText(date);
 		dateOriginalField.setText(dateOriginal);
@@ -371,40 +356,40 @@ public final class HistoricDateDialog extends CommonListDialog{
 		historicDate1.put("calendar_original_id", 2);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
+		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
 
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar1);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar1);
 		final Map<String, Object> calendar2 = new HashMap<>();
 		calendar2.put("id", 2);
 		calendar2.put("type", "julian");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar2);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar2);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("id", 3);
 		calendar3.put("type", "venetan");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar3);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar3);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "historic_date");
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "historic_date");
 		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
+		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -431,7 +416,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_HISTORIC_DATE, historicDateID);
+								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -448,12 +433,12 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_HISTORIC_DATE, historicDateID)
+								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_HISTORIC_DATE);
-										insertRecordReferenceID(record, historicDateID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 

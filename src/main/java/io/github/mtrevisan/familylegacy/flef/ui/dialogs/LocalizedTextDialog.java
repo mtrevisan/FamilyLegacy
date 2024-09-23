@@ -57,10 +57,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -68,10 +66,12 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordText;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordTranscriptionType;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
 public final class LocalizedTextDialog extends CommonListDialog implements TextPreviewListenerInterface{
@@ -156,16 +156,16 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
 			if(selectedRecord != null){
 				final Map<String, Object> mediaJunction = new HashMap<>();
-				insertRecordReferenceType(mediaJunction, filterReferenceType);
-				Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, recordID,
+				insertRecordType(mediaJunction, filterReferenceType);
+				Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction,
+					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, mediaJunction,
 					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 			}
 			else if(recordID != null)
-				Repository.deleteRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, recordID,
+				Repository.deleteRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_NAME_FOR);
+					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -189,7 +189,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_LOCALIZED_TEXT;
+		return EntityManager.NODE_LOCALIZED_TEXT;
 	}
 
 	@Override
@@ -259,16 +259,11 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_TEXT);
-		if(filterReferenceTable != null){
-			final Set<Integer> filteredMedia = getFilteredRecords(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION, filterReferenceTable,
-					filterReferenceID)
-				.stream()
-				.filter(record -> filterReferenceType.equals(extractRecordReferenceType(record)))
-				.map(EntityManager::extractRecordReferenceID)
-				.collect(Collectors.toSet());
-			records.removeIf(record -> !filteredMedia.contains(extractRecordID(record)));
-		}
+		final List<Map<String, Object>> records = (filterReferenceTable == null
+			? Repository.findAll(EntityManager.NODE_LOCALIZED_TEXT)
+			: Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, EntityManager.PROPERTY_TYPE, filterReferenceType));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -309,7 +304,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		final Integer localizedTextID = extractRecordID(selectedRecord);
 		final String text = extractRecordText(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final String type = extractRecordReferenceType(selectedRecord);
+		final String type = extractRecordType(selectedRecord);
 		final String transcription = extractRecordTranscription(selectedRecord);
 		final String transcriptionType = extractRecordTranscriptionType(selectedRecord);
 
@@ -321,13 +316,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		referenceTypeComboBox.setSelectedItem(type);
 		transcriptionComboBox.setSelectedItem(transcription);
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
-
-		if(filterReferenceTable == null){
-			final List<Map<String, Object>> recordMediaJunction = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
-				EntityManager::extractRecordLocalizedTextID, localizedTextID);
-			if(recordMediaJunction.size() > 1)
-				throw new IllegalArgumentException("Data integrity error");
-		}
 	}
 
 	@Override
@@ -389,7 +377,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		insertRecordText(selectedRecord, text);
 		insertRecordLocale(selectedRecord, locale);
-		insertRecordReferenceType(selectedRecord, referenceType);
 		insertRecordTranscription(selectedRecord, transcription);
 		insertRecordTranscriptionType(selectedRecord, transcriptionType);
 
@@ -420,7 +407,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_TEXT, localizedText1);
+		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
 
 		final Map<String, Object> citation1 = new HashMap<>();
 		citation1.put("id", 1);
@@ -429,21 +416,21 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_NAME_CITATION, citation1);
+		Repository.save(EntityManager.NODE_CITATION, citation1);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
 		localizedTextJunction1.put("id", 1);
 		localizedTextJunction1.put("type", "extract");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_LOCALIZED_TEXT, extractRecordID(localizedText1),
-			EntityManager.NODE_NAME_CITATION, extractRecordID(citation1),
-			EntityManager.RELATIONSHIP_NAME_FOR, localizedTextJunction1,
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
+			EntityManager.NODE_CITATION, extractRecordID(citation1),
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
 			final LocalizedTextDialog dialog = createComplexText(parent)
-				.withReference(EntityManager.NODE_NAME_CITATION, 1, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
+				.withReference(EntityManager.NODE_CITATION, 1, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
 //			final LocalizedTextDialog dialog = createSimpleText(parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(localizedText1)))

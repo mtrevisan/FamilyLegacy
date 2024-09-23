@@ -91,7 +91,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIncludeMediaPayload;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordMediaID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoProjection;
@@ -229,13 +228,13 @@ public final class MediaDialog extends CommonListDialog{
 	public MediaDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
 			if(selectedRecord != null)
-				Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, recordID,
+				Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_NAME_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+					EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 			else if(recordID != null)
-				Repository.deleteRelationship(EntityManager.NODE_NAME_MEDIA, recordID,
+				Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_NAME_FOR);
+					EntityManager.RELATIONSHIP_FOR);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -265,7 +264,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_MEDIA;
+		return EntityManager.NODE_MEDIA;
 	}
 
 	@Override
@@ -400,27 +399,27 @@ public final class MediaDialog extends CommonListDialog{
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_MEDIA, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_MEDIA, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_MEDIA, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_MEDIA, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
 		photoCropButton.setToolTipText("Define a crop");
 		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, EntityManager.NODE_NAME_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, EntityManager.NODE_MEDIA, selectedRecord)));
 		photoCropButton.setEnabled(false);
 	}
 
@@ -475,11 +474,11 @@ public final class MediaDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_MEDIA);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_MEDIA);
 		if(filterReferenceTable != null){
-			final Set<Integer> filteredMedia = getFilteredRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION, filterReferenceTable,
-					filterReferenceID)
-				.stream()
+			final Set<Integer> filteredMedia = Repository.findReferencingNodes(EntityManager.NODE_MEDIA,
+					filterReferenceTable, filterReferenceID,
+					EntityManager.RELATIONSHIP_FOR).stream()
 				.map(EntityManager::extractRecordID)
 				.collect(Collectors.toSet());
 			records.removeIf(record -> !filteredMedia.contains(extractRecordID(record)));
@@ -528,7 +527,7 @@ public final class MediaDialog extends CommonListDialog{
 				return;
 		}
 
-		final Map<Integer, Map<String, Object>> records = Repository.findAllNavigable(EntityManager.NODE_NAME_MEDIA);
+		final Map<Integer, Map<String, Object>> records = Repository.findAllNavigable(EntityManager.NODE_MEDIA);
 		if(records.containsKey(recordID)){
 			final int oldSize = model.getRowCount();
 			final String identifier = extractRecordIdentifier(record);
@@ -555,31 +554,10 @@ public final class MediaDialog extends CommonListDialog{
 		final String type = extractRecordType(selectedRecord);
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
 		final Integer dateID = extractRecordDateID(selectedRecord);
-		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_MEDIA, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(mediaID, extractRecordReferenceID(record)))
-			.findFirst()
-			.map(EntityManager::extractRecordRestriction)
-			.orElse(null);
+		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_MEDIA, mediaID);
+		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_MEDIA, mediaID);
+		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_MEDIA, mediaID);
+		final String restriction = Repository.getRestriction(EntityManager.NODE_MEDIA, mediaID);
 
 		fileField.setText(identifier);
 		titleField.setText(title);
@@ -606,11 +584,10 @@ public final class MediaDialog extends CommonListDialog{
 		final File file = FileHelper.loadFile(identifier);
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
-			final List<Map<String, Object>> recordMediaJunction = getFilteredRecords(EntityManager.NODE_NAME_MEDIA_JUNCTION,
-					filterReferenceTable, filterReferenceID)
-				.stream()
-				.filter(entry -> Objects.equals(mediaID, extractRecordMediaID(entry)))
-				.toList();
+			final List<Map<String, Object>> recordMediaJunction = Repository.findReferencingNodes(EntityManager.NODE_MEDIA,
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_FOR);
+			recordMediaJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordMediaID(record), mediaID));
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -707,7 +684,7 @@ public final class MediaDialog extends CommonListDialog{
 		//read record panel:
 		final String identifier = GUIHelper.getTextTrimmed(fileField);
 		final String title = GUIHelper.getTextTrimmed(titleField);
-		final Map<String, Object> project = Repository.findByID(EntityManager.NODE_NAME_PROJECT, 1);
+		final Map<String, Object> project = Repository.findByID(EntityManager.NODE_PROJECT, 1);
 		final byte[] payload = (extractRecordIncludeMediaPayload(project) == 1
 			? extractPayload(identifier)
 			: null);
@@ -772,7 +749,7 @@ public final class MediaDialog extends CommonListDialog{
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
@@ -780,7 +757,7 @@ public final class MediaDialog extends CommonListDialog{
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
 		media2.put("date_id", 1);
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media2);
+		Repository.save(EntityManager.NODE_MEDIA, media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
@@ -788,32 +765,32 @@ public final class MediaDialog extends CommonListDialog{
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
 		media3.put("date_id", 1);
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media3);
+		Repository.save(EntityManager.NODE_MEDIA, media3);
 
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
 		mediaJunction1.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_MEDIA, 1, EntityManager.NODE_NAME_MEDIA, 1,
-			EntityManager.RELATIONSHIP_NAME_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, 1, EntityManager.NODE_MEDIA, 1,
+			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "media");
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "media");
 		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
+		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -850,12 +827,12 @@ public final class MediaDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_MEDIA, mediaID)
+								.withReference(EntityManager.NODE_MEDIA, mediaID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_MEDIA);
-										insertRecordReferenceID(record, mediaID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -892,7 +869,7 @@ public final class MediaDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_MEDIA, mediaID);
+								.withReference(EntityManager.NODE_MEDIA, mediaID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -901,7 +878,7 @@ public final class MediaDialog extends CommonListDialog{
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_MEDIA, mediaID);
+								.withReference(EntityManager.NODE_MEDIA, mediaID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();

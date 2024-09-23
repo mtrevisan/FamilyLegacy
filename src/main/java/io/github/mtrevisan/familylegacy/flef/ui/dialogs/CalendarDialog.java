@@ -50,6 +50,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -114,7 +115,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_CALENDAR;
+		return EntityManager.NODE_CALENDAR;
 	}
 
 	@Override
@@ -149,15 +150,15 @@ public final class CalendarDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_CALENDAR, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_CALENDAR, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_CALENDAR, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_CALENDAR, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_NAME_CALENDAR, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_CALENDAR, selectedRecord)));
 	}
 
 	@Override
@@ -179,7 +180,7 @@ public final class CalendarDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_CALENDAR);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_CALENDAR);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -213,24 +214,9 @@ public final class CalendarDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CALENDAR, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CALENDAR, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_CALENDAR, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(calendarID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
+		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CALENDAR, calendarID);
+		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CALENDAR, calendarID);
+		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CALENDAR, calendarID);
 
 		typeField.setText(type);
 
@@ -306,28 +292,28 @@ public final class CalendarDialog extends CommonListDialog{
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar1);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar1);
 		final Map<String, Object> calendar2 = new HashMap<>();
 		calendar2.put("id", 2);
 		calendar2.put("type", "julian");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar2);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar2);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("id", 3);
 		calendar3.put("type", "venetan");
-		Repository.save(EntityManager.NODE_NAME_CALENDAR, calendar3);
+		Repository.save(EntityManager.NODE_CALENDAR, calendar3);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "calendar");
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 
 		EventQueue.invokeLater(() -> {
@@ -354,7 +340,7 @@ public final class CalendarDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_CALENDAR, calendarID);
+								.withReference(EntityManager.NODE_CALENDAR, calendarID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -363,12 +349,12 @@ public final class CalendarDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_CALENDAR, calendarID)
+								.withReference(EntityManager.NODE_CALENDAR, calendarID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_CALENDAR);
-										insertRecordReferenceID(record, calendarID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -378,7 +364,7 @@ public final class CalendarDialog extends CommonListDialog{
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_CALENDAR, calendarID);
+								.withReference(EntityManager.NODE_CALENDAR, calendarID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();

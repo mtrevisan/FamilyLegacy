@@ -88,7 +88,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_MEDIA;
+		return EntityManager.NODE_MEDIA;
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_MEDIA);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_MEDIA);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -135,7 +135,7 @@ public class SearchMediaPanel extends CommonSearchPanel{
 			model.setValueAt(title, row, TABLE_INDEX_TITLE);
 			model.setValueAt(type, row, TABLE_INDEX_TYPE);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_MEDIA, filterData, title));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_MEDIA, filterData, title));
 
 			row++;
 		}
@@ -158,21 +158,21 @@ public class SearchMediaPanel extends CommonSearchPanel{
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media2);
+		Repository.save(EntityManager.NODE_MEDIA, media2);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media3);
+		Repository.save(EntityManager.NODE_MEDIA, media3);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

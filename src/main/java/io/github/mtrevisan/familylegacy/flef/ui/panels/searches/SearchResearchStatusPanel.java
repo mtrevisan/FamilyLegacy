@@ -92,7 +92,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_RESEARCH_STATUS;
+		return EntityManager.NODE_RESEARCH_STATUS;
 	}
 
 	@Override
@@ -119,7 +119,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_RESEARCH_STATUS);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_RESEARCH_STATUS);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -146,7 +146,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 			model.setValueAt(status, row, TABLE_INDEX_STATUS);
 			model.setValueAt((priority != null? String.valueOf(priority): null), row, TABLE_INDEX_PRIORITY);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_RESEARCH_STATUS, filterData, identifier));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_RESEARCH_STATUS, filterData, identifier));
 
 			row ++;
 		}
@@ -169,7 +169,7 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 		researchStatus1.put("description", "see people, do things");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 2);
-		Repository.save(EntityManager.NODE_NAME_RESEARCH_STATUS, researchStatus1);
+		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

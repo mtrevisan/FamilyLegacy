@@ -54,6 +54,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -161,7 +162,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_NOTE;
+		return EntityManager.NODE_NOTE;
 	}
 
 	@Override
@@ -199,11 +200,11 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_NOTE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NOTE, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_NAME_NOTE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_NOTE, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -230,8 +231,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		unselectAction();
 
 		final List<Map<String, Object>> records = (filterReferenceTable == null
-			? Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			: getFilteredRecords(EntityManager.NODE_NAME_NOTE, filterReferenceTable, filterReferenceID));
+			? Repository.findAll(EntityManager.NODE_NOTE)
+			: Repository.findReferencingNodes(EntityManager.NODE_NOTE,
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_FOR));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -266,25 +269,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		final Integer noteID = extractRecordID(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasCulturalNorms = (Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_NOTE, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(noteID, extractRecordReferenceID(record)))
-			.findFirst()
-			.map(EntityManager::extractRecordRestriction)
-			.orElse(null);
+		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_NOTE, noteID);
+		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_NOTE, noteID);
+		final String restriction = Repository.getRestriction(EntityManager.NODE_NOTE, noteID);
 
 		noteTextPreview.setText("Note " + noteID, note, locale);
 		localeField.setText(locale);
@@ -367,20 +354,20 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "note");
 		note2.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "note");
 		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
+		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -405,12 +392,12 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 					switch(editCommand.getType()){
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
-								.withReference(EntityManager.NODE_NAME_NOTE, noteID)
+								.withReference(EntityManager.NODE_NOTE, noteID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_NOTE);
-										insertRecordReferenceID(record, noteID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+											EntityManager.NODE_NOTE, noteID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							culturalNormDialog.loadData();
 
@@ -421,12 +408,12 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.NODE_NAME_NOTE, noteID)
+								.withReference(EntityManager.NODE_NOTE, noteID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_NOTE);
-										insertRecordReferenceID(record, noteID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_NOTE, noteID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 

@@ -99,7 +99,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_REPOSITORY;
+		return EntityManager.NODE_REPOSITORY;
 	}
 
 	@Override
@@ -126,8 +126,8 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_REPOSITORY);
-		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_NAME_PLACE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_REPOSITORY);
+		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -158,7 +158,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 			model.setValueAt(personName, row, TABLE_INDEX_PERSON);
 			model.setValueAt(place, row, TABLE_INDEX_PLACE);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_REPOSITORY, filterData, identifier));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_REPOSITORY, filterData, identifier));
 
 			row ++;
 		}
@@ -166,7 +166,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 
 
 	private String extractFirstName(final Integer personID){
-		return Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+		return Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
 			.map(SearchRepositoryPanel::extractName)
@@ -175,9 +175,9 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	}
 
 	private List<String> extractAllNames(final Integer personID){
-		final List<Map<String, Object>> localizedPersonNames = Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME);
+		final List<Map<String, Object>> localizedPersonNames = Repository.findAll(EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final List<String> names = new ArrayList<>(0);
-		Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+		Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
@@ -224,20 +224,20 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		source1.put("place_id", 1);
 		source1.put("date_id", 1);
 		source1.put("location", "location 1");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source1);
+		Repository.save(EntityManager.NODE_SOURCE, source1);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("id", 2);
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2");
 		source2.put("location", "location 2");
-		Repository.save(EntityManager.NODE_NAME_SOURCE, source2);
+		Repository.save(EntityManager.NODE_SOURCE, source2);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_NAME_REPOSITORY, repository1);
+		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("id", 1);
@@ -246,7 +246,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_NAME_HISTORIC_DATE, historicDate1);
+		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("id", 1);
@@ -257,7 +257,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.save(EntityManager.NODE_NAME_PLACE, place1);
+		Repository.save(EntityManager.NODE_PLACE, place1);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

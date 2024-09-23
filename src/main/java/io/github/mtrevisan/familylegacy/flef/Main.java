@@ -598,8 +598,8 @@ public final class Main{
 		flefNotes.add(flefNote);
 		insertRecordID(flefNote, 20_000);
 		insertRecordNote(flefNote, "Codice di Diritto Canonico 1917\\r\\nhttps://www.ecclesiadei.it/wp-content/uploads/2021/01/Codice-Diritto-Canonico-1917.pdf\\r\\npag. 102");
-		insertRecordReferenceTable(flefNote, "cultural_norm");
-		insertRecordReferenceID(flefNote, 7);
+		flefNote.put("reference_table", "cultural_norm");
+		flefNote.put("reference_id", 7);
 
 		//età matrimonio
 		//http://www.appuntigiurisprudenza.it/diritto-ecclesiastico/gli-impedimenti-al-matrimonio-canonico-nello-specifico.html
@@ -609,7 +609,7 @@ public final class Main{
 		final List<Map<String, Object>> flefGroups = output.computeIfAbsent("group", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefGroupJunctions = output.computeIfAbsent("group_junction", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefNotes = output.computeIfAbsent("note", k -> new ArrayList<>());
-		final List<Map<String, Object>> flefAssertions = output.computeIfAbsent(EntityManager.NODE_NAME_ASSERTION, k -> new ArrayList<>());
+		final List<Map<String, Object>> flefAssertions = output.computeIfAbsent(EntityManager.NODE_ASSERTION, k -> new ArrayList<>());
 		final List<Map<String, Object>> flefCitations = output.computeIfAbsent("citation", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefHistoricDates = output.computeIfAbsent("historic_date", k -> new ArrayList<>());
 		final List<Map<String, Object>> flefEvents = output.computeIfAbsent("event", k -> new ArrayList<>());
@@ -715,8 +715,8 @@ public final class Main{
 							flefAssertions.add(flefAssertionDate);
 							insertRecordID(flefAssertionDate, flefAssertions.size());
 							insertRecordCitationID(flefAssertionDate, citationID);
-							insertRecordReferenceTable(flefAssertionDate, "historic_date");
-							insertRecordReferenceID(flefAssertionDate, marriageDateID);
+							flefAssertionDate.put("reference_table", "historic_date");
+							flefAssertionDate.put("reference_id", marriageDateID);
 							if(evenRole != null)
 								insertRecordRole(flefAssertionDate, evenRole);
 							if(marriagePlaceSourceCredibility != null){
@@ -730,8 +730,8 @@ public final class Main{
 						flefAssertions.add(flefAssertionPlace);
 						insertRecordID(flefAssertionPlace, flefAssertions.size());
 						insertRecordCitationID(flefAssertionPlace, citationID);
-						insertRecordReferenceTable(flefAssertionPlace, "place");
-						insertRecordReferenceID(flefAssertionPlace, marriagePlace.id);
+						flefAssertionPlace.put("reference_table", "place");
+						flefAssertionPlace.put("reference_id", marriagePlace.id);
 						if(evenRole != null)
 							insertRecordRole(flefAssertionPlace, evenRole);
 						if(marriagePlaceSourceCredibility != null){
@@ -754,23 +754,23 @@ public final class Main{
 							insertRecordPlaceID(flefEvent, marriagePlace.id);
 						if(marriageDateID != null)
 							insertRecordDateID(flefEvent, marriageDateID);
-						insertRecordReferenceTable(flefEvent, "group");
-						insertRecordReferenceID(flefEvent, marriage.id);
+						flefEvent.put("reference_table", "group");
+						flefEvent.put("reference_id", marriage.id);
 
 						//add note
 						final Map<String, Object> flefNote = new HashMap<>();
 						flefNotes.add(flefNote);
 						insertRecordID(flefNote, note.id);
 						insertRecordNote(flefNote, desc);
-						insertRecordReferenceTable(flefNote, "event");
-						insertRecordReferenceID(flefNote, eventID);
+						flefNote.put("reference_table", "event");
+						flefNote.put("reference_id", eventID);
 						if("dispensati dall'impedimento dirimente di consanguineità in 3° grado eguale linea collaterale".equals(desc)){
 							final Map<String, Object> flefCulturalNormJunction = new HashMap<>();
 							flefCulturalNormJunctions.add(flefCulturalNormJunction);
 							insertRecordID(flefCulturalNormJunction, flefCulturalNormJunctions.size());
 							insertRecordCulturalNormID(flefCulturalNormJunction, 7);
-							insertRecordReferenceTable(flefCulturalNormJunction, "note");
-							insertRecordReferenceID(flefCulturalNormJunction, note.id);
+							flefCulturalNormJunction.put("reference_table", "note");
+							flefCulturalNormJunction.put("reference_id", note.id);
 							insertRecordCertainty(flefCulturalNormJunction, "certain");
 							insertRecordCredibility(flefCulturalNormJunction, "direct and primary evidence used, or by dominance of the evidence");
 						}
@@ -779,8 +779,8 @@ public final class Main{
 							flefCulturalNormJunctions.add(flefCulturalNormJunction);
 							insertRecordID(flefCulturalNormJunction, flefCulturalNormJunctions.size());
 							insertRecordCulturalNormID(flefCulturalNormJunction, 6);
-							insertRecordReferenceTable(flefCulturalNormJunction, "note");
-							insertRecordReferenceID(flefCulturalNormJunction, note.id);
+							flefCulturalNormJunction.put("reference_table", "note");
+							flefCulturalNormJunction.put("reference_id", note.id);
 							insertRecordCertainty(flefCulturalNormJunction, "certain");
 							insertRecordCredibility(flefCulturalNormJunction, "direct and primary evidence used, or by dominance of the evidence");
 						}
@@ -804,8 +804,8 @@ public final class Main{
 						flefAssertions.add(flefAssertion);
 						insertRecordID(flefAssertion, flefAssertions.size());
 						insertRecordCitationID(flefAssertion, citationID);
-						insertRecordReferenceTable(flefAssertion, "place");
-						insertRecordReferenceID(flefAssertion, marriagePlace.id);
+						flefAssertion.put("reference_table", "place");
+						flefAssertion.put("reference_id", marriagePlace.id);
 						if(evenRole != null)
 							insertRecordRole(flefAssertion, evenRole);
 						insertRecordCertainty(flefAssertion, "certain");
@@ -825,8 +825,8 @@ public final class Main{
 						flefAssertions.add(flefAssertion);
 						insertRecordID(flefAssertion, flefAssertions.size());
 						insertRecordCitationID(flefAssertion, citationID);
-						insertRecordReferenceTable(flefAssertion, "historic_date");
-						insertRecordReferenceID(flefAssertion, marriageDateID);
+						flefAssertion.put("reference_table", "historic_date");
+						flefAssertion.put("reference_id", marriageDateID);
 						if(evenRole != null)
 							insertRecordRole(flefAssertion, evenRole);
 						insertRecordCertainty(flefAssertion, "certain");
@@ -847,8 +847,8 @@ public final class Main{
 						flefGroupJunctions.add(flefGroupJunction);
 						insertRecordID(flefGroupJunction, flefGroupJunctions.size());
 						insertRecordGroupID(flefGroupJunction, marriage.id);
-						insertRecordReferenceTable(flefGroupJunction, "person");
-						insertRecordReferenceID(flefGroupJunction, husband.id);
+						flefGroupJunction.put("reference_table", "person");
+						flefGroupJunction.put("reference_id", husband.id);
 						insertRecordRole(flefGroupJunction, "partner");
 						if(verifiedMarriage){
 							insertRecordCertainty(flefGroupJunction, "certain");
@@ -861,8 +861,8 @@ public final class Main{
 						flefGroupJunctions.add(flefGroupJunction);
 						insertRecordID(flefGroupJunction, flefGroupJunctions.size());
 						insertRecordGroupID(flefGroupJunction, marriage.id);
-						insertRecordReferenceTable(flefGroupJunction, "person");
-						insertRecordReferenceID(flefGroupJunction, wife.id);
+						flefGroupJunction.put("reference_table", "person");
+						flefGroupJunction.put("reference_id", wife.id);
 						insertRecordRole(flefGroupJunction, "partner");
 						if(verifiedMarriage){
 							insertRecordCertainty(flefGroupJunction, "certain");
@@ -931,8 +931,8 @@ public final class Main{
 				flefNotes.add(flefNote);
 				insertRecordID(flefNote, note.id);
 				insertRecordNote(flefNote, text);
-				insertRecordReferenceTable(flefNote, "person");
-				insertRecordReferenceID(flefNote, personID);
+				flefNote.put("reference_table", "person");
+				flefNote.put("reference_id", personID);
 			}
 		}
 	}
@@ -960,8 +960,8 @@ public final class Main{
 					flefNotes.add(flefNote);
 					insertRecordID(flefNote, sourceNote.id);
 					insertRecordNote(flefNote, desc);
-					insertRecordReferenceTable(flefNote, "source");
-					insertRecordReferenceID(flefNote, source.id);
+					flefNote.put("reference_table", "source");
+					flefNote.put("reference_id", source.id);
 				}
 			}
 
@@ -1015,8 +1015,8 @@ public final class Main{
 				flefMediaJunctions.add(flefMediaJunction);
 				insertRecordID(flefMediaJunction, media.id);
 				insertRecordMediaID(flefMediaJunction, media.id);
-				insertRecordReferenceTable(flefMediaJunction, "source");
-				insertRecordReferenceID(flefMediaJunction, source.id);
+				flefMediaJunction.put("reference_table", "source");
+				flefMediaJunction.put("reference_id", source.id);
 			}
 
 			final List<GedcomObject> notes = getAllStartingWith(children, "NOTE");
@@ -1029,8 +1029,8 @@ public final class Main{
 					flefNotes.add(flefNote);
 					insertRecordID(flefNote, note.id);
 					insertRecordNote(flefNote, text);
-					insertRecordReferenceTable(flefNote, "source");
-					insertRecordReferenceID(flefNote, source.id);
+					flefNote.put("reference_table", "source");
+					flefNote.put("reference_id", source.id);
 				}
 
 			final GedcomObject citation = getFirstStartingWith(children, "TEXT");

@@ -78,19 +78,25 @@ public class GraphDatabaseManager{
 	private static final String PROPERTY_ON_DELETE_START = PROPERTY_ON_DELETE + "Start";
 	private static final String PROPERTY_ON_DELETE_END = PROPERTY_ON_DELETE + "End";
 
-	private static final String QUERY_COUNT_PARAMETER_NODE = "n";
-	private static final String QUERY_COUNT_PARAMETER_RELATIONSHIP = "r";
-	private static final String QUERY_CLEAR_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_COUNT_PARAMETER_RELATIONSHIP + "]->() DELETE "
-		+ QUERY_COUNT_PARAMETER_RELATIONSHIP;
-	private static final String QUERY_CLEAR_ALL_NODES = "MATCH (" + QUERY_COUNT_PARAMETER_NODE + ") DELETE " + QUERY_COUNT_PARAMETER_NODE;
+	private static final String QUERY_PARAMETER_NODE = "n";
+	private static final String QUERY_PARAMETER_RELATIONSHIP = "r";
+	private static final String QUERY_CLEAR_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_PARAMETER_RELATIONSHIP + "]->() DELETE "
+		+ QUERY_PARAMETER_RELATIONSHIP;
+	private static final String QUERY_CLEAR_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ") DELETE " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_COUNT_PARAMETER = "count";
-	private static final String QUERY_COUNT_NODES = "MATCH (" + QUERY_COUNT_PARAMETER_NODE + ":{}) RETURN COUNT("
-		+ QUERY_COUNT_PARAMETER_NODE + ") AS " + QUERY_COUNT_PARAMETER;
-	private static final String QUERY_ALL_NODES = "MATCH (" + QUERY_COUNT_PARAMETER_NODE + ") RETURN " + QUERY_COUNT_PARAMETER_NODE;
-	private static final String QUERY_ALL_NODES_EXCLUDE_LABEL = "MATCH (" + QUERY_COUNT_PARAMETER_NODE + ") WHERE '{}' NOT IN labels("
-		+ QUERY_COUNT_PARAMETER_NODE + ") RETURN " + QUERY_COUNT_PARAMETER_NODE;
-	private static final String QUERY_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_COUNT_PARAMETER_RELATIONSHIP + "]-() RETURN "
-		+ QUERY_COUNT_PARAMETER_RELATIONSHIP;
+	private static final String QUERY_COUNT_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{}) RETURN COUNT("
+		+ QUERY_PARAMETER_NODE + ") AS " + QUERY_COUNT_PARAMETER;
+	private static final String QUERY_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ") RETURN " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_NODES_EXCLUDE_LABEL = "MATCH (" + QUERY_PARAMETER_NODE + ") WHERE '{}' NOT IN labels("
+		+ QUERY_PARAMETER_NODE + ") RETURN " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_PARAMETER_RELATIONSHIP + "]-() RETURN "
+		+ QUERY_PARAMETER_RELATIONSHIP;
+	private static final String QUERY_ALL_CONNECTING_ANY_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[]-() RETURN "
+		+ QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[:{}]-(:{} \\{{}: {}\\}) RETURN "
+		+ QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
+		+ ":{})-[:{} \\{{}: {}\\}]->(:{} \\{{}: {}\\}) RETURN " + QUERY_PARAMETER_NODE;
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final String LINE_SEPARATOR = "\n";
@@ -463,6 +469,59 @@ public class GraphDatabaseManager{
 		}
 	}
 
+	public static List<Map<String, Object>> findStartNodes(final String tableNameStart){
+		try(final Transaction tx = getTransaction()){
+			final Result result = tx.execute(JavaHelper.textFormat(QUERY_ALL_CONNECTING_ANY_NODES, tableNameStart));
+
+			final List<Map<String, Object>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Node node = (Node)result.next()
+					.get(QUERY_PARAMETER_NODE);
+
+				otherNodes.add(node.getAllProperties());
+			}
+			return otherNodes;
+		}
+	}
+
+	public static List<Map<String, Object>> findStartNodes(final String tableNameStart,
+			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
+			final String relationshipName){
+		try(final Transaction tx = getTransaction()){
+			final Result result = tx.execute(JavaHelper.textFormat(QUERY_ALL_CONNECTING_NODES,
+				tableNameStart,
+				relationshipName,
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd));
+
+			final List<Map<String, Object>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Node node = (Node)result.next()
+					.get(QUERY_PARAMETER_NODE);
+
+				otherNodes.add(node.getAllProperties());
+			}
+			return otherNodes;
+		}
+	}
+
+	public static List<Map<String, Object>> findStartNodes(final String tableNameStart, final String tableNameEnd,
+			final String primaryPropertyNameEnd, final Object nodeIDEnd, final String relationshipName, final String propertyName,
+			final Object propertyValue){
+		try(final Transaction tx = getTransaction()){
+			final Result result = tx.execute(JavaHelper.textFormat(QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY, tableNameStart,
+				relationshipName, propertyName, propertyValue, tableNameEnd, primaryPropertyNameEnd, nodeIDEnd));
+
+			final List<Map<String, Object>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Node node = (Node)result.next()
+					.get(QUERY_PARAMETER_NODE);
+
+				otherNodes.add(node.getAllProperties());
+			}
+			return otherNodes;
+		}
+	}
+
 
 	public static String logDatabase(final String excludeLabel) throws JsonProcessingException{
 		try(final Transaction tx = getTransaction()){
@@ -472,7 +531,8 @@ public class GraphDatabaseManager{
 				? QUERY_ALL_NODES
 				: JavaHelper.textFormat(QUERY_ALL_NODES_EXCLUDE_LABEL, excludeLabel));
 			while(result.hasNext()){
-				final Node node = (Node)result.next().get(QUERY_COUNT_PARAMETER_NODE);
+				final Node node = (Node)result.next()
+					.get(QUERY_PARAMETER_NODE);
 				final String nodeID = node.getElementId();
 				final String properties = OBJECT_MAPPER.writeValueAsString(node.getAllProperties());
 				sj.add(nodeID + PRINT_SEPARATOR + concatenateLabels(node) + PRINT_SEPARATOR + properties);
@@ -480,7 +540,7 @@ public class GraphDatabaseManager{
 
 			result = tx.execute(QUERY_ALL_RELATIONSHIPS);
 			while(result.hasNext()){
-				final Relationship relationship = (Relationship)result.next().get(QUERY_COUNT_PARAMETER_RELATIONSHIP);
+				final Relationship relationship = (Relationship)result.next().get(QUERY_PARAMETER_RELATIONSHIP);
 				final String startNodeID = relationship.getStartNode().getElementId();
 				final String endNodeID = relationship.getEndNode().getElementId();
 				final String properties = OBJECT_MAPPER.writeValueAsString(relationship.getAllProperties());

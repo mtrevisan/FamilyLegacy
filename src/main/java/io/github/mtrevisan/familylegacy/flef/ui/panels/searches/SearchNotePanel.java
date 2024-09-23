@@ -71,7 +71,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 
 	@Override
 	public String getTableName(){
-		return EntityManager.NODE_NAME_NOTE;
+		return EntityManager.NODE_NOTE;
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 		tableData.clear();
 
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NAME_NOTE);
+		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_NOTE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -115,7 +115,7 @@ public class SearchNotePanel extends CommonSearchPanel{
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 			model.setValueAt(note, row, TABLE_INDEX_NOTE);
 
-			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NAME_NOTE, filterData, note));
+			tableData.add(new SearchAllRecord(recordID, EntityManager.NODE_NOTE, filterData, note));
 
 			row++;
 		}
@@ -137,13 +137,13 @@ public class SearchNotePanel extends CommonSearchPanel{
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 2");
 		note2.put("reference_table", "note");
 		note2.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

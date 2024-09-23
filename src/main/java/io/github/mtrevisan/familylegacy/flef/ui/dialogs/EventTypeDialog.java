@@ -106,7 +106,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_EVENT_TYPE;
+		return EntityManager.NODE_EVENT_TYPE;
 	}
 
 	@Override
@@ -149,7 +149,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	}
 
 	public void loadData(final Integer eventID){
-		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_NAME_EVENT_TYPE, eventID);
+		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_EVENT_TYPE, eventID);
 		final String capitalizedTableName = StringUtils.capitalize(getTableName());
 		setTitle((eventID != null? capitalizedTableName + " ID " + eventID: StringHelper.pluralize(capitalizedTableName)));
 
@@ -201,7 +201,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	@Override
 	protected void fillData(){
 		final Integer superTypeID = extractRecordSuperTypeID(selectedRecord);
-		final Map<String, Object> storeEventSuperType = Repository.findByID(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, superTypeID);
+		final Map<String, Object> storeEventSuperType = Repository.findByID(EntityManager.NODE_EVENT_SUPER_TYPE, superTypeID);
 		final String superType = (superTypeID != null? extractRecordSuperType(storeEventSuperType): null);
 		final String type = extractRecordType(selectedRecord);
 		final String category = extractRecordCategory(selectedRecord);
@@ -251,7 +251,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 		//read record panel:
 		final String superType = GUIHelper.getTextTrimmed(superTypeComboBox);
-		final Integer superTypeID = Repository.findAll(EntityManager.NODE_NAME_EVENT_SUPER_TYPE)
+		final Integer superTypeID = Repository.findAll(EntityManager.NODE_EVENT_SUPER_TYPE)
 			.stream()
 			.filter(entry -> Objects.equals(superType, extractRecordSuperType(entry)))
 			.findFirst()
@@ -283,76 +283,76 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		eventType1.put("super_type_id", 15);
 		eventType1.put("type", "death");
 		eventType1.put("category", "death");
-		Repository.save(EntityManager.NODE_NAME_EVENT_TYPE, eventType1);
+		Repository.save(EntityManager.NODE_EVENT_TYPE, eventType1);
 
 		final Map<String, Object> eventSuperType1 = new HashMap<>();
 		eventSuperType1.put("id", 1);
 		eventSuperType1.put("super_type", "Historical events");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType1);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType1);
 		final Map<String, Object> eventSuperType2 = new HashMap<>();
 		eventSuperType2.put("id", 2);
 		eventSuperType2.put("super_type", "Personal origins");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType2);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType2);
 		final Map<String, Object> eventSuperType3 = new HashMap<>();
 		eventSuperType3.put("id", 3);
 		eventSuperType3.put("super_type", "Physical description");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType3);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType3);
 		final Map<String, Object> eventSuperType4 = new HashMap<>();
 		eventSuperType4.put("id", 4);
 		eventSuperType4.put("super_type", "Citizenship and migration");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType4);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType4);
 		final Map<String, Object> eventSuperType5 = new HashMap<>();
 		eventSuperType5.put("id", 5);
 		eventSuperType5.put("super_type", "Real estate assets");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType5);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType5);
 		final Map<String, Object> eventSuperType6 = new HashMap<>();
 		eventSuperType6.put("id", 6);
 		eventSuperType6.put("super_type", "Education");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType6);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType6);
 		final Map<String, Object> eventSuperType7 = new HashMap<>();
 		eventSuperType7.put("id", 7);
 		eventSuperType7.put("super_type", "Work and Career");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType7);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType7);
 		final Map<String, Object> eventSuperType8 = new HashMap<>();
 		eventSuperType8.put("id", 8);
 		eventSuperType8.put("super_type", "Legal Events and Documents");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType8);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType8);
 		final Map<String, Object> eventSuperType9 = new HashMap<>();
 		eventSuperType9.put("id", 9);
 		eventSuperType9.put("super_type", "Health problems and habits");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType9);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType9);
 		final Map<String, Object> eventSuperType10 = new HashMap<>();
 		eventSuperType10.put("id", 10);
 		eventSuperType10.put("super_type", "Marriage and family life");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType10);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType10);
 		final Map<String, Object> eventSuperType11 = new HashMap<>();
 		eventSuperType11.put("id", 11);
 		eventSuperType11.put("super_type", "Military");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType11);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType11);
 		final Map<String, Object> eventSuperType12 = new HashMap<>();
 		eventSuperType12.put("id", 12);
 		eventSuperType12.put("super_type", "Confinement");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType12);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType12);
 		final Map<String, Object> eventSuperType13 = new HashMap<>();
 		eventSuperType13.put("id", 13);
 		eventSuperType13.put("super_type", "Transfers and travel");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType13);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType13);
 		final Map<String, Object> eventSuperType14 = new HashMap<>();
 		eventSuperType14.put("id", 14);
 		eventSuperType14.put("super_type", "Accolades");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType14);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType14);
 		final Map<String, Object> eventSuperType15 = new HashMap<>();
 		eventSuperType15.put("id", 15);
 		eventSuperType15.put("super_type", "Death and burial");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType15);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType15);
 		final Map<String, Object> eventSuperType16 = new HashMap<>();
 		eventSuperType16.put("id", 16);
 		eventSuperType16.put("super_type", "Others");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType16);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType16);
 		final Map<String, Object> eventSuperType17 = new HashMap<>();
 		eventSuperType17.put("id", 17);
 		eventSuperType17.put("super_type", "Religious events");
-		Repository.save(EntityManager.NODE_NAME_EVENT_SUPER_TYPE, eventSuperType17);
+		Repository.save(EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType17);
 
 
 		EventQueue.invokeLater(() -> {

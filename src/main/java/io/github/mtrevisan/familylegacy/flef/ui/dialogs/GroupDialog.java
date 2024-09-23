@@ -60,12 +60,14 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 
@@ -164,14 +166,14 @@ public final class GroupDialog extends CommonListDialog{
 	public GroupDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
 			if(selectedRecord != null)
-				Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, recordID,
+				Repository.upsertRelationship(EntityManager.NODE_GROUP, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_NAME_OF, new HashMap<>(selectedRecordLink),
+					EntityManager.RELATIONSHIP_OF, new HashMap<>(selectedRecordLink),
 					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 			else if(selectedRecordID != null)
-				Repository.deleteRelationship(EntityManager.NODE_NAME_GROUP, recordID,
+				Repository.deleteRelationship(EntityManager.NODE_GROUP, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_NAME_OF);
+					EntityManager.RELATIONSHIP_OF);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -194,12 +196,12 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_GROUP;
+		return EntityManager.NODE_GROUP;
 	}
 
 	@Override
 	protected String getJunctionTableName(){
-		return EntityManager.RELATIONSHIP_NAME_OF;
+		return EntityManager.RELATIONSHIP_OF;
 	}
 
 	@Override
@@ -235,32 +237,32 @@ public final class GroupDialog extends CommonListDialog{
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO, EntityManager.NODE_NAME_GROUP, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PHOTO, EntityManager.NODE_GROUP, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_NAME_GROUP, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_GROUP, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NAME_GROUP, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_GROUP, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_NAME_GROUP, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_GROUP, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_NAME_GROUP, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_GROUP, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_NAME_GROUP, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_GROUP, selectedRecord)));
 
 		groupButton.setToolTipText("Groups");
 		groupButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.GROUP, EntityManager.NODE_NAME_GROUP, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.GROUP, EntityManager.NODE_GROUP, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
@@ -306,10 +308,11 @@ public final class GroupDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> groups = Repository.findAll(EntityManager.NODE_NAME_GROUP);
 		final List<Map<String, Object>> records = (filterReferenceTable == null
-			? groups
-			: getGroups(groups));
+			? Repository.findAll(EntityManager.NODE_GROUP)
+			: Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_OF));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -337,15 +340,6 @@ public final class GroupDialog extends CommonListDialog{
 			selectFirstData();
 	}
 
-	private List<Map<String, Object>> getGroups(final List<Map<String, Object>> groups){
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> filterReferenceTable.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(filterReferenceID, extractRecordGroupID(entry)))
-			.map(entry -> groups.get(extractRecordGroupID(entry)))
-			.toList();
-	}
-
 	@Override
 	protected void requestFocusAfterSelect(){
 		//set focus on first field
@@ -357,49 +351,13 @@ public final class GroupDialog extends CommonListDialog{
 		final Integer groupID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final Integer photoID = extractRecordPhotoID(selectedRecord);
-		final boolean hasNotes = (Repository.findAll(EntityManager.NODE_NAME_NOTE)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasMedia = (Repository.findAll(EntityManager.NODE_NAME_MEDIA_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasCulturalNorms = (Repository.findAll(EntityManager.NODE_NAME_CULTURAL_NORM_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasAssertions = (Repository.findAll(EntityManager.NODE_NAME_ASSERTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasEvents = (Repository.findAll(EntityManager.NODE_NAME_EVENT)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final boolean hasGroups = (Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
-			.findFirst()
-			.orElse(null) != null);
-		final String restriction = Repository.findAll(EntityManager.NODE_NAME_RESTRICTION)
-			.stream()
-			.filter(record -> Objects.equals(EntityManager.NODE_NAME_GROUP, extractRecordReferenceTable(record)))
-			.filter(record -> Objects.equals(groupID, extractRecordReferenceID(record)))
-			.findFirst()
-			.map(EntityManager::extractRecordRestriction)
-			.orElse(null);
+		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_GROUP, groupID);
+		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_GROUP, groupID);
+		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_GROUP, groupID);
+		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_GROUP, groupID);
+		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_GROUP, groupID);
+		final boolean hasGroups = Repository.hasGroups(EntityManager.NODE_GROUP, groupID);
+		final String restriction = Repository.getRestriction(EntityManager.NODE_GROUP, groupID);
 
 		typeComboBox.setSelectedItem(type);
 		setButtonEnableAndBorder(photoButton, photoID != null);
@@ -416,8 +374,10 @@ public final class GroupDialog extends CommonListDialog{
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final List<Map<String, Object>> recordGroupJunction = extractReferences(EntityManager.NODE_NAME_GROUP_JUNCTION,
-				EntityManager::extractRecordGroupID, groupID);
+			final List<Map<String, Object>> recordGroupJunction = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_OF);
+			recordGroupJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordGroupID(record), groupID));
 			if(recordGroupJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -474,15 +434,14 @@ public final class GroupDialog extends CommonListDialog{
 			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
 			final String linkCredibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
 
-			if(selectedRecordLink == null){
-				selectedRecordLink = new HashMap<>(5);
-				insertRecordReferenceTable(selectedRecordLink, filterReferenceTable);
-				insertRecordReferenceID(selectedRecordLink, extractRecordID(selectedRecord));
-			}
-
+			if(selectedRecordLink == null)
+				selectedRecordLink = new HashMap<>(3);
 			insertRecordRole(selectedRecordLink, linkRole);
 			insertRecordCertainty(selectedRecordLink, linkCertainty);
 			insertRecordCredibility(selectedRecordLink, linkCredibility);
+			Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(selectedRecord),
+				filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_FOR, selectedRecordLink, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 
 		insertRecordType(selectedRecord, type);
@@ -492,22 +451,22 @@ public final class GroupDialog extends CommonListDialog{
 
 
 	private String extractIdentifier(final int selectedRecordID){
-		final List<Map<String, Object>> storeGroupJunction = Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION);
-		final List<Map<String, Object>> storePersonNames = Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME);
-		final List<Map<String, Object>> storeGroups = Repository.findAll(EntityManager.NODE_NAME_GROUP);
+		final List<Map<String, Object>> storeGroupJunction = Repository.findReferencingNodes(EntityManager.NODE_GROUP);
+		final List<Map<String, Object>> storePersonNames = Repository.findAll(EntityManager.NODE_PERSON_NAME);
+		final List<Map<String, Object>> storeGroups = Repository.findAll(EntityManager.NODE_GROUP);
 		String identifierCategory = "people";
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map<String, Object> groupElement : storeGroupJunction){
 			final StringJoiner subIdentifier = new StringJoiner(" / ");
 			if(extractRecordGroupID(groupElement).equals(selectedRecordID)){
-				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_NAME_ASSERTION,
-					selectedRecordID, EntityManager.RELATIONSHIP_NAME_SUPPORTED_BY);
-				final String referenceTable = referencedNode.getKey();
-				final Integer referenceID = extractRecordID(referencedNode.getValue());
+				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_ASSERTION,
+					selectedRecordID, EntityManager.RELATIONSHIP_SUPPORTED_BY);
+				final String referenceTable = (referencedNode != null? referencedNode.getKey(): null);
+				final Integer referenceID = (referencedNode != null? extractRecordID(referencedNode.getValue()): null);
 				final List<Map<String, Object>> personNamesInGroup;
-				if(EntityManager.NODE_NAME_PERSON.equals(referenceTable))
+				if(EntityManager.NODE_PERSON.equals(referenceTable))
 					personNamesInGroup = extractPersonNamesInGroup(storePersonNames, referenceID);
-				else if(EntityManager.NODE_NAME_GROUP.equals(referenceTable)){
+				else if(EntityManager.NODE_GROUP.equals(referenceTable)){
 					identifierCategory = "groups";
 
 					//extract the names of all the persons of all the groups
@@ -540,9 +499,9 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	private List<String> extractAllNames(final Integer personID){
-		final List<Map<String, Object>> localizedPersonNames = Repository.findAll(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME);
+		final List<Map<String, Object>> localizedPersonNames = Repository.findAll(EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final List<String> names = new ArrayList<>(0);
-		Repository.findAll(EntityManager.NODE_NAME_PERSON_NAME)
+		Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
@@ -597,36 +556,36 @@ public final class GroupDialog extends CommonListDialog{
 		group1.put("type", "family");
 		group1.put("photo_id", 1);
 		group1.put("photo_crop", "0 0 10 20");
-		Repository.save(EntityManager.NODE_NAME_GROUP, group1);
+		Repository.save(EntityManager.NODE_GROUP, group1);
 		final Map<String, Object> group2 = new HashMap<>();
 		group2.put("id", 2);
 		group2.put("type", "neighborhood");
-		Repository.save(EntityManager.NODE_NAME_GROUP, group2);
+		Repository.save(EntityManager.NODE_GROUP, group2);
 
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("id", 1);
-		Repository.save(EntityManager.NODE_NAME_PERSON, person1);
+		Repository.save(EntityManager.NODE_PERSON, person1);
 		final Map<String, Object> person2 = new HashMap<>();
 		person2.put("id", 2);
-		Repository.save(EntityManager.NODE_NAME_PERSON, person2);
+		Repository.save(EntityManager.NODE_PERSON, person2);
 
 		final Map<String, Object> groupJunction1 = new HashMap<>();
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group1),
-			EntityManager.NODE_NAME_PERSON, extractRecordID(person1),
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction1,
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_PERSON, extractRecordID(person1),
+			EntityManager.RELATIONSHIP_OF, groupJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction2 = new HashMap<>();
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2),
-			EntityManager.NODE_NAME_PERSON, extractRecordID(person2),
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction2,
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_PERSON, extractRecordID(person2),
+			EntityManager.RELATIONSHIP_OF, groupJunction2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction3 = new HashMap<>();
 		groupJunction3.put("role", "partner");
 		groupJunction3.put("certainty", "certain");
 		groupJunction3.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.upsertRelationship(EntityManager.NODE_NAME_GROUP, extractRecordID(group2),
-			EntityManager.NODE_NAME_GROUP, extractRecordID(group2),
-			EntityManager.RELATIONSHIP_NAME_OF, groupJunction3,
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.RELATIONSHIP_OF, groupJunction3,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();
@@ -635,53 +594,53 @@ public final class GroupDialog extends CommonListDialog{
 		personName1.put("personal_name", "personal name 1");
 		personName1.put("family_name", "family name 1");
 		personName1.put("type", "birth name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName1);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName1);
 		final Map<String, Object> personName2 = new HashMap<>();
 		personName2.put("id", 2);
 		personName2.put("person_id", 1);
 		personName2.put("personal_name", "personal name 2");
 		personName2.put("family_name", "family name 2");
 		personName2.put("type", "death name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName2);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName2);
 		final Map<String, Object> personName3 = new HashMap<>();
 		personName3.put("id", 3);
 		personName3.put("person_id", 2);
 		personName3.put("personal_name", "personal name 3");
 		personName3.put("family_name", "family name 3");
 		personName3.put("type", "other name");
-		Repository.save(EntityManager.NODE_NAME_PERSON_NAME, personName3);
+		Repository.save(EntityManager.NODE_PERSON_NAME, personName3);
 
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
 		localizedPersonName1.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName1);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
 		localizedPersonName2.put("id", 2);
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
 		localizedPersonName2.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName2);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName2);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
 		localizedPersonName3.put("id", 3);
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
 		localizedPersonName3.put("locale", "en");
-		Repository.save(EntityManager.NODE_NAME_LOCALIZED_PERSON_NAME, localizedPersonName3);
+		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName3);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("id", 1);
 		note1.put("note", "note 1");
 		note1.put("reference_table", "person");
 		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note1);
+		Repository.save(EntityManager.NODE_NOTE, note1);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("id", 2);
 		note2.put("note", "note 1");
 		note2.put("reference_table", "group");
 		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_NOTE, note2);
+		Repository.save(EntityManager.NODE_NOTE, note2);
 
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("id", 1);
@@ -689,21 +648,21 @@ public final class GroupDialog extends CommonListDialog{
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_NAME_MEDIA, media1);
+		Repository.save(EntityManager.NODE_MEDIA, media1);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
 		restriction1.put("reference_table", "group");
 		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NAME_RESTRICTION, restriction1);
+		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
 
 		final Map<String, Object> modification1 = new HashMap<>();
 		modification1.put("id", 1);
 		modification1.put("reference_table", "group");
 		modification1.put("reference_id", 2);
 		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_NAME_MODIFICATION, modification1);
+		Repository.save(EntityManager.NODE_MODIFICATION, modification1);
 
 
 		EventQueue.invokeLater(() -> {
@@ -713,7 +672,7 @@ public final class GroupDialog extends CommonListDialog{
 //			dialog.loadData();
 
 			final GroupDialog dialog = createShowOnly(parent)
-				.withReference(EntityManager.NODE_NAME_GROUP, 2);
+				.withReference(EntityManager.NODE_GROUP, 2);
 			dialog.loadData(2);
 
 //			final GroupDialog dialog = createRecordOnly(parent)
@@ -740,7 +699,7 @@ public final class GroupDialog extends CommonListDialog{
 									? MediaDialog.createEditOnlyForPhoto(parent)
 									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.NODE_NAME_GROUP, groupID)
+								.withReference(EntityManager.NODE_GROUP, groupID)
 								.withOnCloseGracefully((record, recordID) -> {
 									final Integer newPhotoID = extractRecordID(record);
 									insertRecordPhotoID(container, newPhotoID);
@@ -786,12 +745,12 @@ public final class GroupDialog extends CommonListDialog{
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_GROUP, groupID)
+								.withReference(EntityManager.NODE_GROUP, groupID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_GROUP);
-										insertRecordReferenceID(record, groupID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -799,12 +758,12 @@ public final class GroupDialog extends CommonListDialog{
 						}
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
-								.withReference(EntityManager.NODE_NAME_GROUP, groupID)
+								.withReference(EntityManager.NODE_GROUP, groupID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_GROUP);
-										insertRecordReferenceID(record, groupID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
+											EntityManager.NODE_CULTURAL_NORM, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, record, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							culturalNormDialog.loadData();
 
@@ -815,12 +774,12 @@ public final class GroupDialog extends CommonListDialog{
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(EntityManager.NODE_NAME_GROUP, groupID)
+								.withReference(EntityManager.NODE_GROUP, groupID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										insertRecordReferenceTable(record, EntityManager.NODE_NAME_GROUP);
-										insertRecordReferenceID(record, groupID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 
@@ -830,7 +789,7 @@ public final class GroupDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_GROUP, groupID);
+								.withReference(EntityManager.NODE_GROUP, groupID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -839,7 +798,7 @@ public final class GroupDialog extends CommonListDialog{
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_GROUP, groupID);
+								.withReference(EntityManager.NODE_GROUP, groupID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
@@ -848,7 +807,7 @@ public final class GroupDialog extends CommonListDialog{
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
 									? GroupDialog.createSelectOnly(parent)
 									: GroupDialog.create(parent))
-								.withReference(EntityManager.NODE_NAME_GROUP, groupID);
+								.withReference(EntityManager.NODE_GROUP, groupID);
 							groupDialog.loadData();
 
 							groupDialog.showDialog();

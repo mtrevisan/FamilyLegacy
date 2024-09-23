@@ -104,7 +104,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	protected String getTableName(){
-		return EntityManager.NODE_NAME_PROJECT;
+		return EntityManager.NODE_PROJECT;
 	}
 
 	@Override
@@ -138,7 +138,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 	@Override
 	public void loadData(){
-		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_NAME_PROJECT, 1);
+		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_PROJECT, 1);
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 
 		ignoreEvents = true;
@@ -229,7 +229,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		project1.put("creation_date", now);
 		project1.put("update_date", now);
-		Repository.save(EntityManager.NODE_NAME_PROJECT, project1);
+		Repository.save(EntityManager.NODE_PROJECT, project1);
 
 
 		EventQueue.invokeLater(() -> {
