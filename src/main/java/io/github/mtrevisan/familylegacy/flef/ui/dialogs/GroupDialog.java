@@ -444,6 +444,7 @@ public final class GroupDialog extends CommonListDialog{
 		}
 
 		insertRecordType(selectedRecord, type);
+		updateRecordHash();
 
 		return true;
 	}

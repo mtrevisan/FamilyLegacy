@@ -263,6 +263,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		insertRecordSuperTypeID(selectedRecord, superTypeID);
 		insertRecordType(selectedRecord, type);
 		insertRecordCategory(selectedRecord, category);
+		updateRecordHash();
 
 		return true;
 	}

@@ -172,9 +172,11 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected void initDialog(){
 		//close dialog
-		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE,
+			JComponent.WHEN_IN_FOCUSED_WINDOW);
 		//close dialog
-		getRootPane().registerKeyboardAction(this::closeActionNoModificationNote, GUIHelper.SHIFT_ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+		getRootPane().registerKeyboardAction(this::closeActionNoModificationNote, GUIHelper.SHIFT_ESCAPE_STROKE,
+			JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 
 	protected void addValidDataListenerToMandatoryFields(final ValidDataListenerInterface validDataListener){
@@ -269,7 +271,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			selectedRecordID = extractRecordID(record);
 			selectedRecordLink = null;
 
-			selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
+			updateRecordHash();
 
 			GUIHelper.setEnabled(recordPanel);
 
@@ -299,19 +301,20 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected void okAction(final boolean askForModificationNote){
-		if(selectedRecord == null || !dataHasChanged())
+		if(selectedRecord == null)
 			return;
 
-		final Integer selectedRecordID = extractRecordID(selectedRecord);
-		if(!ignoreEvents && saveData()){
-			selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
+		if(!ignoreEvents && (!dataHasChanged() || saveData())){
+			updateRecordHash();
 
 			//save `selectedRecord` into `store`
 			final String tableName = getTableName();
+			//TODO test upsert
 			Repository.save(tableName, selectedRecord);
 			//save `selectRecordLink` into `store`
 			if(selectedRecordLink != null)
 				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
+					//TODO node_restriction?
 					EntityManager.NODE_RESTRICTION, selectedRecordID,
 					getJunctionTableName(), new HashMap<>(selectedRecordLink),
 					GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
@@ -325,7 +328,9 @@ public abstract class CommonRecordDialog extends JDialog{
 		}
 
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+
 		final String recordTableName = getTableName();
+		final Integer selectedRecordID = extractRecordID(selectedRecord);
 		final List<Map<String, Object>> recordModification = Repository.findReferencingNodes(EntityManager.NODE_MODIFICATION,
 			recordTableName, selectedRecordID,
 			EntityManager.RELATIONSHIP_FOR);
@@ -364,6 +369,10 @@ public abstract class CommonRecordDialog extends JDialog{
 			final Map<String, Object> modification = recordModification.getFirst();
 			insertRecordUpdateDate(modification, now);
 		}
+	}
+
+	protected void updateRecordHash(){
+		selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
 	}
 
 	private boolean dataHasChanged(){

@@ -85,7 +85,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -558,7 +557,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	private void selectActionInner(){
-		selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
+		updateRecordHash();
 
 		if(!selectRecordOnly)
 			GUIHelper.setEnabled(recordTabbedPane);

@@ -329,6 +329,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		insertRecordNote(selectedRecord, note);
 		insertRecordLocale(selectedRecord, locale);
+		updateRecordHash();
 
 		return true;
 	}

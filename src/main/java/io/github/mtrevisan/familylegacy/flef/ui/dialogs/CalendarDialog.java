@@ -274,6 +274,7 @@ public final class CalendarDialog extends CommonListDialog{
 		}
 
 		insertRecordType(selectedRecord, type);
+		updateRecordHash();
 
 		return true;
 	}

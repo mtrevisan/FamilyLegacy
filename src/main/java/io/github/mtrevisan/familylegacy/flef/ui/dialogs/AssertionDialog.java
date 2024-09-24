@@ -344,6 +344,7 @@ public final class AssertionDialog extends CommonListDialog{
 		insertRecordRole(selectedRecord, role);
 		insertRecordCertainty(selectedRecord, certainty);
 		insertRecordCredibility(selectedRecord, credibility);
+		updateRecordHash();
 
 		return true;
 	}

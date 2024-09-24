@@ -712,6 +712,7 @@ public final class MediaDialog extends CommonListDialog{
 		insertRecordPayload(selectedRecord, payload);
 		insertRecordType(selectedRecord, type);
 		insertRecordPhotoProjection(selectedRecord, photoProjection);
+		updateRecordHash();
 
 		return true;
 	}

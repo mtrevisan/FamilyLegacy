@@ -405,6 +405,7 @@ public final class EventDialog extends CommonListDialog{
 
 		insertRecordTypeID(selectedRecord, typeID);
 		insertRecordDescription(selectedRecord, description);
+		updateRecordHash();
 
 		return true;
 	}

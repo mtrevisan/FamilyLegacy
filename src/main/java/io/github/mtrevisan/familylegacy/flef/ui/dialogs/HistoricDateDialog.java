@@ -334,6 +334,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		insertRecordDateOriginal(selectedRecord, dateOriginal);
 		insertRecordCertainty(selectedRecord, certainty);
 		insertRecordCredibility(selectedRecord, credibility);
+		updateRecordHash();
 
 		return true;
 	}

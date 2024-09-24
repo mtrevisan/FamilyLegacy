@@ -387,6 +387,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		insertRecordExtractLocale(selectedRecord, extractLocale);
 		if(extractType != null && !extractType.isEmpty())
 			insertRecordExtractType(selectedRecord, extractType);
+		updateRecordHash();
 
 		return true;
 	}

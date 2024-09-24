@@ -370,6 +370,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		insertRecordFamilyName(selectedRecord, familyName);
 		insertRecordLocale(selectedRecord, nameLocale);
 		insertRecordType(selectedRecord, type);
+		updateRecordHash();
 
 		return true;
 	}

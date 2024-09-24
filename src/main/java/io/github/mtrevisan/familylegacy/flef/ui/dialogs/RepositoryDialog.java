@@ -335,6 +335,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		insertRecordIdentifier(selectedRecord, identifier);
 		insertRecordType(selectedRecord, type);
+		updateRecordHash();
 
 		return true;
 	}

@@ -307,6 +307,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		insertRecordPriority(selectedRecord, priority);
 		if(extractRecordCreationDate(selectedRecord) == null)
 			insertRecordCreationDate(selectedRecord, now);
+		updateRecordHash();
 
 		return true;
 	}

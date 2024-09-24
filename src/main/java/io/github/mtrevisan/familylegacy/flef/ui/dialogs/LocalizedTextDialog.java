@@ -379,6 +379,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		insertRecordLocale(selectedRecord, locale);
 		insertRecordTranscription(selectedRecord, transcription);
 		insertRecordTranscriptionType(selectedRecord, transcriptionType);
+		updateRecordHash();
 
 		return true;
 	}

@@ -434,6 +434,7 @@ public final class PlaceDialog extends CommonListDialog{
 		insertRecordCoordinate(selectedRecord, coordinate);
 		insertRecordCoordinateSystem(selectedRecord, coordinateSystem);
 		insertRecordCoordinateCredibility(selectedRecord, coordinateCredibility);
+		updateRecordHash();
 
 		return true;
 	}

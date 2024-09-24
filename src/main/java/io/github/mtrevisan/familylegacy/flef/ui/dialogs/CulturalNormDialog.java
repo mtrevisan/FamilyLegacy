@@ -460,6 +460,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		insertRecordDescription(selectedRecord, description);
 		insertRecordCertainty(selectedRecord, certainty);
 		insertRecordCredibility(selectedRecord, credibility);
+		updateRecordHash();
 
 		return true;
 	}

@@ -88,10 +88,11 @@ public class Repository{
 
 	public static int save(final String tableName, final Map<String, Object> record){
 		try{
-			final int nextID = GraphDatabaseManager.count(tableName) + 1;
-			if(((Number)record.get(EntityManager.PROPERTY_PRIMARY_KEY)).intValue() != nextID)
-				System.out.println();
-			record.put(EntityManager.PROPERTY_PRIMARY_KEY, nextID);
+			Integer nextID = (Integer)record.get(EntityManager.PROPERTY_PRIMARY_KEY);
+			if(nextID == null){
+				nextID = GraphDatabaseManager.count(tableName) + 1;
+				record.put(EntityManager.PROPERTY_PRIMARY_KEY, nextID);
+			}
 			GraphDatabaseManager.insert(record, tableName);
 
 			return nextID;

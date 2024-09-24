@@ -380,6 +380,7 @@ public final class SourceDialog extends CommonListDialog{
 		insertRecordAuthor(selectedRecord, author);
 		insertRecordRepositoryID(selectedRecord, filterRepositoryID);
 		insertRecordLocation(selectedRecord, location);
+		updateRecordHash();
 
 		return true;
 	}

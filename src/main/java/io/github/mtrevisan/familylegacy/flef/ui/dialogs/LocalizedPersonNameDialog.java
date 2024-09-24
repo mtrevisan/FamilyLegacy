@@ -347,6 +347,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		insertRecordType(selectedRecord, type);
 		insertRecordTranscription(selectedRecord, transcription);
 		insertRecordTranscriptionType(selectedRecord, transcriptionType);
+		updateRecordHash();
 
 		return true;
 	}

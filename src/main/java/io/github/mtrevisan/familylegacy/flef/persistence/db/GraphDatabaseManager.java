@@ -93,10 +93,10 @@ public class GraphDatabaseManager{
 		+ QUERY_PARAMETER_RELATIONSHIP;
 	private static final String QUERY_ALL_CONNECTING_ANY_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[]-() RETURN "
 		+ QUERY_PARAMETER_NODE;
-	private static final String QUERY_ALL_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[:{}]-(:{} \\{{}: {}\\}) RETURN "
+	private static final String QUERY_ALL_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[:{}]-(:{} {{}: {}}) RETURN "
 		+ QUERY_PARAMETER_NODE;
 	private static final String QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
-		+ ":{})-[:{} \\{{}: {}\\}]->(:{} \\{{}: {}\\}) RETURN " + QUERY_PARAMETER_NODE;
+		+ ":{})-[:{} {{}: {}}]->(:{} {{}: {}}) RETURN " + QUERY_PARAMETER_NODE;
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final String LINE_SEPARATOR = "\n";

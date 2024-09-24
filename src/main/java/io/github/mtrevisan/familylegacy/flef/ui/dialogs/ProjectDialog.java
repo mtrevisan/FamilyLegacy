@@ -199,6 +199,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 			insertRecordCreationDate(selectedRecord, now);
 		else
 			insertRecordUpdateDate(selectedRecord, now);
+		updateRecordHash();
 
 		return true;
 	}
