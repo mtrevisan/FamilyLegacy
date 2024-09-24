@@ -231,7 +231,8 @@ public class Repository{
 			final String tableNameEnd, final Integer recordIDEnd){
 		try{
 			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
-				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd, null);
+				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
+				null, null, null);
 
 			return true;
 		}
@@ -248,7 +249,24 @@ public class Repository{
 		try{
 			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
 				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
-				relationshipName);
+				relationshipName, null, null);
+
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);
+
+			return false;
+		}
+	}
+
+	public static boolean deleteRelationship(final String tableNameStart, final Integer recordIDStart,
+			final String tableNameEnd, final Integer recordIDEnd,
+			final String relationshipName, final String propertyName, final Object propertyValue){
+		try{
+			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
+				relationshipName, propertyName, propertyValue);
 
 			return true;
 		}
@@ -260,6 +278,16 @@ public class Repository{
 	}
 
 
+	/**
+	 * Finds the referenced node in the graph database based on the given parameters, that is the node reachable from the node with label
+	 * `tableNameStart` and ID `recordIDStart` through the relationship `relationshipName`.
+	 *
+	 * @param tableNameStart	The starting table name in the relationship.
+	 * @param recordIDStart	The record ID of the starting node.
+	 * @param relationshipName	The name of the relationship.
+	 * @return	The referenced node as a {@link Map.Entry} object, where the key is the node label and the value is a map representing the
+	 * 	node properties. Returns {@code null} if no referenced node is found.
+	 */
 	public static Map.Entry<String, Map<String, Object>> findReferencedNode(final String tableNameStart, final Integer recordIDStart,
 			final String relationshipName){
 		try{
@@ -273,6 +301,19 @@ public class Repository{
 		}
 	}
 
+	/**
+	 * Finds the referenced node in the graph database based on the given parameters, that is the node reachable from the node with label
+	 * `tableNameStart` and ID `recordIDStart` through the relationship `relationshipName` that has a property
+	 * `propertyName` with value `propertyValue`.
+	 *
+	 * @param tableNameStart	The starting table name in the relationship.
+	 * @param recordIDStart	The record ID of the starting node.
+	 * @param relationshipName	The name of the relationship.
+	 * @param propertyName	The property name of the relationship.
+	 * @param propertyValue	The property value of the relationship.
+	 * @return	The referenced node as a {@link Map.Entry} object, where the key is the node label and the value is a map representing the
+	 * 	node properties. Returns {@code null} if no referenced node is found.
+	 */
 	public static Map.Entry<String, Map<String, Object>> findReferencedNode(final String tableNameStart, final Integer recordIDStart,
 			final String relationshipName, final String propertyName, final Object propertyValue){
 		try{
@@ -286,6 +327,12 @@ public class Repository{
 		}
 	}
 
+	/**
+	 * Finds all the referencing nodes in the graph database, that is all the nodes reachable from node with label `tableNameStart`.
+	 *
+	 * @param tableNameStart	The starting table name in the relationship.
+	 * @return	A list of maps representing the referencing nodes.
+	 */
 	public static List<Map<String, Object>> findReferencingNodes(final String tableNameStart){
 		try{
 			return GraphDatabaseManager.findStartNodes(tableNameStart);
@@ -297,6 +344,16 @@ public class Repository{
 		}
 	}
 
+	/**
+	 * Finds the referencing nodes in the graph database based on the given parameters, that is all the nodes with label `tableNameStart`
+	 * that points to node with label `tableNameEnd` and ID `recordIDEnd` through relationship `relationshipName`.
+	 *
+	 * @param tableNameStart	The starting table name in the relationship.
+	 * @param tableNameEnd	The ending table name in the relationship.
+	 * @param recordIDEnd	The record ID of the ending node.
+	 * @param relationshipName	The name of the relationship.
+	 * @return	A list of maps representing the referencing nodes.
+	 */
 	public static List<Map<String, Object>> findReferencingNodes(final String tableNameStart,
 			final String tableNameEnd, final Integer recordIDEnd,
 			final String relationshipName){
@@ -312,6 +369,19 @@ public class Repository{
 		}
 	}
 
+	/**
+	 * Finds the referencing nodes in the graph database based on the given parameters, that is all the nodes with label `tableNameStart`
+	 * that points to node with label `tableNameEnd` and ID `recordIDEnd` through relationship `relationshipName` that has a property
+	 * `propertyName` with value `propertyValue`.
+	 *
+	 * @param tableNameStart	The starting table name in the relationship.
+	 * @param tableNameEnd	The ending table name in the relationship.
+	 * @param recordIDEnd	The record ID of the ending node.
+	 * @param relationshipName	The name of the relationship.
+	 * @param propertyName	The property name of the relationship.
+	 * @param propertyValue	The property value of the relationship.
+	 * @return	A list of maps representing the referencing nodes.
+	 */
 	public static List<Map<String, Object>> findReferencingNodes(final String tableNameStart,
 			final String tableNameEnd, final Integer recordIDEnd,
 			final String relationshipName, final String propertyName, final Object propertyValue){

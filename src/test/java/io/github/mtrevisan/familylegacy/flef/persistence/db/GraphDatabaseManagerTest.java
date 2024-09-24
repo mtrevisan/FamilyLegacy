@@ -189,13 +189,13 @@ class GraphDatabaseManagerTest{
 
 		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", 2,
 			"Car", "id", 1,
-			"owner");
+			"owner", null, null);
 		Assertions.assertTrue(deleted);
 
 		Map.Entry<String, Map<String, Object>> carTesla = GraphDatabaseManager.findOtherNode(
 			"Car", "id", 1,
 			"owner");
-		Assertions.assertNull(carTesla);
+		Assertions.assertNull(carTesla.getValue());
 	}
 
 	@Test
@@ -229,7 +229,7 @@ class GraphDatabaseManagerTest{
 
 		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", 2,
 			"Car", "id", 1,
-			"owner");
+			"owner", null, null);
 		Assertions.assertFalse(deleted);
 	}
 

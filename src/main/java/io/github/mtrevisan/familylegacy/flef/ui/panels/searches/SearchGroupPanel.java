@@ -60,14 +60,12 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
@@ -168,7 +166,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			final Integer recordID = extractRecordID(record);
 			final Integer unionID = extractRecordID(record);
 			final String type = extractRecordType(record);
-			final List<Integer> personIDsInUnion = getPartnerIDs(unionID);
+			final List<Integer> personIDsInUnion = getPersonIDsInGroup(unionID);
 			final String earliestUnionYear = extractEarliestUnionYear(unionID);
 			final String earliestUnionPlace = extractEarliestUnionPlace(unionID);
 			final Integer partner1ID = (! personIDsInUnion.isEmpty()? personIDsInUnion.removeFirst(): null);
@@ -227,14 +225,12 @@ public class SearchGroupPanel extends CommonSearchPanel{
 	}
 
 
-	private List<Integer> getPartnerIDs(final Integer groupID){
-		return new ArrayList<>(Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordReferenceID)
-			.toList());
+	private List<Integer> getPersonIDsInGroup(final Integer groupID){
+		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+				EntityManager.NODE_GROUP, groupID,
+				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+			.map(EntityManager::extractRecordID)
+			.toList();
 	}
 
 	private String extractFirstName(final Integer personID){
@@ -314,10 +310,9 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			? EntityManager.NODE_GROUP
 			: EntityManager.NODE_PERSON);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
-		return Repository.findAll(EntityManager.NODE_EVENT)
-			.stream()
-			.filter(entry -> Objects.equals(eventReferenceTable, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
+		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
+				eventReferenceTable, referenceID,
+				EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
 				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));

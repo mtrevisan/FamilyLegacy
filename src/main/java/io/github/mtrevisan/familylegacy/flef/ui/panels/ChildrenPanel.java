@@ -47,15 +47,14 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
@@ -147,7 +146,7 @@ public class ChildrenPanel extends JPanel{
 		final Map<String, Object>[] children = extractChildren(unionID);
 
 		//for each child, scan its events and collect all that have type "adoption"
-		final Set<Integer> adoptionEventIDs = extractAdoptionEventIDs();
+		final Set<Integer> adoptionEventIDs = extractAdoptionEventIDs(unionID);
 		adoptions = new boolean[children.length];
 		for(int i = 0, length = adoptions.length; i < length; i ++)
 			adoptions[i] = adoptionEventIDs.contains(extractRecordID(children[i]));
@@ -159,7 +158,7 @@ public class ChildrenPanel extends JPanel{
 				final Map<String, Object> child = children[i];
 
 				final Integer childID = extractRecordID(child);
-				final boolean hasChildUnion = hasUnion(childID);
+				final boolean hasChildUnion = !getGroups(childID).isEmpty();
 				final JPanel box = createChildPanel(hasChildUnion);
 				final PersonPanel childBox = createChildPersonPanel(childID);
 				box.add(childBox);
@@ -201,40 +200,35 @@ public class ChildrenPanel extends JPanel{
 		return box;
 	}
 
-	private Set<Integer> extractAdoptionEventIDs(){
+	private Set<Integer> extractAdoptionEventIDs(final Integer unionID){
 		final Map<Integer, Map<String, Object>> eventTypes = Repository.findAllNavigable(EntityManager.NODE_EVENT_TYPE);
 		final Set<String> eventTypesAdoptions = getEventTypes(EntityManager.EVENT_TYPE_CATEGORY_ADOPTION);
-		return Repository.findAll(EntityManager.NODE_EVENT)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
+		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
+				EntityManager.NODE_GROUP, unionID,
+				EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
 				final String recordType = extractRecordType(eventTypes.get(recordTypeID));
 				return eventTypesAdoptions.contains(recordType);
 			})
-			.map(EntityManager::extractRecordReferenceID)
+			.map(EntityManager::extractRecordID)
 			.filter(Objects::nonNull)
 			.collect(Collectors.toSet());
 	}
 
-	private boolean hasUnion(final Integer childID){
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> Objects.equals(EntityManager.NODE_PERSON, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
-			.anyMatch(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)));
+	private List<Map<String, Object>> getGroups(final Integer personID){
+		return Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+			EntityManager.NODE_PERSON, personID,
+			EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER);
 	}
 
 	@SuppressWarnings("unchecked")
 	private Map<String, Object>[] extractChildren(final Integer unionID){
 		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
-			.map(entry -> persons.get(extractRecordReferenceID(entry)))
-			.filter(Objects::nonNull)
+		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+				EntityManager.NODE_GROUP, unionID,
+				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_CHILD).stream()
+			.map(entry -> persons.get(extractRecordID(entry)))
 			.toArray(Map[]::new);
 	}
 

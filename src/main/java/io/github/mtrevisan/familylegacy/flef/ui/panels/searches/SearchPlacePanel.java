@@ -42,19 +42,14 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
-import java.util.Objects;
-import java.util.function.Function;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
@@ -135,8 +130,9 @@ public class SearchPlacePanel extends CommonSearchPanel{
 			final String identifier = extractRecordIdentifier(record);
 			final String name = extractRecordName(record);
 			final String nameLocale = extractRecordLocale(record);
-			final List<Map<String, Object>> transcribedNames = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
-				recordID, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+			final List<Map<String, Object>> transcribedNames = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
+				EntityManager.NODE_PLACE, recordID,
+				EntityManager.RELATIONSHIP_FOR, EntityManager.PROPERTY_TYPE, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 			final String type = extractRecordType(record);
 			final FilterString filter = FilterString.create()
 				.add(recordID)
@@ -158,25 +154,6 @@ public class SearchPlacePanel extends CommonSearchPanel{
 
 			row ++;
 		}
-	}
-
-
-	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
-			final Function<Map<String, Object>, T> filter, final T filterValue){
-		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final NavigableMap<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_LOCALIZED_TEXT);
-		final List<Map<String, Object>> records = Repository.findAll(fromTable);
-		for(int i = 0, length = records.size(); i < length; i ++){
-			final Map<String, Object> record = records.get(i);
-
-			if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
-					&& EntityManager.NODE_PLACE.equals(extractRecordReferenceTable(record))
-					&& Objects.equals(selectedRecordID, extractRecordReferenceID(record)))){
-				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(record));
-				matchedRecords.add(localizedText);
-			}
-		}
-		return matchedRecords;
 	}
 
 

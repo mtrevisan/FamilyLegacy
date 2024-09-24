@@ -70,10 +70,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 
 
 //http://www.miglayout.com/whitepaper.html
@@ -680,21 +679,9 @@ public class GroupPanel extends JPanel{
 		final List<Map<String, Object>> unionGroups = new ArrayList<>(0);
 		if(!person.isEmpty()){
 			final Integer personID = extractRecordID(person);
-			unionGroups.addAll(getGroupIDs(personID));
+			unionGroups.addAll(getUnions(personID));
 		}
 		return unionGroups;
-	}
-
-	private List<Map<String, Object>> getGroupIDs(final Integer personID){
-		final Map<Integer, Map<String, Object>> groups = Repository.findAllNavigable(EntityManager.NODE_GROUP);
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> Objects.equals(EntityManager.NODE_PERSON, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordGroupID)
-			.map(groups::get)
-			.toList();
 	}
 
 	/** Should be called whenever a modification on the store causes modifications on the UI. */
@@ -790,47 +777,38 @@ public class GroupPanel extends JPanel{
 
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
-		return new ArrayList<>(Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordReferenceID)
-			.filter(Objects::nonNull)
-			.toList());
+		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+				EntityManager.NODE_GROUP, groupID,
+				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+			.map(EntityManager::extractRecordID)
+			.toList();
+	}
+
+	private List<Map<String, Object>> getUnions(final Integer personID){
+		return Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+			EntityManager.NODE_PERSON, personID,
+			EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER);
 	}
 
 	private List<Integer> getUnionIDs(final Integer partnerID){
-		return Repository.findReferencingNodes(EntityManager.NODE_GROUP,
-			EntityManager.NODE_PERSON, partnerID,
-			EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+		return getUnions(partnerID).stream()
 			.map(EntityManager::extractRecordID)
 			.toList();
 	}
 
 	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer adopteeID){
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> Objects.equals(EntityManager.NODE_PERSON, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(adopteeID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
-				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordGroupID)
-			.filter(Objects::nonNull)
+		final List<Integer> ids = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+				EntityManager.NODE_PERSON, adopteeID,
+				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_CHILD).stream()
+			.map(EntityManager::extractRecordID)
+			.collect(Collectors.toList());
+		final List<Integer> adoptingParentsIDs = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+				EntityManager.NODE_PERSON, adopteeID,
+				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_ADOPTEE).stream()
+			.map(EntityManager::extractRecordID)
 			.toList();
-	}
-
-	private List<Map<String, Object>> extractChildren(final Integer unionID){
-		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordReferenceID)
-			.filter(Objects::nonNull)
-			.map(persons::get)
-			.toList();
+		ids.addAll(adoptingParentsIDs);
+		return ids;
 	}
 
 

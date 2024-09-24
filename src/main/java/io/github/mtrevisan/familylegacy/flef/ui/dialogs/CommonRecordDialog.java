@@ -57,12 +57,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.Objects;
-import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCreationDate;
@@ -186,7 +183,10 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected final void manageRestrictionCheckBox(final ItemEvent evt){
-		final Map<String, Object> recordRestriction = getSingleElementOrNull(extractReferences(EntityManager.NODE_RESTRICTION));
+		final List<Map<String, Object>> recordRestrictions = Repository.findReferencingNodes(EntityManager.NODE_RESTRICTION,
+			getTableName(), selectedRecordID,
+			EntityManager.RELATIONSHIP_FOR);
+		final Map<String, Object> recordRestriction = (recordRestrictions.isEmpty()? null: recordRestrictions.getFirst());
 
 		if(evt.getStateChange() == ItemEvent.SELECTED){
 			if(recordRestriction != null)
@@ -256,10 +256,6 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	public abstract void loadData();
 
-	protected static int extractNextRecordID(final NavigableMap<Integer, Map<String, Object>> records){
-		return (records.isEmpty()? 1: records.lastKey() + 1);
-	}
-
 
 	protected void selectAction(){
 		if(validateData()){
@@ -289,38 +285,8 @@ public abstract class CommonRecordDialog extends JDialog{
 	//fill record panel
 	protected abstract void fillData();
 
-	/**
-	 * Extracts the references from a given table based on the selected record.
-	 *
-	 * @param fromTable	The table name to extract the references to this table from.
-	 * @return	A {@link TreeMap} of matched records, with the record ID as the key and the record as the value.
-	 */
-	protected final List<Map<String, Object>> extractReferences(final String fromTable){
-		return extractReferences(fromTable, null, null);
-	}
-
-	protected final <T> List<Map<String, Object>> extractReferences(final String fromTable,
-			final Function<Map<String, Object>, T> filter, final T filterValue){
-		List<Map<String, Object>> matchedRecords = Collections.emptyList();
-		if(selectedRecord != null){
-			final String tableName = getTableName();
-			final Integer selectedRecordID = extractRecordID(selectedRecord);
-			matchedRecords = Repository.findAll(fromTable)
-				.removeIf(record -> filter != null && !Objects.equals(filterValue, filter.apply(record))
-					|| !Objects.equals(tableName, extractRecordReferenceTable(record))
-					|| !Objects.equals(selectedRecordID, extractRecordReferenceID(record)));
-		}
-		return matchedRecords;
-	}
-
-	private static Map<String, Object> getSingleElementOrNull(final List<Map<String, Object>> store){
-		//FIXME first?
-		return (store.isEmpty()? null: store.getFirst());
-	}
-
 	protected Map<String, Object> getSelectedRecord(){
 		final List<Map<String, Object>> records = Repository.findAll(getTableName());
-		//FIXME first?
 		return (!records.isEmpty()? records.getFirst(): null);
 	}
 
@@ -360,7 +326,9 @@ public abstract class CommonRecordDialog extends JDialog{
 
 		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
 		final String recordTableName = getTableName();
-		final List<Map<String, Object>> recordModification = extractReferences(EntityManager.NODE_MODIFICATION);
+		final List<Map<String, Object>> recordModification = Repository.findReferencingNodes(EntityManager.NODE_MODIFICATION,
+			recordTableName, selectedRecordID,
+			EntityManager.RELATIONSHIP_FOR);
 		if(recordModification.isEmpty()){
 			//create a new record
 			final Map<String, Object> newModification = new HashMap<>();

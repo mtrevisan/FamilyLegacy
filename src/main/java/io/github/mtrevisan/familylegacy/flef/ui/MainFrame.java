@@ -54,10 +54,8 @@ import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
 
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 
@@ -94,19 +92,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		frame.setVisible(true);
 
 		EventBusService.subscribe(this);
-	}
-
-
-	private List<Map<String, Object>> extractChildren(final Integer unionID){
-		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
-			.map(entry -> persons.get(extractRecordReferenceID(entry)))
-			.filter(Objects::nonNull)
-			.toList();
 	}
 
 
@@ -320,25 +305,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	}
 
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordReferenceID)
-			.filter(Objects::nonNull)
-			.toList();
-	}
-
-	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer childID){
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> Objects.equals(EntityManager.NODE_PERSON, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(childID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry))
-				|| Objects.equals(EntityManager.GROUP_ROLE_ADOPTEE, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordGroupID)
-			.filter(Objects::nonNull)
+		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+				EntityManager.NODE_GROUP, groupID,
+				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+			.map(EntityManager::extractRecordID)
 			.toList();
 	}
 
@@ -372,30 +342,11 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> union = groupPanel.getUnion();
 		final Integer unionID = extractRecordID(union);
 
+		final String roleType = EntityManager.GROUP_ROLE_CHILD;
 		final Integer personID = extractRecordID(person);
-		//remove person from union
-		final List<Integer> ids = Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> unionID.equals(extractRecordGroupID(entry))
-				&& EntityManager.GROUP_ROLE_CHILD.equals(extractRecordRole(entry))
-				&& EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry))
-				&& Objects.equals(personID, extractRecordReferenceID(entry)))
-			.map(EntityManager::extractRecordID)
-			.toList();
-		Repository.deleteNodes(EntityManager.NODE_CITATION, ids);
+		removePersonFromUnion(unionID, roleType, personID);
 
 		treePanel.refresh();
-	}
-
-	private List<Integer> getGroupIDs(final Integer personID){
-		return Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(personID, extractRecordReferenceID(entry)))
-			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_PARTNER, extractRecordRole(entry)))
-			.map(EntityManager::extractRecordGroupID)
-			.filter(Objects::nonNull)
-			.toList();
 	}
 
 	@Override
@@ -416,19 +367,18 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> union = treeUnionPanel.getUnion();
 		final Integer unionID = extractRecordID(union);
 
+		final String roleType = EntityManager.GROUP_ROLE_PARTNER;
 		final Integer personID = extractRecordID(person);
-		//remove person from union
-		final List<Integer> ids = Repository.findAll(EntityManager.NODE_NAME_GROUP_JUNCTION)
-			.stream()
-			.filter(entry -> unionID.equals(extractRecordGroupID(entry))
-				&& EntityManager.GROUP_ROLE_PARTNER.equals(extractRecordRole(entry))
-				&& EntityManager.NODE_PERSON.equals(extractRecordReferenceTable(entry))
-				&& Objects.equals(personID, extractRecordReferenceID(entry)))
-			.map(EntityManager::extractRecordID)
-			.toList();
-		Repository.deleteNodes(EntityManager.NODE_CITATION, ids);
+		removePersonFromUnion(unionID, roleType, personID);
 
 		treePanel.refresh();
+	}
+
+	private static void removePersonFromUnion(final Integer unionID, final String roleType, final Integer personID){
+		Repository.deleteRelationship(EntityManager.NODE_PERSON, personID,
+			EntityManager.NODE_GROUP, unionID,
+			EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, roleType
+		);
 	}
 
 	@Override

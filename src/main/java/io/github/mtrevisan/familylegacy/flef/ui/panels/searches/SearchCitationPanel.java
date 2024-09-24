@@ -42,20 +42,16 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtract;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTranscriptionType;
@@ -129,8 +125,9 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			final String extract = extractRecordExtract(record);
 			final String extractLocale = extractRecordExtractLocale(record);
 			final String extractType = extractRecordExtractType(record);
-			final List<Map<String, Object>> transcribedExtracts = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION, recordID,
-				EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
+			final List<Map<String, Object>> transcribedExtracts = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
+				EntityManager.NODE_CITATION, recordID,
+				EntityManager.RELATIONSHIP_FOR, EntityManager.PROPERTY_TYPE, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
 			final FilterString filter = FilterString.create().add(recordID).add(extract).add(extractLocale).add(extractType);
 			for(final Map<String, Object> transcribedExtract : transcribedExtracts)
 				filter.add(extractRecordText(transcribedExtract))
@@ -148,23 +145,6 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 			row++;
 		}
-	}
-
-
-	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
-			final Function<Map<String, Object>, T> filter, final T filterValue){
-		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final List<Map<String, Object>> records = Repository.findAll(fromTable);
-		final Map<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_LOCALIZED_TEXT);
-		records.forEach(record -> {
-			if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
-					&& EntityManager.NODE_CITATION.equals(extractRecordReferenceTable(record))
-					&& Objects.equals(selectedRecordID, extractRecordReferenceID(record)))){
-				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(record));
-				matchedRecords.add(localizedText);
-			}
-		});
-		return matchedRecords;
 	}
 
 

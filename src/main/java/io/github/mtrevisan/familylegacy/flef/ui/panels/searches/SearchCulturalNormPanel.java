@@ -42,19 +42,15 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocalizedTextID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordText;
@@ -136,8 +132,9 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 			final Integer placeID = extractRecordPlaceID(record);
 			final String placeName = (placeID != null? extractRecordName(places.get(placeID)): null);
 			final String placeNameLocale = extractRecordLocale(record);
-			final List<Map<String, Object>> transcribedPlaceNames = extractReferences(EntityManager.NODE_NAME_LOCALIZED_TEXT_JUNCTION,
-				recordID, EntityManager::extractRecordReferenceType, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+			final List<Map<String, Object>> transcribedPlaceNames = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
+				EntityManager.NODE_CULTURAL_NORM, recordID,
+				EntityManager.RELATIONSHIP_FOR, EntityManager.PROPERTY_TYPE, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 			final FilterString filter = FilterString.create()
 				.add(recordID)
 				.add(identifier)
@@ -158,23 +155,6 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 
 			row++;
 		}
-	}
-
-
-	private <T> List<Map<String, Object>> extractReferences(final String fromTable, final Integer selectedRecordID,
-			final Function<Map<String, Object>, T> filter, final T filterValue){
-		final List<Map<String, Object>> matchedRecords = new ArrayList<>(0);
-		final List<Map<String, Object>> records = Repository.findAll(fromTable);
-		final Map<Integer, Map<String, Object>> localizedTexts = Repository.findAllNavigable(EntityManager.NODE_LOCALIZED_TEXT);
-		records.forEach(record -> {
-			if(((filter == null || Objects.equals(filterValue, filter.apply(record)))
-					&& EntityManager.NODE_PLACE.equals(extractRecordReferenceTable(record))
-					&& Objects.equals(selectedRecordID, extractRecordReferenceID(record)))){
-				final Map<String, Object> localizedText = localizedTexts.get(extractRecordLocalizedTextID(record));
-				matchedRecords.add(localizedText);
-			}
-		});
-		return matchedRecords;
 	}
 
 

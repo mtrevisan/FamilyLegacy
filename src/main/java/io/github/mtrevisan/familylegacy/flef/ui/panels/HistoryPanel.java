@@ -56,7 +56,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordNote;
@@ -147,18 +146,15 @@ public class HistoryPanel extends CommonSearchPanel{
 		final List<Map<String, Object>> recordModifications = Repository.findReferencingNodes(EntityManager.NODE_MODIFICATION,
 			filterReferenceTable, filterReferenceID,
 			EntityManager.RELATIONSHIP_FOR);
-		final List<Map<String, Object>> recordsNotes = Repository.findAll(EntityManager.NODE_NOTE)
-			.stream()
-			.filter(record -> EntityManager.NODE_MODIFICATION.equals(extractRecordReferenceTable(record)))
-			.toList();
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(recordModifications.size());
 		int row = 0;
 		for(final Map<String, Object> recordModification : recordModifications){
 			final Integer recordModificationID = extractRecordID(recordModification);
-			final Map<String, Object> containerNote = recordsNotes.stream()
-				.filter(record -> Objects.equals(recordModificationID, extractRecordReferenceID(record)))
+			final Map<String, Object> containerNote = Repository.findReferencingNodes(EntityManager.NODE_NOTE,
+					EntityManager.NODE_MODIFICATION, recordModificationID,
+					EntityManager.RELATIONSHIP_FOR).stream()
 				.findFirst()
 				.orElse(Collections.emptyMap());
 

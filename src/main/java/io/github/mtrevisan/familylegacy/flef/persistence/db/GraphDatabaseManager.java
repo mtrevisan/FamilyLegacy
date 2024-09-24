@@ -392,7 +392,7 @@ public class GraphDatabaseManager{
 
 	public static boolean deleteRelationship(final String tableNameStart, final String primaryPropertyNameStart, final Object nodeIDStart,
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
-			final String relationshipName){
+			final String relationshipName, final String propertyName, final Object propertyValue){
 		try(final Transaction tx = getTransaction()){
 			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
 			if(nodeStart == null)
@@ -410,9 +410,16 @@ public class GraphDatabaseManager{
 				: nodeStart.getRelationships());
 			final boolean hasRelationships = relationships.iterator()
 				.hasNext();
-			for(final Relationship relationship : relationships)
-				if(relationship.getEndNode().equals(nodeEnd))
-					relationship.delete();
+			if(propertyName != null){
+				for(final Relationship relationship : relationships)
+					if(relationship.getProperty(propertyName).equals(propertyValue) && relationship.getEndNode().equals(nodeEnd))
+						relationship.delete();
+
+			}
+			else
+				for(final Relationship relationship : relationships)
+					if(relationship.getEndNode().equals(nodeEnd))
+						relationship.delete();
 
 			tx.commit();
 

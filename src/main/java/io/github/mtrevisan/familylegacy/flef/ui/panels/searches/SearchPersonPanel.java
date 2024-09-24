@@ -261,10 +261,9 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		final Map<Integer, Map<String, Object>> storeEventTypes = Repository.findAllNavigable(EntityManager.NODE_EVENT_TYPE);
 		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_HISTORIC_DATE);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
-		return Repository.findAll(EntityManager.NODE_EVENT)
-			.stream()
-			.filter(entry -> Objects.equals(EntityManager.NODE_PERSON, extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(referenceID, extractRecordReferenceID(entry)))
+		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
+			EntityManager.NODE_PERSON, referenceID,
+			EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
 				final Integer recordTypeID = extractRecordTypeID(entry);
 				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));
