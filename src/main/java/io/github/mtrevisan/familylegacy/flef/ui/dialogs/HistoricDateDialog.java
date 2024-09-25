@@ -169,19 +169,19 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(dateLabel, dateField, this::saveData);
+		GUIHelper.bindLabelUndo(dateLabel, dateField);
 		addMandatoryField(dateField);
 
-		GUIHelper.bindLabelTextChangeUndo(dateOriginalLabel, dateOriginalField, this::saveData);
+		GUIHelper.bindLabelUndo(dateOriginalLabel, dateOriginalField);
 		GUIHelper.addUndoCapability(dateOriginalField);
 
 		calendarOriginalButton.setToolTipText("Calendar original");
 		calendarOriginalButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(credibilityLabel, credibilityComboBox);
 
 
 		noteButton.setToolTipText("Notes");
@@ -244,9 +244,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -334,7 +331,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 		insertRecordDateOriginal(selectedRecord, dateOriginal);
 		insertRecordCertainty(selectedRecord, certainty);
 		insertRecordCredibility(selectedRecord, credibility);
-		updateRecordHash();
 
 		return true;
 	}
@@ -351,46 +347,33 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> historicDate1 = new HashMap<>();
-		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
-		historicDate1.put("calendar_original_id", 2);
+historicDate1.put("calendar_original_id", 2);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
+		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 
 		final Map<String, Object> calendar1 = new HashMap<>();
-		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
-		Repository.save(EntityManager.NODE_CALENDAR, calendar1);
+		Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
 		final Map<String, Object> calendar2 = new HashMap<>();
-		calendar2.put("id", 2);
 		calendar2.put("type", "julian");
-		Repository.save(EntityManager.NODE_CALENDAR, calendar2);
+		Repository.upsert(calendar2, EntityManager.NODE_CALENDAR);
 		final Map<String, Object> calendar3 = new HashMap<>();
-		calendar3.put("id", 3);
 		calendar3.put("type", "venetan");
-		Repository.save(EntityManager.NODE_CALENDAR, calendar3);
+		Repository.upsert(calendar3, EntityManager.NODE_CALENDAR);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", "historic_date");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "historic_date");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 
 		EventQueue.invokeLater(() -> {

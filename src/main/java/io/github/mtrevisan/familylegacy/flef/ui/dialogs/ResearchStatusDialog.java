@@ -56,8 +56,6 @@ import javax.swing.text.DocumentFilter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -174,16 +172,16 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		((AbstractDocument)priorityField.getDocument()).setDocumentFilter(new PositiveIntegerFilter());
 
 
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
+		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, this::saveData);
+		GUIHelper.bindLabel(descriptionLabel, descriptionTextPreview);
 		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 		descriptionTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(statusLabel, statusComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(statusLabel, statusComboBox);
 
-		GUIHelper.bindLabelTextChangeUndo(priorityLabel, priorityField, this::saveData);
+		GUIHelper.bindLabelUndo(priorityLabel, priorityField);
 	}
 
 	@Override
@@ -224,9 +222,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -277,7 +272,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 			return false;
 
 		//read record panel:
-		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+		final String now = EntityManager.now();
 		final String identifier = GUIHelper.getTextTrimmed(identifierField);
 		final String description = descriptionTextPreview.getTextTrimmed();
 		final String status = GUIHelper.getTextTrimmed(statusComboBox);
@@ -307,7 +302,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		insertRecordPriority(selectedRecord, priority);
 		if(extractRecordCreationDate(selectedRecord) == null)
 			insertRecordCreationDate(selectedRecord, now);
-		updateRecordHash();
 
 		return true;
 	}
@@ -355,15 +349,14 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> researchStatus1 = new HashMap<>();
-		researchStatus1.put("id", 1);
-		researchStatus1.put("reference_table", "date");
-		researchStatus1.put("reference_id", 1);
+researchStatus1.put("reference_table", "date");
+researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "research 1");
 		researchStatus1.put("description", "see people, do things");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 2);
-		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
+		researchStatus1.put("creation_date", EntityManager.now());
+		Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
 
 
 		EventQueue.invokeLater(() -> {

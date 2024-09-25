@@ -56,7 +56,6 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
@@ -168,80 +167,31 @@ public final class GUIHelper{
 	}
 
 
-	public static void bindLabelTextChange(final JLabel label, final TextPreviewPane field, final Runnable onEdit){
+	public static void bindLabel(final JLabel label, final TextPreviewPane field){
 		if(label != null)
 			label.setLabelFor(field);
-
-		if(onEdit != null)
-			field.addDocumentListener(new DocumentListener(){
-				@Override
-				public void changedUpdate(final DocumentEvent evt){
-					onEdit.run();
-				}
-
-				@Override
-				public void removeUpdate(final DocumentEvent evt){
-					onEdit.run();
-				}
-
-				@Override
-				public void insertUpdate(final DocumentEvent evt){
-					onEdit.run();
-				}
-			});
 	}
 
-	public static void bindLabelTextChangeUndo(final JLabel label, final JTextComponent field, final Runnable onEdit){
+	public static void bindLabelUndo(final JLabel label, final JTextComponent field){
 		if(label != null)
 			label.setLabelFor(field);
 
 		addUndoCapability(field);
-
-		if(onEdit != null)
-			field.getDocument().addDocumentListener(new DocumentListener(){
-				@Override
-				public void changedUpdate(final DocumentEvent evt){
-					onEdit.run();
-				}
-
-				@Override
-				public void removeUpdate(final DocumentEvent evt){
-					onEdit.run();
-				}
-
-				@Override
-				public void insertUpdate(final DocumentEvent evt){
-					onEdit.run();
-				}
-			});
 	}
 
-	public static void bindLabelSelectionChange(final JLabel label, final JComboBox<?> comboBox, final Runnable onSelection){
+	public static void bindLabel(final JLabel label, final JComboBox<?> comboBox){
 		if(label != null)
 			label.setLabelFor(comboBox);
-
-		//if not editable:
-		if(onSelection != null)
-			comboBox.addActionListener(evt -> {
-				if(comboBox.getSelectedItem() != null)
-					onSelection.run();
-			});
 	}
 
-	public static void bindLabelSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox, final Runnable onSelection){
+	public static void bindLabelAutoComplete(final JLabel label, final JComboBox<?> comboBox){
 		if(label != null)
 			label.setLabelFor(comboBox);
 
 		AutoCompleteDecorator.decorate(comboBox);
-
-		if(onSelection != null)
-			comboBox.addActionListener(evt -> {
-				if(comboBox.getSelectedItem() != null)
-					onSelection.run();
-			});
 	}
 
-	public static void bindLabelUndoSelectionAutoCompleteChange(final JLabel label, final JComboBox<?> comboBox, final Runnable onEdit){
+	public static void bindLabelUndoAutoComplete(final JLabel label, final JComboBox<?> comboBox){
 		if(label != null)
 			label.setLabelFor(comboBox);
 
@@ -264,12 +214,6 @@ public final class GUIHelper{
 		addUndoCapability(comboBox);
 
 		AutoCompleteDecorator.decorate(comboBox);
-
-		if(onEdit != null)
-			comboBox.addItemListener(evt -> {
-				if(evt.getStateChange() == ItemEvent.SELECTED)
-					onEdit.run();
-			});
 	}
 
 

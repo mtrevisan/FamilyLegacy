@@ -144,7 +144,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(typeLabel, typeField, this::saveData);
+		GUIHelper.bindLabelUndo(typeLabel, typeField);
 		addMandatoryField(typeField);
 
 
@@ -199,9 +199,6 @@ public final class CalendarDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -274,7 +271,6 @@ public final class CalendarDialog extends CommonListDialog{
 		}
 
 		insertRecordType(selectedRecord, type);
-		updateRecordHash();
 
 		return true;
 	}
@@ -290,31 +286,23 @@ public final class CalendarDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> calendar1 = new HashMap<>();
-		calendar1.put("id", 1);
 		calendar1.put("type", "gregorian");
-		Repository.save(EntityManager.NODE_CALENDAR, calendar1);
+		int calendar1ID = Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
 		final Map<String, Object> calendar2 = new HashMap<>();
-		calendar2.put("id", 2);
 		calendar2.put("type", "julian");
-		Repository.save(EntityManager.NODE_CALENDAR, calendar2);
+		int calendar2ID = Repository.upsert(calendar2, EntityManager.NODE_CALENDAR);
 		final Map<String, Object> calendar3 = new HashMap<>();
-		calendar3.put("id", 3);
 		calendar3.put("type", "venetan");
-		Repository.save(EntityManager.NODE_CALENDAR, calendar3);
+		int calendar3ID = Repository.upsert(calendar3, EntityManager.NODE_CALENDAR);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
-		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
-		note2.put("note", "note 1");
-		note2.put("reference_table", "calendar");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_CALENDAR, calendar1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 
 		EventQueue.invokeLater(() -> {

@@ -65,12 +65,10 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCitationID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRole;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
@@ -176,11 +174,11 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(roleLabel, roleField, this::saveData);
+		GUIHelper.bindLabelUndo(roleLabel, roleField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(credibilityLabel, credibilityComboBox);
 
 
 		noteButton.setToolTipText("Notes");
@@ -234,9 +232,10 @@ public final class AssertionDialog extends CommonListDialog{
 		for(final Map<String, Object> record : records){
 			final Integer recordID = extractRecordID(record);
 			final String sourceIdentifier = extractRecordSourceIdentifier(record);
-			final String location = extractRecordLocation(record);
-			final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_ASSERTION,
-				recordID, EntityManager.RELATIONSHIP_SUPPORTED_BY);
+			final String location = extractRecordLocation(recordID);
+			final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
+				EntityManager.NODE_ASSERTION, recordID,
+				EntityManager.RELATIONSHIP_SUPPORTED_BY);
 			final String referenceTable = (referencedNode != null? referencedNode.getKey(): null);
 			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
@@ -256,9 +255,6 @@ public final class AssertionDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -325,9 +321,10 @@ public final class AssertionDialog extends CommonListDialog{
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
 				final Map<String, Object> updatedAssertionRecord = Repository.findByID(EntityManager.NODE_ASSERTION, recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
-				final String location = extractRecordLocation(updatedAssertionRecord);
-				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(EntityManager.NODE_ASSERTION,
-					recordID, EntityManager.RELATIONSHIP_SUPPORTED_BY);
+				final String location = extractRecordLocation(extractRecordID(updatedAssertionRecord));
+				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
+					EntityManager.NODE_ASSERTION, recordID,
+					EntityManager.RELATIONSHIP_SUPPORTED_BY);
 				final String referenceTable = (referencedNode != null? referencedNode.getKey(): null);
 				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
@@ -344,40 +341,40 @@ public final class AssertionDialog extends CommonListDialog{
 		insertRecordRole(selectedRecord, role);
 		insertRecordCertainty(selectedRecord, certainty);
 		insertRecordCredibility(selectedRecord, credibility);
-		updateRecordHash();
 
 		return true;
 	}
 
 
-	private String extractRecordLocation(final Map<String, Object> assertionRecord){
-		final Integer citationID = extractRecordCitationID(assertionRecord);
-		if(citationID == null)
+	private String extractRecordLocation(final Integer assertionID){
+		final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
+			EntityManager.NODE_ASSERTION, assertionID,
+			EntityManager.RELATIONSHIP_INFERRED_FROM);
+		if(referencedNode == null || !referencedNode.getKey().equals(EntityManager.NODE_CITATION))
 			return null;
 
-		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_CITATION, citationID);
-		if(citation == null)
-			return null;
-
-		return (String)citation.get("location");
+		final Map<String, Object> citation = referencedNode.getValue();
+		return EntityManager.extractRecordLocation(citation);
 	}
 
 	private String extractRecordSourceIdentifier(final Map<String, Object> assertionRecord){
-		final Integer citationID = extractRecordCitationID(assertionRecord);
-		if(citationID == null)
+		Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
+			EntityManager.NODE_ASSERTION, extractRecordID(assertionRecord),
+			EntityManager.RELATIONSHIP_INFERRED_FROM);
+
+		if(referencedNode == null || !referencedNode.getKey().equals(EntityManager.NODE_CITATION))
 			return null;
 
-		final Map<String, Object> citation = Repository.findByID(EntityManager.NODE_CITATION, citationID);
-		if(citation == null)
+		final Map<String, Object> citation = referencedNode.getValue();
+
+
+		referencedNode = Repository.findReferencedNode(EntityManager.NODE_CITATION, extractRecordID(citation),
+			EntityManager.RELATIONSHIP_QUOTES);
+
+		if(referencedNode == null || !referencedNode.getKey().equals(EntityManager.NODE_SOURCE))
 			return null;
 
-		final Integer sourceID = extractRecordSourceID(citation);
-		if(sourceID == null)
-			return null;
-
-		final Map<String, Object> source = Repository.findByID(EntityManager.NODE_SOURCE, sourceID);
-		if(source == null)
-			return null;
+		final Map<String, Object> source = referencedNode.getValue();
 
 		return extractRecordIdentifier(source);
 	}
@@ -393,144 +390,131 @@ public final class AssertionDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
-		final Map<String, Object> assertion1 = new HashMap<>();
-		assertion1.put("id", 1);
-		assertion1.put("citation_id", 1);
-		assertion1.put("reference_table", "table");
-		assertion1.put("reference_id", 1);
-		assertion1.put("role", "father");
-		assertion1.put("certainty", "certain");
-		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
+
+		final Map<String, Object> repository1 = new HashMap<>();
+		repository1.put("identifier", "repo 1");
+		repository1.put("type", "public library");
+		int repository1ID = Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("identifier", "source 1");
+		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> citation1 = new HashMap<>();
-		citation1.put("id", 1);
-		citation1.put("source_id", 1);
 		citation1.put("location", "here");
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_CITATION, citation1);
+		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
+		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
-		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("id", 1);
-		source1.put("repository_id", 1);
-		source1.put("identifier", "source");
-		Repository.save(EntityManager.NODE_SOURCE, source1);
-
-		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("id", 1);
-		repository1.put("identifier", "repo 1");
-		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
-
-		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
-		media1.put("identifier", "media 1");
-		media1.put("title", "title 1");
-		media1.put("type", "photo");
-		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_MEDIA, media1);
-
-		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		mediaJunction1.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, 1, EntityManager.NODE_ASSERTION, 1,
-			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-
-		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
-		localizedText1.put("text", "text 1");
-		localizedText1.put("locale", "it");
-		localizedText1.put("type", "original");
-		localizedText1.put("transcription", "IPA");
-		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		final Map<String, Object> assertion1 = new HashMap<>();
+		assertion1.put("role", "father");
+		assertion1.put("certainty", "certain");
+		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
+		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", EntityManager.NODE_ASSERTION);
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note3 = new HashMap<>();
-		note3.put("id", 3);
 		note3.put("note", "something to say");
-		note3.put("reference_table", "modification");
-		note3.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note3);
+		int note3ID = Repository.upsert(note3, EntityManager.NODE_NOTE);
 		final Map<String, Object> note4 = new HashMap<>();
-		note4.put("id", 4);
 		note4.put("note", "something more to say");
-		note4.put("reference_table", "modification");
-		note4.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NOTE, note4);
+		int note4ID = Repository.upsert(note4, EntityManager.NODE_NOTE);
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", EntityManager.NODE_ASSERTION);
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> modification1 = new HashMap<>();
-		modification1.put("id", 1);
-		modification1.put("reference_table", EntityManager.NODE_ASSERTION);
-		modification1.put("reference_id", 1);
-		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_MODIFICATION, modification1);
+		modification1.put("creation_date", EntityManager.now());
+		modification1.put("update_date", EntityManager.now());
+		int modification1ID = Repository.upsert(modification1, EntityManager.NODE_MODIFICATION, EntityManager.NODE_APPLICATION);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note3ID,
+			EntityManager.NODE_MODIFICATION, modification1ID,
+			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> modification2 = new HashMap<>();
-		modification2.put("id", 2);
-		modification2.put("reference_table", EntityManager.NODE_ASSERTION);
-		modification2.put("reference_id", 1);
 		modification2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_MODIFICATION, modification2);
+		int modification2ID = Repository.upsert(modification2, EntityManager.NODE_MODIFICATION, EntityManager.NODE_APPLICATION);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note4ID,
+			EntityManager.NODE_MODIFICATION, modification2ID,
+			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification2ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
-		culturalNorm1.put("id", 1);
 		culturalNorm1.put("identifier", "rule 1 id");
 		culturalNorm1.put("description", "rule 1");
 		culturalNorm1.put("certainty", "certain");
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_CULTURAL_NORM, culturalNorm1);
+		final int culturalNorm1ID = Repository.upsert(culturalNorm1, EntityManager.NODE_CULTURAL_NORM);
 
 		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
-		culturalNormJunction1.put("id", 1);
-		culturalNormJunction1.put("cultural_norm_id", 1);
-		culturalNormJunction1.put("reference_table", EntityManager.NODE_ASSERTION);
-		culturalNormJunction1.put("reference_id", 1);
 		culturalNormJunction1.put("certainty", "probable");
 		culturalNormJunction1.put("credibility", "probable");
-		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, 1, EntityManager.NODE_ASSERTION, 1,
+		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> researchStatus1 = new HashMap<>();
-		researchStatus1.put("id", 1);
-		researchStatus1.put("reference_table", EntityManager.NODE_ASSERTION);
-		researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "identifier 1");
 		researchStatus1.put("description", "some description");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 0);
-		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
+		researchStatus1.put("creation_date", EntityManager.now());
+		int researchStatus1ID = Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS, EntityManager.NODE_APPLICATION);
+		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus1ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.RELATIONSHIP_FOR, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
-		researchStatus2.put("id", 2);
-		researchStatus2.put("reference_table", EntityManager.NODE_ASSERTION);
-		researchStatus2.put("reference_id", 1);
 		researchStatus2.put("identifier", "identifier 2");
 		researchStatus2.put("description", "another description");
 		researchStatus2.put("status", "active");
 		researchStatus2.put("priority", 1);
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus2);
+		int researchStatus2ID = Repository.upsert(researchStatus2, EntityManager.NODE_RESEARCH_STATUS, EntityManager.NODE_APPLICATION);
+		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus2ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.RELATIONSHIP_FOR, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {

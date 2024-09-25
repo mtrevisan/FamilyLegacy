@@ -153,26 +153,23 @@ public class SearchMediaPanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+		Repository.upsert(media1, EntityManager.NODE_MEDIA);
 		final Map<String, Object> media2 = new HashMap<>();
-		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_MEDIA, media2);
+		Repository.upsert(media2, EntityManager.NODE_MEDIA);
 		final Map<String, Object> media3 = new HashMap<>();
-		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_MEDIA, media3);
+		Repository.upsert(media3, EntityManager.NODE_MEDIA);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

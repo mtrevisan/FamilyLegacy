@@ -845,57 +845,44 @@ public class GroupPanel extends JPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		final Map<String, Object> person1 = new HashMap<>();
-		person1.put("id", 1);
-		Repository.save(EntityManager.NODE_PERSON, person1);
-		final Map<String, Object> person2 = new HashMap<>();
-		person2.put("id", 2);
-		Repository.save(EntityManager.NODE_PERSON, person2);
-		final Map<String, Object> person3 = new HashMap<>();
-		person3.put("id", 3);
-		Repository.save(EntityManager.NODE_PERSON, person3);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> personName11 = new HashMap<>();
-		personName11.put("id", 1);
 		personName11.put("person_id", 1);
 		personName11.put("personal_name", "tòni");
 		personName11.put("family_name", "bruxatin");
 		personName11.put("locale", "vec-IT");
 		personName11.put("type", "birth name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName11);
+		Repository.upsert(personName11, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName12 = new HashMap<>();
-		personName12.put("id", 2);
 		personName12.put("person_id", 1);
 		personName12.put("personal_name", "antonio");
 		personName12.put("family_name", "bruciatino");
 		personName12.put("locale", "it-IT");
 		personName12.put("type", "death name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName12);
+		Repository.upsert(personName12, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName21 = new HashMap<>();
-		personName21.put("id", 3);
 		personName21.put("person_id", 2);
 		personName21.put("personal_name", "bèpi");
 		personName21.put("family_name", "marangon");
 		personName21.put("locale", "vec-IT");
 		personName21.put("type", "birth name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName21);
+		Repository.upsert(personName21, EntityManager.NODE_PERSON_NAME);
 
 		final Map<String, Object> group1 = new HashMap<>();
-		group1.put("id", 1);
 		group1.put("type", "family");
-		Repository.save(EntityManager.NODE_GROUP, group1);
+		Repository.upsert(group1, EntityManager.NODE_GROUP);
 		final Map<String, Object> group2 = new HashMap<>();
-		group2.put("id", 2);
 		group2.put("type", "family");
-		Repository.save(EntityManager.NODE_GROUP, group2);
+		Repository.upsert(group2, EntityManager.NODE_GROUP);
 		final Map<String, Object> group3 = new HashMap<>();
-		group3.put("id", 3);
 		group3.put("type", "family");
-		Repository.save(EntityManager.NODE_GROUP, group3);
+		Repository.upsert(group3, EntityManager.NODE_GROUP);
 		final Map<String, Object> group4 = new HashMap<>();
-		group4.put("id", 4);
 		group4.put("type", "family");
-		Repository.save(EntityManager.NODE_GROUP, group4);
+		Repository.upsert(group4, EntityManager.NODE_GROUP);
 
 		final Map<String, Object> groupJunction11 = new HashMap<>();
 		groupJunction11.put("role", "partner");

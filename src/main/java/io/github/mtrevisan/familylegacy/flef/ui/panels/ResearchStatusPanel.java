@@ -203,25 +203,23 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> researchStatus1 = new HashMap<>();
-		researchStatus1.put("id", 1);
-		researchStatus1.put("reference_table", "person_name");
-		researchStatus1.put("reference_id", 1);
+researchStatus1.put("reference_table", "person_name");
+researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "identifier 1");
 		researchStatus1.put("description", "some description");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 0);
-		researchStatus1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
+		researchStatus1.put("creation_date", EntityManager.now());
+		Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
-		researchStatus2.put("id", 2);
-		researchStatus2.put("reference_table", "person_name");
-		researchStatus2.put("reference_id", 1);
+researchStatus2.put("reference_table", "person_name");
+researchStatus2.put("reference_id", 1);
 		researchStatus2.put("identifier", "identifier 2");
 		researchStatus2.put("description", "another description");
 		researchStatus2.put("status", "active");
 		researchStatus2.put("priority", 1);
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus2);
+		Repository.upsert(researchStatus2, EntityManager.NODE_RESEARCH_STATUS);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

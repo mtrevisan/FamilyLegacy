@@ -47,8 +47,6 @@ import javax.swing.UIManager;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BiConsumer;
@@ -112,15 +110,15 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		setTitle(StringUtils.capitalize(getTableName()));
 
 
-		GUIHelper.bindLabelTextChangeUndo(copyrightLabel, copyrightField, this::saveData);
+		GUIHelper.bindLabelUndo(copyrightLabel, copyrightField);
 
-		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, this::saveData);
+		GUIHelper.bindLabel(noteLabel, noteTextPreview);
 		noteTextPreview.setTextViewFont(copyrightField.getFont());
 		noteTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
+		GUIHelper.bindLabelUndo(localeLabel, localeField);
 
-		GUIHelper.bindLabelSelectionChange(includeMediaPayloadLabel, includeMediaPayloadComboBox, this::saveData);
+		GUIHelper.bindLabel(includeMediaPayloadLabel, includeMediaPayloadComboBox);
 	}
 
 	@Override
@@ -181,7 +179,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		if(ignoreEvents || selectedRecord == null)
 			return false;
 
-		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+		final String now = EntityManager.now();
 		//read record panel:
 		final String copyright = GUIHelper.getTextTrimmed(copyrightField);
 		final String note = noteTextPreview.getTextTrimmed();
@@ -199,7 +197,6 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 			insertRecordCreationDate(selectedRecord, now);
 		else
 			insertRecordUpdateDate(selectedRecord, now);
-		updateRecordHash();
 
 		return true;
 	}
@@ -227,10 +224,10 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		project1.put("note", "some notes");
 		project1.put("locale", "en-US");
 		project1.put("include_media_payload", 1);
-		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+		final String now = EntityManager.now();
 		project1.put("creation_date", now);
 		project1.put("update_date", now);
-		Repository.save(EntityManager.NODE_PROJECT, project1);
+		Repository.upsert(project1, EntityManager.NODE_PROJECT);
 
 
 		EventQueue.invokeLater(() -> {

@@ -49,8 +49,6 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -197,7 +195,7 @@ public abstract class CommonRecordDialog extends JDialog{
 				//create a new record
 				final Map<String, Object> newRestriction = new HashMap<>();
 				insertRecordRestriction(newRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
-				final int newRestrictionID = Repository.save(EntityManager.NODE_RESTRICTION, newRestriction);
+				final int newRestrictionID = Repository.upsert(newRestriction, EntityManager.NODE_RESTRICTION);
 				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
 					EntityManager.NODE_RESTRICTION, newRestrictionID,
 					EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
@@ -301,33 +299,33 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected void okAction(final boolean askForModificationNote){
-		if(selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null)
 			return;
 
-		if(!ignoreEvents && (!dataHasChanged() || saveData())){
-			updateRecordHash();
+		saveData();
+		if(!dataHasChanged())
+			return;
 
-			//save `selectedRecord` into `store`
-			final String tableName = getTableName();
-			//TODO test upsert
-			Repository.save(tableName, selectedRecord);
-			//save `selectRecordLink` into `store`
-			if(selectedRecordLink != null)
-				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
-					//TODO node_restriction?
-					EntityManager.NODE_RESTRICTION, selectedRecordID,
-					getJunctionTableName(), new HashMap<>(selectedRecordLink),
-					GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		//save `selectedRecord` into `store`
+		final String tableName = getTableName();
+		Repository.upsert(selectedRecord, tableName);
+		//save `selectRecordLink` into `store`
+		if(selectedRecordLink != null)
+			Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
+				//TODO node_restriction?
+				EntityManager.NODE_RESTRICTION, selectedRecordID,
+				getJunctionTableName(), new HashMap<>(selectedRecordLink),
+				GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-			LOGGER.debug("Saved data {}", selectedRecord);
-			if(selectedRecordLink != null)
-				LOGGER.debug("Saved link {}", selectedRecordLink);
+		LOGGER.debug("Saved data {}", selectedRecord);
+		if(selectedRecordLink != null)
+			LOGGER.debug("Saved link {}", selectedRecordLink);
 
-			//fire event only if something's changed
-			EventBusService.publish(EditEvent.create(EditEvent.EditType.SEARCH, getTableName(), selectedRecord));
-		}
+		//fire event only if something's changed
+		EventBusService.publish(EditEvent.create(EditEvent.EditType.SEARCH, getTableName(), selectedRecord));
 
-		final String now = DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+
+		final String now = EntityManager.now();
 
 		final String recordTableName = getTableName();
 		final Integer selectedRecordID = extractRecordID(selectedRecord);
@@ -338,7 +336,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			//create a new record
 			final Map<String, Object> newModification = new HashMap<>();
 			insertRecordCreationDate(newModification, now);
-			final int newModificationID = Repository.save(EntityManager.NODE_MODIFICATION, newModification);
+			final int newModificationID = Repository.upsert(newModification, EntityManager.NODE_MODIFICATION);
 			Repository.upsertRelationship(recordTableName, selectedRecordID,
 				EntityManager.NODE_MODIFICATION, newModificationID,
 				EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
@@ -347,7 +345,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			if(askForModificationNote){
 				//ask for a modification note
 				//show note record dialog
-				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly((Frame)getParent())
+				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly((Frame)getParent())
 					.withOnCloseGracefully((record, recordID) -> {
 						if(record != null)
 							Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,

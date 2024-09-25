@@ -180,39 +180,34 @@ public class SearchSourcePanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("id", 1);
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
 		source1.put("author", "author 1");
 		source1.put("place_id", 1);
 		source1.put("date_id", 1);
 		source1.put("location", "location 1");
-		Repository.save(EntityManager.NODE_SOURCE, source1);
+		Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		final Map<String, Object> source2 = new HashMap<>();
-		source2.put("id", 2);
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2");
 		source2.put("location", "location 2");
-		Repository.save(EntityManager.NODE_SOURCE, source2);
+		Repository.upsert(source2, EntityManager.NODE_SOURCE);
 
 		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
+		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
-		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
+		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 
 		final Map<String, Object> place1 = new HashMap<>();
-		place1.put("id", 1);
 		place1.put("identifier", "place");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
@@ -220,7 +215,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.save(EntityManager.NODE_PLACE, place1);
+		Repository.upsert(place1, EntityManager.NODE_PLACE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

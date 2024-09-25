@@ -197,23 +197,23 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
+		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelTextChangeUndo(nameLabel, nameField, this::saveData);
+		GUIHelper.bindLabelUndo(nameLabel, nameField);
 		addMandatoryField(nameField);
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
+		GUIHelper.bindLabelUndo(localeLabel, localeField);
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, EntityManager.NODE_PLACE, selectedRecord)));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 
-		GUIHelper.bindLabelTextChangeUndo(coordinateLabel, coordinateField, this::saveData);
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateSystemLabel, coordinateSystemComboBox, this::saveData);
+		GUIHelper.bindLabelUndo(coordinateLabel, coordinateField);
+		GUIHelper.bindLabelUndoAutoComplete(coordinateSystemLabel, coordinateSystemComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(coordinateCredibilityLabel, coordinateCredibilityComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(coordinateCredibilityLabel, coordinateCredibilityComboBox);
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
@@ -308,9 +308,6 @@ public final class PlaceDialog extends CommonListDialog{
 				row ++;
 			}
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -434,7 +431,6 @@ public final class PlaceDialog extends CommonListDialog{
 		insertRecordCoordinate(selectedRecord, coordinate);
 		insertRecordCoordinateSystem(selectedRecord, coordinateSystem);
 		insertRecordCoordinateCredibility(selectedRecord, coordinateCredibility);
-		updateRecordHash();
 
 		return true;
 	}
@@ -451,7 +447,6 @@ public final class PlaceDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> place1 = new HashMap<>();
-		place1.put("id", 1);
 		place1.put("identifier", "place");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
@@ -461,36 +456,32 @@ public final class PlaceDialog extends CommonListDialog{
 		place1.put("coordinate_credibility", "certain");
 		place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
-		Repository.save(EntityManager.NODE_PLACE, place1);
+		Repository.upsert(place1, EntityManager.NODE_PLACE);
 
 		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
 		media1.put("identifier", "/images/addPhoto.boy.jpg");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
 		media1.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+		Repository.upsert(media1, EntityManager.NODE_MEDIA);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", "place");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "place");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "place");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "place");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 
 		EventQueue.invokeLater(() -> {

@@ -295,17 +295,19 @@ public final class MediaDialog extends CommonListDialog{
 	protected void initRecordComponents(){
 		openLinkButton = new JButton("Open " + mediaType, ICON_OPEN_LINK);
 
-		GUIHelper.bindLabelTextChangeUndo(fileLabel, fileField, () -> {
-			String identifier = GUIHelper.getTextTrimmed(fileField);
-			if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
-				identifier = basePath + identifier;
-			enablePhotoRelatedButtons(identifier);
-
-			final Integer mediaID = extractRecordID(selectedRecord);
-			photoCropButtonEnabledBorder(identifier, mediaID);
-
-			saveData();
-		});
+		GUIHelper.bindLabelUndo(fileLabel, fileField);
+		//FIXME
+//		GUIHelper.bindLabelUndo(fileLabel, fileField, () -> {
+//			String identifier = GUIHelper.getTextTrimmed(fileField);
+//			if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
+//				identifier = basePath + identifier;
+//			enablePhotoRelatedButtons(identifier);
+//
+//			final Integer mediaID = extractRecordID(selectedRecord);
+//			photoCropButtonEnabledBorder(identifier, mediaID);
+//
+//			saveData();
+//		});
 		addMandatoryField(fileField);
 		fileField.setEditable(false);
 
@@ -387,15 +389,15 @@ public final class MediaDialog extends CommonListDialog{
 			}
 		});
 
-		GUIHelper.bindLabelTextChangeUndo(titleLabel, titleField, this::saveData);
+		GUIHelper.bindLabelUndo(titleLabel, titleField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 		if(restrictToPhoto){
 			typeComboBox.setSelectedItem("photo");
 			typeComboBox.setEnabled(false);
 		}
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(photoProjectionLabel, photoProjectionComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(photoProjectionLabel, photoProjectionComboBox);
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
@@ -510,9 +512,6 @@ public final class MediaDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	public void addData(final Map<String, Object> record){
@@ -584,10 +583,9 @@ public final class MediaDialog extends CommonListDialog{
 		final File file = FileHelper.loadFile(identifier);
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
-			final List<Map<String, Object>> recordMediaJunction = Repository.findReferencingNodes(EntityManager.NODE_MEDIA,
+			final List<Map<String, Object>> recordMediaJunction = Repository.findRelationships(EntityManager.NODE_MEDIA, mediaID,
 				filterReferenceTable, filterReferenceID,
 				EntityManager.RELATIONSHIP_FOR);
-			recordMediaJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordMediaID(record), mediaID));
 			if(recordMediaJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -712,7 +710,6 @@ public final class MediaDialog extends CommonListDialog{
 		insertRecordPayload(selectedRecord, payload);
 		insertRecordType(selectedRecord, type);
 		insertRecordPhotoProjection(selectedRecord, photoProjection);
-		updateRecordHash();
 
 		return true;
 	}
@@ -744,29 +741,26 @@ public final class MediaDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		media1.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+media1.put("date_id", 1);
+		Repository.upsert(media1, EntityManager.NODE_MEDIA);
 		final Map<String, Object> media2 = new HashMap<>();
-		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		media2.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media2);
+media2.put("date_id", 1);
+		Repository.upsert(media2, EntityManager.NODE_MEDIA);
 		final Map<String, Object> media3 = new HashMap<>();
-		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		media3.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media3);
+media3.put("date_id", 1);
+		Repository.upsert(media3, EntityManager.NODE_MEDIA);
 
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
 		mediaJunction1.put("photo_crop", "0 0 10 50");
@@ -774,24 +768,21 @@ public final class MediaDialog extends CommonListDialog{
 			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", "media");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "media");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "media");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "media");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 
 		EventQueue.invokeLater(() -> {

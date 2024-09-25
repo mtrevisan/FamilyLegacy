@@ -174,17 +174,17 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(personalNameLabel, personalNameField, this::saveData);
-		GUIHelper.bindLabelTextChangeUndo(familyNameLabel, familyNameField, this::saveData);
+		GUIHelper.bindLabelUndo(personalNameLabel, personalNameField);
+		GUIHelper.bindLabelUndo(familyNameLabel, familyNameField);
 		addMandatoryField(personalNameField, familyNameField);
 
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
+		GUIHelper.bindLabelUndo(localeLabel, localeField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(transcriptionLabel, transcriptionComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionTypeLabel, transcriptionTypeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(transcriptionTypeLabel, transcriptionTypeComboBox);
 	}
 
 	@Override
@@ -240,9 +240,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -269,11 +266,11 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceID > 0){
-			final List<Map<String, Object>> recordMediaJunction = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
+			final List<Map<String, Object>> recordPersonNameJunction = Repository.findRelationships(EntityManager.NODE_LOCALIZED_PERSON_NAME,
+				localizedPersonNameID,
 				EntityManager.NODE_PERSON_NAME, filterReferenceID,
-				EntityManager.RELATIONSHIP_FOR, EntityManager.PROPERTY_TYPE, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
-			recordMediaJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordPersonNameID(record), localizedPersonNameID));
-			if(recordMediaJunction.size() > 1)
+				EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
+			if(recordPersonNameJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
 	}
@@ -347,7 +344,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		insertRecordType(selectedRecord, type);
 		insertRecordTranscription(selectedRecord, transcription);
 		insertRecordTranscriptionType(selectedRecord, transcriptionType);
-		updateRecordHash();
 
 		return true;
 	}
@@ -369,14 +365,13 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
-		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "personal name");
 		localizedPersonName1.put("family_name", "family name");
 		localizedPersonName1.put("locale", "en");
 		localizedPersonName1.put("type", "original");
 		localizedPersonName1.put("transcription", "IPA");
 		localizedPersonName1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1);
+		Repository.upsert(localizedPersonName1, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 
 
 		EventQueue.invokeLater(() -> {

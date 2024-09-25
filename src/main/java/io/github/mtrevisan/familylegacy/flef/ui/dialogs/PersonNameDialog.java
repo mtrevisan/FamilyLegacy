@@ -179,16 +179,16 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(personalNameLabel, personalNameField, this::saveData);
-		GUIHelper.bindLabelTextChangeUndo(familyNameLabel, familyNameField, this::saveData);
+		GUIHelper.bindLabelUndo(personalNameLabel, personalNameField);
+		GUIHelper.bindLabelUndo(familyNameLabel, familyNameField);
 		addMandatoryField(personalNameField, familyNameField);
-		GUIHelper.bindLabelTextChangeUndo(nameLocaleLabel, nameLocaleField, this::saveData);
+		GUIHelper.bindLabelUndo(nameLocaleLabel, nameLocaleField);
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME, EntityManager.NODE_PERSON_NAME, selectedRecord)));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 
 
 		noteButton.setToolTipText("Notes");
@@ -266,9 +266,6 @@ public final class PersonNameDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -370,7 +367,6 @@ public final class PersonNameDialog extends CommonListDialog{
 		insertRecordFamilyName(selectedRecord, familyName);
 		insertRecordLocale(selectedRecord, nameLocale);
 		insertRecordType(selectedRecord, type);
-		updateRecordHash();
 
 		return true;
 	}
@@ -399,52 +395,45 @@ public final class PersonNameDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> personName1 = new HashMap<>();
-		personName1.put("id", 1);
 		personName1.put("person_id", 1);
 		personName1.put("personal_name", "tòni");
 		personName1.put("family_name", "bruxatin");
 		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName1);
+		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName2 = new HashMap<>();
-		personName2.put("id", 2);
 		personName2.put("person_id", 1);
 		personName2.put("personal_name", "antonio");
 		personName2.put("family_name", "bruciatino");
 		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName2);
+		Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
 		localizedText1.put("text", "true name");
 		localizedText1.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
-		localizedText2.put("id", 2);
 		localizedText2.put("text", "fake name");
 		localizedText2.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
+		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", "person_name");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "person_name");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "person_name");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "person_name");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 
 		EventQueue.invokeLater(() -> {

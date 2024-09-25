@@ -169,37 +169,33 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
-		culturalNorm1.put("id", 1);
 		culturalNorm1.put("identifier", "rule 1 id");
 		culturalNorm1.put("description", "rule 1");
 		culturalNorm1.put("place_id", 1);
 		culturalNorm1.put("certainty", "certain");
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_CULTURAL_NORM, culturalNorm1);
+		Repository.upsert(culturalNorm1, EntityManager.NODE_CULTURAL_NORM);
 
 		final Map<String, Object> place1 = new HashMap<>();
-		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		Repository.save(EntityManager.NODE_PLACE, place1);
+		Repository.upsert(place1, EntityManager.NODE_PLACE);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
 		localizedText1.put("text", "place name 1");
 		localizedText1.put("locale", "en");
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
-		localizedText2.put("id", 2);
 		localizedText2.put("text", "place name 2");
 		localizedText2.put("locale", "en");
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "IPA");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
+		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
 		localizedTextJunction1.put("type", "name");

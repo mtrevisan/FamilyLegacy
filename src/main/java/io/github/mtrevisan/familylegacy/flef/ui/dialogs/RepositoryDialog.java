@@ -169,10 +169,10 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
+		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 
 		referencePersonButton.setToolTipText("Reference person");
 		referencePersonButton.addActionListener(e -> EventBusService.publish(
@@ -244,9 +244,6 @@ public final class RepositoryDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -335,7 +332,6 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		insertRecordIdentifier(selectedRecord, identifier);
 		insertRecordType(selectedRecord, type);
-		updateRecordHash();
 
 		return true;
 	}
@@ -352,25 +348,21 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		repository1.put("person_id", 1);
-		repository1.put("place_id", 2);
-		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
+repository1.put("person_id", 1);
+repository1.put("place_id", 2);
+		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
 		final Map<String, Object> repository2 = new HashMap<>();
-		repository2.put("id", 2);
 		repository2.put("identifier", "repo 2");
 		repository2.put("type", "college library");
-		Repository.save(EntityManager.NODE_REPOSITORY, repository2);
+		Repository.upsert(repository2, EntityManager.NODE_REPOSITORY);
 		final Map<String, Object> repository3 = new HashMap<>();
-		repository3.put("id", 3);
 		repository3.put("identifier", "repo 3");
 		repository3.put("type", "private library");
-		Repository.save(EntityManager.NODE_REPOSITORY, repository3);
+		Repository.upsert(repository3, EntityManager.NODE_REPOSITORY);
 
 		final Map<String, Object> place1 = new HashMap<>();
-		place1.put("id", 1);
 		place1.put("identifier", "place ident");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
@@ -378,73 +370,64 @@ public final class RepositoryDialog extends CommonListDialog{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		place1.put("photo_id", 1);
+place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
-		Repository.save(EntityManager.NODE_PLACE, place1);
+		Repository.upsert(place1, EntityManager.NODE_PLACE);
 		final Map<String, Object> place2 = new HashMap<>();
-		place2.put("id", 2);
 		place2.put("identifier", "another place ident");
 		place2.put("name", "name of another place");
 		place2.put("locale", "en-US");
 		place2.put("type", "custom");
-		Repository.save(EntityManager.NODE_PLACE, place2);
+		Repository.upsert(place2, EntityManager.NODE_PLACE);
 
 		final Map<String, Object> person1 = new HashMap<>();
-		person1.put("id", 1);
 		person1.put("photo_crop", "0 0 5 10");
-		Repository.save(EntityManager.NODE_PERSON, person1);
+		Repository.upsert(person1, EntityManager.NODE_PERSON);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
 		localizedText1.put("text", "place name 1");
 		localizedText1.put("locale", "en");
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
-		localizedText2.put("id", 2);
 		localizedText2.put("text", "place name 2");
 		localizedText2.put("locale", "en");
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "IPA");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
+		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText3 = new HashMap<>();
-		localizedText3.put("id", 3);
 		localizedText3.put("text", "true name");
 		localizedText3.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText3);
+		Repository.upsert(localizedText3, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> personName1 = new HashMap<>();
-		personName1.put("id", 1);
-		personName1.put("person_id", 1);
+personName1.put("person_id", 1);
 		personName1.put("personal_name", "personal name");
 		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName1);
+		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", "repository");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "repository");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		media1.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+media1.put("date_id", 1);
+		Repository.upsert(media1, EntityManager.NODE_MEDIA);
 
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
 		mediaJunction1.put("photo_crop", "0 0 10 20");
@@ -452,32 +435,29 @@ public final class RepositoryDialog extends CommonListDialog{
 			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "repository");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "repository");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("id", 1);
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
 		source1.put("author", "author 1 APA-style");
-		source1.put("place_id", 2);
-		source1.put("date_id", 1);
-		source1.put("repository_id", 1);
+source1.put("place_id", 2);
+source1.put("date_id", 1);
+source1.put("repository_id", 1);
 		source1.put("location", "location 1");
-		Repository.save(EntityManager.NODE_SOURCE, source1);
+		Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		final Map<String, Object> source2 = new HashMap<>();
-		source2.put("id", 2);
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2 APA-style");
-		source2.put("place_id", 2);
-		source2.put("date_id", 2);
-		source2.put("repository_id", 2);
+source2.put("place_id", 2);
+source2.put("date_id", 2);
+source2.put("repository_id", 2);
 		source2.put("location", "location 2");
-		Repository.save(EntityManager.NODE_SOURCE, source2);
+		Repository.upsert(source2, EntityManager.NODE_SOURCE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -519,9 +499,11 @@ public final class RepositoryDialog extends CommonListDialog{
 									: PlaceDialog.create(parent))
 								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
-							final Integer placeID = extractRecordPlaceID(container);
-							if(placeID != null)
-								placeDialog.selectData(placeID);
+							final List<Map<String, Object>> placeRecord = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+								EntityManager.NODE_REPOSITORY, repositoryID,
+								EntityManager.RELATIONSHIP_SUPPORTED_BY);
+							if(!placeRecord.isEmpty())
+								placeDialog.selectData(extractRecordID(placeRecord.getFirst()));
 
 							placeDialog.showDialog();
 						}

@@ -444,12 +444,12 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	protected void setButtonEnableAndBorder(final JButton button, final boolean hasData){
-		button.setEnabled(!showRecordOnly || !selectRecordOnly || hasData);
+		button.setEnabled(!selectRecordOnly || hasData);
 		GUIHelper.addBorder(button, hasData, DATA_BUTTON_BORDER_COLOR);
 	}
 
 	protected void setCheckBoxEnableAndBorder(final JCheckBox checkBox, final boolean isSelected){
-		checkBox.setEnabled(!showRecordOnly || !selectRecordOnly);
+		checkBox.setEnabled(!selectRecordOnly);
 		checkBox.setSelected(isSelected);
 	}
 
@@ -527,8 +527,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		}
 		else{
 			previousIndex = recordTable.getSelectedRow();
-
-			okAction(true);
 
 			final Map<String, Object> record = getSelectedRecord();
 			if(record == null)
@@ -612,7 +610,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		ignoreEvents = true;
 
 		//create a new record
-		final int nextRecordID = Repository.save(getTableName(), new HashMap<>());
+		final int nextRecordID = Repository.upsert(new HashMap<>(), getTableName());
 
 		//reset filter
 		filterField.setText(null);

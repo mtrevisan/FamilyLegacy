@@ -270,33 +270,19 @@ public class ChildrenPanel extends JPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		final Map<String, Object> person1 = new HashMap<>();
-		person1.put("id", 1);
-		Repository.save(EntityManager.NODE_PERSON, person1);
-		final Map<String, Object> person2 = new HashMap<>();
-		person2.put("id", 2);
-		Repository.save(EntityManager.NODE_PERSON, person2);
-		final Map<String, Object> person3 = new HashMap<>();
-		person3.put("id", 3);
-		Repository.save(EntityManager.NODE_PERSON, person3);
-		final Map<String, Object> person4 = new HashMap<>();
-		person4.put("id", 4);
-		Repository.save(EntityManager.NODE_PERSON, person4);
-		final Map<String, Object> person5 = new HashMap<>();
-		person5.put("id", 5);
-		Repository.save(EntityManager.NODE_PERSON, person5);
-		final Map<String, Object> person6 = new HashMap<>();
-		person6.put("id", 6);
-		Repository.save(EntityManager.NODE_PERSON, person6);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> group1 = new HashMap<>();
-		group1.put("id", 1);
 		group1.put("type", "family");
-		Repository.save(EntityManager.NODE_GROUP, group1);
+		Repository.upsert(group1, EntityManager.NODE_GROUP);
 		final Map<String, Object> group2 = new HashMap<>();
-		group2.put("id", 2);
 		group2.put("type", "family");
-		Repository.save(EntityManager.NODE_GROUP, group2);
+		Repository.upsert(group2, EntityManager.NODE_GROUP);
 
 		final Map<String, Object> groupJunction11 = new HashMap<>();
 		groupJunction11.put("role", "partner");
@@ -332,17 +318,15 @@ public class ChildrenPanel extends JPanel{
 			EntityManager.RELATIONSHIP_OF, groupJunction7, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();
-		event1.put("id", 1);
 		event1.put("type_id", 1);
-		event1.put("reference_table", "person");
-		event1.put("reference_id", 5);
-		Repository.save(EntityManager.NODE_EVENT, event1);
+event1.put("reference_table", "person");
+event1.put("reference_id", 5);
+		Repository.upsert(event1, EntityManager.NODE_EVENT);
 
 		final Map<String, Object> eventType1 = new HashMap<>();
-		eventType1.put("id", 1);
 		eventType1.put("type", "adoption");
 		eventType1.put("category", "adoption");
-		Repository.save(EntityManager.NODE_EVENT_TYPE, eventType1);
+		Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override

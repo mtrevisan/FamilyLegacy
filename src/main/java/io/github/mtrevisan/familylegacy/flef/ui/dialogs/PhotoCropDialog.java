@@ -215,7 +215,7 @@ public final class PhotoCropDialog extends JDialog{
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+		Repository.upsert(media1, EntityManager.NODE_MEDIA);
 
 
 		EventQueue.invokeLater(() -> {

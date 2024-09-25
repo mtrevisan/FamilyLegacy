@@ -192,30 +192,26 @@ public class HistoryPanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> modification1 = new HashMap<>();
-		modification1.put("id", 1);
-		modification1.put("reference_table", "person_name");
-		modification1.put("reference_id", 1);
-		modification1.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_MODIFICATION, modification1);
+modification1.put("reference_table", "person_name");
+modification1.put("reference_id", 1);
+		modification1.put("update_date", EntityManager.now());
+		Repository.upsert(modification1, EntityManager.NODE_MODIFICATION);
 		final Map<String, Object> modification2 = new HashMap<>();
-		modification2.put("id", 2);
-		modification2.put("reference_table", "person_name");
-		modification2.put("reference_id", 1);
+modification2.put("reference_table", "person_name");
+modification2.put("reference_id", 1);
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.save(EntityManager.NODE_MODIFICATION, modification2);
+		Repository.upsert(modification2, EntityManager.NODE_MODIFICATION);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "something to say");
-		note1.put("reference_table", "modification");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "modification");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "something more to say");
-		note2.put("reference_table", "modification");
-		note2.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "modification");
+note2.put("reference_id", 2);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

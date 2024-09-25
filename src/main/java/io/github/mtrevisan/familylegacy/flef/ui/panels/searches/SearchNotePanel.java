@@ -133,17 +133,15 @@ public class SearchNotePanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", "note");
-		note2.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "note");
+note2.put("reference_id", 2);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

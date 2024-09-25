@@ -56,8 +56,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -232,7 +230,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
@@ -266,11 +264,11 @@ public final class GroupDialog extends CommonListDialog{
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
-		GUIHelper.bindLabelTextChangeUndo(linkRoleLabel, linkRoleField, this::saveData);
+		GUIHelper.bindLabelUndo(linkRoleLabel, linkRoleField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCertaintyLabel, linkCertaintyComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(linkCertaintyLabel, linkCertaintyComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCredibilityLabel, linkCredibilityComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(linkCredibilityLabel, linkCredibilityComboBox);
 	}
 
 	@Override
@@ -334,9 +332,6 @@ public final class GroupDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -373,10 +368,9 @@ public final class GroupDialog extends CommonListDialog{
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final List<Map<String, Object>> recordGroupJunction = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+			final List<Map<String, Object>> recordGroupJunction = Repository.findRelationships(EntityManager.NODE_GROUP, groupID,
 				filterReferenceTable, filterReferenceID,
 				EntityManager.RELATIONSHIP_OF);
-			recordGroupJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordGroupID(record), groupID));
 			if(recordGroupJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -444,7 +438,6 @@ public final class GroupDialog extends CommonListDialog{
 		}
 
 		insertRecordType(selectedRecord, type);
-		updateRecordHash();
 
 		return true;
 	}
@@ -552,31 +545,25 @@ public final class GroupDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> group1 = new HashMap<>();
-		group1.put("id", 1);
 		group1.put("type", "family");
-		group1.put("photo_id", 1);
+group1.put("photo_id", 1);
 		group1.put("photo_crop", "0 0 10 20");
-		Repository.save(EntityManager.NODE_GROUP, group1);
+		Repository.upsert(group1, EntityManager.NODE_GROUP);
 		final Map<String, Object> group2 = new HashMap<>();
-		group2.put("id", 2);
 		group2.put("type", "neighborhood");
-		Repository.save(EntityManager.NODE_GROUP, group2);
+		Repository.upsert(group2, EntityManager.NODE_GROUP);
 
-		final Map<String, Object> person1 = new HashMap<>();
-		person1.put("id", 1);
-		Repository.save(EntityManager.NODE_PERSON, person1);
-		final Map<String, Object> person2 = new HashMap<>();
-		person2.put("id", 2);
-		Repository.save(EntityManager.NODE_PERSON, person2);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> groupJunction1 = new HashMap<>();
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1),
-			EntityManager.NODE_PERSON, extractRecordID(person1),
+			EntityManager.NODE_PERSON, 1,
 			EntityManager.RELATIONSHIP_OF, groupJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction2 = new HashMap<>();
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2),
-			EntityManager.NODE_PERSON, extractRecordID(person2),
+			EntityManager.NODE_PERSON, 2,
 			EntityManager.RELATIONSHIP_OF, groupJunction2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupJunction3 = new HashMap<>();
@@ -589,80 +576,69 @@ public final class GroupDialog extends CommonListDialog{
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();
-		personName1.put("id", 1);
-		personName1.put("person_id", 1);
+personName1.put("person_id", 1);
 		personName1.put("personal_name", "personal name 1");
 		personName1.put("family_name", "family name 1");
 		personName1.put("type", "birth name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName1);
+		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName2 = new HashMap<>();
-		personName2.put("id", 2);
-		personName2.put("person_id", 1);
+personName2.put("person_id", 1);
 		personName2.put("personal_name", "personal name 2");
 		personName2.put("family_name", "family name 2");
 		personName2.put("type", "death name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName2);
+		Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName3 = new HashMap<>();
-		personName3.put("id", 3);
-		personName3.put("person_id", 2);
+personName3.put("person_id", 2);
 		personName3.put("personal_name", "personal name 3");
 		personName3.put("family_name", "family name 3");
 		personName3.put("type", "other name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName3);
+		Repository.upsert(personName3, EntityManager.NODE_PERSON_NAME);
 
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
-		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
 		localizedPersonName1.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1);
+		Repository.upsert(localizedPersonName1, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
-		localizedPersonName2.put("id", 2);
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
 		localizedPersonName2.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName2);
+		Repository.upsert(localizedPersonName2, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
-		localizedPersonName3.put("id", 3);
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
 		localizedPersonName3.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName3);
+		Repository.upsert(localizedPersonName3, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", "group");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "group");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
 		media1.put("identifier", "/images/addPhoto.boy.jpg");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+		Repository.upsert(media1, EntityManager.NODE_MEDIA);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "group");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "group");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 		final Map<String, Object> modification1 = new HashMap<>();
-		modification1.put("id", 1);
-		modification1.put("reference_table", "group");
-		modification1.put("reference_id", 2);
-		modification1.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
-		Repository.save(EntityManager.NODE_MODIFICATION, modification1);
+modification1.put("reference_table", "group");
+modification1.put("reference_id", 2);
+		modification1.put("creation_date", EntityManager.now());
+		Repository.upsert(modification1, EntityManager.NODE_MODIFICATION);
 
 
 		EventQueue.invokeLater(() -> {

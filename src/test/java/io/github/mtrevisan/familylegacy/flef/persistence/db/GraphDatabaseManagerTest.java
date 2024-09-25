@@ -65,10 +65,9 @@ class GraphDatabaseManagerTest{
 		Assertions.assertEquals(0, GraphDatabaseManager.count("Car"));
 
 		Map<String, Object> carRecord = new HashMap<>(3);
-		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert(carRecord, "Car");
+		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 
 		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", 1);
@@ -86,13 +85,12 @@ class GraphDatabaseManagerTest{
 		GraphDatabaseManager.clearDatabase();
 
 		Map<String, Object> carRecord = new HashMap<>(3);
-		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert(carRecord, "Car");
+		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 		carRecord.put("model", "model4");
-		GraphDatabaseManager.update("Car", "id", carRecord);
+		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 
 		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", 1);
@@ -110,16 +108,14 @@ class GraphDatabaseManagerTest{
 		GraphDatabaseManager.clearDatabase();
 
 		Map<String, Object> carRecord = new HashMap<>(3);
-		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert(carRecord, "Car");
+		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
-		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert(ownerRecord, "Person");
+		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
@@ -139,16 +135,14 @@ class GraphDatabaseManagerTest{
 		GraphDatabaseManager.clearDatabase();
 
 		Map<String, Object> carRecord = new HashMap<>(3);
-		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert(carRecord, "Car");
+		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
-		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert(ownerRecord, "Person");
+		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
 		Map<String, Object> relationshipRecord = new HashMap<>(1);
 		relationshipRecord.put("licenseID", 12345);
@@ -170,16 +164,14 @@ class GraphDatabaseManagerTest{
 		GraphDatabaseManager.clearDatabase();
 
 		Map<String, Object> carRecord = new HashMap<>(3);
-		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert(carRecord, "Car");
+		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
-		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert(ownerRecord, "Person");
+		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
@@ -203,16 +195,14 @@ class GraphDatabaseManagerTest{
 		GraphDatabaseManager.clearDatabase();
 
 		Map<String, Object> carRecord = new HashMap<>(3);
-		carRecord.put("id", 1);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.insert(carRecord, "Car");
+		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 		Map<String, Object> ownerRecord = new HashMap<>(3);
-		ownerRecord.put("id", 2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.insert(ownerRecord, "Person");
+		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
 		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
 			"Car", "id", 1,
@@ -238,16 +228,14 @@ class GraphDatabaseManagerTest{
 //		GraphDatabaseManager.clearDatabase();
 //
 //		Map<String, Object> carRecord = new HashMap<>(3);
-//		carRecord.put("id", 1);
 //		carRecord.put("make", "tesla");
 //		carRecord.put("model", "model3");
-//		GraphDatabaseManager.insert("Car", carRecord);
+//		GraphDatabaseManager.upsert("Car", carRecord);
 //
 //		Map<String, Object> ownerRecord = new HashMap<>(3);
-//		ownerRecord.put("id", 2);
 //		ownerRecord.put("firstName", "baeldung");
 //		ownerRecord.put("lastName", "baeldung");
-//		GraphDatabaseManager.insert("Person", ownerRecord);
+//		GraphDatabaseManager.upsert("Person", ownerRecord);
 //
 //		Map<String, Object> relationshipRecord = new HashMap<>(1);
 //		relationshipRecord.put("licenseID", 12345);

@@ -219,23 +219,23 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	@Override
 	protected void initRecordComponents(){
 		if(simplePrimaryText){
-			GUIHelper.bindLabelTextChangeUndo(textLabel, simpleTextField, this::saveData);
+			GUIHelper.bindLabelUndo(textLabel, simpleTextField);
 			addMandatoryField(simpleTextField);
 		}
 		else{
-			GUIHelper.bindLabelTextChange(textLabel, textTextPreview, this::saveData);
+			GUIHelper.bindLabel(textLabel, textTextPreview);
 			textTextPreview.setTextViewFont(textLabel.getFont());
 			textTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 			textTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 		}
 
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
+		GUIHelper.bindLabelUndo(localeLabel, localeField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, referenceTypeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, referenceTypeComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionLabel, transcriptionComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(transcriptionLabel, transcriptionComboBox);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(transcriptionTypeLabel, transcriptionTypeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(transcriptionTypeLabel, transcriptionTypeComboBox);
 	}
 
 	@Override
@@ -288,9 +288,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -379,7 +376,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		insertRecordLocale(selectedRecord, locale);
 		insertRecordTranscription(selectedRecord, transcription);
 		insertRecordTranscriptionType(selectedRecord, transcriptionType);
-		updateRecordHash();
 
 		return true;
 	}
@@ -402,25 +398,22 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
 		localizedText1.put("text", "text 1");
 		localizedText1.put("locale", "en");
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> citation1 = new HashMap<>();
-		citation1.put("id", 1);
-		citation1.put("source_id", 1);
+citation1.put("source_id", 1);
 		citation1.put("location", "here");
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_CITATION, citation1);
+		Repository.upsert(citation1, EntityManager.NODE_CITATION);
 
 		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("id", 1);
 		localizedTextJunction1.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_CITATION, extractRecordID(citation1),

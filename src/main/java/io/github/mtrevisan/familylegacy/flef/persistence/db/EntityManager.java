@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 
@@ -78,6 +80,7 @@ public class EntityManager{
 	public static final String RELATIONSHIP_CHANGELOG_FOR = "changelog_for";
 	public static final String NODE_RESEARCH_STATUS = "research_status";
 	public static final String NODE_PROJECT = "project";
+	public static final String NODE_APPLICATION = "application";
 
 	public static final String SEX_MALE = "male";
 	public static final String SEX_FEMALE = "female";
@@ -102,6 +105,11 @@ public class EntityManager{
 
 
 	private EntityManager(){}
+
+
+	public static String now(){
+		return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now());
+	}
 
 
 	public static Integer extractRecordID(final Map<String, Object> record){

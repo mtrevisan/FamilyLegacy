@@ -159,52 +159,46 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> citation1 = new HashMap<>();
-		citation1.put("id", 1);
 		citation1.put("source_id", 1);
 		citation1.put("location", "here");
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_CITATION, citation1);
+		Repository.upsert(citation1, EntityManager.NODE_CITATION);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
-		assertion1.put("id", 1);
 		assertion1.put("citation_id", 1);
-		assertion1.put("reference_table", "table");
-		assertion1.put("reference_id", 1);
+assertion1.put("reference_table", "table");
+assertion1.put("reference_id", 1);
 		assertion1.put("role", "father");
 		assertion1.put("certainty", "certain");
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
+		Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
 
 		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("id", 1);
 		source1.put("repository_id", 1);
 		source1.put("identifier", "source 1");
-		Repository.save(EntityManager.NODE_SOURCE, source1);
+		Repository.upsert(source1, EntityManager.NODE_SOURCE);
 
 		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
+		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
 		localizedText1.put("text", "text 1");
 		localizedText1.put("locale", "it");
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
-		localizedText2.put("id", 2);
 		localizedText2.put("text", "text 2");
 		localizedText2.put("locale", "en");
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "kana");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
+		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> localizedTextJunction = new HashMap<>();
 		localizedTextJunction.put("type", "extract");
@@ -214,17 +208,15 @@ public class SearchCitationPanel extends CommonSearchPanel{
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", "citation");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "citation");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

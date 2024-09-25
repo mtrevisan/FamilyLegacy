@@ -163,13 +163,13 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> researchStatus1 = new HashMap<>();
-		researchStatus1.put("reference_table", "date");
-		researchStatus1.put("reference_id", 1);
+researchStatus1.put("reference_table", "date");
+researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "research 1");
 		researchStatus1.put("description", "see people, do things");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 2);
-		Repository.save(EntityManager.NODE_RESEARCH_STATUS, researchStatus1);
+		Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

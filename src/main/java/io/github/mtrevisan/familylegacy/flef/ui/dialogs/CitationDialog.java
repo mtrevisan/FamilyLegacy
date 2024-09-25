@@ -67,8 +67,8 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
+import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtract;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordExtractType;
@@ -184,20 +184,20 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, this::saveData);
+		GUIHelper.bindLabelUndo(locationLabel, locationField);
 
-		GUIHelper.bindLabelTextChange(extractLabel, extractTextPreview, this::saveData);
+		GUIHelper.bindLabel(extractLabel, extractTextPreview);
 		extractTextPreview.setTextViewFont(extractLabel.getFont());
 		extractTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 		extractTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 
-		GUIHelper.bindLabelTextChangeUndo(extractLocaleLabel, extractLocaleField, this::saveData);
+		GUIHelper.bindLabelUndo(extractLocaleLabel, extractLocaleField);
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
 		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, EntityManager.NODE_CITATION, selectedRecord)));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(extractTypeLabel, extractTypeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(extractTypeLabel, extractTypeComboBox);
 
 
 		noteButton.setToolTipText("Notes");
@@ -245,21 +245,18 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_CITATION);
-		if(filterSourceID != null){
-			final List<Integer> ids = records.stream()
-				.filter(entry -> !filterSourceID.equals(extractRecordSourceID(entry)))
-				.map(EntityManager::extractRecordID)
-				.toList();
-			Repository.deleteNodes(EntityManager.NODE_CITATION, ids);
-		}
+		final List<Map<String, Object>> records = (filterSourceID == null
+			? Repository.findAll(EntityManager.NODE_CITATION)
+			: Repository.findReferencingNodes(EntityManager.NODE_CITATION,
+			EntityManager.NODE_SOURCE, filterSourceID,
+			EntityManager.RELATIONSHIP_QUOTES));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map<String, Object> record : records){
 			final Integer recordID = extractRecordID(record);
-			final String sourceIdentifier = extractRecordSourceIdentifier(record);
+			final String sourceIdentifier = extractRecordSourceIdentifier(recordID);
 			final String location = extractRecordLocation(record);
 			final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
 			identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
@@ -280,9 +277,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -368,7 +362,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 			if(model.getValueAt(modelRowIndex, TABLE_INDEX_ID).equals(recordID)){
 				final Map<String, Object> updatedCitationRecord = Repository.findByID(EntityManager.NODE_CITATION, recordID);
-				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
+				final String sourceIdentifier = extractRecordSourceIdentifier(extractRecordID(updatedCitationRecord));
 				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
 				identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
@@ -387,7 +381,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		insertRecordExtractLocale(selectedRecord, extractLocale);
 		if(extractType != null && !extractType.isEmpty())
 			insertRecordExtractType(selectedRecord, extractType);
-		updateRecordHash();
 
 		return true;
 	}
@@ -397,16 +390,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	private String extractRecordSourceIdentifier(final Map<String, Object> citationRecord){
-		final Integer sourceID = extractRecordSourceID(citationRecord);
-		if(sourceID == null)
+	private String extractRecordSourceIdentifier(final Integer citationID){
+		final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
+			EntityManager.NODE_CITATION, citationID,
+			EntityManager.RELATIONSHIP_QUOTES);
+		if(referencedNode == null || !referencedNode.getKey().equals(EntityManager.NODE_SOURCE))
 			return null;
 
-		final Map<String, Object> source = Repository.findByID(EntityManager.NODE_SOURCE, sourceID);
-		if(source == null)
-			return null;
-
-		return (String)source.get("identifier");
+		final Map<String, Object> source = referencedNode.getValue();
+		return extractRecordIdentifier(source);
 	}
 
 
@@ -420,80 +412,81 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		final Map<String, Object> repository1 = new HashMap<>();
+		repository1.put("identifier", "repo 1");
+		repository1.put("type", "public library");
+		int repository1ID = Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("identifier", "source 1");
+		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+
 		final Map<String, Object> citation1 = new HashMap<>();
-		citation1.put("id", 1);
-		citation1.put("source_id", 1);
 		citation1.put("location", "here");
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_CITATION, citation1);
+		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
+		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
-		assertion1.put("id", 1);
-		assertion1.put("citation_id", 1);
-		assertion1.put("reference_table", "table");
-		assertion1.put("reference_id", 1);
 		assertion1.put("role", "father");
 		assertion1.put("certainty", "certain");
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
-
-		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("id", 1);
-		source1.put("repository_id", 1);
-		source1.put("identifier", "source 1");
-		Repository.save(EntityManager.NODE_SOURCE, source1);
-
-		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("id", 1);
-		repository1.put("identifier", "repo 1");
-		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
+		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
+		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
 		localizedText1.put("text", "text 1");
 		localizedText1.put("locale", "it");
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		int localizedText1ID = Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
-		localizedText2.put("id", 2);
 		localizedText2.put("text", "text 2");
 		localizedText2.put("locale", "en");
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "kana");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
+		int localizedText2ID = Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> localizedTextJunction = new HashMap<>();
 		localizedTextJunction.put("type", "extract");
-		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
-			EntityManager.NODE_CITATION, extractRecordID(citation1),
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText1ID,
+			EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText2ID,
+			EntityManager.NODE_CITATION, citation1ID,
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
-		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
-		note2.put("note", "note 2");
-		note2.put("reference_table", "citation");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "citation");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.RELATIONSHIP_FOR, restriction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {

@@ -233,9 +233,6 @@ public final class PersonDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -329,82 +326,71 @@ public final class PersonDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> person1 = new HashMap<>();
-		person1.put("id", 1);
-		person1.put("photo_id", 3);
+person1.put("photo_id", 3);
 		person1.put("photo_crop", "0 0 5 10");
-		Repository.save(EntityManager.NODE_PERSON, person1);
+		Repository.upsert(person1, EntityManager.NODE_PERSON);
 
 		final Map<String, Object> personName1 = new HashMap<>();
-		personName1.put("id", 1);
-		personName1.put("person_id", 1);
+personName1.put("person_id", 1);
 		personName1.put("personal_name", "tòni");
 		personName1.put("family_name", "bruxatin");
 		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName1);
+		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName2 = new HashMap<>();
-		personName2.put("id", 2);
-		personName2.put("person_id", 1);
+personName2.put("person_id", 1);
 		personName2.put("personal_name", "antonio");
 		personName2.put("family_name", "bruciatino");
 		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
-		Repository.save(EntityManager.NODE_PERSON_NAME, personName2);
+		Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
-		localizedText1.put("id", 1);
 		localizedText1.put("text", "true name");
 		localizedText1.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText1);
+		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
-		localizedText2.put("id", 2);
 		localizedText2.put("text", "fake name");
 		localizedText2.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_TEXT, localizedText2);
+		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
-		localizedPersonName1.put("id", 1);
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
 		localizedPersonName1.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1);
+		Repository.upsert(localizedPersonName1, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
-		localizedPersonName2.put("id", 2);
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
 		localizedPersonName2.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName2);
+		Repository.upsert(localizedPersonName2, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
-		localizedPersonName3.put("id", 3);
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
 		localizedPersonName3.put("locale", "en");
-		Repository.save(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName3);
+		Repository.upsert(localizedPersonName3, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 
 		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		media1.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+media1.put("date_id", 1);
+		Repository.upsert(media1, EntityManager.NODE_MEDIA);
 		final Map<String, Object> media2 = new HashMap<>();
-		media2.put("id", 2);
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-		media2.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media2);
+media2.put("date_id", 1);
+		Repository.upsert(media2, EntityManager.NODE_MEDIA);
 		final Map<String, Object> media3 = new HashMap<>();
-		media3.put("id", 3);
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-		media3.put("date_id", 1);
-		Repository.save(EntityManager.NODE_MEDIA, media3);
+media3.put("date_id", 1);
+		Repository.upsert(media3, EntityManager.NODE_MEDIA);
 
 		final Map<String, Object> mediaJunction1 = new HashMap<>();
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media1), EntityManager.NODE_PERSON, 1,
@@ -418,24 +404,21 @@ public final class PersonDialog extends CommonListDialog{
 			EntityManager.RELATIONSHIP_FOR, mediaJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", "person");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "person");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "person");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "person");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 
 		EventQueue.invokeLater(() -> {

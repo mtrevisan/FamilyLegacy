@@ -191,12 +191,12 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChange(noteLabel, noteTextPreview, this::saveData);
+		GUIHelper.bindLabel(noteLabel, noteTextPreview);
 		noteTextPreview.setTextViewFont(noteLabel.getFont());
 		noteTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 		noteTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
 
-		GUIHelper.bindLabelTextChangeUndo(localeLabel, localeField, this::saveData);
+		GUIHelper.bindLabelUndo(localeLabel, localeField);
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
@@ -253,9 +253,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -329,7 +326,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		insertRecordNote(selectedRecord, note);
 		insertRecordLocale(selectedRecord, locale);
-		updateRecordHash();
 
 		return true;
 	}
@@ -351,24 +347,21 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 2");
-		note2.put("reference_table", "note");
-		note2.put("reference_id", 2);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "note");
+note2.put("reference_id", 2);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "note");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "note");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 
 		EventQueue.invokeLater(() -> {

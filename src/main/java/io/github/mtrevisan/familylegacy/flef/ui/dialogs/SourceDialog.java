@@ -72,7 +72,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordAuthor;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRepositoryID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
@@ -196,12 +195,12 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
+		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
 		addMandatoryField(identifierField);
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(typeLabel, typeComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 
-		GUIHelper.bindLabelTextChangeUndo(authorLabel, authorField, this::saveData);
+		GUIHelper.bindLabelUndo(authorLabel, authorField);
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
@@ -211,7 +210,7 @@ public final class SourceDialog extends CommonListDialog{
 		dateButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_SOURCE, selectedRecord)));
 
-		GUIHelper.bindLabelTextChangeUndo(locationLabel, locationField, this::saveData);
+		GUIHelper.bindLabelUndo(locationLabel, locationField);
 
 
 		noteButton.setToolTipText("Notes");
@@ -281,9 +280,6 @@ public final class SourceDialog extends CommonListDialog{
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -380,7 +376,6 @@ public final class SourceDialog extends CommonListDialog{
 		insertRecordAuthor(selectedRecord, author);
 		insertRecordRepositoryID(selectedRecord, filterRepositoryID);
 		insertRecordLocation(selectedRecord, location);
-		updateRecordHash();
 
 		return true;
 	}
@@ -397,48 +392,42 @@ public final class SourceDialog extends CommonListDialog{
 
 		GraphDatabaseManager.clearDatabase();
 		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("id", 1);
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
 		source1.put("author", "author 1 APA-style");
 		source1.put("place_id", 1);
 		source1.put("date_id", 1);
 		source1.put("location", "location 1");
-		Repository.save(EntityManager.NODE_SOURCE, source1);
+		Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		final Map<String, Object> source2 = new HashMap<>();
-		source2.put("id", 2);
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2 APA-style");
 		source2.put("location", "location 2");
-		Repository.save(EntityManager.NODE_SOURCE, source2);
+		Repository.upsert(source2, EntityManager.NODE_SOURCE);
 
 		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("id", 1);
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.save(EntityManager.NODE_REPOSITORY, repository1);
+		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
 
 		final Map<String, Object> citation1 = new HashMap<>();
-		citation1.put("id", 1);
 		citation1.put("source_id", 2);
 		citation1.put("location", "here");
 		citation1.put("extract", "text 2");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
-		Repository.save(EntityManager.NODE_CITATION, citation1);
+		Repository.upsert(citation1, EntityManager.NODE_CITATION);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
-		historicDate1.put("id", 1);
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_HISTORIC_DATE, historicDate1);
+		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 
 		final Map<String, Object> place1 = new HashMap<>();
-		place1.put("id", 1);
 		place1.put("identifier", "place");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
@@ -446,27 +435,24 @@ public final class SourceDialog extends CommonListDialog{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.save(EntityManager.NODE_PLACE, place1);
+		Repository.upsert(place1, EntityManager.NODE_PLACE);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
+note1.put("reference_table", "person");
+note1.put("reference_id", 1);
+		Repository.upsert(note1, EntityManager.NODE_NOTE);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
 		note2.put("note", "note 1");
-		note2.put("reference_table", "source");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+note2.put("reference_table", "source");
+note2.put("reference_id", 1);
+		Repository.upsert(note2, EntityManager.NODE_NOTE);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "source");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
+restriction1.put("reference_table", "source");
+restriction1.put("reference_id", 1);
+		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 
 
 		EventQueue.invokeLater(() -> {
@@ -490,12 +476,13 @@ public final class SourceDialog extends CommonListDialog{
 					final int sourceID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
+							final PlaceDialog placeDialog = PlaceDialog.create(parent);
 							placeDialog.loadData();
-							final Integer placeID = extractRecordPlaceID(container);
-							if(placeID != null)
-								placeDialog.selectData(placeID);
+							final List<Map<String, Object>> placeRecord = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+								EntityManager.NODE_SOURCE, sourceID,
+								EntityManager.RELATIONSHIP_SUPPORTED_BY);
+							if(!placeRecord.isEmpty())
+								placeDialog.selectData(extractRecordID(placeRecord.getFirst()));
 
 							placeDialog.showDialog();
 						}

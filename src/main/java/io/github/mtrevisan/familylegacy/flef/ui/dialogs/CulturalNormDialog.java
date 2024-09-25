@@ -67,13 +67,9 @@ import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateEndID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateStartID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDescription;
@@ -215,12 +211,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected void initRecordComponents(){
-		GUIHelper.bindLabelTextChangeUndo(identifierLabel, identifierField, this::saveData);
+		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
 		addMandatoryField(identifierField);
 		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 		descriptionTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
-		GUIHelper.bindLabelTextChange(descriptionLabel, descriptionTextPreview, this::saveData);
+		GUIHelper.bindLabel(descriptionLabel, descriptionTextPreview);
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
@@ -234,8 +230,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		dateEndButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(certaintyLabel, certaintyComboBox, this::saveData);
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(credibilityLabel, credibilityComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
+		GUIHelper.bindLabelUndoAutoComplete(credibilityLabel, credibilityComboBox);
 
 
 		noteButton.setToolTipText("Notes");
@@ -257,8 +253,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCertaintyLabel, linkCertaintyComboBox, this::saveData);
-		GUIHelper.bindLabelUndoSelectionAutoCompleteChange(linkCredibilityLabel, linkCredibilityComboBox, this::saveData);
+		GUIHelper.bindLabelUndoAutoComplete(linkCertaintyLabel, linkCertaintyComboBox);
+		GUIHelper.bindLabelUndoAutoComplete(linkCredibilityLabel, linkCredibilityComboBox);
 	}
 
 	@Override
@@ -317,9 +313,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 			row ++;
 		}
-
-		if(selectRecordOnly)
-			selectFirstData();
 	}
 
 	@Override
@@ -333,9 +326,13 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Integer culturalNormID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
-		final Integer placeID = extractRecordPlaceID(selectedRecord);
-		final Integer dateStartID = extractRecordDateStartID(selectedRecord);
-		final Integer dateEndID = extractRecordDateEndID(selectedRecord);
+		final boolean hasPlace = Repository.hasReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+			EntityManager.NODE_PLACE,
+			EntityManager.RELATIONSHIP_SUPPORTED_BY);
+		final boolean hasDateStart = Repository.hasReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+			EntityManager.NODE_HISTORIC_DATE, EntityManager.RELATIONSHIP_STARTED_ON);
+		final boolean hasDateEnd = Repository.hasReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+			EntityManager.NODE_HISTORIC_DATE, EntityManager.RELATIONSHIP_ENDED_ON);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
@@ -346,9 +343,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		identifierField.setText(identifier);
 		descriptionTextPreview.setText("Cultural norm " + culturalNormID, description, null);
-		setButtonEnableAndBorder(placeButton, placeID != null);
-		setButtonEnableAndBorder(dateStartButton, dateStartID != null);
-		setButtonEnableAndBorder(dateEndButton, dateEndID != null);
+		setButtonEnableAndBorder(placeButton, hasPlace);
+		setButtonEnableAndBorder(dateStartButton, hasDateStart);
+		setButtonEnableAndBorder(dateEndButton, hasDateEnd);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
 
@@ -361,10 +358,10 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final List<Map<String, Object>> recordCulturalNormJunction = Repository.findReferencingNodes(EntityManager.NODE_CULTURAL_NORM,
+			final List<Map<String, Object>> recordCulturalNormJunction = Repository.findRelationships(EntityManager.NODE_CULTURAL_NORM,
+				culturalNormID,
 				filterReferenceTable, filterReferenceID,
 				EntityManager.RELATIONSHIP_SUPPORTED_BY);
-			recordCulturalNormJunction.removeIf(record -> !Objects.equals(EntityManager.extractRecordCulturalNormID(record), culturalNormID));
 			if(recordCulturalNormJunction.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -426,6 +423,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final String certainty = GUIHelper.getTextTrimmed(certaintyComboBox);
 		final String credibility = GUIHelper.getTextTrimmed(credibilityComboBox);
 
+		final Integer recordID = extractRecordID(selectedRecord);
 		if(filterReferenceTable != null){
 			//read link panel:
 			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
@@ -435,7 +433,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 				selectedRecordLink = new HashMap<>(2);
 			insertRecordCertainty(selectedRecordLink, linkCertainty);
 			insertRecordCredibility(selectedRecordLink, linkCredibility);
-			Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, extractRecordID(selectedRecord),
+			Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
 				filterReferenceTable, filterReferenceID,
 				EntityManager.RELATIONSHIP_FOR, selectedRecordLink, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
@@ -443,7 +441,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
 			final DefaultTableModel model = getRecordTableModel();
-			final Integer recordID = extractRecordID(selectedRecord);
 			for(int row = 0, length = model.getRowCount(); row < length; row ++){
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);
 				final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
@@ -460,7 +457,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		insertRecordDescription(selectedRecord, description);
 		insertRecordCertainty(selectedRecord, certainty);
 		insertRecordCredibility(selectedRecord, credibility);
-		updateRecordHash();
 
 		return true;
 	}
@@ -481,80 +477,70 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
-		culturalNorm1.put("id", 1);
 		culturalNorm1.put("identifier", "rule 1 id");
 		culturalNorm1.put("description", "rule 1");
-		culturalNorm1.put("place_id", 1);
-		culturalNorm1.put("date_start_id", 1);
-		culturalNorm1.put("date_end_id", 1);
 		culturalNorm1.put("certainty", "certain");
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_CULTURAL_NORM, culturalNorm1);
+		int culturalNorm1ID = Repository.upsert(culturalNorm1, EntityManager.NODE_CULTURAL_NORM);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
-		assertion1.put("id", 1);
-		assertion1.put("citation_id", 1);
-		assertion1.put("reference_table", "table");
-		assertion1.put("reference_id", 1);
 		assertion1.put("role", "father");
 		assertion1.put("certainty", "certain");
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.save(EntityManager.NODE_ASSERTION, assertion1);
+		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
 
 		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
-		culturalNormJunction1.put("id", 1);
 		culturalNormJunction1.put("certainty", "probable");
 		culturalNormJunction1.put("credibility", "probable");
-		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, extractRecordID(culturalNorm1),
-			EntityManager.NODE_ASSERTION, extractRecordID(assertion1),
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
 			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> place1 = new HashMap<>();
-		place1.put("id", 1);
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		Repository.save(EntityManager.NODE_PLACE, place1);
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> date1 = new HashMap<>();
-		date1.put("id", 1);
 		date1.put("date", "18 OCT 2000");
-		Repository.save(EntityManager.NODE_HISTORIC_DATE, date1);
+		int date1ID = Repository.upsert(date1, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_STARTED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_ENDED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
-		note1.put("id", 1);
 		note1.put("note", "note 1");
-		note1.put("reference_table", "person");
-		note1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note1);
-		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("id", 2);
-		note2.put("note", "note 1");
-		note2.put("reference_table", "cultural_norm");
-		note2.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_NOTE, note2);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("id", 1);
 		restriction1.put("restriction", "confidential");
-		restriction1.put("reference_table", "cultural_norm");
-		restriction1.put("reference_id", 1);
-		Repository.save(EntityManager.NODE_RESTRICTION, restriction1);
-
-		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
-		media1.put("identifier", "custom media");
-		Repository.save(EntityManager.NODE_MEDIA, media1);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-//			final CulturalNormDialog dialog = create(parent);
-			final CulturalNormDialog dialog = createShowOnly(parent)
-				.withReference(EntityManager.NODE_CULTURAL_NORM, 1);
-			dialog.loadData(1);
+			final CulturalNormDialog dialog = create(parent);
+//			final CulturalNormDialog dialog = createShowOnly(parent)
+//				.withReference(EntityManager.NODE_CULTURAL_NORM, 1);
+			dialog.loadData();
+//			dialog.loadData(1);
 //			if(!dialog.selectData(extractRecordID(culturalNorm)))
 //				dialog.showNewRecord();
 
@@ -582,18 +568,22 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent);
 							placeDialog.loadData();
-							final Integer placeID = extractRecordPlaceID(container);
-							if(placeID != null)
-								placeDialog.selectData(placeID);
+							final List<Map<String, Object>> placeRecord = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+								EntityManager.RELATIONSHIP_SUPPORTED_BY);
+							if(!placeRecord.isEmpty())
+								placeDialog.selectData(extractRecordID(placeRecord.getFirst()));
 
 							placeDialog.showDialog();
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
-							final Integer dateID = extractRecordDateID(container);
-							if(dateID != null)
-								historicDateDialog.selectData(dateID);
+							final List<Map<String, Object>> dateStartRecord = Repository.findReferencingNodes(EntityManager.NODE_HISTORIC_DATE,
+								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+								EntityManager.RELATIONSHIP_STARTED_ON);
+							if(!dateStartRecord.isEmpty())
+								historicDateDialog.selectData(extractRecordID(dateStartRecord.getFirst()));
 
 							historicDateDialog.showDialog();
 						}

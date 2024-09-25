@@ -37,8 +37,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.SQLException;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -446,7 +444,7 @@ public final class Main{
 		insertRecordProtocolName(flefProject, EntityManager.PROTOCOL_NAME_DEFAULT);
 		insertRecordProtocolVersion(flefProject, EntityManager.PROTOCOL_VERSION_DEFAULT);
 		insertRecordCopyright(flefProject, "(c) 2024 Mauro Trevisan");
-		insertRecordCreationDate(flefProject, DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now()));
+		insertRecordCreationDate(flefProject, EntityManager.now());
 	}
 
 	private static void transferCalendar(final Map<String, List<Map<String, Object>>> output){
@@ -598,8 +596,8 @@ public final class Main{
 		flefNotes.add(flefNote);
 		insertRecordID(flefNote, 20_000);
 		insertRecordNote(flefNote, "Codice di Diritto Canonico 1917\\r\\nhttps://www.ecclesiadei.it/wp-content/uploads/2021/01/Codice-Diritto-Canonico-1917.pdf\\r\\npag. 102");
-		flefNote.put("reference_table", "cultural_norm");
-		flefNote.put("reference_id", 7);
+flefNote.put("reference_table", "cultural_norm");
+flefNote.put("reference_id", 7);
 
 		//età matrimonio
 		//http://www.appuntigiurisprudenza.it/diritto-ecclesiastico/gli-impedimenti-al-matrimonio-canonico-nello-specifico.html

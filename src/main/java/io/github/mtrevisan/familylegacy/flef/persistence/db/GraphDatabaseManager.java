@@ -51,7 +51,6 @@ import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
@@ -79,24 +78,38 @@ public class GraphDatabaseManager{
 	private static final String PROPERTY_ON_DELETE_END = PROPERTY_ON_DELETE + "End";
 
 	private static final String QUERY_PARAMETER_NODE = "n";
+	private static final String QUERY_PARAMETER_NODE1 = "a";
+	private static final String QUERY_PARAMETER_NODE2 = "b";
 	private static final String QUERY_PARAMETER_RELATIONSHIP = "r";
-	private static final String QUERY_CLEAR_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_PARAMETER_RELATIONSHIP + "]->() DELETE "
-		+ QUERY_PARAMETER_RELATIONSHIP;
-	private static final String QUERY_CLEAR_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ") DELETE " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_CLEAR_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_PARAMETER_RELATIONSHIP + "]->()"
+		+ " DELETE " + QUERY_PARAMETER_RELATIONSHIP;
+	private static final String QUERY_CLEAR_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ")"
+		+ " DELETE " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_COUNT_PARAMETER = "count";
-	private static final String QUERY_COUNT_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{}) RETURN COUNT("
-		+ QUERY_PARAMETER_NODE + ") AS " + QUERY_COUNT_PARAMETER;
-	private static final String QUERY_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ") RETURN " + QUERY_PARAMETER_NODE;
-	private static final String QUERY_ALL_NODES_EXCLUDE_LABEL = "MATCH (" + QUERY_PARAMETER_NODE + ") WHERE '{}' NOT IN labels("
-		+ QUERY_PARAMETER_NODE + ") RETURN " + QUERY_PARAMETER_NODE;
-	private static final String QUERY_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_PARAMETER_RELATIONSHIP + "]-() RETURN "
-		+ QUERY_PARAMETER_RELATIONSHIP;
-	private static final String QUERY_ALL_CONNECTING_ANY_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[]-() RETURN "
-		+ QUERY_PARAMETER_NODE;
-	private static final String QUERY_ALL_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[:{}]-(:{} {{}: {}}) RETURN "
-		+ QUERY_PARAMETER_NODE;
+	private static final String QUERY_COUNT_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})"
+		+ " RETURN COUNT(" + QUERY_PARAMETER_NODE + ") AS " + QUERY_COUNT_PARAMETER;
+	private static final String QUERY_UPSERT_NODE = "MERGE (" + QUERY_PARAMETER_NODE + ":{} {{}: {}})"
+		+ " SET " + QUERY_PARAMETER_NODE + " += $properties";
+	private static final String QUERY_UPSERT_RELATIONSHIP = "MATCH (" + QUERY_PARAMETER_NODE1 + ":{} {{}: {}})"
+		+ " MATCH (" + QUERY_PARAMETER_NODE2 + ":{} {{}: {}})"
+		+ " MERGE (" + QUERY_PARAMETER_NODE1 + ")-[" + QUERY_PARAMETER_RELATIONSHIP + ":{}]->(" + QUERY_PARAMETER_NODE2 + ")"
+		+ " SET " + QUERY_PARAMETER_RELATIONSHIP + " += $properties";
+	private static final String QUERY_FIND_RELATIONSHIP = "MATCH (:{} {{}: {}})-[" + QUERY_PARAMETER_RELATIONSHIP + ":{}]->(:{} {{}: {}})"
+		+ " RETURN " + QUERY_PARAMETER_RELATIONSHIP;
+	private static final String QUERY_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ")"
+		+ " RETURN " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_NODES_EXCLUDE_LABEL = "MATCH (" + QUERY_PARAMETER_NODE + ")"
+		+ " WHERE '{}' NOT IN labels(" + QUERY_PARAMETER_NODE + ")"
+		+ " RETURN " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_RELATIONSHIPS = "MATCH ()-[" + QUERY_PARAMETER_RELATIONSHIP + "]->()"
+		+ " RETURN " + QUERY_PARAMETER_RELATIONSHIP;
+	private static final String QUERY_ALL_CONNECTING_ANY_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[]->()"
+		+ " RETURN " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[:{}]->(:{} {{}: {}})"
+		+ " RETURN " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
-		+ ":{})-[:{} {{}: {}}]->(:{} {{}: {}}) RETURN " + QUERY_PARAMETER_NODE;
+		+ ":{})-[:{} {{}: {}}]->(:{} {{}: {}})"
+		+ " RETURN " + QUERY_PARAMETER_NODE;
 
 	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final String LINE_SEPARATOR = "\n";
@@ -115,7 +128,7 @@ public class GraphDatabaseManager{
 		if(graphDB == null){
 			final Path path = Path.of("genealogy_db");
 			final DatabaseManagementService managementService = new DatabaseManagementServiceBuilder(path)
-				.setConfig(GraphDatabaseSettings.transaction_timeout, Duration.ofSeconds(60))
+				.setConfig(GraphDatabaseSettings.transaction_timeout, Duration.ofSeconds(600))
 				.setConfig(GraphDatabaseSettings.preallocate_logical_logs, true)
 				.setConfig(GraphDatabaseSettings.pagecache_buffered_flush_enabled, true)
 				.build();
@@ -208,9 +221,11 @@ public class GraphDatabaseManager{
 	}
 
 
-	public static int count(final String tableName){
+	public static int count(final String... tableNames){
 		try(final Transaction tx = getTransaction()){
-			final Result result = tx.execute(JavaHelper.textFormat(QUERY_COUNT_NODES, tableName));
+			final String labels = aggregateNodeLabels(tableNames);
+			final String query = JavaHelper.textFormat(QUERY_COUNT_NODES, labels);
+			final Result result = tx.execute(query);
 
 			return (result.hasNext()
 				? ((Number)result.next().get(QUERY_COUNT_PARAMETER)).intValue()
@@ -219,34 +234,32 @@ public class GraphDatabaseManager{
 	}
 
 
-	public static void insert(final Map<String, Object> record, final String... tableNames){
+	public static Object upsert(final String primaryColumnName, final Map<String, Object> record, final String... tableNames){
 		try(final Transaction tx = getTransaction()){
-			final Label[] labels = Arrays.stream(tableNames)
-				.map(Label::label)
-				.toArray(Label[]::new);
+			final String labels = aggregateNodeLabels(tableNames);
+			Object nodeID = record.get(primaryColumnName);
+			if(nodeID == null){
+				final String query = JavaHelper.textFormat(QUERY_COUNT_NODES, labels);
+				final Result result = tx.execute(query);
+				nodeID = (result.hasNext()
+					? ((Number)result.next().get(QUERY_COUNT_PARAMETER)).intValue()
+					: 0) + 1;
+				record.put(primaryColumnName, nodeID);
+			}
+			final String query = JavaHelper.textFormat(QUERY_UPSERT_NODE, labels, primaryColumnName, nodeID);
 
-			final Node node = tx.createNode(labels);
-			for(final Map.Entry<String, Object> entry : record.entrySet())
-				node.setProperty(entry.getKey(), entry.getValue());
+			final Map<String, Object> properties = Map.of("properties", record);
+
+			tx.execute(query, properties);
 
 			tx.commit();
+
+			return nodeID;
 		}
 	}
 
-	public static void update(final String tableName, final String primaryColumnName, final Map<String, Object> record)
-			throws StoreException{
-		try(final Transaction tx = getTransaction()){
-			final Object nodeID = record.get(primaryColumnName);
-			final Node node = tx.findNode(Label.label(tableName), primaryColumnName, nodeID);
-			if(node == null)
-				throw StoreException.create("Node with {} {} not found in {}", primaryColumnName.toUpperCase(Locale.ROOT), nodeID,
-					tableName.toUpperCase(Locale.ROOT));
-
-			for(final Map.Entry<String, Object> entry : record.entrySet())
-				node.setProperty(entry.getKey(), entry.getValue());
-
-			tx.commit();
-		}
+	private static String aggregateNodeLabels(final String[] tableNames){
+		return String.join("&", tableNames);
 	}
 
 	public static Map<String, Object> findBy(final String tableName, final String primaryPropertyName, final Object propertyValue){
@@ -271,7 +284,7 @@ public class GraphDatabaseManager{
 		try(final Transaction tx = getTransaction()){
 			final ResourceIterator<Node> itr = tx.findNodes(Label.label(tableName));
 
-			final NavigableMap<Integer, Map<String, Object>> records = new TreeMap<>();;
+			final NavigableMap<Integer, Map<String, Object>> records = new TreeMap<>();
 			while(itr.hasNext()){
 				final Map<String, Object> record = itr.next().getAllProperties();
 				records.put(extractRecordID(record), record);
@@ -341,53 +354,30 @@ public class GraphDatabaseManager{
 			final String relationshipName, final Map<String, Object> record, final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd)
 			throws StoreException{
 		try(final Transaction tx = getTransaction()){
-			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
-			if(nodeStart == null)
-				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
-					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
-			final Node nodeEnd = tx.findNode(Label.label(tableNameEnd), primaryPropertyNameEnd, nodeIDEnd);
-			if(nodeEnd == null)
-				throw StoreException.create("End node with {} {} not found in {}", primaryPropertyNameEnd.toUpperCase(Locale.ROOT),
-					nodeIDEnd, tableNameEnd.toUpperCase(Locale.ROOT));
+			final String query = JavaHelper.textFormat(QUERY_UPSERT_RELATIONSHIP,
+				tableNameStart, primaryPropertyNameStart, nodeIDStart,
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd,
+				relationshipName);
 
-			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
-			final boolean hasRelationships = relationships.iterator()
-				.hasNext();
-			final Relationship relationship = (hasRelationships
-				? findRelationship(relationships, nodeEnd)
-				: nodeStart.createRelationshipTo(nodeEnd, RelationshipType.withName(relationshipName)));
-			setRelationshipProperties(relationship, record, onDeleteStart, onDeleteEnd);
+			final Map<String, Object> properties = createRelationshipProperties(record, onDeleteStart, onDeleteEnd);
+			final Map<String, Object> parameters = Map.of("properties", properties);
+
+			tx.execute(query, parameters);
 
 			tx.commit();
 		}
 	}
 
-	private static Relationship findRelationship(final ResourceIterable<Relationship> relationships, final Node nodeEnd){
-		for(final Relationship relationship : relationships)
-			if(relationship.getEndNode().equals(nodeEnd))
-				return relationship;
-		return null;
-	}
-
-	private static void setRelationshipProperties(final Relationship relationship, final Map<String, Object> record,
-			final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd){
-		if(relationship != null){
-			final Map<String, Object> properties = (record == null? new HashMap<>(1): new HashMap<>(record));
-			addOnDeleteProperties(properties, onDeleteStart, onDeleteEnd);
-
-			for(final Map.Entry<String, Object> property : properties.entrySet())
-				relationship.setProperty(property.getKey(), property.getValue());
-		}
-	}
-
-	private static void addOnDeleteProperties(final Map<String, Object> properties, final OnDeleteType onDeleteStart,
+	private static Map<String, Object> createRelationshipProperties(final Map<String, Object> record, final OnDeleteType onDeleteStart,
 			final OnDeleteType onDeleteEnd){
+		final Map<String, Object> properties = new HashMap<>(record);
 		if(Objects.equals(onDeleteStart, onDeleteEnd))
 			properties.put(PROPERTY_ON_DELETE, onDeleteStart.toString());
 		else{
 			properties.put(PROPERTY_ON_DELETE_START, onDeleteStart.toString());
 			properties.put(PROPERTY_ON_DELETE_END, onDeleteEnd.toString());
 		}
+		return properties;
 	}
 
 	public static boolean deleteRelationship(final String tableNameStart, final String primaryPropertyNameStart, final Object nodeIDStart,
@@ -428,6 +418,31 @@ public class GraphDatabaseManager{
 	}
 
 
+	public static List<Map<String, Object>> findRelationships(final String tableNameStart, final String primaryPropertyNameStart,
+			final Object nodeIDStart,
+			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
+			final String relationshipName){
+		try(final Transaction tx = getTransaction()){
+			final String query = JavaHelper.textFormat(QUERY_FIND_RELATIONSHIP,
+				tableNameStart, primaryPropertyNameStart, nodeIDStart,
+				relationshipName,
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
+
+			final Result result = tx.execute(query);
+
+			final List<Map<String, Object>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Relationship relationship = (Relationship)result.next()
+					.get(QUERY_PARAMETER_RELATIONSHIP);
+
+				otherNodes.add(relationship.getAllProperties());
+			}
+
+			return otherNodes;
+		}
+	}
+
+
 	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
 			final Object nodeIDStart, final String relationshipName) throws StoreException{
 		try(final Transaction tx = getTransaction()){
@@ -441,17 +456,17 @@ public class GraphDatabaseManager{
 			if(relationships.stream().count() > 1)
 				throw StoreException.create("More than one node found from {} {} with relationship {}",
 					primaryPropertyNameStart.toUpperCase(Locale.ROOT), nodeIDStart, relationshipName.toUpperCase(Locale.ROOT));
-			Map<String, Object> otherRecord = null;
-			String otherNodeLabels = null;
-			for(final Relationship relationship : relationships){
-				final Node endNode = relationship.getEndNode();
-				otherRecord = endNode.getAllProperties();
-				otherNodeLabels = concatenateLabels(endNode);
-			}
+
+			final Node endNode = relationships.iterator()
+				.next()
+				.getEndNode();
+			final Map<String, Object> otherRecord = endNode.getAllProperties();
+			final String otherNodeLabels = concatenateLabels(endNode);
 			return new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord);
 		}
 	}
 
+	//TODO refactor with query
 	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
 		final Object nodeIDStart, final String relationshipName, final String propertyName, final Object propertyValue) throws StoreException{
 		try(final Transaction tx = getTransaction()){
@@ -478,7 +493,8 @@ public class GraphDatabaseManager{
 
 	public static List<Map<String, Object>> findStartNodes(final String tableNameStart){
 		try(final Transaction tx = getTransaction()){
-			final Result result = tx.execute(JavaHelper.textFormat(QUERY_ALL_CONNECTING_ANY_NODES, tableNameStart));
+			final String query = JavaHelper.textFormat(QUERY_ALL_CONNECTING_ANY_NODES, tableNameStart);
+			final Result result = tx.execute(query);
 
 			final List<Map<String, Object>> otherNodes = new ArrayList<>();
 			while(result.hasNext()){
@@ -495,10 +511,11 @@ public class GraphDatabaseManager{
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
 			final String relationshipName){
 		try(final Transaction tx = getTransaction()){
-			final Result result = tx.execute(JavaHelper.textFormat(QUERY_ALL_CONNECTING_NODES,
+			final String query = JavaHelper.textFormat(QUERY_ALL_CONNECTING_NODES,
 				tableNameStart,
 				relationshipName,
-				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd));
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
+			final Result result = tx.execute(query);
 
 			final List<Map<String, Object>> otherNodes = new ArrayList<>();
 			while(result.hasNext()){
@@ -511,12 +528,15 @@ public class GraphDatabaseManager{
 		}
 	}
 
-	public static List<Map<String, Object>> findStartNodes(final String tableNameStart, final String tableNameEnd,
-			final String primaryPropertyNameEnd, final Object nodeIDEnd, final String relationshipName, final String propertyName,
-			final Object propertyValue){
+	public static List<Map<String, Object>> findStartNodes(final String tableNameStart,
+			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
+			final String relationshipName, final String propertyName, final Object propertyValue){
 		try(final Transaction tx = getTransaction()){
-			final Result result = tx.execute(JavaHelper.textFormat(QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY, tableNameStart,
-				relationshipName, propertyName, propertyValue, tableNameEnd, primaryPropertyNameEnd, nodeIDEnd));
+			final String query = JavaHelper.textFormat(QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY,
+				tableNameStart,
+				relationshipName, propertyName, (propertyValue instanceof CharSequence? "'" + propertyValue + "'": propertyValue),
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
+			final Result result = tx.execute(query);
 
 			final List<Map<String, Object>> otherNodes = new ArrayList<>();
 			while(result.hasNext()){
