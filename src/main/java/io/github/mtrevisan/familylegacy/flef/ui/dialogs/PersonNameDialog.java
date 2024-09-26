@@ -394,46 +394,59 @@ public final class PersonNameDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+
 		final Map<String, Object> personName1 = new HashMap<>();
-		personName1.put("person_id", 1);
 		personName1.put("personal_name", "tòni");
 		personName1.put("family_name", "bruxatin");
 		personName1.put("locale", "vec-IT");
 		personName1.put("type", "birth name");
-		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+		int personName1ID = Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> personName2 = new HashMap<>();
-		personName2.put("person_id", 1);
 		personName2.put("personal_name", "antonio");
 		personName2.put("family_name", "bruciatino");
 		personName2.put("locale", "it-IT");
 		personName2.put("type", "death name");
-		Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
+		int personName2ID = Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName2ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "true name");
 		localizedText1.put("locale", "en");
-		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
+		int localizedText1ID = Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("text", "fake name");
 		localizedText2.put("locale", "en");
-		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
+		int localizedText2ID = Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-note1.put("reference_table", "person");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 1");
-note2.put("reference_table", "person_name");
-note2.put("reference_id", 1);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
-restriction1.put("reference_table", "person_name");
-restriction1.put("reference_id", 1);
-		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -461,6 +474,7 @@ restriction1.put("reference_id", 1);
 								.withReference(personNameID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
+										//FIXME
 										insertRecordPersonNameID(record, personNameID);
 								});
 							localizedPersonNameDialog.loadData();

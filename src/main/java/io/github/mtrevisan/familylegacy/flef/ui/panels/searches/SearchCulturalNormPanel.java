@@ -197,17 +197,17 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		localizedText2.put("transcription_type", "romanized");
 		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
-		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("type", "name");
+		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
+		localizedTextRelationship1.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction1,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("type", "name");
+		final Map<String, Object> localizedTextRelationship2 = new HashMap<>();
+		localizedTextRelationship2.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction2,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){

@@ -486,12 +486,12 @@ public final class AssertionDialog extends CommonListDialog{
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		final int culturalNorm1ID = Repository.upsert(culturalNorm1, EntityManager.NODE_CULTURAL_NORM);
 
-		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
-		culturalNormJunction1.put("certainty", "probable");
-		culturalNormJunction1.put("credibility", "probable");
+		final Map<String, Object> culturalNormRelationship1 = new HashMap<>();
+		culturalNormRelationship1.put("certainty", "probable");
+		culturalNormRelationship1.put("credibility", "probable");
 		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
 			EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
-			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> researchStatus1 = new HashMap<>();
 		researchStatus1.put("identifier", "identifier 1");
@@ -502,7 +502,7 @@ public final class AssertionDialog extends CommonListDialog{
 		int researchStatus1ID = Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS, EntityManager.NODE_APPLICATION);
 		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus1ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
 			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
 		researchStatus2.put("identifier", "identifier 2");
@@ -513,7 +513,7 @@ public final class AssertionDialog extends CommonListDialog{
 		int researchStatus2ID = Repository.upsert(researchStatus2, EntityManager.NODE_RESEARCH_STATUS, EntityManager.NODE_APPLICATION);
 		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus2ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, culturalNormJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
 			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 

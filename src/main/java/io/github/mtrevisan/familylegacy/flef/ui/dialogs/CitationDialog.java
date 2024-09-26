@@ -462,15 +462,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		localizedText2.put("transcription_type", "romanized");
 		int localizedText2ID = Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
-		final Map<String, Object> localizedTextJunction = new HashMap<>();
-		localizedTextJunction.put("type", "extract");
+		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
+		localizedTextRelationship1.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText1ID,
 			EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText2ID,
 			EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();

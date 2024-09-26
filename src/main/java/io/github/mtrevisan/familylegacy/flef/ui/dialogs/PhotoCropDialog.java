@@ -210,6 +210,7 @@ public final class PhotoCropDialog extends JDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");

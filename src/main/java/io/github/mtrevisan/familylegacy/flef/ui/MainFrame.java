@@ -55,8 +55,6 @@ import java.util.NavigableMap;
 import java.util.Objects;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 
 
@@ -130,26 +128,26 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					final Integer groupID = extractRecordID(record);
 					final Map<String, Object> partner1Person = partner1.getPerson();
 					if(!partner1Person.isEmpty()){
-						final Map<String, Object> groupJunction = new HashMap<>();
-						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
+						final Map<String, Object> groupRelationship = new HashMap<>();
+						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
 						Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
 							EntityManager.NODE_PERSON, extractRecordID(partner1Person),
-							EntityManager.RELATIONSHIP_OF, groupJunction, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+							EntityManager.RELATIONSHIP_OF, groupRelationship, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 					}
 					final Map<String, Object> partner2Person = partner2.getPerson();
 					if(!partner2Person.isEmpty()){
-						final Map<String, Object> groupJunction = new HashMap<>();
-						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
+						final Map<String, Object> groupRelationship = new HashMap<>();
+						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
 						Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
 							EntityManager.NODE_PERSON, extractRecordID(partner2Person),
-							EntityManager.RELATIONSHIP_OF, groupJunction, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+							EntityManager.RELATIONSHIP_OF, groupRelationship, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 					}
 					for(final PersonPanel child : children){
-						final Map<String, Object> groupJunction = new HashMap<>();
-						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_CHILD);
+						final Map<String, Object> groupRelationship = new HashMap<>();
+						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
 						Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
 							EntityManager.NODE_PERSON, extractRecordID(child.getPerson()),
-							EntityManager.RELATIONSHIP_OF, groupJunction, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+							EntityManager.RELATIONSHIP_OF, groupRelationship, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 					}
 
 					treePanel.refresh();
@@ -266,11 +264,11 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						final Map<String, Object> currentParents = treeUnionPanel.getUnion();
 						final Integer unionID = extractRecordID(currentParents);
 
-						final Map<String, Object> groupJunction = new HashMap<>();
-						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_CHILD);
+						final Map<String, Object> groupRelationship = new HashMap<>();
+						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
 						Repository.upsertRelationship(EntityManager.NODE_GROUP, unionID,
 							EntityManager.NODE_PERSON, extractRecordID(record),
-							EntityManager.RELATIONSHIP_OF, groupJunction, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+							EntityManager.RELATIONSHIP_OF, groupRelationship, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 					}
 					else{
 						final GroupPanel treeUnionPanel = treePanel.genealogicalTree.get(index);
@@ -282,17 +280,17 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						}
 						final List<Integer> partnerIDs = getPersonIDsInGroup(unionID);
 
-						Map<String, Object> groupJunction = new HashMap<>();
-						insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
+						Map<String, Object> groupRelationship = new HashMap<>();
+						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
 						Repository.upsertRelationship(EntityManager.NODE_GROUP, unionID,
 							EntityManager.NODE_PERSON, extractRecordID(record),
-							EntityManager.RELATIONSHIP_OF, groupJunction, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+							EntityManager.RELATIONSHIP_OF, groupRelationship, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 						for(final Integer partnerID : partnerIDs){
-							groupJunction = new HashMap<>();
-							insertRecordRole(groupJunction, EntityManager.GROUP_ROLE_PARTNER);
+							groupRelationship = new HashMap<>();
+							insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
 							Repository.upsertRelationship(EntityManager.NODE_GROUP, unionID,
 								EntityManager.NODE_PERSON, partnerID,
-								EntityManager.RELATIONSHIP_OF, groupJunction, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+								EntityManager.RELATIONSHIP_OF, groupRelationship, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 						}
 					}
 
@@ -393,8 +391,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.withReference(EntityManager.NODE_PERSON, personID)
 			.withOnCloseGracefully((record, recordID) -> {
 				if(record != null){
-					final Integer newPhotoID = extractRecordID(record);
-					insertRecordPhotoID(person, newPhotoID);
+					Repository.upsertRelationship(EntityManager.NODE_PERSON, personID,
+						EntityManager.NODE_MEDIA, recordID,
+						EntityManager.RELATIONSHIP_DEPICTED_BY, record,
+						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 					treePanel.refresh();
 				}
@@ -416,12 +416,18 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.withOnCloseGracefully((record, recordID) -> {
 				if(record != null){
 					final Integer newPhotoID = extractRecordID(record);
-					insertRecordPhotoID(person, newPhotoID);
+					Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(person),
+						EntityManager.NODE_MEDIA, newPhotoID,
+						EntityManager.RELATIONSHIP_DEPICTED_BY, record,
+						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 					treePanel.refresh();
 				}
 			});
-		final Integer photoID = extractRecordPhotoID(person);
+		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
+			EntityManager.NODE_PERSON, extractRecordID(person),
+			EntityManager.RELATIONSHIP_DEPICTED_BY);
+		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
 		photoDialog.loadData(photoID);
 
 		photoDialog.showDialog();
@@ -454,38 +460,38 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		group3.put("type", "family");
 		Repository.upsert(group3, EntityManager.NODE_GROUP);
 
-		final Map<String, Object> groupJunction11 = new HashMap<>();
-		groupJunction11.put("role", "partner");
+		final Map<String, Object> groupRelationship11 = new HashMap<>();
+		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupJunction11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction2 = new HashMap<>();
-		groupJunction2.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship2 = new HashMap<>();
+		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 2,
-			EntityManager.RELATIONSHIP_OF, groupJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction13 = new HashMap<>();
-		groupJunction13.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship13 = new HashMap<>();
+		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupJunction13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction3 = new HashMap<>();
-		groupJunction3.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship3 = new HashMap<>();
+		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 3,
-			EntityManager.RELATIONSHIP_OF, groupJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction4 = new HashMap<>();
-		groupJunction4.put("role", "child");
+			EntityManager.RELATIONSHIP_OF, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship4 = new HashMap<>();
+		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 4,
-			EntityManager.RELATIONSHIP_OF, groupJunction4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction5 = new HashMap<>();
-		groupJunction5.put("role", "child");
+			EntityManager.RELATIONSHIP_OF, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship5 = new HashMap<>();
+		groupRelationship5.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 5,
-			EntityManager.RELATIONSHIP_OF, groupJunction5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction6 = new HashMap<>();
-		groupJunction6.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship6 = new HashMap<>();
+		groupRelationship6.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group3), EntityManager.NODE_PERSON, 4,
-			EntityManager.RELATIONSHIP_OF, groupJunction6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction7 = new HashMap<>();
-		groupJunction7.put("role", "adoptee");
+			EntityManager.RELATIONSHIP_OF, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship7 = new HashMap<>();
+		groupRelationship7.put("role", "adoptee");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group3), EntityManager.NODE_PERSON, 5,
-			EntityManager.RELATIONSHIP_OF, groupJunction7, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_OF, groupRelationship7, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("type_id", 1);

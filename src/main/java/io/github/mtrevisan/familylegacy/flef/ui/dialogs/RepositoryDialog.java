@@ -257,7 +257,13 @@ public final class RepositoryDialog extends CommonListDialog{
 		final Integer repositoryID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
+		final boolean hasPerson = !Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+			EntityManager.NODE_REPOSITORY, repositoryID,
+			EntityManager.RELATIONSHIP_OWNS)
+			.isEmpty();
+		//FIXME
 		final Integer personID = extractRecordPersonID(selectedRecord);
+		//FIXME
 		final Integer placeID = extractRecordPlaceID(selectedRecord);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_REPOSITORY, repositoryID);
 		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_REPOSITORY, repositoryID);
@@ -347,20 +353,19 @@ public final class RepositoryDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-repository1.put("person_id", 1);
-repository1.put("place_id", 2);
-		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+		int repository1ID = Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
 		final Map<String, Object> repository2 = new HashMap<>();
 		repository2.put("identifier", "repo 2");
 		repository2.put("type", "college library");
-		Repository.upsert(repository2, EntityManager.NODE_REPOSITORY);
+		int repository2ID = Repository.upsert(repository2, EntityManager.NODE_REPOSITORY);
 		final Map<String, Object> repository3 = new HashMap<>();
 		repository3.put("identifier", "repo 3");
 		repository3.put("type", "private library");
-		Repository.upsert(repository3, EntityManager.NODE_REPOSITORY);
+		int repository3ID = Repository.upsert(repository3, EntityManager.NODE_REPOSITORY);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place ident");
@@ -372,17 +377,23 @@ repository1.put("place_id", 2);
 		place1.put("coordinate_credibility", "certain");
 place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
-		Repository.upsert(place1, EntityManager.NODE_PLACE);
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 		final Map<String, Object> place2 = new HashMap<>();
 		place2.put("identifier", "another place ident");
 		place2.put("name", "name of another place");
 		place2.put("locale", "en-US");
 		place2.put("type", "custom");
-		Repository.upsert(place2, EntityManager.NODE_PLACE);
+		int place2ID = Repository.upsert(place2, EntityManager.NODE_PLACE);
+		Repository.upsertRelationship(EntityManager.NODE_PLACE, place2ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_LOCATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("photo_crop", "0 0 5 10");
-		Repository.upsert(person1, EntityManager.NODE_PERSON);
+		int person1ID = Repository.upsert(person1, EntityManager.NODE_PERSON);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, person1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_OWNS, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "place name 1");
@@ -390,74 +401,107 @@ place1.put("photo_id", 1);
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
+		int localizedText1ID = Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("text", "place name 2");
 		localizedText2.put("locale", "en");
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "IPA");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
+		int localizedText2ID = Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText3 = new HashMap<>();
 		localizedText3.put("text", "true name");
 		localizedText3.put("locale", "en");
-		Repository.upsert(localizedText3, EntityManager.NODE_LOCALIZED_TEXT);
+		int localizedText3ID = Repository.upsert(localizedText3, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> personName1 = new HashMap<>();
-personName1.put("person_id", 1);
 		personName1.put("personal_name", "personal name");
 		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
-		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+		int personName1ID = Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-note1.put("reference_table", "person");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("note", "note 1");
-note2.put("reference_table", "repository");
-note2.put("reference_id", 1);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		note2.put("note", "note 2");
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+		final Map<String, Object> historicDate1 = new HashMap<>();
+		historicDate1.put("date", "27 FEB 1976");
+		historicDate1.put("date_original", "FEB 27, 1976");
+		historicDate1.put("certainty", "certain");
+		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int historicDate1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-media1.put("date_id", 1);
-		Repository.upsert(media1, EntityManager.NODE_MEDIA);
+		int media1ID = Repository.upsert(media1, EntityManager.NODE_MEDIA);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		mediaJunction1.put("photo_crop", "0 0 10 20");
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media1), EntityManager.NODE_REPOSITORY, 1,
-			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-
-		final Map<String, Object> restriction1 = new HashMap<>();
-		restriction1.put("restriction", "confidential");
-restriction1.put("reference_table", "repository");
-restriction1.put("reference_id", 1);
-		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		final Map<String, Object> mediaRelationship1 = new HashMap<>();
+		mediaRelationship1.put("photo_crop", "0 0 10 20");
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> source1 = new HashMap<>();
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
 		source1.put("author", "author 1 APA-style");
-source1.put("place_id", 2);
-source1.put("date_id", 1);
-source1.put("repository_id", 1);
 		source1.put("location", "location 1");
-		Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
 		source2.put("author", "author 2 APA-style");
-source2.put("place_id", 2);
-source2.put("date_id", 2);
-source2.put("repository_id", 2);
 		source2.put("location", "location 2");
-		Repository.upsert(source2, EntityManager.NODE_SOURCE);
+		int source2ID = Repository.upsert(source2, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
+			EntityManager.NODE_REPOSITORY, repository2ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
+			EntityManager.NODE_PLACE, place2ID,
+			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+		final Map<String, Object> restriction1 = new HashMap<>();
+		restriction1.put("restriction", "confidential");
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -485,8 +529,10 @@ source2.put("repository_id", 2);
 							final PersonDialog personDialog = (dialog.showRecordOnly
 									? PersonDialog.createShowOnly(parent)
 									: PersonDialog.create(parent))
+								//FIXME
 								.withOnCloseGracefully((record, recordID) -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
+							//FIXME
 							final Integer personID = extractRecordPersonID(container);
 							if(personID != null)
 								personDialog.selectData(personID);
@@ -497,6 +543,7 @@ source2.put("repository_id", 2);
 							final PlaceDialog placeDialog = (dialog.showRecordOnly
 									? PlaceDialog.createShowOnly(parent)
 									: PlaceDialog.create(parent))
+								//FIXME
 								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
 							final List<Map<String, Object>> placeRecord = Repository.findReferencingNodes(EntityManager.NODE_PLACE,

@@ -216,7 +216,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 				EntityManager.NODE_PERSON, filterReferenceID,
 				EntityManager.RELATIONSHIP_FOR));
 
-
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
@@ -266,11 +265,11 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		transcriptionTypeComboBox.setSelectedItem(transcriptionType);
 
 		if(filterReferenceID > 0){
-			final List<Map<String, Object>> recordPersonNameJunction = Repository.findRelationships(EntityManager.NODE_LOCALIZED_PERSON_NAME,
+			final List<Map<String, Object>> recordPersonNameRelationships = Repository.findRelationships(EntityManager.NODE_LOCALIZED_PERSON_NAME,
 				localizedPersonNameID,
 				EntityManager.NODE_PERSON_NAME, filterReferenceID,
 				EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
-			if(recordPersonNameJunction.size() > 1)
+			if(recordPersonNameRelationships.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
 	}
@@ -364,6 +363,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("personal_name", "personal name");
 		localizedPersonName1.put("family_name", "family name");

@@ -217,6 +217,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> project1 = new HashMap<>();
 		project1.put("protocol_name", EntityManager.PROTOCOL_NAME_DEFAULT);
 		project1.put("protocol_version", EntityManager.PROTOCOL_VERSION_DEFAULT);
@@ -227,7 +228,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final String now = EntityManager.now();
 		project1.put("creation_date", now);
 		project1.put("update_date", now);
-		Repository.upsert(project1, EntityManager.NODE_PROJECT);
+		int project1ID = Repository.upsert(project1, EntityManager.NODE_PROJECT);
 
 
 		EventQueue.invokeLater(() -> {

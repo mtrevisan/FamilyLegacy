@@ -324,6 +324,35 @@ public class Repository{
 		}
 	}
 
+	public static List<Map.Entry<String, Map<String, Object>>> findReferencedNodes(final String tableNameStart, final Object nodeIDStart,
+			final String relationshipName){
+		try{
+			return GraphDatabaseManager.findOtherNodes(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, nodeIDStart,
+				relationshipName);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while retrieving relationships: {}", e.getMessage(), e);
+
+			return Collections.emptyList();
+		}
+	}
+
+	public static Map.Entry<String, Map<String, Object>> findReferencingNode(final String tableNameEnd, final Integer recordIDEnd,
+			final String relationshipName){
+		try{
+			final List<Map.Entry<String, Map<String, Object>>> startNodes = GraphDatabaseManager.findStartNodes(
+				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
+				relationshipName);
+			return (startNodes.isEmpty()? null: startNodes.getFirst());
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching start node in a relationship: {}", e.getMessage(), e);
+
+			return null;
+		}
+	}
+
+
 	/**
 	 * Finds all the referencing nodes in the graph database, that is all the nodes reachable from node with label `tableNameStart`.
 	 *

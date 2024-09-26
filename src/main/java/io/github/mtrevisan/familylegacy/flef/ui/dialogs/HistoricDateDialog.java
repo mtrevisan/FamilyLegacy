@@ -64,13 +64,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateOriginal;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCredibility;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordDate;
@@ -257,7 +255,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Integer historicDateID = extractRecordID(selectedRecord);
 		final String date = extractRecordDate(selectedRecord);
 		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
-		final Integer calendarOriginalID = extractRecordCalendarOriginalID(selectedRecord);
+		final Integer calendarOriginalID = extractRecordCalendarID(historicDateID);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_HISTORIC_DATE, historicDateID);
@@ -273,6 +271,16 @@ public final class HistoricDateDialog extends CommonListDialog{
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+	}
+
+	private Integer extractRecordCalendarID(final Integer historicDateID){
+		final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
+			EntityManager.NODE_HISTORIC_DATE, historicDateID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN);
+		if(calendarNode == null || !EntityManager.NODE_CALENDAR.equals(calendarNode.getKey()))
+			return null;
+
+		return extractRecordID(calendarNode.getValue());
 	}
 
 	@Override
@@ -346,34 +354,47 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
-historicDate1.put("calendar_original_id", 2);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		int historicDate1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("type", "gregorian");
 		Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
 		final Map<String, Object> calendar2 = new HashMap<>();
 		calendar2.put("type", "julian");
-		Repository.upsert(calendar2, EntityManager.NODE_CALENDAR);
+		int calendar2ID = Repository.upsert(calendar2, EntityManager.NODE_CALENDAR);
+		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.NODE_CALENDAR, calendar2ID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("type", "venetan");
 		Repository.upsert(calendar3, EntityManager.NODE_CALENDAR);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
-		note2.put("note", "note 1");
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		note2.put("note", "note 2");
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
-		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -407,9 +428,17 @@ historicDate1.put("calendar_original_id", 2);
 						}
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.NODE_CALENDAR, recordID,
+											EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+								});
 							calendarDialog.loadData();
-							calendarDialog.selectData(extractRecordCalendarOriginalID(container));
+							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
+								EntityManager.NODE_HISTORIC_DATE, historicDateID,
+								EntityManager.RELATIONSHIP_EXPRESSED_IN);
+							calendarDialog.selectData(extractRecordID(calendarNode.getValue()));
 
 							calendarDialog.showDialog();
 						}

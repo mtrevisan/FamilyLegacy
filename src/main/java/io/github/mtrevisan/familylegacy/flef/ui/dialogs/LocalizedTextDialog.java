@@ -52,6 +52,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -155,11 +156,10 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	public LocalizedTextDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
 			if(selectedRecord != null){
-				final Map<String, Object> mediaJunction = new HashMap<>();
-				insertRecordType(mediaJunction, filterReferenceType);
+				insertRecordType(Collections.emptyMap(), filterReferenceType);
 				Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, mediaJunction,
+					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
 					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 			}
 			else if(recordID != null)
@@ -374,6 +374,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 		insertRecordText(selectedRecord, text);
 		insertRecordLocale(selectedRecord, locale);
+		insertRecordType(selectedRecord, referenceType);
 		insertRecordTranscription(selectedRecord, transcription);
 		insertRecordTranscriptionType(selectedRecord, transcriptionType);
 
@@ -397,6 +398,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "text 1");
 		localizedText1.put("locale", "en");
@@ -406,18 +408,17 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> citation1 = new HashMap<>();
-citation1.put("source_id", 1);
 		citation1.put("location", "here");
 		citation1.put("extract", "text 1");
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
 		Repository.upsert(citation1, EntityManager.NODE_CITATION);
 
-		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("type", "extract");
+		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
+		localizedTextRelationship1.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_CITATION, extractRecordID(citation1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction1,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 

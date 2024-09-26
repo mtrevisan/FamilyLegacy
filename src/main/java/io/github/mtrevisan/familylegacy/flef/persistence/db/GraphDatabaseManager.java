@@ -94,6 +94,8 @@ public class GraphDatabaseManager{
 		+ " MATCH (" + QUERY_PARAMETER_NODE2 + ":{} {{}: {}})"
 		+ " MERGE (" + QUERY_PARAMETER_NODE1 + ")-[" + QUERY_PARAMETER_RELATIONSHIP + ":{}]->(" + QUERY_PARAMETER_NODE2 + ")"
 		+ " SET " + QUERY_PARAMETER_RELATIONSHIP + " += $properties";
+	private static final String QUERY_FIND_RELATIONSHIPS = "MATCH (:{} {{}: {}})-[" + QUERY_PARAMETER_RELATIONSHIP + ":{}]->()"
+		+ " RETURN " + QUERY_PARAMETER_RELATIONSHIP;
 	private static final String QUERY_FIND_RELATIONSHIP = "MATCH (:{} {{}: {}})-[" + QUERY_PARAMETER_RELATIONSHIP + ":{}]->(:{} {{}: {}})"
 		+ " RETURN " + QUERY_PARAMETER_RELATIONSHIP;
 	private static final String QUERY_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ")"
@@ -106,6 +108,9 @@ public class GraphDatabaseManager{
 	private static final String QUERY_ALL_CONNECTING_ANY_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[]->()"
 		+ " RETURN " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_ALL_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[:{}]->(:{} {{}: {}})"
+		+ " RETURN " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_ANY_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
+		+ ")-[:{}]->(:{} {{}: {}})"
 		+ " RETURN " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
 		+ ":{})-[:{} {{}: {}}]->(:{} {{}: {}})"
@@ -443,54 +448,6 @@ public class GraphDatabaseManager{
 	}
 
 
-	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
-			final Object nodeIDStart, final String relationshipName) throws StoreException{
-		try(final Transaction tx = getTransaction()){
-			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
-			if(nodeStart == null)
-//				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
-//					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
-				return null;
-
-			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
-			if(relationships.stream().count() > 1)
-				throw StoreException.create("More than one node found from {} {} with relationship {}",
-					primaryPropertyNameStart.toUpperCase(Locale.ROOT), nodeIDStart, relationshipName.toUpperCase(Locale.ROOT));
-
-			final Node endNode = relationships.iterator()
-				.next()
-				.getEndNode();
-			final Map<String, Object> otherRecord = endNode.getAllProperties();
-			final String otherNodeLabels = concatenateLabels(endNode);
-			return new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord);
-		}
-	}
-
-	//TODO refactor with query
-	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
-		final Object nodeIDStart, final String relationshipName, final String propertyName, final Object propertyValue) throws StoreException{
-		try(final Transaction tx = getTransaction()){
-			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
-			if(nodeStart == null)
-//				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
-//					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
-				return null;
-
-			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
-			if(relationships.stream().count() > 1)
-				throw StoreException.create("More than one node found");
-			Map<String, Object> otherRecord = null;
-			String otherNodeLabels = null;
-			for(final Relationship relationship : relationships)
-				if(relationship.getProperty(propertyName).equals(propertyValue)){
-					final Node endNode = relationship.getEndNode();
-					otherRecord = endNode.getAllProperties();
-					otherNodeLabels = concatenateLabels(endNode);
-				}
-			return new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord);
-		}
-	}
-
 	public static List<Map<String, Object>> findStartNodes(final String tableNameStart){
 		try(final Transaction tx = getTransaction()){
 			final String query = JavaHelper.textFormat(QUERY_ALL_CONNECTING_ANY_NODES, tableNameStart);
@@ -545,6 +502,107 @@ public class GraphDatabaseManager{
 
 				otherNodes.add(node.getAllProperties());
 			}
+			return otherNodes;
+		}
+	}
+
+	public static List<Map.Entry<String, Map<String, Object>>> findStartNodes(
+			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
+			final String relationshipName){
+		try(final Transaction tx = getTransaction()){
+			final String query = JavaHelper.textFormat(QUERY_ALL_ANY_CONNECTING_NODES_WITH_PROPERTY,
+				relationshipName,
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
+			final Result result = tx.execute(query);
+
+			final List<Map.Entry<String, Map<String, Object>>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Node node = (Node)result.next()
+					.get(QUERY_PARAMETER_NODE);
+
+				final String otherNodeLabels = concatenateLabels(node);
+				final Map<String, Object> otherRecord = node.getAllProperties();
+				otherNodes.add(new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord));
+			}
+			return otherNodes;
+		}
+	}
+
+
+	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
+			final Object nodeIDStart, final String relationshipName) throws StoreException{
+		try(final Transaction tx = getTransaction()){
+			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
+			if(nodeStart == null)
+//				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
+//					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
+				return null;
+
+			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
+			final long relationshipCount = relationships.stream().count();
+			if(relationshipCount > 1)
+				throw StoreException.create("More than one node found from {} {} with relationship {}",
+					primaryPropertyNameStart.toUpperCase(Locale.ROOT), nodeIDStart, relationshipName.toUpperCase(Locale.ROOT));
+
+			if(relationshipCount > 0){
+				final Node endNode = relationships.iterator()
+					.next()
+					.getEndNode();
+				final String otherNodeLabels = concatenateLabels(endNode);
+				final Map<String, Object> otherRecord = endNode.getAllProperties();
+				return new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord);
+			}
+			return null;
+		}
+	}
+
+	//TODO refactor with query
+	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
+		final Object nodeIDStart, final String relationshipName, final String propertyName, final Object propertyValue) throws StoreException{
+		try(final Transaction tx = getTransaction()){
+			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
+			if(nodeStart == null)
+//				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
+//					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
+				return null;
+
+			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
+			if(relationships.stream().count() > 1)
+				throw StoreException.create("More than one node found");
+			Map<String, Object> otherRecord = null;
+			String otherNodeLabels = null;
+			for(final Relationship relationship : relationships)
+				if(relationship.getProperty(propertyName).equals(propertyValue)){
+					final Node endNode = relationship.getEndNode();
+					otherRecord = endNode.getAllProperties();
+					otherNodeLabels = concatenateLabels(endNode);
+				}
+			return new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord);
+		}
+	}
+
+	public static List<Map.Entry<String, Map<String, Object>>> findOtherNodes(final String tableNameStart,
+		final String primaryPropertyNameStart, final Object nodeIDStart,
+		final String relationshipName){
+		try(final Transaction tx = getTransaction()){
+			final String query = JavaHelper.textFormat(QUERY_FIND_RELATIONSHIPS,
+				tableNameStart, primaryPropertyNameStart, nodeIDStart,
+				relationshipName);
+
+			final Result result = tx.execute(query);
+
+			final List<Map.Entry<String, Map<String, Object>>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Relationship relationship = (Relationship)result.next()
+					.get(QUERY_PARAMETER_RELATIONSHIP);
+
+				final Node endNode = relationship.getEndNode();
+				final String otherNodeLabels = concatenateLabels(endNode);
+				final Map<String, Object> otherRecord = endNode.getAllProperties();
+
+				otherNodes.add(new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord));
+			}
+
 			return otherNodes;
 		}
 	}

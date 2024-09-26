@@ -52,7 +52,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordMediaID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCalendarOriginalID;
@@ -285,9 +284,12 @@ public class Main{
 									}
 								});
 							photoDialog.loadData();
-							final Integer photoID = extractRecordPhotoID(container);
+							final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_DEPICTED_BY);
+							final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
 							if(photoID != null){
-								//add photo manually because is not retrievable through a junction
+								//add photo manually because is not retrievable through a relationship
 								photoDialog.addData(container);
 								photoDialog.selectData(containerID);
 							}
@@ -313,8 +315,13 @@ public class Main{
 							});
 							try{
 								if(containerID != null){
-									final String photoCrop = extractRecordPhotoCrop(container);
-									photoCropDialog.loadData(containerID, photoCrop);
+									final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencingNode(
+										tableName, containerID,
+										EntityManager.RELATIONSHIP_DEPICTED_BY);
+									if(referencedNode != null){
+										final String photoCrop = extractRecordPhotoCrop(referencedNode.getValue());
+										photoCropDialog.loadData(containerID, photoCrop);
+									}
 								}
 
 								photoCropDialog.setSize(420, 295);

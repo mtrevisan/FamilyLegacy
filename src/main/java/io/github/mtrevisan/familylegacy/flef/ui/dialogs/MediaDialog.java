@@ -87,12 +87,10 @@ import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIncludeMediaPayload;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoProjection;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTitle;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
@@ -296,18 +294,15 @@ public final class MediaDialog extends CommonListDialog{
 		openLinkButton = new JButton("Open " + mediaType, ICON_OPEN_LINK);
 
 		GUIHelper.bindLabelUndo(fileLabel, fileField);
-		//FIXME
-//		GUIHelper.bindLabelUndo(fileLabel, fileField, () -> {
-//			String identifier = GUIHelper.getTextTrimmed(fileField);
-//			if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
-//				identifier = basePath + identifier;
-//			enablePhotoRelatedButtons(identifier);
-//
-//			final Integer mediaID = extractRecordID(selectedRecord);
-//			photoCropButtonEnabledBorder(identifier, mediaID);
-//
-//			saveData();
-//		});
+		GUIHelper.bindOnTextChange(fileField, () -> {
+			String identifier = GUIHelper.getTextTrimmed(fileField);
+			if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
+				identifier = basePath + identifier;
+			enablePhotoRelatedButtons(identifier);
+
+			final Integer mediaID = extractRecordID(selectedRecord);
+			photoCropButtonEnabledBorder(identifier, mediaID);
+		});
 		addMandatoryField(fileField);
 		fileField.setEditable(false);
 
@@ -552,7 +547,9 @@ public final class MediaDialog extends CommonListDialog{
 		final String title = extractRecordTitle(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
-		final Integer dateID = extractRecordDateID(selectedRecord);
+		final Map.Entry<String, Map<String, Object>> date = Repository.findReferencedNode(
+			EntityManager.NODE_MEDIA, mediaID,
+			EntityManager.RELATIONSHIP_CREATED_ON);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_MEDIA, mediaID);
 		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_MEDIA, mediaID);
 		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_MEDIA, mediaID);
@@ -562,7 +559,7 @@ public final class MediaDialog extends CommonListDialog{
 		titleField.setText(title);
 		typeComboBox.setSelectedItem(type);
 		photoProjectionComboBox.setSelectedItem(photoProjection);
-		setButtonEnableAndBorder(dateButton, dateID != null);
+		setButtonEnableAndBorder(dateButton, (date != null));
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
@@ -576,26 +573,20 @@ public final class MediaDialog extends CommonListDialog{
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
 	}
 
-	//NOTE working table-junction extraction
+	//NOTE working node-relationship extraction
 	private void photoCropButtonEnabledBorder(String identifier, final Integer mediaID){
 		if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
 			identifier = basePath + identifier;
 		final File file = FileHelper.loadFile(identifier);
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
-			final List<Map<String, Object>> recordMediaJunction = Repository.findRelationships(EntityManager.NODE_MEDIA, mediaID,
-				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_FOR);
-			if(recordMediaJunction.size() > 1)
-				throw new IllegalArgumentException("Data integrity error");
-
-			final Map<String, Object> mediaJunction = recordMediaJunction
-				.stream()
-				.findFirst().orElse(null);
-			final String photoCrop = extractRecordPhotoCrop(mediaJunction);
+			final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencingNode(
+				EntityManager.NODE_MEDIA, mediaID,
+				EntityManager.RELATIONSHIP_DEPICTED_BY);
+			final String photoCrop = (referencedNode != null? extractRecordPhotoCrop(referencedNode.getValue()): null);
 
 			photoCropButton.setEnabled(true);
-			GUIHelper.addBorder(photoCropButton, photoCrop != null && !photoCrop.isEmpty(), DATA_BUTTON_BORDER_COLOR);
+			GUIHelper.addBorder(photoCropButton, (photoCrop != null && !photoCrop.isEmpty()), DATA_BUTTON_BORDER_COLOR);
 		}
 		else{
 			photoCropButton.setEnabled(false);
@@ -740,58 +731,87 @@ public final class MediaDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		final Map<String, Object> historicDate1 = new HashMap<>();
+		historicDate1.put("date", "27 FEB 1976");
+		historicDate1.put("date_original", "FEB 27, 1976");
+		historicDate1.put("certainty", "certain");
+		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int historicDate1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("identifier", "media 1");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-media1.put("date_id", 1);
-		Repository.upsert(media1, EntityManager.NODE_MEDIA);
+		int media1ID = Repository.upsert(media1, EntityManager.NODE_MEDIA);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
 		media2.put("type", "photo");
 		media2.put("photo_projection", "rectangular");
-media2.put("date_id", 1);
-		Repository.upsert(media2, EntityManager.NODE_MEDIA);
+		int media2ID = Repository.upsert(media2, EntityManager.NODE_MEDIA);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media2ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
 		media3.put("type", "photo");
 		media3.put("photo_projection", "rectangular");
-media3.put("date_id", 1);
-		Repository.upsert(media3, EntityManager.NODE_MEDIA);
+		int media3ID = Repository.upsert(media3, EntityManager.NODE_MEDIA);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media3ID,
+			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		mediaJunction1.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, 1, EntityManager.NODE_MEDIA, 1,
-			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> mediaRelationship1 = new HashMap<>();
+		mediaRelationship1.put("photo_crop", "0 0 10 50");
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, 1,
+			EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+		final Map<String, Object> person1 = new HashMap<>();
+		person1.put("photo_crop", "10 10 70 70");
+		int person1ID = Repository.upsert(person1, EntityManager.NODE_PERSON);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-note1.put("reference_table", "person");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 1");
-note2.put("reference_table", "media");
-note2.put("reference_id", 1);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_MEDIA, media2ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, person1ID,
+			EntityManager.NODE_MEDIA, media3ID,
+			EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
-restriction1.put("reference_table", "media");
-restriction1.put("reference_id", 1);
-		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final MediaDialog dialog = createForMedia(parent)
-//			final MediaDialog dialog = createRecordForPhoto(parent)
+			final MediaDialog dialog = createEditOnly(parent)
 				.withBasePath(FileHelper.documentsDirectory());
+//			final MediaDialog dialog = createForMedia(parent)
+//				.withBasePath(FileHelper.documentsDirectory());
+//			final MediaDialog dialog = createRecordForPhoto(parent)
+//				.withBasePath(FileHelper.documentsDirectory());
 			dialog.loadData();
-			if(!dialog.selectData(extractRecordID(mediaJunction1)))
+			if(!dialog.selectData(media3ID))
 				dialog.showNewRecord();
 
 			final Object listener = new Object(){
@@ -809,9 +829,11 @@ restriction1.put("reference_id", 1);
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
-							final Integer dateID = extractRecordDateID(container);
-							if(dateID != null)
-								historicDateDialog.selectData(dateID);
+							final Map.Entry<String, Map<String, Object>> date = Repository.findReferencedNode(
+								EntityManager.NODE_MEDIA, mediaID,
+								EntityManager.RELATIONSHIP_CREATED_ON);
+							if(date != null)
+								historicDateDialog.selectData(extractRecordID(date.getValue()));
 
 							historicDateDialog.showDialog();
 						}
@@ -846,10 +868,12 @@ restriction1.put("reference_id", 1);
 								}
 							});
 							try{
-								final Integer photoID = extractRecordPhotoID(container);
-								if(photoID != null){
-									final String photoCrop = extractRecordPhotoCrop(container);
-									photoCropDialog.loadData(photoID, photoCrop);
+								final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencingNode(
+									EntityManager.NODE_MEDIA, mediaID,
+									EntityManager.RELATIONSHIP_DEPICTED_BY);
+								if(referencedNode != null){
+									final String photoCrop = extractRecordPhotoCrop(referencedNode.getValue());
+									photoCropDialog.loadData(mediaID, photoCrop);
 								}
 
 								photoCropDialog.setSize(420, 295);

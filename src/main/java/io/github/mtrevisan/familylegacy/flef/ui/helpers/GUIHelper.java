@@ -172,11 +172,49 @@ public final class GUIHelper{
 			label.setLabelFor(field);
 	}
 
+	public static void bindOnTextChange(final TextPreviewPane field, final Runnable onEdit){
+		field.addDocumentListener(new DocumentListener(){
+			@Override
+			public void changedUpdate(final DocumentEvent evt){
+				onEdit.run();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent evt){
+				onEdit.run();
+			}
+
+			@Override
+			public void insertUpdate(final DocumentEvent evt){
+				onEdit.run();
+			}
+		});
+	}
+
 	public static void bindLabelUndo(final JLabel label, final JTextComponent field){
 		if(label != null)
 			label.setLabelFor(field);
 
 		addUndoCapability(field);
+	}
+
+	public static void bindOnTextChange(final JTextComponent field, final Runnable onEdit){
+		field.getDocument().addDocumentListener(new DocumentListener(){
+			@Override
+			public void changedUpdate(final DocumentEvent evt){
+				onEdit.run();
+			}
+
+			@Override
+			public void removeUpdate(final DocumentEvent evt){
+				onEdit.run();
+			}
+
+			@Override
+			public void insertUpdate(final DocumentEvent evt){
+				onEdit.run();
+			}
+		});
 	}
 
 	public static void bindLabel(final JLabel label, final JComboBox<?> comboBox){
@@ -214,6 +252,16 @@ public final class GUIHelper{
 		addUndoCapability(comboBox);
 
 		AutoCompleteDecorator.decorate(comboBox);
+	}
+
+	public static boolean bindSelectionChange(final JComboBox<?> comboBox, final Runnable onSelection){
+		final boolean editable = comboBox.isEditable();
+		if(editable)
+			comboBox.addActionListener(evt -> {
+				if(comboBox.getSelectedItem() != null)
+					onSelection.run();
+			});
+		return editable;
 	}
 
 

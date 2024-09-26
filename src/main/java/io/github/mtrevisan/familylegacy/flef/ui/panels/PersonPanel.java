@@ -98,7 +98,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
@@ -248,7 +247,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 							listener.onPersonEditPreferredImage(PersonPanel.this);
 					}
 					else if(SwingUtilities.isRightMouseButton(evt)){
-						final Integer photoID = extractRecordPhotoID(person);
+						final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
+							EntityManager.NODE_PERSON, extractRecordID(person),
+							EntityManager.RELATIONSHIP_DEPICTED_BY);
+						final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
 						if(photoID != null){
 							final int response = JOptionPane.showConfirmDialog(PersonPanel.this,
 								"Remove preferred photo?", "Warning", JOptionPane.YES_NO_OPTION);
@@ -430,7 +432,10 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private ImageIcon extractPreferredImage(){
 		ImageIcon icon = null;
-		final Integer photoID = extractRecordPhotoID(person);
+		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
+			EntityManager.NODE_PERSON, extractRecordID(person),
+			EntityManager.RELATIONSHIP_DEPICTED_BY);
+		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
 		if(photoID != null){
 			//recover image URI
 			final Map<String, Object> media = Repository.findByID(EntityManager.NODE_MEDIA, photoID);
@@ -739,17 +744,17 @@ event2.put("reference_id", 1);
 		localizedText2.put("locale", "en");
 		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
-		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("type", "name");
+		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
+		localizedTextRelationship1.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_PERSON_NAME, extractRecordID(personName1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction1,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("type", "name");
+		final Map<String, Object> localizedTextRelationship2 = new HashMap<>();
+		localizedTextRelationship2.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_PERSON_NAME, extractRecordID(personName1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction2,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;

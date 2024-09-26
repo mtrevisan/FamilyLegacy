@@ -850,34 +850,34 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		group2.put("type", "family");
 		Repository.upsert(group2, EntityManager.NODE_GROUP);
 
-		final Map<String, Object> groupJunction11 = new HashMap<>();
-		groupJunction11.put("role", "partner");
+		final Map<String, Object> groupRelationship11 = new HashMap<>();
+		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupJunction11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction2 = new HashMap<>();
-		groupJunction2.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship2 = new HashMap<>();
+		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 2,
-			EntityManager.RELATIONSHIP_OF, groupJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction13 = new HashMap<>();
-		groupJunction13.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship13 = new HashMap<>();
+		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupJunction13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction3 = new HashMap<>();
-		groupJunction3.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship3 = new HashMap<>();
+		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 3,
-			EntityManager.RELATIONSHIP_OF, groupJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction4 = new HashMap<>();
-		groupJunction4.put("role", "child");
+			EntityManager.RELATIONSHIP_OF, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship4 = new HashMap<>();
+		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 4,
-			EntityManager.RELATIONSHIP_OF, groupJunction4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction5 = new HashMap<>();
-		groupJunction5.put("role", "child");
+			EntityManager.RELATIONSHIP_OF, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship5 = new HashMap<>();
+		groupRelationship5.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 5,
-			EntityManager.RELATIONSHIP_OF, groupJunction5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction6 = new HashMap<>();
-		groupJunction6.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship6 = new HashMap<>();
+		groupRelationship6.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 4,
-			EntityManager.RELATIONSHIP_OF, groupJunction6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_OF, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("type_id", 1);

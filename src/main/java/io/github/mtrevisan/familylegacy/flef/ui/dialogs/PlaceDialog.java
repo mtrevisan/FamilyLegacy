@@ -69,7 +69,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCoordinate;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCoordinateCredibility;
@@ -326,7 +325,10 @@ public final class PlaceDialog extends CommonListDialog{
 		final String coordinate = extractRecordCoordinate(selectedRecord);
 		final String coordinateSystem = extractRecordCoordinateSystem(selectedRecord);
 		final String coordinateCredibility = extractRecordCoordinateCredibility(selectedRecord);
-		final Integer photoID = extractRecordPhotoID(selectedRecord);
+		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
+			EntityManager.NODE_PLACE, placeID,
+			EntityManager.RELATIONSHIP_DEPICTED_BY);
+		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PLACE, placeID);
 		final boolean hasTranscribedNames = Repository.hasTranscriptions(EntityManager.NODE_PLACE, placeID,
 			EntityManager.LOCALIZED_TEXT_TYPE_NAME);
@@ -446,42 +448,58 @@ public final class PlaceDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
 		place1.put("type", "province");
-//		place1.put("coordinate", "45.65, 12.19");
+		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
-		Repository.upsert(place1, EntityManager.NODE_PLACE);
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 
 		final Map<String, Object> media1 = new HashMap<>();
 		media1.put("identifier", "/images/addPhoto.boy.jpg");
 		media1.put("title", "title 1");
 		media1.put("type", "photo");
 		media1.put("photo_projection", "rectangular");
-		media1.put("date_id", 1);
-		Repository.upsert(media1, EntityManager.NODE_MEDIA);
+		int media1ID = Repository.upsert(media1, EntityManager.NODE_MEDIA);
+		Repository.upsertRelationship(EntityManager.NODE_PLACE, place1ID,
+			EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.RELATIONSHIP_DEPICTED_BY, media1,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+		final Map<String, Object> date1 = new HashMap<>();
+		date1.put("date", "18 OCT 2000");
+		int date1ID = Repository.upsert(date1, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-note1.put("reference_table", "person");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 1");
-note2.put("reference_table", "place");
-note2.put("reference_id", 1);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
-restriction1.put("reference_table", "place");
-restriction1.put("reference_id", 1);
-		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -507,7 +525,10 @@ restriction1.put("reference_id", 1);
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
 					final int placeID = extractRecordID(container);
-					final Integer photoID = extractRecordPhotoID(container);
+					final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
+						EntityManager.NODE_PLACE, placeID,
+						EntityManager.RELATIONSHIP_DEPICTED_BY);
+					final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
@@ -539,7 +560,7 @@ restriction1.put("reference_id", 1);
 								.withReference(EntityManager.NODE_PLACE, placeID);
 							photoDialog.loadData();
 							if(photoID != null){
-								//add photo manually because is not retrievable through a junction
+								//add photo manually because is not retrievable through a relationship
 								photoDialog.addData(container);
 								photoDialog.selectData(photoID);
 							}

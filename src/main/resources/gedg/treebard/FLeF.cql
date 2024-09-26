@@ -146,8 +146,8 @@ CREATE (m)-[:FOR {onDelete: "RELATIONSHIP_ONLY"}]->(rs);
 
 CREATE (prs:Person {id: $id, photoCrop: $photoCrop});
 CREATE CONSTRAINT ON (prs:Person) ASSERT prs.id IS UNIQUE;
-MATCH (m:Media {id: $photoID}), (prs:Person {id: $personID})
-CREATE (m)-[:DEPICTED_BY {onDelete: "RELATIONSHIP_ONLY"}]->(prs);
+MATCH (prs:Person {id: $personID}), (m:Media {id: $photoID})
+CREATE (prs)-[:DEPICTED_BY {onDelete: "RELATIONSHIP_ONLY"}]->(m);
 
 CREATE (pn:PersonName {id: $id, personalName: $personalName, familyName: $familyName, locale: $locale, type: $type});
 CREATE CONSTRAINT ON (pn:PersonName) ASSERT pn.id IS UNIQUE;
@@ -162,8 +162,8 @@ CREATE (lpn)-[:TRANSCRIPTION_FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEn
 
 CREATE (g:Group {id: $id, type: $type, photoCrop: $photoCrop});
 CREATE CONSTRAINT ON (g:Group) ASSERT g.id IS UNIQUE;
-MATCH (m:Media {id: $photoID}), (g:Group {id: $groupID})
-CREATE (m)-[:DEPICTED_BY {onDelete: "RELATIONSHIP_ONLY"}]->(g);
+MATCH (g:Group {id: $groupID}), (m:Media {id: $photoID})
+CREATE (g)-[:DEPICTED_BY {onDelete: "RELATIONSHIP_ONLY"}]->(m);
 
 MATCH (g:Group {id: $groupID}), (prs:Person {id: $personID})
 CREATE (g)-[:OF {role: $role, certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]->(prs);

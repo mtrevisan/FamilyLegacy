@@ -358,15 +358,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		linkCertaintyComboBox.setSelectedItem(null);
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
-			final List<Map<String, Object>> recordCulturalNormJunction = Repository.findRelationships(EntityManager.NODE_CULTURAL_NORM,
-				culturalNormID,
+			final List<Map<String, Object>> recordCulturalNormRelationships = Repository.findRelationships(
+				EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 				filterReferenceTable, filterReferenceID,
 				EntityManager.RELATIONSHIP_SUPPORTED_BY);
-			if(recordCulturalNormJunction.size() > 1)
+			if(recordCulturalNormRelationships.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
-			if(!recordCulturalNormJunction.isEmpty()){
-				selectedRecordLink = recordCulturalNormJunction.getFirst();
+			if(!recordCulturalNormRelationships.isEmpty()){
+				selectedRecordLink = recordCulturalNormRelationships.getFirst();
 
 				final String linkCertainty = extractRecordCertainty(selectedRecordLink);
 				final String linkCredibility = extractRecordCredibility(selectedRecordLink);
@@ -491,12 +491,12 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
 
-		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
-		culturalNormJunction1.put("certainty", "probable");
-		culturalNormJunction1.put("credibility", "probable");
+		final Map<String, Object> culturalNormRelationship1 = new HashMap<>();
+		culturalNormRelationship1.put("certainty", "probable");
+		culturalNormRelationship1.put("credibility", "probable");
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1,
+			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> place1 = new HashMap<>();

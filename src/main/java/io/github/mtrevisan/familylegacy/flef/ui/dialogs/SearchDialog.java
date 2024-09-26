@@ -78,14 +78,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 
 
@@ -321,23 +319,23 @@ assertion1.put("reference_id", 1);
 		place2.put("name", "name of the another place");
 		Repository.upsert(place2, EntityManager.NODE_PLACE);
 
-		final Map<String, Object> localizedTextJunction1 = new HashMap<>();
-		localizedTextJunction1.put("type", "name");
+		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
+		localizedTextRelationship1.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
 			EntityManager.NODE_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction1,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-		final Map<String, Object> localizedTextJunction2 = new HashMap<>();
-		localizedTextJunction2.put("type", "name");
+		final Map<String, Object> localizedTextRelationship2 = new HashMap<>();
+		localizedTextRelationship2.put("type", "name");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_PLACE, extractRecordID(place1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction2,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-		final Map<String, Object> localizedTextJunction3 = new HashMap<>();
-		localizedTextJunction3.put("type", "extract");
+		final Map<String, Object> localizedTextRelationship3 = new HashMap<>();
+		localizedTextRelationship3.put("type", "extract");
 		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
 			EntityManager.NODE_CITATION, extractRecordID(citation1),
-			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextJunction3,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship3,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> source1 = new HashMap<>();
@@ -380,34 +378,34 @@ assertion1.put("reference_id", 1);
 		group2.put("type", "family");
 		Repository.upsert(group2, EntityManager.NODE_GROUP);
 
-		final Map<String, Object> groupJunction11 = new HashMap<>();
-		groupJunction11.put("role", "partner");
+		final Map<String, Object> groupRelationship11 = new HashMap<>();
+		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupJunction11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction2 = new HashMap<>();
-		groupJunction2.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship2 = new HashMap<>();
+		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 2,
-			EntityManager.RELATIONSHIP_OF, groupJunction2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction13 = new HashMap<>();
-		groupJunction13.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship13 = new HashMap<>();
+		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupJunction13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction3 = new HashMap<>();
-		groupJunction3.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship3 = new HashMap<>();
+		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 3,
-			EntityManager.RELATIONSHIP_OF, groupJunction3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction4 = new HashMap<>();
-		groupJunction4.put("role", "child");
+			EntityManager.RELATIONSHIP_OF, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship4 = new HashMap<>();
+		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 4,
-			EntityManager.RELATIONSHIP_OF, groupJunction4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction5 = new HashMap<>();
-		groupJunction5.put("role", "child");
+			EntityManager.RELATIONSHIP_OF, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship5 = new HashMap<>();
+		groupRelationship5.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 5,
-			EntityManager.RELATIONSHIP_OF, groupJunction5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final Map<String, Object> groupJunction6 = new HashMap<>();
-		groupJunction6.put("role", "partner");
+			EntityManager.RELATIONSHIP_OF, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship6 = new HashMap<>();
+		groupRelationship6.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 4,
-			EntityManager.RELATIONSHIP_OF, groupJunction6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_OF, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();
 		personName1.put("person_id", 1);
@@ -608,11 +606,10 @@ note5.put("reference_id", 2);
 		media3.put("photo_projection", "rectangular");
 		Repository.upsert(media3, EntityManager.NODE_MEDIA);
 
-		final Map<String, Object> mediaJunction1 = new HashMap<>();
-		mediaJunction1.put("photo_crop", "0 0 10 50");
+		final Map<String, Object> mediaRelationship1 = new HashMap<>();
+		mediaRelationship1.put("photo_crop", "0 0 10 50");
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media3), EntityManager.NODE_REPOSITORY, 1,
-			EntityManager.RELATIONSHIP_FOR, mediaJunction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		final TreeMap<Integer, Map<String, Object>> mediaJunctions = new TreeMap<>();
+			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
 		culturalNorm1.put("identifier", "rule 1 id");
@@ -622,12 +619,12 @@ note5.put("reference_id", 2);
 		culturalNorm1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		Repository.upsert(culturalNorm1, EntityManager.NODE_CULTURAL_NORM);
 
-		final Map<String, Object> culturalNormJunction1 = new HashMap<>();
-		culturalNormJunction1.put("certainty", "probable");
-		culturalNormJunction1.put("credibility", "probable");
+		final Map<String, Object> culturalNormRelationship1 = new HashMap<>();
+		culturalNormRelationship1.put("certainty", "probable");
+		culturalNormRelationship1.put("credibility", "probable");
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, extractRecordID(culturalNorm1),
 			EntityManager.NODE_PERSON_NAME, extractRecordID(personName1),
-			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormJunction1,
+			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> modification1 = new HashMap<>();
@@ -738,14 +735,15 @@ researchStatus3.put("reference_id", 1);
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
+					final String tableName = editCommand.getIdentifier();
+					final Integer containerID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case SEARCH -> { if(dialog.isShowing()) dialog.loadData(); }
 
 						//from: repository
 						case SOURCE -> {
-							final Integer repositoryID = extractRecordID(container);
 							final SourceDialog sourceDialog = SourceDialog.createSelectOnly(parent)
-								.withFilterOnRepositoryID(repositoryID);
+								.withFilterOnRepositoryID(containerID);
 							sourceDialog.loadData();
 
 							sourceDialog.showDialog();
@@ -753,9 +751,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: source
 						case CITATION -> {
-							final Integer sourceID = extractRecordID(container);
 							final CitationDialog citationDialog = CitationDialog.createSelectOnly(parent)
-								.withFilterOnSourceID(sourceID);
+								.withFilterOnSourceID(containerID);
 							citationDialog.loadData();
 
 							citationDialog.showDialog();
@@ -763,10 +760,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: citation, person, person name, group, media, place, cultural norm, historic date, calendar
 						case ASSERTION -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
 							final AssertionDialog assertionDialog = AssertionDialog.createSelectOnly(parent)
-								.withReference(tableName, recordID);
+								.withReference(tableName, containerID);
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
@@ -805,10 +800,8 @@ researchStatus3.put("reference_id", 1);
 						//from: repository, source, citation, assertion, historic date, calendar, person, person name, group, event,
 						// cultural norm, media, place
 						case NOTE -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
 							final NoteDialog noteDialog = NoteDialog.createSelectOnly(parent)
-								.withReference(tableName, recordID);
+								.withReference(tableName, containerID);
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
@@ -817,10 +810,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: citation
 						case LOCALIZED_EXTRACT -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createRecordOnlySimpleText(parent)
-								.withReference(tableName, recordID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
+								.withReference(tableName, containerID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
@@ -828,9 +819,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: person name
 						case LOCALIZED_PERSON_NAME -> {
-							final Integer personNameID = extractRecordID(container);
 							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.createSelectOnly(parent)
-								.withReference(personNameID);
+								.withReference(containerID);
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
@@ -838,10 +828,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: place
 						case LOCALIZED_PLACE_NAME -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer placeID = extractRecordID(container);
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSelectOnly(parent)
-								.withReference(tableName, placeID, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+								.withReference(tableName, containerID, EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
@@ -850,11 +838,9 @@ researchStatus3.put("reference_id", 1);
 
 						//from: repository, source, citation, assertion, person, person name, group, event, cultural norm, note, place
 						case MEDIA -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
 							final MediaDialog mediaDialog = MediaDialog.createSelectOnlyForMedia(parent)
 								.withBasePath(FileHelper.documentsDirectory())
-								.withReference(tableName, recordID);
+								.withReference(tableName, containerID);
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
@@ -863,7 +849,9 @@ researchStatus3.put("reference_id", 1);
 						//from: person, group, place
 						case PHOTO -> {
 							final MediaDialog photoDialog;
-							final Integer photoID = extractRecordPhotoID(container);
+							final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(tableName, containerID,
+								EntityManager.RELATIONSHIP_DEPICTED_BY);
+							final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
 							if(photoID != null){
 								photoDialog = MediaDialog.createEditOnlyForPhoto(parent)
 									.withBasePath(FileHelper.documentsDirectory());
@@ -882,9 +870,16 @@ researchStatus3.put("reference_id", 1);
 						case PHOTO_CROP -> {
 							try{
 								final PhotoCropDialog photoCropDialog = PhotoCropDialog.createSelectOnly(parent);
-								final Integer recordID = extractRecordID(container);
+								final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencingNode(
+									tableName, containerID,
+									EntityManager.RELATIONSHIP_DEPICTED_BY);
+								if(referencedNode != null){
+									final String photoCrop = extractRecordPhotoCrop(referencedNode.getValue());
+									photoCropDialog.loadData(containerID, photoCrop);
+								}
+
 								final String photoCrop = extractRecordPhotoCrop(container);
-								photoCropDialog.loadData(recordID, photoCrop);
+								photoCropDialog.loadData(containerID, photoCrop);
 
 								photoCropDialog.setSize(420, 295);
 								photoCropDialog.showDialog();
@@ -904,9 +899,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: person
 						case PERSON_NAME -> {
-							final Integer personID = extractRecordID(container);
 							final PersonNameDialog personNameDialog = PersonNameDialog.createSelectOnly(parent)
-								.withReference(personID);
+								.withReference(containerID);
 							personNameDialog.loadData();
 
 							personNameDialog.showDialog();
@@ -915,10 +909,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: person, group, place
 						case GROUP -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
 							final GroupDialog groupDialog = GroupDialog.createSelectOnly(parent)
-								.withReference(tableName, recordID);
+								.withReference(tableName, containerID);
 							groupDialog.loadData();
 
 							groupDialog.showDialog();
@@ -927,10 +919,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: calendar, person, person name, group, cultural norm, media, place
 						case EVENT -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
 							final EventDialog eventDialog = EventDialog.createSelectOnly(parent)
-								.withReference(tableName, recordID);
+								.withReference(tableName, containerID);
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
@@ -939,10 +929,8 @@ researchStatus3.put("reference_id", 1);
 
 						//from: assertion, person name, group, note
 						case CULTURAL_NORM -> {
-							final String tableName = editCommand.getIdentifier();
-							final Integer recordID = extractRecordID(container);
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.createSelectOnly(parent)
-								.withReference(tableName, recordID);
+								.withReference(tableName, containerID);
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();
@@ -951,15 +939,13 @@ researchStatus3.put("reference_id", 1);
 
 						//from: modification notes
 						case MODIFICATION_HISTORY -> {
-							final int recordID = extractRecordID(container);
-							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final NoteDialog changeNoteDialog = (showOnly
 								? NoteDialog.createModificationNoteShowOnly(parent)
 								: NoteDialog.createModificationNoteEditOnly(parent));
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + recordID);
+							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + containerID);
 							changeNoteDialog.loadData(noteID);
 
 							changeNoteDialog.showDialog();
@@ -969,7 +955,6 @@ researchStatus3.put("reference_id", 1);
 						//from: assertion, calendar, citation, cultural norm, event, group, historic date, localized person name, localized text,
 						// media, note, person name, place, repository, source
 						case RESEARCH_STATUS -> {
-							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final Boolean showOnly = (Boolean)container.get("showOnly");
 							final ResearchStatusDialog researchStatusDialog = (showOnly
