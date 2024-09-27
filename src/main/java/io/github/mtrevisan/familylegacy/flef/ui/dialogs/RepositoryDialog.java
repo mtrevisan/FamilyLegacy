@@ -63,12 +63,8 @@ import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
@@ -257,14 +253,8 @@ public final class RepositoryDialog extends CommonListDialog{
 		final Integer repositoryID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final boolean hasPerson = !Repository.findReferencingNodes(EntityManager.NODE_PERSON,
-			EntityManager.NODE_REPOSITORY, repositoryID,
-			EntityManager.RELATIONSHIP_OWNS)
-			.isEmpty();
-		//FIXME
-		final Integer personID = extractRecordPersonID(selectedRecord);
-		//FIXME
-		final Integer placeID = extractRecordPlaceID(selectedRecord);
+		final boolean hasOwner = Repository.hasOwner(EntityManager.NODE_REPOSITORY, repositoryID);
+		final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_REPOSITORY, repositoryID);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_REPOSITORY, repositoryID);
 		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_REPOSITORY, repositoryID);
 		final boolean hasSources = Repository.hasSources(EntityManager.NODE_REPOSITORY, repositoryID);
@@ -272,8 +262,8 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
-		setButtonEnableAndBorder(referencePersonButton, personID != null);
-		setButtonEnableAndBorder(placeButton, placeID != null);
+		setButtonEnableAndBorder(referencePersonButton, hasOwner);
+		setButtonEnableAndBorder(placeButton, hasPlace);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
@@ -367,6 +357,29 @@ public final class RepositoryDialog extends CommonListDialog{
 		repository3.put("type", "private library");
 		int repository3ID = Repository.upsert(repository3, EntityManager.NODE_REPOSITORY);
 
+		final Map<String, Object> historicDate1 = new HashMap<>();
+		historicDate1.put("date", "27 FEB 1976");
+		historicDate1.put("date_original", "FEB 27, 1976");
+		historicDate1.put("certainty", "certain");
+		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+
+		final Map<String, Object> media1 = new HashMap<>();
+		media1.put("identifier", "media 1");
+		media1.put("title", "title 1");
+		media1.put("type", "photo");
+		media1.put("photo_projection", "rectangular");
+		int media1ID = Repository.upsert(media1, EntityManager.NODE_MEDIA);
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+		final Map<String, Object> mediaRelationship1 = new HashMap<>();
+		mediaRelationship1.put("photo_crop", "0 0 10 20");
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place ident");
 		place1.put("name", "name of the place");
@@ -375,7 +388,6 @@ public final class RepositoryDialog extends CommonListDialog{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-place1.put("photo_id", 1);
 		place1.put("photo_crop", "0 0 10 20");
 		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 		final Map<String, Object> place2 = new HashMap<>();
@@ -387,6 +399,10 @@ place1.put("photo_id", 1);
 		Repository.upsertRelationship(EntityManager.NODE_PLACE, place2ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
 			EntityManager.RELATIONSHIP_LOCATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PLACE, place2ID,
+			EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.RELATIONSHIP_DEPICTED_BY, media1,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("photo_crop", "0 0 5 10");
@@ -439,29 +455,6 @@ place1.put("photo_id", 1);
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		final Map<String, Object> historicDate1 = new HashMap<>();
-		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("date_original", "FEB 27, 1976");
-		historicDate1.put("certainty", "certain");
-		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		int historicDate1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
-
-		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("identifier", "media 1");
-		media1.put("title", "title 1");
-		media1.put("type", "photo");
-		media1.put("photo_projection", "rectangular");
-		int media1ID = Repository.upsert(media1, EntityManager.NODE_MEDIA);
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
-			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-
-		final Map<String, Object> mediaRelationship1 = new HashMap<>();
-		mediaRelationship1.put("photo_crop", "0 0 10 20");
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
-			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-
 		final Map<String, Object> source1 = new HashMap<>();
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
@@ -476,7 +469,7 @@ place1.put("photo_id", 1);
 			EntityManager.NODE_PLACE, place1ID,
 			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
-			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
 			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("identifier", "source 2");
@@ -492,7 +485,7 @@ place1.put("photo_id", 1);
 			EntityManager.NODE_PLACE, place2ID,
 			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
-			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
 			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
@@ -529,13 +522,19 @@ place1.put("photo_id", 1);
 							final PersonDialog personDialog = (dialog.showRecordOnly
 									? PersonDialog.createShowOnly(parent)
 									: PersonDialog.create(parent))
-								//FIXME
-								.withOnCloseGracefully((record, recordID) -> insertRecordPersonID(container, extractRecordID(record)));
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_PERSON, recordID,
+											EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.RELATIONSHIP_OWNS, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+								});
 							personDialog.loadData();
-							//FIXME
-							final Integer personID = extractRecordPersonID(container);
-							if(personID != null)
-								personDialog.selectData(personID);
+							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencingNode(
+								EntityManager.NODE_REPOSITORY, repositoryID,
+								EntityManager.RELATIONSHIP_OWNS);
+							if(ownerNode != null)
+								personDialog.selectData(extractRecordID(ownerNode.getValue()));
 
 							personDialog.showDialog();
 						}
@@ -543,14 +542,19 @@ place1.put("photo_id", 1);
 							final PlaceDialog placeDialog = (dialog.showRecordOnly
 									? PlaceDialog.createShowOnly(parent)
 									: PlaceDialog.create(parent))
-								//FIXME
-								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_PLACE, recordID,
+											EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.RELATIONSHIP_LOCATED_IN, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+								});
 							placeDialog.loadData();
-							final List<Map<String, Object>> placeRecord = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 								EntityManager.NODE_REPOSITORY, repositoryID,
-								EntityManager.RELATIONSHIP_SUPPORTED_BY);
-							if(!placeRecord.isEmpty())
-								placeDialog.selectData(extractRecordID(placeRecord.getFirst()));
+								EntityManager.RELATIONSHIP_LOCATED_IN);
+							if(placeNode != null && EntityManager.NODE_PLACE.equals(placeNode.getKey()))
+								placeDialog.selectData(extractRecordID(placeNode.getValue()));
 
 							placeDialog.showDialog();
 						}

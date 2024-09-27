@@ -62,17 +62,13 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordAuthor;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordRepositoryID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordAuthor;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocation;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRepositoryID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
 
@@ -259,9 +255,11 @@ public final class SourceDialog extends CommonListDialog{
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_SOURCE);
-		if(filterRepositoryID != null)
-			records.removeIf(record -> !filterRepositoryID.equals(extractRecordRepositoryID(record)));
+		final List<Map<String, Object>> records = (filterRepositoryID == null
+			? Repository.findAll(EntityManager.NODE_SOURCE)
+			: Repository.findReferencingNodes(EntityManager.NODE_SOURCE,
+				EntityManager.NODE_REPOSITORY, filterRepositoryID,
+				EntityManager.RELATIONSHIP_QUOTES));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -294,8 +292,8 @@ public final class SourceDialog extends CommonListDialog{
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String author = extractRecordAuthor(selectedRecord);
-		final Integer placeID = extractRecordPlaceID(selectedRecord);
-		final Integer dateID = extractRecordDateID(selectedRecord);
+		final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_SOURCE, sourceID);
+		final boolean hasDate = Repository.hasDate(EntityManager.NODE_SOURCE, sourceID);
 		final String location = extractRecordLocation(selectedRecord);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_SOURCE, sourceID);
 		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_SOURCE, sourceID);
@@ -305,8 +303,8 @@ public final class SourceDialog extends CommonListDialog{
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
 		authorField.setText(author);
-		setButtonEnableAndBorder(placeButton, placeID != null);
-		setButtonEnableAndBorder(dateButton, dateID != null);
+		setButtonEnableAndBorder(placeButton, hasPlace);
+		setButtonEnableAndBorder(dateButton, hasDate);
 		locationField.setText(location);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
@@ -374,7 +372,6 @@ public final class SourceDialog extends CommonListDialog{
 		insertRecordIdentifier(selectedRecord, identifier);
 		insertRecordType(selectedRecord, type);
 		insertRecordAuthor(selectedRecord, author);
-		insertRecordRepositoryID(selectedRecord, filterRepositoryID);
 		insertRecordLocation(selectedRecord, location);
 
 		return true;
@@ -391,33 +388,6 @@ public final class SourceDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
-		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("identifier", "source 1");
-		source1.put("type", "marriage certificate");
-		source1.put("author", "author 1 APA-style");
-		source1.put("place_id", 1);
-		source1.put("date_id", 1);
-		source1.put("location", "location 1");
-		Repository.upsert(source1, EntityManager.NODE_SOURCE);
-		final Map<String, Object> source2 = new HashMap<>();
-		source2.put("identifier", "source 2");
-		source2.put("type", "newspaper");
-		source2.put("author", "author 2 APA-style");
-		source2.put("location", "location 2");
-		Repository.upsert(source2, EntityManager.NODE_SOURCE);
-
-		final Map<String, Object> repository1 = new HashMap<>();
-		repository1.put("identifier", "repo 1");
-		repository1.put("type", "public library");
-		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
-
-		final Map<String, Object> citation1 = new HashMap<>();
-		citation1.put("source_id", 2);
-		citation1.put("location", "here");
-		citation1.put("extract", "text 2");
-		citation1.put("extract_locale", "en-US");
-		citation1.put("extract_type", "transcript");
-		Repository.upsert(citation1, EntityManager.NODE_CITATION);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("date", "27 FEB 1976");
@@ -425,7 +395,7 @@ public final class SourceDialog extends CommonListDialog{
 		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place");
@@ -435,24 +405,67 @@ public final class SourceDialog extends CommonListDialog{
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.upsert(place1, EntityManager.NODE_PLACE);
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
+
+		final Map<String, Object> repository1 = new HashMap<>();
+		repository1.put("identifier", "repo 1");
+		repository1.put("type", "public library");
+		int repository1ID =  Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("identifier", "source 1");
+		source1.put("type", "marriage certificate");
+		source1.put("author", "author 1 APA-style");
+		source1.put("location", "location 1");
+		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> source2 = new HashMap<>();
+		source2.put("identifier", "source 2");
+		source2.put("type", "newspaper");
+		source2.put("author", "author 2 APA-style");
+		source2.put("location", "location 2");
+		int source2ID = Repository.upsert(source2, EntityManager.NODE_SOURCE);
+
+		final Map<String, Object> citation1 = new HashMap<>();
+		citation1.put("location", "here");
+		citation1.put("extract", "text 2");
+		citation1.put("extract_locale", "en-US");
+		citation1.put("extract_type", "transcript");
+		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
+		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.NODE_SOURCE, source2ID,
+			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-note1.put("reference_table", "person");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 1");
-note2.put("reference_table", "source");
-note2.put("reference_id", 1);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
-restriction1.put("reference_table", "source");
-restriction1.put("reference_id", 1);
-		Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
+		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
+			EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -478,20 +491,22 @@ restriction1.put("reference_id", 1);
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent);
 							placeDialog.loadData();
-							final List<Map<String, Object>> placeRecord = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 								EntityManager.NODE_SOURCE, sourceID,
-								EntityManager.RELATIONSHIP_SUPPORTED_BY);
-							if(!placeRecord.isEmpty())
-								placeDialog.selectData(extractRecordID(placeRecord.getFirst()));
+								EntityManager.RELATIONSHIP_CREATED_IN);
+							if(placeNode != null && EntityManager.NODE_PLACE.equals(placeNode.getKey()))
+								placeDialog.selectData(extractRecordID(placeNode.getValue()));
 
 							placeDialog.showDialog();
 						}
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
-							final Integer dateID = extractRecordDateID(container);
-							if(dateID != null)
-								historicDateDialog.selectData(dateID);
+							final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
+								EntityManager.NODE_SOURCE, sourceID,
+								EntityManager.RELATIONSHIP_CREATED_ON);
+							if(dateNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateNode.getValue()));
 
 							historicDateDialog.showDialog();
 						}

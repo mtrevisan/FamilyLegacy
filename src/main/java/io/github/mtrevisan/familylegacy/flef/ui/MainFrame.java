@@ -424,10 +424,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					treePanel.refresh();
 				}
 			});
-		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-			EntityManager.NODE_PERSON, extractRecordID(person),
-			EntityManager.RELATIONSHIP_DEPICTED_BY);
-		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
+		final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_PERSON, extractRecordID(person));
+		final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 		photoDialog.loadData(photoID);
 
 		photoDialog.showDialog();

@@ -339,12 +339,7 @@ public final class GroupDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer groupID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-			EntityManager.NODE_GROUP, groupID,
-			EntityManager.RELATIONSHIP_DEPICTED_BY);
-		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null
-			? extractRecordID(photoRecord.getValue())
-			: null);
+		final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_GROUP, groupID) != null);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_GROUP, groupID);
 		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_GROUP, groupID);
 		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_GROUP, groupID);
@@ -354,7 +349,7 @@ public final class GroupDialog extends CommonListDialog{
 		final String restriction = Repository.getRestriction(EntityManager.NODE_GROUP, groupID);
 
 		typeComboBox.setSelectedItem(type);
-		setButtonEnableAndBorder(photoButton, photoID != null);
+		setButtonEnableAndBorder(photoButton, hasPhoto);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
@@ -722,12 +717,8 @@ public final class GroupDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
 					final int groupID = extractRecordID(container);
-					final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-						EntityManager.NODE_GROUP, groupID,
-						EntityManager.RELATIONSHIP_DEPICTED_BY);
-					final Integer photoID = (photoRecord != null && photoRecord.getValue() != null
-						? extractRecordID(photoRecord.getValue())
-						: null);
+					final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_GROUP, groupID);
+					final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 					switch(editCommand.getType()){
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)

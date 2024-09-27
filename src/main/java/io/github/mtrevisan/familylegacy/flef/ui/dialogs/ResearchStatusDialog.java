@@ -56,6 +56,7 @@ import javax.swing.text.DocumentFilter;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -348,15 +349,22 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		final Map<String, Object> date1 = new HashMap<>();
+		date1.put("date", "18 OCT 2000");
+		int date1ID = Repository.upsert(date1, EntityManager.NODE_HISTORIC_DATE);
+
 		final Map<String, Object> researchStatus1 = new HashMap<>();
-researchStatus1.put("reference_table", "date");
-researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "research 1");
 		researchStatus1.put("description", "see people, do things");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 2);
 		researchStatus1.put("creation_date", EntityManager.now());
-		Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
+		int researchStatus1ID = Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
+		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {

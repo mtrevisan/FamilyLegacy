@@ -284,10 +284,8 @@ public class Main{
 									}
 								});
 							photoDialog.loadData();
-							final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-								tableName, containerID,
-								EntityManager.RELATIONSHIP_DEPICTED_BY);
-							final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
+							final Map<String, Object> photoRecord = Repository.getDepiction(tableName, containerID);
+							final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 							if(photoID != null){
 								//add photo manually because is not retrievable through a relationship
 								photoDialog.addData(container);

@@ -46,6 +46,7 @@ import java.io.Serial;
 import java.time.LocalDate;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -236,6 +237,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 	private String extractFirstName(final Integer personID){
 		return Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
+			//FIXME
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
 			.map(SearchGroupPanel::extractName)
 			.findFirst()
@@ -247,6 +249,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 		final List<String> names = new ArrayList<>(0);
 		Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
+			//FIXME
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				names.add(extractName(record));
@@ -255,6 +258,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 				final Integer personNameID = extractRecordID(record);
 				localizedPersonNames
 					.stream()
+					//FIXME
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
 					.map(SearchGroupPanel::extractName)
 					.filter(name -> !name.isEmpty())
@@ -296,6 +300,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> {
+			//FIXME
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
 			return (placeID != null? extractRecordName(places.get(placeID)): null);
 		};
@@ -314,11 +319,13 @@ public class SearchGroupPanel extends CommonSearchPanel{
 				eventReferenceTable, referenceID,
 				EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
+				//FIXME
 				final Integer recordTypeID = extractRecordTypeID(entry);
 				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));
 				return eventTypes.contains(recordType);
 			})
 			.map(entry -> {
+				//FIXME
 				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
 				final String dateValue = extractRecordDate(dateEntry);
 				final LocalDate parsedDate = DateParser.parse(dateValue);
@@ -349,18 +356,19 @@ public class SearchGroupPanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person2ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person3ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person4ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person5ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("type", "family");
-		Repository.upsert(group1, EntityManager.NODE_GROUP);
+		int group1ID = Repository.upsert(group1, EntityManager.NODE_GROUP);
 		final Map<String, Object> group2 = new HashMap<>();
 		group2.put("type", "family");
-		Repository.upsert(group2, EntityManager.NODE_GROUP);
+		int group2ID = Repository.upsert(group2, EntityManager.NODE_GROUP);
 
 		final Map<String, Object> groupRelationship11 = new HashMap<>();
 		groupRelationship11.put("role", "partner");
@@ -392,103 +400,157 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			EntityManager.RELATIONSHIP_OF, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();
-		personName1.put("person_id", 1);
 		personName1.put("personal_name", "personal name");
 		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
-		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+		int personName1ID = Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> personName2 = new HashMap<>();
-		personName2.put("person_id", 1);
 		personName2.put("personal_name", "personal name 2");
 		personName2.put("family_name", "family name 2");
 		personName2.put("type", "death name");
-		Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
+		int personName2ID = Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName2ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> personName3 = new HashMap<>();
-		personName3.put("person_id", 2);
 		personName3.put("personal_name", "personal name 3");
 		personName3.put("family_name", "family name 3");
 		personName3.put("type", "other name");
-		Repository.upsert(personName3, EntityManager.NODE_PERSON_NAME);
+		int personName3ID = Repository.upsert(personName3, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName3ID,
+			EntityManager.NODE_PERSON, person2ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
-		localizedPersonName1.put("person_name_id", 1);
-		Repository.upsert(localizedPersonName1, EntityManager.NODE_LOCALIZED_PERSON_NAME);
+		int localizedPersonName1ID = Repository.upsert(localizedPersonName1, EntityManager.NODE_LOCALIZED_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName1ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
-		localizedPersonName2.put("person_name_id", 1);
-		Repository.upsert(localizedPersonName2, EntityManager.NODE_LOCALIZED_PERSON_NAME);
+		int localizedPersonName2ID = Repository.upsert(localizedPersonName2, EntityManager.NODE_LOCALIZED_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName2ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
-		localizedPersonName3.put("person_name_id", 1);
-		Repository.upsert(localizedPersonName3, EntityManager.NODE_LOCALIZED_PERSON_NAME);
-
-		final Map<String, Object> event1 = new HashMap<>();
-		event1.put("type_id", 1);
-		event1.put("description", "a birth");
-		event1.put("place_id", 1);
-		event1.put("date_id", 1);
-event1.put("reference_table", "person");
-event1.put("reference_id", 1);
-		Repository.upsert(event1, EntityManager.NODE_EVENT);
-		final Map<String, Object> event2 = new HashMap<>();
-		event2.put("type_id", 1);
-		event2.put("description", "another birth");
-		event2.put("place_id", 2);
-		event2.put("date_id", 2);
-event2.put("reference_table", "person");
-event2.put("reference_id", 1);
-		Repository.upsert(event2, EntityManager.NODE_EVENT);
-		final Map<String, Object> event3 = new HashMap<>();
-		event3.put("type_id", 2);
-		event3.put("date_id", 1);
-event3.put("reference_table", "person");
-event3.put("reference_id", 2);
-		Repository.upsert(event3, EntityManager.NODE_EVENT);
-		final Map<String, Object> event4 = new HashMap<>();
-		event4.put("type_id", 3);
-		event4.put("date_id", 1);
-		event4.put("place_id", 1);
-event4.put("reference_table", "group");
-event4.put("reference_id", 1);
-		Repository.upsert(event4, EntityManager.NODE_EVENT);
+		int localizedPersonName3ID = Repository.upsert(localizedPersonName3, EntityManager.NODE_LOCALIZED_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_PERSON_NAME, localizedPersonName3ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("type", "birth");
 		eventType1.put("category", EVENT_TYPE_CATEGORY_BIRTH);
-		Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		int eventType1ID = Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
 		final Map<String, Object> eventType2 = new HashMap<>();
 		eventType2.put("type", "death");
 		eventType2.put("category", EVENT_TYPE_CATEGORY_DEATH);
-		Repository.upsert(eventType2, EntityManager.NODE_EVENT_TYPE);
+		int eventType2ID = Repository.upsert(eventType2, EntityManager.NODE_EVENT_TYPE);
 		final Map<String, Object> eventType3 = new HashMap<>();
 		eventType3.put("type", "marriage");
 		eventType3.put("category", EVENT_TYPE_CATEGORY_UNION);
-		Repository.upsert(eventType3, EntityManager.NODE_EVENT_TYPE);
+		int eventType3ID = Repository.upsert(eventType3, EntityManager.NODE_EVENT_TYPE);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place 1");
 		place1.put("name", "name of the place");
 		place1.put("locale", "en-US");
-		Repository.upsert(place1, EntityManager.NODE_PLACE);
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 		final Map<String, Object> place2 = new HashMap<>();
 		place2.put("identifier", "another place 1");
 		place2.put("name", "name of the another place");
-		Repository.upsert(place2, EntityManager.NODE_PLACE);
-
-		final Map<String, Object> historicDate1 = new HashMap<>();
-		historicDate1.put("date", "27 FEB 1976");
-		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
-		final Map<String, Object> historicDate2 = new HashMap<>();
-		historicDate2.put("date", "1 JAN 1800");
-		Repository.upsert(historicDate2, EntityManager.NODE_HISTORIC_DATE);
+		int place2ID = Repository.upsert(place2, EntityManager.NODE_PLACE);
 
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("type", "gregorian");
-		Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
+		int calendar1ID = Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
+
+		final Map<String, Object> historicDate1 = new HashMap<>();
+		historicDate1.put("date", "27 FEB 1976");
+		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.NODE_CALENDAR, calendar1ID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> historicDate2 = new HashMap<>();
+		historicDate2.put("date", "1 JAN 1800");
+		int date2ID = Repository.upsert(historicDate2, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date2ID,
+			EntityManager.NODE_CALENDAR, calendar1ID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+		final Map<String, Object> event1 = new HashMap<>();
+		event1.put("description", "a birth");
+		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> event2 = new HashMap<>();
+		event2.put("description", "another birth");
+		int event2ID = Repository.upsert(event2, EntityManager.NODE_EVENT);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event2ID,
+			EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event2ID,
+			EntityManager.NODE_HISTORIC_DATE, date2ID,
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event2ID,
+			EntityManager.NODE_PLACE, place2ID,
+			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event2ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> event3 = new HashMap<>();
+		int event3ID = Repository.upsert(event3, EntityManager.NODE_EVENT);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event3ID,
+			EntityManager.NODE_EVENT_TYPE, eventType2ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event3ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event3ID,
+			EntityManager.NODE_PERSON, person2ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> event4 = new HashMap<>();
+		int event4ID = Repository.upsert(event4, EntityManager.NODE_EVENT);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event4ID,
+			EntityManager.NODE_EVENT_TYPE, eventType3ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event4ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event4ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event4ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

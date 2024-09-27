@@ -523,15 +523,9 @@ public class Repository{
 	 * @return	Whether the record has sources.
 	 */
 	public static boolean hasSources(final String tableName, final int recordID){
-		final String relationshipName = switch(tableName){
-			case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_STORED_IN;
-			case EntityManager.NODE_PLACE -> EntityManager.RELATIONSHIP_CREATED_IN;
-			case EntityManager.NODE_HISTORIC_DATE -> EntityManager.RELATIONSHIP_CREATED_ON;
-			default -> null;
-		};
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_SOURCE,
 			tableName, recordID,
-			relationshipName);
+			EntityManager.RELATIONSHIP_STORED_IN);
 		return !result.isEmpty();
 	}
 
@@ -610,6 +604,61 @@ public class Repository{
 		return !result.isEmpty();
 	}
 
+	/**
+	 * Checks whether a given record in a specified table has a relationship with the given name.
+	 *
+	 * @param tableNameStart	The name of the starting table.
+	 * @param recordIDStart	The ID of the starting record.
+	 * @param tableNameEnd	The name of the end table.
+	 * @param relationshipName	The name of the relationship.
+	 * @return	Whether the record has transcriptions.
+	 */
+	public static boolean hasReference(final String tableNameStart, final int recordIDStart,
+			final String tableNameEnd,
+			final String relationshipName, final String propertyName, final Object propertyValue){
+		final List<Map<String, Object>> result = Repository.findReferencingNodes(tableNameEnd,
+			tableNameStart, recordIDStart,
+			relationshipName, propertyName, propertyValue);
+		return !result.isEmpty();
+	}
+
+
+	/**
+	 * Checks whether a given record in a specified table has a reference to an owner (as a person).
+	 *
+	 * @param tableName	The name of the table.
+	 * @param recordID	The ID of the record.
+	 * @return	Whether the record references a place.
+	 */
+	public static boolean hasOwner(final String tableName, final int recordID){
+		return hasReference(tableName, recordID,
+			EntityManager.NODE_PERSON,
+			EntityManager.RELATIONSHIP_OWNS);
+	}
+
+	/**
+	 * Checks whether a given record in a specified table has a reference to a starting date.
+	 *
+	 * @param tableName	The name of the table.
+	 * @param recordID	The ID of the record.
+	 * @return	Whether the record references a starting date.
+	 */
+	public static boolean hasDateStart(final String tableName, final int recordID){
+		return (findReferencedNode(tableName, recordID,
+			EntityManager.RELATIONSHIP_STARTED_ON) != null);
+	}
+
+	/**
+	 * Checks whether a given record in a specified table has a reference to an ending date.
+	 *
+	 * @param tableName	The name of the table.
+	 * @param recordID	The ID of the record.
+	 * @return	Whether the record references an ending date.
+	 */
+	public static boolean hasDateEnd(final String tableName, final int recordID){
+		return (findReferencedNode(tableName, recordID,
+			EntityManager.RELATIONSHIP_ENDED_ON) != null);
+	}
 
 	/**
 	 * Checks whether a given record in a specified table has a reference to a place.
@@ -619,9 +668,16 @@ public class Repository{
 	 * @return	Whether the record references a place.
 	 */
 	public static boolean hasPlace(final String tableName, final int recordID){
+		final String relationshipName = switch(tableName){
+			case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
+			case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_IN;
+			case EntityManager.NODE_CULTURAL_NORM -> EntityManager.RELATIONSHIP_APPLIES_IN;
+			case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_IN;
+			default -> null;
+		};
 		final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 			tableName, recordID,
-			EntityManager.RELATIONSHIP_HAPPENED_IN);
+			relationshipName);
 		return (placeNode != null);
 	}
 
@@ -633,10 +689,22 @@ public class Repository{
 	 * @return	Whether the record references a date.
 	 */
 	public static boolean hasDate(final String tableName, final int recordID){
+		final String relationshipName = switch(tableName){
+			case EntityManager.NODE_SOURCE, EntityManager.NODE_MEDIA -> EntityManager.RELATIONSHIP_CREATED_ON;
+			case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_ON;
+			default -> null;
+		};
 		final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 			tableName, recordID,
-			EntityManager.RELATIONSHIP_HAPPENED_ON);
+			relationshipName);
 		return (placeNode != null);
+	}
+
+	public static Map<String, Object> getDepiction(final String tableName, final int recordID){
+		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
+			tableName, recordID,
+			EntityManager.RELATIONSHIP_DEPICTED_BY);
+		return (photoRecord != null? photoRecord.getValue(): null);
 	}
 
 

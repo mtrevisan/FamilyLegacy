@@ -547,9 +547,7 @@ public final class MediaDialog extends CommonListDialog{
 		final String title = extractRecordTitle(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
-		final Map.Entry<String, Map<String, Object>> date = Repository.findReferencedNode(
-			EntityManager.NODE_MEDIA, mediaID,
-			EntityManager.RELATIONSHIP_CREATED_ON);
+		final boolean hasDate = Repository.hasDate(EntityManager.NODE_MEDIA, mediaID);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_MEDIA, mediaID);
 		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_MEDIA, mediaID);
 		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_MEDIA, mediaID);
@@ -559,7 +557,7 @@ public final class MediaDialog extends CommonListDialog{
 		titleField.setText(title);
 		typeComboBox.setSelectedItem(type);
 		photoProjectionComboBox.setSelectedItem(photoProjection);
-		setButtonEnableAndBorder(dateButton, (date != null));
+		setButtonEnableAndBorder(dateButton, hasDate);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);

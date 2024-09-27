@@ -63,7 +63,6 @@ import java.util.function.BiConsumer;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonID;
 
 
 public final class PersonDialog extends CommonListDialog{
@@ -236,10 +235,7 @@ public final class PersonDialog extends CommonListDialog{
 	@Override
 	protected void fillData(){
 		final Integer personID = extractRecordID(selectedRecord);
-		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-			EntityManager.NODE_PERSON, personID,
-			EntityManager.RELATIONSHIP_DEPICTED_BY);
-		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
+		final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_PERSON, personID) != null);
 		final boolean hasPersonNames = Repository.hasPersonNames(EntityManager.NODE_PERSON, personID);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PERSON, personID);
 		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PERSON, personID);
@@ -249,7 +245,7 @@ public final class PersonDialog extends CommonListDialog{
 		final String restriction = Repository.getRestriction(EntityManager.NODE_PERSON, personID);
 
 		setButtonEnableAndBorder(personNameButton, hasPersonNames);
-		setButtonEnableAndBorder(photoButton, photoID != null);
+		setButtonEnableAndBorder(photoButton, hasPhoto);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
@@ -487,12 +483,8 @@ public final class PersonDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
 					final int personID = extractRecordID(container);
-					final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-						EntityManager.NODE_PERSON, personID,
-						EntityManager.RELATIONSHIP_DEPICTED_BY);
-					final Integer photoID = (photoRecord != null && photoRecord.getValue() != null
-						? extractRecordID(photoRecord.getValue())
-						: null);
+					final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_PERSON, personID);
+					final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)

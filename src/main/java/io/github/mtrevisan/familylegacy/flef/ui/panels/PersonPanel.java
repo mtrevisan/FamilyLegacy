@@ -247,10 +247,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 							listener.onPersonEditPreferredImage(PersonPanel.this);
 					}
 					else if(SwingUtilities.isRightMouseButton(evt)){
-						final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-							EntityManager.NODE_PERSON, extractRecordID(person),
-							EntityManager.RELATIONSHIP_DEPICTED_BY);
-						final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
+						final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_PERSON, extractRecordID(person));
+						final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 						if(photoID != null){
 							final int response = JOptionPane.showConfirmDialog(PersonPanel.this,
 								"Remove preferred photo?", "Warning", JOptionPane.YES_NO_OPTION);
@@ -432,10 +430,8 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private ImageIcon extractPreferredImage(){
 		ImageIcon icon = null;
-		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-			EntityManager.NODE_PERSON, extractRecordID(person),
-			EntityManager.RELATIONSHIP_DEPICTED_BY);
-		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
+		final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_PERSON, extractRecordID(person));
+		final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 		if(photoID != null){
 			//recover image URI
 			final Map<String, Object> media = Repository.findByID(EntityManager.NODE_MEDIA, photoID);
@@ -523,9 +519,9 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 
 	private boolean hasSiblingGroup(final Map<String, Object> partner){
 		final Integer partnerID = extractRecordID(partner);
-		return !Repository.findReferencingNodes(EntityManager.NODE_GROUP,
-				EntityManager.NODE_PERSON, partnerID,
-				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).isEmpty();
+		return Repository.hasReference(EntityManager.NODE_PERSON, partnerID,
+			EntityManager.NODE_GROUP,
+			EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER);
 	}
 
 	private void extractBirthDeathPlaceAge(final StringJoiner sj, final StringJoiner toolTipSJ){

@@ -52,7 +52,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -141,7 +140,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	public static LocalizedTextDialog createSimpleText(final Frame parent){
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(parent);
-		dialog.showRecordOnly = true;
 		dialog.simplePrimaryText = true;
 		dialog.initialize();
 		return dialog;
@@ -156,10 +154,11 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	public LocalizedTextDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
 			if(selectedRecord != null){
-				insertRecordType(Collections.emptyMap(), filterReferenceType);
+				final Map<String, Object> relationship = new HashMap<>(1);
+				insertRecordType(relationship, filterReferenceType);
 				Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
+					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, relationship,
 					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 			}
 			else if(recordID != null)

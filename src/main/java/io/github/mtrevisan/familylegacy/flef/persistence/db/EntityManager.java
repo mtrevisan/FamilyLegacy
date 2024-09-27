@@ -74,7 +74,6 @@ public class EntityManager{
 	public static final String RELATIONSHIP_APPLIES_IN = "applies_in";
 	public static final String RELATIONSHIP_STARTED_ON = "started_on";
 	public static final String RELATIONSHIP_ENDED_ON = "ended_on";
-	public static final String RELATIONSHIP_ACCREDITED_FOR = "accredited_for";
 	public static final String NODE_RESTRICTION = "restriction";
 	public static final String NODE_MODIFICATION = "modification";
 	public static final String RELATIONSHIP_CHANGELOG_FOR = "changelog_for";
@@ -172,14 +171,6 @@ public class EntityManager{
 		return (Integer)record.get("place_id");
 	}
 
-	public static Integer extractRecordDateStartID(final Map<String, Object> record){
-		return (Integer)record.get("date_start_id");
-	}
-
-	public static Integer extractRecordDateEndID(final Map<String, Object> record){
-		return (Integer)record.get("date_end_id");
-	}
-
 	public static Integer extractRecordMediaID(final Map<String, Object> record){
 		return (Integer)record.get("media_id");
 	}
@@ -206,10 +197,6 @@ public class EntityManager{
 
 	public static String extractRecordCategory(final Map<String, Object> record){
 		return (String)record.get("category");
-	}
-
-	public static Integer extractRecordPhotoID(final Map<String, Object> record){
-		return (Integer)record.get("photo_id");
 	}
 
 	public static String extractRecordPhotoCrop(final Map<String, Object> record){
@@ -264,10 +251,6 @@ public class EntityManager{
 		return (String)record.get("text");
 	}
 
-	public static Integer extractRecordLocalizedTextID(final Map<String, Object> record){
-		return (Integer)record.get("localized_text_id");
-	}
-
 	public static String extractRecordTitle(final Map<String, Object> record){
 		return (String)record.get("title");
 	}
@@ -310,10 +293,6 @@ public class EntityManager{
 
 	public static String extractRecordUpdateDate(final Map<String, Object> record){
 		return (String)record.get("update_date");
-	}
-
-	public static Integer extractRecordRepositoryID(final Map<String, Object> record){
-		return (Integer)record.get("repository_id");
 	}
 
 	public static String extractRecordStatus(final Map<String, Object> record){
@@ -390,14 +369,6 @@ public class EntityManager{
 		record.put("description", description);
 	}
 
-	public static void insertRecordTypeID(final Map<String, Object> record, final Integer typeID){
-		record.put("type_id", typeID);
-	}
-
-	public static void insertRecordSuperTypeID(final Map<String, Object> record, final Integer superTypeID){
-		record.put("super_type_id", superTypeID);
-	}
-
 	public static void insertRecordCategory(final Map<String, Object> record, final String category){
 		record.put("category", category);
 	}
@@ -458,10 +429,6 @@ public class EntityManager{
 		record.put("text", text);
 	}
 
-	public static void insertRecordLocalizedTextID(final Map<String, Object> record, final int localizedTextID){
-		record.put("localized_text_id", localizedTextID);
-	}
-
 	public static void insertRecordTitle(final Map<String, Object> record, final String title){
 		record.put("title", title);
 	}
@@ -472,10 +439,6 @@ public class EntityManager{
 
 	public static void insertRecordPhotoProjection(final Map<String, Object> record, final String photoProjection){
 		record.put("photo_projection", photoProjection);
-	}
-
-	public static void insertRecordPhotoMediaID(final Map<String, Object> record, final int mediaID){
-		record.put("media_id", mediaID);
 	}
 
 	public static void insertRecordNote(final Map<String, Object> record, final String note){

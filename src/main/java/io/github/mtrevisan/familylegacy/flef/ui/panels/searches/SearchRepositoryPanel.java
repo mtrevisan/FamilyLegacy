@@ -137,9 +137,11 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 			final Integer recordID = extractRecordID(record);
 			final String identifier = extractRecordIdentifier(record);
 			final String type = extractRecordType(record);
+			//FIXME
 			final Integer personID = extractRecordPersonID(record);
 			final String personName = extractFirstName(personID);
 			final List<String> personAllNames = extractAllNames(personID);
+			//FIXME
 			final Integer placeID = extractRecordPlaceID(record);
 			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
 			final FilterString filter = FilterString.create()
@@ -168,6 +170,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	private String extractFirstName(final Integer personID){
 		return Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
+			//FIXME
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
 			.map(SearchRepositoryPanel::extractName)
 			.findFirst()
@@ -179,6 +182,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		final List<String> names = new ArrayList<>(0);
 		Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
+			//FIXME
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				names.add(extractName(record));
@@ -187,6 +191,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 				final Integer personNameID = extractRecordID(record);
 				localizedPersonNames
 					.stream()
+					//FIXME
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
 					.map(SearchRepositoryPanel::extractName)
 					.filter(name -> !name.isEmpty())
@@ -220,8 +225,8 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
 		source1.put("author", "author 1");
-		source1.put("place_id", 1);
-		source1.put("date_id", 1);
+source1.put("place_id", 1);
+source1.put("date_id", 1);
 		source1.put("location", "location 1");
 		Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		final Map<String, Object> source2 = new HashMap<>();
@@ -239,7 +244,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
-		historicDate1.put("calendar_original_id", 1);
+historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);

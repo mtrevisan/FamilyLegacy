@@ -44,21 +44,17 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDescription;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperType;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSuperTypeID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
 
 public class SearchEventPanel extends CommonSearchPanel{
@@ -139,18 +135,21 @@ public class SearchEventPanel extends CommonSearchPanel{
 			final Map<String, Object> record = records.get(i);
 
 			final Integer recordID = extractRecordID(record);
-			final Integer typeID = extractRecordTypeID(record);
-			final Map<String, Object> eventType = types.get(typeID);
-			final String type = extractRecordType(eventType);
-			final Integer superTypeID = extractRecordSuperTypeID(eventType);
-			final String superType = (superTypeID != null? extractRecordSuperType(superTypes.get(superTypeID)): null);
+			final Map.Entry<String, Map<String, Object>> typeNode = Repository.findReferencedNode(
+				EntityManager.NODE_EVENT, recordID,
+				EntityManager.RELATIONSHIP_OF_TYPE);
+			final String type = (typeNode != null? extractRecordType(typeNode.getValue()): null);
+			final String superType = (typeNode != null? extractRecordSuperType(extractRecordID(typeNode.getValue())): null);
 			final String description = extractRecordDescription(record);
-			final Integer placeID = extractRecordPlaceID(record);
-			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
-			final Integer dateID = extractRecordDateID(record);
-			final Map<String, Object> dateEntry = (dateID != null? historicDates.get(dateID): null);
-			final String dateValue = extractRecordDate(dateEntry);
-			final LocalDate parsedDate = DateParser.parse(dateValue);
+			final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
+				EntityManager.NODE_EVENT, recordID,
+				EntityManager.RELATIONSHIP_HAPPENED_IN);
+			final String place = (placeNode != null? extractRecordName(placeNode.getValue()): null);
+			final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
+				EntityManager.NODE_EVENT, recordID,
+				EntityManager.RELATIONSHIP_HAPPENED_ON);
+			final String date = (dateNode != null? extractRecordDate(dateNode.getValue()): null);
+			final LocalDate parsedDate = DateParser.parse(date);
 			final Integer year = (parsedDate != null? parsedDate.getYear(): null);
 			final FilterString filter = FilterString.create().add(recordID).add(superType).add(type).add(description).add(place).add(year);
 			final String filterData = filter.toString();
@@ -168,6 +167,16 @@ public class SearchEventPanel extends CommonSearchPanel{
 		}
 	}
 
+	private String extractRecordSuperType(final Integer eventTypeID){
+		final Map.Entry<String, Map<String, Object>> eventSuperTypeNode = Repository.findReferencedNode(
+			EntityManager.NODE_EVENT_TYPE, eventTypeID,
+			EntityManager.RELATIONSHIP_OF);
+		if(eventSuperTypeNode == null || !EntityManager.NODE_EVENT_SUPER_TYPE.equals(eventSuperTypeNode.getKey()))
+			return null;
+
+		return EntityManager.extractRecordSuperType(eventSuperTypeNode.getValue());
+	}
+
 
 
 	public static void main(final String[] args){
@@ -179,27 +188,55 @@ public class SearchEventPanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		final Map<String, Object> place1 = new HashMap<>();
+		place1.put("identifier", "place 1");
+		place1.put("name", "name of the place");
+		place1.put("locale", "en-US");
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
+
+		final Map<String, Object> historicDate1 = new HashMap<>();
+		historicDate1.put("date", "27 FEB 1976");
+		historicDate1.put("date_original", "FEB 27, 1976");
+		historicDate1.put("calendar_original_id", 1);
+		historicDate1.put("certainty", "certain");
+		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+
 		final Map<String, Object> event1 = new HashMap<>();
-		event1.put("type_id", 1);
 		event1.put("description", "a birth");
-		event1.put("place_id", 1);
-		event1.put("date_id", 1);
-event1.put("reference_table", "person");
-event1.put("reference_id", 1);
-		Repository.upsert(event1, EntityManager.NODE_EVENT);
+		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> eventType1 = new HashMap<>();
-		eventType1.put("super_type_id", 2);
 		eventType1.put("type", "birth");
 		eventType1.put("category", "birth");
-		Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		int eventType1ID = Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> eventSuperType1 = new HashMap<>();
 		eventSuperType1.put("super_type", "Historical events");
 		Repository.upsert(eventSuperType1, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType2 = new HashMap<>();
 		eventSuperType2.put("super_type", "Personal origins");
-		Repository.upsert(eventSuperType2, EntityManager.NODE_EVENT_SUPER_TYPE);
+		int eventSuperType2ID = Repository.upsert(eventSuperType2, EntityManager.NODE_EVENT_SUPER_TYPE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType2ID,
+			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> eventSuperType3 = new HashMap<>();
 		eventSuperType3.put("super_type", "Physical description");
 		Repository.upsert(eventSuperType3, EntityManager.NODE_EVENT_SUPER_TYPE);
@@ -245,16 +282,6 @@ event1.put("reference_id", 1);
 		final Map<String, Object> eventSuperType17 = new HashMap<>();
 		eventSuperType17.put("super_type", "Religious events");
 		Repository.upsert(eventSuperType17, EntityManager.NODE_EVENT_SUPER_TYPE);
-
-		final Map<String, Object> place1 = new HashMap<>();
-		place1.put("identifier", "place 1");
-		place1.put("name", "name of the place");
-		place1.put("locale", "en-US");
-		Repository.upsert(place1, EntityManager.NODE_PLACE);
-
-		final Map<String, Object> date1 = new HashMap<>();
-		date1.put("date", "18 OCT 2000");
-		Repository.upsert(date1, EntityManager.NODE_HISTORIC_DATE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

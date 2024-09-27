@@ -422,6 +422,7 @@ public final class EventDialog extends CommonListDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("description", "a birth");
 		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);

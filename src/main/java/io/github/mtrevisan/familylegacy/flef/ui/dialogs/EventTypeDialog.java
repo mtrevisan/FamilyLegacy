@@ -294,6 +294,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 
 
 		GraphDatabaseManager.clearDatabase();
+
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("type", "death");
 		eventType1.put("category", "death");

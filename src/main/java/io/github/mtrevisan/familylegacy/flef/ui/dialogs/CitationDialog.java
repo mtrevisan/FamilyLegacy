@@ -248,8 +248,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final List<Map<String, Object>> records = (filterSourceID == null
 			? Repository.findAll(EntityManager.NODE_CITATION)
 			: Repository.findReferencingNodes(EntityManager.NODE_CITATION,
-			EntityManager.NODE_SOURCE, filterSourceID,
-			EntityManager.RELATIONSHIP_QUOTES));
+				EntityManager.NODE_SOURCE, filterSourceID,
+				EntityManager.RELATIONSHIP_QUOTES));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());

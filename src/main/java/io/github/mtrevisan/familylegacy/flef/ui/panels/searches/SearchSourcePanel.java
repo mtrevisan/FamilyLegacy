@@ -139,8 +139,10 @@ public class SearchSourcePanel extends CommonSearchPanel{
 			final String identifier = extractRecordIdentifier(record);
 			final String type = extractRecordType(record);
 			final String author = extractRecordAuthor(record);
+			//FIXME
 			final Integer placeID = extractRecordPlaceID(record);
 			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
+			//FIXME
 			final Integer dateID = extractRecordDateID(record);
 			final Map<String, Object> dateEntry = (dateID != null? historicDates.get(dateID): null);
 			final String dateValue = extractRecordDate(dateEntry);
@@ -183,8 +185,8 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		source1.put("identifier", "source 1");
 		source1.put("type", "marriage certificate");
 		source1.put("author", "author 1");
-		source1.put("place_id", 1);
-		source1.put("date_id", 1);
+source1.put("place_id", 1);
+source1.put("date_id", 1);
 		source1.put("location", "location 1");
 		Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		final Map<String, Object> source2 = new HashMap<>();
@@ -202,7 +204,7 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
-		historicDate1.put("calendar_original_id", 1);
+historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);

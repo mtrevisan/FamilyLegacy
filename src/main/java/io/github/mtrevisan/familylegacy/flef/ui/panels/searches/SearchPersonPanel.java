@@ -186,6 +186,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	private String extractFirstName(final Integer personID){
 		return Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
+			//FIXME
 			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
 			.map(SearchPersonPanel::extractName)
 			.findFirst()
@@ -197,6 +198,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		final List<String> names = new ArrayList<>(0);
 		Repository.findAll(EntityManager.NODE_PERSON_NAME)
 			.stream()
+			//FIXME
 			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
 			.forEach(record -> {
 				names.add(extractName(record));
@@ -205,6 +207,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 				final Integer personNameID = extractRecordID(record);
 				localizedPersonNames
 					.stream()
+					//FIXME
 					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
 					.map(SearchPersonPanel::extractName)
 					.filter(name -> !name.isEmpty())
@@ -229,6 +232,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
+			//FIXME
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
 			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
 			final Map<String, Object> result = new HashMap<>(2);
@@ -245,6 +249,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
+			//FIXME
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
 			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
 			final Map<String, Object> result = new HashMap<>(2);
@@ -265,11 +270,13 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			EntityManager.NODE_PERSON, referenceID,
 			EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
+				//FIXME
 				final Integer recordTypeID = extractRecordTypeID(entry);
 				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));
 				return eventTypes.contains(recordType);
 			})
 			.map(entry -> {
+				//FIXME
 				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
 				final String dateValue = extractRecordDate(dateEntry);
 				final LocalDate parsedDate = DateParser.parse(dateValue);
@@ -315,19 +322,19 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> personName1 = new HashMap<>();
-		personName1.put("person_id", 1);
+personName1.put("person_id", 1);
 		personName1.put("personal_name", "personal name");
 		personName1.put("family_name", "family name");
 		personName1.put("type", "birth name");
 		Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName2 = new HashMap<>();
-		personName2.put("person_id", 1);
+personName2.put("person_id", 1);
 		personName2.put("personal_name", "personal name 2");
 		personName2.put("family_name", "family name 2");
 		personName2.put("type", "death name");
 		Repository.upsert(personName2, EntityManager.NODE_PERSON_NAME);
 		final Map<String, Object> personName3 = new HashMap<>();
-		personName3.put("person_id", 2);
+personName3.put("person_id", 2);
 		personName3.put("personal_name", "personal name 3");
 		personName3.put("family_name", "family name 3");
 		personName3.put("type", "other name");
@@ -336,45 +343,45 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		final Map<String, Object> localizedPersonName1 = new HashMap<>();
 		localizedPersonName1.put("personal_name", "true");
 		localizedPersonName1.put("family_name", "name");
-		localizedPersonName1.put("person_name_id", 1);
+localizedPersonName1.put("person_name_id", 1);
 		Repository.upsert(localizedPersonName1, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final Map<String, Object> localizedPersonName2 = new HashMap<>();
 		localizedPersonName2.put("personal_name", "fake");
 		localizedPersonName2.put("family_name", "name");
-		localizedPersonName2.put("person_name_id", 1);
+localizedPersonName2.put("person_name_id", 1);
 		Repository.upsert(localizedPersonName2, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
 		localizedPersonName3.put("personal_name", "other");
 		localizedPersonName3.put("family_name", "name");
-		localizedPersonName3.put("person_name_id", 1);
+localizedPersonName3.put("person_name_id", 1);
 		Repository.upsert(localizedPersonName3, EntityManager.NODE_LOCALIZED_PERSON_NAME);
 
 		final Map<String, Object> event1 = new HashMap<>();
-		event1.put("type_id", 1);
+event1.put("type_id", 1);
 		event1.put("description", "a birth");
-		event1.put("place_id", 1);
-		event1.put("date_id", 1);
+event1.put("place_id", 1);
+event1.put("date_id", 1);
 event1.put("reference_table", "person");
 event1.put("reference_id", 1);
 		Repository.upsert(event1, EntityManager.NODE_EVENT);
 		final Map<String, Object> event2 = new HashMap<>();
-		event2.put("type_id", 1);
+event2.put("type_id", 1);
 		event2.put("description", "another birth");
-		event2.put("place_id", 2);
-		event2.put("date_id", 2);
+event2.put("place_id", 2);
+event2.put("date_id", 2);
 event2.put("reference_table", "person");
 event2.put("reference_id", 1);
 		Repository.upsert(event2, EntityManager.NODE_EVENT);
 		final Map<String, Object> event3 = new HashMap<>();
-		event3.put("type_id", 2);
-		event3.put("date_id", 1);
+event3.put("type_id", 2);
+event3.put("date_id", 1);
 event3.put("reference_table", "person");
 event3.put("reference_id", 2);
 		Repository.upsert(event3, EntityManager.NODE_EVENT);
 		final Map<String, Object> event4 = new HashMap<>();
-		event4.put("type_id", 3);
-		event4.put("date_id", 1);
-		event4.put("place_id", 1);
+event4.put("type_id", 3);
+event4.put("date_id", 1);
+event4.put("place_id", 1);
 event4.put("reference_table", "group");
 event4.put("reference_id", 1);
 		Repository.upsert(event4, EntityManager.NODE_EVENT);

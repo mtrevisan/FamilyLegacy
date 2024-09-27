@@ -286,6 +286,7 @@ public final class PlaceDialog extends CommonListDialog{
 		unselectAction();
 
 		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_PLACE);
+
 		if(filterPlaceID != null)
 			selectAction();
 		else{
@@ -325,10 +326,7 @@ public final class PlaceDialog extends CommonListDialog{
 		final String coordinate = extractRecordCoordinate(selectedRecord);
 		final String coordinateSystem = extractRecordCoordinateSystem(selectedRecord);
 		final String coordinateCredibility = extractRecordCoordinateCredibility(selectedRecord);
-		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-			EntityManager.NODE_PLACE, placeID,
-			EntityManager.RELATIONSHIP_DEPICTED_BY);
-		final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
+		final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_PLACE, placeID) != null);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PLACE, placeID);
 		final boolean hasTranscribedNames = Repository.hasTranscriptions(EntityManager.NODE_PLACE, placeID,
 			EntityManager.LOCALIZED_TEXT_TYPE_NAME);
@@ -346,7 +344,7 @@ public final class PlaceDialog extends CommonListDialog{
 		coordinateField.setText(coordinate);
 		coordinateSystemComboBox.setSelectedItem(coordinateSystem);
 		coordinateCredibilityComboBox.setSelectedItem(coordinateCredibility);
-		setButtonEnableAndBorder(photoButton, photoID != null);
+		setButtonEnableAndBorder(photoButton, hasPhoto);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
@@ -525,10 +523,8 @@ public final class PlaceDialog extends CommonListDialog{
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
 					final int placeID = extractRecordID(container);
-					final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
-						EntityManager.NODE_PLACE, placeID,
-						EntityManager.RELATIONSHIP_DEPICTED_BY);
-					final Integer photoID = (photoRecord != null && photoRecord.getValue() != null? extractRecordID(photoRecord.getValue()): null);
+					final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_PLACE, placeID);
+					final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 					switch(editCommand.getType()){
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)

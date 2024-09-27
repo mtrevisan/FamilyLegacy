@@ -32,7 +32,7 @@ CREATE CONSTRAINT ON (s:Source) ASSERT s.identifier IS UNIQUE;
 MATCH (s:Source {id: $sourceID}), (r:Repository {id: $repositoryID})
 CREATE (s)-[:STORED_IN {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(r);
 MATCH (s:Source {id: $sourceID}), (p:Place {id: $placeID})
-CREATE (s)-[:CREATED_IN {onDelete: "RELATIONSHIP_ONLY"}]->(r);
+CREATE (s)-[:CREATED_IN {onDelete: "RELATIONSHIP_ONLY"}]->(p);
 MATCH (s:Source {id: $sourceID}), (hd:HistoricDate {id: $historicDateID})
 CREATE (s)-[:CREATED_ON {onDelete: "RELATIONSHIP_ONLY"}]->(hd);
 

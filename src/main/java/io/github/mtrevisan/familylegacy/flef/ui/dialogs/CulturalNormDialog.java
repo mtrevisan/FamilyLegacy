@@ -224,11 +224,11 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		dateStartButton.setToolTipText("Start date");
 		dateStartButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE_START, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		dateEndButton.setToolTipText("End date");
 		dateEndButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE_END, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
 		GUIHelper.bindLabelUndoAutoComplete(credibilityLabel, credibilityComboBox);
@@ -326,13 +326,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Integer culturalNormID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
-		final boolean hasPlace = Repository.hasReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-			EntityManager.NODE_PLACE,
-			EntityManager.RELATIONSHIP_SUPPORTED_BY);
-		final boolean hasDateStart = Repository.hasReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-			EntityManager.NODE_HISTORIC_DATE, EntityManager.RELATIONSHIP_STARTED_ON);
-		final boolean hasDateEnd = Repository.hasReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-			EntityManager.NODE_HISTORIC_DATE, EntityManager.RELATIONSHIP_ENDED_ON);
+		final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+		final boolean hasDateStart = Repository.hasDateStart(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+		final boolean hasDateEnd = Repository.hasDateEnd(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
 		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
@@ -511,11 +507,14 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Map<String, Object> date1 = new HashMap<>();
 		date1.put("date", "18 OCT 2000");
 		int date1ID = Repository.upsert(date1, EntityManager.NODE_HISTORIC_DATE);
+		final Map<String, Object> date2 = new HashMap<>();
+		date2.put("date", "18 OCT 2010");
+		int date2ID = Repository.upsert(date2, EntityManager.NODE_HISTORIC_DATE);
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
 			EntityManager.RELATIONSHIP_STARTED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
-			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.NODE_HISTORIC_DATE, date2ID,
 			EntityManager.RELATIONSHIP_ENDED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
@@ -568,22 +567,33 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent);
 							placeDialog.loadData();
-							final List<Map<String, Object>> placeRecord = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-								EntityManager.RELATIONSHIP_SUPPORTED_BY);
-							if(!placeRecord.isEmpty())
-								placeDialog.selectData(extractRecordID(placeRecord.getFirst()));
+								EntityManager.RELATIONSHIP_APPLIES_IN);
+							if(placeNode != null && EntityManager.NODE_PLACE.equals(placeNode.getKey()))
+								placeDialog.selectData(extractRecordID(placeNode.getValue()));
 
 							placeDialog.showDialog();
 						}
-						case HISTORIC_DATE -> {
+						case HISTORIC_DATE_START -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
-							final List<Map<String, Object>> dateStartRecord = Repository.findReferencingNodes(EntityManager.NODE_HISTORIC_DATE,
+							final Map.Entry<String, Map<String, Object>> dateStartNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 								EntityManager.RELATIONSHIP_STARTED_ON);
-							if(!dateStartRecord.isEmpty())
-								historicDateDialog.selectData(extractRecordID(dateStartRecord.getFirst()));
+							if(dateStartNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateStartNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateStartNode.getValue()));
+
+							historicDateDialog.showDialog();
+						}
+						case HISTORIC_DATE_END -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
+							historicDateDialog.loadData();
+							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
+								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+								EntityManager.RELATIONSHIP_ENDED_ON);
+							if(dateEndNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateEndNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateEndNode.getValue()));
 
 							historicDateDialog.showDialog();
 						}

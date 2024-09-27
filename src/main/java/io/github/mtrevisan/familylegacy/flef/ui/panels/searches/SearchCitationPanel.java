@@ -42,6 +42,7 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -158,32 +159,40 @@ public class SearchCitationPanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		final Map<String, Object> citation1 = new HashMap<>();
-		citation1.put("source_id", 1);
-		citation1.put("location", "here");
-		citation1.put("extract", "text 1");
-		citation1.put("extract_locale", "en-US");
-		citation1.put("extract_type", "transcript");
-		Repository.upsert(citation1, EntityManager.NODE_CITATION);
-
-		final Map<String, Object> assertion1 = new HashMap<>();
-		assertion1.put("citation_id", 1);
-assertion1.put("reference_table", "table");
-assertion1.put("reference_id", 1);
-		assertion1.put("role", "father");
-		assertion1.put("certainty", "certain");
-		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
-
-		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("repository_id", 1);
-		source1.put("identifier", "source 1");
-		Repository.upsert(source1, EntityManager.NODE_SOURCE);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+		int repository1ID = Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("identifier", "source 1");
+		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+
+		final Map<String, Object> citation1 = new HashMap<>();
+		citation1.put("location", "here");
+		citation1.put("extract", "text 1");
+		citation1.put("extract_locale", "en-US");
+		citation1.put("extract_type", "transcript");
+		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
+		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+
+		final Map<String, Object> assertion1 = new HashMap<>();
+		assertion1.put("role", "father");
+		assertion1.put("certainty", "certain");
+		assertion1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
+		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
+			EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "text 1");
@@ -207,16 +216,22 @@ assertion1.put("reference_id", 1);
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-note1.put("reference_table", "person");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 2");
-note2.put("reference_table", "citation");
-note2.put("reference_id", 1);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_CITATION, citation1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
