@@ -64,6 +64,7 @@ public class EntityManager{
 	public static final String RELATIONSHIP_TRANSCRIPTION_FOR = "transcription_for";
 	public static final String NODE_GROUP = "group";
 	public static final String RELATIONSHIP_OF = "of";
+	public static final String RELATIONSHIP_BELONGS_TO = "belongs_to";
 	public static final String NODE_EVENT = "event";
 	public static final String RELATIONSHIP_OF_TYPE = "of_type";
 	public static final String RELATIONSHIP_HAPPENED_IN = "happened_in";

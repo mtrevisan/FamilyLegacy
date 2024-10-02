@@ -166,11 +166,11 @@ MATCH (g:Group {id: $groupID}), (m:Media {id: $photoID})
 CREATE (g)-[:DEPICTED_BY {onDelete: "RELATIONSHIP_ONLY"}]->(m);
 
 MATCH (g:Group {id: $groupID}), (prs:Person {id: $personID})
-CREATE (g)-[:OF {role: $role, certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]->(prs);
+CREATE (g)<-[:BELONGS_TO {role: $role, certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]-(prs);
 MATCH (g1:Group {id: $groupID}), (g2:Group {id: $groupID})
-CREATE (g1)-[:OF {role: $role, certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]->(g2);
+CREATE (g1)<-[:BELONGS_TO {role: $role, certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]-(g2);
 MATCH (g:Group {id: $groupID}), (p:Place {id: $placeID})
-CREATE (g)-[:OF {role: $role, certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]->(p);
+CREATE (g)<-[:BELONGS_TO {role: $role, certainty: $certainty, credibility: $credibility, onDelete: "RELATIONSHIP_ONLY"}]-(p);
 
 
 CREATE (e:Event {id: $id, description: $description});

@@ -779,7 +779,7 @@ public class GroupPanel extends JPanel{
 	private List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
-				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
 			.map(EntityManager::extractRecordID)
 			.toList();
 	}
@@ -886,28 +886,34 @@ public class GroupPanel extends JPanel{
 
 		final Map<String, Object> groupRelationship11 = new HashMap<>();
 		groupRelationship11.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
+			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship2 = new HashMap<>();
 		groupRelationship2.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group1), EntityManager.NODE_PERSON, 2,
-			EntityManager.RELATIONSHIP_OF, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
+			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship13 = new HashMap<>();
 		groupRelationship13.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 1,
-			EntityManager.RELATIONSHIP_OF, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
+			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship3 = new HashMap<>();
 		groupRelationship3.put("role", "partner");
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group2), EntityManager.NODE_PERSON, 3,
-			EntityManager.RELATIONSHIP_OF, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, 3,
+			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship4 = new HashMap<>();
 		groupRelationship4.put("role", "child");
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group4), EntityManager.NODE_PERSON, 2,
-			EntityManager.RELATIONSHIP_OF, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
+			EntityManager.NODE_GROUP, extractRecordID(group4),
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship5 = new HashMap<>();
 		groupRelationship5.put("role", "adoptee");
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(group3), EntityManager.NODE_PERSON, 2,
-			EntityManager.RELATIONSHIP_OF, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
+			EntityManager.NODE_GROUP, extractRecordID(group3),
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;

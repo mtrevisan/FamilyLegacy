@@ -63,8 +63,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
@@ -184,31 +182,27 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 
 	private String extractFirstName(final Integer personID){
-		return Repository.findAll(EntityManager.NODE_PERSON_NAME)
-			.stream()
-			//FIXME
-			.filter(entry -> Objects.equals(personID, extractRecordPersonID(entry)))
-			.map(SearchPersonPanel::extractName)
+		return Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
+				EntityManager.NODE_PERSON, personID,
+				EntityManager.RELATIONSHIP_FOR).stream()
 			.findFirst()
+			.map(SearchPersonPanel::extractName)
 			.orElse(null);
 	}
 
 	private List<String> extractAllNames(final Integer personID){
-		final List<Map<String, Object>> localizedPersonNames = Repository.findAll(EntityManager.NODE_LOCALIZED_PERSON_NAME);
 		final List<String> names = new ArrayList<>(0);
-		Repository.findAll(EntityManager.NODE_PERSON_NAME)
-			.stream()
-			//FIXME
-			.filter(record -> Objects.equals(personID, extractRecordPersonID(record)))
+		Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
+				EntityManager.NODE_PERSON, personID,
+				EntityManager.RELATIONSHIP_FOR)
 			.forEach(record -> {
 				names.add(extractName(record));
 
 				//extract transliterations
 				final Integer personNameID = extractRecordID(record);
-				localizedPersonNames
-					.stream()
-					//FIXME
-					.filter(record2 -> Objects.equals(personNameID, extractRecordPersonNameID(record2)))
+				Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_PERSON_NAME,
+						EntityManager.NODE_PERSON_NAME, personNameID,
+						EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR).stream()
 					.map(SearchPersonPanel::extractName)
 					.filter(name -> !name.isEmpty())
 					.forEach(names::add);
