@@ -59,14 +59,12 @@ import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
 
 public class SearchGroupPanel extends CommonSearchPanel{
@@ -292,19 +290,17 @@ public class SearchGroupPanel extends CommonSearchPanel{
 
 	private String extractEarliestUnionPlace(final Integer unionID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> {
-			//FIXME
 			final Integer placeID = extractRecordPlaceID(entry.getValue());
-			return (placeID != null? extractRecordName(places.get(placeID)): null);
+			final Map<String, Object> place = Repository.findByID(EntityManager.NODE_PLACE, placeID);
+			return (placeID != null? extractRecordName(place): null);
 		};
 		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		final Map<Integer, Map<String, Object>> storeEventTypes = Repository.findAllNavigable(EntityManager.NODE_EVENT_TYPE);
-		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_HISTORIC_DATE);
+		//TODO an Event can be attached to a Person, a PersonName, a Group, a CulturalNorm, a Calendar, or a Media, not just a Person or a Group!
 		final String eventReferenceTable = (EVENT_TYPE_CATEGORY_UNION.equals(eventTypeCategory)
 			? EntityManager.NODE_GROUP
 			: EntityManager.NODE_PERSON);
@@ -313,15 +309,18 @@ public class SearchGroupPanel extends CommonSearchPanel{
 				eventReferenceTable, referenceID,
 				EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
-				//FIXME
-				final Integer recordTypeID = extractRecordTypeID(entry);
-				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));
-				return eventTypes.contains(recordType);
+				final Integer eventID = extractRecordID(entry);
+				Map.Entry<String, Map<String, Object>> eventTypeNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+					EntityManager.RELATIONSHIP_OF_TYPE);
+				final Map<String, Object> eventType = (eventTypeNode != null? eventTypeNode.getValue(): null);
+				return eventTypes.contains(extractRecordType(eventType));
 			})
 			.map(entry -> {
-				//FIXME
-				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
-				final String dateValue = extractRecordDate(dateEntry);
+				final Integer eventID = extractRecordID(entry);
+				Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+					EntityManager.RELATIONSHIP_HAPPENED_ON);
+				final Map<String, Object> date = (dateNode != null? dateNode.getValue(): null);
+				final String dateValue = extractRecordDate(date);
 				final LocalDate parsedDate = DateParser.parse(dateValue);
 				return (parsedDate != null? new AbstractMap.SimpleEntry<>(parsedDate, entry): null);
 			})

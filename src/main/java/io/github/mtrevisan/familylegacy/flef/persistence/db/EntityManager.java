@@ -269,7 +269,7 @@ public class EntityManager{
 	}
 
 	public static String extractRecordName(final Map<String, Object> record){
-		return (String)record.get("name");
+		return (record != null? (String)record.get("name"): null);
 	}
 
 	public static String extractRecordCoordinate(final Map<String, Object> record){

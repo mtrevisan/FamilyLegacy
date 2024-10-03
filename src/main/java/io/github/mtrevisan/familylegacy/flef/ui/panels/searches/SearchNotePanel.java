@@ -41,6 +41,7 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -132,16 +133,23 @@ public class SearchNotePanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
-note1.put("reference_table", "person");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 2");
-note2.put("reference_table", "note");
-note2.put("reference_id", 2);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
+			EntityManager.NODE_NOTE, note1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override
