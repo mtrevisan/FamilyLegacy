@@ -257,22 +257,27 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		final Map<Integer, Map<String, Object>> storeEventTypes = Repository.findAllNavigable(EntityManager.NODE_EVENT_TYPE);
-		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_HISTORIC_DATE);
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
-			EntityManager.NODE_PERSON, referenceID,
-			EntityManager.RELATIONSHIP_FOR).stream()
+				EntityManager.NODE_PERSON, referenceID,
+				EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
-				//FIXME
-				final Integer recordTypeID = extractRecordTypeID(entry);
-				final String recordType = extractRecordType(storeEventTypes.get(recordTypeID));
-				return eventTypes.contains(recordType);
+				final Integer eventID = extractRecordID(entry);
+				final Map.Entry<String, Map<String, Object>> eventTypeNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+					EntityManager.RELATIONSHIP_OF_TYPE);
+				final Map<String, Object> eventType = (eventTypeNode != null? eventTypeNode.getValue(): null);
+				if(eventType != null){
+					final String recordType = extractRecordCategory(eventType);
+					return eventTypes.contains(recordType);
+				}
+				return false;
 			})
 			.map(entry -> {
-				//FIXME
-				final Map<String, Object> dateEntry = historicDates.get(extractRecordDateID(entry));
-				final String dateValue = extractRecordDate(dateEntry);
+				final Integer eventID = extractRecordID(entry);
+				final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+					EntityManager.RELATIONSHIP_HAPPENED_ON);
+				final Map<String, Object> date = (dateNode != null? dateNode.getValue(): null);
+				final String dateValue = extractRecordDate(date);
 				final LocalDate parsedDate = DateParser.parse(dateValue);
 				return (parsedDate != null? new AbstractMap.SimpleEntry<>(parsedDate, entry): null);
 			})
@@ -386,8 +391,12 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		historicDate2.put("date", "1 JAN 1800");
 		int date2ID = Repository.upsert(historicDate2, EntityManager.NODE_HISTORIC_DATE);
 
+		final Map<String, Object> group1 = new HashMap<>();
+		group1.put("type", "family");
+		group1.put("photo_crop", "0 0 10 20");
+		int group1ID = Repository.upsert(group1, EntityManager.NODE_GROUP);
+
 		final Map<String, Object> event1 = new HashMap<>();
-event1.put("type_id", 1);
 		event1.put("description", "a birth");
 		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
@@ -400,7 +409,6 @@ event1.put("type_id", 1);
 			EntityManager.NODE_PERSON, person1ID,
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> event2 = new HashMap<>();
-event2.put("type_id", 1);
 		event2.put("description", "another birth");
 		int event2ID = Repository.upsert(event2, EntityManager.NODE_EVENT);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event2ID,
@@ -413,7 +421,6 @@ event2.put("type_id", 1);
 			EntityManager.NODE_PERSON, person1ID,
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> event3 = new HashMap<>();
-event3.put("type_id", 2);
 		int event3ID = Repository.upsert(event3, EntityManager.NODE_EVENT);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event3ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
@@ -422,7 +429,6 @@ event3.put("type_id", 2);
 			EntityManager.NODE_PERSON, person2ID,
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> event4 = new HashMap<>();
-event4.put("type_id", 3);
 		int event4ID = Repository.upsert(event4, EntityManager.NODE_EVENT);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event4ID,
 			EntityManager.NODE_PLACE, place1ID,
@@ -438,14 +444,30 @@ event4.put("type_id", 3);
 		eventType1.put("type", "birth");
 		eventType1.put("category", EVENT_TYPE_CATEGORY_BIRTH);
 		int eventType1ID = Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event2ID,
+			EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> eventType2 = new HashMap<>();
 		eventType2.put("type", "death");
 		eventType2.put("category", EVENT_TYPE_CATEGORY_DEATH);
 		int eventType2ID = Repository.upsert(eventType2, EntityManager.NODE_EVENT_TYPE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event3ID,
+			EntityManager.NODE_EVENT_TYPE, eventType2ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> eventType3 = new HashMap<>();
 		eventType3.put("type", "marriage");
 		eventType3.put("category", "union");
 		int eventType3ID = Repository.upsert(eventType3, EntityManager.NODE_EVENT_TYPE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event4ID,
+			EntityManager.NODE_EVENT_TYPE, eventType3ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> calendar1 = new HashMap<>();
 		calendar1.put("type", "gregorian");

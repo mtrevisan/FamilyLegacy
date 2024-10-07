@@ -188,10 +188,6 @@ public class EntityManager{
 		return (Integer)record.get("type_id");
 	}
 
-	public static Integer extractRecordSuperTypeID(final Map<String, Object> record){
-		return (Integer)record.get("super_type_id");
-	}
-
 	public static String extractRecordSuperType(final Map<String, Object> record){
 		return (record != null? (String)record.get("super_type"): null);
 	}
@@ -210,10 +206,6 @@ public class EntityManager{
 
 	public static Integer extractRecordPersonID(final Map<String, Object> record){
 		return (Integer)record.get("person_id");
-	}
-
-	public static Integer extractRecordPersonNameID(final Map<String, Object> record){
-		return (Integer)record.get("person_name_id");
 	}
 
 	public static String extractRecordPersonalName(final Map<String, Object> record){
