@@ -631,9 +631,8 @@ public class Repository{
 	 * @return	Whether the record references a place.
 	 */
 	public static boolean hasOwner(final String tableName, final int recordID){
-		return hasReference(tableName, recordID,
-			EntityManager.NODE_PERSON,
-			EntityManager.RELATIONSHIP_OWNS);
+		return (findReferencedNode(tableName, recordID,
+			EntityManager.RELATIONSHIP_OWNED_BY) != null);
 	}
 
 	/**

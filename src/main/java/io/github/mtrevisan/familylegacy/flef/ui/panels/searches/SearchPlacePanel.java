@@ -42,6 +42,7 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -167,33 +168,25 @@ public class SearchPlacePanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("identifier", "source 1");
-		source1.put("type", "marriage certificate");
-		source1.put("author", "author 1");
-source1.put("place_id", 1);
-source1.put("date_id", 1);
-		source1.put("location", "location 1");
-		Repository.upsert(source1, EntityManager.NODE_SOURCE);
-		final Map<String, Object> source2 = new HashMap<>();
-		source2.put("identifier", "source 2");
-		source2.put("type", "newspaper");
-		source2.put("author", "author 2");
-		source2.put("location", "location 2");
-		Repository.upsert(source2, EntityManager.NODE_SOURCE);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+		int repository1ID = Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
 
-		final Map<String, Object> historicDate1 = new HashMap<>();
-		historicDate1.put("date", "27 FEB 1976");
-		historicDate1.put("date_original", "FEB 27, 1976");
-historicDate1.put("calendar_original_id", 1);
-		historicDate1.put("certainty", "certain");
-		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		final Map<String, Object> calendar1 = new HashMap<>();
+		calendar1.put("type", "gregorian");
+		int calendar1ID = Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
+
+		final Map<String, Object> date1 = new HashMap<>();
+		date1.put("date", "27 FEB 1976");
+		date1.put("date_original", "FEB 27, 1976");
+		date1.put("certainty", "certain");
+		date1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int date1ID = Repository.upsert(date1, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.NODE_CALENDAR, calendar1ID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place");
@@ -203,7 +196,30 @@ historicDate1.put("calendar_original_id", 1);
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.upsert(place1, EntityManager.NODE_PLACE);
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
+
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("identifier", "source 1");
+		source1.put("type", "marriage certificate");
+		source1.put("author", "author 1");
+		source1.put("location", "location 1");
+		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> source2 = new HashMap<>();
+		source2.put("identifier", "source 2");
+		source2.put("type", "newspaper");
+		source2.put("author", "author 2");
+		source2.put("location", "location 2");
+		int source2ID = Repository.upsert(source2, EntityManager.NODE_SOURCE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

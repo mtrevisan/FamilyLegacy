@@ -47,7 +47,7 @@ public class EntityManager{
 	public static final String RELATIONSHIP_CREATED_IN = "created_in";
 	public static final String RELATIONSHIP_CREATED_ON = "created_on";
 	public static final String NODE_REPOSITORY = "repository";
-	public static final String RELATIONSHIP_OWNS = "owns";
+	public static final String RELATIONSHIP_OWNED_BY = "owned_by";
 	public static final String RELATIONSHIP_LOCATED_IN = "located_in";
 	public static final String NODE_HISTORIC_DATE = "historic_date";
 	public static final String RELATIONSHIP_EXPRESSED_IN = "expressed_in";
@@ -128,16 +128,8 @@ public class EntityManager{
 		return (String)record.get("restriction");
 	}
 
-	public static Integer extractRecordCitationID(final Map<String, Object> record){
-		return (Integer)record.get("citation_id");
-	}
-
 	public static String extractRecordIdentifier(final Map<String, Object> record){
 		return (String)record.get("identifier");
-	}
-
-	public static Integer extractRecordSourceID(final Map<String, Object> record){
-		return (Integer)record.get("source_id");
 	}
 
 	public static String extractRecordRole(final Map<String, Object> record){
@@ -168,22 +160,27 @@ public class EntityManager{
 		return (String)record.get("description");
 	}
 
+	//FIXME
 	public static Integer extractRecordPlaceID(final Map<String, Object> record){
 		return (Integer)record.get("place_id");
 	}
 
+	//FIXME
 	public static Integer extractRecordMediaID(final Map<String, Object> record){
 		return (Integer)record.get("media_id");
 	}
 
+	//FIXME
 	public static Integer extractRecordCulturalNormID(final Map<String, Object> record){
 		return (Integer)record.get("cultural_norm_id");
 	}
 
+	//FIXME
 	public static Integer extractRecordDateID(final Map<String, Object> record){
 		return (Integer)record.get("date_id");
 	}
 
+	//FIXME
 	public static Integer extractRecordTypeID(final Map<String, Object> record){
 		return (Integer)record.get("type_id");
 	}
@@ -200,10 +197,12 @@ public class EntityManager{
 		return (record != null? (String)record.get("photo_crop"): null);
 	}
 
+	//FIXME
 	public static Integer extractRecordGroupID(final Map<String, Object> record){
 		return (Integer)record.get("group_id");
 	}
 
+	//FIXME
 	public static Integer extractRecordPersonID(final Map<String, Object> record){
 		return (Integer)record.get("person_id");
 	}
@@ -224,6 +223,7 @@ public class EntityManager{
 		return (String)record.get("date_original");
 	}
 
+	//FIXME
 	public static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
 		return (Integer)record.get("calendar_original_id");
 	}
@@ -306,6 +306,7 @@ public class EntityManager{
 	}
 
 
+	//FIXME
 	public static void insertRecordID(final Map<String, Object> record, final int id){
 		record.put("id", id);
 	}
@@ -366,10 +367,12 @@ public class EntityManager{
 		record.put("category", category);
 	}
 
+	//FIXME
 	public static void insertRecordPlaceID(final Map<String, Object> record, final Integer placeID){
 		record.put("place_id", placeID);
 	}
 
+	//FIXME
 	public static void insertRecordPhotoID(final Map<String, Object> record, final Integer photoID){
 		record.put("photo_id", photoID);
 	}
@@ -378,10 +381,12 @@ public class EntityManager{
 		record.put("photo_crop", photoCrop);
 	}
 
+	//FIXME
 	public static void insertRecordPersonID(final Map<String, Object> record, final Integer personID){
 		record.put("person_id", personID);
 	}
 
+	//FIXME
 	public static void insertRecordPersonNameID(final Map<String, Object> record, final Integer personNameID){
 		record.put("person_name_id", personNameID);
 	}
@@ -394,6 +399,7 @@ public class EntityManager{
 		record.put("date_original", dateOriginal);
 	}
 
+	//FIXME
 	public static void insertRecordCalendarOriginalID(final Map<String, Object> record, final Integer calendarOriginalID){
 		record.put("calendar_original_id", calendarOriginalID);
 	}
@@ -478,38 +484,47 @@ public class EntityManager{
 		record.put("author", author);
 	}
 
+	//FIXME
 	public static void insertRecordRepositoryID(final Map<String, Object> record, final Integer repositoryID){
 		record.put("repository_id", repositoryID);
 	}
 
+	//FIXME
 	public static void insertRecordDateStartID(final Map<String, Object> record, final Integer dateStartID){
 		record.put("date_start_id", dateStartID);
 	}
 
+	//FIXME
 	public static void insertRecordDateEndID(final Map<String, Object> record, final Integer dateEndID){
 		record.put("date_end_id", dateEndID);
 	}
 
+	//FIXME
 	public static void insertRecordSourceID(final Map<String, Object> record, final Integer sourceID){
 		record.put("source_id", sourceID);
 	}
 
+	//FIXME
 	public static void insertRecordCitationID(final Map<String, Object> record, final Integer citationID){
 		record.put("citation_id", citationID);
 	}
 
+	//FIXME
 	public static void insertRecordDateID(final Map<String, Object> record, final Integer dateID){
 		record.put("date_id", dateID);
 	}
 
+	//FIXME
 	public static void insertRecordCulturalNormID(final Map<String, Object> record, final Integer culturalNormID){
 		record.put("cultural_norm_id", culturalNormID);
 	}
 
+	//FIXME
 	public static void insertRecordGroupID(final Map<String, Object> record, final Integer groupID){
 		record.put("group_id", groupID);
 	}
 
+	//FIXME
 	public static void insertRecordMediaID(final Map<String, Object> record, final Integer mediaID){
 		record.put("media_id", mediaID);
 	}

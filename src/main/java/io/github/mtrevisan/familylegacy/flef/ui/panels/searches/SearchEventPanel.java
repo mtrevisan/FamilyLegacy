@@ -195,13 +195,19 @@ public class SearchEventPanel extends CommonSearchPanel{
 		place1.put("locale", "en-US");
 		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 
+		final Map<String, Object> calendar1 = new HashMap<>();
+		calendar1.put("type", "gregorian");
+		int calendar1ID = Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
+
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
-		historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
 		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.NODE_CALENDAR, calendar1ID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 

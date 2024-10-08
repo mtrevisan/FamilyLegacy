@@ -42,6 +42,7 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -162,14 +163,31 @@ public class SearchResearchStatusPanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		final Map<String, Object> calendar1 = new HashMap<>();
+		calendar1.put("type", "gregorian");
+		int calendar1ID = Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
+
+		final Map<String, Object> historicDate1 = new HashMap<>();
+		historicDate1.put("date", "27 FEB 1976");
+		historicDate1.put("date_original", "FEB 27, 1976");
+		historicDate1.put("certainty", "certain");
+		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
+		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.NODE_CALENDAR, calendar1ID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
 		final Map<String, Object> researchStatus1 = new HashMap<>();
-researchStatus1.put("reference_table", "date");
-researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "research 1");
 		researchStatus1.put("description", "see people, do things");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 2);
-		Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
+		int researchStatus1ID = Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
+		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

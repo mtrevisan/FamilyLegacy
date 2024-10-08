@@ -80,12 +80,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 
 
 public final class SearchDialog extends JDialog{
@@ -304,9 +300,9 @@ public final class SearchDialog extends JDialog{
 		Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repository1ID,
 			EntityManager.NODE_PLACE, place1ID,
 			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		Repository.upsertRelationship(EntityManager.NODE_PERSON, person1ID,
-			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_OWNS, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("date", "27 FEB 1976");
@@ -878,9 +874,39 @@ public final class SearchDialog extends JDialog{
 						//from: source, event, cultural norm, media
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.createRecordOnly(parent);
-							//FIXME
-							final Integer dateID = extractRecordDateID(container);
-							historicDateDialog.loadData(dateID);
+							final String relationshipName = switch(tableName){
+								case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_ON;
+								case EntityManager.NODE_MEDIA -> EntityManager.RELATIONSHIP_CREATED_ON;
+								default -> null;
+							};
+							final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
+								tableName, containerID,
+								relationshipName);
+							if(dateNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateNode.getKey()))
+								historicDateDialog.loadData(extractRecordID(dateNode.getValue()));
+
+							historicDateDialog.showDialog();
+						}
+
+						//from: cultural norm
+						case HISTORIC_DATE_START -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.createRecordOnly(parent);
+							final Map.Entry<String, Map<String, Object>> dateStartNode = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_STARTED_ON);
+							if(dateStartNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateStartNode.getKey()))
+								historicDateDialog.loadData(extractRecordID(dateStartNode.getValue()));
+
+							historicDateDialog.showDialog();
+						}
+						//from: cultural norm
+						case HISTORIC_DATE_END -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.createRecordOnly(parent);
+							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_ENDED_ON);
+							if(dateEndNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateEndNode.getKey()))
+								historicDateDialog.loadData(extractRecordID(dateEndNode.getValue()));
 
 							historicDateDialog.showDialog();
 						}
@@ -888,9 +914,10 @@ public final class SearchDialog extends JDialog{
 						//from: historic date
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.createRecordOnly(parent);
-							//FIXME
-							final Integer calendarID = extractRecordCalendarOriginalID(container);
-							calendarDialog.loadData(calendarID);
+							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_EXPRESSED_IN);
+							calendarDialog.loadData(extractRecordID(calendarNode.getValue()));
 
 							calendarDialog.showDialog();
 						}
@@ -899,9 +926,18 @@ public final class SearchDialog extends JDialog{
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.createShowOnly(parent);
-							//FIXME
-							final Integer placeID = extractRecordPlaceID(container);
-							placeDialog.loadData(placeID);
+							final String relationshipName = switch(tableName){
+								case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
+								case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_IN;
+								case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_IN;
+								case EntityManager.NODE_CULTURAL_NORM -> EntityManager.RELATIONSHIP_APPLIES_IN;
+								default -> null;
+							};
+							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
+								tableName, containerID,
+								relationshipName);
+							if(placeNode != null && EntityManager.NODE_PLACE.equals(placeNode.getKey()))
+								placeDialog.loadData(extractRecordID(placeNode.getValue()));
 
 							placeDialog.showDialog();
 						}
@@ -1000,9 +1036,10 @@ public final class SearchDialog extends JDialog{
 						//from: repository
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.createShowOnly(parent);
-							//FIXME
-							final Integer personID = extractRecordPersonID(container);
-							personDialog.loadData(personID);
+							final Map.Entry<String, Map<String, Object>> personNode = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_OWNED_BY);
+							personDialog.loadData(extractRecordID(personNode.getValue()));
 
 							personDialog.showDialog();
 						}

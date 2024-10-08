@@ -407,9 +407,9 @@ public final class RepositoryDialog extends CommonListDialog{
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("photo_crop", "0 0 5 10");
 		int person1ID = Repository.upsert(person1, EntityManager.NODE_PERSON);
-		Repository.upsertRelationship(EntityManager.NODE_PERSON, person1ID,
-			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_OWNS, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "place name 1");
@@ -499,8 +499,8 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-//			final RepositoryDialog dialog = create(parent);
-			final RepositoryDialog dialog = createShowOnly(parent);
+			final RepositoryDialog dialog = create(parent);
+//			final RepositoryDialog dialog = createShowOnly(parent);
 			dialog.loadData();
 			if(!dialog.selectData(extractRecordID(repository1)))
 				dialog.showNewRecord();
@@ -524,15 +524,15 @@ public final class RepositoryDialog extends CommonListDialog{
 									: PersonDialog.create(parent))
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_PERSON, recordID,
-											EntityManager.NODE_REPOSITORY, repositoryID,
-											EntityManager.RELATIONSHIP_OWNS, Collections.emptyMap(),
+										Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.NODE_PERSON, recordID,
+											EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							personDialog.loadData();
-							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencingNode(
+							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencedNode(
 								EntityManager.NODE_REPOSITORY, repositoryID,
-								EntityManager.RELATIONSHIP_OWNS);
+								EntityManager.RELATIONSHIP_OWNED_BY);
 							if(ownerNode != null)
 								personDialog.selectData(extractRecordID(ownerNode.getValue()));
 

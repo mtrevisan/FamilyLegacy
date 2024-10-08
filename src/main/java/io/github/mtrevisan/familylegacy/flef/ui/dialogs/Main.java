@@ -44,7 +44,6 @@ import java.util.Map;
 import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCitationID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCulturalNormID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
@@ -52,8 +51,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordMediaID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordSourceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonNameID;
@@ -122,9 +119,11 @@ public class Main{
 										record.put("repository_id", recordID);
 								});
 							sourceDialog.loadData();
-							final Integer sourceID = extractRecordSourceID(container);
-							if(sourceID != null)
-								sourceDialog.selectData(sourceID);
+							final Map.Entry<String, Map<String, Object>> sourceNode = Repository.findReferencedNode(
+								EntityManager.NODE_REPOSITORY, containerID,
+								EntityManager.RELATIONSHIP_STORED_IN);
+							if(sourceNode != null && EntityManager.NODE_SOURCE.equals(sourceNode.getKey()))
+								sourceDialog.selectData(extractRecordID(sourceNode.getValue()));
 
 							sourceDialog.showDialog();
 						}
@@ -138,9 +137,11 @@ public class Main{
 										record.put("source_id", recordID);
 								});
 							citationDialog.loadData();
-							final Integer citationID = extractRecordCitationID(container);
-							if(citationID != null)
-								citationDialog.selectData(citationID);
+							final Map.Entry<String, Map<String, Object>> citationNode = Repository.findReferencedNode(
+								EntityManager.NODE_SOURCE, containerID,
+								EntityManager.RELATIONSHIP_QUOTES);
+							if(citationNode != null && EntityManager.NODE_CITATION.equals(citationNode.getKey()))
+								citationDialog.selectData(extractRecordID(citationNode.getValue()));
 
 							citationDialog.showDialog();
 						}
@@ -184,9 +185,18 @@ public class Main{
 							final PlaceDialog placeDialog = PlaceDialog.create(parent)
 								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
 							placeDialog.loadData();
-							final Integer placeID = extractRecordPlaceID(container);
-							if(placeID != null)
-								placeDialog.selectData(placeID);
+							final String relationshipName = switch(tableName){
+								case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
+								case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_IN;
+								case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_IN;
+								case EntityManager.NODE_CULTURAL_NORM -> EntityManager.RELATIONSHIP_APPLIES_IN;
+								default -> null;
+							};
+							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
+								tableName, containerID,
+								relationshipName);
+							if(placeNode != null && EntityManager.NODE_CITATION.equals(placeNode.getKey()))
+								placeDialog.selectData(extractRecordID(placeNode.getValue()));
 
 							placeDialog.showDialog();
 						}

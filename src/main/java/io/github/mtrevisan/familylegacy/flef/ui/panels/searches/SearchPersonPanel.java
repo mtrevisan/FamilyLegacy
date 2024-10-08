@@ -59,14 +59,10 @@ import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonalName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
 
 public class SearchPersonPanel extends CommonSearchPanel{
@@ -223,15 +219,17 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private Map<String, Object> extractEarliestBirthYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
-			//FIXME
-			final Integer placeID = extractRecordPlaceID(entry.getValue());
-			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
+			final Integer eventID = extractRecordID(entry.getValue());
+			final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+				EntityManager.RELATIONSHIP_HAPPENED_IN);
+			final Map<String, Object> place = (placeNode != null? placeNode.getValue(): null);
+			final String placeName = extractRecordName(place);
+
 			final Map<String, Object> result = new HashMap<>(2);
 			result.put("year", year);
-			result.put("place", place);
+			result.put("place", placeName);
 			return result;
 		};
 		final Map<String, Object> result = extractData(personID, EVENT_TYPE_CATEGORY_BIRTH, comparator, extractor);
@@ -240,15 +238,17 @@ public class SearchPersonPanel extends CommonSearchPanel{
 
 	private Map<String, Object> extractLatestDeathYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
-		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
-			//FIXME
-			final Integer placeID = extractRecordPlaceID(entry.getValue());
-			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
+			final Integer eventID = extractRecordID(entry.getValue());
+			final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+				EntityManager.RELATIONSHIP_HAPPENED_IN);
+			final Map<String, Object> place = (placeNode != null? placeNode.getValue(): null);
+			final String placeName = extractRecordName(place);
+
 			final Map<String, Object> result = new HashMap<>(2);
 			result.put("year", year);
-			result.put("place", place);
+			result.put("place", placeName);
 			return result;
 		};
 		final Map<String, Object> result = extractData(personID, EVENT_TYPE_CATEGORY_DEATH, comparator.reversed(), extractor);

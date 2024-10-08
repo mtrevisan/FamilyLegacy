@@ -44,18 +44,16 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordAuthor;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDate;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordName;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPlaceID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 
 
@@ -127,33 +125,31 @@ public class SearchSourcePanel extends CommonSearchPanel{
 
 
 		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_SOURCE);
-		final Map<Integer, Map<String, Object>> places = Repository.findAllNavigable(EntityManager.NODE_PLACE);
-		final Map<Integer, Map<String, Object>> historicDates = Repository.findAllNavigable(EntityManager.NODE_HISTORIC_DATE);
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map<String, Object> record : records){
-
 			final Integer recordID = extractRecordID(record);
 			final String identifier = extractRecordIdentifier(record);
 			final String type = extractRecordType(record);
 			final String author = extractRecordAuthor(record);
-			//FIXME
-			final Integer placeID = extractRecordPlaceID(record);
-			final String place = (placeID != null? extractRecordName(places.get(placeID)): null);
-			//FIXME
-			final Integer dateID = extractRecordDateID(record);
-			final Map<String, Object> dateEntry = (dateID != null? historicDates.get(dateID): null);
-			final String dateValue = extractRecordDate(dateEntry);
-			final LocalDate parsedDate = DateParser.parse(dateValue);
+			final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(EntityManager.NODE_SOURCE, recordID,
+				EntityManager.RELATIONSHIP_CREATED_IN);
+			final Map<String, Object> place = (placeNode != null? placeNode.getValue(): null);
+			final String placeName = extractRecordName(place);
+			final Map.Entry<String, Map<String, Object>> publicationDateNode = Repository.findReferencedNode(EntityManager.NODE_SOURCE, recordID,
+				EntityManager.RELATIONSHIP_CREATED_IN);
+			final Map<String, Object> publicationDateRecord = (publicationDateNode != null? publicationDateNode.getValue(): null);
+			final String publicationDate = extractRecordName(publicationDateRecord);
+			final LocalDate parsedDate = DateParser.parse(publicationDate);
 			final Integer year = (parsedDate != null? parsedDate.getYear(): null);
 			final FilterString filter = FilterString.create()
 				.add(recordID)
 				.add(identifier)
 				.add(type)
 				.add(author)
-				.add(place)
+				.add(placeName)
 				.add(year);
 			final String filterData = filter.toString();
 
@@ -181,33 +177,25 @@ public class SearchSourcePanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		final Map<String, Object> source1 = new HashMap<>();
-		source1.put("identifier", "source 1");
-		source1.put("type", "marriage certificate");
-		source1.put("author", "author 1");
-source1.put("place_id", 1);
-source1.put("date_id", 1);
-		source1.put("location", "location 1");
-		Repository.upsert(source1, EntityManager.NODE_SOURCE);
-		final Map<String, Object> source2 = new HashMap<>();
-		source2.put("identifier", "source 2");
-		source2.put("type", "newspaper");
-		source2.put("author", "author 2");
-		source2.put("location", "location 2");
-		Repository.upsert(source2, EntityManager.NODE_SOURCE);
 
 		final Map<String, Object> repository1 = new HashMap<>();
 		repository1.put("identifier", "repo 1");
 		repository1.put("type", "public library");
-		Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+		int repository1ID = Repository.upsert(repository1, EntityManager.NODE_REPOSITORY);
+
+		final Map<String, Object> calendar1 = new HashMap<>();
+		calendar1.put("type", "gregorian");
+		int calendar1ID = Repository.upsert(calendar1, EntityManager.NODE_CALENDAR);
 
 		final Map<String, Object> historicDate1 = new HashMap<>();
 		historicDate1.put("date", "27 FEB 1976");
 		historicDate1.put("date_original", "FEB 27, 1976");
-historicDate1.put("calendar_original_id", 1);
 		historicDate1.put("certainty", "certain");
 		historicDate1.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
+		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.NODE_CALENDAR, calendar1ID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place");
@@ -217,7 +205,30 @@ historicDate1.put("calendar_original_id", 1);
 		place1.put("coordinate", "45.65, 12.19");
 		place1.put("coordinate_system", "WGS84");
 		place1.put("coordinate_credibility", "certain");
-		Repository.upsert(place1, EntityManager.NODE_PLACE);
+		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
+
+		final Map<String, Object> source1 = new HashMap<>();
+		source1.put("identifier", "source 1");
+		source1.put("type", "marriage certificate");
+		source1.put("author", "author 1");
+		source1.put("location", "location 1");
+		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_PLACE, place1ID,
+			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
+			EntityManager.NODE_HISTORIC_DATE, date1ID,
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> source2 = new HashMap<>();
+		source2.put("identifier", "source 2");
+		source2.put("type", "newspaper");
+		source2.put("author", "author 2");
+		source2.put("location", "location 2");
+		int source2ID = Repository.upsert(source2, EntityManager.NODE_SOURCE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

@@ -41,7 +41,7 @@ CREATE CONSTRAINT ON (r:Repository) ASSERT r.id IS UNIQUE;
 CREATE CONSTRAINT ON (r:Repository) ASSERT exists(r.identifier);
 CREATE CONSTRAINT ON (r:Repository) ASSERT r.identifier IS UNIQUE;
 MATCH (prs:Person {id: $personID}), (r:Repository {id: $repositoryID})
-CREATE (r)<-[:OWNS {onDelete: "RELATIONSHIP_ONLY"}]-(prs);
+CREATE (r)-[:OWNED_BY {onDelete: "RELATIONSHIP_ONLY"}]->(prs);
 MATCH (r:Repository {id: $repositoryID}), (p:Place {id: $placeID})
 CREATE (r)-[:LOCATED_IN {onDelete: "RELATIONSHIP_ONLY"}]->(p);
 

@@ -68,7 +68,6 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordFamilyName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordLocale;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonalName;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordType;
 
@@ -474,8 +473,10 @@ public final class PersonNameDialog extends CommonListDialog{
 								.withReference(personNameID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
-										//FIXME
-										insertRecordPersonNameID(record, personNameID);
+										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personNameID,
+											EntityManager.NODE_PERSON, recordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 								});
 							localizedPersonNameDialog.loadData();
 
