@@ -64,16 +64,16 @@ class GraphDatabaseManagerTest{
 
 		Assertions.assertEquals(0, GraphDatabaseManager.count("Car"));
 
-		Map<String, Object> carRecord = new HashMap<>(3);
+		Map<String, Object> carRecord = new HashMap<>(2);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.upsert("id", carRecord, "Car");
+		Object carID = GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 
-		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", 1);
+		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", carID);
 		Assertions.assertEquals(1, res.size());
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findBy("Car", "id", 1);
+		Map<String, Object> carTesla = GraphDatabaseManager.findBy("Car", "id", carID);
 		Assertions.assertNotNull(carTesla);
 		Assertions.assertFalse(carTesla.isEmpty());
 
@@ -84,19 +84,19 @@ class GraphDatabaseManagerTest{
 	void shouldUpdateNode() throws StoreException{
 		GraphDatabaseManager.clearDatabase();
 
-		Map<String, Object> carRecord = new HashMap<>(3);
+		Map<String, Object> carRecord = new HashMap<>(2);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.upsert("id", carRecord, "Car");
+		Object carID = GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 		carRecord.put("model", "model4");
 		GraphDatabaseManager.upsert("id", carRecord, "Car");
 
 
-		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", 1);
+		List<Map<String, Object>> res = GraphDatabaseManager.findAllBy("Car", "id", carID);
 		Assertions.assertEquals(1, res.size());
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findBy("Car", "id", 1);
+		Map<String, Object> carTesla = GraphDatabaseManager.findBy("Car", "id", carID);
 		Assertions.assertNotNull(carTesla);
 		Assertions.assertFalse(carTesla.isEmpty());
 		Assertions.assertEquals("model4", carTesla.get("model"));
@@ -107,24 +107,24 @@ class GraphDatabaseManagerTest{
 	void shouldUpsertRelationshipByName() throws StoreException{
 		GraphDatabaseManager.clearDatabase();
 
-		Map<String, Object> carRecord = new HashMap<>(3);
+		Map<String, Object> carRecord = new HashMap<>(2);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.upsert("id", carRecord, "Car");
+		Object carID = GraphDatabaseManager.upsert("id", carRecord, "Car");
 
-		Map<String, Object> ownerRecord = new HashMap<>(3);
+		Map<String, Object> ownerRecord = new HashMap<>(2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
+		Object ownerID = GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
-		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
-			"Car", "id", 1,
+		GraphDatabaseManager.upsertRelationship("Person", "id", ownerID,
+			"Car", "id", carID,
 			"owner", Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		Map.Entry<String, Map<String, Object>> carTesla = GraphDatabaseManager.findOtherNode(
-			"Car", "id", 1,
+			"Car", "id", carID,
 			"owner");
 		Assertions.assertNotNull(carTesla);
 		Assertions.assertFalse(carTesla.getValue().isEmpty());
@@ -134,26 +134,26 @@ class GraphDatabaseManagerTest{
 	void shouldUpsertRelationshipByNameAndProperty() throws StoreException{
 		GraphDatabaseManager.clearDatabase();
 
-		Map<String, Object> carRecord = new HashMap<>(3);
+		Map<String, Object> carRecord = new HashMap<>(2);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.upsert("id", carRecord, "Car");
+		Object carID = GraphDatabaseManager.upsert("id", carRecord, "Car");
 
-		Map<String, Object> ownerRecord = new HashMap<>(3);
+		Map<String, Object> ownerRecord = new HashMap<>(2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
+		Object ownerID = GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
 		Map<String, Object> relationshipRecord = new HashMap<>(1);
 		relationshipRecord.put("licenseID", 12345);
-		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
-			"Car", "id", 1,
+		GraphDatabaseManager.upsertRelationship("Person", "id", ownerID,
+			"Car", "id", carID,
 			"owner", relationshipRecord,
 			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		Map.Entry<String, Map<String, Object>> carTesla = GraphDatabaseManager.findOtherNode(
-			"Car", "id", 1,
+			"Car", "id", carID,
 			"owner", "licenseID", 12345);
 		Assertions.assertNotNull(carTesla);
 		Assertions.assertFalse(carTesla.getValue().isEmpty());
@@ -163,61 +163,61 @@ class GraphDatabaseManagerTest{
 	void shouldDeleteRelationship() throws StoreException{
 		GraphDatabaseManager.clearDatabase();
 
-		Map<String, Object> carRecord = new HashMap<>(3);
+		Map<String, Object> carRecord = new HashMap<>(2);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.upsert("id", carRecord, "Car");
+		Object carID = GraphDatabaseManager.upsert("id", carRecord, "Car");
 
-		Map<String, Object> ownerRecord = new HashMap<>(3);
+		Map<String, Object> ownerRecord = new HashMap<>(2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
+		Object ownerID = GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
-		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
-			"Car", "id", 1,
+		GraphDatabaseManager.upsertRelationship("Person", "id", ownerID,
+			"Car", "id", carID,
 			"owner", Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
-		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", 2,
-			"Car", "id", 1,
+		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", ownerID,
+			"Car", "id", carID,
 			"owner", null, null);
 		Assertions.assertTrue(deleted);
 
 		Map.Entry<String, Map<String, Object>> carTesla = GraphDatabaseManager.findOtherNode(
-			"Car", "id", 1,
+			"Car", "id", carID,
 			"owner");
-		Assertions.assertNull(carTesla.getValue());
+		Assertions.assertNull(carTesla);
 	}
 
 	@Test
 	void shouldDeleteAll() throws StoreException{
 		GraphDatabaseManager.clearDatabase();
 
-		Map<String, Object> carRecord = new HashMap<>(3);
+		Map<String, Object> carRecord = new HashMap<>(2);
 		carRecord.put("make", "tesla");
 		carRecord.put("model", "model3");
-		GraphDatabaseManager.upsert("id", carRecord, "Car");
+		Object carID = GraphDatabaseManager.upsert("id", carRecord, "Car");
 
-		Map<String, Object> ownerRecord = new HashMap<>(3);
+		Map<String, Object> ownerRecord = new HashMap<>(2);
 		ownerRecord.put("firstName", "baeldung");
 		ownerRecord.put("lastName", "baeldung");
-		GraphDatabaseManager.upsert("id", ownerRecord, "Person");
+		Object ownerID = GraphDatabaseManager.upsert("id", ownerRecord, "Person");
 
-		GraphDatabaseManager.upsertRelationship("Person", "id", 2,
-			"Car", "id", 1,
+		GraphDatabaseManager.upsertRelationship("Person", "id", ownerID,
+			"Car", "id", carID,
 			"owner", Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.CASCADE);
 
-		GraphDatabaseManager.delete("Car", "id", 1);
+		GraphDatabaseManager.delete("Car", "id", carID);
 
-		Map<String, Object> carTesla = GraphDatabaseManager.findBy("Car", "id", 1);
+		Map<String, Object> carTesla = GraphDatabaseManager.findBy("Car", "id", carID);
 		Assertions.assertNull(carTesla);
 
-		Map<String, Object> carOwner = GraphDatabaseManager.findBy("Owner", "id", 2);
+		Map<String, Object> carOwner = GraphDatabaseManager.findBy("Owner", "id", ownerID);
 		Assertions.assertNull(carOwner);
 
-		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", 2,
+		boolean deleted = GraphDatabaseManager.deleteRelationship("Person", "id", ownerID,
 			"Car", "id", 1,
 			"owner", null, null);
 		Assertions.assertFalse(deleted);

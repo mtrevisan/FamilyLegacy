@@ -586,12 +586,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> event = entry.getValue();
 			final Integer dateID = extractRecordDateID(event);
-			final Integer placeID = extractRecordPlaceID(event);
+			//FIXME
+//			final Integer placeID = extractRecordPlaceID(event);
 
 			final Map<String, Object> result = new HashMap<>(3);
 			result.put("dateValue", extractRecordDate(historicDates.get(dateID)));
 			result.put("date", entry.getKey());
-			result.put("placeName", extractRecordName(places.get(placeID)));
+			//FIXME
+//			result.put("placeName", extractRecordName(places.get(placeID)));
 			return result;
 		};
 		final Map<String, Object> data = extractData(personID, EVENT_TYPE_CATEGORY_BIRTH, comparator, extractor);
@@ -605,12 +607,14 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> event = entry.getValue();
 			final Integer dateID = extractRecordDateID(event);
-			final Integer placeID = extractRecordPlaceID(event);
+			//FIXME
+//			final Integer placeID = extractRecordPlaceID(event);
 
 			final Map<String, Object> result = new HashMap<>(3);
 			result.put("dateValue", extractRecordDate(historicDates.get(dateID)));
 			result.put("date", entry.getKey());
-			result.put("placeName", extractRecordName(places.get(placeID)));
+			//FIXME
+//			result.put("placeName", extractRecordName(places.get(placeID)));
 			return result;
 		};
 		final Map<String, Object> data = extractData(personID, EVENT_TYPE_CATEGORY_DEATH, comparator.reversed(), extractor);

@@ -161,11 +161,6 @@ public class EntityManager{
 	}
 
 	//FIXME
-	public static Integer extractRecordPlaceID(final Map<String, Object> record){
-		return (Integer)record.get("place_id");
-	}
-
-	//FIXME
 	public static Integer extractRecordMediaID(final Map<String, Object> record){
 		return (Integer)record.get("media_id");
 	}

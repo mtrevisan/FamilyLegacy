@@ -290,16 +290,17 @@ public class SearchGroupPanel extends CommonSearchPanel{
 	private String extractEarliestUnionPlace(final Integer unionID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> {
-			final Integer placeID = extractRecordPlaceID(entry.getValue());
-			final Map<String, Object> place = Repository.findByID(EntityManager.NODE_PLACE, placeID);
-			return (placeID != null? extractRecordName(place): null);
+			final Integer eventID = extractRecordID(entry.getValue());
+			final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
+				EntityManager.NODE_EVENT, eventID,
+				EntityManager.RELATIONSHIP_HAPPENED_IN);
+			return (placeNode != null? extractRecordName(placeNode.getValue()): null);
 		};
 		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
 	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
-		//TODO an Event can be attached to a Person, a PersonName, a Group, a CulturalNorm, a Calendar, or a Media, not just a Person or a Group!
 		final String eventReferenceTable = (EVENT_TYPE_CATEGORY_UNION.equals(eventTypeCategory)
 			? EntityManager.NODE_GROUP
 			: EntityManager.NODE_PERSON);
