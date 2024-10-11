@@ -269,7 +269,7 @@ public class GraphDatabaseManager{
 
 	public static Map<String, Object> findBy(final String tableName, final String primaryPropertyName, final Object propertyValue){
 		try(final Transaction tx = getTransaction()){
-			final Node node = tx.findNode(Label.label(tableName), primaryPropertyName, propertyValue);
+			final Node node = (propertyValue != null? tx.findNode(Label.label(tableName), primaryPropertyName, propertyValue): null);
 			return (node != null? node.getAllProperties(): null);
 		}
 	}
@@ -311,7 +311,7 @@ public class GraphDatabaseManager{
 
 	public static void delete(final String tableName, final String primaryPropertyName, final Object nodeID) throws StoreException{
 		try(final Transaction tx = getTransaction()){
-			final Node node = tx.findNode(Label.label(tableName), primaryPropertyName, nodeID);
+			final Node node = (nodeID != null? tx.findNode(Label.label(tableName), primaryPropertyName, nodeID): null);
 			if(node == null)
 				throw StoreException.create("Node with {} {} not found in {}", primaryPropertyName.toUpperCase(Locale.ROOT), nodeID,
 					tableName.toUpperCase(Locale.ROOT));
@@ -389,12 +389,12 @@ public class GraphDatabaseManager{
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
 			final String relationshipName, final String propertyName, final Object propertyValue){
 		try(final Transaction tx = getTransaction()){
-			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
+			final Node nodeStart = (nodeIDStart != null? tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart): null);
 			if(nodeStart == null)
 //				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
 //					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
 				return false;
-			final Node nodeEnd = tx.findNode(Label.label(tableNameEnd), primaryPropertyNameEnd, nodeIDEnd);
+			final Node nodeEnd = (nodeIDEnd != null? tx.findNode(Label.label(tableNameEnd), primaryPropertyNameEnd, nodeIDEnd): null);
 			if(nodeEnd == null)
 //				throw StoreException.create("End node with {} {} not found in {}", primaryPropertyNameEnd.toUpperCase(Locale.ROOT),
 //					nodeIDEnd, tableNameEnd.toUpperCase(Locale.ROOT));
@@ -532,7 +532,7 @@ public class GraphDatabaseManager{
 	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
 			final Object nodeIDStart, final String relationshipName) throws StoreException{
 		try(final Transaction tx = getTransaction()){
-			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
+			final Node nodeStart = (nodeIDStart != null? tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart): null);
 			if(nodeStart == null)
 //				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
 //					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
@@ -560,7 +560,7 @@ public class GraphDatabaseManager{
 	public static Map.Entry<String, Map<String, Object>> findOtherNode(final String tableNameStart, final String primaryPropertyNameStart,
 		final Object nodeIDStart, final String relationshipName, final String propertyName, final Object propertyValue) throws StoreException{
 		try(final Transaction tx = getTransaction()){
-			final Node nodeStart = tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart);
+			final Node nodeStart = (nodeIDStart != null? tx.findNode(Label.label(tableNameStart), primaryPropertyNameStart, nodeIDStart): null);
 			if(nodeStart == null)
 //				throw StoreException.create("Start node with {} {} not found in {}", primaryPropertyNameStart.toUpperCase(Locale.ROOT),
 //					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));

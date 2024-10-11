@@ -160,26 +160,6 @@ public class EntityManager{
 		return (String)record.get("description");
 	}
 
-	//FIXME
-	public static Integer extractRecordMediaID(final Map<String, Object> record){
-		return (Integer)record.get("media_id");
-	}
-
-	//FIXME
-	public static Integer extractRecordCulturalNormID(final Map<String, Object> record){
-		return (Integer)record.get("cultural_norm_id");
-	}
-
-	//FIXME
-	public static Integer extractRecordDateID(final Map<String, Object> record){
-		return (Integer)record.get("date_id");
-	}
-
-	//FIXME
-	public static Integer extractRecordTypeID(final Map<String, Object> record){
-		return (Integer)record.get("type_id");
-	}
-
 	public static String extractRecordSuperType(final Map<String, Object> record){
 		return (record != null? (String)record.get("super_type"): null);
 	}
@@ -197,11 +177,6 @@ public class EntityManager{
 		return (Integer)record.get("group_id");
 	}
 
-	//FIXME
-	public static Integer extractRecordPersonID(final Map<String, Object> record){
-		return (Integer)record.get("person_id");
-	}
-
 	public static String extractRecordPersonalName(final Map<String, Object> record){
 		return (String)record.get("personal_name");
 	}
@@ -216,11 +191,6 @@ public class EntityManager{
 
 	public static String extractRecordDateOriginal(final Map<String, Object> record){
 		return (String)record.get("date_original");
-	}
-
-	//FIXME
-	public static Integer extractRecordCalendarOriginalID(final Map<String, Object> record){
-		return (Integer)record.get("calendar_original_id");
 	}
 
 	public static String extractRecordLocale(final Map<String, Object> record){
@@ -367,13 +337,11 @@ public class EntityManager{
 		record.put("place_id", placeID);
 	}
 
-	//FIXME
-	public static void insertRecordPhotoID(final Map<String, Object> record, final Integer photoID){
-		record.put("photo_id", photoID);
-	}
-
 	public static void insertRecordPhotoCrop(final Map<String, Object> record, final String photoCrop){
-		record.put("photo_crop", photoCrop);
+		if(photoCrop != null)
+			record.put("photo_crop", photoCrop);
+		else
+			record.remove("photo_crop");
 	}
 
 	//FIXME

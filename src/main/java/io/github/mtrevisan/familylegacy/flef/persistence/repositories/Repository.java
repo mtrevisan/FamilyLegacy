@@ -430,7 +430,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has notes.
 	 */
-	public static boolean hasNotes(final String tableName, final int recordID){
+	public static boolean hasNotes(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_NOTE,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_FOR);
@@ -444,7 +444,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has media.
 	 */
-	public static boolean hasMedia(final String tableName, final int recordID){
+	public static boolean hasMedia(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_MEDIA,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_FOR);
@@ -458,7 +458,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has cultural norms.
 	 */
-	public static boolean hasCulturalNorms(final String tableName, final int recordID){
+	public static boolean hasCulturalNorms(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_CULTURAL_NORM,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_SUPPORTED_BY);
@@ -472,7 +472,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has assertions.
 	 */
-	public static boolean hasAssertions(final String tableName, final int recordID){
+	public static boolean hasAssertions(final String tableName, final Integer recordID){
 		final String relationshipName = (tableName.equals(EntityManager.NODE_CITATION)
 			? EntityManager.RELATIONSHIP_INFERRED_FROM
 			: EntityManager.RELATIONSHIP_SUPPORTED_BY);
@@ -488,7 +488,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has events.
 	 */
-	public static boolean hasEvents(final String tableName, final int recordID){
+	public static boolean hasEvents(final String tableName, final Integer recordID){
 		final String relationshipName = switch(tableName){
 			case EntityManager.NODE_EVENT_TYPE -> EntityManager.RELATIONSHIP_OF_TYPE;
 			case EntityManager.NODE_PLACE -> EntityManager.RELATIONSHIP_HAPPENED_IN;
@@ -508,7 +508,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has groups.
 	 */
-	public static boolean hasGroups(final String tableName, final int recordID){
+	public static boolean hasGroups(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_GROUP,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_OF);
@@ -522,7 +522,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has sources.
 	 */
-	public static boolean hasSources(final String tableName, final int recordID){
+	public static boolean hasSources(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_SOURCE,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_STORED_IN);
@@ -536,7 +536,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has citations.
 	 */
-	public static boolean hasCitations(final String tableName, final int recordID){
+	public static boolean hasCitations(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_CITATION,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_QUOTES);
@@ -550,7 +550,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has person names.
 	 */
-	public static boolean hasPersonNames(final String tableName, final int recordID){
+	public static boolean hasPersonNames(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_FOR);
@@ -564,7 +564,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record has person name transliterations.
 	 */
-	public static boolean hasPersonNameTransliterations(final String tableName, final int recordID){
+	public static boolean hasPersonNameTransliterations(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_LOCALIZED_PERSON_NAME,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
@@ -579,7 +579,7 @@ public class Repository{
 	 * @param transcriptionType	The type of the trascription ('name' or 'extract').
 	 * @return	Whether the record has transcriptions.
 	 */
-	public static boolean hasTranscriptions(final String tableName, final int recordID, final String transcriptionType){
+	public static boolean hasTranscriptions(final String tableName, final Integer recordID, final String transcriptionType){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, EntityManager.PROPERTY_TYPE, transcriptionType);
@@ -595,7 +595,7 @@ public class Repository{
 	 * @param relationshipName	The name of the relationship.
 	 * @return	Whether the record has transcriptions.
 	 */
-	public static boolean hasReference(final String tableNameStart, final int recordIDStart,
+	public static boolean hasReference(final String tableNameStart, final Integer recordIDStart,
 			final String tableNameEnd,
 			final String relationshipName){
 		final List<Map<String, Object>> result = Repository.findReferencingNodes(tableNameEnd,
@@ -613,7 +613,7 @@ public class Repository{
 	 * @param relationshipName	The name of the relationship.
 	 * @return	Whether the record has transcriptions.
 	 */
-	public static boolean hasReference(final String tableNameStart, final int recordIDStart,
+	public static boolean hasReference(final String tableNameStart, final Integer recordIDStart,
 			final String tableNameEnd,
 			final String relationshipName, final String propertyName, final Object propertyValue){
 		final List<Map<String, Object>> result = Repository.findReferencingNodes(tableNameEnd,
@@ -630,7 +630,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record references a place.
 	 */
-	public static boolean hasOwner(final String tableName, final int recordID){
+	public static boolean hasOwner(final String tableName, final Integer recordID){
 		return (findReferencedNode(tableName, recordID,
 			EntityManager.RELATIONSHIP_OWNED_BY) != null);
 	}
@@ -642,7 +642,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record references a starting date.
 	 */
-	public static boolean hasDateStart(final String tableName, final int recordID){
+	public static boolean hasDateStart(final String tableName, final Integer recordID){
 		return (findReferencedNode(tableName, recordID,
 			EntityManager.RELATIONSHIP_STARTED_ON) != null);
 	}
@@ -654,7 +654,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record references an ending date.
 	 */
-	public static boolean hasDateEnd(final String tableName, final int recordID){
+	public static boolean hasDateEnd(final String tableName, final Integer recordID){
 		return (findReferencedNode(tableName, recordID,
 			EntityManager.RELATIONSHIP_ENDED_ON) != null);
 	}
@@ -666,7 +666,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record references a place.
 	 */
-	public static boolean hasPlace(final String tableName, final int recordID){
+	public static boolean hasPlace(final String tableName, final Integer recordID){
 		final String relationshipName = switch(tableName){
 			case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
 			case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_IN;
@@ -687,7 +687,7 @@ public class Repository{
 	 * @param recordID	The ID of the record.
 	 * @return	Whether the record references a date.
 	 */
-	public static boolean hasDate(final String tableName, final int recordID){
+	public static boolean hasDate(final String tableName, final Integer recordID){
 		final String relationshipName = switch(tableName){
 			case EntityManager.NODE_SOURCE, EntityManager.NODE_MEDIA -> EntityManager.RELATIONSHIP_CREATED_ON;
 			case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_ON;
@@ -699,7 +699,7 @@ public class Repository{
 		return (placeNode != null);
 	}
 
-	public static Map<String, Object> getDepiction(final String tableName, final int recordID){
+	public static Map<String, Object> getDepiction(final String tableName, final Integer recordID){
 		final Map.Entry<String, Map<String, Object>> photoRecord = Repository.findReferencedNode(
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_DEPICTED_BY);
@@ -707,7 +707,7 @@ public class Repository{
 	}
 
 
-	public static String getRestriction(final String tableName, final int recordID){
+	public static String getRestriction(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> restrictions = findReferencingNodes(EntityManager.NODE_RESTRICTION,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_FOR);

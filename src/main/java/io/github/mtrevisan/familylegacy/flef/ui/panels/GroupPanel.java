@@ -338,7 +338,7 @@ public class GroupPanel extends JPanel{
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
 							final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion), EntityManager.GROUP_ROLE_PARTNER);
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
 									if(i > 0)
@@ -379,7 +379,7 @@ public class GroupPanel extends JPanel{
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
 							final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion), EntityManager.GROUP_ROLE_PARTNER);
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
 									if(i + 1 < otherPartnerUnionsCount)
@@ -472,7 +472,7 @@ public class GroupPanel extends JPanel{
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
 							final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion), EntityManager.GROUP_ROLE_PARTNER);
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
 									if(i > 0)
@@ -512,7 +512,7 @@ public class GroupPanel extends JPanel{
 						Map<String, Object> newPartner = Collections.emptyMap();
 						if(!newUnion.isEmpty()){
 							final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newPersonIDs = getPersonIDsInGroup(extractRecordID(newUnion), EntityManager.GROUP_ROLE_PARTNER);
 							for(int i = 0, length = newPersonIDs.size(); i < length; i ++)
 								if(newPersonIDs.get(i).equals(otherPartnerID)){
 									if(i + 1 < otherPartnerUnionsCount)
@@ -611,7 +611,7 @@ public class GroupPanel extends JPanel{
 
 		if(!group.isEmpty()){
 			final Integer homeUnionID = extractRecordID(group);
-			final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID);
+			final List<Integer> personIDsInUnion = getPersonIDsInGroup(homeUnionID, EntityManager.GROUP_ROLE_PARTNER);
 			Integer partner1ID = extractRecordID(partner1);
 			if(partner1ID != null && !personIDsInUnion.contains(partner1ID)){
 				LOGGER.warn("Person {} does not belongs to the union {} (this cannot be)", partner1ID, homeUnionID);
@@ -776,12 +776,12 @@ public class GroupPanel extends JPanel{
 	}
 
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID){
+	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
-				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
 			.map(EntityManager::extractRecordID)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	private List<Map<String, Object>> getUnions(final Integer personID){
@@ -873,46 +873,46 @@ public class GroupPanel extends JPanel{
 
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("type", "family");
-		Repository.upsert(group1, EntityManager.NODE_GROUP);
+		int group1ID = Repository.upsert(group1, EntityManager.NODE_GROUP);
 		final Map<String, Object> group2 = new HashMap<>();
 		group2.put("type", "family");
-		Repository.upsert(group2, EntityManager.NODE_GROUP);
+		int group2ID = Repository.upsert(group2, EntityManager.NODE_GROUP);
 		final Map<String, Object> group3 = new HashMap<>();
 		group3.put("type", "family");
-		Repository.upsert(group3, EntityManager.NODE_GROUP);
+		int group3ID = Repository.upsert(group3, EntityManager.NODE_GROUP);
 		final Map<String, Object> group4 = new HashMap<>();
 		group4.put("type", "family");
-		Repository.upsert(group4, EntityManager.NODE_GROUP);
+		int group4ID = Repository.upsert(group4, EntityManager.NODE_GROUP);
 
 		final Map<String, Object> groupRelationship11 = new HashMap<>();
 		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship2 = new HashMap<>();
 		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship13 = new HashMap<>();
 		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship3 = new HashMap<>();
 		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 3,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship4 = new HashMap<>();
 		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
-			EntityManager.NODE_GROUP, extractRecordID(group4),
+			EntityManager.NODE_GROUP, group4ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship5 = new HashMap<>();
 		groupRelationship5.put("role", "adoptee");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
-			EntityManager.NODE_GROUP, extractRecordID(group3),
+			EntityManager.NODE_GROUP, group3ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;

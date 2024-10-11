@@ -203,14 +203,14 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 
 		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
 		localizedTextRelationship1.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
-			EntityManager.NODE_PLACE, extractRecordID(place1),
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText1ID,
+			EntityManager.NODE_PLACE, place1ID,
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextRelationship2 = new HashMap<>();
 		localizedTextRelationship2.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
-			EntityManager.NODE_PLACE, extractRecordID(place1),
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText2ID,
+			EntityManager.NODE_PLACE, place1ID,
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 

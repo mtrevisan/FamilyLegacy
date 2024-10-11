@@ -46,6 +46,7 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,7 +57,6 @@ import java.util.stream.Collectors;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordType;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordTypeID;
 
 
 public class ChildrenPanel extends JPanel{
@@ -172,6 +172,8 @@ public class ChildrenPanel extends JPanel{
 		final PersonPanel childBox = createChildPersonPanel(null);
 		box.add(childBox);
 		add(box);
+		if(children.length == 0)
+			childBoxes = new PersonPanel[1];
 		childBoxes[children.length] = childBox;
 
 		if(personListener != null)
@@ -201,15 +203,16 @@ public class ChildrenPanel extends JPanel{
 	}
 
 	private Set<Integer> extractAdoptionEventIDs(final Integer unionID){
-		final Map<Integer, Map<String, Object>> eventTypes = Repository.findAllNavigable(EntityManager.NODE_EVENT_TYPE);
 		final Set<String> eventTypesAdoptions = getEventTypes(EntityManager.EVENT_TYPE_CATEGORY_ADOPTION);
 		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
 				EntityManager.NODE_GROUP, unionID,
 				EntityManager.RELATIONSHIP_FOR).stream()
 			.filter(entry -> {
-				final Integer recordTypeID = extractRecordTypeID(entry);
-				final String recordType = extractRecordType(eventTypes.get(recordTypeID));
-				return eventTypesAdoptions.contains(recordType);
+				final Integer eventID = extractRecordID(entry);
+				Map.Entry<String, Map<String, Object>> eventTypeNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+					EntityManager.RELATIONSHIP_OF_TYPE);
+				final Map<String, Object> eventType = (eventTypeNode != null? eventTypeNode.getValue(): null);
+				return eventTypesAdoptions.contains(extractRecordType(eventType));
 			})
 			.map(EntityManager::extractRecordID)
 			.filter(Objects::nonNull)
@@ -225,11 +228,18 @@ public class ChildrenPanel extends JPanel{
 	@SuppressWarnings("unchecked")
 	private Map<String, Object>[] extractChildren(final Integer unionID){
 		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
-				EntityManager.NODE_GROUP, unionID,
-				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_CHILD).stream()
+		return getPersonIDsInGroup(unionID, EntityManager.GROUP_ROLE_PARTNER).stream()
+			.map(persons::get)
 			.map(entry -> persons.get(extractRecordID(entry)))
 			.toArray(Map[]::new);
+	}
+
+	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
+		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+				EntityManager.NODE_GROUP, groupID,
+				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
+			.map(EntityManager::extractRecordID)
+			.collect(Collectors.toList());
 	}
 
 	public PersonPanel[] getChildBoxes(){
@@ -270,71 +280,77 @@ public class ChildrenPanel extends JPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person2ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person3ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person4ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person5ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person6ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("type", "family");
-		Repository.upsert(group1, EntityManager.NODE_GROUP);
+		int group1ID = Repository.upsert(group1, EntityManager.NODE_GROUP);
 		final Map<String, Object> group2 = new HashMap<>();
 		group2.put("type", "family");
-		Repository.upsert(group2, EntityManager.NODE_GROUP);
+		int group2ID = Repository.upsert(group2, EntityManager.NODE_GROUP);
 
 		final Map<String, Object> groupRelationship11 = new HashMap<>();
 		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship2 = new HashMap<>();
 		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship13 = new HashMap<>();
 		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship3 = new HashMap<>();
 		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 3,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship4 = new HashMap<>();
 		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 4,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship5 = new HashMap<>();
 		groupRelationship5.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 5,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship6 = new HashMap<>();
 		groupRelationship6.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 6,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship7 = new HashMap<>();
 		groupRelationship7.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 4,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship7, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("type_id", 1);
-event1.put("reference_table", "person");
-event1.put("reference_id", 5);
-		Repository.upsert(event1, EntityManager.NODE_EVENT);
+		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_PERSON, person5ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("type", "adoption");
 		eventType1.put("category", "adoption");
-		Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		int eventType1ID = Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final PersonListenerInterface personListener = new PersonListenerInterface(){
 			@Override
@@ -399,7 +415,7 @@ event1.put("reference_id", 5);
 
 		EventQueue.invokeLater(() -> {
 			final ChildrenPanel panel = create();
-			panel.loadData(extractRecordID(group1));
+			panel.loadData(group1ID);
 			panel.setPersonListener(personListener);
 
 			EventBusService.subscribe(panel);

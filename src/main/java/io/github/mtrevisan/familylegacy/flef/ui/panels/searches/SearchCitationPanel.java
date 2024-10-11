@@ -200,19 +200,19 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		localizedText1.put("type", "original");
 		localizedText1.put("transcription", "IPA");
 		localizedText1.put("transcription_type", "romanized");
-		Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
+		int localizedText1ID = Repository.upsert(localizedText1, EntityManager.NODE_LOCALIZED_TEXT);
 		final Map<String, Object> localizedText2 = new HashMap<>();
 		localizedText2.put("text", "text 2");
 		localizedText2.put("locale", "en");
 		localizedText2.put("type", "original");
 		localizedText2.put("transcription", "kana");
 		localizedText2.put("transcription_type", "romanized");
-		Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
+		int localizedText2ID = Repository.upsert(localizedText2, EntityManager.NODE_LOCALIZED_TEXT);
 
 		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
 		localizedTextRelationship1.put("type", "extract");
-		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
-			EntityManager.NODE_CITATION, extractRecordID(citation1),
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText1ID,
+			EntityManager.NODE_CITATION, citation1ID,
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 

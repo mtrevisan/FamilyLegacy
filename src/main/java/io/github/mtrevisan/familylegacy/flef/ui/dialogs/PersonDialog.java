@@ -432,13 +432,13 @@ public final class PersonDialog extends CommonListDialog{
 			EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media1), EntityManager.NODE_PERSON, 1,
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID, EntityManager.NODE_PERSON, 1,
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> mediaRelationship2 = new HashMap<>();
 		mediaRelationship2.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media2), EntityManager.NODE_PERSON, 1,
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media2ID, EntityManager.NODE_PERSON, 1,
 			EntityManager.RELATIONSHIP_FOR, mediaRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media3), EntityManager.NODE_PERSON, 1,
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media3ID, EntityManager.NODE_PERSON, 1,
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();

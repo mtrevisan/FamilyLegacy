@@ -379,19 +379,19 @@ public final class SearchDialog extends JDialog{
 
 		final Map<String, Object> localizedTextRelationship1 = new HashMap<>();
 		localizedTextRelationship1.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText1),
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText1ID,
 			EntityManager.NODE_PLACE, extractRecordID(place1),
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextRelationship2 = new HashMap<>();
 		localizedTextRelationship2.put("type", "name");
-		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText2ID,
 			EntityManager.NODE_PLACE, extractRecordID(place1),
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedTextRelationship3 = new HashMap<>();
 		localizedTextRelationship3.put("type", "extract");
-		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, extractRecordID(localizedText2),
+		Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, localizedText2ID,
 			EntityManager.NODE_CITATION, extractRecordID(citation1),
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, localizedTextRelationship3,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
@@ -406,37 +406,37 @@ public final class SearchDialog extends JDialog{
 		final Map<String, Object> groupRelationship11 = new HashMap<>();
 		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship2 = new HashMap<>();
 		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship13 = new HashMap<>();
 		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship3 = new HashMap<>();
 		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 3,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship4 = new HashMap<>();
 		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 4,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship5 = new HashMap<>();
 		groupRelationship5.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 5,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship6 = new HashMap<>();
 		groupRelationship6.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 4,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();
@@ -692,7 +692,8 @@ public final class SearchDialog extends JDialog{
 
 		final Map<String, Object> mediaRelationship1 = new HashMap<>();
 		mediaRelationship1.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, extractRecordID(media3), EntityManager.NODE_REPOSITORY, 1,
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media3ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
 			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
@@ -708,8 +709,8 @@ public final class SearchDialog extends JDialog{
 		final Map<String, Object> culturalNormRelationship1 = new HashMap<>();
 		culturalNormRelationship1.put("certainty", "probable");
 		culturalNormRelationship1.put("credibility", "probable");
-		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, extractRecordID(culturalNorm1),
-			EntityManager.NODE_PERSON_NAME, extractRecordID(personName1),
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
 			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormRelationship1,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
@@ -877,6 +878,7 @@ public final class SearchDialog extends JDialog{
 							final String relationshipName = switch(tableName){
 								case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_ON;
 								case EntityManager.NODE_MEDIA -> EntityManager.RELATIONSHIP_CREATED_ON;
+								case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_ON;
 								default -> null;
 							};
 							final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(

@@ -162,7 +162,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			final Integer recordID = extractRecordID(record);
 			final Integer unionID = extractRecordID(record);
 			final String type = extractRecordType(record);
-			final List<Integer> personIDsInUnion = getPersonIDsInGroup(unionID);
+			final List<Integer> personIDsInUnion = getPersonIDsInGroup(unionID, EntityManager.GROUP_ROLE_PARTNER);
 			final String earliestUnionYear = extractEarliestUnionYear(unionID);
 			final String earliestUnionPlace = extractEarliestUnionPlace(unionID);
 			final Integer partner1ID = (!personIDsInUnion.isEmpty()? personIDsInUnion.removeFirst(): null);
@@ -221,10 +221,10 @@ public class SearchGroupPanel extends CommonSearchPanel{
 	}
 
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID){
+	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
-				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
 			.map(EntityManager::extractRecordID)
 			.collect(Collectors.toList());
 	}
@@ -317,7 +317,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			})
 			.map(entry -> {
 				final Integer eventID = extractRecordID(entry);
-				Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
+				final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(EntityManager.NODE_EVENT, eventID,
 					EntityManager.RELATIONSHIP_HAPPENED_ON);
 				final Map<String, Object> date = (dateNode != null? dateNode.getValue(): null);
 				final String dateValue = extractRecordDate(date);
@@ -366,37 +366,37 @@ public class SearchGroupPanel extends CommonSearchPanel{
 		final Map<String, Object> groupRelationship11 = new HashMap<>();
 		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship11, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship2 = new HashMap<>();
 		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 2,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship2, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship13 = new HashMap<>();
 		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 1,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship13, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship3 = new HashMap<>();
 		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 3,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship3, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship4 = new HashMap<>();
 		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 4,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship4, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship5 = new HashMap<>();
 		groupRelationship5.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 5,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship5, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship6 = new HashMap<>();
 		groupRelationship6.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, 4,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();

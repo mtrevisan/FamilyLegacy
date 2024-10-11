@@ -40,16 +40,12 @@ import javax.swing.UIManager;
 import java.awt.EventQueue;
 import java.awt.Rectangle;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCalendarOriginalID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCulturalNormID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordDateID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordMediaID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPersonID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCalendarOriginalID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonID;
@@ -156,13 +152,45 @@ public class Main{
 						}
 
 
-						//from: source, event, cultural norm, media
+						//from: source, event, media
 						case HISTORIC_DATE -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.createRecordOnly(parent);
+							final String relationshipName = switch(tableName){
+								case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_ON;
+								case EntityManager.NODE_MEDIA -> EntityManager.RELATIONSHIP_CREATED_ON;
+								case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_ON;
+								default -> null;
+							};
+							final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
+								tableName, containerID,
+								relationshipName);
+							if(dateNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateNode.getValue()));
+
+							historicDateDialog.showDialog();
+						}
+
+						//from: cultural norm
+						case HISTORIC_DATE_START -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
-							final Integer dateID = extractRecordDateID(container);
-							if(dateID != null)
-								historicDateDialog.selectData(dateID);
+							final Map.Entry<String, Map<String, Object>> dateStartNode = Repository.findReferencedNode(
+								EntityManager.NODE_CULTURAL_NORM, containerID,
+								EntityManager.RELATIONSHIP_STARTED_ON);
+							if(dateStartNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateStartNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateStartNode.getValue()));
+
+							historicDateDialog.showDialog();
+						}
+						//from: cultural norm
+						case HISTORIC_DATE_END -> {
+							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
+							historicDateDialog.loadData();
+							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
+								EntityManager.NODE_CULTURAL_NORM, containerID,
+								EntityManager.RELATIONSHIP_ENDED_ON);
+							if(dateEndNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateEndNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateEndNode.getValue()));
 
 							historicDateDialog.showDialog();
 						}
@@ -172,7 +200,10 @@ public class Main{
 							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
 								.withOnCloseGracefully((record, recordID) -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
 							calendarDialog.loadData();
-							final Integer calendarID = extractRecordCalendarOriginalID(container);
+							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_EXPRESSED_IN);
+							final Integer calendarID = extractRecordID(calendarNode.getValue());
 							if(calendarID != null)
 								calendarDialog.selectData(calendarID);
 
@@ -269,15 +300,17 @@ public class Main{
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, containerID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+											tableName, containerID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
-							final Integer mediaID = extractRecordMediaID(container);
-							if(mediaID != null)
-								mediaDialog.selectData(mediaID);
+							final Map.Entry<String, Map<String, Object>> mediaNode = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_FOR);
+							if(mediaNode != null)
+								mediaDialog.selectData(extractRecordID(mediaNode.getValue()));
 
 							mediaDialog.showDialog();
 						}
@@ -344,9 +377,11 @@ public class Main{
 							final PersonDialog personDialog = PersonDialog.create(parent)
 								.withOnCloseGracefully((record, recordID) -> insertRecordPersonID(container, extractRecordID(record)));
 							personDialog.loadData();
-							final Integer personID = extractRecordPersonID(container);
-							if(personID != null)
-								personDialog.selectData(personID);
+							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencedNode(
+								EntityManager.NODE_REPOSITORY, containerID,
+								EntityManager.RELATIONSHIP_OWNED_BY);
+							if(ownerNode != null)
+								personDialog.selectData(extractRecordID(ownerNode.getValue()));
 
 							personDialog.showDialog();
 						}
@@ -372,6 +407,7 @@ public class Main{
 							final GroupDialog groupDialog = GroupDialog.create(parent)
 								.withReference(tableName, containerID);
 							groupDialog.loadData();
+							//FIXME
 							final Integer groupID = extractRecordGroupID(container);
 							if(groupID != null)
 								groupDialog.selectData(groupID);
@@ -395,15 +431,21 @@ public class Main{
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
 								.withReference(EntityManager.NODE_PERSON_NAME, containerID)
 								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+											tableName, containerID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									if(record != null){
 										record.put("reference_table", tableName);
 										record.put("reference_id", recordID);
 									}
 								});
 							culturalNormDialog.loadData();
-							final Integer culturalNormID = extractRecordCulturalNormID(container);
-							if(culturalNormID != null)
-								culturalNormDialog.selectData(culturalNormID);
+							final Map.Entry<String, Map<String, Object>> culturalNormNode = Repository.findReferencedNode(
+								tableName, containerID,
+								EntityManager.RELATIONSHIP_SUPPORTED_BY);
+							if(culturalNormNode != null)
+								culturalNormDialog.selectData(extractRecordID(culturalNormNode.getValue()));
 
 							culturalNormDialog.showDialog();
 						}

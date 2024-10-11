@@ -53,6 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
@@ -278,7 +279,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 							return;
 						}
-						final List<Integer> partnerIDs = getPersonIDsInGroup(unionID);
+						final List<Integer> partnerIDs = getPersonIDsInGroup(unionID, EntityManager.GROUP_ROLE_PARTNER);
 
 						Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
@@ -302,12 +303,12 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		dialog.showDialog();
 	}
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID){
+	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
-				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
+				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
 			.map(EntityManager::extractRecordID)
-			.toList();
+			.collect(Collectors.toList());
 	}
 
 	@Override
