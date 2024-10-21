@@ -337,8 +337,8 @@ public abstract class CommonRecordDialog extends JDialog{
 			final Map<String, Object> newModification = new HashMap<>();
 			insertRecordCreationDate(newModification, now);
 			final int newModificationID = Repository.upsert(newModification, EntityManager.NODE_MODIFICATION);
-			Repository.upsertRelationship(recordTableName, selectedRecordID,
-				EntityManager.NODE_MODIFICATION, newModificationID,
+			Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, newModificationID,
+				recordTableName, selectedRecordID,
 				EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 		else{
@@ -348,8 +348,8 @@ public abstract class CommonRecordDialog extends JDialog{
 				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly((Frame)getParent())
 					.withOnCloseGracefully((record, recordID) -> {
 						if(record != null)
-							Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
-								EntityManager.NODE_MODIFICATION, recordID,
+							Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, recordID,
+								EntityManager.NODE_NOTE, recordID,
 								EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(),
 								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 						else if(recordID != null)

@@ -168,9 +168,11 @@ public final class HistoricDateDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		GUIHelper.bindLabelUndo(dateLabel, dateField);
+		GUIHelper.bindOnTextChange(dateField, this::saveData);
 		addMandatoryField(dateField);
 
 		GUIHelper.bindLabelUndo(dateOriginalLabel, dateOriginalField);
+		GUIHelper.bindOnTextChange(dateOriginalField, this::saveData);
 		GUIHelper.addUndoCapability(dateOriginalField);
 
 		calendarOriginalButton.setToolTipText("Calendar original");
@@ -178,8 +180,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
+		GUIHelper.bindOnSelectionChange(certaintyComboBox, this::saveData);
 
 		GUIHelper.bindLabelUndoAutoComplete(credibilityLabel, credibilityComboBox);
+		GUIHelper.bindOnSelectionChange(credibilityComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -457,29 +461,71 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 							noteDialog.showDialog();
 						}
-						case MODIFICATION_HISTORY -> {
+						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(parent)
-								: NoteDialog.createModificationNoteEditOnly(parent));
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + historicDateID);
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + historicDateID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
 						}
-						case RESEARCH_STATUS -> {
+						case MODIFICATION_HISTORY_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + historicDateID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(parent)
-								: ResearchStatusDialog.createEditOnly(parent));
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + historicDateID);
+							researchStatusDialog.setTitle("Show research status for " + title + " " + historicDateID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + historicDateID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_NEW -> {
+							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = extractRecordID(container);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_HISTORIC_DATE, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_HISTORIC_DATE, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//refresh research status table
+									dialog.reloadResearchStatusTable();
+								});
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("New research status for " + title + " " + parentRecordID);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

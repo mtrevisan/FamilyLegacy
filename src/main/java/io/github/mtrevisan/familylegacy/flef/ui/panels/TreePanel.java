@@ -887,7 +887,6 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship6, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();
-		event1.put("type_id", 1);
 		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
 
 		final Map<String, Object> eventType1 = new HashMap<>();

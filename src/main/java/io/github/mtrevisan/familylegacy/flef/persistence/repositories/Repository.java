@@ -337,6 +337,15 @@ public class Repository{
 		}
 	}
 
+	public static List<Map<String, Object>> findReferencedNodes(final String tableNameStart,
+			final String tableNameEnd, final Object nodeIDEnd,
+			final String relationshipName){
+		return findReferencedNodes(tableNameEnd, nodeIDEnd, relationshipName).stream()
+			.filter(entry -> entry.getKey().equals(tableNameStart))
+			.map(Map.Entry::getValue)
+			.toList();
+	}
+
 	public static Map.Entry<String, Map<String, Object>> findReferencingNode(final String tableNameEnd, final Integer recordIDEnd,
 			final String relationshipName){
 		try{
@@ -438,6 +447,20 @@ public class Repository{
 	}
 
 	/**
+	 * Checks whether a given record in a specified table has localized extracts referenced to it.
+	 *
+	 * @param tableName	The name of the table.
+	 * @param recordID	The ID of the record.
+	 * @return	Whether the record has notes.
+	 */
+	public static boolean hasTranscribedExtracts(final String tableName, final Integer recordID){
+		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_LOCALIZED_TEXT,
+			tableName, recordID,
+			EntityManager.RELATIONSHIP_FOR, EntityManager.PROPERTY_TYPE, "extract");
+		return !result.isEmpty();
+	}
+
+	/**
 	 * Checks whether a given record in a specified table has media referenced to it.
 	 *
 	 * @param tableName	The name of the table.
@@ -473,11 +496,9 @@ public class Repository{
 	 * @return	Whether the record has assertions.
 	 */
 	public static boolean hasAssertions(final String tableName, final Integer recordID){
-		final String relationshipName = (tableName.equals(EntityManager.NODE_CITATION)
-			? EntityManager.RELATIONSHIP_INFERRED_FROM
-			: EntityManager.RELATIONSHIP_SUPPORTED_BY);
-		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_ASSERTION,
-			tableName, recordID, relationshipName);
+		final List<Map<String, Object>> result = (tableName.equals(EntityManager.NODE_CITATION)
+			? findReferencingNodes(EntityManager.NODE_ASSERTION, tableName, recordID, EntityManager.RELATIONSHIP_INFERRED_FROM)
+			: findReferencedNodes(EntityManager.NODE_ASSERTION, tableName, recordID, EntityManager.RELATIONSHIP_SUPPORTED_BY));
 		return !result.isEmpty();
 	}
 

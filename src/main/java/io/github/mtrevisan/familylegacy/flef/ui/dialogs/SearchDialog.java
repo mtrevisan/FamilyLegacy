@@ -717,23 +717,23 @@ public final class SearchDialog extends JDialog{
 		final Map<String, Object> modification1 = new HashMap<>();
 		modification1.put("update_date", EntityManager.now());
 		int modification1ID = Repository.upsert(modification1, EntityManager.NODE_MODIFICATION);
-		Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.NODE_MODIFICATION, modification1ID,
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
 			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
 			GraphDatabaseManager.OnDeleteType.CASCADE);
-		Repository.upsertRelationship(EntityManager.NODE_NOTE, note4ID,
-			EntityManager.NODE_MODIFICATION, modification1ID,
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
+			EntityManager.NODE_NOTE, note4ID,
 			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
 			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> modification2 = new HashMap<>();
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		int modification2ID = Repository.upsert(modification2, EntityManager.NODE_MODIFICATION);
-		Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.NODE_MODIFICATION, modification2ID,
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification2ID,
+			EntityManager.NODE_REPOSITORY, repository1ID,
 			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
 			GraphDatabaseManager.OnDeleteType.CASCADE);
-		Repository.upsertRelationship(EntityManager.NODE_NOTE, note5ID,
-			EntityManager.NODE_MODIFICATION, modification2ID,
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification2ID,
+			EntityManager.NODE_NOTE, note5ID,
 			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> researchStatus1 = new HashMap<>();
@@ -1087,15 +1087,23 @@ public final class SearchDialog extends JDialog{
 
 
 						//from: modification notes
-						case MODIFICATION_HISTORY -> {
+						case MODIFICATION_HISTORY_SHOW -> {
 							final Integer noteID = (Integer)container.get("noteID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(parent)
-								: NoteDialog.createModificationNoteEditOnly(parent));
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + containerID);
-							changeNoteDialog.loadData(noteID);
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + containerID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+						case MODIFICATION_HISTORY_EDIT -> {
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + containerID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
 						}
@@ -1103,15 +1111,23 @@ public final class SearchDialog extends JDialog{
 
 						//from: assertion, calendar, citation, cultural norm, event, group, historic date, localized person name, localized text,
 						// media, note, person name, place, repository, source
-						case RESEARCH_STATUS -> {
+						case RESEARCH_STATUS_SHOW -> {
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(parent)
-								: ResearchStatusDialog.createEditOnly(parent));
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + researchStatusID);
-							researchStatusDialog.loadData(researchStatusID);
+							researchStatusDialog.setTitle("Show research status for " + title + " " + containerID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + containerID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
 
 							researchStatusDialog.showDialog();
 						}

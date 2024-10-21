@@ -845,31 +845,41 @@ public class GroupPanel extends JPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
-		Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+
+		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person2ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person3ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> personName11 = new HashMap<>();
-		personName11.put("person_id", 1);
 		personName11.put("personal_name", "tòni");
 		personName11.put("family_name", "bruxatin");
 		personName11.put("locale", "vec-IT");
 		personName11.put("type", "birth name");
-		Repository.upsert(personName11, EntityManager.NODE_PERSON_NAME);
+		int personName11ID = Repository.upsert(personName11, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName11ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> personName12 = new HashMap<>();
-		personName12.put("person_id", 1);
 		personName12.put("personal_name", "antonio");
 		personName12.put("family_name", "bruciatino");
 		personName12.put("locale", "it-IT");
 		personName12.put("type", "death name");
-		Repository.upsert(personName12, EntityManager.NODE_PERSON_NAME);
+		int personName12ID = Repository.upsert(personName12, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName12ID,
+			EntityManager.NODE_PERSON, person1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> personName21 = new HashMap<>();
-		personName21.put("person_id", 2);
 		personName21.put("personal_name", "bèpi");
 		personName21.put("family_name", "marangon");
 		personName21.put("locale", "vec-IT");
 		personName21.put("type", "birth name");
-		Repository.upsert(personName21, EntityManager.NODE_PERSON_NAME);
+		int personName21ID = Repository.upsert(personName21, EntityManager.NODE_PERSON_NAME);
+		Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, personName21ID,
+			EntityManager.NODE_PERSON, person2ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("type", "family");

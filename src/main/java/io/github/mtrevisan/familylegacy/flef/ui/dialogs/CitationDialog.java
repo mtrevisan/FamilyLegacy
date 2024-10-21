@@ -185,19 +185,23 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	@Override
 	protected void initRecordComponents(){
 		GUIHelper.bindLabelUndo(locationLabel, locationField);
+		GUIHelper.bindOnTextChange(locationField, this::saveData);
 
 		GUIHelper.bindLabel(extractLabel, extractTextPreview);
 		extractTextPreview.setTextViewFont(extractLabel.getFont());
 		extractTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 		extractTextPreview.addValidDataListener(this, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR);
+		GUIHelper.bindOnTextChange(extractTextPreview, this::saveData);
 
 		GUIHelper.bindLabelUndo(extractLocaleLabel, extractLocaleField);
+		GUIHelper.bindOnTextChange(extractLocaleField, this::saveData);
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
 		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, EntityManager.NODE_CITATION, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(extractTypeLabel, extractTypeComboBox);
+		GUIHelper.bindOnSelectionChange(extractTypeComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -491,8 +495,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-//			final CitationDialog dialog = create(parent);
-			final CitationDialog dialog = createSelectOnly(parent);
+			final CitationDialog dialog = create(parent);
+//			final CitationDialog dialog = createSelectOnly(parent);
 //			final CitationDialog dialog = createRecordOnly(parent);
 //			dialog.withFilterOnSourceID(filterSourceID);
 			dialog.loadData();
@@ -512,19 +516,32 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 					final int citationID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case LOCALIZED_EXTRACT -> {
-							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
+							final LocalizedTextDialog localizedTextDialog = (dialog.isViewOnlyComponent(dialog.transcribedExtractButton)
+									? LocalizedTextDialog.createSimpleTextSelectOnly(parent)
+									: LocalizedTextDialog.createSimpleText(parent))
 								.withReference(EntityManager.NODE_CITATION, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
 											EntityManager.NODE_CITATION, citationID,
 											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+											GraphDatabaseManager.OnDeleteType.CASCADE);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
+											EntityManager.NODE_CITATION, citationID,
+											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
+
+									//update UI
+									final boolean hasTranscribedExtracts = Repository.hasTranscribedExtracts(EntityManager.NODE_LOCALIZED_TEXT,
+										citationID);
+									dialog.setButtonEnableAndBorder(dialog.transcribedExtractButton, hasTranscribedExtracts);
 								});
 							localizedTextDialog.loadData();
 
 							localizedTextDialog.showDialog();
 						}
+
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
@@ -534,12 +551,22 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_CITATION, citationID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_CITATION, citationID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CITATION, citationID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
 									? MediaDialog.createSelectOnlyForMedia(parent)
@@ -550,44 +577,113 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
 											EntityManager.NODE_CITATION, citationID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_CITATION, citationID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_CITATION, citationID);
+									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
+
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_CITATION, citationID);
+								.withReference(EntityManager.NODE_CITATION, citationID)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_CITATION, citationID,
+											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_CITATION, citationID,
+											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CITATION, citationID);
+									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+								});
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
-						case MODIFICATION_HISTORY -> {
+
+						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(parent)
-								: NoteDialog.createModificationNoteEditOnly(parent));
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + citationID);
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + citationID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
 						}
-						case RESEARCH_STATUS -> {
+						case MODIFICATION_HISTORY_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + citationID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+
+						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(parent)
-								: ResearchStatusDialog.createEditOnly(parent));
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + citationID);
+							researchStatusDialog.setTitle("Show research status for " + title + " " + citationID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + citationID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_NEW -> {
+							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = extractRecordID(container);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_CITATION, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_CITATION, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//refresh research status table
+									dialog.reloadResearchStatusTable();
+								});
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("New research status for " + title + " " + parentRecordID);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

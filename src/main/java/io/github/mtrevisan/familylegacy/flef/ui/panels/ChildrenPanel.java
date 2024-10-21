@@ -337,7 +337,6 @@ public class ChildrenPanel extends JPanel{
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship7, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();
-		event1.put("type_id", 1);
 		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
 			EntityManager.NODE_PERSON, person5ID,

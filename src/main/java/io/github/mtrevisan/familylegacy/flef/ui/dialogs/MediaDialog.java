@@ -66,9 +66,7 @@ import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
@@ -302,6 +300,8 @@ public final class MediaDialog extends CommonListDialog{
 
 			final Integer mediaID = extractRecordID(selectedRecord);
 			photoCropButtonEnabledBorder(identifier, mediaID);
+
+			saveData();
 		});
 		addMandatoryField(fileField);
 		fileField.setEditable(false);
@@ -385,14 +385,17 @@ public final class MediaDialog extends CommonListDialog{
 		});
 
 		GUIHelper.bindLabelUndo(titleLabel, titleField);
+		GUIHelper.bindOnTextChange(titleField, this::saveData);
 
 		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
+		GUIHelper.bindOnSelectionChange(typeComboBox, this::saveData);
 		if(restrictToPhoto){
 			typeComboBox.setSelectedItem("photo");
 			typeComboBox.setEnabled(false);
 		}
 
 		GUIHelper.bindLabelUndoAutoComplete(photoProjectionLabel, photoProjectionComboBox);
+		GUIHelper.bindOnSelectionChange(photoProjectionComboBox, this::saveData);
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
@@ -628,7 +631,7 @@ public final class MediaDialog extends CommonListDialog{
 				.toURL();
 			return true;
 		}
-		catch(final URISyntaxException | MalformedURLException ignored){
+		catch(final Exception ignored){
 			return false;
 		}
 	}
@@ -710,11 +713,11 @@ public final class MediaDialog extends CommonListDialog{
 		byte[] payload = null;
 		if(file != null && file.isFile()){
 			try{
-      		payload = Files.readAllBytes(file.toPath());
-      	}
-      	catch(final IOException ioe){
+				payload = Files.readAllBytes(file.toPath());
+			}
+			catch(final IOException ioe){
 				LOGGER.error("Cannot extract payload from '{}'", mediaPath, ioe);
-      	}
+			}
 		}
 		return payload;
 	}
@@ -897,29 +900,71 @@ public final class MediaDialog extends CommonListDialog{
 
 							eventDialog.showDialog();
 						}
-						case MODIFICATION_HISTORY -> {
+						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(parent)
-								: NoteDialog.createModificationNoteEditOnly(parent));
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + mediaID);
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + mediaID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
 						}
-						case RESEARCH_STATUS -> {
+						case MODIFICATION_HISTORY_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + mediaID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(parent)
-								: ResearchStatusDialog.createEditOnly(parent));
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + mediaID);
+							researchStatusDialog.setTitle("Show research status for " + title + " " + mediaID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + mediaID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_NEW -> {
+							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = extractRecordID(container);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_MEDIA, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_MEDIA, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//refresh research status table
+									dialog.reloadResearchStatusTable();
+								});
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("New research status for " + title + " " + parentRecordID);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

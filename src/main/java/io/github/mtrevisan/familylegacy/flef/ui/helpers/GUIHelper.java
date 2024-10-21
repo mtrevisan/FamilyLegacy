@@ -254,7 +254,7 @@ public final class GUIHelper{
 		AutoCompleteDecorator.decorate(comboBox);
 	}
 
-	public static boolean bindSelectionChange(final JComboBox<?> comboBox, final Runnable onSelection){
+	public static boolean bindOnSelectionChange(final JComboBox<?> comboBox, final Runnable onSelection){
 		final boolean editable = comboBox.isEditable();
 		if(editable)
 			comboBox.addActionListener(evt -> {

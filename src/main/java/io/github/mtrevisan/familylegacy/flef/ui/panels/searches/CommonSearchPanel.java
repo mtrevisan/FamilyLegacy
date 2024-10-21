@@ -236,7 +236,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 	}
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
-	private void initLayout(){
+	protected void initLayout(){
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(new JScrollPane(recordTable), "grow");
 	}
@@ -253,7 +253,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 		return (DefaultTableModel)recordTable.getModel();
 	}
 
-	private void selectAction(){
+	protected void selectAction(){
 		if(linkListener != null){
 			String tableName = getTableName();
 			final int viewRowIndex = recordTable.getSelectedRow();

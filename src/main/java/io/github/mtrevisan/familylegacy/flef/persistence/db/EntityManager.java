@@ -172,11 +172,6 @@ public class EntityManager{
 		return (record != null? (String)record.get("photo_crop"): null);
 	}
 
-	//FIXME
-	public static Integer extractRecordGroupID(final Map<String, Object> record){
-		return (Integer)record.get("group_id");
-	}
-
 	public static String extractRecordPersonalName(final Map<String, Object> record){
 		return (String)record.get("personal_name");
 	}
@@ -271,11 +266,6 @@ public class EntityManager{
 	}
 
 
-	//FIXME
-	public static void insertRecordID(final Map<String, Object> record, final int id){
-		record.put("id", id);
-	}
-
 	public static void insertRecordRestriction(final Map<String, Object> record, final String restriction){
 		record.put("restriction", restriction);
 	}
@@ -332,26 +322,11 @@ public class EntityManager{
 		record.put("category", category);
 	}
 
-	//FIXME
-	public static void insertRecordPlaceID(final Map<String, Object> record, final Integer placeID){
-		record.put("place_id", placeID);
-	}
-
 	public static void insertRecordPhotoCrop(final Map<String, Object> record, final String photoCrop){
 		if(photoCrop != null)
 			record.put("photo_crop", photoCrop);
 		else
 			record.remove("photo_crop");
-	}
-
-	//FIXME
-	public static void insertRecordPersonID(final Map<String, Object> record, final Integer personID){
-		record.put("person_id", personID);
-	}
-
-	//FIXME
-	public static void insertRecordPersonNameID(final Map<String, Object> record, final Integer personNameID){
-		record.put("person_name_id", personNameID);
 	}
 
 	public static void insertRecordDate(final Map<String, Object> record, final String date){
@@ -360,11 +335,6 @@ public class EntityManager{
 
 	public static void insertRecordDateOriginal(final Map<String, Object> record, final String dateOriginal){
 		record.put("date_original", dateOriginal);
-	}
-
-	//FIXME
-	public static void insertRecordCalendarOriginalID(final Map<String, Object> record, final Integer calendarOriginalID){
-		record.put("calendar_original_id", calendarOriginalID);
 	}
 
 	public static void insertRecordPersonalName(final Map<String, Object> record, final String personalName){
@@ -445,51 +415,6 @@ public class EntityManager{
 
 	public static void insertRecordAuthor(final Map<String, Object> record, final String author){
 		record.put("author", author);
-	}
-
-	//FIXME
-	public static void insertRecordRepositoryID(final Map<String, Object> record, final Integer repositoryID){
-		record.put("repository_id", repositoryID);
-	}
-
-	//FIXME
-	public static void insertRecordDateStartID(final Map<String, Object> record, final Integer dateStartID){
-		record.put("date_start_id", dateStartID);
-	}
-
-	//FIXME
-	public static void insertRecordDateEndID(final Map<String, Object> record, final Integer dateEndID){
-		record.put("date_end_id", dateEndID);
-	}
-
-	//FIXME
-	public static void insertRecordSourceID(final Map<String, Object> record, final Integer sourceID){
-		record.put("source_id", sourceID);
-	}
-
-	//FIXME
-	public static void insertRecordCitationID(final Map<String, Object> record, final Integer citationID){
-		record.put("citation_id", citationID);
-	}
-
-	//FIXME
-	public static void insertRecordDateID(final Map<String, Object> record, final Integer dateID){
-		record.put("date_id", dateID);
-	}
-
-	//FIXME
-	public static void insertRecordCulturalNormID(final Map<String, Object> record, final Integer culturalNormID){
-		record.put("cultural_norm_id", culturalNormID);
-	}
-
-	//FIXME
-	public static void insertRecordGroupID(final Map<String, Object> record, final Integer groupID){
-		record.put("group_id", groupID);
-	}
-
-	//FIXME
-	public static void insertRecordMediaID(final Map<String, Object> record, final Integer mediaID){
-		record.put("media_id", mediaID);
 	}
 
 	public static void insertRecordIncludeMediaPayload(final Map<String, Object> record, final int includeMediaPayloadID){

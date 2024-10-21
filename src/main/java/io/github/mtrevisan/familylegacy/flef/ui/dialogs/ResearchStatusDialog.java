@@ -174,15 +174,19 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 
 		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
+		GUIHelper.bindOnTextChange(identifierField, this::saveData);
 		addMandatoryField(identifierField);
 
 		GUIHelper.bindLabel(descriptionLabel, descriptionTextPreview);
+		GUIHelper.bindOnTextChange(descriptionTextPreview, this::saveData);
 		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 		descriptionTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
 		GUIHelper.bindLabelUndoAutoComplete(statusLabel, statusComboBox);
+		GUIHelper.bindOnSelectionChange(statusComboBox, this::saveData);
 
 		GUIHelper.bindLabelUndo(priorityLabel, priorityField);
+		GUIHelper.bindOnTextChange(priorityField, this::saveData);
 	}
 
 	@Override

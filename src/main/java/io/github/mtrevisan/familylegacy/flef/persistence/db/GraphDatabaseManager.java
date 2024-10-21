@@ -582,8 +582,8 @@ public class GraphDatabaseManager{
 	}
 
 	public static List<Map.Entry<String, Map<String, Object>>> findOtherNodes(final String tableNameStart,
-		final String primaryPropertyNameStart, final Object nodeIDStart,
-		final String relationshipName){
+			final String primaryPropertyNameStart, final Object nodeIDStart,
+			final String relationshipName){
 		try(final Transaction tx = getTransaction()){
 			final String query = JavaHelper.textFormat(QUERY_FIND_RELATIONSHIPS,
 				tableNameStart, primaryPropertyNameStart, nodeIDStart,

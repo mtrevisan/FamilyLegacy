@@ -175,10 +175,13 @@ public final class AssertionDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		GUIHelper.bindLabelUndo(roleLabel, roleField);
+		GUIHelper.bindOnTextChange(roleField, this::saveData);
 
 		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
+		GUIHelper.bindOnSelectionChange(certaintyComboBox, this::saveData);
 
 		GUIHelper.bindLabelUndoAutoComplete(credibilityLabel, credibilityComboBox);
+		GUIHelper.bindOnSelectionChange(credibilityComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -222,32 +225,36 @@ public final class AssertionDialog extends CommonListDialog{
 
 		final List<Map<String, Object>> records = (filterReferenceTable == null
 			? Repository.findAll(EntityManager.NODE_ASSERTION)
-			: Repository.findReferencingNodes(EntityManager.NODE_ASSERTION,
-				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_SUPPORTED_BY));
+			: Repository.findReferencedNodes(EntityManager.NODE_ASSERTION, filterReferenceTable, filterReferenceID, EntityManager.RELATIONSHIP_SUPPORTED_BY));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
 		int row = 0;
 		for(final Map<String, Object> record : records){
 			final Integer recordID = extractRecordID(record);
+			final String role = extractRecordRole(record);
 			final String sourceIdentifier = extractRecordSourceIdentifier(record);
 			final String location = extractRecordLocation(recordID);
 			final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
 				EntityManager.NODE_ASSERTION, recordID,
 				EntityManager.RELATIONSHIP_SUPPORTED_BY);
 			final String referenceTable = (referencedNode != null? referencedNode.getKey(): null);
-			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+			String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 				+ (location != null? location: StringUtils.EMPTY)
 				+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
-				+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
+				+ (referenceTable != null
+					? StringUtils.capitalize(StringUtils.replace(referenceTable, "_", StringUtils.SPACE))
+					: StringUtils.EMPTY);
 			final FilterString filter = FilterString.create()
 				.add(recordID)
+				.add(role)
 				.add(sourceIdentifier)
 				.add(location)
 				.add(referenceTable);
 			final String filterData = filter.toString();
+			if(!StringUtils.isEmpty(role))
+				identifier += (!identifier.isEmpty()? StringUtils.SPACE: StringUtils.EMPTY) + "(with role `" + role + "`)";
 
 			model.setValueAt(recordID, row, TABLE_INDEX_ID);
 			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
@@ -322,15 +329,19 @@ public final class AssertionDialog extends CommonListDialog{
 				final Map<String, Object> updatedAssertionRecord = Repository.findByID(EntityManager.NODE_ASSERTION, recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
 				final String location = extractRecordLocation(extractRecordID(updatedAssertionRecord));
-				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
+				final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencingNode(
 					EntityManager.NODE_ASSERTION, recordID,
 					EntityManager.RELATIONSHIP_SUPPORTED_BY);
 				final String referenceTable = (referencedNode != null? referencedNode.getKey(): null);
-				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+				String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
 					+ (location != null? location: StringUtils.EMPTY)
 					+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
-					+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
+					+ (referenceTable != null
+						? StringUtils.capitalize(StringUtils.replace(referenceTable, "_", StringUtils.SPACE))
+						: StringUtils.EMPTY);
+				if(!StringUtils.isEmpty(role))
+					identifier += (!identifier.isEmpty()? StringUtils.SPACE: StringUtils.EMPTY) + "(with role `" + role + "`)";
 
 				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_REFERENCE_TABLE);
 
@@ -489,8 +500,8 @@ public final class AssertionDialog extends CommonListDialog{
 		final Map<String, Object> culturalNormRelationship1 = new HashMap<>();
 		culturalNormRelationship1.put("certainty", "probable");
 		culturalNormRelationship1.put("credibility", "probable");
-		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
+			EntityManager.NODE_ASSERTION, assertion1ID,
 			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> researchStatus1 = new HashMap<>();
@@ -546,12 +557,22 @@ public final class AssertionDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_ASSERTION, assertionID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_ASSERTION, assertionID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_ASSERTION, assertionID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
 									? MediaDialog.createSelectOnlyForMedia(parent)
@@ -562,48 +583,113 @@ public final class AssertionDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
 											EntityManager.NODE_ASSERTION, assertionID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_ASSERTION, assertionID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_ASSERTION, assertionID);
+									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
+
 						case CULTURAL_NORM -> {
-							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
+							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(dialog.culturalNormButton)
+									? CulturalNormDialog.createSelectOnly(parent)
+									: CulturalNormDialog.create(parent))
 								.withReference(EntityManager.NODE_ASSERTION, assertionID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertionID,
-											EntityManager.NODE_CULTURAL_NORM, recordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+											EntityManager.NODE_ASSERTION, assertionID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+											EntityManager.NODE_ASSERTION, assertionID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_ASSERTION, assertionID);
+									dialog.setButtonEnableAndBorder(dialog.culturalNormButton, hasCulturalNorms);
 								});
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();
 						}
-						case MODIFICATION_HISTORY -> {
+
+						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(parent)
-								: NoteDialog.createModificationNoteEditOnly(parent));
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + assertionID);
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + assertionID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
 						}
-						case RESEARCH_STATUS -> {
+						case MODIFICATION_HISTORY_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + assertionID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+
+						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(parent)
-								: ResearchStatusDialog.createEditOnly(parent));
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + assertionID);
+							researchStatusDialog.setTitle("Show research status for " + title + " " + assertionID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + assertionID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_NEW -> {
+							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = extractRecordID(container);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_ASSERTION, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_ASSERTION, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//refresh research status table
+									dialog.reloadResearchStatusTable();
+								});
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("New research status for " + title + " " + parentRecordID);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

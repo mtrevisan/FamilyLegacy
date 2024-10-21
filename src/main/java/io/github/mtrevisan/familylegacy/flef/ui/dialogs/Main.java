@@ -44,14 +44,9 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordGroupID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordCalendarOriginalID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPersonNameID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPlaceID;
 
 
 public class Main{
@@ -69,8 +64,8 @@ public class Main{
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final RepositoryDialog dialog = RepositoryDialog.create(parent);
-//			final HistoricDateDialog dialog = HistoricDateDialog.create(parent);
+//			final RepositoryDialog dialog = RepositoryDialog.create(parent);
+			final HistoricDateDialog dialog = HistoricDateDialog.create(parent);
 //			final PlaceDialog dialog = PlaceDialog.create(parent);
 //			final MediaDialog dialog = MediaDialog.create(parent);
 //			final PersonDialog dialog = PersonDialog.create(parent);
@@ -112,7 +107,10 @@ public class Main{
 								.withFilterOnRepositoryID(containerID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
-										record.put("repository_id", recordID);
+										Repository.upsertRelationship(EntityManager.NODE_SOURCE, recordID,
+											EntityManager.NODE_REPOSITORY, containerID,
+											EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 								});
 							sourceDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> sourceNode = Repository.findReferencedNode(
@@ -130,7 +128,10 @@ public class Main{
 								.withFilterOnSourceID(containerID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
-										record.put("source_id", recordID);
+										Repository.upsertRelationship(EntityManager.NODE_CITATION, recordID,
+											EntityManager.NODE_SOURCE, containerID,
+											EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 								});
 							citationDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> citationNode = Repository.findReferencedNode(
@@ -198,7 +199,13 @@ public class Main{
 						//from: historic date
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> insertRecordCalendarOriginalID(container, extractRecordID(record)));
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, containerID,
+											EntityManager.NODE_CALENDAR, recordID,
+											EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+								});
 							calendarDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
 								tableName, containerID,
@@ -214,7 +221,21 @@ public class Main{
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> insertRecordPlaceID(container, extractRecordID(record)));
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null){
+										final String relationshipName = switch(tableName){
+											case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
+											case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_IN;
+											case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_IN;
+											case EntityManager.NODE_CULTURAL_NORM -> EntityManager.RELATIONSHIP_APPLIES_IN;
+											default -> null;
+										};
+										Repository.upsertRelationship(tableName, containerID,
+											EntityManager.NODE_PLACE, recordID,
+											relationshipName, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+								});
 							placeDialog.loadData();
 							final String relationshipName = switch(tableName){
 								case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
@@ -239,10 +260,11 @@ public class Main{
 							final NoteDialog noteDialog = NoteDialog.create(parent)
 								.withReference(tableName, containerID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+											tableName, containerID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -255,10 +277,11 @@ public class Main{
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
 								.withReference(EntityManager.NODE_CITATION, containerID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
+											EntityManager.NODE_CITATION, containerID,
+											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 								});
 							localizedTextDialog.loadData();
 
@@ -271,7 +294,10 @@ public class Main{
 								.withReference(containerID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
-										insertRecordPersonNameID(record, recordID);
+										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, recordID,
+											EntityManager.NODE_PERSON, containerID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 								});
 							localizedTextDialog.loadData();
 
@@ -283,10 +309,11 @@ public class Main{
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
 								.withReference(tableName, containerID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
+											EntityManager.NODE_PLACE, containerID,
+											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 								});
 							localizedTextDialog.loadData();
 
@@ -321,10 +348,11 @@ public class Main{
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, containerID)
 								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
-									}
+									if(record != null)
+										Repository.upsertRelationship(tableName, containerID,
+											EntityManager.NODE_MEDIA, recordID,
+											EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							photoDialog.loadData();
 							final Map<String, Object> photoRecord = Repository.getDepiction(tableName, containerID);
@@ -375,7 +403,13 @@ public class Main{
 						//from: repository
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> insertRecordPersonID(container, extractRecordID(record)));
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, containerID,
+											EntityManager.NODE_PERSON, recordID,
+											EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+								});
 							personDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencedNode(
 								EntityManager.NODE_REPOSITORY, containerID,
@@ -391,7 +425,11 @@ public class Main{
 							final PersonNameDialog personNameDialog = PersonNameDialog.create(parent)
 								.withReference(containerID)
 								.withOnCloseGracefully((record, recordID) -> {
-									insertRecordPersonID(record, recordID);
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, recordID,
+											EntityManager.NODE_PERSON, containerID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 									//update table identifier
 									dialog.loadData();
@@ -407,10 +445,11 @@ public class Main{
 							final GroupDialog groupDialog = GroupDialog.create(parent)
 								.withReference(tableName, containerID);
 							groupDialog.loadData();
-							//FIXME
-							final Integer groupID = extractRecordGroupID(container);
-							if(groupID != null)
-								groupDialog.selectData(groupID);
+							final Map.Entry<String, Map<String, Object>> elementNode = Repository.findReferencedNode(
+								EntityManager.NODE_PERSON, containerID,
+								EntityManager.RELATIONSHIP_BELONGS_TO);
+							if(elementNode != null)
+								groupDialog.selectData(extractRecordID(elementNode.getValue()));
 
 							groupDialog.showDialog();
 						}
@@ -434,11 +473,8 @@ public class Main{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
 											tableName, containerID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									if(record != null){
-										record.put("reference_table", tableName);
-										record.put("reference_id", recordID);
-									}
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							culturalNormDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> culturalNormNode = Repository.findReferencedNode(

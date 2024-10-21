@@ -125,7 +125,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected int[] getTableColumnAlignments(){
-		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.RIGHT};
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
 	}
 
 	@Override
@@ -145,6 +145,7 @@ public final class CalendarDialog extends CommonListDialog{
 	@Override
 	protected void initRecordComponents(){
 		GUIHelper.bindLabelUndo(typeLabel, typeField);
+		GUIHelper.bindOnTextChange(typeField, this::saveData);
 		addMandatoryField(typeField);
 
 
@@ -329,11 +330,27 @@ public final class CalendarDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_CALENDAR, calendarID);
+								.withReference(EntityManager.NODE_CALENDAR, calendarID)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CALENDAR, calendarID);
+									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+								});
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
+
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
@@ -343,44 +360,113 @@ public final class CalendarDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_CALENDAR, calendarID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CALENDAR, calendarID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
 						case EVENT -> {
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_CALENDAR, calendarID);
+								.withReference(EntityManager.NODE_CALENDAR, calendarID)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_EVENT, recordID,
+											EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_EVENT, recordID,
+											EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CALENDAR, calendarID);
+									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+								});
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
 						}
-						case MODIFICATION_HISTORY -> {
+
+						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(parent)
-								: NoteDialog.createModificationNoteEditOnly(parent));
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + calendarID);
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + calendarID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
 						}
-						case RESEARCH_STATUS -> {
+						case MODIFICATION_HISTORY_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + calendarID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+
+						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(parent)
-								: ResearchStatusDialog.createEditOnly(parent));
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + calendarID);
+							researchStatusDialog.setTitle("Show research status for " + title + " " + calendarID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + calendarID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_NEW -> {
+							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = extractRecordID(container);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_CALENDAR, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_CALENDAR, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//refresh research status table
+									dialog.reloadResearchStatusTable();
+								});
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("New research status for " + title + " " + parentRecordID);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

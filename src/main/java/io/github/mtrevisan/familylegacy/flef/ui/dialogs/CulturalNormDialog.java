@@ -212,11 +212,13 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	@Override
 	protected void initRecordComponents(){
 		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
+		GUIHelper.bindOnTextChange(identifierField, this::saveData);
 		addMandatoryField(identifierField);
 		descriptionTextPreview.setTextViewFont(identifierField.getFont());
 		descriptionTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
 		GUIHelper.bindLabel(descriptionLabel, descriptionTextPreview);
+		GUIHelper.bindOnTextChange(descriptionTextPreview, this::saveData);
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
@@ -231,7 +233,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			EditEvent.create(EditEvent.EditType.HISTORIC_DATE_END, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
+		GUIHelper.bindOnSelectionChange(certaintyComboBox, this::saveData);
 		GUIHelper.bindLabelUndoAutoComplete(credibilityLabel, credibilityComboBox);
+		GUIHelper.bindOnSelectionChange(credibilityComboBox, this::saveData);
 
 
 		noteButton.setToolTipText("Notes");
@@ -555,6 +559,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 					final Map<String, Object> container = editCommand.getContainer();
 					final int culturalNormID = extractRecordID(container);
 					switch(editCommand.getType()){
+						//TODO
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
@@ -564,6 +569,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 							assertionDialog.showDialog();
 						}
+
+						//TODO
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent);
 							placeDialog.loadData();
@@ -575,6 +582,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 							placeDialog.showDialog();
 						}
+
+						//TODO
 						case HISTORIC_DATE_START -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
@@ -586,6 +595,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 							historicDateDialog.showDialog();
 						}
+						//TODO
 						case HISTORIC_DATE_END -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
@@ -597,6 +607,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 							historicDateDialog.showDialog();
 						}
+
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
@@ -606,60 +617,139 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-									? MediaDialog.createSelectOnlyForMedia(parent)
-									: MediaDialog.createForMedia(parent))
+								? MediaDialog.createSelectOnlyForMedia(parent)
+								: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
+
 						case EVENT -> {
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_EVENT, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_EVENT, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+								});
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
 						}
-						case MODIFICATION_HISTORY -> {
+
+						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final NoteDialog changeNoteDialog = (showOnly
-								? NoteDialog.createModificationNoteShowOnly(parent)
-								: NoteDialog.createModificationNoteEditOnly(parent));
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							changeNoteDialog.setTitle((showOnly? "Show": "Edit") + " modification note for " + title + " " + culturalNormID);
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + culturalNormID);
 							changeNoteDialog.loadData();
 							changeNoteDialog.selectData(noteID);
 
 							changeNoteDialog.showDialog();
 						}
-						case RESEARCH_STATUS -> {
+						case MODIFICATION_HISTORY_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + culturalNormID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+
+						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
-							final Boolean showOnly = (Boolean)container.get("showOnly");
-							final ResearchStatusDialog researchStatusDialog = (showOnly
-								? ResearchStatusDialog.createShowOnly(parent)
-								: ResearchStatusDialog.createEditOnly(parent));
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
-							researchStatusDialog.setTitle((showOnly? "Show": "Edit") + " research status for " + title + " " + culturalNormID);
+							researchStatusDialog.setTitle("Show research status for " + title + " " + culturalNormID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + culturalNormID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_NEW -> {
+							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
+							final String tableName = editCommand.getIdentifier();
+							final Integer researchStatusID = extractRecordID(container);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_CULTURAL_NORM, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+											EntityManager.NODE_CULTURAL_NORM, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//refresh research status table
+									dialog.reloadResearchStatusTable();
+								});
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("New research status for " + title + " " + parentRecordID);
 							researchStatusDialog.loadData();
 							researchStatusDialog.selectData(researchStatusID);
 

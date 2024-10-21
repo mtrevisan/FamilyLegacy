@@ -163,27 +163,27 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		final RecordListenerInterface modificationLinkListener = new RecordListenerInterface(){
 			@Override
 			public void onRecordSelect(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "noteID", id, "showOnly", true)));
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY_SHOW, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "noteID", id)));
 			}
 
 			@Override
 			public void onRecordEdit(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "noteID", id, "showOnly", false)));
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY_EDIT, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "noteID", id)));
 			}
 		};
 		final RecordListenerInterface researchStatusLinkListener = new RecordListenerInterface(){
 			@Override
 			public void onRecordSelect(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id, "showOnly", true)));
+			EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_SHOW, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id)));
 			}
 
 			@Override
 			public void onRecordEdit(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS, getTableName(),
-					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id, "showOnly", false)));
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_EDIT, getTableName(),
+					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id)));
 			}
 		};
 		historyPanel = HistoryPanel.create()
@@ -512,6 +512,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		selectedRecordLink = null;
 
 		selectActionInner();
+	}
+
+	public void reloadResearchStatusTable(){
+		researchStatusPanel.loadData();
 	}
 
 	@Override

@@ -70,7 +70,7 @@ public class HistoryPanel extends CommonSearchPanel{
 	private static final int TABLE_INDEX_DATE = 2;
 	private static final int TABLE_INDEX_NOTE = 3;
 
-	private static final int TABLE_PREFERRED_WIDTH_DATE = 120;
+	private static final int TABLE_PREFERRED_WIDTH_DATE = 140;
 
 	public static final DateTimeFormatter HUMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss", Locale.US)
 		.withZone(ZoneId.systemDefault());
@@ -152,10 +152,11 @@ public class HistoryPanel extends CommonSearchPanel{
 		int row = 0;
 		for(final Map<String, Object> recordModification : recordModifications){
 			final Integer recordModificationID = extractRecordID(recordModification);
-			final Map<String, Object> containerNote = Repository.findReferencingNodes(EntityManager.NODE_NOTE,
+			final Map<String, Object> containerNote = Repository.findReferencedNodes(
 					EntityManager.NODE_MODIFICATION, recordModificationID,
 					EntityManager.RELATIONSHIP_FOR).stream()
 				.findFirst()
+				.map(Map.Entry::getValue)
 				.orElse(Collections.emptyMap());
 
 			final Integer noteID = extractRecordID(containerNote);
@@ -191,27 +192,42 @@ public class HistoryPanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		final Map<String, Object> personName1 = new HashMap<>();
+		personName1.put("personal_name", "personal name");
+		personName1.put("family_name", "family name");
+		personName1.put("type", "birth name");
+		int personName1ID = Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+
 		final Map<String, Object> modification1 = new HashMap<>();
-modification1.put("reference_table", "person_name");
-modification1.put("reference_id", 1);
 		modification1.put("update_date", EntityManager.now());
-		Repository.upsert(modification1, EntityManager.NODE_MODIFICATION);
+		int modification1ID = Repository.upsert(modification1, EntityManager.NODE_MODIFICATION);
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> modification2 = new HashMap<>();
-modification2.put("reference_table", "person_name");
-modification2.put("reference_id", 1);
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.upsert(modification2, EntityManager.NODE_MODIFICATION);
+		int modification2ID = Repository.upsert(modification2, EntityManager.NODE_MODIFICATION);
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "something to say");
-note1.put("reference_table", "modification");
-note1.put("reference_id", 1);
-		Repository.upsert(note1, EntityManager.NODE_NOTE);
+		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
+			EntityManager.NODE_NOTE, note1ID,
+			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "something more to say");
-note2.put("reference_table", "modification");
-note2.put("reference_id", 2);
-		Repository.upsert(note2, EntityManager.NODE_NOTE);
+		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
+		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification2ID,
+			EntityManager.NODE_NOTE, note2ID,
+			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

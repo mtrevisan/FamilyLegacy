@@ -110,6 +110,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	@Override
 	protected void initComponents(){
 		GUIHelper.bindLabelAutoComplete(superTypeLabel, superTypeComboBox);
+		GUIHelper.bindOnSelectionChange(superTypeComboBox, this::saveData);
 		addMandatoryField(superTypeComboBox);
 		final ActionListener updateCategoryComboBox = evt -> {
 			final String selectedSuperType = (String)superTypeComboBox.getSelectedItem();
@@ -130,9 +131,11 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		updateCategoryComboBox.actionPerformed(null);
 
 		GUIHelper.bindLabelUndo(typeLabel, typeField);
+		GUIHelper.bindOnTextChange(typeField, this::saveData);
 		addMandatoryField(typeField);
 
 		GUIHelper.bindLabelAutoComplete(categoryLabel, categoryComboBox);
+		GUIHelper.bindOnSelectionChange(categoryComboBox, this::saveData);
 	}
 
 	@Override

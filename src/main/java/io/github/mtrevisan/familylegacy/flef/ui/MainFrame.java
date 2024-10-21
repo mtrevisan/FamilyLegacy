@@ -48,6 +48,7 @@ import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -501,13 +502,16 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship7, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();
-		event1.put("type_id", 1);
-		Repository.upsert(event1, EntityManager.NODE_EVENT);
+		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
 
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("type", "adoption");
 		eventType1.put("category", "adoption");
-		Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		int eventType1ID = Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
+			EntityManager.NODE_EVENT_TYPE, eventType1ID,
+			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		//create and display the form

@@ -111,14 +111,18 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 
 
 		GUIHelper.bindLabelUndo(copyrightLabel, copyrightField);
+		GUIHelper.bindOnTextChange(copyrightField, this::saveData);
 
 		GUIHelper.bindLabel(noteLabel, noteTextPreview);
+		GUIHelper.bindOnTextChange(noteTextPreview, this::saveData);
 		noteTextPreview.setTextViewFont(copyrightField.getFont());
 		noteTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);
 
 		GUIHelper.bindLabelUndo(localeLabel, localeField);
+		GUIHelper.bindOnTextChange(localeField, this::saveData);
 
 		GUIHelper.bindLabel(includeMediaPayloadLabel, includeMediaPayloadComboBox);
+		GUIHelper.bindOnSelectionChange(includeMediaPayloadComboBox, this::saveData);
 	}
 
 	@Override

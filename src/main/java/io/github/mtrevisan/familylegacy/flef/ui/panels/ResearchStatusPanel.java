@@ -27,20 +27,25 @@ package io.github.mtrevisan.familylegacy.flef.ui.panels;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
+import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.FilterString;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.CommonSearchPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.SearchAllRecord;
 
+import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.RowSorter;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.WindowConstants;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableColumnModel;
+import javax.swing.table.TableModel;
 import java.awt.BorderLayout;
 import java.awt.Container;
 import java.awt.EventQueue;
@@ -50,6 +55,7 @@ import java.io.Serial;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -75,10 +81,15 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 	private static final int TABLE_PREFERRED_WIDTH_STATUS = 50;
 	private static final int TABLE_PREFERRED_WIDTH_PRIORITY = 52;
-	private static final int TABLE_PREFERRED_WIDTH_DATE = 120;
+	private static final int TABLE_PREFERRED_WIDTH_DATE = 140;
 
 	public static final DateTimeFormatter HUMAN_DATE_FORMATTER = DateTimeFormatter.ofPattern("d MMM yyyy HH:mm:ss", Locale.US)
 		.withZone(ZoneId.systemDefault());
+
+	private JButton newRecordButton;
+	private JButton deleteRecordButton;
+
+	protected volatile boolean selectRecordOnly;
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -97,6 +108,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 	}
 
 
+	//TODO add "new" and "delete"
 	private void initComponents(){
 		//hide ID column
 		final TableColumnModel columnModel = recordTable.getColumnModel();
@@ -106,6 +118,22 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_STATUS, 0, TABLE_PREFERRED_WIDTH_STATUS);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_PRIORITY, 0, TABLE_PREFERRED_WIDTH_PRIORITY);
 		TableHelper.setColumnWidth(recordTable, TABLE_INDEX_CREATION_DATE, 0, TABLE_PREFERRED_WIDTH_DATE);
+	}
+
+	protected void initLayout(){
+		super.initLayout();
+
+
+		newRecordButton = new JButton("New");
+		newRecordButton.addActionListener(evt -> newAction());
+		newRecordButton.setVisible(!selectRecordOnly);
+		deleteRecordButton = new JButton("Delete");
+		deleteRecordButton.setEnabled(false);
+		deleteRecordButton.addActionListener(evt -> deleteAction());
+		deleteRecordButton.setVisible(!selectRecordOnly);
+
+		add(newRecordButton, "newline,sizegroup btn,tag add,split 2,align right,hidemode 3");
+		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,hidemode 3");
 	}
 
 	public final ResearchStatusPanel withLinkListener(final RecordListenerInterface linkListener){
@@ -143,6 +171,60 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		final Comparator<String> dateComparator = GUIHelper.getHumanDateComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
 		return new Comparator<?>[]{numericComparator, null, textComparator, textComparator, numericComparator, dateComparator};
+	}
+
+	protected void selectAction(){
+		super.selectAction();
+
+
+		deleteRecordButton.setEnabled(!selectRecordOnly);
+	}
+
+	private void newAction(){
+		newRecordButton.setEnabled(false);
+
+		final String tableName = getTableName();
+		//create a new record
+		final HashMap<String, Object> newRecord = new HashMap<>();
+		final int nextRecordID = Repository.upsert(newRecord, tableName);
+
+		//add to table
+		final DefaultTableModel model = getRecordTableModel();
+		final int oldSize = model.getRowCount();
+		model.setRowCount(oldSize + 1);
+		model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_ID);
+		//resort rows
+		final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
+		recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
+
+		//select the newly created record
+		final int newRowIndex = recordTable.convertRowIndexToView(oldSize);
+		recordTable.setRowSelectionInterval(newRowIndex, newRowIndex);
+		//make selected row visible
+		recordTable.scrollRectToVisible(recordTable.getCellRect(newRowIndex, 0, true));
+
+		EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_NEW, tableName, newRecord));
+	}
+
+	private void deleteAction(){
+		final int viewRowIndex = recordTable.getSelectedRow();
+		if(viewRowIndex < 0)
+			//no row selected
+			return;
+
+		final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+
+		final DefaultTableModel model = getRecordTableModel();
+		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+
+		newRecordButton.setEnabled(!selectRecordOnly);
+		deleteRecordButton.setEnabled(false);
+
+
+		//remove from database
+		if(Repository.deleteNode(getTableName(), recordID))
+			//remove row from table
+			model.removeRow(modelRowIndex);
 	}
 
 
@@ -202,24 +284,35 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 
 
 		GraphDatabaseManager.clearDatabase();
+
+		final Map<String, Object> personName1 = new HashMap<>();
+		personName1.put("personal_name", "personal name");
+		personName1.put("family_name", "family name");
+		personName1.put("type", "birth name");
+		int personName1ID = Repository.upsert(personName1, EntityManager.NODE_PERSON_NAME);
+
 		final Map<String, Object> researchStatus1 = new HashMap<>();
-researchStatus1.put("reference_table", "person_name");
-researchStatus1.put("reference_id", 1);
 		researchStatus1.put("identifier", "identifier 1");
 		researchStatus1.put("description", "some description");
 		researchStatus1.put("status", "open");
 		researchStatus1.put("priority", 0);
 		researchStatus1.put("creation_date", EntityManager.now());
-		Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
+		int researchStatus1ID = Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
+		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus1ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
-researchStatus2.put("reference_table", "person_name");
-researchStatus2.put("reference_id", 1);
 		researchStatus2.put("identifier", "identifier 2");
 		researchStatus2.put("description", "another description");
 		researchStatus2.put("status", "active");
 		researchStatus2.put("priority", 1);
 		researchStatus2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
-		Repository.upsert(researchStatus2, EntityManager.NODE_RESEARCH_STATUS);
+		int researchStatus2ID = Repository.upsert(researchStatus2, EntityManager.NODE_RESEARCH_STATUS);
+		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus2ID,
+			EntityManager.NODE_PERSON_NAME, personName1ID,
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

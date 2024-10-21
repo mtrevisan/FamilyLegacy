@@ -159,7 +159,7 @@ public final class PhotoCropDialog extends JDialog{
 			else{
 				//load image from payload
 				final ByteArrayInputStream bais = new ByteArrayInputStream(payload);
-         	final BufferedImage image = ImageIO.read(bais);
+				final BufferedImage image = ImageIO.read(bais);
 
 				loadData(image);
 			}
