@@ -354,10 +354,11 @@ public class GraphDatabaseManager{
 	}
 
 
-	public static void upsertRelationship(final String tableNameStart, final String primaryPropertyNameStart, final Object nodeIDStart,
+	public static boolean upsertRelationship(final String tableNameStart, final String primaryPropertyNameStart, final Object nodeIDStart,
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
 			final String relationshipName, final Map<String, Object> record, final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd)
 			throws StoreException{
+		Result result;
 		try(final Transaction tx = getTransaction()){
 			final String query = JavaHelper.textFormat(QUERY_UPSERT_RELATIONSHIP,
 				tableNameStart, primaryPropertyNameStart, nodeIDStart,
@@ -367,10 +368,11 @@ public class GraphDatabaseManager{
 			final Map<String, Object> properties = createRelationshipProperties(record, onDeleteStart, onDeleteEnd);
 			final Map<String, Object> parameters = Map.of("properties", properties);
 
-			tx.execute(query, parameters);
+			result = tx.execute(query, parameters);
 
 			tx.commit();
 		}
+		return (result != null && result.getQueryStatistics().getConstraintsAdded() == 1);
 	}
 
 	private static Map<String, Object> createRelationshipProperties(final Map<String, Object> record, final OnDeleteType onDeleteStart,

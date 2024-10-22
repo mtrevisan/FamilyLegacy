@@ -33,7 +33,7 @@ import java.awt.event.ItemEvent;
 public class MandatoryComboBoxEditor extends BasicComboBoxEditor{
 
 
-	public MandatoryComboBoxEditor(final JComboBox<String> comboBox, final Color mandatoryBackgroundColor,
+	public MandatoryComboBoxEditor(final JComboBox<?> comboBox, final Color mandatoryBackgroundColor,
 			final Color defaultBackgroundColor){
 		comboBox.addItemListener(evt -> {
 			if(evt.getStateChange() == ItemEvent.SELECTED){

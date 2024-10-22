@@ -559,49 +559,111 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 					final Map<String, Object> container = editCommand.getContainer();
 					final int culturalNormID = extractRecordID(container);
 					switch(editCommand.getType()){
-						//TODO
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+								});
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 
-						//TODO
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.create(parent);
-							placeDialog.loadData();
+							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
+									? PlaceDialog.createSelectOnly(parent)
+									: PlaceDialog.create(parent))
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.NODE_PLACE, recordID,
+											EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.NODE_PLACE, recordID,
+											EntityManager.RELATIONSHIP_APPLIES_IN);
+
+									//update UI
+									final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+									dialog.setButtonEnableAndBorder(dialog.placeButton, hasPlace);
+								});
 							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 								EntityManager.RELATIONSHIP_APPLIES_IN);
+							placeDialog.loadData();
 							if(placeNode != null && EntityManager.NODE_PLACE.equals(placeNode.getKey()))
 								placeDialog.selectData(extractRecordID(placeNode.getValue()));
 
 							placeDialog.showDialog();
 						}
 
-						//TODO
 						case HISTORIC_DATE_START -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
-							historicDateDialog.loadData();
-							final Map.Entry<String, Map<String, Object>> dateStartNode = Repository.findReferencedNode(
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateStartButton)
+									? HistoricDateDialog.createSelectOnly(parent)
+									: HistoricDateDialog.create(parent))
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasDateStart = Repository.hasDateStart(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+									dialog.setButtonEnableAndBorder(dialog.dateStartButton, hasDateStart);
+								});
+							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 								EntityManager.RELATIONSHIP_STARTED_ON);
-							if(dateStartNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateStartNode.getKey()))
-								historicDateDialog.selectData(extractRecordID(dateStartNode.getValue()));
+							historicDateDialog.loadData();
+							if(dateEndNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateEndNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateEndNode.getValue()));
 
 							historicDateDialog.showDialog();
 						}
-						//TODO
 						case HISTORIC_DATE_END -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
-							historicDateDialog.loadData();
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateEndButton)
+									? HistoricDateDialog.createSelectOnly(parent)
+									: HistoricDateDialog.create(parent))
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, recordID,
+											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasDateEnd = Repository.hasDateEnd(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
+									dialog.setButtonEnableAndBorder(dialog.dateEndButton, hasDateEnd);
+								});
 							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 								EntityManager.RELATIONSHIP_ENDED_ON);
+							historicDateDialog.loadData();
 							if(dateEndNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateEndNode.getKey()))
 								historicDateDialog.selectData(extractRecordID(dateEndNode.getValue()));
 

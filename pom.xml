@@ -59,7 +59,7 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
 		<maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
-		<maven-help-plugin.version>3.5.0</maven-help-plugin.version>
+		<maven-help-plugin.version>3.5.1</maven-help-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-shade-plugin -->
 		<maven-shade-plugin.version>3.6.0</maven-shade-plugin.version>
 
@@ -111,8 +111,8 @@
 <!--		<fasterxml.jackson-databind.version>2.18.0</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>2.9.0</jayway.json-path.version>-->
-		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
-<!--		<github.jackson-coreutils.version>1.8</github.jackson-coreutils.version>-->
+		<!-- https://mvnrepository.com/artifact/com.github.java-json-tools/jackson-coreutils -->
+<!--		<github.jackson-coreutils.version>2.0</github.jackson-coreutils.version>-->
 		<!-- https://mvnrepository.com/artifact/com.googlecode.json-simple/json-simple -->
 		<googlecode.json-simple.version>1.1.1</googlecode.json-simple.version>
 
@@ -129,7 +129,7 @@
 
 		<!-- JUnit -->
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
-		<junit.junit-jupiter-engine.version>5.11.2</junit.junit-jupiter-engine.version>
+		<junit.junit-jupiter-engine.version>5.11.3</junit.junit-jupiter-engine.version>
 	</properties>
 
 	<profiles>
@@ -456,7 +456,7 @@
 <!--			<version>${fasterxml.jackson-databind.version}</version>-->
 <!--		</dependency>-->
 <!--		<dependency>-->
-<!--			<groupId>com.github.fge</groupId>-->
+<!--			<groupId>com.github.java-json-tools</groupId>-->
 <!--			<artifactId>jackson-coreutils</artifactId>-->
 <!--			<version>${github.jackson-coreutils.version}</version>-->
 <!--		</dependency>-->

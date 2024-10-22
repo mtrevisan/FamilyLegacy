@@ -222,7 +222,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		mandatoryFields.add(fields);
 	}
 
-	protected static void addMandatoryField(final JComboBox<String> comboBox){
+	protected static void addMandatoryField(final JComboBox<?> comboBox){
 		comboBox.setEditor(new MandatoryComboBoxEditor(comboBox, MANDATORY_BACKGROUND_COLOR, DEFAULT_BACKGROUND_COLOR));
 	}
 
@@ -295,7 +295,9 @@ public abstract class CommonRecordDialog extends JDialog{
 	protected abstract boolean validateData();
 
 	protected boolean validData(final Object field){
-		return (selectedRecord == null || field instanceof Integer || field instanceof final String s && !s.isEmpty());
+		return (selectedRecord == null
+			|| field instanceof Integer
+			|| field instanceof final String s && !s.isEmpty());
 	}
 
 	protected void okAction(final boolean askForModificationNote){

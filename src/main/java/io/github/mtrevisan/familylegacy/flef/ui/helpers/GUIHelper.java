@@ -159,11 +159,16 @@ public final class GUIHelper{
 		return (text != null && !text.isEmpty()? text: null);
 	}
 
-	public static String getTextTrimmed(final JComboBox<String> comboBox){
-		String text = (String)comboBox.getSelectedItem();
-		if(text != null)
-			text = text.trim();
-		return (text != null && !text.isEmpty()? text: null);
+	public static String getTextTrimmed(final JComboBox<?> comboBox){
+		final Object selectedItem = comboBox.getSelectedItem();
+		String text = null;
+		if(selectedItem != null){
+			final String selectedItemText = selectedItem.toString();
+			text = selectedItemText.trim();
+			if(text.isEmpty())
+				text = null;
+		}
+		return text;
 	}
 
 
@@ -386,26 +391,28 @@ public final class GUIHelper{
 			doc.addDocumentListener(new DocumentListener(){
 				@Override
 				public void insertUpdate(final DocumentEvent de){
-					final boolean valid = checkValidData(validDataInterface, components);
-					updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
+					update();
 				}
 
 				@Override
 				public void removeUpdate(final DocumentEvent de){
-					final boolean valid = checkValidData(validDataInterface, components);
-					updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
+					update();
 				}
 
 				@Override
 				public void changedUpdate(final DocumentEvent de){
+					update();
+				}
+
+				private void update(){
 					final boolean valid = checkValidData(validDataInterface, components);
 					updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
 				}
 			});
 		}
 
-		final boolean valid = checkValidData(validDataInterface, components);
-		updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
+//		final boolean valid = checkValidData(validDataInterface, components);
+//		updateBackground(valid, mandatoryBackgroundColor, defaultBackgroundColor, components);
 	}
 
 	public static boolean checkValidData(final ValidDataListenerInterface validDataInterface, final JTextComponent... components){

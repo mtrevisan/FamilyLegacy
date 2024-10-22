@@ -134,6 +134,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		dialog.showRecordOnly = true;
 		dialog.showRecordHistory = false;
 		dialog.initialize();
+
+		//force mandatory background on `noteTextPreview`
+		dialog.noteTextPreview.setText(StringUtils.EMPTY, StringUtils.SPACE, null);
+
 		return dialog;
 	}
 

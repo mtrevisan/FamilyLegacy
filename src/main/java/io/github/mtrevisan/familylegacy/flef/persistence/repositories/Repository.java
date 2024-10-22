@@ -714,10 +714,10 @@ public class Repository{
 			case EntityManager.NODE_EVENT -> EntityManager.RELATIONSHIP_HAPPENED_ON;
 			default -> null;
 		};
-		final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
+		final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
 			tableName, recordID,
 			relationshipName);
-		return (placeNode != null);
+		return (dateNode != null);
 	}
 
 	public static Map<String, Object> getDepiction(final String tableName, final Integer recordID){

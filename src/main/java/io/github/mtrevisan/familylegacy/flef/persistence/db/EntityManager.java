@@ -290,6 +290,10 @@ public class EntityManager{
 		record.put("role", role);
 	}
 
+	public static void insertRecordSuperType(final Map<String, Object> record, final String superType){
+		record.put("super_type", superType);
+	}
+
 	public static void insertRecordType(final Map<String, Object> record, final String type){
 		record.put("type", type);
 	}
