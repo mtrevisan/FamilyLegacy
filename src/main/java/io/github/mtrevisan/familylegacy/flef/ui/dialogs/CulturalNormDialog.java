@@ -435,7 +435,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			insertRecordCredibility(selectedRecordLink, linkCredibility);
 			Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
 				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_FOR, selectedRecordLink, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+				EntityManager.RELATIONSHIP_FOR, selectedRecordLink,
+				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 
 		//update table:
@@ -506,7 +507,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.NODE_PLACE, place1ID,
-			EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> date1 = new HashMap<>();
 		date1.put("date", "18 OCT 2000");
@@ -516,25 +518,28 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		int date2ID = Repository.upsert(date2, EntityManager.NODE_HISTORIC_DATE);
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
-			EntityManager.RELATIONSHIP_STARTED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_STARTED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.NODE_HISTORIC_DATE, date2ID,
-			EntityManager.RELATIONSHIP_ENDED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_ENDED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
 		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
 			EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -697,8 +702,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-								? MediaDialog.createSelectOnlyForMedia(parent)
-								: MediaDialog.createForMedia(parent))
+									? MediaDialog.createSelectOnlyForMedia(parent)
+									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
 								.withOnCloseGracefully((record, recordID) -> {

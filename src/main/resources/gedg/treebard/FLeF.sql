@@ -254,7 +254,7 @@ CREATE TABLE EVENT_TYPE
 CREATE TABLE EVENT_SUPER_TYPE
 (
  "ID"       bigint PRIMARY KEY,
- SUPER_TYPE text NOT NULL UNIQUE	-- (must be unique, ex. "Historical events", "Personal origins", "Physical description", "Citizenship and migration", "Real estate assets", "Education", "Work and Career", "Legal Events and Documents", "Health problems and habits", "Marriage and family life", "Military", "Confinement", "Transfers and travel", "Accolades", "Death and burial", "Others", "Religious events")
+ SUPER_TYPE text NOT NULL UNIQUE	-- (must be unique, ex. "Historical events", "Personal origins", "Physical description", "Citizenship & Migration", "Real estate assets", "Education", "Work & Career", "Legal events & Documents", "Health problems & Habits", "Marriage & Family life", "Military", "Confinement", "Transfer & Travel", "Accolades", "Death & Burial", "Others", "Religious events")
 );
 
 

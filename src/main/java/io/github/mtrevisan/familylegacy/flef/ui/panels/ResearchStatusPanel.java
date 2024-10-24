@@ -300,8 +300,8 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		int researchStatus1ID = Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS);
 		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus1ID,
 			EntityManager.NODE_PERSON_NAME, personName1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
 		researchStatus2.put("identifier", "identifier 2");
 		researchStatus2.put("description", "another description");
@@ -311,8 +311,8 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		int researchStatus2ID = Repository.upsert(researchStatus2, EntityManager.NODE_RESEARCH_STATUS);
 		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus2ID,
 			EntityManager.NODE_PERSON_NAME, personName1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final RecordListenerInterface linkListener = new RecordListenerInterface(){
 			@Override

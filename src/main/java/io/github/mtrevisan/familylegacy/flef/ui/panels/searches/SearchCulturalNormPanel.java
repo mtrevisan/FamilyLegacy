@@ -184,7 +184,8 @@ public class SearchCulturalNormPanel extends CommonSearchPanel{
 		int culturalNorm1ID = Repository.upsert(culturalNorm1, EntityManager.NODE_CULTURAL_NORM);
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.NODE_PLACE, place1ID,
-			EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "place name 1");

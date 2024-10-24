@@ -226,7 +226,8 @@ public final class MediaDialog extends CommonListDialog{
 			if(selectedRecord != null)
 				Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
 					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+					EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 			else if(recordID != null)
 				Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
 					filterReferenceTable, filterReferenceID,
@@ -748,7 +749,8 @@ public final class MediaDialog extends CommonListDialog{
 		int media1ID = Repository.upsert(media1, EntityManager.NODE_MEDIA);
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
 			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> media2 = new HashMap<>();
 		media2.put("identifier", "https://www.google.com/");
 		media2.put("title", "title 2");
@@ -757,7 +759,8 @@ public final class MediaDialog extends CommonListDialog{
 		int media2ID = Repository.upsert(media2, EntityManager.NODE_MEDIA);
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media2ID,
 			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> media3 = new HashMap<>();
 		media3.put("identifier", "/images/addPhoto.boy.jpg");
 		media3.put("title", "title 3");
@@ -766,13 +769,15 @@ public final class MediaDialog extends CommonListDialog{
 		int media3ID = Repository.upsert(media3, EntityManager.NODE_MEDIA);
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media3ID,
 			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> mediaRelationship1 = new HashMap<>();
 		mediaRelationship1.put("photo_crop", "0 0 10 50");
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, 1,
 			EntityManager.NODE_MEDIA, media1ID,
-			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, mediaRelationship1,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> person1 = new HashMap<>();
 		person1.put("photo_crop", "10 10 70 70");
@@ -783,24 +788,27 @@ public final class MediaDialog extends CommonListDialog{
 		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
 			EntityManager.NODE_PERSON, person1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 1");
 		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
 			EntityManager.NODE_MEDIA, media2ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person1ID,
 			EntityManager.NODE_MEDIA, media3ID,
-			EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_MEDIA, media1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -847,7 +855,8 @@ public final class MediaDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_MEDIA, mediaID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 

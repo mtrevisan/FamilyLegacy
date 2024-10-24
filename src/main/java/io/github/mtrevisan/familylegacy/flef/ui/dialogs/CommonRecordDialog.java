@@ -341,7 +341,8 @@ public abstract class CommonRecordDialog extends JDialog{
 			final int newModificationID = Repository.upsert(newModification, EntityManager.NODE_MODIFICATION);
 			Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, newModificationID,
 				recordTableName, selectedRecordID,
-				EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+				EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 		else{
 			if(askForModificationNote){

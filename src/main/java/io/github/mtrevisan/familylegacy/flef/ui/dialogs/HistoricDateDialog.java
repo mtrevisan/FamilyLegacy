@@ -374,7 +374,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 		int calendar2ID = Repository.upsert(calendar2, EntityManager.NODE_CALENDAR);
 		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
 			EntityManager.NODE_CALENDAR, calendar2ID,
-			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("type", "venetan");
 		Repository.upsert(calendar3, EntityManager.NODE_CALENDAR);
@@ -384,21 +385,23 @@ public final class HistoricDateDialog extends CommonListDialog{
 		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
 			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note2 = new HashMap<>();
 		note2.put("note", "note 2");
 		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
 			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -436,7 +439,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
 											EntityManager.NODE_CALENDAR, recordID,
-											EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							calendarDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
@@ -455,7 +459,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_HISTORIC_DATE, historicDateID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 

@@ -412,8 +412,8 @@ public final class AssertionDialog extends CommonListDialog{
 		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> citation1 = new HashMap<>();
 		citation1.put("location", "here");
@@ -423,8 +423,8 @@ public final class AssertionDialog extends CommonListDialog{
 		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
 		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
 			EntityManager.NODE_SOURCE, source1ID,
-			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
 		assertion1.put("role", "father");
@@ -433,8 +433,8 @@ public final class AssertionDialog extends CommonListDialog{
 		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
 		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
 			EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
@@ -444,7 +444,8 @@ public final class AssertionDialog extends CommonListDialog{
 		int note2ID = Repository.upsert(note2, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note2ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> note3 = new HashMap<>();
 		note3.put("note", "something to say");
 		int note3ID = Repository.upsert(note3, EntityManager.NODE_NOTE);
@@ -455,15 +456,16 @@ public final class AssertionDialog extends CommonListDialog{
 		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
 			EntityManager.NODE_PERSON, person1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> modification1 = new HashMap<>();
 		modification1.put("creation_date", EntityManager.now());
@@ -471,24 +473,24 @@ public final class AssertionDialog extends CommonListDialog{
 		int modification1ID = Repository.upsert(modification1, EntityManager.NODE_MODIFICATION, EntityManager.NODE_APPLICATION);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note3ID,
 			EntityManager.NODE_MODIFICATION, modification1ID,
-			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> modification2 = new HashMap<>();
 		modification2.put("creation_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		modification2.put("update_date", DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(ZonedDateTime.now().minusDays(1)));
 		int modification2ID = Repository.upsert(modification2, EntityManager.NODE_MODIFICATION, EntityManager.NODE_APPLICATION);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note4ID,
 			EntityManager.NODE_MODIFICATION, modification2ID,
-			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification2ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> culturalNorm1 = new HashMap<>();
 		culturalNorm1.put("identifier", "rule 1 id");
@@ -502,7 +504,8 @@ public final class AssertionDialog extends CommonListDialog{
 		culturalNormRelationship1.put("credibility", "probable");
 		Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNorm1ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_SUPPORTED_BY, culturalNormRelationship1,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> researchStatus1 = new HashMap<>();
 		researchStatus1.put("identifier", "identifier 1");
@@ -513,8 +516,8 @@ public final class AssertionDialog extends CommonListDialog{
 		int researchStatus1ID = Repository.upsert(researchStatus1, EntityManager.NODE_RESEARCH_STATUS, EntityManager.NODE_APPLICATION);
 		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus1ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> researchStatus2 = new HashMap<>();
 		researchStatus2.put("identifier", "identifier 2");
 		researchStatus2.put("description", "another description");
@@ -524,8 +527,8 @@ public final class AssertionDialog extends CommonListDialog{
 		int researchStatus2ID = Repository.upsert(researchStatus2, EntityManager.NODE_RESEARCH_STATUS, EntityManager.NODE_APPLICATION);
 		Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, researchStatus2ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {

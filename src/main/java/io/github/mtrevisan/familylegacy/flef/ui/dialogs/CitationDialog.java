@@ -427,8 +427,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> citation1 = new HashMap<>();
 		citation1.put("location", "here");
@@ -438,8 +438,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
 		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
 			EntityManager.NODE_SOURCE, source1ID,
-			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
 		assertion1.put("role", "father");
@@ -448,8 +448,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
 		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
 			EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "text 1");
@@ -482,15 +482,16 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
 			EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.RELATIONSHIP_FOR, restriction1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, restriction1,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {

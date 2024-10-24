@@ -137,7 +137,7 @@ public class SearchEventPanel extends CommonSearchPanel{
 			final Integer recordID = extractRecordID(record);
 			final Map.Entry<String, Map<String, Object>> typeNode = Repository.findReferencedNode(
 				EntityManager.NODE_EVENT, recordID,
-				EntityManager.RELATIONSHIP_OF_TYPE);
+				EntityManager.RELATIONSHIP_OF);
 			final String type = (typeNode != null? extractRecordType(typeNode.getValue()): null);
 			final String superType = (typeNode != null? extractRecordSuperType(extractRecordID(typeNode.getValue())): null);
 			final String description = extractRecordDescription(record);
@@ -207,7 +207,8 @@ public class SearchEventPanel extends CommonSearchPanel{
 		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
 			EntityManager.NODE_CALENDAR, calendar1ID,
-			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		int person1ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
@@ -216,13 +217,16 @@ public class SearchEventPanel extends CommonSearchPanel{
 		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
 			EntityManager.NODE_PLACE, place1ID,
-			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
-			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
 			EntityManager.NODE_PERSON, person1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> eventType1 = new HashMap<>();
 		eventType1.put("type", "birth");
@@ -230,8 +234,8 @@ public class SearchEventPanel extends CommonSearchPanel{
 		int eventType1ID = Repository.upsert(eventType1, EntityManager.NODE_EVENT_TYPE);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
 			EntityManager.NODE_EVENT_TYPE, eventType1ID,
-			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> eventSuperType1 = new HashMap<>();
 		eventSuperType1.put("super_type", "Historical events");
@@ -241,13 +245,13 @@ public class SearchEventPanel extends CommonSearchPanel{
 		int eventSuperType2ID = Repository.upsert(eventSuperType2, EntityManager.NODE_EVENT_SUPER_TYPE);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT_TYPE, eventType1ID,
 			EntityManager.NODE_EVENT_SUPER_TYPE, eventSuperType2ID,
-			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> eventSuperType3 = new HashMap<>();
 		eventSuperType3.put("super_type", "Physical description");
 		Repository.upsert(eventSuperType3, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType4 = new HashMap<>();
-		eventSuperType4.put("super_type", "Citizenship and migration");
+		eventSuperType4.put("super_type", "Citizenship & Migration");
 		Repository.upsert(eventSuperType4, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType5 = new HashMap<>();
 		eventSuperType5.put("super_type", "Real estate assets");
@@ -256,16 +260,16 @@ public class SearchEventPanel extends CommonSearchPanel{
 		eventSuperType6.put("super_type", "Education");
 		Repository.upsert(eventSuperType6, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType7 = new HashMap<>();
-		eventSuperType7.put("super_type", "Work and Career");
+		eventSuperType7.put("super_type", "Work & Career");
 		Repository.upsert(eventSuperType7, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType8 = new HashMap<>();
-		eventSuperType8.put("super_type", "Legal Events and Documents");
+		eventSuperType8.put("super_type", "Legal events & Documents");
 		Repository.upsert(eventSuperType8, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType9 = new HashMap<>();
-		eventSuperType9.put("super_type", "Health problems and habits");
+		eventSuperType9.put("super_type", "Health problems & Habits");
 		Repository.upsert(eventSuperType9, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType10 = new HashMap<>();
-		eventSuperType10.put("super_type", "Marriage and family life");
+		eventSuperType10.put("super_type", "Marriage & Family life");
 		Repository.upsert(eventSuperType10, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType11 = new HashMap<>();
 		eventSuperType11.put("super_type", "Military");
@@ -274,13 +278,13 @@ public class SearchEventPanel extends CommonSearchPanel{
 		eventSuperType12.put("super_type", "Confinement");
 		Repository.upsert(eventSuperType12, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType13 = new HashMap<>();
-		eventSuperType13.put("super_type", "Transfers and travel");
+		eventSuperType13.put("super_type", "Transfer & Travel");
 		Repository.upsert(eventSuperType13, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType14 = new HashMap<>();
 		eventSuperType14.put("super_type", "Accolades");
 		Repository.upsert(eventSuperType14, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType15 = new HashMap<>();
-		eventSuperType15.put("super_type", "Death and burial");
+		eventSuperType15.put("super_type", "Death & Burial");
 		Repository.upsert(eventSuperType15, EntityManager.NODE_EVENT_SUPER_TYPE);
 		final Map<String, Object> eventSuperType16 = new HashMap<>();
 		eventSuperType16.put("super_type", "Others");

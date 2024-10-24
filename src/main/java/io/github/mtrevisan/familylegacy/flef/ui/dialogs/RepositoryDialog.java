@@ -374,13 +374,15 @@ public final class RepositoryDialog extends CommonListDialog{
 		int media1ID = Repository.upsert(media1, EntityManager.NODE_MEDIA);
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
-			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> mediaRelationship1 = new HashMap<>();
 		mediaRelationship1.put("photo_crop", "0 0 10 20");
 		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_FOR, mediaRelationship1, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, mediaRelationship1,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place ident");
@@ -400,7 +402,8 @@ public final class RepositoryDialog extends CommonListDialog{
 		int place2ID = Repository.upsert(place2, EntityManager.NODE_PLACE);
 		Repository.upsertRelationship(EntityManager.NODE_PLACE, place2ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_LOCATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_LOCATED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_PLACE, place2ID,
 			EntityManager.NODE_MEDIA, media1ID,
 			EntityManager.RELATIONSHIP_DEPICTED_BY, media1,
@@ -411,7 +414,8 @@ public final class RepositoryDialog extends CommonListDialog{
 		int person1ID = Repository.upsert(person1, EntityManager.NODE_PERSON);
 		Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repository1ID,
 			EntityManager.NODE_PERSON, person1ID,
-			EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "place name 1");
@@ -465,14 +469,16 @@ public final class RepositoryDialog extends CommonListDialog{
 		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
 			EntityManager.NODE_PLACE, place1ID,
-			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
-			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> source2 = new HashMap<>();
 		source2.put("identifier", "source 2");
 		source2.put("type", "newspaper");
@@ -481,22 +487,24 @@ public final class RepositoryDialog extends CommonListDialog{
 		int source2ID = Repository.upsert(source2, EntityManager.NODE_SOURCE);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
 			EntityManager.NODE_REPOSITORY, repository2ID,
-			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
 			EntityManager.NODE_PLACE, place2ID,
-			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
-			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -569,7 +577,8 @@ public final class RepositoryDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_REPOSITORY, repositoryID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
@@ -585,7 +594,8 @@ public final class RepositoryDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
 											EntityManager.NODE_REPOSITORY, repositoryID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 

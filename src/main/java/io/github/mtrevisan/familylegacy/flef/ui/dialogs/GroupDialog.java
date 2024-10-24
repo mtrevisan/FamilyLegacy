@@ -434,7 +434,8 @@ public final class GroupDialog extends CommonListDialog{
 			insertRecordCredibility(selectedRecordLink, linkCredibility);
 			Repository.upsertRelationship(EntityManager.NODE_GROUP, extractRecordID(selectedRecord),
 				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_FOR, selectedRecordLink, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+				EntityManager.RELATIONSHIP_FOR, selectedRecordLink,
+				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 
 		insertRecordType(selectedRecord, type);
@@ -683,16 +684,16 @@ public final class GroupDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_GROUP, group1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> modification1 = new HashMap<>();
 		modification1.put("creation_date", EntityManager.now());
 		int modification1ID = Repository.upsert(modification1, EntityManager.NODE_MODIFICATION);
 		Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, modification1ID,
 			EntityManager.NODE_GROUP, group2ID,
-			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -724,6 +725,7 @@ public final class GroupDialog extends CommonListDialog{
 					final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_GROUP, groupID);
 					final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 					switch(editCommand.getType()){
+						//FIXME
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
 									? MediaDialog.createEditOnlyForPhoto(parent)
@@ -748,6 +750,8 @@ public final class GroupDialog extends CommonListDialog{
 
 							photoDialog.showDialog();
 						}
+
+//						//FIXME
 //						case PHOTO_CROP -> {
 //							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
 //								? PhotoCropDialog.createSelectOnly(parent)
@@ -774,6 +778,8 @@ public final class GroupDialog extends CommonListDialog{
 //							}
 //							catch(final IOException ignored){}
 //						}
+
+						//FIXME
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
@@ -783,12 +789,15 @@ public final class GroupDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
 											EntityManager.NODE_GROUP, groupID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
+						//FIXME
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
 								.withReference(EntityManager.NODE_GROUP, groupID)
@@ -796,12 +805,15 @@ public final class GroupDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
 											EntityManager.NODE_CULTURAL_NORM, recordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, record, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, record,
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();
 						}
+
+						//FIXME
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
 									? MediaDialog.createSelectOnlyForMedia(parent)
@@ -812,12 +824,15 @@ public final class GroupDialog extends CommonListDialog{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
 											EntityManager.NODE_GROUP, groupID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
+
+						//FIXME
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
@@ -827,6 +842,8 @@ public final class GroupDialog extends CommonListDialog{
 
 							assertionDialog.showDialog();
 						}
+
+						//FIXME
 						case EVENT -> {
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
@@ -836,15 +853,33 @@ public final class GroupDialog extends CommonListDialog{
 
 							eventDialog.showDialog();
 						}
+
+						//FIXME
 						case GROUP -> {
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
 									? GroupDialog.createSelectOnly(parent)
 									: GroupDialog.create(parent))
-								.withReference(EntityManager.NODE_GROUP, groupID);
+								.withReference(EntityManager.NODE_GROUP, groupID)
+								.withOnCloseGracefully((record, recordID) -> {
+									if(record != null)
+										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
+											EntityManager.NODE_GROUP, recordID,
+											EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									else
+										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
+											EntityManager.NODE_GROUP, recordID,
+											EntityManager.RELATIONSHIP_BELONGS_TO);
+
+									//update UI
+									final boolean hasGroups = Repository.hasGroups(EntityManager.NODE_GROUP, groupID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasGroups);
+								});
 							groupDialog.loadData();
 
 							groupDialog.showDialog();
 						}
+
 						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
@@ -867,6 +902,7 @@ public final class GroupDialog extends CommonListDialog{
 
 							changeNoteDialog.showDialog();
 						}
+
 						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");

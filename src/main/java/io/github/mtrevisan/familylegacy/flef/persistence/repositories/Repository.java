@@ -225,6 +225,23 @@ public class Repository{
 	}
 
 	public static boolean deleteRelationship(final String tableNameStart, final Integer recordIDStart,
+			final String tableNameEnd,
+			final String relationshipName){
+		try{
+			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, null,
+				relationshipName, null, null);
+
+			return true;
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);
+
+			return false;
+		}
+	}
+
+	public static boolean deleteRelationship(final String tableNameStart, final Integer recordIDStart,
 			final String tableNameEnd, final Integer recordIDEnd,
 			final String relationshipName){
 		try{
@@ -511,7 +528,7 @@ public class Repository{
 	 */
 	public static boolean hasEvents(final String tableName, final Integer recordID){
 		final String relationshipName = switch(tableName){
-			case EntityManager.NODE_EVENT_TYPE -> EntityManager.RELATIONSHIP_OF_TYPE;
+			case EntityManager.NODE_EVENT_TYPE -> EntityManager.RELATIONSHIP_OF;
 			case EntityManager.NODE_PLACE -> EntityManager.RELATIONSHIP_HAPPENED_IN;
 			case EntityManager.NODE_HISTORIC_DATE -> EntityManager.RELATIONSHIP_HAPPENED_ON;
 			default -> EntityManager.RELATIONSHIP_FOR;
@@ -530,9 +547,9 @@ public class Repository{
 	 * @return	Whether the record has groups.
 	 */
 	public static boolean hasGroups(final String tableName, final Integer recordID){
-		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_GROUP,
+		final List<Map<String, Object>> result = findReferencedNodes(EntityManager.NODE_GROUP,
 			tableName, recordID,
-			EntityManager.RELATIONSHIP_OF);
+			EntityManager.RELATIONSHIP_BELONGS_TO);
 		return !result.isEmpty();
 	}
 

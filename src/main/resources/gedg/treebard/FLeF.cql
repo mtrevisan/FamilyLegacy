@@ -176,7 +176,7 @@ CREATE (g)<-[:BELONGS_TO {role: $role, certainty: $certainty, credibility: $cred
 CREATE (e:Event {id: $id, description: $description});
 CREATE CONSTRAINT ON (e:Event) ASSERT e.id IS UNIQUE;
 MATCH (e:Event {id: $eventID}), (et:EventType {id: $eventTypeID})
-CREATE (e)-[:OF_TYPE {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(et);
+CREATE (e)-[:OF {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(et);
 MATCH (e:Event {id: $eventID}), (p:Place {id: $placeID})
 CREATE (e)-[:HAPPENED_IN {onDelete: "RELATIONSHIP_ONLY"}]->(p);
 MATCH (e:Event {id: $eventID}), (hd:HistoricDate {id: $historicDateID})

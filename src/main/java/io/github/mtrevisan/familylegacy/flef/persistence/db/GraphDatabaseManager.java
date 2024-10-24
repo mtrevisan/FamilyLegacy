@@ -397,10 +397,10 @@ public class GraphDatabaseManager{
 //					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
 				return false;
 			final Node nodeEnd = (nodeIDEnd != null? tx.findNode(Label.label(tableNameEnd), primaryPropertyNameEnd, nodeIDEnd): null);
-			if(nodeEnd == null)
+//			if(nodeEnd == null)
 //				throw StoreException.create("End node with {} {} not found in {}", primaryPropertyNameEnd.toUpperCase(Locale.ROOT),
 //					nodeIDEnd, tableNameEnd.toUpperCase(Locale.ROOT));
-				return false;
+//				return false;
 
 			final ResourceIterable<Relationship> relationships = (relationshipName != null
 				? nodeStart.getRelationships(RelationshipType.withName(relationshipName))
@@ -409,13 +409,14 @@ public class GraphDatabaseManager{
 				.hasNext();
 			if(propertyName != null){
 				for(final Relationship relationship : relationships)
-					if(relationship.getProperty(propertyName).equals(propertyValue) && relationship.getEndNode().equals(nodeEnd))
+					if(relationship.getProperty(propertyName).equals(propertyValue)
+							&& (nodeEnd == null || relationship.getEndNode().equals(nodeEnd)))
 						relationship.delete();
 
 			}
 			else
 				for(final Relationship relationship : relationships)
-					if(relationship.getEndNode().equals(nodeEnd))
+					if(nodeEnd == null || relationship.getEndNode().equals(nodeEnd))
 						relationship.delete();
 
 			tx.commit();

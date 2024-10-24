@@ -86,13 +86,13 @@ public final class EventDialog extends CommonListDialog{
 
 	private static final int TABLE_INDEX_TYPE = 2;
 
-	//NOTE: em dash `—`
-	private static final String MENU_SEPARATOR = "\u2014";
-	private static final String MENU_SEPARATOR_START = MENU_SEPARATOR + StringUtils.SPACE;
-	private static final String MENU_SEPARATOR_END = StringUtils.SPACE + MENU_SEPARATOR;
-
 
 	private static final class TypeItem{
+		//NOTE: em dash `—`
+		private static final String MENU_SEPARATOR = "\u2014";
+		private static final String MENU_SEPARATOR_START = MENU_SEPARATOR + StringUtils.SPACE;
+		private static final String MENU_SEPARATOR_END = StringUtils.SPACE + MENU_SEPARATOR;
+
 		private final String label;
 		private final int id;
 
@@ -102,7 +102,7 @@ public final class EventDialog extends CommonListDialog{
 		}
 
 		private TypeItem(final String label){
-			this.label = MENU_SEPARATOR_START + label + MENU_SEPARATOR_END;
+			this.label = composeTitle(label);
 			this.id = -1;
 		}
 
@@ -110,11 +110,20 @@ public final class EventDialog extends CommonListDialog{
 			return id;
 		}
 
+		private static String composeTitle(final String label){
+			return MENU_SEPARATOR_START + label + MENU_SEPARATOR_END;
+		}
+
+		private static boolean isTitle(final String text){
+			return (text.startsWith(MENU_SEPARATOR_START) && text.endsWith(MENU_SEPARATOR_END));
+		}
+
 		@Override
 		public String toString(){
 			return label;
 		}
 	}
+
 
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final JComboBox<TypeItem> typeComboBox = new JComboBox<>(extractDefaultItems());
@@ -350,7 +359,7 @@ public final class EventDialog extends CommonListDialog{
 	private String extractRecordType(final Integer eventID){
 		final Map.Entry<String, Map<String, Object>> eventTypeNode = Repository.findReferencedNode(
 			EntityManager.NODE_EVENT, eventID,
-			EntityManager.RELATIONSHIP_OF_TYPE);
+			EntityManager.RELATIONSHIP_OF);
 		if(eventTypeNode == null || !EntityManager.NODE_EVENT_TYPE.equals(eventTypeNode.getKey()))
 			return null;
 
@@ -395,10 +404,14 @@ public final class EventDialog extends CommonListDialog{
 		final Integer typeID = (selectedItem != null? selectedItem.getID(): null);
 		final String description = GUIHelper.getTextTrimmed(descriptionField);
 
-		Repository.upsertRelationship(EntityManager.NODE_EVENT, extractRecordID(selectedRecord),
+		final Integer selectedRecordID = extractRecordID(selectedRecord);
+		Repository.deleteRelationship(EntityManager.NODE_EVENT, selectedRecordID,
+			EntityManager.NODE_EVENT_TYPE,
+			EntityManager.RELATIONSHIP_OF);
+		Repository.upsertRelationship(EntityManager.NODE_EVENT, selectedRecordID,
 			EntityManager.NODE_EVENT_TYPE, typeID,
-			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		insertRecordDescription(selectedRecord, description);
 
 		return true;
@@ -439,7 +452,7 @@ public final class EventDialog extends CommonListDialog{
 			"travel");
 		addSuperTypeAndTypes("Accolades",
 			"honor", "award", "membership");
-		addSuperTypeAndTypes("Death & burial",
+		addSuperTypeAndTypes("Death & Burial",
 			"death", "execution", "autopsy", "funeral", "cremation", "scattering of ashes", "inurnment", "burial", "exhumation",
 			"reburial");
 		addSuperTypeAndTypes("Others",
@@ -542,15 +555,15 @@ public final class EventDialog extends CommonListDialog{
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("description", "a birth");
 		int event1ID = Repository.upsert(event1, EntityManager.NODE_EVENT);
-		final Map<String, Object> eventType = new HashMap<>();
-		eventType.put("id", 0);
-		insertRecordType(eventType, "birth");
-		insertRecordCategory(eventType, "birth");
-		final int eventTypeID = Repository.upsert(eventType, EntityManager.NODE_EVENT_TYPE);
+		final Map<String, Object> eventType0 = new HashMap<>();
+		eventType0.put("id", 0);
+		insertRecordType(eventType0, "birth");
+		insertRecordCategory(eventType0, "birth");
+		final int eventType0ID = Repository.upsert(eventType0, EntityManager.NODE_EVENT_TYPE);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
-			EntityManager.NODE_EVENT_TYPE, eventTypeID,
-			EntityManager.RELATIONSHIP_OF_TYPE, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.NODE_EVENT_TYPE, eventType0ID,
+			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place 1");
@@ -559,29 +572,32 @@ public final class EventDialog extends CommonListDialog{
 		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
 			EntityManager.NODE_PLACE, place1ID,
-			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> date1 = new HashMap<>();
 		date1.put("date", "18 OCT 2000");
 		int date1ID = Repository.upsert(date1, EntityManager.NODE_HISTORIC_DATE);
 		Repository.upsertRelationship(EntityManager.NODE_EVENT, event1ID,
 			EntityManager.NODE_HISTORIC_DATE, date1ID,
-			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> note1 = new HashMap<>();
 		note1.put("note", "note 1");
 		int note1ID = Repository.upsert(note1, EntityManager.NODE_NOTE);
 		Repository.upsertRelationship(EntityManager.NODE_NOTE, note1ID,
 			EntityManager.NODE_EVENT, event1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> restriction1 = new HashMap<>();
 		restriction1.put("restriction", "confidential");
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_EVENT, event1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
@@ -606,8 +622,8 @@ public final class EventDialog extends CommonListDialog{
 					switch(editCommand.getType()){
 						case PLACE -> {
 							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
-								? PlaceDialog.createSelectOnly(parent)
-								: PlaceDialog.create(parent))
+									? PlaceDialog.createSelectOnly(parent)
+									: PlaceDialog.create(parent))
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_EVENT, eventID,
@@ -635,8 +651,8 @@ public final class EventDialog extends CommonListDialog{
 
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateButton)
-								? HistoricDateDialog.createSelectOnly(parent)
-								: HistoricDateDialog.create(parent))
+									? HistoricDateDialog.createSelectOnly(parent)
+									: HistoricDateDialog.create(parent))
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_EVENT, eventID,
@@ -664,8 +680,8 @@ public final class EventDialog extends CommonListDialog{
 
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
-								? NoteDialog.createSelectOnly(parent)
-								: NoteDialog.create(parent))
+									? NoteDialog.createSelectOnly(parent)
+									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_EVENT, eventID)
 								.withOnCloseGracefully((record, recordID) -> {
 									if(record != null)
@@ -689,8 +705,8 @@ public final class EventDialog extends CommonListDialog{
 
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
-								? MediaDialog.createSelectOnlyForMedia(parent)
-								: MediaDialog.createForMedia(parent))
+									? MediaDialog.createSelectOnlyForMedia(parent)
+									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_EVENT, eventID)
 								.withOnCloseGracefully((record, recordID) -> {
@@ -713,30 +729,25 @@ public final class EventDialog extends CommonListDialog{
 							mediaDialog.showDialog();
 						}
 
-						//TODO
 						case EVENT_TYPE -> {
 							//if type is not present in the list, show a dialog to insert it within its appropriate super-type
 							final EventTypeDialog eventSuperTypeDialog = EventTypeDialog.create(parent)
 								.withOnCloseGracefully((record, recordID) -> {
-									final TypeItem newType = new TypeItem(EntityManager.extractRecordType(record), recordID);
+									final Integer newEventID = extractRecordID(record);
 									final Map<String, Object> eventSuperType = Repository.findReferencedNode(
-											EntityManager.NODE_EVENT_TYPE, eventID,
+											EntityManager.NODE_EVENT_TYPE, newEventID,
 											EntityManager.RELATIONSHIP_OF)
 										.getValue();
-									final String superTypeMenuItemText = MENU_SEPARATOR_START
-										+ extractRecordSuperType(eventSuperType)
-										+ MENU_SEPARATOR_END;
+									final String superTypeLabel = TypeItem.composeTitle(extractRecordSuperType(eventSuperType));
 
 									//add `newType` at the end of the `superTypeMenuItemText` section
-									for(int i = 0, length = dialog.typeComboBox.getItemCount(); i < length; i ++)
-										if(superTypeMenuItemText.equals(dialog.typeComboBox.getItemAt(i).toString())){
+									final String label = EntityManager.extractRecordType(record);
+									final TypeItem newType = new TypeItem(label, newEventID);
+									//NOTE: skip first null element
+									for(int i = 1, length = dialog.typeComboBox.getItemCount(); i < length; i ++)
+										if(superTypeLabel.equals(dialog.typeComboBox.getItemAt(i).label)){
 											//skip to end of section
-											while(++ i < length){
-												final String text = dialog.typeComboBox.getItemAt(i)
-													.toString();
-												if(text.startsWith(MENU_SEPARATOR_START) && text.endsWith(MENU_SEPARATOR_END))
-													break;
-											}
+											while(++ i < length && !TypeItem.isTitle(dialog.typeComboBox.getItemAt(i).label)){}
 
 											//add new menu item
 											dialog.typeComboBox.insertItemAt(newType, i);

@@ -330,7 +330,8 @@ public class Main{
 									if(record != null)
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
 											tableName, containerID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 								});
 							mediaDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> mediaNode = Repository.findReferencedNode(

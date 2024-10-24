@@ -170,7 +170,8 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		int source1ID = Repository.upsert(source1, EntityManager.NODE_SOURCE);
 		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source1ID,
 			EntityManager.NODE_REPOSITORY, repository1ID,
-			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
+			EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
 			GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> citation1 = new HashMap<>();
@@ -181,8 +182,8 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
 		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
 			EntityManager.NODE_SOURCE, source1ID,
-			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> assertion1 = new HashMap<>();
 		assertion1.put("role", "father");
@@ -191,8 +192,8 @@ public class SearchCitationPanel extends CommonSearchPanel{
 		int assertion1ID = Repository.upsert(assertion1, EntityManager.NODE_ASSERTION);
 		Repository.upsertRelationship(EntityManager.NODE_ASSERTION, assertion1ID,
 			EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(), GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY,
-			GraphDatabaseManager.OnDeleteType.CASCADE);
+			EntityManager.RELATIONSHIP_INFERRED_FROM, Collections.emptyMap(),
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> localizedText1 = new HashMap<>();
 		localizedText1.put("text", "text 1");
