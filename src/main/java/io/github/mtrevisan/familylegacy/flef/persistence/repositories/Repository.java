@@ -547,7 +547,7 @@ public class Repository{
 	 * @return	Whether the record has groups.
 	 */
 	public static boolean hasGroups(final String tableName, final Integer recordID){
-		final List<Map<String, Object>> result = findReferencedNodes(EntityManager.NODE_GROUP,
+		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_GROUP,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_BELONGS_TO);
 		return !result.isEmpty();

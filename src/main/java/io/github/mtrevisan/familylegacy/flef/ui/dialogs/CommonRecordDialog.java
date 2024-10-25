@@ -162,10 +162,6 @@ public abstract class CommonRecordDialog extends JDialog{
 
 	protected abstract String getTableName();
 
-	protected String getJunctionTableName(){
-		return null;
-	}
-
 	protected abstract void initComponents();
 
 	protected void initDialog(){
@@ -313,10 +309,9 @@ public abstract class CommonRecordDialog extends JDialog{
 		Repository.upsert(selectedRecord, tableName);
 		//save `selectRecordLink` into `store`
 		if(selectedRecordLink != null)
-			Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
-				//TODO node_restriction?
-				EntityManager.NODE_RESTRICTION, selectedRecordID,
-				getJunctionTableName(), new HashMap<>(selectedRecordLink),
+			Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, selectedRecordID,
+				getTableName(), extractRecordID(selectedRecord),
+				EntityManager.RELATIONSHIP_FOR, new HashMap<>(selectedRecordLink),
 				GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		LOGGER.debug("Saved data {}", selectedRecord);

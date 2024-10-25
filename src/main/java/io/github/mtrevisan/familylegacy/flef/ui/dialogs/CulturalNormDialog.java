@@ -181,11 +181,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	}
 
 	@Override
-	protected String getJunctionTableName(){
-		return EntityManager.RELATIONSHIP_SUPPORTED_BY;
-	}
-
-	@Override
 	protected String[] getTableColumnNames(){
 		return new String[]{"ID", "Filter", "Identifier"};
 	}

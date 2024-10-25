@@ -158,14 +158,14 @@ public final class GroupDialog extends CommonListDialog{
 	public GroupDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
 		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
 			if(selectedRecord != null)
-				Repository.upsertRelationship(EntityManager.NODE_GROUP, recordID,
-					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_OF, new HashMap<>(selectedRecordLink),
+				Repository.upsertRelationship(filterReferenceTable, filterReferenceID,
+					EntityManager.NODE_GROUP, recordID,
+					EntityManager.RELATIONSHIP_BELONGS_TO, new HashMap<>(selectedRecordLink),
 					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 			else if(selectedRecordID != null)
-				Repository.deleteRelationship(EntityManager.NODE_GROUP, recordID,
-					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_OF);
+				Repository.deleteRelationship(filterReferenceTable, filterReferenceID,
+					EntityManager.NODE_GROUP, recordID,
+					EntityManager.RELATIONSHIP_BELONGS_TO);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -189,11 +189,6 @@ public final class GroupDialog extends CommonListDialog{
 	@Override
 	protected String getTableName(){
 		return EntityManager.NODE_GROUP;
-	}
-
-	@Override
-	protected String getJunctionTableName(){
-		return EntityManager.RELATIONSHIP_OF;
 	}
 
 	@Override
@@ -308,7 +303,7 @@ public final class GroupDialog extends CommonListDialog{
 			? Repository.findAll(EntityManager.NODE_GROUP)
 			: Repository.findReferencingNodes(EntityManager.NODE_GROUP,
 				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_OF));
+				EntityManager.RELATIONSHIP_BELONGS_TO));
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -368,9 +363,9 @@ public final class GroupDialog extends CommonListDialog{
 		linkCredibilityComboBox.setSelectedItem(null);
 		if(filterReferenceTable != null){
 			final List<Map<String, Object>> recordGroupRelationships = Repository.findRelationships(
-				EntityManager.NODE_GROUP, groupID,
 				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_OF);
+				EntityManager.NODE_GROUP, groupID,
+				EntityManager.RELATIONSHIP_BELONGS_TO);
 			if(recordGroupRelationships.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 
@@ -448,7 +443,7 @@ public final class GroupDialog extends CommonListDialog{
 		final String mainGroupType = extractRecordType(groupRecord);
 		final List<Map.Entry<String, Map<String, Object>>> storeGroupRelationships = Repository.findReferencedNodes(
 			EntityManager.NODE_GROUP, groupID,
-			EntityManager.RELATIONSHIP_OF);
+			EntityManager.RELATIONSHIP_BELONGS_TO);
 		String identifierCategory = StringUtils.EMPTY;
 		final StringJoiner identifier = new StringJoiner(" + ");
 		for(final Map.Entry<String, Map<String, Object>> storeGroupRelationship : storeGroupRelationships){
@@ -529,7 +524,7 @@ public final class GroupDialog extends CommonListDialog{
 		//extract the names of all the persons of all the groups
 		final List<Map.Entry<String, Map<String, Object>>> storeRecordsInGroup = Repository.findReferencedNodes(
 			EntityManager.NODE_GROUP, groupID,
-			EntityManager.RELATIONSHIP_OF);
+			EntityManager.RELATIONSHIP_BELONGS_TO);
 		for(final Map.Entry<String, Map<String, Object>> storeRecordInGroup : storeRecordsInGroup){
 			final Integer referenceIDInGroup = extractRecordID(storeRecordInGroup.getValue());
 
@@ -576,25 +571,25 @@ public final class GroupDialog extends CommonListDialog{
 		place1.put("locale", "en-US");
 		int place1ID = Repository.upsert(place1, EntityManager.NODE_PLACE);
 
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, group1ID,
-			EntityManager.NODE_PERSON, person11ID,
-			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(),
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, person11ID,
+			EntityManager.NODE_GROUP, group1ID,
+			EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, group1ID,
-			EntityManager.NODE_PERSON, person12ID,
-			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(),
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, person12ID,
+			EntityManager.NODE_GROUP, group1ID,
+			EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship2 = new HashMap<>();
 		groupRelationship2.put("role", "partner");
 		groupRelationship2.put("certainty", "certain");
 		groupRelationship2.put("credibility", "direct and primary evidence used, or by dominance of the evidence");
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, group2ID,
-			EntityManager.NODE_GROUP, group1ID,
-			EntityManager.RELATIONSHIP_OF, groupRelationship2,
+		Repository.upsertRelationship(EntityManager.NODE_GROUP, group1ID,
+			EntityManager.NODE_GROUP, group2ID,
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		Repository.upsertRelationship(EntityManager.NODE_GROUP, group3ID,
-			EntityManager.NODE_PLACE, place1ID,
-			EntityManager.RELATIONSHIP_OF, Collections.emptyMap(),
+		Repository.upsertRelationship(EntityManager.NODE_PLACE, place1ID,
+			EntityManager.NODE_GROUP, group3ID,
+			EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> personName1 = new HashMap<>();
@@ -700,13 +695,11 @@ public final class GroupDialog extends CommonListDialog{
 			final JFrame parent = new JFrame();
 			final GroupDialog dialog = create(parent);
 			dialog.loadData();
-
 //			final GroupDialog dialog = createShowOnly(parent)
 //				.withReference(EntityManager.NODE_GROUP, 2);
 //			dialog.loadData(2);
-
 //			final GroupDialog dialog = createRecordOnly(parent)
-//				.withReference(EntityManager.TABLE_NAME_GROUP, 2);
+//				.withReference(EntityManager.NODE_GROUP, 2);
 //			dialog.loadData();
 //			if(!dialog.selectData(extractRecordID(group2)))
 //				dialog.showNewRecord();
