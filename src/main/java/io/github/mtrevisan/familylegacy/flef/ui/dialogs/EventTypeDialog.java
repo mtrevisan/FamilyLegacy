@@ -52,6 +52,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -129,7 +130,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	}
 
 
-	public EventTypeDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public EventTypeDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;

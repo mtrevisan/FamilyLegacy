@@ -491,15 +491,15 @@ public class SearchGroupPanel extends CommonSearchPanel{
 		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
 			EntityManager.NODE_CALENDAR, calendar1ID,
-			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
-			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> historicDate2 = new HashMap<>();
 		historicDate2.put("date", "1 JAN 1800");
 		int date2ID = Repository.upsert(historicDate2, EntityManager.NODE_HISTORIC_DATE);
 		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date2ID,
 			EntityManager.NODE_CALENDAR, calendar1ID,
-			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
-			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> event1 = new HashMap<>();
 		event1.put("description", "a birth");

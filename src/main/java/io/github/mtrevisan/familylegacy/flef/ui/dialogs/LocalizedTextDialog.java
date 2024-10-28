@@ -52,6 +52,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -162,18 +163,21 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 	}
 
 
-	public LocalizedTextDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
-		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
+	public LocalizedTextDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+		BiConsumer<Collection<Map<String, Object>>, List<Integer>> innerOnCloseGracefully = (upsertedRecords, deletedIDs) -> {
 			if(selectedRecord != null){
-				final Map<String, Object> relationship = new HashMap<>(1);
-				insertRecordType(relationship, filterReferenceType);
-				Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
-					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, relationship,
-					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+					final Map<String, Object> relationship = new HashMap<>(1);
+					insertRecordType(relationship, filterReferenceType);
+					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
+					Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
+						filterReferenceTable, filterReferenceID,
+						EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, relationship,
+						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+				}
 			}
-			else if(recordID != null)
-				Repository.deleteRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
+			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+				Repository.deleteRelationship(EntityManager.NODE_LOCALIZED_TEXT, deletedIDs.get(i),
 					filterReferenceTable, filterReferenceID,
 					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
 		};
@@ -481,6 +485,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 							changeNoteDialog.showDialog();
 						}
+
 						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
@@ -508,14 +513,16 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_LOCALIZED_TEXT, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_LOCALIZED_TEXT, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

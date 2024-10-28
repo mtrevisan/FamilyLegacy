@@ -62,6 +62,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -178,7 +179,7 @@ public final class EventDialog extends CommonListDialog{
 	}
 
 
-	public EventDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public EventDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -596,7 +597,7 @@ public final class EventDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_EVENT, event1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
@@ -624,15 +625,17 @@ public final class EventDialog extends CommonListDialog{
 							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
 									? PlaceDialog.createSelectOnly(parent)
 									: PlaceDialog.create(parent))
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PLACE);
 										Repository.upsertRelationship(EntityManager.NODE_EVENT, eventID,
-											EntityManager.NODE_PLACE, recordID,
+											EntityManager.NODE_PLACE, upsertedRecordID,
 											EntityManager.RELATIONSHIP_HAPPENED_IN, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_EVENT, eventID,
-											EntityManager.NODE_PLACE, recordID,
+											EntityManager.NODE_PLACE, deletedIDs.get(i),
 											EntityManager.RELATIONSHIP_HAPPENED_IN);
 
 									//update UI
@@ -653,15 +656,17 @@ public final class EventDialog extends CommonListDialog{
 							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateButton)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_HISTORIC_DATE);
 										Repository.upsertRelationship(EntityManager.NODE_EVENT, eventID,
-											EntityManager.NODE_HISTORIC_DATE, recordID,
+											EntityManager.NODE_HISTORIC_DATE, upsertedRecordID,
 											EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_EVENT, eventID,
-											EntityManager.NODE_HISTORIC_DATE, recordID,
+											EntityManager.NODE_HISTORIC_DATE, deletedIDs.get(i),
 											EntityManager.RELATIONSHIP_HAPPENED_ON);
 
 									//update UI
@@ -683,14 +688,16 @@ public final class EventDialog extends CommonListDialog{
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_EVENT, eventID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_EVENT, eventID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_NOTE, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
 											EntityManager.NODE_EVENT, eventID,
 											EntityManager.RELATIONSHIP_FOR);
 
@@ -709,14 +716,16 @@ public final class EventDialog extends CommonListDialog{
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_EVENT, eventID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_EVENT, eventID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 											EntityManager.NODE_EVENT, eventID,
 											EntityManager.RELATIONSHIP_FOR);
 
@@ -732,29 +741,31 @@ public final class EventDialog extends CommonListDialog{
 						case EVENT_TYPE -> {
 							//if type is not present in the list, show a dialog to insert it within its appropriate super-type
 							final EventTypeDialog eventSuperTypeDialog = EventTypeDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									final Integer newEventID = extractRecordID(record);
-									final Map<String, Object> eventSuperType = Repository.findReferencedNode(
-											EntityManager.NODE_EVENT_TYPE, newEventID,
-											EntityManager.RELATIONSHIP_OF)
-										.getValue();
-									final String superTypeLabel = TypeItem.composeTitle(extractRecordSuperType(eventSuperType));
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
+										final Map<String, Object> eventSuperType = Repository.findReferencedNode(
+												EntityManager.NODE_EVENT_TYPE, upsertedRecordID,
+												EntityManager.RELATIONSHIP_OF)
+											.getValue();
+										final String superTypeLabel = TypeItem.composeTitle(extractRecordSuperType(eventSuperType));
 
-									//add `newType` at the end of the `superTypeMenuItemText` section
-									final String label = EntityManager.extractRecordType(record);
-									final TypeItem newType = new TypeItem(label, newEventID);
-									//NOTE: skip first null element
-									for(int i = 1, length = dialog.typeComboBox.getItemCount(); i < length; i ++)
-										if(superTypeLabel.equals(dialog.typeComboBox.getItemAt(i).label)){
-											//skip to end of section
-											while(++ i < length && !TypeItem.isTitle(dialog.typeComboBox.getItemAt(i).label)){}
+										//add `newType` at the end of the `superTypeMenuItemText` section
+										final String label = EntityManager.extractRecordType(upsertedRecord);
+										final TypeItem newType = new TypeItem(label, upsertedRecordID);
+										//NOTE: skip first null element
+										for(int j = 1, size = dialog.typeComboBox.getItemCount(); j < size; j ++)
+											if(superTypeLabel.equals(dialog.typeComboBox.getItemAt(j).label)){
+												//skip to end of section
+												while(++ j < size && !TypeItem.isTitle(dialog.typeComboBox.getItemAt(j).label)){}
 
-											//add new menu item
-											dialog.typeComboBox.insertItemAt(newType, i);
-											break;
-										}
+												//add new menu item
+												dialog.typeComboBox.insertItemAt(newType, j);
+												break;
+											}
 
-									dialog.typeComboBox.setSelectedItem(newType);
+										dialog.typeComboBox.setSelectedItem(newType);
+									}
 								});
 							eventSuperTypeDialog.showNewRecord();
 
@@ -811,14 +822,16 @@ public final class EventDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_EVENT, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_EVENT, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

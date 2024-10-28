@@ -60,7 +60,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 public class SearchSourcePanel extends CommonSearchPanel{
 
 	@Serial
-	private static final long serialVersionUID = -4869611094243229616L;
+	private static final long serialVersionUID = 8191933995012831111L;
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 	private static final int TABLE_INDEX_TYPE = 3;
@@ -195,8 +195,8 @@ public class SearchSourcePanel extends CommonSearchPanel{
 		int date1ID = Repository.upsert(historicDate1, EntityManager.NODE_HISTORIC_DATE);
 		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
 			EntityManager.NODE_CALENDAR, calendar1ID,
-			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
-			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> place1 = new HashMap<>();
 		place1.put("identifier", "place");

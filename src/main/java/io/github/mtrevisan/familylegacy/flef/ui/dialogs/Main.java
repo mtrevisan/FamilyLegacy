@@ -32,21 +32,17 @@ import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 import java.awt.EventQueue;
-import java.awt.Rectangle;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.StringJoiner;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordPhotoCrop;
 
 
 public class Main{
@@ -105,12 +101,14 @@ public class Main{
 						case SOURCE -> {
 							final SourceDialog sourceDialog = SourceDialog.create(parent)
 								.withFilterOnRepositoryID(containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_SOURCE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_SOURCE);
+										Repository.upsertRelationship(EntityManager.NODE_SOURCE, upsertedRecordID,
 											EntityManager.NODE_REPOSITORY, containerID,
 											EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
 								});
 							sourceDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> sourceNode = Repository.findReferencedNode(
@@ -126,12 +124,14 @@ public class Main{
 						case CITATION -> {
 							final CitationDialog citationDialog = CitationDialog.create(parent)
 								.withFilterOnSourceID(containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_CITATION, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CITATION);
+										Repository.upsertRelationship(EntityManager.NODE_CITATION, upsertedRecordID,
 											EntityManager.NODE_SOURCE, containerID,
 											EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
 								});
 							citationDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> citationNode = Repository.findReferencedNode(
@@ -199,12 +199,14 @@ public class Main{
 						//from: historic date
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CALENDAR);
 										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, containerID,
-											EntityManager.NODE_CALENDAR, recordID,
-											EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
+											EntityManager.NODE_CALENDAR, upsertedRecordID,
+											EntityManager.RELATIONSHIP_EXPRESSED_IN, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
 								});
 							calendarDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
@@ -221,8 +223,9 @@ public class Main{
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PLACE);
 										final String relationshipName = switch(tableName){
 											case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
 											case EntityManager.NODE_SOURCE -> EntityManager.RELATIONSHIP_CREATED_IN;
@@ -231,7 +234,7 @@ public class Main{
 											default -> null;
 										};
 										Repository.upsertRelationship(tableName, containerID,
-											EntityManager.NODE_PLACE, recordID,
+											EntityManager.NODE_PLACE, upsertedRecordID,
 											relationshipName, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
@@ -259,12 +262,14 @@ public class Main{
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(parent)
 								.withReference(tableName, containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											tableName, containerID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							noteDialog.loadData();
 
@@ -276,12 +281,14 @@ public class Main{
 						case LOCALIZED_EXTRACT -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
 								.withReference(EntityManager.NODE_CITATION, containerID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
+										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
 											EntityManager.NODE_CITATION, containerID,
 											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
 								});
 							localizedTextDialog.loadData();
 
@@ -292,12 +299,14 @@ public class Main{
 						case LOCALIZED_PERSON_NAME -> {
 							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.create(parent)
 								.withReference(containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
+										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, upsertedRecordID,
 											EntityManager.NODE_PERSON, containerID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
 								});
 							localizedTextDialog.loadData();
 
@@ -308,12 +317,14 @@ public class Main{
 						case LOCALIZED_PLACE_NAME -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
 								.withReference(tableName, containerID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
+										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
 											EntityManager.NODE_PLACE, containerID,
 											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
 								});
 							localizedTextDialog.loadData();
 
@@ -326,12 +337,14 @@ public class Main{
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 											tableName, containerID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							mediaDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> mediaNode = Repository.findReferencedNode(
@@ -348,12 +361,14 @@ public class Main{
 							final MediaDialog photoDialog = MediaDialog.createForPhoto(parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(tableName, containerID,
-											EntityManager.NODE_MEDIA, recordID,
+											EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							photoDialog.loadData();
 							final Map<String, Object> photoRecord = Repository.getDepiction(tableName, containerID);
@@ -371,18 +386,19 @@ public class Main{
 
 						//from: person, group, media, place
 						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(parent);
-							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
-								final Rectangle crop = photoCropDialog.getCrop();
-								if(crop != null){
-									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-									sj.add(Integer.toString(crop.x))
-										.add(Integer.toString(crop.y))
-										.add(Integer.toString(crop.width))
-										.add(Integer.toString(crop.height));
-									insertRecordPhotoCrop(container, sj.toString());
-								}
-							});
+							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(parent)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									//FIXME
+//									final Rectangle crop = photoCropDialog.getCrop();
+//									if(crop != null){
+//										final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+//										sj.add(Integer.toString(crop.x))
+//											.add(Integer.toString(crop.y))
+//											.add(Integer.toString(crop.width))
+//											.add(Integer.toString(crop.height));
+//										insertRecordPhotoCrop(container, sj.toString());
+//									}
+								});
 							try{
 								if(containerID != null){
 									final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencingNode(
@@ -404,12 +420,14 @@ public class Main{
 						//from: repository
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
 										Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, containerID,
-											EntityManager.NODE_PERSON, recordID,
+											EntityManager.NODE_PERSON, upsertedRecordID,
 											EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							personDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencedNode(
@@ -425,12 +443,14 @@ public class Main{
 						case PERSON_NAME -> {
 							final PersonNameDialog personNameDialog = PersonNameDialog.create(parent)
 								.withReference(containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
+										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, upsertedRecordID,
 											EntityManager.NODE_PERSON, containerID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
 
 									//update table identifier
 									dialog.loadData();
@@ -470,12 +490,14 @@ public class Main{
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
 								.withReference(EntityManager.NODE_PERSON_NAME, containerID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 											tableName, containerID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							culturalNormDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> culturalNormNode = Repository.findReferencedNode(

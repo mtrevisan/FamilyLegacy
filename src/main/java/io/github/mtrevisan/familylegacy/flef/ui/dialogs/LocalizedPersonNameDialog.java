@@ -51,6 +51,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -78,7 +79,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 public final class LocalizedPersonNameDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
-	private static final long serialVersionUID = 6171448434725755800L;
+	private static final long serialVersionUID = -8401795521242414471L;
 
 	private static final int TABLE_INDEX_TEXT = 2;
 
@@ -128,7 +129,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	}
 
 
-	public LocalizedPersonNameDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public LocalizedPersonNameDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -423,6 +424,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 							changeNoteDialog.showDialog();
 						}
+
 						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
@@ -450,14 +452,16 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_ASSERTION, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_ASSERTION, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

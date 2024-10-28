@@ -50,6 +50,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -107,7 +108,7 @@ public final class CalendarDialog extends CommonListDialog{
 	}
 
 
-	public CalendarDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public CalendarDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -332,15 +333,17 @@ public final class CalendarDialog extends CommonListDialog{
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
 								.withReference(EntityManager.NODE_CALENDAR, calendarID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
 										Repository.upsertRelationship(EntityManager.NODE_CALENDAR, calendarID,
-											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_CALENDAR, calendarID,
-											EntityManager.NODE_ASSERTION, recordID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
@@ -357,14 +360,16 @@ public final class CalendarDialog extends CommonListDialog{
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_CALENDAR, calendarID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_CALENDAR, calendarID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_NOTE, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
 											EntityManager.NODE_CALENDAR, calendarID,
 											EntityManager.RELATIONSHIP_FOR);
 
@@ -382,14 +387,16 @@ public final class CalendarDialog extends CommonListDialog{
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_CALENDAR, calendarID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_EVENT, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
+										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
 											EntityManager.NODE_CALENDAR, calendarID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_EVENT, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
 											EntityManager.NODE_CALENDAR, calendarID,
 											EntityManager.RELATIONSHIP_FOR);
 
@@ -452,14 +459,16 @@ public final class CalendarDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_CALENDAR, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_CALENDAR, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

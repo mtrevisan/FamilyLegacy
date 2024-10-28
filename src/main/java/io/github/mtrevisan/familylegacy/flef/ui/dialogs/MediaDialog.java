@@ -147,15 +147,12 @@ public final class MediaDialog extends CommonListDialog{
 
 	public static MediaDialog createForMedia(final Frame parent){
 		final MediaDialog dialog = new MediaDialog(parent);
-		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
-			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
 
 	public static MediaDialog createForPhoto(final Frame parent){
 		final MediaDialog dialog = new MediaDialog(parent);
-		dialog.selectRecordOnly = true;
 		dialog.restrictToPhoto = true;
 		dialog.mediaType = EntityManager.MEDIA_TYPE_PHOTO;
 		dialog.setNewRecordDefault(newRecord -> {
@@ -163,8 +160,6 @@ public final class MediaDialog extends CommonListDialog{
 
 			dialog.typeComboBox.setEnabled(false);
 		});
-		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
-			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -179,12 +174,21 @@ public final class MediaDialog extends CommonListDialog{
 		return dialog;
 	}
 
+	public static MediaDialog createSelectOnlyForPhoto(final Frame parent){
+		final MediaDialog dialog = new MediaDialog(parent);
+		dialog.restrictToPhoto = true;
+		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static MediaDialog createEditOnlyForPhoto(final Frame parent){
 		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.showRecordOnly = true;
-		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
-			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.restrictToPhoto = true;
 		dialog.mediaType = EntityManager.MEDIA_TYPE_PHOTO;
 		dialog.setNewRecordDefault(newRecord -> {
@@ -192,6 +196,8 @@ public final class MediaDialog extends CommonListDialog{
 
 			dialog.typeComboBox.setEnabled(false);
 		});
+		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
+			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -221,15 +227,18 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 
-	public MediaDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
-		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
+	public MediaDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+		BiConsumer<Collection<Map<String, Object>>, List<Integer>> innerOnCloseGracefully = (upsertedRecords, deletedIDs) -> {
 			if(selectedRecord != null)
-				Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
-					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
-					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-			else if(recordID != null)
-				Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
+				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+					Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
+						filterReferenceTable, filterReferenceID,
+						EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+				}
+			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+				Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 					filterReferenceTable, filterReferenceID,
 					EntityManager.RELATIONSHIP_FOR);
 		};
@@ -295,8 +304,8 @@ public final class MediaDialog extends CommonListDialog{
 		GUIHelper.bindLabelUndo(fileLabel, fileField);
 		GUIHelper.bindOnTextChange(fileField, () -> {
 			String identifier = GUIHelper.getTextTrimmed(fileField);
-			if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
-				identifier = basePath + identifier;
+			if(FileHelper.isRelativeURI(identifier))
+				identifier = FileHelper.getTargetPath(basePath, identifier);
 			enablePhotoRelatedButtons(identifier);
 
 			final Integer mediaID = extractRecordID(selectedRecord);
@@ -316,7 +325,7 @@ public final class MediaDialog extends CommonListDialog{
 			fileChooser.setFileFilter(filter);
 			String identifier = extractRecordIdentifier(selectedRecord);
 			if(identifier != null){
-				if(identifier.startsWith("../") || identifier.startsWith("..\\") || identifier.charAt(0) == '/' || identifier.charAt(0) == '\\')
+				if(FileHelper.isRelativeURI(identifier))
 					identifier = FileHelper.getTargetPath(basePath, identifier);
 				final File file = new File(identifier);
 				fileChooser.setCurrentDirectory(file.getParentFile());
@@ -348,8 +357,8 @@ public final class MediaDialog extends CommonListDialog{
 			File file = null;
 			try{
 				String identifier = GUIHelper.getTextTrimmed(fileField);
-				if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
-					identifier = basePath + identifier;
+				if(FileHelper.isRelativeURI(identifier))
+					identifier = FileHelper.getTargetPath(basePath, identifier);
 
 				file = FileHelper.loadFile(identifier);
 				if(file.isFile())
@@ -366,8 +375,8 @@ public final class MediaDialog extends CommonListDialog{
 			String identifier = GUIHelper.getTextTrimmed(fileField);
 			File file = null;
 			try{
-				if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
-					identifier = basePath + identifier;
+				if(FileHelper.isRelativeURI(identifier))
+					identifier = FileHelper.getTargetPath(basePath, identifier);
 
 				file = FileHelper.loadFile(identifier);
 				if(file != null)
@@ -482,17 +491,13 @@ public final class MediaDialog extends CommonListDialog{
 					EntityManager.RELATIONSHIP_FOR).stream()
 				.map(EntityManager::extractRecordID)
 				.collect(Collectors.toSet());
+			filteredMedia.addAll(Repository.findReferencedNodes(EntityManager.NODE_MEDIA,
+					filterReferenceTable, filterReferenceID,
+					EntityManager.RELATIONSHIP_DEPICTED_BY).stream()
+				.map(EntityManager::extractRecordID)
+				.toList());
 			records.removeIf(record -> !filteredMedia.contains(extractRecordID(record)));
 		}
-		if(restrictToPhoto)
-			records.removeIf(record -> {
-				String identifier = extractRecordIdentifier(record);
-				if(identifier != null && (identifier.startsWith("../") || identifier.startsWith("..\\") || identifier.charAt(0) == '/'
-						|| identifier.charAt(0) == '\\'))
-					identifier = FileHelper.getTargetPath(basePath, identifier);
-				final File file = FileHelper.loadFile(identifier);
-				return (file != null && (!file.exists() || !FileHelper.isPhoto(file)));
-			});
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -577,8 +582,8 @@ public final class MediaDialog extends CommonListDialog{
 
 	//NOTE working node-relationship extraction
 	private void photoCropButtonEnabledBorder(String identifier, final Integer mediaID){
-		if(identifier != null && (identifier.charAt(0) == '/' || identifier.charAt(0) == '\\'))
-			identifier = basePath + identifier;
+		if(FileHelper.isRelativeURI(identifier))
+			identifier = FileHelper.getTargetPath(basePath, identifier);
 		final File file = FileHelper.loadFile(identifier);
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
@@ -606,8 +611,8 @@ public final class MediaDialog extends CommonListDialog{
 
 		boolean enable = false;
 
-		if(identifier.charAt(0) == '/' || identifier.charAt(0) == '\\')
-			identifier = basePath + identifier;
+		if(FileHelper.isRelativeURI(identifier))
+			identifier = FileHelper.getTargetPath(basePath, identifier);
 		boolean fileExists = true;
 		if(isValidURL(identifier))
 			openLinkButton.setEnabled(true);
@@ -656,7 +661,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected boolean validateData(){
-		final String identifier = GUIHelper.getTextTrimmed(fileField);
+		String identifier = GUIHelper.getTextTrimmed(fileField);
 		if(!validData(identifier)){
 			JOptionPane.showMessageDialog(getParent(), "Identifier field is required", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -664,6 +669,14 @@ public final class MediaDialog extends CommonListDialog{
 
 			return false;
 		}
+		if(restrictToPhoto && identifier != null){
+			if(FileHelper.isRelativeURI(identifier))
+				identifier = FileHelper.getTargetPath(basePath, identifier);
+			final File file = FileHelper.loadFile(identifier);
+			if(!FileHelper.isPhoto(file))
+				return false;
+		}
+
 		return true;
 	}
 
@@ -697,8 +710,12 @@ public final class MediaDialog extends CommonListDialog{
 				}
 		}
 
-
-		insertRecordIdentifier(selectedRecord, FileHelper.getRelativePath(basePath, identifier));
+		String ident = identifier;
+		try{
+			ident = FileHelper.getRelativePath(basePath, identifier);
+		}
+		catch(final Exception ignored){}
+		insertRecordIdentifier(selectedRecord, ident);
 		insertRecordTitle(selectedRecord, title);
 		insertRecordPayload(selectedRecord, payload);
 		insertRecordType(selectedRecord, type);
@@ -708,8 +725,8 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 	private byte[] extractPayload(String mediaPath){
-		if(mediaPath != null && (mediaPath.charAt(0) == '/' || mediaPath.charAt(0) == '\\'))
-			mediaPath = basePath + mediaPath;
+		if(FileHelper.isRelativeURI(mediaPath))
+			mediaPath = FileHelper.getTargetPath(basePath, mediaPath);
 		final File file = FileHelper.loadFile(mediaPath);
 		byte[] payload = null;
 		if(file != null && file.isFile()){
@@ -807,16 +824,16 @@ public final class MediaDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_MEDIA, media1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
 		EventQueue.invokeLater(() -> {
 			final JFrame parent = new JFrame();
-			final MediaDialog dialog = createEditOnly(parent)
-				.withBasePath(FileHelper.documentsDirectory());
-//			final MediaDialog dialog = createForMedia(parent)
+//			final MediaDialog dialog = createEditOnly(parent)
 //				.withBasePath(FileHelper.documentsDirectory());
+			final MediaDialog dialog = createForMedia(parent)
+				.withBasePath(FileHelper.documentsDirectory());
 //			final MediaDialog dialog = createRecordForPhoto(parent)
 //				.withBasePath(FileHelper.documentsDirectory());
 			dialog.loadData();
@@ -835,6 +852,7 @@ public final class MediaDialog extends CommonListDialog{
 					final Map<String, Object> container = editCommand.getContainer();
 					final int mediaID = extractRecordID(container);
 					switch(editCommand.getType()){
+						//FIXME
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
 							historicDateDialog.loadData();
@@ -846,27 +864,33 @@ public final class MediaDialog extends CommonListDialog{
 
 							historicDateDialog.showDialog();
 						}
+
+						//FIXME
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_MEDIA, mediaID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_MEDIA, mediaID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
+						//FIXME
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
 								? PhotoCropDialog.createSelectOnly(parent)
 								: PhotoCropDialog.create(parent));
-							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
+							photoCropDialog.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
 								final Rectangle crop = photoCropDialog.getCrop();
 								if(crop != null){
 									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -891,24 +915,61 @@ public final class MediaDialog extends CommonListDialog{
 							}
 							catch(final IOException ignored){}
 						}
+
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_MEDIA, mediaID);
+								.withReference(EntityManager.NODE_MEDIA, mediaID)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_MEDIA, mediaID);
+									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+								});
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
+
 						case EVENT -> {
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_MEDIA, mediaID);
+								.withReference(EntityManager.NODE_MEDIA, mediaID)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
+										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
+											EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
+											EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_MEDIA, mediaID);
+									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+								});
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
 						}
+
 						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
@@ -931,6 +992,7 @@ public final class MediaDialog extends CommonListDialog{
 
 							changeNoteDialog.showDialog();
 						}
+
 						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
@@ -958,14 +1020,16 @@ public final class MediaDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_MEDIA, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_MEDIA, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

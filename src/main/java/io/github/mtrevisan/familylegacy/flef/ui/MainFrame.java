@@ -114,8 +114,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			extractRecordID(partner2.getPerson()));
 
 		final GroupDialog dialog = GroupDialog.createEditOnly(this)
-			.withOnCloseGracefully((record, recordID) -> {
-				if(record != null){
+			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+				for(final Map<String, Object> upsertedRecord : upsertedRecords){
 					PersonPanel[] children = new PersonPanel[0];
 					final int index = treePanel.genealogicalTree.getIndexOf(groupPanel);
 					if(index == 0)
@@ -127,12 +127,12 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						children = new PersonPanel[]{isPartner1? treeGroupPanel.getPartner1(): treeGroupPanel.getPartner2()};
 					}
 
-					final Integer groupID = extractRecordID(record);
+					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
 					final Map<String, Object> partner1Person = partner1.getPerson();
 					if(!partner1Person.isEmpty()){
 						final Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
-						Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
+						Repository.upsertRelationship(EntityManager.NODE_GROUP, upsertedRecordID,
 							EntityManager.NODE_PERSON, extractRecordID(partner1Person),
 							EntityManager.RELATIONSHIP_OF, groupRelationship,
 							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
@@ -141,7 +141,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					if(!partner2Person.isEmpty()){
 						final Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
-						Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
+						Repository.upsertRelationship(EntityManager.NODE_GROUP, upsertedRecordID,
 							EntityManager.NODE_PERSON, extractRecordID(partner2Person),
 							EntityManager.RELATIONSHIP_OF, groupRelationship,
 							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
@@ -149,7 +149,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					for(final PersonPanel child : children){
 						final Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
-						Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
+						Repository.upsertRelationship(EntityManager.NODE_GROUP, upsertedRecordID,
 							EntityManager.NODE_PERSON, extractRecordID(child.getPerson()),
 							EntityManager.RELATIONSHIP_OF, groupRelationship,
 							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
@@ -260,8 +260,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onAddPerson");
 
 		final PersonDialog dialog = PersonDialog.createEditOnly(this)
-			.withOnCloseGracefully((record, recordID) -> {
-				if(record != null){
+			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+				for(final Map<String, Object> upsertedRecord : upsertedRecords){
 					final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
 					if(index == GenealogicalTree.LAST_GENERATION_CHILD){
 						//add as child
@@ -271,8 +271,9 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 						final Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
+						final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
 						Repository.upsertRelationship(EntityManager.NODE_GROUP, unionID,
-							EntityManager.NODE_PERSON, extractRecordID(record),
+							EntityManager.NODE_PERSON, upsertedRecordID,
 							EntityManager.RELATIONSHIP_OF, groupRelationship,
 							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 					}
@@ -289,7 +290,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
 						Repository.upsertRelationship(EntityManager.NODE_GROUP, unionID,
-							EntityManager.NODE_PERSON, extractRecordID(record),
+							EntityManager.NODE_PERSON, extractRecordID(upsertedRecord),
 							EntityManager.RELATIONSHIP_OF, groupRelationship,
 							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 						for(final Integer partnerID : partnerIDs){
@@ -397,11 +398,12 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
 			.withReference(EntityManager.NODE_PERSON, personID)
-			.withOnCloseGracefully((record, recordID) -> {
-				if(record != null){
+			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 					Repository.upsertRelationship(EntityManager.NODE_PERSON, personID,
-						EntityManager.NODE_MEDIA, recordID,
-						EntityManager.RELATIONSHIP_DEPICTED_BY, record,
+						EntityManager.NODE_MEDIA, upsertedRecordID,
+						EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 					treePanel.refresh();
@@ -421,12 +423,12 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final MediaDialog photoDialog = MediaDialog.createEditOnly(this)
 			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
-			.withOnCloseGracefully((record, recordID) -> {
-				if(record != null){
-					final Integer newPhotoID = extractRecordID(record);
+			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 					Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(person),
-						EntityManager.NODE_MEDIA, newPhotoID,
-						EntityManager.RELATIONSHIP_DEPICTED_BY, record,
+						EntityManager.NODE_MEDIA, upsertedRecordID,
+						EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 					treePanel.refresh();

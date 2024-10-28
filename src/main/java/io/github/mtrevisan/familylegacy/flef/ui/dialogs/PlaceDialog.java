@@ -54,6 +54,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -158,7 +159,7 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 
-	public PlaceDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public PlaceDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -506,7 +507,7 @@ public final class PlaceDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_PLACE, place1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
@@ -548,12 +549,16 @@ public final class PlaceDialog extends CommonListDialog{
 						case LOCALIZED_PLACE_NAME -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
 								.withReference(EntityManager.NODE_PLACE, placeID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									Map<String, Object> relationshipRecord = new HashMap<>(1);
+									insertRecordType(relationshipRecord, "name");
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
+										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
 											EntityManager.NODE_PLACE, placeID,
-											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, record,
+											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, relationshipRecord,
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							localizedTextDialog.loadData();
 
@@ -561,7 +566,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createEditOnlyForPhoto(parent)
+									? MediaDialog.createSelectOnlyForPhoto(parent)
 									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_PLACE, placeID);
@@ -578,19 +583,19 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 //						case PHOTO_CROP -> {
 //							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
-//								? PhotoCropDialog.createSelectOnly(parent)
-//								: PhotoCropDialog.create(parent));
-//							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
-//								final Rectangle crop = photoCropDialog.getCrop();
-//								if(crop != null){
-//									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-//									sj.add(Integer.toString(crop.x))
-//										.add(Integer.toString(crop.y))
-//										.add(Integer.toString(crop.width))
-//										.add(Integer.toString(crop.height));
-//									insertRecordPhotoCrop(container, sj.toString());
-//								}
-//							});
+//									? PhotoCropDialog.createSelectOnly(parent)
+//									: PhotoCropDialog.create(parent));
+//								withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+//									final Rectangle crop = photoCropDialog.getCrop();
+//									if(crop != null){
+//										final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
+//										sj.add(Integer.toString(crop.x))
+//											.add(Integer.toString(crop.y))
+//											.add(Integer.toString(crop.width))
+//											.add(Integer.toString(crop.height));
+//										insertRecordPhotoCrop(container, sj.toString());
+//									}
+//								});
 //							try{
 //								if(photoID != null){
 //									final String photoCrop = extractRecordPhotoCrop(container);
@@ -607,12 +612,14 @@ public final class PlaceDialog extends CommonListDialog{
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_PLACE, placeID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_PLACE, placeID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							noteDialog.loadData();
 
@@ -624,12 +631,14 @@ public final class PlaceDialog extends CommonListDialog{
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_PLACE, placeID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_PLACE, placeID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							mediaDialog.loadData();
 
@@ -702,14 +711,16 @@ public final class PlaceDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_PLACE, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_PLACE, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

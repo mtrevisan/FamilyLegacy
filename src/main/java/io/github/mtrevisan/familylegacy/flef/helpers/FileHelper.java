@@ -64,6 +64,11 @@ public final class FileHelper{
 	}
 
 
+	public static boolean isRelativeURI(final String filename){
+		return (filename != null
+			&& (filename.startsWith("../") || filename.startsWith("..\\") || filename.charAt(0) == '/' || filename.charAt(0) == '\\'));
+	}
+
 	public static File loadFile(final String filename){
 		if(filename == null)
 			return null;

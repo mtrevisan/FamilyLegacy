@@ -80,6 +80,9 @@ public class EntityManager{
 	public static final String NODE_RESEARCH_STATUS = "research_status";
 	public static final String NODE_PROJECT = "project";
 	public static final String NODE_APPLICATION = "application";
+	static final String RELATIONSHIP_TYPE = "relationship_type";
+	static final String RELATIONSHIP_TYPE_ONE_TO_ONE = "one-to-one";
+	public static final Map<String, Object> DATA_RELATIONSHIP_TYPE_ONE_TO_ONE = Map.of(RELATIONSHIP_TYPE, RELATIONSHIP_TYPE_ONE_TO_ONE);
 
 	public static final String SEX_MALE = "male";
 	public static final String SEX_FEMALE = "female";

@@ -400,6 +400,28 @@ public class Repository{
 	 * Finds the referencing nodes in the graph database based on the given parameters, that is all the nodes with label `tableNameStart`
 	 * that points to node with label `tableNameEnd` and ID `recordIDEnd` through relationship `relationshipName`.
 	 *
+	 * @param tableNameEnd	The ending table name in the relationship.
+	 * @param recordIDEnd	The record ID of the ending node.
+	 * @param relationshipName	The name of the relationship.
+	 * @return	A list of maps representing the referencing nodes.
+	 */
+	public static List<Map.Entry<String, Map<String, Object>>> findReferencingNodes(final String tableNameEnd, final Integer recordIDEnd,
+			final String relationshipName){
+		try{
+			return GraphDatabaseManager.findStartNodes(tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
+				relationshipName);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching other node in a relationship: {}", e.getMessage(), e);
+
+			return Collections.emptyList();
+		}
+	}
+
+	/**
+	 * Finds the referencing nodes in the graph database based on the given parameters, that is all the nodes with label `tableNameStart`
+	 * that points to node with label `tableNameEnd` and ID `recordIDEnd` through relationship `relationshipName`.
+	 *
 	 * @param tableNameStart	The starting table name in the relationship.
 	 * @param tableNameEnd	The ending table name in the relationship.
 	 * @param recordIDEnd	The record ID of the ending node.
@@ -735,6 +757,18 @@ public class Repository{
 			tableName, recordID,
 			relationshipName);
 		return (dateNode != null);
+	}
+
+	/**
+	 * Checks whether a given record in a specified table has a reference to a calendar (original).
+	 *
+	 * @param tableName	The name of the table.
+	 * @param recordID	The ID of the record.
+	 * @return	Whether the record references an ending date.
+	 */
+	public static boolean hasCalendarOriginal(final String tableName, final Integer recordID){
+		return (findReferencedNode(tableName, recordID,
+			EntityManager.RELATIONSHIP_EXPRESSED_IN) != null);
 	}
 
 	public static Map<String, Object> getDepiction(final String tableName, final Integer recordID){

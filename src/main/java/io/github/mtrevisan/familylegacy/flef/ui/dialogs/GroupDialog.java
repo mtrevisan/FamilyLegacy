@@ -56,6 +56,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -155,16 +156,19 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 
-	public GroupDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
-		BiConsumer<Map<String, Object>, Integer> innerOnCloseGracefully = (record, recordID) -> {
+	public GroupDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+		BiConsumer<Collection<Map<String, Object>>, List<Integer>> innerOnCloseGracefully = (upsertedRecords, deletedIDs) -> {
 			if(selectedRecord != null)
-				Repository.upsertRelationship(filterReferenceTable, filterReferenceID,
-					EntityManager.NODE_GROUP, recordID,
-					EntityManager.RELATIONSHIP_BELONGS_TO, new HashMap<>(selectedRecordLink),
-					GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-			else if(selectedRecordID != null)
+				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
+					Repository.upsertRelationship(filterReferenceTable, filterReferenceID,
+						EntityManager.NODE_GROUP, upsertedRecordID,
+						EntityManager.RELATIONSHIP_BELONGS_TO, new HashMap<>(selectedRecordLink),
+						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+				}
+			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 				Repository.deleteRelationship(filterReferenceTable, filterReferenceID,
-					EntityManager.NODE_GROUP, recordID,
+					EntityManager.NODE_GROUP, deletedIDs.get(i),
 					EntityManager.RELATIONSHIP_BELONGS_TO);
 		};
 		if(onCloseGracefully != null)
@@ -310,7 +314,7 @@ public final class GroupDialog extends CommonListDialog{
 		int row = 0;
 		for(final Map<String, Object> record : records){
 			final Integer recordID = extractRecordID(record);
-			final String categoryIdentifier = extractIdentifier(record, extractRecordID(record));
+			final String categoryIdentifier = extractIdentifier(record, recordID);
 			final String category = categoryIdentifier.substring(0, categoryIdentifier.indexOf('|'));
 			final String identifier = categoryIdentifier.substring(categoryIdentifier.indexOf('|') + 1);
 			final FilterString filter = FilterString.create()
@@ -441,7 +445,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	private String extractIdentifier(final Map<String, Object> groupRecord, final int groupID){
 		final String mainGroupType = extractRecordType(groupRecord);
-		final List<Map.Entry<String, Map<String, Object>>> storeGroupRelationships = Repository.findReferencedNodes(
+		final List<Map.Entry<String, Map<String, Object>>> storeGroupRelationships = Repository.findReferencingNodes(
 			EntityManager.NODE_GROUP, groupID,
 			EntityManager.RELATIONSHIP_BELONGS_TO);
 		String identifierCategory = StringUtils.EMPTY;
@@ -522,11 +526,11 @@ public final class GroupDialog extends CommonListDialog{
 
 	private void extractAllPersonNamesInGroup(final Integer groupID, final StringJoiner identifier){
 		//extract the names of all the persons of all the groups
-		final List<Map.Entry<String, Map<String, Object>>> storeRecordsInGroup = Repository.findReferencedNodes(
+		final List<Map<String, Object>> storeRecordsInGroup = Repository.findReferencedNodes(EntityManager.NODE_GROUP,
 			EntityManager.NODE_GROUP, groupID,
 			EntityManager.RELATIONSHIP_BELONGS_TO);
-		for(final Map.Entry<String, Map<String, Object>> storeRecordInGroup : storeRecordsInGroup){
-			final Integer referenceIDInGroup = extractRecordID(storeRecordInGroup.getValue());
+		for(final Map<String, Object> storeRecordInGroup : storeRecordsInGroup){
+			final Integer referenceIDInGroup = extractRecordID(storeRecordInGroup);
 
 			extractAllPersonNames(referenceIDInGroup, identifier);
 		}
@@ -679,7 +683,7 @@ public final class GroupDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_GROUP, group1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> modification1 = new HashMap<>();
@@ -718,155 +722,196 @@ public final class GroupDialog extends CommonListDialog{
 					final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_GROUP, groupID);
 					final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 					switch(editCommand.getType()){
-						//FIXME
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createEditOnlyForPhoto(parent)
+									? MediaDialog.createSelectOnlyForPhoto(parent)
 									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
-											EntityManager.NODE_MEDIA, recordID,
-											EntityManager.RELATIONSHIP_DEPICTED_BY, record,
+											EntityManager.NODE_MEDIA, upsertedRecordID,
+											EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
+											EntityManager.NODE_MEDIA, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_DEPICTED_BY);
+
+									//update UI
+									final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_GROUP, groupID) != null);
+									dialog.setButtonEnableAndBorder(dialog.photoButton, hasPhoto);
 								});
 							photoDialog.loadData();
-							if(photoID != null){
-								//add photo manually because is not retrievable through a relationship
-								photoDialog.addData(container);
-								photoDialog.selectData(photoID);
-							}
-							else
+							boolean selected = false;
+							if(photoID != null)
+								selected = photoDialog.selectData(photoID);
+							if(!selected)
 								photoDialog.showNewRecord();
 
 							photoDialog.showDialog();
 						}
 
-//						//FIXME
-//						case PHOTO_CROP -> {
-//							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
-//								? PhotoCropDialog.createSelectOnly(parent)
-//								: PhotoCropDialog.create(parent));
-//							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
-//								final Rectangle crop = photoCropDialog.getCrop();
-//								if(crop != null){
-//									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
-//									sj.add(Integer.toString(crop.x))
-//										.add(Integer.toString(crop.y))
-//										.add(Integer.toString(crop.width))
-//										.add(Integer.toString(crop.height));
-//									insertRecordPhotoCrop(container, sj.toString());
-//								}
-//							});
-//							try{
-//								if(photoID != null){
-//									final String photoCrop = extractRecordPhotoCrop(container);
-//									photoCropDialog.loadData(photoID, photoCrop);
-//								}
-//
-//								photoCropDialog.setSize(420, 295);
-//								photoCropDialog.showDialog();
-//							}
-//							catch(final IOException ignored){}
-//						}
-
-						//FIXME
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_GROUP, groupID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_GROUP, groupID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
 
-						//FIXME
 						case CULTURAL_NORM -> {
-							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
+							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(dialog.culturalNormButton)
+								? CulturalNormDialog.createSelectOnly(parent)
+								: CulturalNormDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
-											EntityManager.NODE_CULTURAL_NORM, recordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, record,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_GROUP, groupID);
+									dialog.setButtonEnableAndBorder(dialog.culturalNormButton, hasCulturalNorms);
 								});
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();
 						}
 
-						//FIXME
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_GROUP, groupID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_GROUP, groupID);
+									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
 
-						//FIXME
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_GROUP, groupID);
+								.withReference(EntityManager.NODE_GROUP, groupID)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_GROUP, groupID);
+									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+								});
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
 
-						//FIXME
 						case EVENT -> {
 							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_GROUP, groupID);
+								.withReference(EntityManager.NODE_GROUP, groupID)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
+										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
+											EntityManager.NODE_GROUP, groupID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_GROUP, groupID);
+									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+								});
 							eventDialog.loadData();
 
 							eventDialog.showDialog();
 						}
 
-						//FIXME
 						case GROUP -> {
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
 									? GroupDialog.createSelectOnly(parent)
 									: GroupDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
 										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
-											EntityManager.NODE_GROUP, recordID,
+											EntityManager.NODE_GROUP, upsertedRecordID,
 											EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
-											EntityManager.NODE_GROUP, recordID,
+											EntityManager.NODE_GROUP, deletedIDs.get(i),
 											EntityManager.RELATIONSHIP_BELONGS_TO);
 
 									//update UI
-									final boolean hasGroups = Repository.hasGroups(EntityManager.NODE_GROUP, groupID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasGroups);
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_GROUP, groupID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							groupDialog.loadData();
 
@@ -923,14 +968,16 @@ public final class GroupDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_GROUP, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_GROUP, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

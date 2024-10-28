@@ -57,6 +57,7 @@ import java.awt.Frame;
 import java.io.Serial;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -126,7 +127,7 @@ public final class AssertionDialog extends CommonListDialog{
 	}
 
 
-	public AssertionDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public AssertionDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -464,7 +465,7 @@ public final class AssertionDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_ASSERTION, assertion1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 		final Map<String, Object> modification1 = new HashMap<>();
@@ -556,14 +557,16 @@ public final class AssertionDialog extends CommonListDialog{
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_ASSERTION, assertionID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_ASSERTION, assertionID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_NOTE, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
 											EntityManager.NODE_ASSERTION, assertionID,
 											EntityManager.RELATIONSHIP_FOR);
 
@@ -582,14 +585,16 @@ public final class AssertionDialog extends CommonListDialog{
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_ASSERTION, assertionID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_ASSERTION, assertionID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_MEDIA, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 											EntityManager.NODE_ASSERTION, assertionID,
 											EntityManager.RELATIONSHIP_FOR);
 
@@ -607,14 +612,16 @@ public final class AssertionDialog extends CommonListDialog{
 									? CulturalNormDialog.createSelectOnly(parent)
 									: CulturalNormDialog.create(parent))
 								.withReference(EntityManager.NODE_ASSERTION, assertionID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 											EntityManager.NODE_ASSERTION, assertionID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
 											EntityManager.NODE_ASSERTION, assertionID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
@@ -677,14 +684,16 @@ public final class AssertionDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_ASSERTION, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_ASSERTION, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

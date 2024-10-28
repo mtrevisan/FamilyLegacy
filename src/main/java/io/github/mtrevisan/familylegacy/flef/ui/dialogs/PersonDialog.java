@@ -50,6 +50,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -120,7 +121,7 @@ public final class PersonDialog extends CommonListDialog{
 	}
 
 
-	public PersonDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public PersonDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -435,15 +436,18 @@ public final class PersonDialog extends CommonListDialog{
 			EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID, EntityManager.NODE_PERSON, 1,
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media1ID,
+			EntityManager.NODE_PERSON, 1,
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> mediaRelationship2 = new HashMap<>();
 		mediaRelationship2.put("photo_crop", "0 0 10 50");
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media2ID, EntityManager.NODE_PERSON, 1,
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media2ID,
+			EntityManager.NODE_PERSON, 1,
 			EntityManager.RELATIONSHIP_FOR, mediaRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media3ID, EntityManager.NODE_PERSON, 1,
+		Repository.upsertRelationship(EntityManager.NODE_MEDIA, media3ID,
+			EntityManager.NODE_PERSON, 1,
 			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
@@ -467,7 +471,7 @@ public final class PersonDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_PERSON, person1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
@@ -508,11 +512,12 @@ public final class PersonDialog extends CommonListDialog{
 									? PersonNameDialog.createSelectOnly(parent)
 									: PersonNameDialog.create(parent))
 								.withReference(personID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null){
-										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
+										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, upsertedRecordID,
 											EntityManager.NODE_PERSON, personID,
-											EntityManager.RELATIONSHIP_FOR, record,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 										//update table identifier
@@ -525,16 +530,18 @@ public final class PersonDialog extends CommonListDialog{
 						}
 						case PHOTO -> {
 							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
-									? MediaDialog.createEditOnlyForPhoto(parent)
+									? MediaDialog.createSelectOnlyForPhoto(parent)
 									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_PERSON, personID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_PERSON, personID,
-											EntityManager.NODE_MEDIA, recordID,
-											EntityManager.RELATIONSHIP_DEPICTED_BY, record,
+											EntityManager.NODE_MEDIA, upsertedRecordID,
+											EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							photoDialog.loadData();
 							if(photoID != null){
@@ -551,7 +558,7 @@ public final class PersonDialog extends CommonListDialog{
 //							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
 //								? PhotoCropDialog.createSelectOnly(parent)
 //								: PhotoCropDialog.create(parent));
-//							photoCropDialog.withOnCloseGracefully((record, recordID) -> {
+//							photoCropDialog.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
 //									final Rectangle crop = photoCropDialog.getCrop();
 //									if(crop != null){
 //										final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -578,12 +585,14 @@ public final class PersonDialog extends CommonListDialog{
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_PERSON, personID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_PERSON, personID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							noteDialog.loadData();
 
@@ -595,12 +604,14 @@ public final class PersonDialog extends CommonListDialog{
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_PERSON, personID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_MEDIA, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_PERSON, personID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
 								});
 							mediaDialog.loadData();
 

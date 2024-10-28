@@ -59,7 +59,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 public class SearchCulturalNormPanel extends CommonSearchPanel{
 
 	@Serial
-	private static final long serialVersionUID = -4361406306346697722L;
+	private static final long serialVersionUID = 6314103773593620939L;
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 	private static final int TABLE_INDEX_DESCRIPTION = 3;

@@ -55,7 +55,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
 
@@ -76,7 +79,7 @@ public final class PhotoCropDialog extends JDialog{
 	private Map<String, Object> selectedRecord;
 	private Integer selectedRecordID;
 
-	private BiConsumer<Map<String, Object>, Integer> onCloseGracefully;
+	private BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully;
 
 
 	public static PhotoCropDialog create(final Frame parent){
@@ -97,7 +100,7 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 
-	public PhotoCropDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public PhotoCropDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 
 		return this;
@@ -140,7 +143,7 @@ public final class PhotoCropDialog extends JDialog{
 
 	private boolean closeAction(){
 		if(onCloseGracefully != null)
-			onCloseGracefully.accept(selectedRecord, selectedRecordID);
+			onCloseGracefully.accept(Collections.singletonList(selectedRecord), Collections.emptyList());
 
 		return true;
 	}

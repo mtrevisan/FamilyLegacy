@@ -49,10 +49,12 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -126,7 +128,9 @@ public abstract class CommonRecordDialog extends JDialog{
 	//record components:
 	protected final JPanel recordPanel = new JPanel();
 
-	private BiConsumer<Map<String, Object>, Integer> onCloseGracefully;
+	protected Map<Integer, Map<String, Object>> upsertedRecords = new LinkedHashMap<>(1);
+	protected List<Integer> removedIDs = new ArrayList<>(0);
+	private BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully;
 
 	protected Map<String, Object> selectedRecord;
 	protected Integer selectedRecordID;
@@ -156,7 +160,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		this.newRecordDefault = newRecordDefault;
 	}
 
-	protected void setOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	protected void setOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 	}
 
@@ -242,8 +246,16 @@ public abstract class CommonRecordDialog extends JDialog{
 		if(validateData()){
 			okAction(askForModificationNote);
 
-			if(onCloseGracefully != null)
-				onCloseGracefully.accept(selectedRecord, selectedRecordID);
+			if(onCloseGracefully != null){
+				if(selectedRecord != null)
+					//add record even if nothing's changed (a simple selection of a record should be propagated)
+					upsertedRecords.put(extractRecordID(selectedRecord), selectedRecord);
+
+				onCloseGracefully.accept(upsertedRecords.values(), removedIDs);
+
+				upsertedRecords.clear();
+				removedIDs.clear();
+			}
 
 			return true;
 		}
@@ -308,11 +320,14 @@ public abstract class CommonRecordDialog extends JDialog{
 		final String tableName = getTableName();
 		Repository.upsert(selectedRecord, tableName);
 		//save `selectRecordLink` into `store`
-		if(selectedRecordLink != null)
+		if(selectedRecordLink != null){
+			//TODO is it correct? or should it be EntityManager.RELATIONSHIP_FOR, new HashMap<>(selectedRecordLink),?
+			selectedRecordID = Repository.upsert(new HashMap<>(selectedRecordLink), EntityManager.NODE_RESTRICTION);
 			Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, selectedRecordID,
 				getTableName(), extractRecordID(selectedRecord),
-				EntityManager.RELATIONSHIP_FOR, new HashMap<>(selectedRecordLink),
+				EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 				GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		}
 
 		LOGGER.debug("Saved data {}", selectedRecord);
 		if(selectedRecordLink != null)
@@ -340,18 +355,23 @@ public abstract class CommonRecordDialog extends JDialog{
 				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
 		else{
+			final Map<String, Object> modification = recordModification.getFirst();
 			if(askForModificationNote){
+				final Integer modificationID = extractRecordID(modification);
+
 				//ask for a modification note
 				//show note record dialog
 				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly((Frame)getParent())
-					.withOnCloseGracefully((record, recordID) -> {
-						if(record != null)
-							Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, recordID,
-								EntityManager.NODE_NOTE, recordID,
-								EntityManager.RELATIONSHIP_CHANGELOG_FOR, Collections.emptyMap(),
+					.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+						for(final Map<String, Object> upsertedRecord : upsertedRecords){
+							final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+							Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
+								EntityManager.NODE_MODIFICATION, modificationID,
+								EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-						else if(recordID != null)
-							Repository.deleteNode(getTableName(), recordID);
+						}
+						for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+							Repository.deleteNode(getTableName(), deletedIDs.get(i));
 					});
 				final String title = StringUtils.capitalize(StringUtils.replace(recordTableName, "_", StringUtils.SPACE));
 				changeNoteDialog.setTitle("Change note for " + title + " " + selectedRecordID);
@@ -362,7 +382,6 @@ public abstract class CommonRecordDialog extends JDialog{
 
 
 			//update the record with `update_date`
-			final Map<String, Object> modification = recordModification.getFirst();
 			insertRecordUpdateDate(modification, now);
 		}
 	}
@@ -371,7 +390,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
 	}
 
-	private boolean dataHasChanged(){
+	protected boolean dataHasChanged(){
 		return (selectedRecord != null && Objects.hash(selectedRecord, selectedRecordLink) != selectedRecordHash);
 	}
 

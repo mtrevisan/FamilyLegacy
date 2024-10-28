@@ -536,6 +536,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			if(record == null)
 				return;
 
+			if(dataHasChanged())
+				upsertedRecords.put(extractRecordID(selectedRecord), selectedRecord);
 			selectedRecord = new HashMap<>(record);
 			selectedRecordID = extractRecordID(record);
 			selectedRecordLink = null;
@@ -545,8 +547,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			selectActionInner();
 
 			//enable unselect button only if the record is not new
-			final int viewRowIndex = recordTable.getSelectedRow();
-			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+			final int modelRowIndex = recordTable.convertRowIndexToModel(previousIndex);
 
 			final TableModel model = getRecordTableModel();
 			final Integer recordIdentifier = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
@@ -668,6 +669,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		final DefaultTableModel model = getRecordTableModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+		removedIDs.add(recordID);
 
 		//clear previously selected row
 		selectedRecord = null;

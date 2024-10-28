@@ -356,8 +356,15 @@ public class GraphDatabaseManager{
 
 	public static boolean upsertRelationship(final String tableNameStart, final String primaryPropertyNameStart, final Object nodeIDStart,
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
-			final String relationshipName, final Map<String, Object> record, final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd)
-			throws StoreException{
+			final String relationshipName, final Map<String, Object> record,
+			final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd) throws StoreException{
+		final String relationshipType = (String)record.get(EntityManager.RELATIONSHIP_TYPE);
+		if(EntityManager.RELATIONSHIP_TYPE_ONE_TO_ONE.equals(relationshipType))
+			//delete previous relation with the same `relationshipName`
+			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, nodeIDStart,
+				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, null,
+				relationshipName, null, null);
+
 		Result result;
 		try(final Transaction tx = getTransaction()){
 			final String query = JavaHelper.textFormat(QUERY_UPSERT_RELATIONSHIP,
@@ -372,7 +379,7 @@ public class GraphDatabaseManager{
 
 			tx.commit();
 		}
-		return (result != null && result.getQueryStatistics().getConstraintsAdded() == 1);
+		return (result != null);
 	}
 
 	private static Map<String, Object> createRelationshipProperties(final Map<String, Object> record, final OnDeleteType onDeleteStart,

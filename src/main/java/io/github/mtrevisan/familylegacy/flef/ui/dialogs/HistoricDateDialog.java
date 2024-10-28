@@ -56,6 +56,7 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -126,7 +127,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	}
 
 
-	public HistoricDateDialog withOnCloseGracefully(final BiConsumer<Map<String, Object>, Integer> onCloseGracefully){
+	public HistoricDateDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -374,8 +375,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 		int calendar2ID = Repository.upsert(calendar2, EntityManager.NODE_CALENDAR);
 		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
 			EntityManager.NODE_CALENDAR, calendar2ID,
-			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
-			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("type", "venetan");
 		Repository.upsert(calendar3, EntityManager.NODE_CALENDAR);
@@ -400,7 +401,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		int restriction1ID = Repository.upsert(restriction1, EntityManager.NODE_RESTRICTION);
 		Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, restriction1ID,
 			EntityManager.NODE_HISTORIC_DATE, historicDate1ID,
-			EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+			EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
 
@@ -428,44 +429,89 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID);
+								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID)
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_HISTORIC_DATE, historicDateID);
+									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+								});
 							assertionDialog.loadData();
 
 							assertionDialog.showDialog();
 						}
+
 						case CALENDAR_ORIGINAL -> {
-							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
+							final CalendarDialog calendarDialog = (dialog.isViewOnlyComponent(dialog.calendarOriginalButton)
+									? CalendarDialog.createSelectOnly(parent)
+									: CalendarDialog.create(parent))
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CALENDAR);
 										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
-											EntityManager.NODE_CALENDAR, recordID,
-											EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+											EntityManager.NODE_CALENDAR, upsertedRecordID,
+											EntityManager.RELATIONSHIP_EXPRESSED_IN, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.NODE_CALENDAR, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_EXPRESSED_IN);
+
+									//update UI
+									final boolean hasCalendarOriginal = Repository.hasCalendarOriginal(EntityManager.NODE_HISTORIC_DATE, historicDateID);
+									dialog.setButtonEnableAndBorder(dialog.calendarOriginalButton, hasCalendarOriginal);
 								});
 							calendarDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
 								EntityManager.NODE_HISTORIC_DATE, historicDateID,
 								EntityManager.RELATIONSHIP_EXPRESSED_IN);
-							calendarDialog.selectData(extractRecordID(calendarNode.getValue()));
+							if(calendarNode != null)
+								calendarDialog.selectData(extractRecordID(calendarNode.getValue()));
+							else
+								calendarDialog.showNewRecord();
 
 							calendarDialog.showDialog();
 						}
+
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_NOTE, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
+										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_HISTORIC_DATE, historicDateID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
+											EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_HISTORIC_DATE, historicDateID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
 						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer noteID = (Integer)container.get("noteID");
@@ -488,6 +534,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 							changeNoteDialog.showDialog();
 						}
+
 						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
@@ -515,14 +562,16 @@ public final class HistoricDateDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((record, recordID) -> {
-									if(record != null)
-										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_HISTORIC_DATE, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-									else
-										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, recordID,
+									}
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_HISTORIC_DATE, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR);
 

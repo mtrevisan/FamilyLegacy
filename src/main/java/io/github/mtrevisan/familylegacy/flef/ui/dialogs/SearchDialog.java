@@ -659,8 +659,8 @@ public final class SearchDialog extends JDialog{
 		int calendar2ID = Repository.upsert(calendar2, EntityManager.NODE_CALENDAR);
 		Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, date1ID,
 			EntityManager.NODE_CALENDAR, calendar2ID,
-			EntityManager.RELATIONSHIP_EXPRESSED_IN, Collections.emptyMap(),
-			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+			EntityManager.RELATIONSHIP_EXPRESSED_IN, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> calendar3 = new HashMap<>();
 		calendar3.put("type", "venetan");
 		int calendar3ID = Repository.upsert(calendar3, EntityManager.NODE_CALENDAR);

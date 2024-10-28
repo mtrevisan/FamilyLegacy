@@ -50,7 +50,7 @@ CREATE (hd:HistoricDate {id: $id, date: $date, dateOriginal: $dateOriginal, cert
 CREATE CONSTRAINT ON (hd:HistoricDate) ASSERT hd.id IS UNIQUE;
 CREATE CONSTRAINT ON (hd:HistoricDate) ASSERT exists(hd.date);
 MATCH (hd:HistoricDate {id: $historicDateID}), (cld:Calendar {id: $calendarOriginalID})
-CREATE (hd)-[:EXPRESSED_IN {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(cld);
+CREATE (hd)-[:EXPRESSED_IN {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(cld);
 
 CREATE (cld:Calendar {id: $id, type: $type});
 CREATE CONSTRAINT ON (cld:Calendar) ASSERT cld.id IS UNIQUE;
@@ -231,31 +231,31 @@ CREATE (rst:Restriction&Application {id: $id, restriction: $restriction});
 CREATE CONSTRAINT ON (rst:Restriction) ASSERT rst.id IS UNIQUE;
 CREATE CONSTRAINT ON (rst:Restriction) ASSERT exists(rst.restriction);
 MATCH (rst:Restriction {id: $restrictionID}), (a:Assertion {id: $assertionID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(a);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(a);
 MATCH (rst:Restriction {id: $restrictionID}), (c:Citation {id: $citationID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(c);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(c);
 MATCH (rst:Restriction {id: $restrictionID}), (s:Source {id: $sourceID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(s);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(s);
 MATCH (rst:Restriction {id: $restrictionID}), (r:Repository {id: $repositoryID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(r);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(r);
 MATCH (rst:Restriction {id: $restrictionID}), (cn:CulturalNorm {id: $culturalNormID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(cn);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(cn);
 MATCH (rst:Restriction {id: $restrictionID}), (hd:HistoricDate {id: $historicDateID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(hd);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(hd);
 MATCH (rst:Restriction {id: $restrictionID}), (e:Event {id: $eventID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(e);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(e);
 MATCH (rst:Restriction {id: $restrictionID}), (p:Place {id: $placeID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(p);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(p);
 MATCH (rst:Restriction {id: $restrictionID}), (n:Note {id: $noteID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(n);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(n);
 MATCH (rst:Restriction {id: $restrictionID}), (pn:PersonName {id: $personNameID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(pn);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(pn);
 MATCH (rst:Restriction {id: $restrictionID}), (prs:Person {id: $personID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(prs);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(prs);
 MATCH (rst:Restriction {id: $restrictionID}), (g:Group {id: $groupID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(g);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(g);
 MATCH (rst:Restriction {id: $restrictionID}), (m:Media {id: $mediaID})
-CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE"}]->(m);
+CREATE (rst)-[:FOR {onDeleteStart: "RELATIONSHIP_ONLY", onDeleteEnd: "CASCADE", relationshipType: "one-to-one"}]->(m);
 
 CREATE (mdf:Modification&Application {id: $id, creationDate: $creationDate, updateDate: $updateDate});
 CREATE CONSTRAINT ON (mdf:Modification) ASSERT mdf.id IS UNIQUE;
