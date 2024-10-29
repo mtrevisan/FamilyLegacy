@@ -55,14 +55,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtract;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordExtractLocale;
@@ -139,7 +138,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	}
 
 
-	public CitationDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+	public CitationDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -522,14 +521,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 									? LocalizedTextDialog.createSimpleTextSelectOnly(parent)
 									: LocalizedTextDialog.createSimpleText(parent))
 								.withReference(EntityManager.NODE_CITATION, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
 										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
 											EntityManager.NODE_CITATION, citationID,
 											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_LOCALIZED_TEXT, deletedIDs.get(i),
 											EntityManager.NODE_CITATION, citationID,
@@ -550,14 +550,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_CITATION, citationID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_CITATION, citationID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
 											EntityManager.NODE_CITATION, citationID,
@@ -578,14 +579,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_CITATION, citationID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_CITATION, citationID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 											EntityManager.NODE_CITATION, citationID,
@@ -605,14 +607,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
 								.withReference(EntityManager.NODE_CITATION, citationID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
 										Repository.upsertRelationship(EntityManager.NODE_CITATION, citationID,
 											EntityManager.NODE_ASSERTION, upsertedRecordID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_CITATION, citationID,
 											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
@@ -677,14 +680,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
 										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_CITATION, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_CITATION, parentRecordID,

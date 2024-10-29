@@ -537,7 +537,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 				return;
 
 			if(dataHasChanged())
-				upsertedRecords.put(extractRecordID(selectedRecord), selectedRecord);
+				modifiedRecords.addModifiedRecord(selectedRecord);
 			selectedRecord = new HashMap<>(record);
 			selectedRecordID = extractRecordID(record);
 			selectedRecordLink = null;
@@ -669,7 +669,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		final DefaultTableModel model = getRecordTableModel();
 		final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
-		removedIDs.add(recordID);
+		modifiedRecords.addRemovedRecordID(recordID);
 
 		//clear previously selected row
 		selectedRecord = null;

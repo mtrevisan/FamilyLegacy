@@ -49,16 +49,13 @@ import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -128,9 +125,8 @@ public abstract class CommonRecordDialog extends JDialog{
 	//record components:
 	protected final JPanel recordPanel = new JPanel();
 
-	protected Map<Integer, Map<String, Object>> upsertedRecords = new LinkedHashMap<>(1);
-	protected List<Integer> removedIDs = new ArrayList<>(0);
-	private BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully;
+	protected ModifiedRecords modifiedRecords = new ModifiedRecords();
+	private Consumer<ModifiedRecords> onCloseGracefully;
 
 	protected Map<String, Object> selectedRecord;
 	protected Integer selectedRecordID;
@@ -160,7 +156,7 @@ public abstract class CommonRecordDialog extends JDialog{
 		this.newRecordDefault = newRecordDefault;
 	}
 
-	protected void setOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+	protected void setOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 	}
 
@@ -247,14 +243,14 @@ public abstract class CommonRecordDialog extends JDialog{
 			okAction(askForModificationNote);
 
 			if(onCloseGracefully != null){
-				if(selectedRecord != null)
-					//add record even if nothing's changed (a simple selection of a record should be propagated)
-					upsertedRecords.put(extractRecordID(selectedRecord), selectedRecord);
+				//add record even if nothing's changed (a simple selection of a record should be propagated)
+				modifiedRecords.addModifiedRecord(selectedRecord);
+				//remove every record in `upsertedRecords` that will be deleted
+				modifiedRecords.clean();
 
-				onCloseGracefully.accept(upsertedRecords.values(), removedIDs);
+				onCloseGracefully.accept(modifiedRecords);
 
-				upsertedRecords.clear();
-				removedIDs.clear();
+				modifiedRecords.clear();
 			}
 
 			return true;
@@ -362,14 +358,15 @@ public abstract class CommonRecordDialog extends JDialog{
 				//ask for a modification note
 				//show note record dialog
 				final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly((Frame)getParent())
-					.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-						for(final Map<String, Object> upsertedRecord : upsertedRecords){
+					.withOnCloseGracefully(modifiedRecords -> {
+						for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 							final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
 							Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 								EntityManager.NODE_MODIFICATION, modificationID,
 								EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 						}
+						final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 						for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 							Repository.deleteNode(getTableName(), deletedIDs.get(i));
 					});

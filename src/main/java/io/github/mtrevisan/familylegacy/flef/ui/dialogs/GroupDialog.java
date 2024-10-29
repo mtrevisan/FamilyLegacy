@@ -56,7 +56,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -66,7 +65,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
@@ -156,16 +155,17 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 
-	public GroupDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
-		BiConsumer<Collection<Map<String, Object>>, List<Integer>> innerOnCloseGracefully = (upsertedRecords, deletedIDs) -> {
+	public GroupDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
+		Consumer<ModifiedRecords> innerOnCloseGracefully = modifiedRecords -> {
 			if(selectedRecord != null)
-				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
 					Repository.upsertRelationship(filterReferenceTable, filterReferenceID,
 						EntityManager.NODE_GROUP, upsertedRecordID,
 						EntityManager.RELATIONSHIP_BELONGS_TO, new HashMap<>(selectedRecordLink),
 						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 				}
+			final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 				Repository.deleteRelationship(filterReferenceTable, filterReferenceID,
 					EntityManager.NODE_GROUP, deletedIDs.get(i),
@@ -728,14 +728,15 @@ public final class GroupDialog extends CommonListDialog{
 									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
 											EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.RELATIONSHIP_DEPICTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
 											EntityManager.NODE_MEDIA, deletedIDs.get(i),
@@ -760,14 +761,15 @@ public final class GroupDialog extends CommonListDialog{
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_GROUP, groupID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
 											EntityManager.NODE_GROUP, groupID,
@@ -784,17 +786,18 @@ public final class GroupDialog extends CommonListDialog{
 
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(dialog.culturalNormButton)
-								? CulturalNormDialog.createSelectOnly(parent)
-								: CulturalNormDialog.create(parent))
+									? CulturalNormDialog.createSelectOnly(parent)
+									: CulturalNormDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 											EntityManager.NODE_GROUP, groupID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
 											EntityManager.NODE_GROUP, groupID,
@@ -815,14 +818,15 @@ public final class GroupDialog extends CommonListDialog{
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_GROUP, groupID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 											EntityManager.NODE_GROUP, groupID,
@@ -842,14 +846,15 @@ public final class GroupDialog extends CommonListDialog{
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
 										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
 											EntityManager.NODE_ASSERTION, upsertedRecordID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
 											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
@@ -869,14 +874,15 @@ public final class GroupDialog extends CommonListDialog{
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
 										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
 											EntityManager.NODE_GROUP, groupID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
 											EntityManager.NODE_GROUP, groupID,
@@ -896,14 +902,15 @@ public final class GroupDialog extends CommonListDialog{
 									? GroupDialog.createSelectOnly(parent)
 									: GroupDialog.create(parent))
 								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
 										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
 											EntityManager.NODE_GROUP, upsertedRecordID,
 											EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
 											EntityManager.NODE_GROUP, deletedIDs.get(i),
@@ -968,14 +975,15 @@ public final class GroupDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
 										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_GROUP, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_GROUP, parentRecordID,

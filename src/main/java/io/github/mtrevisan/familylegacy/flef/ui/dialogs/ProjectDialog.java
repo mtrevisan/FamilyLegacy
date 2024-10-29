@@ -47,11 +47,9 @@ import javax.swing.UIManager;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCopyright;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIncludeMediaPayload;
@@ -96,7 +94,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	}
 
 
-	public ProjectDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+	public ProjectDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;

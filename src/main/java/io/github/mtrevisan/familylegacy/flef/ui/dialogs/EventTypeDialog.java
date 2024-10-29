@@ -52,14 +52,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCategory;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -130,7 +129,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	}
 
 
-	public EventTypeDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+	public EventTypeDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;

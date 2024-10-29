@@ -54,14 +54,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordLocale;
@@ -148,7 +147,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	}
 
 
-	public NoteDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+	public NoteDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -401,40 +400,62 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 					final int noteID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case CULTURAL_NORM -> {
-							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
+							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(dialog.culturalNormButton)
+									? CulturalNormDialog.createSelectOnly(parent)
+									: CulturalNormDialog.create(parent))
 								.withReference(EntityManager.NODE_NOTE, noteID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 											EntityManager.NODE_NOTE, noteID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
+											EntityManager.NODE_NOTE, noteID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_NOTE, noteID);
+									dialog.setButtonEnableAndBorder(dialog.culturalNormButton, hasCulturalNorms);
 								});
 							culturalNormDialog.loadData();
 
 							culturalNormDialog.showDialog();
 						}
+
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_NOTE, noteID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_NOTE, noteID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
+											EntityManager.NODE_NOTE, noteID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_NOTE, noteID);
+									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
+
 						case MODIFICATION_HISTORY_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer modificationNoteID = (Integer)container.get("noteID");
@@ -457,6 +478,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 							changeNoteDialog.showDialog();
 						}
+
 						case RESEARCH_STATUS_SHOW -> {
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
@@ -484,14 +506,15 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
 										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_NOTE, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_NOTE, parentRecordID,

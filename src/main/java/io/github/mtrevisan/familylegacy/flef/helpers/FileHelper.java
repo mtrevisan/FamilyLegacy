@@ -64,6 +64,10 @@ public final class FileHelper{
 	}
 
 
+	public static String composeURI(final Path basePath, final String filename){
+		return (isRelativeURI(filename)? getTargetPath(basePath, filename): filename);
+	}
+
 	public static boolean isRelativeURI(final String filename){
 		return (filename != null
 			&& (filename.startsWith("../") || filename.startsWith("..\\") || filename.charAt(0) == '/' || filename.charAt(0) == '\\'));
@@ -233,7 +237,8 @@ public final class FileHelper{
 
 		final Path basePath = baseDir.toAbsolutePath().normalize();
 		final Path relativePath = Paths.get(relativeDir);
-		final Path targetPath = basePath.resolve(relativePath).normalize();
+		final Path targetPath = basePath.resolve(relativePath)
+			.normalize();
 		return targetPath.toString();
 	}
 

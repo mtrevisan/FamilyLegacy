@@ -101,8 +101,8 @@ public class Main{
 						case SOURCE -> {
 							final SourceDialog sourceDialog = SourceDialog.create(parent)
 								.withFilterOnRepositoryID(containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_SOURCE);
 										Repository.upsertRelationship(EntityManager.NODE_SOURCE, upsertedRecordID,
 											EntityManager.NODE_REPOSITORY, containerID,
@@ -124,8 +124,8 @@ public class Main{
 						case CITATION -> {
 							final CitationDialog citationDialog = CitationDialog.create(parent)
 								.withFilterOnSourceID(containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CITATION);
 										Repository.upsertRelationship(EntityManager.NODE_CITATION, upsertedRecordID,
 											EntityManager.NODE_SOURCE, containerID,
@@ -199,8 +199,8 @@ public class Main{
 						//from: historic date
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CALENDAR);
 										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, containerID,
 											EntityManager.NODE_CALENDAR, upsertedRecordID,
@@ -223,8 +223,8 @@ public class Main{
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PLACE);
 										final String relationshipName = switch(tableName){
 											case EntityManager.NODE_REPOSITORY -> EntityManager.RELATIONSHIP_LOCATED_IN;
@@ -262,8 +262,8 @@ public class Main{
 						case NOTE -> {
 							final NoteDialog noteDialog = NoteDialog.create(parent)
 								.withReference(tableName, containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											tableName, containerID,
@@ -281,8 +281,8 @@ public class Main{
 						case LOCALIZED_EXTRACT -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
 								.withReference(EntityManager.NODE_CITATION, containerID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
 										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
 											EntityManager.NODE_CITATION, containerID,
@@ -299,8 +299,8 @@ public class Main{
 						case LOCALIZED_PERSON_NAME -> {
 							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.create(parent)
 								.withReference(containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
 										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, upsertedRecordID,
 											EntityManager.NODE_PERSON, containerID,
@@ -317,8 +317,8 @@ public class Main{
 						case LOCALIZED_PLACE_NAME -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
 								.withReference(tableName, containerID, EntityManager.LOCALIZED_TEXT_TYPE_NAME)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
 										Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
 											EntityManager.NODE_PLACE, containerID,
@@ -337,8 +337,8 @@ public class Main{
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 											tableName, containerID,
@@ -361,8 +361,8 @@ public class Main{
 							final MediaDialog photoDialog = MediaDialog.createForPhoto(parent)
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(tableName, containerID,
 											EntityManager.NODE_MEDIA, upsertedRecordID,
@@ -387,7 +387,7 @@ public class Main{
 						//from: person, group, media, place
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+								.withOnCloseGracefully(modifiedRecords -> {
 									//FIXME
 //									final Rectangle crop = photoCropDialog.getCrop();
 //									if(crop != null){
@@ -420,8 +420,8 @@ public class Main{
 						//from: repository
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
 										Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, containerID,
 											EntityManager.NODE_PERSON, upsertedRecordID,
@@ -443,8 +443,8 @@ public class Main{
 						case PERSON_NAME -> {
 							final PersonNameDialog personNameDialog = PersonNameDialog.create(parent)
 								.withReference(containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
 										Repository.upsertRelationship(EntityManager.NODE_PERSON_NAME, upsertedRecordID,
 											EntityManager.NODE_PERSON, containerID,
@@ -490,8 +490,8 @@ public class Main{
 						case CULTURAL_NORM -> {
 							final CulturalNormDialog culturalNormDialog = CulturalNormDialog.create(parent)
 								.withReference(EntityManager.NODE_PERSON_NAME, containerID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 											tableName, containerID,

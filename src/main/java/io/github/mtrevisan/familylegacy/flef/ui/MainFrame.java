@@ -114,8 +114,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			extractRecordID(partner2.getPerson()));
 
 		final GroupDialog dialog = GroupDialog.createEditOnly(this)
-			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+			.withOnCloseGracefully(modifiedRecords -> {
+				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					PersonPanel[] children = new PersonPanel[0];
 					final int index = treePanel.genealogicalTree.getIndexOf(groupPanel);
 					if(index == 0)
@@ -260,8 +260,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onAddPerson");
 
 		final PersonDialog dialog = PersonDialog.createEditOnly(this)
-			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+			.withOnCloseGracefully(modifiedRecords -> {
+				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					final int index = treePanel.genealogicalTree.getIndexOf(personPanel);
 					if(index == GenealogicalTree.LAST_GENERATION_CHILD){
 						//add as child
@@ -398,8 +398,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
 			.withReference(EntityManager.NODE_PERSON, personID)
-			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+			.withOnCloseGracefully(modifiedRecords -> {
+				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 					Repository.upsertRelationship(EntityManager.NODE_PERSON, personID,
 						EntityManager.NODE_MEDIA, upsertedRecordID,
@@ -423,8 +423,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final MediaDialog photoDialog = MediaDialog.createEditOnly(this)
 			//FIXME add path of flef file as base path
 			.withBasePath(FileHelper.documentsDirectory())
-			.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+			.withOnCloseGracefully(modifiedRecords -> {
+				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 					Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(person),
 						EntityManager.NODE_MEDIA, upsertedRecordID,

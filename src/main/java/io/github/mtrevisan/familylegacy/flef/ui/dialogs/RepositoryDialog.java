@@ -53,14 +53,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordIdentifier;
@@ -129,7 +128,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	}
 
 
-	public RepositoryDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+	public RepositoryDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		setOnCloseGracefully(onCloseGracefully);
 
 		return this;
@@ -530,17 +529,26 @@ public final class RepositoryDialog extends CommonListDialog{
 					final int repositoryID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PERSON -> {
-							final PersonDialog personDialog = (dialog.showRecordOnly
+							final PersonDialog personDialog = (dialog.isViewOnlyComponent(dialog.referencePersonButton)
 									? PersonDialog.createShowOnly(parent)
 									: PersonDialog.create(parent))
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON);
 										Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repositoryID,
 											EntityManager.NODE_PERSON, upsertedRecordID,
 											EntityManager.RELATIONSHIP_OWNED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.NODE_PERSON, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_OWNED_BY);
+
+									//update UI
+									final boolean hasOwner = Repository.hasOwner(EntityManager.NODE_REPOSITORY, repositoryID);
+									dialog.setButtonEnableAndBorder(dialog.referencePersonButton, hasOwner);
 								});
 							personDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencedNode(
@@ -551,18 +559,28 @@ public final class RepositoryDialog extends CommonListDialog{
 
 							personDialog.showDialog();
 						}
+
 						case PLACE -> {
-							final PlaceDialog placeDialog = (dialog.showRecordOnly
+							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
 									? PlaceDialog.createShowOnly(parent)
 									: PlaceDialog.create(parent))
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PLACE);
-										Repository.upsertRelationship(EntityManager.NODE_PLACE, upsertedRecordID,
-											EntityManager.NODE_REPOSITORY, repositoryID,
-											EntityManager.RELATIONSHIP_LOCATED_IN, Collections.emptyMap(),
+										Repository.upsertRelationship(EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.NODE_PLACE, upsertedRecordID,
+											EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.NODE_PLACE, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_APPLIES_IN);
+
+									//update UI
+									final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_REPOSITORY, repositoryID);
+									dialog.setButtonEnableAndBorder(dialog.placeButton, hasPlace);
 								});
 							placeDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
@@ -573,59 +591,92 @@ public final class RepositoryDialog extends CommonListDialog{
 
 							placeDialog.showDialog();
 						}
+
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(tableName, repositoryID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_REPOSITORY, repositoryID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
+											EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_REPOSITORY, repositoryID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
+
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(tableName, repositoryID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_REPOSITORY, repositoryID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
+											EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_REPOSITORY, repositoryID);
+									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
+
 						case SOURCE -> {
-							final SourceDialog sourceDialog = SourceDialog.create(parent)
+							final SourceDialog sourceDialog = (dialog.isViewOnlyComponent(dialog.sourcesButton)
+									? SourceDialog.createSelectOnly(parent)
+									: SourceDialog.create(parent))
 								.withFilterOnRepositoryID(repositoryID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_SOURCE);
 										Repository.upsertRelationship(EntityManager.NODE_SOURCE, upsertedRecordID,
 											EntityManager.NODE_REPOSITORY, extractRecordID(container),
 											EntityManager.RELATIONSHIP_STORED_IN, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_SOURCE, deletedIDs.get(i),
+											EntityManager.NODE_REPOSITORY, repositoryID,
+											EntityManager.RELATIONSHIP_STORED_IN);
+
+									//update UI
+									final boolean hasSources = Repository.hasSources(EntityManager.NODE_REPOSITORY, repositoryID);
+									dialog.setButtonEnableAndBorder(dialog.sourcesButton, hasSources);
 								});
 							sourceDialog.loadData();
 
 							sourceDialog.showDialog();
 						}
+
 						case MODIFICATION_HISTORY_SHOW -> {
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
@@ -646,6 +697,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 							changeNoteDialog.showDialog();
 						}
+
 						case RESEARCH_STATUS_SHOW -> {
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
@@ -670,14 +722,15 @@ public final class RepositoryDialog extends CommonListDialog{
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
 										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_REPOSITORY, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_REPOSITORY, parentRecordID,

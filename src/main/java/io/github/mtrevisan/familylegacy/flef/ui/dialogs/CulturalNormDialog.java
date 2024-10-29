@@ -57,14 +57,13 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCredibility;
@@ -150,16 +149,17 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	}
 
 
-	public CulturalNormDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
-		BiConsumer<Collection<Map<String, Object>>, List<Integer>> innerOnCloseGracefully = (upsertedRecords, deletedIDs) -> {
+	public CulturalNormDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
+		Consumer<ModifiedRecords> innerOnCloseGracefully = modifiedRecords -> {
 			if(selectedRecord != null)
-				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
 					Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
 						filterReferenceTable, filterReferenceID,
 						EntityManager.RELATIONSHIP_SUPPORTED_BY, new HashMap<>(selectedRecordLink),
 						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 				}
+			final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 				Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
 					filterReferenceTable, filterReferenceID);
@@ -568,14 +568,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.NODE_ASSERTION, upsertedRecordID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
@@ -594,14 +595,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
 									? PlaceDialog.createSelectOnly(parent)
 									: PlaceDialog.create(parent))
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PLACE);
 										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.NODE_PLACE, upsertedRecordID,
 											EntityManager.RELATIONSHIP_APPLIES_IN, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.NODE_PLACE, deletedIDs.get(i),
@@ -625,14 +627,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateStartButton)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_HISTORIC_DATE);
 										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, upsertedRecordID,
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, deletedIDs.get(i),
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -655,14 +658,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateEndButton)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_HISTORIC_DATE);
 										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, upsertedRecordID,
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, deletedIDs.get(i),
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -687,14 +691,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -715,14 +720,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -742,14 +748,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
 										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
 											EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -814,14 +821,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
 										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_CULTURAL_NORM, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_CULTURAL_NORM, parentRecordID,

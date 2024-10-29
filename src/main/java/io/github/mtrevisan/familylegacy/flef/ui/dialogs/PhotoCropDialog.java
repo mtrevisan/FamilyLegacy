@@ -55,12 +55,9 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 
@@ -79,7 +76,7 @@ public final class PhotoCropDialog extends JDialog{
 	private Map<String, Object> selectedRecord;
 	private Integer selectedRecordID;
 
-	private BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully;
+	private Consumer<ModifiedRecords> onCloseGracefully;
 
 
 	public static PhotoCropDialog create(final Frame parent){
@@ -100,7 +97,7 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 
-	public PhotoCropDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
+	public PhotoCropDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		this.onCloseGracefully = onCloseGracefully;
 
 		return this;
@@ -142,8 +139,11 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 	private boolean closeAction(){
-		if(onCloseGracefully != null)
-			onCloseGracefully.accept(Collections.singletonList(selectedRecord), Collections.emptyList());
+		if(onCloseGracefully != null){
+			final ModifiedRecords modifiedRecords = new ModifiedRecords();
+			modifiedRecords.addModifiedRecord(selectedRecord);
+			onCloseGracefully.accept(modifiedRecords);
+		}
 
 		return true;
 	}

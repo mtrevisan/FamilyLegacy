@@ -81,7 +81,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
-import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -227,16 +227,17 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 
-	public MediaDialog withOnCloseGracefully(final BiConsumer<Collection<Map<String, Object>>, List<Integer>> onCloseGracefully){
-		BiConsumer<Collection<Map<String, Object>>, List<Integer>> innerOnCloseGracefully = (upsertedRecords, deletedIDs) -> {
+	public MediaDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
+		Consumer<ModifiedRecords> innerOnCloseGracefully = modifiedRecords -> {
 			if(selectedRecord != null)
-				for(final Map<String, Object> upsertedRecord : upsertedRecords){
+				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
 					Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
 						filterReferenceTable, filterReferenceID,
 						EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 				}
+			final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 				Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 					filterReferenceTable, filterReferenceID,
@@ -303,9 +304,7 @@ public final class MediaDialog extends CommonListDialog{
 
 		GUIHelper.bindLabelUndo(fileLabel, fileField);
 		GUIHelper.bindOnTextChange(fileField, () -> {
-			String identifier = GUIHelper.getTextTrimmed(fileField);
-			if(FileHelper.isRelativeURI(identifier))
-				identifier = FileHelper.getTargetPath(basePath, identifier);
+			final String identifier = FileHelper.composeURI(basePath, GUIHelper.getTextTrimmed(fileField));
 			enablePhotoRelatedButtons(identifier);
 
 			final Integer mediaID = extractRecordID(selectedRecord);
@@ -325,10 +324,9 @@ public final class MediaDialog extends CommonListDialog{
 			fileChooser.setFileFilter(filter);
 			String identifier = extractRecordIdentifier(selectedRecord);
 			if(identifier != null){
-				if(FileHelper.isRelativeURI(identifier))
-					identifier = FileHelper.getTargetPath(basePath, identifier);
+				identifier = FileHelper.composeURI(basePath, identifier);
 				final File file = new File(identifier);
-				fileChooser.setCurrentDirectory(file.getParentFile());
+				fileChooser.setCurrentDirectory(file.exists()? file.getParentFile(): FileHelper.documentsDirectory().toFile());
 			}
 
 			final int returnValue = fileChooser.showDialog(this, "Choose file");
@@ -356,9 +354,7 @@ public final class MediaDialog extends CommonListDialog{
 		openFolderButton.addActionListener(evt -> {
 			File file = null;
 			try{
-				String identifier = GUIHelper.getTextTrimmed(fileField);
-				if(FileHelper.isRelativeURI(identifier))
-					identifier = FileHelper.getTargetPath(basePath, identifier);
+				final String identifier = FileHelper.composeURI(basePath, GUIHelper.getTextTrimmed(fileField));
 
 				file = FileHelper.loadFile(identifier);
 				if(file.isFile())
@@ -375,9 +371,7 @@ public final class MediaDialog extends CommonListDialog{
 			String identifier = GUIHelper.getTextTrimmed(fileField);
 			File file = null;
 			try{
-				if(FileHelper.isRelativeURI(identifier))
-					identifier = FileHelper.getTargetPath(basePath, identifier);
-
+				identifier = FileHelper.composeURI(basePath, identifier);
 				file = FileHelper.loadFile(identifier);
 				if(file != null)
 					FileHelper.openFileWithChosenEditor(file);
@@ -582,8 +576,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	//NOTE working node-relationship extraction
 	private void photoCropButtonEnabledBorder(String identifier, final Integer mediaID){
-		if(FileHelper.isRelativeURI(identifier))
-			identifier = FileHelper.getTargetPath(basePath, identifier);
+		identifier = FileHelper.composeURI(basePath, identifier);
 		final File file = FileHelper.loadFile(identifier);
 		final boolean isPhoto = (file != null && file.exists() && FileHelper.isPhoto(file));
 		if(isPhoto){
@@ -611,9 +604,8 @@ public final class MediaDialog extends CommonListDialog{
 
 		boolean enable = false;
 
-		if(FileHelper.isRelativeURI(identifier))
-			identifier = FileHelper.getTargetPath(basePath, identifier);
 		boolean fileExists = true;
+		identifier = FileHelper.composeURI(basePath, identifier);
 		if(isValidURL(identifier))
 			openLinkButton.setEnabled(true);
 		else if(PATH_PATTERN.matcher(identifier).matches()){
@@ -670,8 +662,7 @@ public final class MediaDialog extends CommonListDialog{
 			return false;
 		}
 		if(restrictToPhoto && identifier != null){
-			if(FileHelper.isRelativeURI(identifier))
-				identifier = FileHelper.getTargetPath(basePath, identifier);
+			identifier = FileHelper.composeURI(basePath, identifier);
 			final File file = FileHelper.loadFile(identifier);
 			if(!FileHelper.isPhoto(file))
 				return false;
@@ -725,8 +716,7 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 	private byte[] extractPayload(String mediaPath){
-		if(FileHelper.isRelativeURI(mediaPath))
-			mediaPath = FileHelper.getTargetPath(basePath, mediaPath);
+		mediaPath = FileHelper.composeURI(basePath, mediaPath);
 		final File file = FileHelper.loadFile(mediaPath);
 		byte[] payload = null;
 		if(file != null && file.isFile()){
@@ -852,45 +842,71 @@ public final class MediaDialog extends CommonListDialog{
 					final Map<String, Object> container = editCommand.getContainer();
 					final int mediaID = extractRecordID(container);
 					switch(editCommand.getType()){
-						//FIXME
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
-							historicDateDialog.loadData();
-							final Map.Entry<String, Map<String, Object>> date = Repository.findReferencedNode(
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateButton)
+									? HistoricDateDialog.createSelectOnly(parent)
+									: HistoricDateDialog.create(parent))
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_HISTORIC_DATE);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.NODE_HISTORIC_DATE, upsertedRecordID,
+											EntityManager.RELATIONSHIP_HAPPENED_ON, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.NODE_HISTORIC_DATE, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_HAPPENED_ON);
+
+									//update UI
+									final boolean hasDate = Repository.hasDate(EntityManager.NODE_MEDIA, mediaID);
+									dialog.setButtonEnableAndBorder(dialog.dateButton, hasDate);
+								});
+							final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
 								EntityManager.NODE_MEDIA, mediaID,
 								EntityManager.RELATIONSHIP_CREATED_ON);
-							if(date != null)
-								historicDateDialog.selectData(extractRecordID(date.getValue()));
+							historicDateDialog.loadData();
+							if(dateNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateNode.getValue()));
 
 							historicDateDialog.showDialog();
 						}
 
-						//FIXME
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_MEDIA, mediaID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_NOTE);
 										Repository.upsertRelationship(EntityManager.NODE_NOTE, upsertedRecordID,
 											EntityManager.NODE_MEDIA, mediaID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
+											EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_MEDIA, mediaID);
+									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
 
-						//FIXME
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
 								? PhotoCropDialog.createSelectOnly(parent)
 								: PhotoCropDialog.create(parent));
-							photoCropDialog.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
+							photoCropDialog.withOnCloseGracefully(modifiedRecords -> {
 								final Rectangle crop = photoCropDialog.getCrop();
 								if(crop != null){
 									final StringJoiner sj = new StringJoiner(StringUtils.SPACE);
@@ -921,14 +937,15 @@ public final class MediaDialog extends CommonListDialog{
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
 								.withReference(EntityManager.NODE_MEDIA, mediaID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
 										Repository.upsertRelationship(EntityManager.NODE_MEDIA, mediaID,
 											EntityManager.NODE_ASSERTION, upsertedRecordID,
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_MEDIA, mediaID,
 											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
@@ -948,14 +965,15 @@ public final class MediaDialog extends CommonListDialog{
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_MEDIA, mediaID)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
 										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
 											EntityManager.NODE_MEDIA, mediaID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
 											EntityManager.NODE_MEDIA, mediaID,
@@ -1020,14 +1038,15 @@ public final class MediaDialog extends CommonListDialog{
 							final String tableName = editCommand.getIdentifier();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
-								.withOnCloseGracefully((upsertedRecords, deletedIDs) -> {
-									for(final Map<String, Object> upsertedRecord : upsertedRecords){
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
 										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
 											EntityManager.NODE_MEDIA, parentRecordID,
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
 											EntityManager.NODE_MEDIA, parentRecordID,

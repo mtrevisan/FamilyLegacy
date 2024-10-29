@@ -416,4 +416,10 @@ public class TextPreviewPane extends JSplitPane{
 		return GUIHelper.getTextTrimmed(textView);
 	}
 
+
+	@Override
+	public boolean requestFocusInWindow(){
+		return textView.requestFocusInWindow();
+	}
+
 }
