@@ -289,6 +289,8 @@ public abstract class CommonRecordDialog extends JDialog{
 	//fill record panel
 	protected abstract void fillData();
 
+	public abstract void refreshButtonStates(int recordID);
+
 	protected Map<String, Object> getSelectedRecord(){
 		final List<Map<String, Object>> records = Repository.findAll(getTableName());
 		return (!records.isEmpty()? records.getFirst(): null);

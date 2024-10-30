@@ -124,6 +124,7 @@ public final class PlaceDialog extends CommonListDialog{
 	public static PlaceDialog createSelectOnly(final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton,
 			dialog.groupButton);
 		dialog.initialize();
@@ -333,32 +334,41 @@ public final class PlaceDialog extends CommonListDialog{
 		final String coordinate = extractRecordCoordinate(selectedRecord);
 		final String coordinateSystem = extractRecordCoordinateSystem(selectedRecord);
 		final String coordinateCredibility = extractRecordCoordinateCredibility(selectedRecord);
-		final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_PLACE, placeID) != null);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PLACE, placeID);
-		final boolean hasTranscribedNames = Repository.hasTranscriptions(EntityManager.NODE_PLACE, placeID,
-			EntityManager.LOCALIZED_TEXT_TYPE_NAME);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PLACE, placeID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_PLACE, placeID);
-		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_PLACE, placeID);
-		final boolean hasGroups = Repository.hasGroups(EntityManager.NODE_PLACE, placeID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_PLACE, placeID);
 
 		identifierField.setText(identifier);
 		nameField.setText(name);
 		localeField.setText(nameLocale);
-		setButtonEnableAndBorder(transcribedNameButton, hasTranscribedNames);
 		typeComboBox.setSelectedItem(type);
 		coordinateField.setText(coordinate);
 		coordinateSystemComboBox.setSelectedItem(coordinateSystem);
 		coordinateCredibilityComboBox.setSelectedItem(coordinateCredibility);
+
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(placeID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasTranscribedNames = Repository.hasTranscriptions(tableName, recordID,
+			EntityManager.LOCALIZED_TEXT_TYPE_NAME);
+		final boolean hasPhoto = (Repository.getDepiction(tableName, recordID) != null);
+		setButtonEnableAndBorder(transcribedNameButton, hasTranscribedNames);
 		setButtonEnableAndBorder(photoButton, hasPhoto);
 
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
+		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
+		final boolean hasGroups = Repository.hasGroups(tableName, recordID);
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
 		setButtonEnableAndBorder(eventButton, hasEvents);
 		setButtonEnableAndBorder(groupButton, hasGroups);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	@Override
@@ -404,7 +414,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -556,8 +566,8 @@ public final class PlaceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_PLACE, placeID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
 								});
 							assertionDialog.loadData();
 
@@ -584,9 +594,8 @@ public final class PlaceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
 
 									//update UI
-									final boolean hasTranscribedNames = Repository.hasTranscriptions(EntityManager.NODE_PLACE, placeID,
-										EntityManager.LOCALIZED_TEXT_TYPE_NAME);
-									dialog.setButtonEnableAndBorder(dialog.transcribedNameButton, hasTranscribedNames);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
 								});
 							localizedTextDialog.loadData();
 
@@ -614,8 +623,8 @@ public final class PlaceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_DEPICTED_BY);
 
 									//update UI
-									final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_PLACE, placeID) != null);
-									dialog.setButtonEnableAndBorder(dialog.photoButton, hasPhoto);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
 								});
 							photoDialog.loadData();
 							boolean selected = false;
@@ -647,8 +656,8 @@ public final class PlaceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PLACE, placeID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
 								});
 							noteDialog.loadData();
 
@@ -676,8 +685,8 @@ public final class PlaceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PLACE, placeID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
 								});
 							mediaDialog.loadData();
 
@@ -704,8 +713,8 @@ public final class PlaceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_PLACE, placeID);
-									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
 								});
 							eventDialog.loadData();
 
@@ -732,8 +741,8 @@ public final class PlaceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_BELONGS_TO);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PLACE, placeID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
 								});
 							groupDialog.loadData();
 

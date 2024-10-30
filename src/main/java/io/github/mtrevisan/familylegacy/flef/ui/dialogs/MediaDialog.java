@@ -196,8 +196,6 @@ public final class MediaDialog extends CommonListDialog{
 
 			dialog.typeComboBox.setEnabled(false);
 		});
-		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
-			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -215,8 +213,6 @@ public final class MediaDialog extends CommonListDialog{
 	public static MediaDialog createEditOnly(final Frame parent){
 		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.showRecordOnly = true;
-		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
-			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -550,21 +546,13 @@ public final class MediaDialog extends CommonListDialog{
 		final String title = extractRecordTitle(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String photoProjection = extractRecordPhotoProjection(selectedRecord);
-		final boolean hasDate = Repository.hasDate(EntityManager.NODE_MEDIA, mediaID);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_MEDIA, mediaID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_MEDIA, mediaID);
-		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_MEDIA, mediaID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_MEDIA, mediaID);
 
 		fileField.setText(identifier);
 		titleField.setText(title);
 		typeComboBox.setSelectedItem(type);
 		photoProjectionComboBox.setSelectedItem(photoProjection);
-		setButtonEnableAndBorder(dateButton, hasDate);
 
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(eventButton, hasEvents);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		enablePhotoRelatedButtons(identifier);
@@ -572,6 +560,23 @@ public final class MediaDialog extends CommonListDialog{
 		photoCropButtonEnabledBorder(identifier, mediaID);
 
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
+
+
+		refreshButtonStates(mediaID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasDate = Repository.hasDate(tableName, recordID);
+		setButtonEnableAndBorder(dateButton, hasDate);
+
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
+		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(eventButton, hasEvents);
 	}
 
 	//NOTE working node-relationship extraction
@@ -673,7 +678,7 @@ public final class MediaDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -861,8 +866,8 @@ public final class MediaDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_HAPPENED_ON);
 
 									//update UI
-									final boolean hasDate = Repository.hasDate(EntityManager.NODE_MEDIA, mediaID);
-									dialog.setButtonEnableAndBorder(dialog.dateButton, hasDate);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(mediaID);
 								});
 							final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
 								EntityManager.NODE_MEDIA, mediaID,
@@ -894,8 +899,8 @@ public final class MediaDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_MEDIA, mediaID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(mediaID);
 								});
 							noteDialog.loadData();
 
@@ -952,8 +957,8 @@ public final class MediaDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_MEDIA, mediaID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(mediaID);
 								});
 							assertionDialog.loadData();
 
@@ -980,8 +985,8 @@ public final class MediaDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_MEDIA, mediaID);
-									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(mediaID);
 								});
 							eventDialog.loadData();
 

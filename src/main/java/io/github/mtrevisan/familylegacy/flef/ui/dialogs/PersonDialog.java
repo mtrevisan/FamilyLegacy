@@ -93,6 +93,7 @@ public final class PersonDialog extends CommonListDialog{
 	public static PersonDialog createSelectOnly(final Frame parent){
 		final PersonDialog dialog = new PersonDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton,
 			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
@@ -235,24 +236,32 @@ public final class PersonDialog extends CommonListDialog{
 	@Override
 	protected void fillData(){
 		final Integer personID = extractRecordID(selectedRecord);
-		final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_PERSON, personID) != null);
-		final boolean hasPersonNames = Repository.hasPersonNames(EntityManager.NODE_PERSON, personID);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PERSON, personID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PERSON, personID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_PERSON, personID);
-		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_PERSON, personID);
-		final boolean hasGroups = Repository.hasGroups(EntityManager.NODE_PERSON, personID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_PERSON, personID);
 
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(personID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasPersonNames = Repository.hasPersonNames(tableName, recordID);
+		final boolean hasPhoto = (Repository.getDepiction(tableName, recordID) != null);
 		setButtonEnableAndBorder(personNameButton, hasPersonNames);
 		setButtonEnableAndBorder(photoButton, hasPhoto);
 
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
+		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
+		final boolean hasGroups = Repository.hasGroups(tableName, recordID);
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
 		setButtonEnableAndBorder(eventButton, hasEvents);
 		setButtonEnableAndBorder(groupButton, hasGroups);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	@Override
@@ -517,8 +526,8 @@ public final class PersonDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_PERSON, personID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personID);
 								});
 							assertionDialog.loadData();
 
@@ -548,8 +557,8 @@ public final class PersonDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasPersonNames = Repository.hasPersonNames(EntityManager.NODE_PERSON, personID);
-									dialog.setButtonEnableAndBorder(dialog.personNameButton, hasPersonNames);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personID);
 								});
 							personNameDialog.loadData();
 
@@ -577,8 +586,8 @@ public final class PersonDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_DEPICTED_BY);
 
 									//update UI
-									final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_PERSON, personID) != null);
-									dialog.setButtonEnableAndBorder(dialog.photoButton, hasPhoto);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personID);
 								});
 							photoDialog.loadData();
 							boolean selected = false;
@@ -610,8 +619,8 @@ public final class PersonDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PERSON, personID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personID);
 								});
 							noteDialog.loadData();
 
@@ -639,8 +648,8 @@ public final class PersonDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PERSON, personID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personID);
 								});
 							mediaDialog.loadData();
 
@@ -667,8 +676,8 @@ public final class PersonDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_PERSON, personID);
-									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personID);
 								});
 							eventDialog.loadData();
 
@@ -695,8 +704,8 @@ public final class PersonDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_BELONGS_TO);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PERSON, personID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personID);
 								});
 							groupDialog.loadData();
 

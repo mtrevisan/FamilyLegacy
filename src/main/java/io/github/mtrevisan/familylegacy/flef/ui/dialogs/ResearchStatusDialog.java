@@ -105,6 +105,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	public static ResearchStatusDialog createSelectOnly(final Frame parent){
 		final ResearchStatusDialog dialog = new ResearchStatusDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
@@ -273,7 +274,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:

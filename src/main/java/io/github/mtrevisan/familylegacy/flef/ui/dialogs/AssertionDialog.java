@@ -276,19 +276,27 @@ public final class AssertionDialog extends CommonListDialog{
 		final String role = extractRecordRole(selectedRecord);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_ASSERTION, assertionID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_ASSERTION, assertionID);
-		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_ASSERTION, assertionID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_ASSERTION, assertionID);
 
 		roleField.setText(role);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(assertionID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		final boolean hasCulturalNorms = Repository.hasCulturalNorms(tableName, recordID);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	@Override
@@ -310,7 +318,7 @@ public final class AssertionDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -571,8 +579,8 @@ public final class AssertionDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_ASSERTION, assertionID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(assertionID);
 								});
 							noteDialog.loadData();
 
@@ -600,8 +608,8 @@ public final class AssertionDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_ASSERTION, assertionID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(assertionID);
 								});
 							mediaDialog.loadData();
 
@@ -628,8 +636,8 @@ public final class AssertionDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_ASSERTION, assertionID);
-									dialog.setButtonEnableAndBorder(dialog.culturalNormButton, hasCulturalNorms);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(assertionID);
 								});
 							culturalNormDialog.loadData();
 

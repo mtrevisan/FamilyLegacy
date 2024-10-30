@@ -366,7 +366,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:

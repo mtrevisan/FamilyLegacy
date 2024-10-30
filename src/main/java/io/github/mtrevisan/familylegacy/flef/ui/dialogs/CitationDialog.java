@@ -251,9 +251,10 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		final List<Map<String, Object>> records = (filterSourceID == null
 			? Repository.findAll(EntityManager.NODE_CITATION)
-			: Repository.findReferencingNodes(EntityManager.NODE_CITATION,
-				EntityManager.NODE_SOURCE, filterSourceID,
-				EntityManager.RELATIONSHIP_QUOTES));
+			: Repository.findReferencedNodes(EntityManager.NODE_SOURCE, filterSourceID, EntityManager.RELATIONSHIP_QUOTES).stream()
+				.filter(entry -> EntityManager.NODE_CITATION.equals(entry.getKey()))
+				.map(Map.Entry::getValue)
+				.toList());
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
@@ -296,23 +297,32 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final String extract = extractRecordExtract(selectedRecord);
 		final String extractLocale = extractRecordExtractLocale(selectedRecord);
 		final String extractType = extractRecordExtractType(selectedRecord);
-		final boolean hasTranscribedExtracts = Repository.hasTranscriptions(EntityManager.NODE_CITATION, citationID,
-			EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CITATION, citationID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_CITATION, citationID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CITATION, citationID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_CITATION, citationID);
 
 		locationField.setText(location);
 		extractTextPreview.setText("Note " + extractRecordID(selectedRecord), extract, extractLocale);
 		extractLocaleField.setText(extractLocale);
 		extractTypeComboBox.setSelectedItem(extractType);
-		setButtonEnableAndBorder(transcribedExtractButton, hasTranscribedExtracts);
 
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
+
+		refreshButtonStates(citationID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasTranscribedExtracts = Repository.hasTranscriptions(tableName, recordID,
+			EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
+		setButtonEnableAndBorder(transcribedExtractButton, hasTranscribedExtracts);
+
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
 	}
 
@@ -348,7 +358,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -536,9 +546,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 											EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
 
 									//update UI
-									final boolean hasTranscribedExtracts = Repository.hasTranscribedExtracts(EntityManager.NODE_LOCALIZED_TEXT,
-										citationID);
-									dialog.setButtonEnableAndBorder(dialog.transcribedExtractButton, hasTranscribedExtracts);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(citationID);
 								});
 							localizedTextDialog.loadData();
 
@@ -565,8 +574,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CITATION, citationID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(citationID);
 								});
 							noteDialog.loadData();
 
@@ -594,8 +603,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_CITATION, citationID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(citationID);
 								});
 							mediaDialog.loadData();
 
@@ -622,8 +631,8 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CITATION, citationID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(citationID);
 								});
 							assertionDialog.loadData();
 

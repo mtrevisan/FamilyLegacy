@@ -107,6 +107,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public static HistoricDateDialog createSelectOnly(final Frame parent){
 		final HistoricDateDialog dialog = new HistoricDateDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.calendarOriginalButton, dialog.noteButton, dialog.assertionButton);
 		dialog.initialize();
 		return dialog;
@@ -259,22 +260,31 @@ public final class HistoricDateDialog extends CommonListDialog{
 		final Integer historicDateID = extractRecordID(selectedRecord);
 		final String date = extractRecordDate(selectedRecord);
 		final String dateOriginal = extractRecordDateOriginal(selectedRecord);
-		final Integer calendarOriginalID = extractRecordCalendarID(historicDateID);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_HISTORIC_DATE, historicDateID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_HISTORIC_DATE, historicDateID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_HISTORIC_DATE, historicDateID);
 
 		dateField.setText(date);
 		dateOriginalField.setText(dateOriginal);
-		setButtonEnableAndBorder(calendarOriginalButton, calendarOriginalID != null);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
 
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(historicDateID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasCalendarOriginal = (extractRecordCalendarID(recordID) != null);
+		setButtonEnableAndBorder(calendarOriginalButton, hasCalendarOriginal);
+
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	private Integer extractRecordCalendarID(final Integer historicDateID){
@@ -314,7 +324,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -444,8 +454,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_HISTORIC_DATE, historicDateID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(historicDateID);
 								});
 							assertionDialog.loadData();
 
@@ -471,8 +481,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_EXPRESSED_IN);
 
 									//update UI
-									final boolean hasCalendarOriginal = Repository.hasCalendarOriginal(EntityManager.NODE_HISTORIC_DATE, historicDateID);
-									dialog.setButtonEnableAndBorder(dialog.calendarOriginalButton, hasCalendarOriginal);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(historicDateID);
 								});
 							calendarDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
@@ -506,8 +516,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_HISTORIC_DATE, historicDateID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(historicDateID);
 								});
 							noteDialog.loadData();
 

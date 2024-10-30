@@ -284,26 +284,35 @@ public final class PersonNameDialog extends CommonListDialog{
 		final String personalName = extractRecordPersonalName(selectedRecord);
 		final String familyName = extractRecordFamilyName(selectedRecord);
 		final String nameLocale = extractRecordLocale(selectedRecord);
-		final boolean hasTransliterations = Repository.hasPersonNameTransliterations(EntityManager.NODE_PERSON_NAME, personNameID);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PERSON_NAME, personNameID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PERSON_NAME, personNameID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_PERSON_NAME, personNameID);
-		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_PERSON_NAME, personNameID);
-		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_PERSON_NAME, personNameID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_PERSON_NAME, personNameID);
 
 		personalNameField.setText(personalName);
 		familyNameField.setText(familyName);
 		nameLocaleField.setText(nameLocale);
-		GUIHelper.addBorder(transcribedNameButton, hasTransliterations, DATA_BUTTON_BORDER_COLOR);
 		typeComboBox.setSelectedItem(type);
 
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(personNameID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasTransliterations = Repository.hasPersonNameTransliterations(tableName, recordID);
+		setButtonEnableAndBorder(transcribedNameButton, hasTransliterations);
+
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
+		final boolean hasCulturalNorms = Repository.hasCulturalNorms(tableName, recordID);
+		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
 		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
 		setButtonEnableAndBorder(eventButton, hasEvents);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	@Override
@@ -338,7 +347,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -494,9 +503,8 @@ public final class PersonNameDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasTransliterations = Repository.hasPersonNameTransliterations(EntityManager.NODE_PERSON_NAME,
-										personNameID);
-									dialog.setButtonEnableAndBorder(dialog.transcribedNameButton, hasTransliterations);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personNameID);
 								});
 							localizedPersonNameDialog.loadData();
 
@@ -523,8 +531,8 @@ public final class PersonNameDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_PERSON_NAME, personNameID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personNameID);
 								});
 							noteDialog.loadData();
 
@@ -552,8 +560,8 @@ public final class PersonNameDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_PERSON_NAME, personNameID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personNameID);
 								});
 							mediaDialog.loadData();
 
@@ -580,8 +588,8 @@ public final class PersonNameDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_PERSON_NAME, personNameID);
-									dialog.setButtonEnableAndBorder(dialog.culturalNormButton, hasCulturalNorms);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personNameID);
 								});
 							culturalNormDialog.loadData();
 
@@ -608,8 +616,8 @@ public final class PersonNameDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_PERSON_NAME, personNameID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personNameID);
 								});
 							assertionDialog.loadData();
 
@@ -636,8 +644,8 @@ public final class PersonNameDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_PERSON_NAME, personNameID);
-									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personNameID);
 								});
 							eventDialog.loadData();
 

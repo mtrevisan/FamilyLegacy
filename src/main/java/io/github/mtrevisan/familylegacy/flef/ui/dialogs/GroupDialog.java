@@ -342,24 +342,10 @@ public final class GroupDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer groupID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_GROUP, groupID) != null);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_GROUP, groupID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_GROUP, groupID);
-		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_GROUP, groupID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_GROUP, groupID);
-		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_GROUP, groupID);
-		final boolean hasGroups = Repository.hasGroups(EntityManager.NODE_GROUP, groupID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_GROUP, groupID);
 
 		typeComboBox.setSelectedItem(type);
-		setButtonEnableAndBorder(photoButton, hasPhoto);
 
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
-		setButtonEnableAndBorder(eventButton, hasEvents);
-		setButtonEnableAndBorder(groupButton, hasGroups);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		linkRoleField.setText(null);
@@ -387,6 +373,29 @@ public final class GroupDialog extends CommonListDialog{
 		}
 
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
+
+
+		refreshButtonStates(groupID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasPhoto = (Repository.getDepiction(tableName, recordID) != null);
+		setButtonEnableAndBorder(photoButton, hasPhoto);
+
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		final boolean hasCulturalNorms = Repository.hasCulturalNorms(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
+		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
+		final boolean hasGroups = Repository.hasGroups(tableName, recordID);
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
+		setButtonEnableAndBorder(eventButton, hasEvents);
+		setButtonEnableAndBorder(groupButton, hasGroups);
 	}
 
 	@Override
@@ -414,7 +423,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -743,8 +752,8 @@ public final class GroupDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_DEPICTED_BY);
 
 									//update UI
-									final boolean hasPhoto = (Repository.getDepiction(EntityManager.NODE_GROUP, groupID) != null);
-									dialog.setButtonEnableAndBorder(dialog.photoButton, hasPhoto);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(groupID);
 								});
 							photoDialog.loadData();
 							boolean selected = false;
@@ -776,8 +785,8 @@ public final class GroupDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_GROUP, groupID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(groupID);
 								});
 							noteDialog.loadData();
 
@@ -804,8 +813,8 @@ public final class GroupDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_GROUP, groupID);
-									dialog.setButtonEnableAndBorder(dialog.culturalNormButton, hasCulturalNorms);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(groupID);
 								});
 							culturalNormDialog.loadData();
 
@@ -833,8 +842,8 @@ public final class GroupDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_GROUP, groupID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(groupID);
 								});
 							mediaDialog.loadData();
 
@@ -861,8 +870,8 @@ public final class GroupDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_GROUP, groupID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(groupID);
 								});
 							assertionDialog.loadData();
 
@@ -889,8 +898,8 @@ public final class GroupDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_GROUP, groupID);
-									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(groupID);
 								});
 							eventDialog.loadData();
 
@@ -917,8 +926,8 @@ public final class GroupDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_BELONGS_TO);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_GROUP, groupID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(groupID);
 								});
 							groupDialog.loadData();
 

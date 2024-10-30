@@ -88,6 +88,7 @@ public final class CalendarDialog extends CommonListDialog{
 	public static CalendarDialog createSelectOnly(final Frame parent){
 		final CalendarDialog dialog = new CalendarDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.noteButton, dialog.assertionButton, dialog.eventButton);
 		dialog.initialize();
 		return dialog;
@@ -212,11 +213,19 @@ public final class CalendarDialog extends CommonListDialog{
 	protected void fillData(){
 		final Integer calendarID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CALENDAR, calendarID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CALENDAR, calendarID);
-		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CALENDAR, calendarID);
 
 		typeField.setText(type);
+
+
+		refreshButtonStates(calendarID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
+		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
 
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(assertionButton, hasAssertions);
@@ -249,7 +258,7 @@ public final class CalendarDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -347,8 +356,8 @@ public final class CalendarDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CALENDAR, calendarID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(calendarID);
 								});
 							assertionDialog.loadData();
 
@@ -375,8 +384,8 @@ public final class CalendarDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CALENDAR, calendarID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(calendarID);
 								});
 							noteDialog.loadData();
 
@@ -403,8 +412,8 @@ public final class CalendarDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CALENDAR, calendarID);
-									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(calendarID);
 								});
 							eventDialog.loadData();
 

@@ -33,6 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.neo4j.configuration.GraphDatabaseSettings;
 import org.neo4j.dbms.api.DatabaseManagementService;
 import org.neo4j.dbms.api.DatabaseManagementServiceBuilder;
+import org.neo4j.graphdb.Direction;
 import org.neo4j.graphdb.GraphDatabaseService;
 import org.neo4j.graphdb.Label;
 import org.neo4j.graphdb.Node;
@@ -548,7 +549,8 @@ public class GraphDatabaseManager{
 //					nodeIDStart, tableNameStart.toUpperCase(Locale.ROOT));
 				return null;
 
-			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(RelationshipType.withName(relationshipName));
+			final ResourceIterable<Relationship> relationships = nodeStart.getRelationships(Direction.OUTGOING,
+				RelationshipType.withName(relationshipName));
 			final long relationshipCount = relationships.stream().count();
 			if(relationshipCount > 1)
 				throw StoreException.create("More than one node found from {} {} with relationship {}",

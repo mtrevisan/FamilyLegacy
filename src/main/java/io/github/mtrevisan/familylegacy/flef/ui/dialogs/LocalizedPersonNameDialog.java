@@ -309,7 +309,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:

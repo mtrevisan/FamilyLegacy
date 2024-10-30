@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -39,6 +40,7 @@ import javax.swing.UIManager;
 import java.awt.EventQueue;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -97,6 +99,7 @@ public class Main{
 //							repositoryDialog.show();
 //						}
 
+						//FIXME
 						//from: repository
 						case SOURCE -> {
 							final SourceDialog sourceDialog = SourceDialog.create(parent)
@@ -120,6 +123,7 @@ public class Main{
 							sourceDialog.showDialog();
 						}
 
+						//FIXME
 						//from: source
 						case CITATION -> {
 							final CitationDialog citationDialog = CitationDialog.create(parent)
@@ -143,6 +147,7 @@ public class Main{
 							citationDialog.showDialog();
 						}
 
+						//FIXME
 						//from: citation, person, person name, group, media, place, cultural norm, historic date, calendar
 						case ASSERTION -> {
 							final AssertionDialog assertionDialog = AssertionDialog.create(parent)
@@ -153,6 +158,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: source, event, media
 						case HISTORIC_DATE -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.createRecordOnly(parent);
@@ -171,6 +177,7 @@ public class Main{
 							historicDateDialog.showDialog();
 						}
 
+						//FIXME
 						//from: cultural norm
 						case HISTORIC_DATE_START -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
@@ -183,6 +190,7 @@ public class Main{
 
 							historicDateDialog.showDialog();
 						}
+						//FIXME
 						//from: cultural norm
 						case HISTORIC_DATE_END -> {
 							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
@@ -196,6 +204,7 @@ public class Main{
 							historicDateDialog.showDialog();
 						}
 
+						//FIXME
 						//from: historic date
 						case CALENDAR_ORIGINAL -> {
 							final CalendarDialog calendarDialog = CalendarDialog.create(parent)
@@ -220,6 +229,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: repository, source, event, cultural norm
 						case PLACE -> {
 							final PlaceDialog placeDialog = PlaceDialog.create(parent)
@@ -257,6 +267,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: repository, source, citation, assertion, historic date, calendar, person, person name, group, event,
 						// cultural norm, media, place
 						case NOTE -> {
@@ -277,6 +288,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: citation
 						case LOCALIZED_EXTRACT -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
@@ -295,6 +307,7 @@ public class Main{
 							localizedTextDialog.showDialog();
 						}
 
+						//FIXME
 						//from: person name
 						case LOCALIZED_PERSON_NAME -> {
 							final LocalizedPersonNameDialog localizedTextDialog = LocalizedPersonNameDialog.create(parent)
@@ -313,6 +326,7 @@ public class Main{
 							localizedTextDialog.showDialog();
 						}
 
+						//FIXME
 						//from: place
 						case LOCALIZED_PLACE_NAME -> {
 							final LocalizedTextDialog localizedTextDialog = LocalizedTextDialog.createSimpleText(parent)
@@ -332,6 +346,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: repository, source, citation, assertion, person, person name, group, event, cultural norm, note, place
 						case MEDIA -> {
 							final MediaDialog mediaDialog = MediaDialog.createForMedia(parent)
@@ -356,6 +371,7 @@ public class Main{
 							mediaDialog.showDialog();
 						}
 
+						//FIXME
 						//from: person, group, place
 						case PHOTO -> {
 							final MediaDialog photoDialog = MediaDialog.createForPhoto(parent)
@@ -384,6 +400,7 @@ public class Main{
 							photoDialog.showDialog();
 						}
 
+						//FIXME
 						//from: person, group, media, place
 						case PHOTO_CROP -> {
 							final PhotoCropDialog photoCropDialog = PhotoCropDialog.create(parent)
@@ -417,6 +434,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: repository
 						case PERSON -> {
 							final PersonDialog personDialog = PersonDialog.create(parent)
@@ -439,6 +457,7 @@ public class Main{
 							personDialog.showDialog();
 						}
 
+						//FIXME
 						//from: person
 						case PERSON_NAME -> {
 							final PersonNameDialog personNameDialog = PersonNameDialog.create(parent)
@@ -461,6 +480,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: person, group, place
 						case GROUP -> {
 							final GroupDialog groupDialog = GroupDialog.create(parent)
@@ -476,6 +496,7 @@ public class Main{
 						}
 
 
+						//FIXME
 						//from: calendar, person, person name, group, cultural norm, media, place
 						case EVENT -> {
 							final EventDialog eventDialog = EventDialog.create(parent)
@@ -498,6 +519,15 @@ public class Main{
 											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
+											tableName, containerID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(containerID);
 								});
 							culturalNormDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> culturalNormNode = Repository.findReferencedNode(
@@ -510,9 +540,76 @@ public class Main{
 						}
 
 
-//						case RESEARCH_STATUS -> {
-							//TODO
-//						}
+						case MODIFICATION_HISTORY_SHOW -> {
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Show modification note for " + title + " " + containerID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+						case MODIFICATION_HISTORY_EDIT -> {
+							final Integer noteID = (Integer)container.get("noteID");
+							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							changeNoteDialog.setTitle("Edit modification note for " + title + " " + containerID);
+							changeNoteDialog.loadData();
+							changeNoteDialog.selectData(noteID);
+
+							changeNoteDialog.showDialog();
+						}
+
+
+						case RESEARCH_STATUS_SHOW -> {
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Show research status for " + title + " " + containerID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_EDIT -> {
+							final Integer researchStatusID = (Integer)container.get("researchStatusID");
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("Edit research status for " + title + " " + containerID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
+						case RESEARCH_STATUS_NEW -> {
+							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
+							final Integer researchStatusID = extractRecordID(container);
+							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_RESEARCH_STATUS);
+										Repository.upsertRelationship(EntityManager.NODE_RESEARCH_STATUS, upsertedRecordID,
+											tableName, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_RESEARCH_STATUS, deletedIDs.get(i),
+											tableName, parentRecordID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//refresh research status table
+									dialog.reloadResearchStatusTable();
+								});
+							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
+							researchStatusDialog.setTitle("New research status for " + title + " " + parentRecordID);
+							researchStatusDialog.loadData();
+							researchStatusDialog.selectData(researchStatusID);
+
+							researchStatusDialog.showDialog();
+						}
 
 
 						//from: ?

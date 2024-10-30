@@ -597,10 +597,8 @@ public class Repository{
 	 * @return	Whether the record has citations.
 	 */
 	public static boolean hasCitations(final String tableName, final Integer recordID){
-		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_CITATION,
-			tableName, recordID,
-			EntityManager.RELATIONSHIP_QUOTES);
-		return !result.isEmpty();
+		return findReferencedNodes(tableName, recordID, EntityManager.RELATIONSHIP_QUOTES).stream()
+			.anyMatch(entry -> EntityManager.NODE_CITATION.equals(entry.getKey()));
 	}
 
 	/**

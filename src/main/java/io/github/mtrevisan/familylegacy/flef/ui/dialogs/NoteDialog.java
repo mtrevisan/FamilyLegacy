@@ -272,16 +272,25 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		final Integer noteID = extractRecordID(selectedRecord);
 		final String note = extractRecordNote(selectedRecord);
 		final String locale = extractRecordLocale(selectedRecord);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_NOTE, noteID);
-		final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_NOTE, noteID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_NOTE, noteID);
 
 		noteTextPreview.setText("Note " + noteID, note, locale);
 		localeField.setText(locale);
 
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(noteID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		final boolean hasCulturalNorms = Repository.hasCulturalNorms(tableName, recordID);
+
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	@Override
@@ -308,7 +317,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -419,8 +428,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasCulturalNorms = Repository.hasCulturalNorms(EntityManager.NODE_NOTE, noteID);
-									dialog.setButtonEnableAndBorder(dialog.culturalNormButton, hasCulturalNorms);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(noteID);
 								});
 							culturalNormDialog.loadData();
 
@@ -448,8 +457,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_NOTE, noteID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(noteID);
 								});
 							mediaDialog.loadData();
 

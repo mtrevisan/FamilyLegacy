@@ -334,10 +334,6 @@ public final class EventDialog extends CommonListDialog{
 		final Integer eventID = extractRecordID(selectedRecord);
 		final String type = extractRecordType(eventID);
 		final String description = extractRecordDescription(selectedRecord);
-		final boolean hasPlaces = Repository.hasPlace(EntityManager.NODE_EVENT, eventID);
-		final boolean hasDate = Repository.hasDate(EntityManager.NODE_EVENT, eventID);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_EVENT, eventID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_EVENT, eventID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_EVENT, eventID);
 
 		final ItemEvent itemEvent = new ItemEvent(typeComboBox, ItemEvent.ITEM_STATE_CHANGED, typeComboBox.getItemAt(0),
@@ -348,12 +344,25 @@ public final class EventDialog extends CommonListDialog{
 		typeComboBox.setSelectedItem(type);
 
 		descriptionField.setText(description);
+
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(eventID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasPlaces = Repository.hasPlace(tableName, recordID);
+		final boolean hasDate = Repository.hasDate(tableName, recordID);
 		setButtonEnableAndBorder(placeButton, hasPlaces);
 		setButtonEnableAndBorder(dateButton, hasDate);
 
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 	}
 
 	private String extractRecordType(final Integer eventID){
@@ -396,7 +405,7 @@ public final class EventDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -639,8 +648,8 @@ public final class EventDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_HAPPENED_IN);
 
 									//update UI
-									final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_EVENT, eventID);
-									dialog.setButtonEnableAndBorder(dialog.placeButton, hasPlace);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(eventID);
 								});
 							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 								EntityManager.NODE_EVENT, eventID,
@@ -671,8 +680,8 @@ public final class EventDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_HAPPENED_ON);
 
 									//update UI
-									final boolean hasDate = Repository.hasDate(EntityManager.NODE_EVENT, eventID);
-									dialog.setButtonEnableAndBorder(dialog.dateButton, hasDate);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(eventID);
 								});
 							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
 								EntityManager.NODE_EVENT, eventID,
@@ -704,8 +713,8 @@ public final class EventDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_EVENT, eventID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(eventID);
 								});
 							noteDialog.loadData();
 
@@ -733,8 +742,8 @@ public final class EventDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_EVENT, eventID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(eventID);
 								});
 							mediaDialog.loadData();
 

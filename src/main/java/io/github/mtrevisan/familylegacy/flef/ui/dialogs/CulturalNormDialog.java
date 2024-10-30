@@ -329,29 +329,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final Integer culturalNormID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
-		final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-		final boolean hasDateStart = Repository.hasDateStart(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-		final boolean hasDateEnd = Repository.hasDateEnd(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
 		final String certainty = extractRecordCertainty(selectedRecord);
 		final String credibility = extractRecordCredibility(selectedRecord);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-		final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-		final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
 
 		identifierField.setText(identifier);
 		descriptionTextPreview.setText("Cultural norm " + culturalNormID, description, null);
-		setButtonEnableAndBorder(placeButton, hasPlace);
-		setButtonEnableAndBorder(dateStartButton, hasDateStart);
-		setButtonEnableAndBorder(dateEndButton, hasDateEnd);
 		certaintyComboBox.setSelectedItem(certainty);
 		credibilityComboBox.setSelectedItem(credibility);
 
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(eventButton, hasEvents);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
 		linkCertaintyComboBox.setSelectedItem(null);
@@ -376,6 +362,29 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		}
 
 		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
+
+
+		refreshButtonStates(culturalNormID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasPlace = Repository.hasPlace(tableName, recordID);
+		final boolean hasDateStart = Repository.hasDateStart(tableName, recordID);
+		final boolean hasDateEnd = Repository.hasDateEnd(tableName, recordID);
+		setButtonEnableAndBorder(placeButton, hasPlace);
+		setButtonEnableAndBorder(dateStartButton, hasDateStart);
+		setButtonEnableAndBorder(dateEndButton, hasDateEnd);
+
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
+		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonEnableAndBorder(eventButton, hasEvents);
 	}
 
 	@Override
@@ -413,7 +422,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -583,8 +592,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 											EntityManager.RELATIONSHIP_SUPPORTED_BY);
 
 									//update UI
-									final boolean hasAssertions = Repository.hasAssertions(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-									dialog.setButtonEnableAndBorder(dialog.assertionButton, hasAssertions);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
 								});
 							assertionDialog.loadData();
 
@@ -610,8 +619,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 											EntityManager.RELATIONSHIP_APPLIES_IN);
 
 									//update UI
-									final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-									dialog.setButtonEnableAndBorder(dialog.placeButton, hasPlace);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
 								});
 							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -642,8 +651,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasDateStart = Repository.hasDateStart(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-									dialog.setButtonEnableAndBorder(dialog.dateStartButton, hasDateStart);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
 								});
 							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -673,8 +682,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasDateEnd = Repository.hasDateEnd(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-									dialog.setButtonEnableAndBorder(dialog.dateEndButton, hasDateEnd);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
 								});
 							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
 								EntityManager.NODE_CULTURAL_NORM, culturalNormID,
@@ -706,8 +715,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
 								});
 							noteDialog.loadData();
 
@@ -735,8 +744,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
 								});
 							mediaDialog.loadData();
 
@@ -763,8 +772,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasEvents = Repository.hasEvents(EntityManager.NODE_CULTURAL_NORM, culturalNormID);
-									dialog.setButtonEnableAndBorder(dialog.eventButton, hasEvents);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
 								});
 							eventDialog.loadData();
 

@@ -296,25 +296,34 @@ public final class SourceDialog extends CommonListDialog{
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
 		final String author = extractRecordAuthor(selectedRecord);
-		final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_SOURCE, sourceID);
-		final boolean hasDate = Repository.hasDate(EntityManager.NODE_SOURCE, sourceID);
 		final String location = extractRecordLocation(selectedRecord);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_SOURCE, sourceID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_SOURCE, sourceID);
-		final boolean hasCitations = Repository.hasCitations(EntityManager.NODE_SOURCE, sourceID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_SOURCE, sourceID);
 
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
 		authorField.setText(author);
-		setButtonEnableAndBorder(placeButton, hasPlace);
-		setButtonEnableAndBorder(dateButton, hasDate);
 		locationField.setText(location);
 
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
+
+		refreshButtonStates(sourceID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasPlace = Repository.hasPlace(tableName, recordID);
+		final boolean hasDate = Repository.hasDate(tableName, recordID);
+		setButtonEnableAndBorder(placeButton, hasPlace);
+		setButtonEnableAndBorder(dateButton, hasDate);
+
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
+		setButtonEnableAndBorder(noteButton, hasNotes);
+		setButtonEnableAndBorder(mediaButton, hasMedia);
+
+		final boolean hasCitations = Repository.hasCitations(tableName, recordID);
 		setButtonEnableAndBorder(citationButton, hasCitations);
 	}
 
@@ -349,7 +358,7 @@ public final class SourceDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		//read record panel:
@@ -454,8 +463,8 @@ public final class SourceDialog extends CommonListDialog{
 		citation1.put("extract_locale", "en-US");
 		citation1.put("extract_type", "transcript");
 		int citation1ID = Repository.upsert(citation1, EntityManager.NODE_CITATION);
-		Repository.upsertRelationship(EntityManager.NODE_CITATION, citation1ID,
-			EntityManager.NODE_SOURCE, source2ID,
+		Repository.upsertRelationship(EntityManager.NODE_SOURCE, source2ID,
+			EntityManager.NODE_CITATION, citation1ID,
 			EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 
@@ -503,33 +512,70 @@ public final class SourceDialog extends CommonListDialog{
 					final Map<String, Object> container = editCommand.getContainer();
 					final int sourceID = extractRecordID(container);
 					switch(editCommand.getType()){
-						//FIXME
 						case PLACE -> {
-							final PlaceDialog placeDialog = PlaceDialog.create(parent);
-							placeDialog.loadData();
+							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
+									? PlaceDialog.createSelectOnly(parent)
+									: PlaceDialog.create(parent))
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PLACE);
+										Repository.upsertRelationship(EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.NODE_PLACE, upsertedRecordID,
+											EntityManager.RELATIONSHIP_CREATED_IN, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.NODE_PLACE, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_CREATED_IN);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(sourceID);
+								});
 							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
 								EntityManager.NODE_SOURCE, sourceID,
 								EntityManager.RELATIONSHIP_CREATED_IN);
+							placeDialog.loadData();
 							if(placeNode != null && EntityManager.NODE_PLACE.equals(placeNode.getKey()))
 								placeDialog.selectData(extractRecordID(placeNode.getValue()));
 
 							placeDialog.showDialog();
 						}
 
-						//FIXME
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = HistoricDateDialog.create(parent);
-							historicDateDialog.loadData();
-							final Map.Entry<String, Map<String, Object>> dateNode = Repository.findReferencedNode(
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateButton)
+									? HistoricDateDialog.createSelectOnly(parent)
+									: HistoricDateDialog.create(parent))
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_HISTORIC_DATE);
+										Repository.upsertRelationship(EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.NODE_HISTORIC_DATE, upsertedRecordID,
+											EntityManager.RELATIONSHIP_CREATED_ON, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.NODE_HISTORIC_DATE, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_CREATED_ON);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(sourceID);
+								});
+							final Map.Entry<String, Map<String, Object>> dateEndNode = Repository.findReferencedNode(
 								EntityManager.NODE_SOURCE, sourceID,
 								EntityManager.RELATIONSHIP_CREATED_ON);
-							if(dateNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateNode.getKey()))
-								historicDateDialog.selectData(extractRecordID(dateNode.getValue()));
+							historicDateDialog.loadData();
+							if(dateEndNode != null && EntityManager.NODE_HISTORIC_DATE.equals(dateEndNode.getKey()))
+								historicDateDialog.selectData(extractRecordID(dateEndNode.getValue()));
 
 							historicDateDialog.showDialog();
 						}
 
-						//FIXME
 						case NOTE -> {
 							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
 									? NoteDialog.createSelectOnly(parent)
@@ -543,13 +589,21 @@ public final class SourceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_NOTE, deletedIDs.get(i),
+											EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(sourceID);
 								});
 							noteDialog.loadData();
 
 							noteDialog.showDialog();
 						}
 
-						//FIXME
 						case MEDIA -> {
 							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
 									? MediaDialog.createSelectOnlyForMedia(parent)
@@ -564,16 +618,44 @@ public final class SourceDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
+											EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(sourceID);
 								});
 							mediaDialog.loadData();
 
 							mediaDialog.showDialog();
 						}
 
-						//FIXME
 						case CITATION -> {
-							final CitationDialog citationDialog = CitationDialog.create(parent)
-								.withFilterOnSourceID(sourceID);
+							final CitationDialog citationDialog = (dialog.isViewOnlyComponent(dialog.citationButton)
+									? CitationDialog.createSelectOnly(parent)
+									: CitationDialog.create(parent))
+								.withFilterOnSourceID(sourceID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+										Repository.upsertRelationship(EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.NODE_CITATION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_QUOTES, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_SOURCE, sourceID,
+											EntityManager.NODE_CITATION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_QUOTES);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(sourceID);
+								});
 							citationDialog.loadData();
 
 							citationDialog.showDialog();

@@ -101,6 +101,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	public static RepositoryDialog createSelectOnly(final Frame parent){
 		final RepositoryDialog dialog = new RepositoryDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.referencePersonButton, dialog.placeButton, dialog.noteButton, dialog.mediaButton,
 			dialog.sourcesButton);
 		dialog.initialize();
@@ -255,22 +256,31 @@ public final class RepositoryDialog extends CommonListDialog{
 		final Integer repositoryID = extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String type = extractRecordType(selectedRecord);
-		final boolean hasOwner = Repository.hasOwner(EntityManager.NODE_REPOSITORY, repositoryID);
-		final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_REPOSITORY, repositoryID);
-		final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_REPOSITORY, repositoryID);
-		final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_REPOSITORY, repositoryID);
-		final boolean hasSources = Repository.hasSources(EntityManager.NODE_REPOSITORY, repositoryID);
 		final String restriction = Repository.getRestriction(EntityManager.NODE_REPOSITORY, repositoryID);
 
 		identifierField.setText(identifier);
 		typeComboBox.setSelectedItem(type);
+
+		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
+
+
+		refreshButtonStates(repositoryID);
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){
+		final String tableName = getTableName();
+		final boolean hasOwner = Repository.hasOwner(tableName, recordID);
+		final boolean hasPlace = Repository.hasPlace(tableName, recordID);
 		setButtonEnableAndBorder(referencePersonButton, hasOwner);
 		setButtonEnableAndBorder(placeButton, hasPlace);
 
+		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
+		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
 		setButtonEnableAndBorder(noteButton, hasNotes);
 		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
+		final boolean hasSources = Repository.hasSources(tableName, recordID);
 		setButtonEnableAndBorder(sourcesButton, hasSources);
 	}
 
@@ -303,7 +313,7 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	@Override
 	protected boolean saveData(){
-		if(ignoreEvents || selectedRecord == null)
+		if(ignoreEvents || selectedRecord == null || selectRecordOnly)
 			return false;
 
 		final String identifier = GUIHelper.getTextTrimmed(identifierField);
@@ -547,8 +557,8 @@ public final class RepositoryDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_OWNED_BY);
 
 									//update UI
-									final boolean hasOwner = Repository.hasOwner(EntityManager.NODE_REPOSITORY, repositoryID);
-									dialog.setButtonEnableAndBorder(dialog.referencePersonButton, hasOwner);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(repositoryID);
 								});
 							personDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> ownerNode = Repository.findReferencedNode(
@@ -579,8 +589,8 @@ public final class RepositoryDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_APPLIES_IN);
 
 									//update UI
-									final boolean hasPlace = Repository.hasPlace(EntityManager.NODE_REPOSITORY, repositoryID);
-									dialog.setButtonEnableAndBorder(dialog.placeButton, hasPlace);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(repositoryID);
 								});
 							placeDialog.loadData();
 							final Map.Entry<String, Map<String, Object>> placeNode = Repository.findReferencedNode(
@@ -612,8 +622,8 @@ public final class RepositoryDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasNotes = Repository.hasNotes(EntityManager.NODE_REPOSITORY, repositoryID);
-									dialog.setButtonEnableAndBorder(dialog.noteButton, hasNotes);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(repositoryID);
 								});
 							noteDialog.loadData();
 
@@ -641,8 +651,8 @@ public final class RepositoryDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_FOR);
 
 									//update UI
-									final boolean hasMedia = Repository.hasMedia(EntityManager.NODE_REPOSITORY, repositoryID);
-									dialog.setButtonEnableAndBorder(dialog.mediaButton, hasMedia);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(repositoryID);
 								});
 							mediaDialog.loadData();
 
@@ -669,8 +679,8 @@ public final class RepositoryDialog extends CommonListDialog{
 											EntityManager.RELATIONSHIP_STORED_IN);
 
 									//update UI
-									final boolean hasSources = Repository.hasSources(EntityManager.NODE_REPOSITORY, repositoryID);
-									dialog.setButtonEnableAndBorder(dialog.sourcesButton, hasSources);
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(repositoryID);
 								});
 							sourceDialog.loadData();
 

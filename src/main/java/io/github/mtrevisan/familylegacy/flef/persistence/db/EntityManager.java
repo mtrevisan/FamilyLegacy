@@ -269,162 +269,159 @@ public class EntityManager{
 
 
 	public static void insertRecordRestriction(final Map<String, Object> record, final String restriction){
-		record.put("restriction", restriction);
+		record.compute("restriction", (k, v) -> restriction);
 	}
 
 	public static void insertRecordCreationDate(final Map<String, Object> record, final String creationDate){
-		record.put("creation_date", creationDate);
+		record.compute("creation_date", (k, v) -> creationDate);
 	}
 
 	public static void insertRecordUpdateDate(final Map<String, Object> record, final String updateDate){
-		record.put("update_date", updateDate);
+		record.compute("update_date", (k, v) -> updateDate);
 	}
 
 	public static void insertRecordCertainty(final Map<String, Object> record, final String certainty){
-		record.put("certainty", certainty);
+		record.compute("certainty", (k, v) -> certainty);
 	}
 
 	public static void insertRecordCredibility(final Map<String, Object> record, final String credibility){
-		record.put("credibility", credibility);
+		record.compute("credibility", (k, v) -> credibility);
 	}
 
 	public static void insertRecordRole(final Map<String, Object> record, final String role){
-		record.put("role", role);
+		record.compute("role", (k, v) -> role);
 	}
 
 	public static void insertRecordSuperType(final Map<String, Object> record, final String superType){
-		record.put("super_type", superType);
+		record.compute("super_type", (k, v) -> superType);
 	}
 
 	public static void insertRecordType(final Map<String, Object> record, final String type){
-		record.put("type", type);
+		record.compute("type", (k, v) -> type);
 	}
 
 	public static void insertRecordLocation(final Map<String, Object> record, final String location){
-		record.put("location", location);
+		record.compute("location", (k, v) -> location);
 	}
 
 	public static void insertRecordExtract(final Map<String, Object> record, final String extract){
-		record.put("extract", extract);
+		record.compute("extract", (k, v) -> extract);
 	}
 
 	public static void insertRecordExtractLocale(final Map<String, Object> record, final String extractLocale){
-		record.put("extract_locale", extractLocale);
+		record.compute("extract_locale", (k, v) -> extractLocale);
 	}
 
 	public static void insertRecordExtractType(final Map<String, Object> record, final String extractType){
-		record.put("extract_type", extractType);
+		record.compute("extract_type", (k, v) -> extractType);
 	}
 
 	public static void insertRecordIdentifier(final Map<String, Object> record, final String identifier){
-		record.put("identifier", identifier);
+		record.compute("identifier", (k, v) -> identifier);
 	}
 
 	public static void insertRecordDescription(final Map<String, Object> record, final String description){
-		record.put("description", description);
+		record.compute("description", (k, v) -> description);
 	}
 
 	public static void insertRecordCategory(final Map<String, Object> record, final String category){
-		record.put("category", category);
+		record.compute("category", (k, v) -> category);
 	}
 
 	public static void insertRecordPhotoCrop(final Map<String, Object> record, final String photoCrop){
-		if(photoCrop != null)
-			record.put("photo_crop", photoCrop);
-		else
-			record.remove("photo_crop");
+		record.compute("photo_crop", (k, v) -> photoCrop);
 	}
 
 	public static void insertRecordDate(final Map<String, Object> record, final String date){
-		record.put("date", date);
+		record.compute("date", (k, v) -> date);
 	}
 
 	public static void insertRecordDateOriginal(final Map<String, Object> record, final String dateOriginal){
-		record.put("date_original", dateOriginal);
+		record.compute("date_original", (k, v) -> dateOriginal);
 	}
 
 	public static void insertRecordPersonalName(final Map<String, Object> record, final String personalName){
-		record.put("personal_name", personalName);
+		record.compute("personal_name", (k, v) -> personalName);
 	}
 
 	public static void insertRecordFamilyName(final Map<String, Object> record, final String familyName){
-		record.put("family_name", familyName);
+		record.compute("family_name", (k, v) -> familyName);
 	}
 
 	public static void insertRecordLocale(final Map<String, Object> record, final String locale){
-		record.put("locale", locale);
+		record.compute("locale", (k, v) -> locale);
 	}
 
 	public static void insertRecordTranscription(final Map<String, Object> record, final String transcription){
-		record.put("transcription", transcription);
+		record.compute("transcription", (k, v) -> transcription);
 	}
 
 	public static void insertRecordTranscriptionType(final Map<String, Object> record, final String transcriptionType){
-		record.put("transcription_type", transcriptionType);
+		record.compute("transcription_type", (k, v) -> transcriptionType);
 	}
 
 	public static void insertRecordText(final Map<String, Object> record, final String text){
-		record.put("text", text);
+		record.compute("text", (k, v) -> text);
 	}
 
 	public static void insertRecordTitle(final Map<String, Object> record, final String title){
-		record.put("title", title);
+		record.compute("title", (k, v) -> title);
 	}
 
 	public static void insertRecordPayload(final Map<String, Object> record, final byte[] payload){
-		record.put("payload", payload);
+		record.compute("payload", (k, v) -> payload);
 	}
 
 	public static void insertRecordPhotoProjection(final Map<String, Object> record, final String photoProjection){
-		record.put("photo_projection", photoProjection);
+		record.compute("photo_projection", (k, v) -> photoProjection);
 	}
 
 	public static void insertRecordNote(final Map<String, Object> record, final String note){
-		record.put("note", note);
+		record.compute("note", (k, v) -> note);
 	}
 
 	public static void insertRecordName(final Map<String, Object> record, final String name){
-		record.put("name", name);
+		record.compute("name", (k, v) -> name);
 	}
 
 	public static void insertRecordCoordinate(final Map<String, Object> record, final String coordinate){
-		record.put("coordinate", coordinate);
+		record.compute("coordinate", (k, v) -> coordinate);
 	}
 
 	public static void insertRecordCoordinateSystem(final Map<String, Object> record, final String coordinateSystem){
-		record.put("coordinate_system", coordinateSystem);
+		record.compute("coordinate_system", (k, v) -> coordinateSystem);
 	}
 
 	public static void insertRecordCoordinateCredibility(final Map<String, Object> record, final String coordinateCredibility){
-		record.put("coordinate_credibility", coordinateCredibility);
+		record.compute("coordinate_credibility", (k, v) -> coordinateCredibility);
 	}
 
 	public static void insertRecordProtocolName(final Map<String, Object> record, final String protocolName){
-		record.put("protocol_name", protocolName);
+		record.compute("protocol_name", (k, v) -> protocolName);
 	}
 
 	public static void insertRecordProtocolVersion(final Map<String, Object> record, final String protocolVersion){
-		record.put("protocol_version", protocolVersion);
+		record.compute("protocol_version", (k, v) -> protocolVersion);
 	}
 
 	public static void insertRecordCopyright(final Map<String, Object> record, final String copyright){
-		record.put("copyright", copyright);
+		record.compute("copyright", (k, v) -> copyright);
 	}
 
 	public static void insertRecordStatus(final Map<String, Object> record, final String status){
-		record.put("status", status);
+		record.compute("status", (k, v) -> status);
 	}
 
 	public static void insertRecordPriority(final Map<String, Object> record, final Integer priority){
-		record.put("priority", priority);
+		record.compute("priority", (k, v) -> priority);
 	}
 
 	public static void insertRecordAuthor(final Map<String, Object> record, final String author){
-		record.put("author", author);
+		record.compute("author", (k, v) -> author);
 	}
 
 	public static void insertRecordIncludeMediaPayload(final Map<String, Object> record, final int includeMediaPayloadID){
-		record.put("include_media_payload", includeMediaPayloadID);
+		record.compute("include_media_payload", (k, v) -> includeMediaPayloadID);
 	}
 
 }

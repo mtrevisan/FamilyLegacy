@@ -1114,7 +1114,6 @@ public final class SearchDialog extends JDialog{
 							culturalNormDialog.showDialog();
 						}
 
-
 						//from: modification notes
 						case MODIFICATION_HISTORY_SHOW -> {
 							final Integer noteID = (Integer)container.get("noteID");
@@ -1136,7 +1135,6 @@ public final class SearchDialog extends JDialog{
 
 							changeNoteDialog.showDialog();
 						}
-
 
 						//from: assertion, calendar, citation, cultural norm, event, group, historic date, localized person name, localized text,
 						// media, note, person name, place, repository, source
