@@ -68,6 +68,11 @@ public final class CalendarDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 9026792737072096011L;
 
+
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
+	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
+
 	private static final int TABLE_INDEX_TYPE = 2;
 
 
@@ -105,6 +110,10 @@ public final class CalendarDialog extends CommonListDialog{
 
 	private CalendarDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_ASSERTION_BUTTON, assertionButton);
+		addButtonComponent(COMPONENT_ID_EVENT_BUTTON, eventButton);
 	}
 
 
@@ -115,7 +124,7 @@ public final class CalendarDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_CALENDAR;
 	}
 
@@ -152,15 +161,15 @@ public final class CalendarDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_CALENDAR, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_CALENDAR, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, this, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_CALENDAR, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, this, selectedRecord)));
 	}
 
 	@Override
@@ -336,36 +345,8 @@ public final class CalendarDialog extends CommonListDialog{
 					final Map<String, Object> container = editCommand.getContainer();
 					final int calendarID = extractRecordID(container);
 					switch(editCommand.getType()){
-						case ASSERTION -> {
-							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(parent)
-									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_CALENDAR, calendarID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
-										Repository.upsertRelationship(EntityManager.NODE_CALENDAR, calendarID,
-											EntityManager.NODE_ASSERTION, upsertedRecordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_CALENDAR, calendarID,
-											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
-											EntityManager.RELATIONSHIP_SUPPORTED_BY);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(calendarID);
-								});
-							assertionDialog.loadData();
-
-							assertionDialog.showDialog();
-						}
-
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_CALENDAR, calendarID)
@@ -392,8 +373,36 @@ public final class CalendarDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_ASSERTION_BUTTON)
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_CALENDAR, calendarID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_CALENDAR, calendarID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(calendarID);
+								});
+							assertionDialog.loadData();
+
+							assertionDialog.showDialog();
+						}
+
 						case EVENT -> {
-							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_EVENT_BUTTON)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_CALENDAR, calendarID)
@@ -421,7 +430,7 @@ public final class CalendarDialog extends CommonListDialog{
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -432,7 +441,7 @@ public final class CalendarDialog extends CommonListDialog{
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -444,7 +453,7 @@ public final class CalendarDialog extends CommonListDialog{
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -455,7 +464,7 @@ public final class CalendarDialog extends CommonListDialog{
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -467,7 +476,7 @@ public final class CalendarDialog extends CommonListDialog{
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

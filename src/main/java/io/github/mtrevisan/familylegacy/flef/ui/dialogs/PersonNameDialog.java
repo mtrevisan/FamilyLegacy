@@ -77,6 +77,14 @@ public final class PersonNameDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -3816108402093925220L;
 
+
+	public static final int COMPONENT_ID_TRANSCRIBED_NAME_BUTTON = "transcribedName".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_CULTURAL_NORM_BUTTON = "culturalNorm".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
+	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
+
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 
@@ -93,9 +101,9 @@ public final class PersonNameDialog extends CommonListDialog{
 		"anglicized name", "religious order name", "pen name", "name at work", "immigrant"});
 
 	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
+	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
 	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
-	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
 	private final JButton eventButton = new JButton("Events", ICON_EVENT);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
@@ -128,6 +136,13 @@ public final class PersonNameDialog extends CommonListDialog{
 
 	private PersonNameDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_TRANSCRIBED_NAME_BUTTON, transcribedNameButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_CULTURAL_NORM_BUTTON, culturalNormButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
+		addButtonComponent(COMPONENT_ID_ASSERTION_BUTTON, assertionButton);
+		addButtonComponent(COMPONENT_ID_EVENT_BUTTON, eventButton);
 	}
 
 
@@ -148,7 +163,7 @@ public final class PersonNameDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_PERSON_NAME;
 	}
 
@@ -188,7 +203,7 @@ public final class PersonNameDialog extends CommonListDialog{
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME, EntityManager.NODE_PERSON_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_PERSON_NAME, this, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 		GUIHelper.bindOnSelectionChange(typeComboBox, this::saveData);
@@ -196,23 +211,23 @@ public final class PersonNameDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_PERSON_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_PERSON_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_PERSON_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, this, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_PERSON_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, this, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_PERSON_NAME, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -484,7 +499,7 @@ public final class PersonNameDialog extends CommonListDialog{
 					final int personNameID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case LOCALIZED_PERSON_NAME -> {
-							final LocalizedPersonNameDialog localizedPersonNameDialog = (dialog.isViewOnlyComponent(dialog.transcribedNameButton)
+							final LocalizedPersonNameDialog localizedPersonNameDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_TRANSCRIBED_NAME_BUTTON)
 									? LocalizedPersonNameDialog.createSelectOnly(parent)
 									: LocalizedPersonNameDialog.create(parent))
 								.withReference(personNameID)
@@ -512,7 +527,7 @@ public final class PersonNameDialog extends CommonListDialog{
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_PERSON_NAME, personNameID)
@@ -539,8 +554,36 @@ public final class PersonNameDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 
+						case CULTURAL_NORM -> {
+							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_CULTURAL_NORM_BUTTON)
+									? CulturalNormDialog.createSelectOnly(parent)
+									: CulturalNormDialog.create(parent))
+								.withReference(EntityManager.NODE_PERSON_NAME, personNameID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
+											EntityManager.NODE_PERSON_NAME, personNameID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
+											EntityManager.NODE_PERSON_NAME, personNameID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(personNameID);
+								});
+							culturalNormDialog.loadData();
+
+							culturalNormDialog.showDialog();
+						}
+
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -568,36 +611,8 @@ public final class PersonNameDialog extends CommonListDialog{
 							mediaDialog.showDialog();
 						}
 
-						case CULTURAL_NORM -> {
-							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(dialog.culturalNormButton)
-									? CulturalNormDialog.createSelectOnly(parent)
-									: CulturalNormDialog.create(parent))
-								.withReference(EntityManager.NODE_PERSON_NAME, personNameID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
-										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
-											EntityManager.NODE_PERSON_NAME, personNameID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
-											EntityManager.NODE_PERSON_NAME, personNameID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(personNameID);
-								});
-							culturalNormDialog.loadData();
-
-							culturalNormDialog.showDialog();
-						}
-
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_ASSERTION_BUTTON)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
 								.withReference(EntityManager.NODE_PERSON_NAME, personNameID)
@@ -625,7 +640,7 @@ public final class PersonNameDialog extends CommonListDialog{
 						}
 
 						case EVENT -> {
-							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_EVENT_BUTTON)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_PERSON_NAME, personNameID)
@@ -653,7 +668,7 @@ public final class PersonNameDialog extends CommonListDialog{
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -664,7 +679,7 @@ public final class PersonNameDialog extends CommonListDialog{
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -676,7 +691,7 @@ public final class PersonNameDialog extends CommonListDialog{
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -687,7 +702,7 @@ public final class PersonNameDialog extends CommonListDialog{
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -699,7 +714,7 @@ public final class PersonNameDialog extends CommonListDialog{
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

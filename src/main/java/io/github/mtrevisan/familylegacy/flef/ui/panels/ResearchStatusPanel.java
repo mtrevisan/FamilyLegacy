@@ -203,7 +203,7 @@ public class ResearchStatusPanel extends CommonSearchPanel{
 		//make selected row visible
 		recordTable.scrollRectToVisible(recordTable.getCellRect(newRowIndex, 0, true));
 
-		EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_NEW, tableName, newRecord));
+		EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_NEW, this, newRecord));
 	}
 
 	private void deleteAction(){

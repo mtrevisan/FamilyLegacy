@@ -868,7 +868,7 @@ public final class SearchDialog extends JDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
-					final String tableName = editCommand.getIdentifier();
+					final String tableName = editCommand.getDialog().getTableName();
 					final Integer containerID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case SEARCH -> { if(dialog.isShowing()) dialog.loadData(); }

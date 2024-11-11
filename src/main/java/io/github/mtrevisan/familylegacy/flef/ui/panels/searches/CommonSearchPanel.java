@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels.searches;
 
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GenealogicalDialogInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.SearchDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -62,7 +63,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public abstract class CommonSearchPanel extends JPanel implements FilteredTablePanelInterface{
+public abstract class CommonSearchPanel extends JPanel implements FilteredTablePanelInterface, GenealogicalDialogInterface{
 
 	@Serial
 	private static final long serialVersionUID = 2064570563728935886L;
@@ -160,7 +161,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 		tableHeader.setDefaultRenderer(new DefaultTableCellRenderer(){
 			@Override
 			public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-				final boolean hasFocus, final int row, final int column){
+					final boolean hasFocus, final int row, final int column){
 				final Component headerCell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
 				String cellText = null;
@@ -195,7 +196,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 			column.setCellRenderer(new DefaultTableCellRenderer(){
 				@Override
 				public Component getTableCellRendererComponent(final JTable table, final Object value, final boolean isSelected,
-					final boolean hasFocus, final int row, final int column){
+						final boolean hasFocus, final int row, final int column){
 					final Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
 
 					String cellText = null;
@@ -241,7 +242,13 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 		add(new JScrollPane(recordTable), "grow");
 	}
 
-	public abstract String getTableName();
+	@Override
+	public boolean isViewOnlyComponent(final int componentID){
+		return false;
+	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){}
 
 	protected abstract String[] getTableColumnNames();
 

@@ -80,6 +80,11 @@ public final class HistoricDateDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 3434407293578383806L;
 
+
+	public static final int COMPONENT_ID_CALENDAR_ORIGINAL_BUTTON = "calendarOriginal".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
+
 	private static final int TABLE_INDEX_DATE = 2;
 
 
@@ -124,6 +129,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 	private HistoricDateDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_CALENDAR_ORIGINAL_BUTTON, calendarOriginalButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_ASSERTION_BUTTON, assertionButton);
 	}
 
 
@@ -134,7 +143,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_HISTORIC_DATE;
 	}
 
@@ -178,7 +187,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		calendarOriginalButton.setToolTipText("Calendar original");
 		calendarOriginalButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CALENDAR_ORIGINAL, this, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
 		GUIHelper.bindOnSelectionChange(certaintyComboBox, this::saveData);
@@ -189,11 +198,11 @@ public final class HistoricDateDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_HISTORIC_DATE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -434,36 +443,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 					final Map<String, Object> container = editCommand.getContainer();
 					final int historicDateID = extractRecordID(container);
 					switch(editCommand.getType()){
-						case ASSERTION -> {
-							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(parent)
-									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
-										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
-											EntityManager.NODE_ASSERTION, upsertedRecordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
-											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
-											EntityManager.RELATIONSHIP_SUPPORTED_BY);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(historicDateID);
-								});
-							assertionDialog.loadData();
-
-							assertionDialog.showDialog();
-						}
-
 						case CALENDAR_ORIGINAL -> {
-							final CalendarDialog calendarDialog = (dialog.isViewOnlyComponent(dialog.calendarOriginalButton)
+							final CalendarDialog calendarDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_CALENDAR_ORIGINAL_BUTTON)
 									? CalendarDialog.createSelectOnly(parent)
 									: CalendarDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -497,7 +478,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID)
@@ -524,8 +505,36 @@ public final class HistoricDateDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_ASSERTION_BUTTON)
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_HISTORIC_DATE, historicDateID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_HISTORIC_DATE, historicDateID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(historicDateID);
+								});
+							assertionDialog.loadData();
+
+							assertionDialog.showDialog();
+						}
+
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -536,7 +545,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -548,7 +557,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -559,7 +568,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -571,7 +580,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

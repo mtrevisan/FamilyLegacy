@@ -84,6 +84,14 @@ public final class EventDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 1136825738944999745L;
 
+
+	public static final int COMPONENT_ID_ADD_TYPE_BUTTON = "addType".hashCode();
+	public static final int COMPONENT_ID_REMOVE_TYPE_BUTTON = "removeType".hashCode();
+	public static final int COMPONENT_ID_PLACE_BUTTON = "place".hashCode();
+	public static final int COMPONENT_ID_DATE_BUTTON = "date".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+
 	private static final int TABLE_INDEX_TYPE = 2;
 
 
@@ -175,6 +183,13 @@ public final class EventDialog extends CommonListDialog{
 
 	private EventDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_ADD_TYPE_BUTTON, addTypeButton);
+		addButtonComponent(COMPONENT_ID_REMOVE_TYPE_BUTTON, removeTypeButton);
+		addButtonComponent(COMPONENT_ID_PLACE_BUTTON, placeButton);
+		addButtonComponent(COMPONENT_ID_DATE_BUTTON, dateButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
 	}
 
 
@@ -196,7 +211,7 @@ public final class EventDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_EVENT;
 	}
 
@@ -231,7 +246,7 @@ public final class EventDialog extends CommonListDialog{
 		GUIHelper.bindOnSelectionChange(typeComboBox, this::saveData);
 		addMandatoryField(typeComboBox);
 		addTypeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT_TYPE, EntityManager.NODE_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT_TYPE, this, selectedRecord)));
 		removeTypeButton.addActionListener(evt -> {
 			//remove selected item from `typeComboBox`
 			final TypeItem selectedItem = (TypeItem)typeComboBox.getSelectedItem();
@@ -255,20 +270,20 @@ public final class EventDialog extends CommonListDialog{
 
 		placeButton.setToolTipText("Event place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, this, selectedRecord)));
 
 		dateButton.setToolTipText("Event date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, this, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_EVENT, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -630,7 +645,7 @@ public final class EventDialog extends CommonListDialog{
 					final int eventID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PLACE -> {
-							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
+							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PLACE_BUTTON)
 									? PlaceDialog.createSelectOnly(parent)
 									: PlaceDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -662,7 +677,7 @@ public final class EventDialog extends CommonListDialog{
 						}
 
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateButton)
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_DATE_BUTTON)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -694,7 +709,7 @@ public final class EventDialog extends CommonListDialog{
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_EVENT, eventID)
@@ -722,7 +737,7 @@ public final class EventDialog extends CommonListDialog{
 						}
 
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -785,7 +800,7 @@ public final class EventDialog extends CommonListDialog{
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -796,7 +811,7 @@ public final class EventDialog extends CommonListDialog{
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -808,7 +823,7 @@ public final class EventDialog extends CommonListDialog{
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -819,7 +834,7 @@ public final class EventDialog extends CommonListDialog{
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -831,7 +846,7 @@ public final class EventDialog extends CommonListDialog{
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

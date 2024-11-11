@@ -80,6 +80,12 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	@Serial
 	private static final long serialVersionUID = -7601387139021862486L;
 
+
+	public static final int COMPONENT_ID_TRANSCRIBED_EXTRACT_BUTTON = "transcribedExtract".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
+
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 
@@ -135,6 +141,11 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 	private CitationDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_TRANSCRIBED_EXTRACT_BUTTON, transcribedExtractButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
+		addButtonComponent(COMPONENT_ID_ASSERTION_BUTTON, assertionButton);
 	}
 
 
@@ -154,7 +165,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_CITATION;
 	}
 
@@ -198,7 +209,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		transcribedExtractButton.setToolTipText("Transcribed extract");
 		transcribedExtractButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, EntityManager.NODE_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_EXTRACT, this, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(extractTypeLabel, extractTypeComboBox);
 		GUIHelper.bindOnSelectionChange(extractTypeComboBox, this::saveData);
@@ -206,17 +217,17 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_CITATION, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, this, selectedRecord)));
 	}
 
 	@Override
@@ -527,7 +538,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 					final int citationID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case LOCALIZED_EXTRACT -> {
-							final LocalizedTextDialog localizedTextDialog = (dialog.isViewOnlyComponent(dialog.transcribedExtractButton)
+							final LocalizedTextDialog localizedTextDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_TRANSCRIBED_EXTRACT_BUTTON)
 									? LocalizedTextDialog.createSimpleTextSelectOnly(parent)
 									: LocalizedTextDialog.createSimpleText(parent))
 								.withReference(EntityManager.NODE_CITATION, citationID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
@@ -555,7 +566,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_CITATION, citationID)
@@ -583,7 +594,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -612,7 +623,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 
 						case ASSERTION -> {
-							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_ASSERTION_BUTTON)
 									? AssertionDialog.createSelectOnly(parent)
 									: AssertionDialog.create(parent))
 								.withReference(EntityManager.NODE_CITATION, citationID)
@@ -640,7 +651,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -651,7 +662,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -663,7 +674,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -674,7 +685,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -686,7 +697,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

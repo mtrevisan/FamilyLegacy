@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.events;
 
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GenealogicalDialogInterface;
+
 import java.util.Map;
 
 
@@ -65,18 +67,18 @@ public class EditEvent{
 
 
 	private final EditType type;
-	private final String identifier;
+	private final GenealogicalDialogInterface dialog;
 	private final Map<String, Object> container;
 
 
-	public static EditEvent create(final EditType type, final String identifier, final Map<String, Object> container){
-		return new EditEvent(type, identifier, container);
+	public static EditEvent create(final EditType type, final GenealogicalDialogInterface dialog, final Map<String, Object> container){
+		return new EditEvent(type, dialog, container);
 	}
 
 
-	private EditEvent(final EditType type, final String identifier, final Map<String, Object> container){
+	private EditEvent(final EditType type, final GenealogicalDialogInterface dialog, final Map<String, Object> container){
 		this.type = type;
-		this.identifier = identifier;
+		this.dialog = dialog;
 		this.container = container;
 	}
 
@@ -85,8 +87,8 @@ public class EditEvent{
 		return type;
 	}
 
-	public final String getIdentifier(){
-		return identifier;
+	public final GenealogicalDialogInterface getDialog(){
+		return dialog;
 	}
 
 	public final Map<String, Object> getContainer(){

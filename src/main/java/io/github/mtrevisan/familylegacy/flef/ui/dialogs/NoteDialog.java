@@ -74,6 +74,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	@Serial
 	private static final long serialVersionUID = 3280504923967901715L;
 
+
+	public static final int COMPONENT_ID_CULTURAL_NORM_BUTTON = "culturalNorm".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+
 	private static final int TABLE_INDEX_NOTE = 2;
 
 
@@ -82,8 +86,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final JTextField localeField = new JTextField();
 
-	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
 	private final JButton culturalNormButton = new JButton("Cultural norms", ICON_CULTURAL_NORM);
+	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private String filterReferenceTable;
@@ -144,6 +148,9 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	private NoteDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_CULTURAL_NORM_BUTTON, culturalNormButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
 	}
 
 
@@ -165,7 +172,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_NOTE;
 	}
 
@@ -206,11 +213,11 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_NOTE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		culturalNormButton.setToolTipText("Cultural norm");
 		culturalNormButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, EntityManager.NODE_NOTE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CULTURAL_NORM, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -409,7 +416,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 					final int noteID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case CULTURAL_NORM -> {
-							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(dialog.culturalNormButton)
+							final CulturalNormDialog culturalNormDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_CULTURAL_NORM_BUTTON)
 									? CulturalNormDialog.createSelectOnly(parent)
 									: CulturalNormDialog.create(parent))
 								.withReference(EntityManager.NODE_NOTE, noteID)
@@ -437,7 +444,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 						}
 
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -466,7 +473,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer modificationNoteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -477,7 +484,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer modificationNoteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -489,7 +496,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -500,7 +507,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -512,7 +519,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

@@ -77,6 +77,13 @@ public final class SourceDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -8850730067231141478L;
 
+
+	public static final int COMPONENT_ID_PLACE_BUTTON = "place".hashCode();
+	public static final int COMPONENT_ID_DATE_BUTTON = "date".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+	public static final int COMPONENT_ID_CITATION_BUTTON = "citation".hashCode();
+
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 
@@ -142,6 +149,12 @@ public final class SourceDialog extends CommonListDialog{
 
 	private SourceDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_PLACE_BUTTON, placeButton);
+		addButtonComponent(COMPONENT_ID_DATE_BUTTON, dateButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
+		addButtonComponent(COMPONENT_ID_CITATION_BUTTON, citationButton);
 	}
 
 
@@ -161,7 +174,7 @@ public final class SourceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_SOURCE;
 	}
 
@@ -203,11 +216,11 @@ public final class SourceDialog extends CommonListDialog{
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_SOURCE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, this, selectedRecord)));
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_SOURCE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, this, selectedRecord)));
 
 		GUIHelper.bindLabelUndo(locationLabel, locationField);
 		GUIHelper.bindOnTextChange(locationField, this::saveData);
@@ -215,17 +228,17 @@ public final class SourceDialog extends CommonListDialog{
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_SOURCE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_SOURCE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 		citationButton.setToolTipText("Citations");
 		citationButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.CITATION, EntityManager.NODE_SOURCE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.CITATION, this, selectedRecord)));
 	}
 
 	@Override
@@ -513,7 +526,7 @@ public final class SourceDialog extends CommonListDialog{
 					final int sourceID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PLACE -> {
-							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
+							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PLACE_BUTTON)
 									? PlaceDialog.createSelectOnly(parent)
 									: PlaceDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -545,7 +558,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateButton)
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_DATE_BUTTON)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -577,7 +590,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_SOURCE, sourceID)
@@ -605,7 +618,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -634,7 +647,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 
 						case CITATION -> {
-							final CitationDialog citationDialog = (dialog.isViewOnlyComponent(dialog.citationButton)
+							final CitationDialog citationDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_CITATION_BUTTON)
 									? CitationDialog.createSelectOnly(parent)
 									: CitationDialog.create(parent))
 								.withFilterOnSourceID(sourceID)
@@ -662,7 +675,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -673,7 +686,7 @@ public final class SourceDialog extends CommonListDialog{
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -685,7 +698,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -696,7 +709,7 @@ public final class SourceDialog extends CommonListDialog{
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -708,7 +721,7 @@ public final class SourceDialog extends CommonListDialog{
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

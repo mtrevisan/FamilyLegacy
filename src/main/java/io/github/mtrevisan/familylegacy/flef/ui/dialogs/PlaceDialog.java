@@ -84,6 +84,15 @@ public final class PlaceDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -8409918543709413945L;
 
+
+	public static final int COMPONENT_ID_TRANSCRIBED_NAME_BUTTON = "transcribedName".hashCode();
+	public static final int COMPONENT_ID_PHOTO_BUTTON = "photo".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
+	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
+	public static final int COMPONENT_ID_GROUP_BUTTON = "group".hashCode();
+
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 
@@ -156,6 +165,14 @@ public final class PlaceDialog extends CommonListDialog{
 
 	private PlaceDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_TRANSCRIBED_NAME_BUTTON, transcribedNameButton);
+		addButtonComponent(COMPONENT_ID_PHOTO_BUTTON, photoButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
+		addButtonComponent(COMPONENT_ID_ASSERTION_BUTTON, assertionButton);
+		addButtonComponent(COMPONENT_ID_EVENT_BUTTON, eventButton);
+		addButtonComponent(COMPONENT_ID_GROUP_BUTTON, groupButton);
 	}
 
 
@@ -166,7 +183,7 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_PLACE;
 	}
 
@@ -209,7 +226,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 		transcribedNameButton.setToolTipText("Transcribed names");
 		transcribedNameButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, EntityManager.NODE_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.LOCALIZED_PLACE_NAME, this, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(typeLabel, typeComboBox);
 		GUIHelper.bindOnSelectionChange(typeComboBox, this::saveData);
@@ -224,28 +241,28 @@ public final class PlaceDialog extends CommonListDialog{
 
 		photoButton.setToolTipText("Photo");
 		photoButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO, EntityManager.NODE_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PHOTO, this, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, this, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, this, selectedRecord)));
 
 		groupButton.setToolTipText("Groups");
 		groupButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.GROUP, EntityManager.NODE_PLACE, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.GROUP, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 	}
@@ -283,7 +300,7 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected Map<String, Object> getSelectedRecord(){
+	public Map<String, Object> getSelectedRecord(){
 		return (filterPlaceID != null
 			? Repository.findByID(EntityManager.NODE_PLACE, filterPlaceID)
 			: super.getSelectedRecord());
@@ -546,36 +563,8 @@ public final class PlaceDialog extends CommonListDialog{
 					final Map<String, Object> photoRecord = Repository.getDepiction(EntityManager.NODE_PLACE, placeID);
 					final Integer photoID = (photoRecord != null? extractRecordID(photoRecord): null);
 					switch(editCommand.getType()){
-						case ASSERTION -> {
-							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(parent)
-									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_PLACE, placeID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
-										Repository.upsertRelationship(EntityManager.NODE_PLACE, placeID,
-											EntityManager.NODE_ASSERTION, upsertedRecordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_PLACE, placeID,
-											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
-											EntityManager.RELATIONSHIP_SUPPORTED_BY);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(placeID);
-								});
-							assertionDialog.loadData();
-
-							assertionDialog.showDialog();
-						}
-
 						case LOCALIZED_PLACE_NAME -> {
-							final LocalizedTextDialog localizedTextDialog = (dialog.isViewOnlyComponent(dialog.transcribedNameButton)
+							final LocalizedTextDialog localizedTextDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_TRANSCRIBED_NAME_BUTTON)
 									? LocalizedTextDialog.createSimpleTextSelectOnly(parent)
 									: LocalizedTextDialog.createSimpleText(parent))
 								.withReference(EntityManager.NODE_PLACE, placeID, EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT)
@@ -603,7 +592,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 
 						case PHOTO -> {
-							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(dialog.photoButton)
+							final MediaDialog photoDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PHOTO_BUTTON)
 									? MediaDialog.createSelectOnlyForPhoto(parent)
 									: MediaDialog.createForPhoto(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -637,7 +626,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_PLACE, placeID)
@@ -665,7 +654,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -693,8 +682,36 @@ public final class PlaceDialog extends CommonListDialog{
 							mediaDialog.showDialog();
 						}
 
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_ASSERTION_BUTTON)
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_PLACE, placeID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_PLACE, placeID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_PLACE, placeID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(placeID);
+								});
+							assertionDialog.loadData();
+
+							assertionDialog.showDialog();
+						}
+
 						case EVENT -> {
-							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_EVENT_BUTTON)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_PLACE, placeID)
@@ -722,7 +739,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 
 						case GROUP -> {
-							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(dialog.groupButton)
+							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_GROUP_BUTTON)
 									? GroupDialog.createSelectOnly(parent)
 									: GroupDialog.create(parent))
 								.withReference(EntityManager.NODE_PLACE, placeID)
@@ -750,7 +767,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -761,7 +778,7 @@ public final class PlaceDialog extends CommonListDialog{
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -773,7 +790,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -784,7 +801,7 @@ public final class PlaceDialog extends CommonListDialog{
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -796,7 +813,7 @@ public final class PlaceDialog extends CommonListDialog{
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

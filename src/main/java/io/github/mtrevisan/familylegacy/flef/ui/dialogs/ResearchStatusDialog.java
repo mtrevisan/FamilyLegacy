@@ -141,7 +141,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_RESEARCH_STATUS;
 	}
 
@@ -238,6 +238,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	@Override
 	protected void fillData(){
+		final Integer researchStatusID = EntityManager.extractRecordID(selectedRecord);
 		final String identifier = extractRecordIdentifier(selectedRecord);
 		final String description = extractRecordDescription(selectedRecord);
 		final String status = extractRecordStatus(selectedRecord);
@@ -247,7 +248,13 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		descriptionTextPreview.setText("Research status " + extractRecordID(selectedRecord), description, null);
 		statusComboBox.setSelectedItem(status);
 		priorityField.setText(priority != null? String.valueOf(priority): null);
+
+
+		refreshButtonStates(researchStatusID);
 	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){}
 
 	@Override
 	protected void clearData(){

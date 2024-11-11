@@ -73,6 +73,13 @@ public final class RepositoryDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = 6136508398081805353L;
 
+
+	public static final int COMPONENT_ID_REFERENCE_PERSON_BUTTON = "referencePerson".hashCode();
+	public static final int COMPONENT_ID_PLACE_BUTTON = "place".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+	public static final int COMPONENT_ID_SOURCE_BUTTON = "source".hashCode();
+
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 
@@ -89,7 +96,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	private final JButton mediaButton = new JButton("Media", ICON_MEDIA);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	private final JButton sourcesButton = new JButton("Sources", ICON_SOURCE);
+	private final JButton sourceButton = new JButton("Sources", ICON_SOURCE);
 
 
 	public static RepositoryDialog create(final Frame parent){
@@ -103,7 +110,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		dialog.selectRecordOnly = true;
 		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.referencePersonButton, dialog.placeButton, dialog.noteButton, dialog.mediaButton,
-			dialog.sourcesButton);
+			dialog.sourceButton);
 		dialog.initialize();
 		return dialog;
 	}
@@ -126,6 +133,12 @@ public final class RepositoryDialog extends CommonListDialog{
 
 	private RepositoryDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_REFERENCE_PERSON_BUTTON, referencePersonButton);
+		addButtonComponent(COMPONENT_ID_PLACE_BUTTON, placeButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
+		addButtonComponent(COMPONENT_ID_SOURCE_BUTTON, sourceButton);
 	}
 
 
@@ -136,7 +149,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_REPOSITORY;
 	}
 
@@ -175,26 +188,26 @@ public final class RepositoryDialog extends CommonListDialog{
 
 		referencePersonButton.setToolTipText("Reference person");
 		referencePersonButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PERSON, EntityManager.NODE_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PERSON, this, selectedRecord)));
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, this, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_REPOSITORY, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
-		sourcesButton.setToolTipText("Sources");
-		sourcesButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.SOURCE, EntityManager.NODE_REPOSITORY, selectedRecord)));
+		sourceButton.setToolTipText("Sources");
+		sourceButton.addActionListener(e -> EventBusService.publish(
+			EditEvent.create(EditEvent.EditType.SOURCE, this, selectedRecord)));
 	}
 
 	@Override
@@ -213,7 +226,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		recordPanelOther.add(restrictionCheckBox);
 
 		final JPanel recordPanelChildren = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelChildren.add(sourcesButton, "sizegroup btn,center");
+		recordPanelChildren.add(sourceButton, "sizegroup btn,center");
 
 		recordTabbedPane.add("base", recordPanelBase);
 		recordTabbedPane.add("other", recordPanelOther);
@@ -281,7 +294,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		setButtonEnableAndBorder(mediaButton, hasMedia);
 
 		final boolean hasSources = Repository.hasSources(tableName, recordID);
-		setButtonEnableAndBorder(sourcesButton, hasSources);
+		setButtonEnableAndBorder(sourceButton, hasSources);
 	}
 
 	@Override
@@ -295,7 +308,7 @@ public final class RepositoryDialog extends CommonListDialog{
 		GUIHelper.setDefaultBorder(mediaButton);
 		restrictionCheckBox.setSelected(false);
 
-		GUIHelper.setDefaultBorder(sourcesButton);
+		GUIHelper.setDefaultBorder(sourceButton);
 	}
 
 	@Override
@@ -535,11 +548,11 @@ public final class RepositoryDialog extends CommonListDialog{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
-					final String tableName = editCommand.getIdentifier();
+					final String tableName = editCommand.getDialog().getTableName();
 					final int repositoryID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case PERSON -> {
-							final PersonDialog personDialog = (dialog.isViewOnlyComponent(dialog.referencePersonButton)
+							final PersonDialog personDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_REFERENCE_PERSON_BUTTON)
 									? PersonDialog.createShowOnly(parent)
 									: PersonDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -571,7 +584,7 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 
 						case PLACE -> {
-							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
+							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PLACE_BUTTON)
 									? PlaceDialog.createShowOnly(parent)
 									: PlaceDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -603,7 +616,7 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(tableName, repositoryID)
@@ -631,7 +644,7 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -660,7 +673,7 @@ public final class RepositoryDialog extends CommonListDialog{
 						}
 
 						case SOURCE -> {
-							final SourceDialog sourceDialog = (dialog.isViewOnlyComponent(dialog.sourcesButton)
+							final SourceDialog sourceDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_SOURCE_BUTTON)
 									? SourceDialog.createSelectOnly(parent)
 									: SourceDialog.create(parent))
 								.withFilterOnRepositoryID(repositoryID)

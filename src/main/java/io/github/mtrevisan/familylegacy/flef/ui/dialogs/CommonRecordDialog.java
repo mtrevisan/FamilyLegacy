@@ -64,7 +64,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordUpdateDate;
 
 
-public abstract class CommonRecordDialog extends JDialog{
+public abstract class CommonRecordDialog extends JDialog implements GenealogicalDialogInterface{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(CommonRecordDialog.class);
 
@@ -160,8 +160,6 @@ public abstract class CommonRecordDialog extends JDialog{
 		this.onCloseGracefully = onCloseGracefully;
 	}
 
-	protected abstract String getTableName();
-
 	protected abstract void initComponents();
 
 	protected void initDialog(){
@@ -179,8 +177,9 @@ public abstract class CommonRecordDialog extends JDialog{
 	}
 
 	protected final void manageRestrictionCheckBox(final ItemEvent evt){
+		final String tableName = getTableName();
 		final List<Map<String, Object>> recordRestrictions = Repository.findReferencingNodes(EntityManager.NODE_RESTRICTION,
-			getTableName(), selectedRecordID,
+			tableName, selectedRecordID,
 			EntityManager.RELATIONSHIP_FOR);
 		final Map<String, Object> recordRestriction = (recordRestrictions.isEmpty()? null: recordRestrictions.getFirst());
 
@@ -192,7 +191,7 @@ public abstract class CommonRecordDialog extends JDialog{
 				final Map<String, Object> newRestriction = new HashMap<>();
 				insertRecordRestriction(newRestriction, EntityManager.RESTRICTION_CONFIDENTIAL);
 				final int newRestrictionID = Repository.upsert(newRestriction, EntityManager.NODE_RESTRICTION);
-				Repository.upsertRelationship(getTableName(), extractRecordID(selectedRecord),
+				Repository.upsertRelationship(tableName, extractRecordID(selectedRecord),
 					EntityManager.NODE_RESTRICTION, newRestrictionID,
 					EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 					GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
@@ -226,6 +225,11 @@ public abstract class CommonRecordDialog extends JDialog{
 		for(final JTextComponent[] mandatoryFields : mandatoryFields)
 			for(int j = 0, length = mandatoryFields.length; j < length; j ++)
 				mandatoryFields[j].setBackground(color);
+	}
+
+	@Override
+	public boolean isViewOnlyComponent(final int componentID){
+		return false;
 	}
 
 	private void closeAction(final ActionEvent evt){
@@ -289,8 +293,6 @@ public abstract class CommonRecordDialog extends JDialog{
 	//fill record panel
 	protected abstract void fillData();
 
-	public abstract void refreshButtonStates(int recordID);
-
 	protected Map<String, Object> getSelectedRecord(){
 		final List<Map<String, Object>> records = Repository.findAll(getTableName());
 		return (!records.isEmpty()? records.getFirst(): null);
@@ -322,7 +324,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			//TODO is it correct? or should it be EntityManager.RELATIONSHIP_FOR, new HashMap<>(selectedRecordLink),?
 			selectedRecordID = Repository.upsert(new HashMap<>(selectedRecordLink), EntityManager.NODE_RESTRICTION);
 			Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, selectedRecordID,
-				getTableName(), extractRecordID(selectedRecord),
+				tableName, extractRecordID(selectedRecord),
 				EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
 				GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
@@ -332,15 +334,14 @@ public abstract class CommonRecordDialog extends JDialog{
 			LOGGER.debug("Saved link {}", selectedRecordLink);
 
 		//fire event only if something's changed
-		EventBusService.publish(EditEvent.create(EditEvent.EditType.SEARCH, getTableName(), selectedRecord));
+		EventBusService.publish(EditEvent.create(EditEvent.EditType.SEARCH, this, selectedRecord));
 
 
 		final String now = EntityManager.now();
 
-		final String recordTableName = getTableName();
 		final Integer selectedRecordID = extractRecordID(selectedRecord);
 		final List<Map<String, Object>> recordModification = Repository.findReferencingNodes(EntityManager.NODE_MODIFICATION,
-			recordTableName, selectedRecordID,
+			tableName, selectedRecordID,
 			EntityManager.RELATIONSHIP_FOR);
 		if(recordModification.isEmpty()){
 			//create a new record
@@ -348,7 +349,7 @@ public abstract class CommonRecordDialog extends JDialog{
 			insertRecordCreationDate(newModification, now);
 			final int newModificationID = Repository.upsert(newModification, EntityManager.NODE_MODIFICATION);
 			Repository.upsertRelationship(EntityManager.NODE_MODIFICATION, newModificationID,
-				recordTableName, selectedRecordID,
+				tableName, selectedRecordID,
 				EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
 				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		}
@@ -372,7 +373,7 @@ public abstract class CommonRecordDialog extends JDialog{
 						for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 							Repository.deleteNode(getTableName(), deletedIDs.get(i));
 					});
-				final String title = StringUtils.capitalize(StringUtils.replace(recordTableName, "_", StringUtils.SPACE));
+				final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
 				changeNoteDialog.setTitle("Change note for " + title + " " + selectedRecordID);
 				changeNoteDialog.showNewRecord();
 

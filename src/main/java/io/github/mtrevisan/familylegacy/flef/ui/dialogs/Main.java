@@ -47,6 +47,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordPhotoCrop;
 
 
+//FIXME to be removed?
 public class Main{
 
 	public static void main(final String[] args){
@@ -85,7 +86,7 @@ public class Main{
 				@EventHandler
 				public void refresh(final EditEvent editCommand){
 					final Map<String, Object> container = editCommand.getContainer();
-					final String tableName = editCommand.getIdentifier();
+					final String tableName = editCommand.getDialog().getTableName();
 					final Integer containerID = extractRecordID(container);
 					switch(editCommand.getType()){
 						//from: ?

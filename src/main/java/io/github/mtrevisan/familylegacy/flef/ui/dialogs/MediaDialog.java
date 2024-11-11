@@ -110,6 +110,16 @@ public final class MediaDialog extends CommonListDialog{
 	@Serial
 	private static final long serialVersionUID = -800755271311929604L;
 
+
+	public static final int COMPONENT_ID_FILE_BUTTON = "file".hashCode();
+	public static final int COMPONENT_ID_OPEN_FOLDER_BUTTON = "openFolder".hashCode();
+	public static final int COMPONENT_ID_OPEN_LINK_BUTTON = "openLink".hashCode();
+	public static final int COMPONENT_ID_DATE_BUTTON = "date".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
+	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
+	public static final int COMPONENT_ID_PHOTO_CROP_BUTTON = "photoCrop".hashCode();
+
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 
@@ -130,8 +140,8 @@ public final class MediaDialog extends CommonListDialog{
 	private final JButton dateButton = new JButton("Date", ICON_CALENDAR);
 
 	private final JButton noteButton = new JButton("Notes", ICON_NOTE);
-	private final JButton eventButton = new JButton("Events", ICON_EVENT);
 	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
+	private final JButton eventButton = new JButton("Events", ICON_EVENT);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private final JButton photoCropButton = new JButton("Photo crop", ICON_PHOTO_CROP);
@@ -220,6 +230,15 @@ public final class MediaDialog extends CommonListDialog{
 
 	private MediaDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_FILE_BUTTON, fileButton);
+		addButtonComponent(COMPONENT_ID_OPEN_FOLDER_BUTTON, openFolderButton);
+		addButtonComponent(COMPONENT_ID_OPEN_LINK_BUTTON, openLinkButton);
+		addButtonComponent(COMPONENT_ID_DATE_BUTTON, dateButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_ASSERTION_BUTTON, assertionButton);
+		addButtonComponent(COMPONENT_ID_EVENT_BUTTON, eventButton);
+		addButtonComponent(COMPONENT_ID_PHOTO_CROP_BUTTON, photoCropButton);
 	}
 
 
@@ -266,7 +285,7 @@ public final class MediaDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_MEDIA;
 	}
 
@@ -399,27 +418,27 @@ public final class MediaDialog extends CommonListDialog{
 
 		dateButton.setToolTipText("Date");
 		dateButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, EntityManager.NODE_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE, this, selectedRecord)));
 
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, this, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
 
 		photoCropButton.setToolTipText("Define a crop");
 		photoCropButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PHOTO_CROP, EntityManager.NODE_MEDIA, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PHOTO_CROP, this, selectedRecord)));
 		photoCropButton.setEnabled(false);
 	}
 
@@ -848,7 +867,7 @@ public final class MediaDialog extends CommonListDialog{
 					final int mediaID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case HISTORIC_DATE -> {
-							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateButton)
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_DATE_BUTTON)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -880,7 +899,7 @@ public final class MediaDialog extends CommonListDialog{
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_MEDIA, mediaID)
@@ -907,8 +926,64 @@ public final class MediaDialog extends CommonListDialog{
 							noteDialog.showDialog();
 						}
 
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_ASSERTION_BUTTON)
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_MEDIA, mediaID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(mediaID);
+								});
+							assertionDialog.loadData();
+
+							assertionDialog.showDialog();
+						}
+
+						case EVENT -> {
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_EVENT_BUTTON)
+									? EventDialog.createSelectOnly(parent)
+									: EventDialog.create(parent))
+								.withReference(EntityManager.NODE_MEDIA, mediaID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
+										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
+											EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
+											EntityManager.NODE_MEDIA, mediaID,
+											EntityManager.RELATIONSHIP_FOR);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(mediaID);
+								});
+							eventDialog.loadData();
+
+							eventDialog.showDialog();
+						}
+
 						case PHOTO_CROP -> {
-							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(dialog.photoCropButton)
+							final PhotoCropDialog photoCropDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PHOTO_CROP_BUTTON)
 								? PhotoCropDialog.createSelectOnly(parent)
 								: PhotoCropDialog.create(parent));
 							photoCropDialog.withOnCloseGracefully(modifiedRecords -> {
@@ -937,64 +1012,8 @@ public final class MediaDialog extends CommonListDialog{
 							catch(final IOException ignored){}
 						}
 
-						case ASSERTION -> {
-							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(parent)
-									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_MEDIA, mediaID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
-										Repository.upsertRelationship(EntityManager.NODE_MEDIA, mediaID,
-											EntityManager.NODE_ASSERTION, upsertedRecordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_MEDIA, mediaID,
-											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
-											EntityManager.RELATIONSHIP_SUPPORTED_BY);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(mediaID);
-								});
-							assertionDialog.loadData();
-
-							assertionDialog.showDialog();
-						}
-
-						case EVENT -> {
-							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
-									? EventDialog.createSelectOnly(parent)
-									: EventDialog.create(parent))
-								.withReference(EntityManager.NODE_MEDIA, mediaID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_EVENT);
-										Repository.upsertRelationship(EntityManager.NODE_EVENT, upsertedRecordID,
-											EntityManager.NODE_MEDIA, mediaID,
-											EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_EVENT, deletedIDs.get(i),
-											EntityManager.NODE_MEDIA, mediaID,
-											EntityManager.RELATIONSHIP_FOR);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(mediaID);
-								});
-							eventDialog.loadData();
-
-							eventDialog.showDialog();
-						}
-
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -1005,7 +1024,7 @@ public final class MediaDialog extends CommonListDialog{
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -1017,7 +1036,7 @@ public final class MediaDialog extends CommonListDialog{
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -1028,7 +1047,7 @@ public final class MediaDialog extends CommonListDialog{
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -1040,7 +1059,7 @@ public final class MediaDialog extends CommonListDialog{
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

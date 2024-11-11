@@ -101,7 +101,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_PROJECT;
 	}
 
@@ -163,7 +163,13 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		noteTextPreview.setText("Project note", note, locale);
 		localeField.setText(locale);
 		includeMediaPayloadComboBox.setSelectedIndex(includeMediaPayload);
+
+
+		refreshButtonStates(1);
 	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){}
 
 	@Override
 	protected void clearData(){

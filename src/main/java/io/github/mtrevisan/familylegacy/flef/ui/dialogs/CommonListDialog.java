@@ -138,6 +138,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	protected volatile boolean selectRecordOnly;
 	private final Set<Component> viewOnlyComponents = new HashSet<>(List.of(recordTabbedPane));
+	private final Map<Integer, Component> components = new HashMap<>(0);
 	protected volatile boolean hideUnselectButton;
 	protected volatile boolean showRecordOnly;
 	protected volatile boolean showRecordHistory;
@@ -160,29 +161,30 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected void initComponents(){
 		initStoreComponents();
 
+		final CommonListDialog dialog = this;
 		final RecordListenerInterface modificationLinkListener = new RecordListenerInterface(){
 			@Override
 			public void onRecordSelect(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY_SHOW, getTableName(),
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY_SHOW, dialog,
 					Map.of("id", extractRecordID(selectedRecord), "noteID", id)));
 			}
 
 			@Override
 			public void onRecordEdit(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY_EDIT, getTableName(),
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.MODIFICATION_HISTORY_EDIT, dialog,
 					Map.of("id", extractRecordID(selectedRecord), "noteID", id)));
 			}
 		};
 		final RecordListenerInterface researchStatusLinkListener = new RecordListenerInterface(){
 			@Override
 			public void onRecordSelect(final String table, final Integer id){
-			EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_SHOW, getTableName(),
+			EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_SHOW, dialog,
 					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id)));
 			}
 
 			@Override
 			public void onRecordEdit(final String table, final Integer id){
-				EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_EDIT, getTableName(),
+				EventBusService.publish(EditEvent.create(EditEvent.EditType.RESEARCH_STATUS_EDIT, dialog,
 					Map.of("id", extractRecordID(selectedRecord), "researchStatusID", id)));
 			}
 		};
@@ -404,12 +406,21 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		pack();
 	}
 
-	protected void addViewOnlyComponents(final Component... components){
+	protected void addViewOnlyComponents(final JButton... components){
 		Collections.addAll(viewOnlyComponents, components);
 	}
 
-	protected boolean isViewOnlyComponent(final Component component){
-		return viewOnlyComponents.contains(component);
+	@Override
+	public boolean isViewOnlyComponent(final int componentID){
+		return viewOnlyComponents.contains(getButtonComponent(componentID));
+	}
+
+	protected void addButtonComponent(final int buttonID, JButton button){
+		components.put(buttonID, button);
+	}
+
+	protected Component getButtonComponent(final int componentID){
+		return components.get(componentID);
 	}
 
 	protected DefaultTableModel getRecordTableModel(){
@@ -588,7 +599,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	@Override
-	protected Map<String, Object> getSelectedRecord(){
+	public Map<String, Object> getSelectedRecord(){
 		final int viewRowIndex = recordTable.getSelectedRow();
 		if(viewRowIndex == -1)
 			//no row selected

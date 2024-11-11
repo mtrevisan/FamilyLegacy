@@ -145,7 +145,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_LOCALIZED_PERSON_NAME;
 	}
 
@@ -279,7 +279,13 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 			if(recordPersonNameRelationships.size() > 1)
 				throw new IllegalArgumentException("Data integrity error");
 		}
+
+
+		refreshButtonStates(localizedPersonNameID);
 	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){}
 
 	@Override
 	protected void clearData(){
@@ -402,7 +408,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 					final int localizedPersonNameID = extractRecordID(container);
 					switch(editCommand.getType()){
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -413,7 +419,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -425,7 +431,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -436,7 +442,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -448,7 +454,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

@@ -136,7 +136,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_EVENT_TYPE;
 	}
 
@@ -250,7 +250,13 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		superTypeComboBox.setSelectedItem(superType);
 		typeField.setText(type);
 		categoryComboBox.setSelectedItem(category);
+
+
+		refreshButtonStates(eventTypeID);
 	}
+
+	@Override
+	public void refreshButtonStates(final int recordID){}
 
 	private SuperTypeItem extractRecordSuperType(final Integer eventTypeID){
 		final Map.Entry<String, Map<String, Object>> eventSuperTypeNode = Repository.findReferencedNode(

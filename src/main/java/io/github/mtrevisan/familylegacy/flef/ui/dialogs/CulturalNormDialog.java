@@ -81,6 +81,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	@Serial
 	private static final long serialVersionUID = -3961030253095528462L;
 
+
+	public static final int COMPONENT_ID_PLACE_BUTTON = "place".hashCode();
+	public static final int COMPONENT_ID_DATE_START_BUTTON = "dateStart".hashCode();
+	public static final int COMPONENT_ID_DATE_END_BUTTON = "dateEnd".hashCode();
+	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
+	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
+	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
+	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
+
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
 
@@ -146,6 +155,14 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	private CulturalNormDialog(final Frame parent){
 		super(parent);
+
+		addButtonComponent(COMPONENT_ID_PLACE_BUTTON, placeButton);
+		addButtonComponent(COMPONENT_ID_DATE_START_BUTTON, dateStartButton);
+		addButtonComponent(COMPONENT_ID_DATE_END_BUTTON, dateEndButton);
+		addButtonComponent(COMPONENT_ID_NOTE_BUTTON, noteButton);
+		addButtonComponent(COMPONENT_ID_MEDIA_BUTTON, mediaButton);
+		addButtonComponent(COMPONENT_ID_ASSERTION_BUTTON, assertionButton);
+		addButtonComponent(COMPONENT_ID_EVENT_BUTTON, eventButton);
 	}
 
 
@@ -180,7 +197,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	}
 
 	@Override
-	protected String getTableName(){
+	public String getTableName(){
 		return EntityManager.NODE_CULTURAL_NORM;
 	}
 
@@ -221,15 +238,15 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		placeButton.setToolTipText("Place");
 		placeButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.PLACE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.PLACE, this, selectedRecord)));
 
 		dateStartButton.setToolTipText("Start date");
 		dateStartButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE_START, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE_START, this, selectedRecord)));
 
 		dateEndButton.setToolTipText("End date");
 		dateEndButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.HISTORIC_DATE_END, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.HISTORIC_DATE_END, this, selectedRecord)));
 
 		GUIHelper.bindLabelUndoAutoComplete(certaintyLabel, certaintyComboBox);
 		GUIHelper.bindOnSelectionChange(certaintyComboBox, this::saveData);
@@ -239,19 +256,19 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		noteButton.setToolTipText("Notes");
 		noteButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.NOTE, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.NOTE, this, selectedRecord)));
 
 		mediaButton.setToolTipText("Media");
 		mediaButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.MEDIA, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.MEDIA, this, selectedRecord)));
 
 		assertionButton.setToolTipText("Assertions");
 		assertionButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.ASSERTION, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.ASSERTION, this, selectedRecord)));
 
 		eventButton.setToolTipText("Events");
 		eventButton.addActionListener(e -> EventBusService.publish(
-			EditEvent.create(EditEvent.EditType.EVENT, EntityManager.NODE_CULTURAL_NORM, selectedRecord)));
+			EditEvent.create(EditEvent.EditType.EVENT, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
 
@@ -572,36 +589,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 					final Map<String, Object> container = editCommand.getContainer();
 					final int culturalNormID = extractRecordID(container);
 					switch(editCommand.getType()){
-						case ASSERTION -> {
-							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(dialog.assertionButton)
-									? AssertionDialog.createSelectOnly(parent)
-									: AssertionDialog.create(parent))
-								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
-										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-											EntityManager.NODE_ASSERTION, upsertedRecordID,
-											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
-											EntityManager.RELATIONSHIP_SUPPORTED_BY);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(culturalNormID);
-								});
-							assertionDialog.loadData();
-
-							assertionDialog.showDialog();
-						}
-
 						case PLACE -> {
-							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(dialog.placeButton)
+							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PLACE_BUTTON)
 									? PlaceDialog.createSelectOnly(parent)
 									: PlaceDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -633,7 +622,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 
 						case HISTORIC_DATE_START -> {
-							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateStartButton)
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_DATE_START_BUTTON)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -664,7 +653,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							historicDateDialog.showDialog();
 						}
 						case HISTORIC_DATE_END -> {
-							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(dialog.dateEndButton)
+							final HistoricDateDialog historicDateDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_DATE_END_BUTTON)
 									? HistoricDateDialog.createSelectOnly(parent)
 									: HistoricDateDialog.create(parent))
 								.withOnCloseGracefully(modifiedRecords -> {
@@ -696,7 +685,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 
 						case NOTE -> {
-							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(dialog.noteButton)
+							final NoteDialog noteDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_NOTE_BUTTON)
 									? NoteDialog.createSelectOnly(parent)
 									: NoteDialog.create(parent))
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
@@ -724,7 +713,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 
 						case MEDIA -> {
-							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(dialog.mediaButton)
+							final MediaDialog mediaDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_MEDIA_BUTTON)
 									? MediaDialog.createSelectOnlyForMedia(parent)
 									: MediaDialog.createForMedia(parent))
 								.withBasePath(FileHelper.documentsDirectory())
@@ -752,8 +741,36 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							mediaDialog.showDialog();
 						}
 
+						case ASSERTION -> {
+							final AssertionDialog assertionDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_ASSERTION_BUTTON)
+									? AssertionDialog.createSelectOnly(parent)
+									: AssertionDialog.create(parent))
+								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
+								.withOnCloseGracefully(modifiedRecords -> {
+									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_ASSERTION);
+										Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.NODE_ASSERTION, upsertedRecordID,
+											EntityManager.RELATIONSHIP_SUPPORTED_BY, Collections.emptyMap(),
+											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+									}
+									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+										Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, culturalNormID,
+											EntityManager.NODE_ASSERTION, deletedIDs.get(i),
+											EntityManager.RELATIONSHIP_SUPPORTED_BY);
+
+									//update UI
+									if(!deletedIDs.isEmpty())
+										dialog.refreshButtonStates(culturalNormID);
+								});
+							assertionDialog.loadData();
+
+							assertionDialog.showDialog();
+						}
+
 						case EVENT -> {
-							final EventDialog eventDialog = (dialog.isViewOnlyComponent(dialog.eventButton)
+							final EventDialog eventDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_EVENT_BUTTON)
 									? EventDialog.createSelectOnly(parent)
 									: EventDialog.create(parent))
 								.withReference(EntityManager.NODE_CULTURAL_NORM, culturalNormID)
@@ -781,7 +798,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 
 						case MODIFICATION_HISTORY_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -792,7 +809,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							changeNoteDialog.showDialog();
 						}
 						case MODIFICATION_HISTORY_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer noteID = (Integer)container.get("noteID");
 							final NoteDialog changeNoteDialog = NoteDialog.createModificationNoteEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -804,7 +821,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 
 						case RESEARCH_STATUS_SHOW -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createShowOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -815,7 +832,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 							researchStatusDialog.showDialog();
 						}
 						case RESEARCH_STATUS_EDIT -> {
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = (Integer)container.get("researchStatusID");
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent);
 							final String title = StringUtils.capitalize(StringUtils.replace(tableName, "_", StringUtils.SPACE));
@@ -827,7 +844,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 						}
 						case RESEARCH_STATUS_NEW -> {
 							final int parentRecordID = extractRecordID(dialog.getSelectedRecord());
-							final String tableName = editCommand.getIdentifier();
+							final String tableName = editCommand.getDialog().getTableName();
 							final Integer researchStatusID = extractRecordID(container);
 							final ResearchStatusDialog researchStatusDialog = ResearchStatusDialog.createEditOnly(parent)
 								.withOnCloseGracefully(modifiedRecords -> {

@@ -55,7 +55,7 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
 		<maven-source-plugin.version>3.3.1</maven-source-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
-		<maven-javadoc-plugin.version>3.10.1</maven-javadoc-plugin.version>
+		<maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
 		<maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
@@ -73,7 +73,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
-		<fasterxml.jackson-core.version>2.18.0</fasterxml.jackson-core.version>
+		<fasterxml.jackson-core.version>2.18.1</fasterxml.jackson-core.version>
 
 		<!-- LZMA compression -->
 		<!-- https://mvnrepository.com/artifact/org.tukaani/xz -->
@@ -85,7 +85,7 @@
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j -->
-		<neo4j.version>5.24.2</neo4j.version>
+		<neo4j.version>5.25.1</neo4j.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-core -->
 		<neo4j.ogm-core.version>4.0.11</neo4j.ogm-core.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-embedded-driver -->
@@ -108,7 +108,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>2.18.0</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>2.18.1</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>2.9.0</jayway.json-path.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.java-json-tools/jackson-coreutils -->
