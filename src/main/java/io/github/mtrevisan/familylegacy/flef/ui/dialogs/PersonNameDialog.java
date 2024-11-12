@@ -78,14 +78,10 @@ public final class PersonNameDialog extends CommonListDialog{
 	private static final long serialVersionUID = -3816108402093925220L;
 
 
-	public static final int COMPONENT_ID_TRANSCRIBED_NAME_BUTTON = "transcribedName".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_CULTURAL_NORM_BUTTON = "culturalNorm".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
-	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
-
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private final JLabel personalNameLabel = new JLabel("(Personal) Name:");
@@ -119,7 +115,6 @@ public final class PersonNameDialog extends CommonListDialog{
 	public static PersonNameDialog createSelectOnly(final Frame parent){
 		final PersonNameDialog dialog = new PersonNameDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.transcribedNameButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton,
 			dialog.culturalNormButton, dialog.eventButton);
 		dialog.initialize();
@@ -253,8 +248,8 @@ public final class PersonNameDialog extends CommonListDialog{
 		recordPanelOther.add(eventButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -316,18 +311,18 @@ public final class PersonNameDialog extends CommonListDialog{
 	public void refreshButtonStates(final int recordID){
 		final String tableName = getTableName();
 		final boolean hasTransliterations = Repository.hasPersonNameTransliterations(tableName, recordID);
-		setButtonEnableAndBorder(transcribedNameButton, hasTransliterations);
+		setButtonSelectEnableAndBorder(transcribedNameButton, hasTransliterations);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
 		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
 		final boolean hasCulturalNorms = Repository.hasCulturalNorms(tableName, recordID);
 		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
-		setButtonEnableAndBorder(eventButton, hasEvents);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
+		setButtonSelectEnableAndBorder(culturalNormButton, hasCulturalNorms);
+		setButtonSelectEnableAndBorder(eventButton, hasEvents);
 	}
 
 	@Override

@@ -85,14 +85,9 @@ public final class EventDialog extends CommonListDialog{
 	private static final long serialVersionUID = 1136825738944999745L;
 
 
-	public static final int COMPONENT_ID_ADD_TYPE_BUTTON = "addType".hashCode();
-	public static final int COMPONENT_ID_REMOVE_TYPE_BUTTON = "removeType".hashCode();
-	public static final int COMPONENT_ID_PLACE_BUTTON = "place".hashCode();
-	public static final int COMPONENT_ID_DATE_BUTTON = "date".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-
 	private static final int TABLE_INDEX_TYPE = 2;
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private static final class TypeItem{
@@ -159,7 +154,6 @@ public final class EventDialog extends CommonListDialog{
 	public static EventDialog createSelectOnly(final Frame parent){
 		final EventDialog dialog = new EventDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateButton, dialog.noteButton, dialog.mediaButton);
 		dialog.initialize();
 		return dialog;
@@ -305,8 +299,8 @@ public final class EventDialog extends CommonListDialog{
 		recordPanelOther.add(mediaButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -371,13 +365,13 @@ public final class EventDialog extends CommonListDialog{
 		final String tableName = getTableName();
 		final boolean hasPlaces = Repository.hasPlace(tableName, recordID);
 		final boolean hasDate = Repository.hasDate(tableName, recordID);
-		setButtonEnableAndBorder(placeButton, hasPlaces);
-		setButtonEnableAndBorder(dateButton, hasDate);
+		setButtonSelectEnableAndBorder(placeButton, hasPlaces);
+		setButtonSelectEnableAndBorder(dateButton, hasDate);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
 	}
 
 	private String extractRecordType(final Integer eventID){

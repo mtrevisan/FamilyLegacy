@@ -69,11 +69,10 @@ public final class CalendarDialog extends CommonListDialog{
 	private static final long serialVersionUID = 9026792737072096011L;
 
 
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
-	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
-
 	private static final int TABLE_INDEX_TYPE = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private final JLabel typeLabel = new JLabel("Type:");
@@ -93,7 +92,6 @@ public final class CalendarDialog extends CommonListDialog{
 	public static CalendarDialog createSelectOnly(final Frame parent){
 		final CalendarDialog dialog = new CalendarDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.noteButton, dialog.assertionButton, dialog.eventButton);
 		dialog.initialize();
 		return dialog;
@@ -183,8 +181,8 @@ public final class CalendarDialog extends CommonListDialog{
 		recordPanelOther.add(assertionButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(eventButton, "sizegroup btn,center");
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -236,9 +234,9 @@ public final class CalendarDialog extends CommonListDialog{
 		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
 		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
 
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(eventButton, hasEvents);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
+		setButtonSelectEnableAndBorder(eventButton, hasEvents);
 	}
 
 	@Override

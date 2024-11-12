@@ -75,10 +75,10 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	private static final long serialVersionUID = 3280504923967901715L;
 
 
-	public static final int COMPONENT_ID_CULTURAL_NORM_BUTTON = "culturalNorm".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-
 	private static final int TABLE_INDEX_NOTE = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private final JLabel noteLabel = new JLabel("Note:");
@@ -103,7 +103,6 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 	public static NoteDialog createSelectOnly(final Frame parent){
 		final NoteDialog dialog = new NoteDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.mediaButton, dialog.culturalNormButton);
 		dialog.initialize();
 		return dialog;
@@ -235,8 +234,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		recordPanelOther.add(culturalNormButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -296,8 +295,8 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
 		final boolean hasCulturalNorms = Repository.hasCulturalNorms(tableName, recordID);
 
-		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(culturalNormButton, hasCulturalNorms);
 	}
 
 	@Override

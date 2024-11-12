@@ -228,7 +228,7 @@ public class ChildrenPanel extends JPanel{
 	@SuppressWarnings("unchecked")
 	private Map<String, Object>[] extractChildren(final Integer unionID){
 		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
-		return getPersonIDsInGroup(unionID, EntityManager.GROUP_ROLE_PARTNER).stream()
+		return getPersonIDsInGroup(unionID, EntityManager.GROUP_ROLE_CHILD).stream()
 			.map(persons::get)
 			.map(entry -> persons.get(extractRecordID(entry)))
 			.toArray(Map[]::new);

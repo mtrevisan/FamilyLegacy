@@ -78,13 +78,11 @@ public final class SourceDialog extends CommonListDialog{
 	private static final long serialVersionUID = -8850730067231141478L;
 
 
-	public static final int COMPONENT_ID_PLACE_BUTTON = "place".hashCode();
-	public static final int COMPONENT_ID_DATE_BUTTON = "date".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-	public static final int COMPONENT_ID_CITATION_BUTTON = "citation".hashCode();
-
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
+	private static final String RECORD_PANEL_NAME_CHILDREN = "children";
 
 
 	private final JLabel identifierLabel = new JLabel("Identifier:");
@@ -125,7 +123,6 @@ public final class SourceDialog extends CommonListDialog{
 	public static SourceDialog createSelectOnly(final Frame parent){
 		final SourceDialog dialog = new SourceDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateButton, dialog.noteButton, dialog.mediaButton, dialog.citationButton);
 		dialog.initialize();
 		return dialog;
@@ -263,9 +260,9 @@ public final class SourceDialog extends CommonListDialog{
 		final JPanel recordPanelChildren = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelChildren.add(citationButton, "sizegroup btn,center");
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("children", recordPanelChildren);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_CHILDREN, recordPanelChildren);
 	}
 
 	@Override
@@ -328,16 +325,16 @@ public final class SourceDialog extends CommonListDialog{
 		final String tableName = getTableName();
 		final boolean hasPlace = Repository.hasPlace(tableName, recordID);
 		final boolean hasDate = Repository.hasDate(tableName, recordID);
-		setButtonEnableAndBorder(placeButton, hasPlace);
-		setButtonEnableAndBorder(dateButton, hasDate);
+		setButtonSelectEnableAndBorder(placeButton, hasPlace);
+		setButtonSelectEnableAndBorder(dateButton, hasDate);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
 
 		final boolean hasCitations = Repository.hasCitations(tableName, recordID);
-		setButtonEnableAndBorder(citationButton, hasCitations);
+		setButtonSelectEnableAndBorder(citationButton, hasCitations);
 	}
 
 	@Override

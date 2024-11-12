@@ -71,15 +71,10 @@ public final class PersonDialog extends CommonListDialog{
 	private static final long serialVersionUID = 6043866696384851757L;
 
 
-	public static final int COMPONENT_ID_PERSON_NAME_BUTTON = "personName".hashCode();
-	public static final int COMPONENT_ID_PHOTO_BUTTON = "photo".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
-	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
-	public static final int COMPONENT_ID_GROUP_BUTTON = "group".hashCode();
-
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private final JButton personNameButton = new JButton("Names", ICON_TEXT);
@@ -102,7 +97,6 @@ public final class PersonDialog extends CommonListDialog{
 	public static PersonDialog createSelectOnly(final Frame parent){
 		final PersonDialog dialog = new PersonDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton,
 			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
@@ -221,8 +215,8 @@ public final class PersonDialog extends CommonListDialog{
 		recordPanelOther.add(groupButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -266,19 +260,19 @@ public final class PersonDialog extends CommonListDialog{
 		final String tableName = getTableName();
 		final boolean hasPersonNames = Repository.hasPersonNames(tableName, recordID);
 		final boolean hasPhoto = (Repository.getDepiction(tableName, recordID) != null);
-		setButtonEnableAndBorder(personNameButton, hasPersonNames);
-		setButtonEnableAndBorder(photoButton, hasPhoto);
+		setButtonSelectEnableAndBorder(personNameButton, hasPersonNames);
+		setButtonSelectEnableAndBorder(photoButton, hasPhoto);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
 		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
 		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
 		final boolean hasGroups = Repository.hasGroups(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(eventButton, hasEvents);
-		setButtonEnableAndBorder(groupButton, hasGroups);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
+		setButtonSelectEnableAndBorder(eventButton, hasEvents);
+		setButtonSelectEnableAndBorder(groupButton, hasGroups);
 	}
 
 	@Override
@@ -410,7 +404,7 @@ public final class PersonDialog extends CommonListDialog{
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, Collections.emptyMap(),
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
 		final Map<String, Object> localizedPersonName3 = new HashMap<>();
-		localizedPersonName3.put("personal_name", "other");
+		localizedPersonName3.put("personal_name", RECORD_PANEL_NAME_OTHER);
 		localizedPersonName3.put("family_name", "name");
 		localizedPersonName3.put("locale", "en");
 		int localizedPersonName3ID = Repository.upsert(localizedPersonName3, EntityManager.NODE_LOCALIZED_PERSON_NAME);

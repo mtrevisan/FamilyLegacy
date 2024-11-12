@@ -81,12 +81,11 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	private static final long serialVersionUID = -7601387139021862486L;
 
 
-	public static final int COMPONENT_ID_TRANSCRIBED_EXTRACT_BUTTON = "transcribedExtract".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
-
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_ = "other";
+	private static final String RECORD_PANEL_NAME_CHILDREN = "children";
 
 
 	private final JLabel locationLabel = new JLabel("Location:");
@@ -117,7 +116,6 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	public static CitationDialog createSelectOnly(final Frame parent){
 		final CitationDialog dialog = new CitationDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.transcribedExtractButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton);
 		dialog.initialize();
 		return dialog;
@@ -251,9 +249,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final JPanel recordPanelChildren = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelChildren.add(assertionButton, "sizegroup btn,center");
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("children", recordPanelChildren);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_, recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_CHILDREN, recordPanelChildren);
 	}
 
 	@Override
@@ -326,15 +324,15 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		final String tableName = getTableName();
 		final boolean hasTranscribedExtracts = Repository.hasTranscriptions(tableName, recordID,
 			EntityManager.LOCALIZED_TEXT_TYPE_EXTRACT);
-		setButtonEnableAndBorder(transcribedExtractButton, hasTranscribedExtracts);
+		setButtonSelectEnableAndBorder(transcribedExtractButton, hasTranscribedExtracts);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
 
 		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
 	}
 
 	@Override

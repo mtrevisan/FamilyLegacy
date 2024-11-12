@@ -107,6 +107,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected static final int TABLE_INDEX_FILTER = 1;
 	private static final int TABLE_ROWS_SHOWN = 5;
 
+	private static final String RECORD_PANEL_NAME_HISTORY = "history";
+	private static final String RECORD_PANEL_NAME_RESEARCH_STATUS = "research status";
+
 
 	//store components:
 	private final JLabel filterLabel = new JLabel("Filter:");
@@ -371,9 +374,9 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected final void initLayout(){
 		initRecordLayout(recordTabbedPane);
 		if(showRecordHistory)
-			recordTabbedPane.add("history", historyPanel);
+			recordTabbedPane.add(RECORD_PANEL_NAME_HISTORY, historyPanel);
 		if(showRecordResearchStatus)
-			recordTabbedPane.add("research status", researchStatusPanel);
+			recordTabbedPane.add(RECORD_PANEL_NAME_RESEARCH_STATUS, researchStatusPanel);
 
 		if(showRecordOnly){
 //			recordTabbedPane.setBorder(BorderFactory.createTitledBorder("Record"));
@@ -385,8 +388,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			unselectRecordButton.setVisible(false);
 			deleteRecordButton.setVisible(false);
 		}
-		if(selectRecordOnly)
-			unselectRecordButton.setVisible(false);
 		final boolean showRecordTabbedPane = (!selectRecordOnly || recordTabbedPane.getComponentCount() > 0);
 		if(!showRecordTabbedPane)
 			recordTabbedPane.setVisible(false);
@@ -396,8 +397,10 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		add(filterField, "grow,wrap related,hidemode 3");
 		add(tableScrollPane, "grow,wrap paragraph,hidemode 3");
 		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
-		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3");
-		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,wrap paragraph,hidemode 3");
+		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3"
+			+ (deleteRecordButton.isVisible()? StringUtils.EMPTY: ",wrap paragraph"));
+		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,hidemode 3"
+			+ (deleteRecordButton.isVisible()? ",wrap paragraph": StringUtils.EMPTY));
 		add(recordTabbedPane, "grow,hidemode 3");
 
 		if(selectRecordOnly && showRecordOnly)
@@ -454,8 +457,13 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		return false;
 	}
 
-	protected void setButtonEnableAndBorder(final JButton button, final boolean hasData){
+	protected void setButtonSelectEnableAndBorder(final JButton button, final boolean hasData){
 		button.setEnabled(!selectRecordOnly || hasData);
+		GUIHelper.addBorder(button, hasData, DATA_BUTTON_BORDER_COLOR);
+	}
+
+	protected void setButtonEnableAndBorder(final JButton button, final boolean hasData){
+		button.setEnabled(hasData);
 		GUIHelper.addBorder(button, hasData, DATA_BUTTON_BORDER_COLOR);
 	}
 

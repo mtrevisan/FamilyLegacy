@@ -82,6 +82,8 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 
 	private static final int TABLE_INDEX_TEXT = 2;
 
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+
 
 	private final JLabel personalNameLabel = new JLabel("(Primary) Name:");
 	private final JTextField personalNameField = new JTextField();
@@ -110,7 +112,6 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	public static LocalizedPersonNameDialog createSelectOnly(final Frame parent){
 		final LocalizedPersonNameDialog dialog = new LocalizedPersonNameDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.initialize();
 		return dialog;
 	}
@@ -210,7 +211,7 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(transcriptionTypeComboBox, "grow");
 
-		recordTabbedPane.add("base", recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
 	}
 
 	@Override

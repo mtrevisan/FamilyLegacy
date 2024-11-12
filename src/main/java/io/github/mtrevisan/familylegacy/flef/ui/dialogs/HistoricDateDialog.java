@@ -81,11 +81,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 	private static final long serialVersionUID = 3434407293578383806L;
 
 
-	public static final int COMPONENT_ID_CALENDAR_ORIGINAL_BUTTON = "calendarOriginal".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
-
 	private static final int TABLE_INDEX_DATE = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private final JLabel dateLabel = new JLabel("Date:");
@@ -112,7 +111,6 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public static HistoricDateDialog createSelectOnly(final Frame parent){
 		final HistoricDateDialog dialog = new HistoricDateDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.calendarOriginalButton, dialog.noteButton, dialog.assertionButton);
 		dialog.initialize();
 		return dialog;
@@ -226,8 +224,8 @@ public final class HistoricDateDialog extends CommonListDialog{
 		recordPanelOther.add(assertionButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -288,12 +286,12 @@ public final class HistoricDateDialog extends CommonListDialog{
 	public void refreshButtonStates(final int recordID){
 		final String tableName = getTableName();
 		final boolean hasCalendarOriginal = (extractRecordCalendarID(recordID) != null);
-		setButtonEnableAndBorder(calendarOriginalButton, hasCalendarOriginal);
+		setButtonSelectEnableAndBorder(calendarOriginalButton, hasCalendarOriginal);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
 	}
 
 	private Integer extractRecordCalendarID(final Integer historicDateID){

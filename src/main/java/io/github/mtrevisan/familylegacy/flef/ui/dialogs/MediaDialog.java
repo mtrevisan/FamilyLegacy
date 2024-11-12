@@ -111,16 +111,11 @@ public final class MediaDialog extends CommonListDialog{
 	private static final long serialVersionUID = -800755271311929604L;
 
 
-	public static final int COMPONENT_ID_FILE_BUTTON = "file".hashCode();
-	public static final int COMPONENT_ID_OPEN_FOLDER_BUTTON = "openFolder".hashCode();
-	public static final int COMPONENT_ID_OPEN_LINK_BUTTON = "openLink".hashCode();
-	public static final int COMPONENT_ID_DATE_BUTTON = "date".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
-	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
-	public static final int COMPONENT_ID_PHOTO_CROP_BUTTON = "photoCrop".hashCode();
-
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
+	private static final String RECORD_PANEL_NAME_LINK = "link";
 
 
 	private final JLabel fileLabel = new JLabel("Identifier:");
@@ -177,7 +172,6 @@ public final class MediaDialog extends CommonListDialog{
 	public static MediaDialog createSelectOnlyForMedia(final Frame parent){
 		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
 			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
@@ -188,7 +182,6 @@ public final class MediaDialog extends CommonListDialog{
 		final MediaDialog dialog = new MediaDialog(parent);
 		dialog.restrictToPhoto = true;
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.dateButton, dialog.noteButton, dialog.assertionButton, dialog.eventButton,
 			dialog.photoCropButton, dialog.openFolderButton, dialog.openLinkButton);
 		dialog.initialize();
@@ -244,19 +237,21 @@ public final class MediaDialog extends CommonListDialog{
 
 	public MediaDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		Consumer<ModifiedRecords> innerOnCloseGracefully = modifiedRecords -> {
-			if(selectedRecord != null)
-				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
-					Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
+			if(filterReferenceTable != null){
+				if(selectedRecord != null)
+					for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+						final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_MEDIA);
+						Repository.upsertRelationship(EntityManager.NODE_MEDIA, upsertedRecordID,
+							filterReferenceTable, filterReferenceID,
+							EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
+							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+					}
+				final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+				for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+					Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
 						filterReferenceTable, filterReferenceID,
-						EntityManager.RELATIONSHIP_FOR, Collections.emptyMap(),
-						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-				}
-			final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-				Repository.deleteRelationship(EntityManager.NODE_MEDIA, deletedIDs.get(i),
-					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_FOR);
+						EntityManager.RELATIONSHIP_FOR);
+			}
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -484,9 +479,9 @@ public final class MediaDialog extends CommonListDialog{
 		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelLink.add(photoCropButton, "sizegroup btn,center");
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
-		recordTabbedPane.add("link", recordPanelLink);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_LINK, recordPanelLink);
 	}
 
 	@Override
@@ -578,7 +573,7 @@ public final class MediaDialog extends CommonListDialog{
 
 		photoCropButtonEnabledBorder(identifier, mediaID);
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, "link", (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
+		GUIHelper.enableTabByTitle(recordTabbedPane, RECORD_PANEL_NAME_LINK, (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
 
 
 		refreshButtonStates(mediaID);
@@ -588,14 +583,14 @@ public final class MediaDialog extends CommonListDialog{
 	public void refreshButtonStates(final int recordID){
 		final String tableName = getTableName();
 		final boolean hasDate = Repository.hasDate(tableName, recordID);
-		setButtonEnableAndBorder(dateButton, hasDate);
+		setButtonSelectEnableAndBorder(dateButton, hasDate);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
 		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(eventButton, hasEvents);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
+		setButtonSelectEnableAndBorder(eventButton, hasEvents);
 	}
 
 	//NOTE working node-relationship extraction

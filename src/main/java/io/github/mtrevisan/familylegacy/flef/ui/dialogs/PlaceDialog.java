@@ -85,15 +85,10 @@ public final class PlaceDialog extends CommonListDialog{
 	private static final long serialVersionUID = -8409918543709413945L;
 
 
-	public static final int COMPONENT_ID_TRANSCRIBED_NAME_BUTTON = "transcribedName".hashCode();
-	public static final int COMPONENT_ID_PHOTO_BUTTON = "photo".hashCode();
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-	public static final int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
-	public static final int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
-	public static final int COMPONENT_ID_GROUP_BUTTON = "group".hashCode();
-
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private final JLabel identifierLabel = new JLabel("Identifier:");
@@ -133,7 +128,6 @@ public final class PlaceDialog extends CommonListDialog{
 	public static PlaceDialog createSelectOnly(final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton,
 			dialog.groupButton);
 		dialog.initialize();
@@ -295,8 +289,8 @@ public final class PlaceDialog extends CommonListDialog{
 		recordPanelOther.add(groupButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -373,19 +367,19 @@ public final class PlaceDialog extends CommonListDialog{
 		final boolean hasTranscribedNames = Repository.hasTranscriptions(tableName, recordID,
 			EntityManager.LOCALIZED_TEXT_TYPE_NAME);
 		final boolean hasPhoto = (Repository.getDepiction(tableName, recordID) != null);
-		setButtonEnableAndBorder(transcribedNameButton, hasTranscribedNames);
-		setButtonEnableAndBorder(photoButton, hasPhoto);
+		setButtonSelectEnableAndBorder(transcribedNameButton, hasTranscribedNames);
+		setButtonSelectEnableAndBorder(photoButton, hasPhoto);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
 		final boolean hasAssertions = Repository.hasAssertions(tableName, recordID);
 		final boolean hasEvents = Repository.hasEvents(tableName, recordID);
 		final boolean hasGroups = Repository.hasGroups(tableName, recordID);
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setButtonEnableAndBorder(assertionButton, hasAssertions);
-		setButtonEnableAndBorder(eventButton, hasEvents);
-		setButtonEnableAndBorder(groupButton, hasGroups);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
+		setButtonSelectEnableAndBorder(eventButton, hasEvents);
+		setButtonSelectEnableAndBorder(groupButton, hasGroups);
 	}
 
 	@Override

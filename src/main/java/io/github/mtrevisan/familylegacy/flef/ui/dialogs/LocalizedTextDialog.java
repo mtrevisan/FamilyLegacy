@@ -82,6 +82,8 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	private static final int TABLE_INDEX_TEXT = 2;
 
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+
 
 	private final JLabel textLabel = new JLabel("Text:");
 	private final TextPreviewPane textTextPreview = TextPreviewPane.createWithPreview(LocalizedTextDialog.this);
@@ -124,7 +126,6 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		final LocalizedTextDialog dialog = new LocalizedTextDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.simplePrimaryText = true;
-		dialog.hideUnselectButton = true;
 		dialog.initialize();
 		return dialog;
 	}
@@ -164,22 +165,23 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 	public LocalizedTextDialog withOnCloseGracefully(final Consumer<ModifiedRecords> onCloseGracefully){
 		Consumer<ModifiedRecords> innerOnCloseGracefully = modifiedRecords -> {
-			if(selectedRecord != null){
-				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-					final Map<String, Object> relationship = new HashMap<>(1);
-					insertRecordType(relationship, filterReferenceType);
-					final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
-					Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
+			if(filterReferenceTable != null){
+				if(selectedRecord != null)
+					for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
+						final Map<String, Object> relationship = new HashMap<>(1);
+						insertRecordType(relationship, filterReferenceType);
+						final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_LOCALIZED_TEXT);
+						Repository.upsertRelationship(EntityManager.NODE_LOCALIZED_TEXT, upsertedRecordID,
+							filterReferenceTable, filterReferenceID,
+							EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, relationship,
+							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
+					}
+				final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
+				for(int i = 0, length = deletedIDs.size(); i < length; i ++)
+					Repository.deleteRelationship(EntityManager.NODE_LOCALIZED_TEXT, deletedIDs.get(i),
 						filterReferenceTable, filterReferenceID,
-						EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR, relationship,
-						GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY, GraphDatabaseManager.OnDeleteType.CASCADE);
-				}
+						EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
 			}
-			final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-			for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-				Repository.deleteRelationship(EntityManager.NODE_LOCALIZED_TEXT, deletedIDs.get(i),
-					filterReferenceTable, filterReferenceID,
-					EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
 		};
 		if(onCloseGracefully != null)
 			innerOnCloseGracefully = innerOnCloseGracefully.andThen(onCloseGracefully);
@@ -272,7 +274,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(transcriptionTypeComboBox, "grow");
 
-		recordTabbedPane.add("base", recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
 	}
 
 	@Override

@@ -354,6 +354,19 @@ public class Repository{
 		}
 	}
 
+	public static List<Map.Entry<String, Map<String, Object>>> findReferencedNodes(final String tableNameStart, final Object nodeIDStart,
+			final String relationshipName, final String propertyName, final Object propertyValue){
+		try{
+			return GraphDatabaseManager.findOtherNodes(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, nodeIDStart,
+				relationshipName, propertyName, propertyValue);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while retrieving relationships: {}", e.getMessage(), e);
+
+			return Collections.emptyList();
+		}
+	}
+
 	public static List<Map<String, Object>> findReferencedNodes(final String tableNameStart,
 			final String tableNameEnd, final Object nodeIDEnd,
 			final String relationshipName){
@@ -410,6 +423,30 @@ public class Repository{
 		try{
 			return GraphDatabaseManager.findStartNodes(tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
 				relationshipName);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while searching other node in a relationship: {}", e.getMessage(), e);
+
+			return Collections.emptyList();
+		}
+	}
+
+	/**
+	 * Finds the referencing nodes in the graph database based on the given parameters, that is all the nodes with label `tableNameStart`
+	 * that points to node with label `tableNameEnd` and ID `recordIDEnd` through relationship `relationshipName`.
+	 *
+	 * @param tableNameEnd	The ending table name in the relationship.
+	 * @param recordIDEnd	The record ID of the ending node.
+	 * @param relationshipName	The name of the relationship.
+	 * @param propertyName	The property name of the relationship.
+	 * @param propertyValue	The property value of the relationship.
+	 * @return	A list of maps representing the referencing nodes.
+	 */
+	public static List<Map.Entry<String, Map<String, Object>>> findReferencingNodes(final String tableNameEnd, final Integer recordIDEnd,
+			final String relationshipName, final String propertyName, final Object propertyValue){
+		try{
+			return GraphDatabaseManager.findStartNodes(tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
+				relationshipName, propertyName, propertyValue);
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while searching other node in a relationship: {}", e.getMessage(), e);
@@ -562,6 +599,20 @@ public class Repository{
 	}
 
 	/**
+	 * Checks whether a given record in a specified table has people referenced to it.
+	 *
+	 * @param tableName	The name of the table.
+	 * @param recordID	The ID of the record.
+	 * @return	Whether the record has people.
+	 */
+	public static boolean hasPeople(final String tableName, final Integer recordID){
+		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_PERSON,
+			tableName, recordID,
+			EntityManager.RELATIONSHIP_BELONGS_TO);
+		return !result.isEmpty();
+	}
+
+	/**
 	 * Checks whether a given record in a specified table has groups referenced to it.
 	 *
 	 * @param tableName	The name of the table.
@@ -570,6 +621,20 @@ public class Repository{
 	 */
 	public static boolean hasGroups(final String tableName, final Integer recordID){
 		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_GROUP,
+			tableName, recordID,
+			EntityManager.RELATIONSHIP_BELONGS_TO);
+		return !result.isEmpty();
+	}
+
+	/**
+	 * Checks whether a given record in a specified table has places referenced to it.
+	 *
+	 * @param tableName	The name of the table.
+	 * @param recordID	The ID of the record.
+	 * @return	Whether the record has places.
+	 */
+	public static boolean hasPlaces(final String tableName, final Integer recordID){
+		final List<Map<String, Object>> result = findReferencingNodes(EntityManager.NODE_PLACE,
 			tableName, recordID,
 			EntityManager.RELATIONSHIP_BELONGS_TO);
 		return !result.isEmpty();

@@ -155,7 +155,7 @@ public class GroupPanel extends JPanel{
 	private final JPanel unionPanel = new JPanel();
 	private final JMenuItem editGroupItem = new JMenuItem("Edit Group…", 'E');
 	private final JMenuItem addGroupItem = new JMenuItem("Add Group…", 'A');
-//	private final JMenuItem linkGroupItem = new JMenuItem("Link Group…", 'L');
+	private final JMenuItem linkGroupItem = new JMenuItem("Link Group…", 'L');
 	private final JMenuItem removeGroupItem = new JMenuItem("Remove Group…", 'R');
 
 	private final BoxPanelType boxType;
@@ -542,8 +542,8 @@ public class GroupPanel extends JPanel{
 		addGroupItem.addActionListener(e -> groupListener.onGroupAdd(this));
 		popupMenu.add(addGroupItem);
 
-//		linkGroupItem.addActionListener(e -> groupListener.onGroupLink(this));
-//		popupMenu.add(linkGroupItem);
+		linkGroupItem.addActionListener(e -> groupListener.onGroupLink(this));
+		popupMenu.add(linkGroupItem);
 
 		removeGroupItem.addActionListener(e -> groupListener.onGroupRemove(this));
 		popupMenu.add(removeGroupItem);
@@ -590,10 +590,8 @@ public class GroupPanel extends JPanel{
 
 
 	public void loadData(final Integer groupID){
-		final Map<String, Object> group = (groupID != null
-			? Repository.findByID(EntityManager.NODE_GROUP, groupID)
-			: Collections.emptyMap());
-		loadData(group, Collections.emptyMap(), Collections.emptyMap());
+		final Map<String, Object> group = Repository.findByID(EntityManager.NODE_GROUP, groupID);
+		loadData((group != null? group: Collections.emptyMap()), Collections.emptyMap(), Collections.emptyMap());
 	}
 
 	void loadData(final Map<String, Object> group, final Map<String, Object> partner1, final Map<String, Object> partner2){
@@ -692,11 +690,10 @@ public class GroupPanel extends JPanel{
 			return;
 
 		final boolean hasData = !union.isEmpty();
-//		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
-//		final boolean hasChildren = (getChildren().length > 0);
+		final boolean hasGroups = (Repository.count(EntityManager.NODE_GROUP) > 0);
 		editGroupItem.setEnabled(hasData);
 		addGroupItem.setEnabled(!hasData);
-//		linkGroupItem.setEnabled(!hasData && hasGroups);
+		linkGroupItem.setEnabled(!hasData && hasGroups);
 		removeGroupItem.setEnabled(hasData);
 	}
 
@@ -797,14 +794,14 @@ public class GroupPanel extends JPanel{
 	}
 
 	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer adopteeID){
-		final List<Integer> ids = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
-				EntityManager.NODE_PERSON, adopteeID,
-				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_CHILD).stream()
+		final List<Integer> ids = Repository.findReferencedNodes(EntityManager.NODE_PERSON, adopteeID,
+				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_CHILD).stream()
+			.map(Map.Entry::getValue)
 			.map(EntityManager::extractRecordID)
 			.collect(Collectors.toList());
-		final List<Integer> adoptingParentsIDs = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
-				EntityManager.NODE_PERSON, adopteeID,
-				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_ADOPTEE).stream()
+		final List<Integer> adoptingParentsIDs = Repository.findReferencedNodes(EntityManager.NODE_PERSON, adopteeID,
+				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_ADOPTEE).stream()
+			.map(Map.Entry::getValue)
 			.map(EntityManager::extractRecordID)
 			.toList();
 		ids.addAll(adoptingParentsIDs);

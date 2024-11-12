@@ -84,6 +84,8 @@ public final class ResearchStatusDialog extends CommonListDialog{
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
 
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+
 
 	private final JLabel identifierLabel = new JLabel("Identifier:");
 	private final JTextField identifierField = new JTextField();
@@ -105,7 +107,6 @@ public final class ResearchStatusDialog extends CommonListDialog{
 	public static ResearchStatusDialog createSelectOnly(final Frame parent){
 		final ResearchStatusDialog dialog = new ResearchStatusDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.showRecordResearchStatus = false;
 		dialog.initialize();
 		return dialog;
@@ -202,7 +203,7 @@ public final class ResearchStatusDialog extends CommonListDialog{
 		recordPanelBase.add(priorityLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(priorityField, "grow");
 
-		recordTabbedPane.add("base", recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
 	}
 
 	@Override

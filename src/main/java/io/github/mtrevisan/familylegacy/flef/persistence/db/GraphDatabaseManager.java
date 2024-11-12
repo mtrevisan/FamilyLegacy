@@ -110,8 +110,11 @@ public class GraphDatabaseManager{
 		+ " RETURN " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_ALL_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ":{})-[:{}]->(:{} {{}: {}})"
 		+ " RETURN " + QUERY_PARAMETER_NODE;
-	private static final String QUERY_ALL_ANY_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
+	private static final String QUERY_ALL_ANY_CONNECTING_NODES = "MATCH (" + QUERY_PARAMETER_NODE
 		+ ")-[:{}]->(:{} {{}: {}})"
+		+ " RETURN " + QUERY_PARAMETER_NODE;
+	private static final String QUERY_ALL_ANY_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
+		+ ")-[:{} {{}: {}}]->(:{} {{}: {}})"
 		+ " RETURN " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_ALL_CONNECTING_NODES_WITH_PROPERTY = "MATCH (" + QUERY_PARAMETER_NODE
 		+ ":{})-[:{} {{}: {}}]->(:{} {{}: {}})"
@@ -521,8 +524,30 @@ public class GraphDatabaseManager{
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
 			final String relationshipName){
 		try(final Transaction tx = getTransaction()){
-			final String query = JavaHelper.textFormat(QUERY_ALL_ANY_CONNECTING_NODES_WITH_PROPERTY,
+			final String query = JavaHelper.textFormat(QUERY_ALL_ANY_CONNECTING_NODES,
 				relationshipName,
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
+			final Result result = tx.execute(query);
+
+			final List<Map.Entry<String, Map<String, Object>>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Node node = (Node)result.next()
+					.get(QUERY_PARAMETER_NODE);
+
+				final String otherNodeLabels = concatenateLabels(node);
+				final Map<String, Object> otherRecord = node.getAllProperties();
+				otherNodes.add(new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord));
+			}
+			return otherNodes;
+		}
+	}
+
+	public static List<Map.Entry<String, Map<String, Object>>> findStartNodes(
+			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
+			final String relationshipName, final String propertyName, final Object propertyValue){
+		try(final Transaction tx = getTransaction()){
+			final String query = JavaHelper.textFormat(QUERY_ALL_ANY_CONNECTING_NODES_WITH_PROPERTY,
+				relationshipName, propertyName, (propertyValue instanceof CharSequence? "'" + propertyValue + "'": propertyValue),
 				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
 			final Result result = tx.execute(query);
 
@@ -613,6 +638,34 @@ public class GraphDatabaseManager{
 				final Map<String, Object> otherRecord = endNode.getAllProperties();
 
 				otherNodes.add(new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord));
+			}
+
+			return otherNodes;
+		}
+	}
+
+	public static List<Map.Entry<String, Map<String, Object>>> findOtherNodes(final String tableNameStart,
+			final String primaryPropertyNameStart, final Object nodeIDStart,
+			final String relationshipName, final String propertyName, final Object propertyValue){
+		try(final Transaction tx = getTransaction()){
+			final String query = JavaHelper.textFormat(QUERY_FIND_RELATIONSHIPS,
+				tableNameStart, primaryPropertyNameStart, nodeIDStart,
+				relationshipName);
+
+			final Result result = tx.execute(query);
+
+			final List<Map.Entry<String, Map<String, Object>>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Relationship relationship = (Relationship)result.next()
+					.get(QUERY_PARAMETER_RELATIONSHIP);
+
+				if(relationship.getProperty(propertyName).equals(propertyValue)){
+					final Node endNode = relationship.getEndNode();
+					final String otherNodeLabels = concatenateLabels(endNode);
+					final Map<String, Object> otherRecord = endNode.getAllProperties();
+
+					otherNodes.add(new AbstractMap.SimpleImmutableEntry<>(otherNodeLabels, otherRecord));
+				}
 			}
 
 			return otherNodes;

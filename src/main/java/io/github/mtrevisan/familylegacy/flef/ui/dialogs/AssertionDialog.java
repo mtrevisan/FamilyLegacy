@@ -80,11 +80,10 @@ public final class AssertionDialog extends CommonListDialog{
 	private static final long serialVersionUID = -28220354680747790L;
 
 
-	public static final int COMPONENT_ID_NOTE_BUTTON = "note".hashCode();
-	public static final int COMPONENT_ID_MEDIA_BUTTON = "media".hashCode();
-	public static final int COMPONENT_ID_CULTURAL_NORM_BUTTON = "culturalNorm".hashCode();
-
 	private static final int TABLE_INDEX_REFERENCE_TABLE = 2;
+
+	private static final String RECORD_PANEL_NAME_BASE = "base";
+	private static final String RECORD_PANEL_NAME_OTHER = "other";
 
 
 	private final JLabel roleLabel = new JLabel("Role:");
@@ -112,7 +111,6 @@ public final class AssertionDialog extends CommonListDialog{
 	public static AssertionDialog createSelectOnly(final Frame parent){
 		final AssertionDialog dialog = new AssertionDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.hideUnselectButton = true;
 		dialog.addViewOnlyComponents(dialog.noteButton, dialog.mediaButton, dialog.culturalNormButton);
 		dialog.initialize();
 		return dialog;
@@ -224,8 +222,8 @@ public final class AssertionDialog extends CommonListDialog{
 		recordPanelOther.add(culturalNormButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		recordTabbedPane.add("base", recordPanelBase);
-		recordTabbedPane.add("other", recordPanelOther);
+		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
+		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
 	}
 
 	@Override
@@ -303,9 +301,9 @@ public final class AssertionDialog extends CommonListDialog{
 		final boolean hasMedia = Repository.hasMedia(tableName, recordID);
 		final boolean hasCulturalNorms = Repository.hasCulturalNorms(tableName, recordID);
 
-		setButtonEnableAndBorder(noteButton, hasNotes);
-		setButtonEnableAndBorder(mediaButton, hasMedia);
-		setButtonEnableAndBorder(culturalNormButton, hasCulturalNorms);
+		setButtonSelectEnableAndBorder(noteButton, hasNotes);
+		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
+		setButtonSelectEnableAndBorder(culturalNormButton, hasCulturalNorms);
 	}
 
 	@Override
