@@ -26,9 +26,11 @@ package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
 
@@ -37,11 +39,21 @@ public class ModifiedRecords{
 
 	private final Map<Integer, Map<String, Object>> upsertedRecords = new LinkedHashMap<>(1);
 	private final List<Integer> removedIDs = new ArrayList<>(0);
+	private final Set<Integer> ids = new HashSet<>(0);
 
 
 	public void addModifiedRecord(final Map<String, Object> record){
-		if(record != null)
-			upsertedRecords.put(extractRecordID(record), record);
+		if(record != null){
+			final Integer recordID = extractRecordID(record);
+			upsertedRecords.put(recordID, record);
+
+			//remove every record in `upsertedRecords` that will be deleted
+			removedIDs.remove(recordID);
+		}
+	}
+
+	public void addIDCollection(final Set<Integer> ids){
+		this.ids.addAll(ids);
 	}
 
 	public void addRemovedRecordID(final int recordID){
@@ -56,14 +68,14 @@ public class ModifiedRecords{
 		return removedIDs;
 	}
 
-	public void clean(){
-		//remove every record in `upsertedRecords` that will be deleted
-		removedIDs.forEach(upsertedRecords.keySet()::remove);
+	public Set<Integer> getCollectionIDs(){
+		return ids;
 	}
 
 	public void clear(){
 		upsertedRecords.clear();
 		removedIDs.clear();
+		ids.clear();
 	}
 
 }

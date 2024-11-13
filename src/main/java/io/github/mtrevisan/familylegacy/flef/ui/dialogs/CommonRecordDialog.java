@@ -56,6 +56,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -137,6 +138,9 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 	private final Collection<JTextComponent[]> mandatoryFields = new HashSet<>(0);
 
 	protected volatile boolean ignoreEvents;
+
+	protected volatile boolean useCollection;
+	protected final Set<Integer> collectionIDs = new HashSet<>(0);
 
 
 	protected CommonRecordDialog(final Frame parent){
@@ -232,6 +236,23 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 		return false;
 	}
 
+	/**
+	 * Loads a list of records and extracts their IDs into the collection set.
+	 * <p>
+	 * NOTE: collections MUST BE loaded before calling {@link #loadData()}.
+	 * </p>
+	 *
+	 * @param records	A list of maps, where each map represents a record with string keys and object values.
+	 */
+	protected void loadCollections(final List<Map<String, Object>> records){
+		for(int i = 0, length = records.size(); i < length; i ++){
+			final Map<String, Object> record = records.get(i);
+
+			collectionIDs.add(extractRecordID(record));
+		}
+	}
+
+
 	private void closeAction(final ActionEvent evt){
 		if(closeAction(true))
 			setVisible(false);
@@ -249,8 +270,8 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 			if(onCloseGracefully != null){
 				//add record even if nothing's changed (a simple selection of a record should be propagated)
 				modifiedRecords.addModifiedRecord(selectedRecord);
-				//remove every record in `upsertedRecords` that will be deleted
-				modifiedRecords.clean();
+				if(useCollection)
+					modifiedRecords.addIDCollection(collectionIDs);
 
 				onCloseGracefully.accept(modifiedRecords);
 

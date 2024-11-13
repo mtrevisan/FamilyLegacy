@@ -94,9 +94,26 @@ public final class PersonDialog extends CommonListDialog{
 		return dialog;
 	}
 
+	public static PersonDialog createCollection(final Frame parent){
+		final PersonDialog dialog = new PersonDialog(parent);
+		dialog.useCollection = true;
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static PersonDialog createSelectOnly(final Frame parent){
 		final PersonDialog dialog = new PersonDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton,
+			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static PersonDialog createSelectOnlyCollection(final Frame parent){
+		final PersonDialog dialog = new PersonDialog(parent);
+		dialog.selectRecordOnly = true;
+		dialog.useCollection = true;
 		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton,
 			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
@@ -227,21 +244,55 @@ public final class PersonDialog extends CommonListDialog{
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
-		int row = 0;
+		final DefaultTableModel collectionModel = (useCollection && !collectionIDs.isEmpty()? getCollectionTableModel(): null);
+		if(collectionModel != null)
+			collectionModel.setRowCount(collectionIDs.size());
+		int recordRow = 0;
+		int collectionRow = 0;
 		for(final Map<String, Object> record : records){
 			final Integer recordID = extractRecordID(record);
-			final String identifier = extractIdentifier(extractRecordID(record));
+			final String identifier = extractIdentifier(recordID);
 			final FilterString filter = FilterString.create()
 				.add(recordID)
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(recordID, row, TABLE_INDEX_ID);
-			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
+			model.setValueAt(recordID, recordRow, TABLE_INDEX_ID);
+			model.setValueAt(filterData, recordRow, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, recordRow, TABLE_INDEX_IDENTIFIER);
 
-			row ++;
+			if(collectionModel != null && collectionIDs.contains(recordID)){
+				collectionModel.setValueAt(recordID, collectionRow, TABLE_INDEX_ID);
+//				collectionModel.setValueAt(filterData, collectionRow, TABLE_INDEX_FILTER);
+				collectionModel.setValueAt(identifier, collectionRow, TABLE_INDEX_IDENTIFIER);
+
+				collectionRow ++;
+			}
+
+			recordRow ++;
 		}
+	}
+
+	@Override
+	protected void addToCollectionAction(){
+		//transfer selected record to collection table:
+
+		final DefaultTableModel model = getCollectionTableModel();
+		int row = model.getRowCount();
+		model.setRowCount(row + 1);
+		final Integer recordID = extractRecordID(selectedRecord);
+		final String identifier = extractIdentifier(recordID);
+//		final FilterString filter = FilterString.create()
+//			.add(recordID)
+//			.add(identifier);
+//		final String filterData = filter.toString();
+
+		model.setValueAt(recordID, row, TABLE_INDEX_ID);
+//		model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
+		model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
+
+
+		finalizeAddToCollectionAction();
 	}
 
 	@Override

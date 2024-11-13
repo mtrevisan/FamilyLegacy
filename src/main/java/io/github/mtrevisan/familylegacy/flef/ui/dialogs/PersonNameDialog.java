@@ -267,7 +267,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		int row = 0;
 		for(final Map<String, Object> record : records){
 			final Integer recordID = extractRecordID(record);
-			final String identifier = extractIdentifier(extractRecordID(record));
+			final String identifier = extractIdentifier(recordID);
 			final FilterString filter = FilterString.create()
 				.add(recordID)
 				.add(identifier);
