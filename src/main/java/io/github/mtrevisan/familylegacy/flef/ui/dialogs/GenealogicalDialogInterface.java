@@ -25,6 +25,9 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 
+import java.util.Map;
+
+
 public interface GenealogicalDialogInterface{
 
 	int COMPONENT_ID_ASSERTION_BUTTON = "assertion".hashCode();
@@ -52,8 +55,10 @@ public interface GenealogicalDialogInterface{
 	int COMPONENT_ID_REFERENCE_PERSON_BUTTON = "referencePerson".hashCode();
 	int COMPONENT_ID_PERSON_NAME_BUTTON = "personName".hashCode();
 
-	int COMPONENT_ID_PEOPLE_BUTTON = "people".hashCode();
 	int COMPONENT_ID_GROUP_BUTTON = "group".hashCode();
+	int COMPONENT_ID_PERSON_GROUP_BUTTON = "personGroup".hashCode();
+	int COMPONENT_ID_GROUP_GROUP_BUTTON = "groupGroup".hashCode();
+	int COMPONENT_ID_PLACE_GROUP_BUTTON = "placeGroup".hashCode();
 
 	int COMPONENT_ID_EVENT_BUTTON = "event".hashCode();
 	int COMPONENT_ID_ADD_TYPE_BUTTON = "addType".hashCode();
@@ -67,5 +72,7 @@ public interface GenealogicalDialogInterface{
 	boolean isViewOnlyComponent(int componentID);
 
 	void refreshButtonStates(int recordID);
+
+	Map<String, Object> extractRelationshipData(int collectionID, int dataColumnIndex);
 
 }

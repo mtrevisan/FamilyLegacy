@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.MediaDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.PersonDialog;
+import io.github.mtrevisan.familylegacy.flef.ui.dialogs.PlaceDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.ResearchStatusDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
@@ -59,9 +60,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -660,6 +663,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			}
 
 			case GROUP -> {
+				//FIXME wrong
 				final GroupDialog groupDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_GROUP_BUTTON)
 						? GroupDialog.createSelectOnly(this)
 						: GroupDialog.create(this))
@@ -674,8 +678,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						}
 						final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 						for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-							Repository.deleteRelationship(tableName, recordID,
-								tableName, deletedIDs.get(i),
+							Repository.deleteRelationship(tableName, deletedIDs.get(i),
+								tableName, recordID,
 								EntityManager.RELATIONSHIP_BELONGS_TO);
 
 						//update UI
@@ -685,6 +689,131 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 				groupDialog.loadData();
 
 				groupDialog.showDialog();
+			}
+
+			case PERSON_GROUP -> {
+				final PersonDialog personDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_PERSON_GROUP_BUTTON)
+						? PersonDialog.createCollectionViewOnly(recordID, this)
+						: PersonDialog.createCollection(recordID, this))
+					.withOnCloseGracefully(modifiedRecords -> {
+						final Set<Integer> currentPersonIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO).stream()
+							.map(EntityManager::extractRecordID)
+							.collect(Collectors.toSet());
+						final Set<Integer> newPersonIDInGroup = modifiedRecords.getCollectionIDs();
+						//extract the intersection between `currentPersonIDInGroup` and `newPersonIDInGroup`
+						final Set<Integer> intersection = new HashSet<>(currentPersonIDInGroup);
+						intersection.retainAll(newPersonIDInGroup);
+						//retain only difference
+						currentPersonIDInGroup.removeAll(intersection);
+						newPersonIDInGroup.removeAll(intersection);
+						//remove `currentPersonIDInGroup`
+						for(final Integer oldPersonID : currentPersonIDInGroup)
+							Repository.deleteRelationship(EntityManager.NODE_PERSON, oldPersonID,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO);
+						//add `newPersonIDInGroup`
+						for(final Integer newPersonID : newPersonIDInGroup){
+							final Map<String, Object> relationshipData = dialog.extractRelationshipData(newPersonID,
+								PersonDialog.TABLE_INDEX_DATA);
+							Repository.upsertRelationship(EntityManager.NODE_PERSON, newPersonID,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO, relationshipData,
+								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+						}
+					});
+				final List<Map<String, Object>> people = Repository.findReferencingNodes(EntityManager.NODE_PERSON,
+					EntityManager.NODE_GROUP, recordID,
+					EntityManager.RELATIONSHIP_BELONGS_TO);
+				//load initial collection
+				personDialog.loadCollections(people);
+				personDialog.loadData();
+
+				personDialog.showDialog();
+			}
+
+			case GROUP_GROUP -> {
+				final GroupDialog groupDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_GROUP_GROUP_BUTTON)
+						? GroupDialog.createCollectionViewOnly(recordID, this)
+						: GroupDialog.createCollection(recordID, this))
+					.withCategory(EntityManager.NODE_GROUP)
+					.withOnCloseGracefully(modifiedRecords -> {
+						final Set<Integer> currentGroupIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO).stream()
+							.map(EntityManager::extractRecordID)
+							.collect(Collectors.toSet());
+						final Set<Integer> newGroupIDInGroup = modifiedRecords.getCollectionIDs();
+						//extract the intersection between `currentGroupIDInGroup` and `newGroupIDInGroup`
+						final Set<Integer> intersection = new HashSet<>(currentGroupIDInGroup);
+						intersection.retainAll(newGroupIDInGroup);
+						//retain only difference
+						currentGroupIDInGroup.removeAll(intersection);
+						newGroupIDInGroup.removeAll(intersection);
+						//remove `currentGroupIDInGroup`
+						for(final Integer oldGroupID : currentGroupIDInGroup)
+							Repository.deleteRelationship(EntityManager.NODE_GROUP, oldGroupID,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO);
+						//add `newGroupIDInGroup`
+						for(final Integer newGroupID : newGroupIDInGroup){
+							final Map<String, Object> relationshipData = dialog.extractRelationshipData(newGroupID, GroupDialog.TABLE_INDEX_DATA);
+							Repository.upsertRelationship(EntityManager.NODE_GROUP, newGroupID,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO, relationshipData,
+								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+						}
+					});
+				final List<Map<String, Object>> groups = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
+					EntityManager.NODE_GROUP, recordID,
+					EntityManager.RELATIONSHIP_BELONGS_TO);
+				//load initial collection
+				groupDialog.loadCollections(groups);
+				groupDialog.loadData();
+
+				groupDialog.showDialog();
+			}
+
+			case PLACE_GROUP -> {
+				final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_PLACE_GROUP_BUTTON)
+						? PlaceDialog.createCollectionViewOnly(recordID, this)
+						: PlaceDialog.createCollection(recordID, this))
+					.withOnCloseGracefully(modifiedRecords -> {
+						final Set<Integer> currentPlaceIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO).stream()
+							.map(EntityManager::extractRecordID)
+							.collect(Collectors.toSet());
+						final Set<Integer> newPlaceIDInGroup = modifiedRecords.getCollectionIDs();
+						//extract the intersection between `currentPlaceIDInGroup` and `newPlaceIDInGroup`
+						final Set<Integer> intersection = new HashSet<>(currentPlaceIDInGroup);
+						intersection.retainAll(newPlaceIDInGroup);
+						//retain only difference
+						currentPlaceIDInGroup.removeAll(intersection);
+						newPlaceIDInGroup.removeAll(intersection);
+						//remove `currentPlaceIDInGroup`
+						for(final Integer oldPlaceID : currentPlaceIDInGroup)
+							Repository.deleteRelationship(EntityManager.NODE_PLACE, oldPlaceID,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO);
+						//add `newPlaceIDInGroup`
+						for(final Integer newPlaceID : newPlaceIDInGroup){
+							final Map<String, Object> relationshipData = dialog.extractRelationshipData(newPlaceID, PlaceDialog.TABLE_INDEX_DATA);
+							Repository.upsertRelationship(EntityManager.NODE_PLACE, newPlaceID,
+								EntityManager.NODE_GROUP, recordID,
+								EntityManager.RELATIONSHIP_BELONGS_TO, relationshipData,
+								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+						}
+					});
+				final List<Map<String, Object>> places = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
+					EntityManager.NODE_GROUP, recordID,
+					EntityManager.RELATIONSHIP_BELONGS_TO);
+				//load initial collection
+				placeDialog.loadCollections(places);
+				placeDialog.loadData();
+
+				placeDialog.showDialog();
 			}
 
 			case MODIFICATION_HISTORY_SHOW -> {
@@ -776,6 +905,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		int person3ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 		int person4ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 		int person5ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
+		int person6ID = Repository.upsert(new HashMap<>(), EntityManager.NODE_PERSON);
 
 		final Map<String, Object> group1 = new HashMap<>();
 		group1.put("type", "family");
@@ -786,54 +916,63 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> group3 = new HashMap<>();
 		group3.put("type", "family");
 		int group3ID = Repository.upsert(group3, EntityManager.NODE_GROUP);
+		final Map<String, Object> group4 = new HashMap<>();
+		group4.put("type", "new");
+		int group4ID = Repository.upsert(group4, EntityManager.NODE_GROUP);
 
 		final Map<String, Object> groupRelationship11 = new HashMap<>();
 		groupRelationship11.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person1ID,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship11,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship2 = new HashMap<>();
 		groupRelationship2.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person2ID,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship2,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship13 = new HashMap<>();
 		groupRelationship13.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person1ID,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship13,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship3 = new HashMap<>();
 		groupRelationship3.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person3ID,
-			EntityManager.NODE_GROUP, extractRecordID(group2),
+			EntityManager.NODE_GROUP, group2ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship3,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship4 = new HashMap<>();
 		groupRelationship4.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person4ID,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship4,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship5 = new HashMap<>();
 		groupRelationship5.put("role", "child");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person5ID,
-			EntityManager.NODE_GROUP, extractRecordID(group1),
+			EntityManager.NODE_GROUP, group1ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship5,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship6 = new HashMap<>();
 		groupRelationship6.put("role", "partner");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person4ID,
-			EntityManager.NODE_GROUP, extractRecordID(group3),
+			EntityManager.NODE_GROUP, group3ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship6,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 		final Map<String, Object> groupRelationship7 = new HashMap<>();
 		groupRelationship7.put("role", "adoptee");
 		Repository.upsertRelationship(EntityManager.NODE_PERSON, person5ID,
-			EntityManager.NODE_GROUP, extractRecordID(group3),
+			EntityManager.NODE_GROUP, group3ID,
 			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship7,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+		final Map<String, Object> groupRelationship8 = new HashMap<>();
+		groupRelationship8.put("role", "partner");
+		Repository.upsertRelationship(EntityManager.NODE_PERSON, person6ID,
+			EntityManager.NODE_GROUP, group4ID,
+			EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship8,
 			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 
 		final Map<String, Object> event1 = new HashMap<>();

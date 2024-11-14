@@ -69,7 +69,7 @@ public class ModifiedRecords{
 	}
 
 	public Set<Integer> getCollectionIDs(){
-		return ids;
+		return new HashSet<>(ids);
 	}
 
 	public void clear(){

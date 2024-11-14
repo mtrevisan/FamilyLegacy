@@ -87,7 +87,7 @@
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j -->
 		<neo4j.version>5.25.1</neo4j.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-core -->
-		<neo4j.ogm-core.version>4.0.11</neo4j.ogm-core.version>
+		<neo4j.ogm-core.version>4.0.12</neo4j.ogm-core.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-embedded-driver -->
 		<neo4j.ogm-embedded-driver.version>3.3.4</neo4j.ogm-embedded-driver.version>
 

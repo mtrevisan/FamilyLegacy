@@ -291,6 +291,20 @@ public class Repository{
 		}
 	}
 
+	public static List<Map<String, Object>> findRelationshipsTo(final String tableNameStart,
+			final String tableNameEnd, final Object nodeIDEnd,
+			final String relationshipName){
+		try{
+			return GraphDatabaseManager.findRelationshipsTo(tableNameStart, tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, nodeIDEnd,
+				relationshipName);
+		}
+		catch(final Exception e){
+			LOGGER.error("Error while retrieving relationships to: {}", e.getMessage(), e);
+
+			return Collections.emptyList();
+		}
+	}
+
 
 	/**
 	 * Finds the referenced node in the graph database based on the given parameters, that is the node reachable from the node with label

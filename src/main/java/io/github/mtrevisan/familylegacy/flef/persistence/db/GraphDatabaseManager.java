@@ -99,6 +99,8 @@ public class GraphDatabaseManager{
 		+ " RETURN " + QUERY_PARAMETER_RELATIONSHIP;
 	private static final String QUERY_FIND_RELATIONSHIP = "MATCH (:{} {{}: {}})-[" + QUERY_PARAMETER_RELATIONSHIP + ":{}]->(:{} {{}: {}})"
 		+ " RETURN " + QUERY_PARAMETER_RELATIONSHIP;
+	private static final String QUERY_FIND_RELATIONSHIP_TO = "MATCH (:{})-[" + QUERY_PARAMETER_RELATIONSHIP + ":{}]->(:{} {{}: {}})"
+		+ " RETURN " + QUERY_PARAMETER_RELATIONSHIP;
 	private static final String QUERY_ALL_NODES = "MATCH (" + QUERY_PARAMETER_NODE + ")"
 		+ " RETURN " + QUERY_PARAMETER_NODE;
 	private static final String QUERY_ALL_NODES_EXCLUDE_LABEL = "MATCH (" + QUERY_PARAMETER_NODE + ")"
@@ -444,6 +446,29 @@ public class GraphDatabaseManager{
 		try(final Transaction tx = getTransaction()){
 			final String query = JavaHelper.textFormat(QUERY_FIND_RELATIONSHIP,
 				tableNameStart, primaryPropertyNameStart, nodeIDStart,
+				relationshipName,
+				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
+
+			final Result result = tx.execute(query);
+
+			final List<Map<String, Object>> otherNodes = new ArrayList<>();
+			while(result.hasNext()){
+				final Relationship relationship = (Relationship)result.next()
+					.get(QUERY_PARAMETER_RELATIONSHIP);
+
+				otherNodes.add(relationship.getAllProperties());
+			}
+
+			return otherNodes;
+		}
+	}
+
+	public static List<Map<String, Object>> findRelationshipsTo(final String tableNameStart,
+			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
+			final String relationshipName){
+		try(final Transaction tx = getTransaction()){
+			final String query = JavaHelper.textFormat(QUERY_FIND_RELATIONSHIP_TO,
+				tableNameStart,
 				relationshipName,
 				tableNameEnd, primaryPropertyNameEnd, nodeIDEnd);
 

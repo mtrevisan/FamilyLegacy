@@ -86,6 +86,7 @@ public final class PlaceDialog extends CommonListDialog{
 
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+	public static final int TABLE_INDEX_DATA = 3;
 
 	private static final String RECORD_PANEL_NAME_BASE = "base";
 	private static final String RECORD_PANEL_NAME_OTHER = "other";
@@ -125,9 +126,10 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createCollection(final Frame parent){
+	public static PlaceDialog createCollection(final int filterGroupID, final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(parent);
-		dialog.useCollection = true;
+		dialog.selectRecordOnly = true;
+		dialog.filterGroupID = filterGroupID;
 		dialog.initialize();
 		return dialog;
 	}
@@ -141,10 +143,11 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createSelectOnlyCollection(final Frame parent){
+	public static PlaceDialog createCollectionViewOnly(final int filterGroupID, final Frame parent){
 		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.useCollection = true;
+		dialog.filterGroupID = filterGroupID;
+		dialog.showCollectionOnly = true;
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton,
 			dialog.groupButton);
 		dialog.initialize();
@@ -200,19 +203,19 @@ public final class PlaceDialog extends CommonListDialog{
 
 	@Override
 	protected String[] getTableColumnNames(){
-		return new String[]{"ID", "Filter", "Identifier"};
+		return new String[]{"ID", "Filter", "Identifier", "Data"};
 	}
 
 	@Override
 	protected int[] getTableColumnAlignments(){
-		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT};
+		return new int[]{SwingConstants.RIGHT, SwingConstants.LEFT, SwingConstants.LEFT, SwingConstants.LEFT};
 	}
 
 	@Override
 	protected Comparator<?>[] getTableColumnComparators(){
 		final Comparator<Integer> numericComparator = GUIHelper.getNumericComparator();
 		final Comparator<String> textComparator = Comparator.naturalOrder();
-		return new Comparator<?>[]{numericComparator, null, textComparator};
+		return new Comparator<?>[]{numericComparator, null, textComparator, null};
 	}
 
 	@Override
@@ -328,7 +331,7 @@ public final class PlaceDialog extends CommonListDialog{
 		else{
 			final DefaultTableModel model = getRecordTableModel();
 			model.setRowCount(records.size());
-			final DefaultTableModel collectionModel = (useCollection && !collectionIDs.isEmpty()? getCollectionTableModel(): null);
+			final DefaultTableModel collectionModel = (useCollection() && !collectionIDs.isEmpty()? getCollectionTableModel(): null);
 			if(collectionModel != null)
 				collectionModel.setRowCount(collectionIDs.size());
 			int recordRow = 0;
@@ -346,9 +349,16 @@ public final class PlaceDialog extends CommonListDialog{
 				model.setValueAt(identifier, recordRow, TABLE_INDEX_IDENTIFIER);
 
 				if(collectionModel != null && collectionIDs.contains(recordID)){
+					final List<Map<String, Object>> relationships = Repository.findRelationships(EntityManager.NODE_PLACE, recordID,
+						EntityManager.NODE_GROUP, filterGroupID,
+						EntityManager.RELATIONSHIP_BELONGS_TO
+					);
+					final Map<String, Object> relationshipData = (!relationships.isEmpty()? relationships.getFirst(): Collections.emptyMap());
+
 					collectionModel.setValueAt(recordID, collectionRow, TABLE_INDEX_ID);
 //					collectionModel.setValueAt(filterData, collectionRow, TABLE_INDEX_FILTER);
 					collectionModel.setValueAt(identifier, collectionRow, TABLE_INDEX_IDENTIFIER);
+					collectionModel.setValueAt(relationshipData, collectionRow, TABLE_INDEX_DATA);
 
 					collectionRow ++;
 				}
@@ -783,6 +793,7 @@ public final class PlaceDialog extends CommonListDialog{
 							eventDialog.showDialog();
 						}
 
+						//TODO list of groups this place is in
 						case GROUP -> {
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_GROUP_BUTTON)
 									? GroupDialog.createSelectOnly(parent)

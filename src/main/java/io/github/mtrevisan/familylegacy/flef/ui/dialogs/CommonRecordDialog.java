@@ -139,7 +139,8 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 
 	protected volatile boolean ignoreEvents;
 
-	protected volatile boolean useCollection;
+	protected volatile boolean showCollectionOnly;
+	protected Integer filterGroupID;
 	protected final Set<Integer> collectionIDs = new HashSet<>(0);
 
 
@@ -236,6 +237,10 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 		return false;
 	}
 
+	protected boolean useCollection(){
+		return (filterGroupID != null);
+	}
+
 	/**
 	 * Loads a list of records and extracts their IDs into the collection set.
 	 * <p>
@@ -244,12 +249,17 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 	 *
 	 * @param records	A list of maps, where each map represents a record with string keys and object values.
 	 */
-	protected void loadCollections(final List<Map<String, Object>> records){
+	public void loadCollections(final List<Map<String, Object>> records){
+		//TODO extract relationship data
 		for(int i = 0, length = records.size(); i < length; i ++){
 			final Map<String, Object> record = records.get(i);
 
 			collectionIDs.add(extractRecordID(record));
 		}
+	}
+
+	public Map<String, Object> extractRelationshipData(final int collectionID, final int dataColumnIndex){
+		return Collections.emptyMap();
 	}
 
 
@@ -270,7 +280,7 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 			if(onCloseGracefully != null){
 				//add record even if nothing's changed (a simple selection of a record should be propagated)
 				modifiedRecords.addModifiedRecord(selectedRecord);
-				if(useCollection)
+				if(useCollection())
 					modifiedRecords.addIDCollection(collectionIDs);
 
 				onCloseGracefully.accept(modifiedRecords);
@@ -342,7 +352,6 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 		Repository.upsert(selectedRecord, tableName);
 		//save `selectRecordLink` into `store`
 		if(selectedRecordLink != null){
-			//TODO is it correct? or should it be EntityManager.RELATIONSHIP_FOR, new HashMap<>(selectedRecordLink),?
 			selectedRecordID = Repository.upsert(new HashMap<>(selectedRecordLink), EntityManager.NODE_RESTRICTION);
 			Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, selectedRecordID,
 				tableName, extractRecordID(selectedRecord),

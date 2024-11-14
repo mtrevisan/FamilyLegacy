@@ -135,7 +135,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	//collection components:
 	private final JButton addButton = new JButton("Add >>");
 	private final JButton removeButton = new JButton("<< Remove");
-	private final JTable collectionTable = new JTable(new DefaultTableModel(getTableColumnNames(), 0){
+	protected final JTable collectionTable = new JTable(new DefaultTableModel(getTableColumnNames(), 0){
 		@Serial
 		private static final long serialVersionUID = -7128683751768432136L;
 
@@ -376,12 +376,13 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		deleteRecordButton.addActionListener(evt -> deleteAction());
 		deleteRecordButton.setVisible(!selectRecordOnly);
 
+		final boolean useCollection = useCollection();
 		addButton.setEnabled(false);
 		addButton.addActionListener(evt -> addToCollectionAction());
-		addButton.setVisible(useCollection);
+		addButton.setVisible(useCollection && !showCollectionOnly);
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> removeFromCollectionAction());
-		removeButton.setVisible(useCollection);
+		removeButton.setVisible(useCollection && !showCollectionOnly);
 
 		collectionTable.setFocusable(false);
 		collectionTable.setGridColor(GRID_COLOR);
@@ -464,6 +465,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			unselectRecordButton.setVisible(false);
 			deleteRecordButton.setVisible(false);
 		}
+		final boolean useCollection = useCollection();
 		collectionTableScrollPane.setVisible(useCollection);
 		final boolean showRecordTabbedPane = (!selectRecordOnly || recordTabbedPane.getComponentCount() > 0);
 		if(!showRecordTabbedPane)
@@ -513,6 +515,19 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	protected DefaultTableModel getCollectionTableModel(){
 		return (DefaultTableModel)collectionTable.getModel();
+	}
+
+	public Map<String, Object> extractRelationshipData(final int collectionID, final int dataColumnIndex){
+		final DefaultTableModel model = getCollectionTableModel();
+		//cycle through each row of the model and find the one with the given `collectionID`
+		for(int row = 0, length = model.getRowCount(); row < length; row ++){
+			final int viewRowIndex = recordTable.convertRowIndexToView(row);
+			final int modelRowIndex = recordTable.convertRowIndexToModel(viewRowIndex);
+			final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+			if(recordID == collectionID)
+				return (Map<String, Object>)model.getValueAt(row, dataColumnIndex);
+		}
+		return Collections.emptyMap();
 	}
 
 	public final boolean selectData(final int recordID){
@@ -658,7 +673,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			unselectRecordButton.setEnabled(recordIdentifier != null);
 
 			deleteRecordButton.setEnabled(!selectRecordOnly);
-			addButton.setEnabled(!selectRecordOnly && canAddToCollection(selectedRecordID));
+			addButton.setEnabled(useCollection() && !showCollectionOnly && canAddToCollection(selectedRecordID));
 		}
 
 		GUIHelper.executeOnEventDispatchThread(this::requestFocusAfterSelect);
@@ -817,6 +832,14 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 	protected void addToCollectionAction(){}
 
+	/**
+	 * Performs final actions required after adding a record to the collection.
+	 * <p>
+	 * This method sorts the collection table and disables the add button once the record has been added. Specifically, it extracts the
+	 * record ID from the selected record, adds it to the collection of record IDs, and then disables the add button to prevent further
+	 * additions without re-selection.
+	 * </p>
+	 */
 	protected void finalizeAddToCollectionAction(){
 		final TableRowSorter<TableModel> sorter = (TableRowSorter<TableModel>)collectionTable.getRowSorter();
 		sorter.sort();

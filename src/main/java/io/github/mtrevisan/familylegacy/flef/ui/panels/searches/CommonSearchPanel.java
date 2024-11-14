@@ -58,6 +58,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -245,6 +246,10 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 	@Override
 	public boolean isViewOnlyComponent(final int componentID){
 		return false;
+	}
+
+	public Map<String, Object> extractRelationshipData(final int collectionID, final int dataColumnIndex){
+		return Collections.emptyMap();
 	}
 
 	@Override
