@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.RelationshipDataPanelInterface;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -56,7 +57,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
@@ -131,7 +131,6 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 
 	protected Map<String, Object> selectedRecord;
 	protected Integer selectedRecordID;
-	protected Map<String, Object> selectedRecordLink;
 	protected long selectedRecordHash;
 
 	protected Consumer<Map<String, Object>> newRecordDefault;
@@ -141,7 +140,8 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 
 	protected volatile boolean showCollectionOnly;
 	protected Integer filterGroupID;
-	protected final Set<Integer> collectionIDs = new HashSet<>(0);
+	protected RelationshipDataPanelInterface relationshipDataPanel;
+	protected final Map<Integer, Map<String, Object>> collections = new HashMap<>(0);
 
 
 	protected CommonRecordDialog(final Frame parent){
@@ -247,14 +247,24 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 	 * NOTE: collections MUST BE loaded before calling {@link #loadData()}.
 	 * </p>
 	 *
-	 * @param records	A list of maps, where each map represents a record with string keys and object values.
+	 * @param groupID	The identifier of the group to which the record will be added.
 	 */
-	public void loadCollections(final List<Map<String, Object>> records){
-		//TODO extract relationship data
+	protected void loadCollections(final int groupID){
+		final String recordTableName = getTableName();
+		final List<Map<String, Object>> records = Repository.findReferencingNodes(recordTableName,
+			EntityManager.NODE_GROUP, groupID,
+			EntityManager.RELATIONSHIP_BELONGS_TO);
 		for(int i = 0, length = records.size(); i < length; i ++){
 			final Map<String, Object> record = records.get(i);
 
-			collectionIDs.add(extractRecordID(record));
+			final Integer recordID = extractRecordID(record);
+			final List<Map<String, Object>> relationships = Repository.findRelationships(
+				recordTableName, recordID,
+				EntityManager.NODE_GROUP, groupID,
+				EntityManager.RELATIONSHIP_BELONGS_TO);
+			final Map<String, Object> relationship = (!relationships.isEmpty()? relationships.getFirst(): Collections.emptyMap());
+
+			collections.put(recordID, relationship);
 		}
 	}
 
@@ -281,7 +291,7 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 				//add record even if nothing's changed (a simple selection of a record should be propagated)
 				modifiedRecords.addModifiedRecord(selectedRecord);
 				if(useCollection())
-					modifiedRecords.addIDCollection(collectionIDs);
+					modifiedRecords.addCollection(collections);
 
 				onCloseGracefully.accept(modifiedRecords);
 
@@ -295,6 +305,10 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 
 	public abstract void loadData();
 
+	public void loadDataWithCollection(final int recordID){
+		loadData();
+	}
+
 
 	protected void selectAction(){
 		if(validateData()){
@@ -306,7 +320,6 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 
 			selectedRecord = new HashMap<>(record);
 			selectedRecordID = extractRecordID(record);
-			selectedRecordLink = null;
 
 			updateRecordHash();
 
@@ -315,9 +328,8 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 			if(newRecordDefault != null)
 				newRecordDefault.accept(selectedRecord);
 
-			ignoreEvents = true;
-			fillData();
-			ignoreEvents = false;
+
+			callWithoutEvents(this::fillData);
 		}
 	}
 
@@ -327,6 +339,14 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 	protected Map<String, Object> getSelectedRecord(){
 		final List<Map<String, Object>> records = Repository.findAll(getTableName());
 		return (!records.isEmpty()? records.getFirst(): null);
+	}
+
+	protected void callWithoutEvents(final Runnable run){
+		ignoreEvents = true;
+
+		run.run();
+
+		ignoreEvents = false;
 	}
 
 	protected abstract void clearData();
@@ -350,18 +370,8 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 		//save `selectedRecord` into `store`
 		final String tableName = getTableName();
 		Repository.upsert(selectedRecord, tableName);
-		//save `selectRecordLink` into `store`
-		if(selectedRecordLink != null){
-			selectedRecordID = Repository.upsert(new HashMap<>(selectedRecordLink), EntityManager.NODE_RESTRICTION);
-			Repository.upsertRelationship(EntityManager.NODE_RESTRICTION, selectedRecordID,
-				tableName, extractRecordID(selectedRecord),
-				EntityManager.RELATIONSHIP_FOR, EntityManager.DATA_RELATIONSHIP_TYPE_ONE_TO_ONE,
-				GraphDatabaseManager.OnDeleteType.CASCADE, GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		}
 
 		LOGGER.debug("Saved data {}", selectedRecord);
-		if(selectedRecordLink != null)
-			LOGGER.debug("Saved link {}", selectedRecordLink);
 
 		//fire event only if something's changed
 		EventBusService.publish(EditEvent.create(EditEvent.EditType.SEARCH, this, selectedRecord));
@@ -417,11 +427,11 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 	}
 
 	protected void updateRecordHash(){
-		selectedRecordHash = Objects.hash(selectedRecord, selectedRecordLink);
+		selectedRecordHash = Objects.hash(selectedRecord);
 	}
 
 	protected boolean dataHasChanged(){
-		return (selectedRecord != null && Objects.hash(selectedRecord, selectedRecordLink) != selectedRecordHash);
+		return (selectedRecord != null && Objects.hash(selectedRecord) != selectedRecordHash);
 	}
 
 	protected abstract boolean saveData();

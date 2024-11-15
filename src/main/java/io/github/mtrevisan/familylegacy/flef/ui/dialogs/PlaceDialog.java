@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.SupportedByGroupPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -51,6 +52,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -60,6 +62,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCoordinate;
@@ -126,10 +129,14 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createCollection(final int filterGroupID, final Frame parent){
+	public static PlaceDialog createCollection(final int filterGroupID,
+			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
+
 		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.filterGroupID = filterGroupID;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.initialize();
 		return dialog;
 	}
@@ -143,11 +150,15 @@ public final class PlaceDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PlaceDialog createCollectionViewOnly(final int filterGroupID, final Frame parent){
+	public static PlaceDialog createCollectionViewOnly(final int filterGroupID,
+			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
+
 		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.filterGroupID = filterGroupID;
 		dialog.showCollectionOnly = true;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton,
 			dialog.groupButton);
 		dialog.initialize();
@@ -224,6 +235,16 @@ public final class PlaceDialog extends CommonListDialog{
 		setTitle(filterPlaceID != null? capitalizedTableName + " ID " + filterPlaceID: StringHelper.pluralize(capitalizedTableName));
 
 		super.initStoreComponents();
+
+		//hide data column
+		TableColumnModel columnModel = recordTable.getColumnModel();
+		//NOTE: the filter column was already removed, therefore the `- 1`
+		columnModel.removeColumn(columnModel.getColumn(TABLE_INDEX_DATA - 1));
+
+		//hide data column
+		columnModel = collectionTable.getColumnModel();
+		//NOTE: the filter column was already removed, therefore the `- 1`
+		columnModel.removeColumn(columnModel.getColumn(TABLE_INDEX_DATA - 1));
 	}
 
 	@Override
@@ -285,11 +306,11 @@ public final class PlaceDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(identifierField, "grow,wrap paragraph");
+		recordPanelBase.add(identifierField, "growx,wrap paragraph");
 		recordPanelBase.add(nameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(nameField, "grow,wrap related");
+		recordPanelBase.add(nameField, "growx,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(localeField, "grow,wrap related");
+		recordPanelBase.add(localeField, "growx,wrap related");
 		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap paragraph");
@@ -331,9 +352,9 @@ public final class PlaceDialog extends CommonListDialog{
 		else{
 			final DefaultTableModel model = getRecordTableModel();
 			model.setRowCount(records.size());
-			final DefaultTableModel collectionModel = (useCollection() && !collectionIDs.isEmpty()? getCollectionTableModel(): null);
+			final DefaultTableModel collectionModel = (useCollection() && !collections.isEmpty()? getCollectionTableModel(): null);
 			if(collectionModel != null)
-				collectionModel.setRowCount(collectionIDs.size());
+				collectionModel.setRowCount(collections.size());
 			int recordRow = 0;
 			int collectionRow = 0;
 			for(final Map<String, Object> record : records){
@@ -348,7 +369,7 @@ public final class PlaceDialog extends CommonListDialog{
 				model.setValueAt(filterData, recordRow, TABLE_INDEX_FILTER);
 				model.setValueAt(identifier, recordRow, TABLE_INDEX_IDENTIFIER);
 
-				if(collectionModel != null && collectionIDs.contains(recordID)){
+				if(collectionModel != null && collections.containsKey(recordID)){
 					final List<Map<String, Object>> relationships = Repository.findRelationships(EntityManager.NODE_PLACE, recordID,
 						EntityManager.NODE_GROUP, filterGroupID,
 						EntityManager.RELATIONSHIP_BELONGS_TO
@@ -369,8 +390,17 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
+	public void loadDataWithCollection(final int recordID){
+		loadCollections(recordID);
+		loadData();
+	}
+
+	@Override
 	protected void addToCollectionAction(){
 		//transfer selected record to collection table:
+
+		//TODO ask for relationship data (`role`, `certainty`, and `credibility`)
+		final Map<String, Object> relationshipData = new HashMap<>();
 
 		final DefaultTableModel model = getCollectionTableModel();
 		int row = model.getRowCount();
@@ -385,6 +415,7 @@ public final class PlaceDialog extends CommonListDialog{
 		model.setValueAt(recordID, row, TABLE_INDEX_ID);
 //		model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 		model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
+		model.setValueAt(relationshipData, row, TABLE_INDEX_DATA);
 
 
 		finalizeAddToCollectionAction();

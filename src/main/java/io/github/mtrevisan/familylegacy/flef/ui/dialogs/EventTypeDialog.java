@@ -177,11 +177,11 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	protected void initRecordLayout(final JComponent recordPanel){
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanel.add(superTypeLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(superTypeComboBox, "grow,wrap related");
+		recordPanel.add(superTypeComboBox, "growx,wrap related");
 		recordPanel.add(typeLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(typeField, "grow,wrap related");
+		recordPanel.add(typeField, "growx,wrap related");
 		recordPanel.add(categoryLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(categoryComboBox, "grow");
+		recordPanel.add(categoryComboBox, "growx");
 	}
 
 	public void loadData(final Integer eventID){
@@ -225,9 +225,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		if(newRecordDefault != null)
 			newRecordDefault.accept(selectedRecord);
 
-		ignoreEvents = true;
-		fillData();
-		ignoreEvents = false;
+		callWithoutEvents(this::fillData);
 
 
 		//set focus on first field

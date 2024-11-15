@@ -174,7 +174,7 @@ public final class CalendarDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(typeLabel, "align label,split 2");
-		recordPanelBase.add(typeField, "grow");
+		recordPanelBase.add(typeField, "growx");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");

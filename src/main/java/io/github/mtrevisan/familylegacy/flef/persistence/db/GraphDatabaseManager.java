@@ -364,6 +364,12 @@ public class GraphDatabaseManager{
 			final String tableNameEnd, final String primaryPropertyNameEnd, final Object nodeIDEnd,
 			final String relationshipName, final Map<String, Object> record,
 			final OnDeleteType onDeleteStart, final OnDeleteType onDeleteEnd) throws StoreException{
+		Objects.requireNonNull(tableNameStart, "Table name start cannot be null");
+		Objects.requireNonNull(nodeIDStart, "Starting node ID cannot be null");
+		Objects.requireNonNull(tableNameEnd, "Table name end cannot be null");
+		Objects.requireNonNull(nodeIDEnd, "Ending node ID cannot be null");
+		Objects.requireNonNull(relationshipName, "Relationship name cannot be null");
+
 		final String relationshipType = (String)record.get(EntityManager.RELATIONSHIP_TYPE);
 		if(EntityManager.RELATIONSHIP_TYPE_ONE_TO_ONE.equals(relationshipType))
 			//delete previous relation with the same `relationshipName`

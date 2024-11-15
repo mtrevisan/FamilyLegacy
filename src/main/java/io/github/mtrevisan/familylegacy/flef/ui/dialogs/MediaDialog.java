@@ -115,7 +115,6 @@ public final class MediaDialog extends CommonListDialog{
 
 	private static final String RECORD_PANEL_NAME_BASE = "base";
 	private static final String RECORD_PANEL_NAME_OTHER = "other";
-	private static final String RECORD_PANEL_NAME_LINK = "link";
 
 
 	private final JLabel fileLabel = new JLabel("Identifier:");
@@ -458,17 +457,18 @@ public final class MediaDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(fileLabel, "align label,sizegroup lbl,split 3");
-		recordPanelBase.add(fileField, "grow");
+		recordPanelBase.add(fileField, "growx");
 		recordPanelBase.add(fileButton, "wrap related");
 		recordPanelBase.add(openFolderButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(openLinkButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(titleLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(titleField, "grow,wrap related");
+		recordPanelBase.add(titleField, "growx,wrap related");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap");
 		recordPanelBase.add(photoProjectionLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(photoProjectionComboBox, "grow,wrap paragraph");
-		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center");
+		recordPanelBase.add(photoProjectionComboBox, "growx,wrap related");
+		recordPanelBase.add(photoCropButton, "sizegroup btn,center,wrap paragraph");
+		recordPanelBase.add(dateButton, "sizegroup btn,center");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(noteButton, "sizegroup btn,center,split 2");
@@ -476,12 +476,8 @@ public final class MediaDialog extends CommonListDialog{
 		recordPanelOther.add(eventButton, "sizegroup btn,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelLink.add(photoCropButton, "sizegroup btn,center");
-
 		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
 		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
-		recordTabbedPane.add(RECORD_PANEL_NAME_LINK, recordPanelLink);
 	}
 
 	@Override
@@ -573,8 +569,6 @@ public final class MediaDialog extends CommonListDialog{
 
 		photoCropButtonEnabledBorder(identifier, mediaID);
 
-		GUIHelper.enableTabByTitle(recordTabbedPane, RECORD_PANEL_NAME_LINK, (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
-
 
 		refreshButtonStates(mediaID);
 	}
@@ -617,6 +611,7 @@ public final class MediaDialog extends CommonListDialog{
 		openFolderButton.setEnabled(false);
 		openLinkButton.setEnabled(false);
 		photoProjectionComboBox.setEnabled(false);
+		photoCropButton.setEnabled(false);
 
 		if(identifier == null)
 			return;
@@ -640,6 +635,7 @@ public final class MediaDialog extends CommonListDialog{
 		GUIHelper.addBorder(fileField, !fileExists, NON_EXISTENT_MEDIA_BORDER_COLOR);
 
 		photoProjectionComboBox.setEnabled(enable);
+		photoCropButton.setEnabled(enable);
 	}
 
 	private static boolean isValidURL(final String url){
@@ -659,6 +655,7 @@ public final class MediaDialog extends CommonListDialog{
 		titleField.setText(null);
 		typeComboBox.setSelectedItem(null);
 		photoProjectionComboBox.setSelectedItem(null);
+		photoCropButton.setEnabled(false);
 		GUIHelper.setDefaultBorder(dateButton);
 
 		GUIHelper.setDefaultBorder(noteButton);

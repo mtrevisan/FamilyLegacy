@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.SupportedByGroupPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -47,6 +48,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.io.Serial;
@@ -55,9 +57,11 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.TreeSet;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordFamilyName;
@@ -95,10 +99,14 @@ public final class PersonDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PersonDialog createCollection(final int filterGroupID, final Frame parent){
+	public static PersonDialog createCollection(final int filterGroupID,
+			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
+
 		final PersonDialog dialog = new PersonDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.filterGroupID = filterGroupID;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton,
 			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
@@ -114,11 +122,15 @@ public final class PersonDialog extends CommonListDialog{
 		return dialog;
 	}
 
-	public static PersonDialog createCollectionViewOnly(final int filterGroupID, final Frame parent){
+	public static PersonDialog createCollectionViewOnly(final int filterGroupID,
+			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
+
 		final PersonDialog dialog = new PersonDialog(parent);
 		dialog.selectRecordOnly = true;
 		dialog.filterGroupID = filterGroupID;
 		dialog.showCollectionOnly = true;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.addViewOnlyComponents(dialog.personNameButton, dialog.photoButton,
 			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
@@ -187,6 +199,16 @@ public final class PersonDialog extends CommonListDialog{
 		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
+
+		//hide data column
+		TableColumnModel columnModel = recordTable.getColumnModel();
+		//NOTE: the filter column was already removed, therefore the `- 1`
+		columnModel.removeColumn(columnModel.getColumn(TABLE_INDEX_DATA - 1));
+
+		//hide data column
+		columnModel = collectionTable.getColumnModel();
+		//NOTE: the filter column was already removed, therefore the `- 1`
+		columnModel.removeColumn(columnModel.getColumn(TABLE_INDEX_DATA - 1));
 	}
 
 	@Override
@@ -249,9 +271,9 @@ public final class PersonDialog extends CommonListDialog{
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
-		final DefaultTableModel collectionModel = (useCollection() && !collectionIDs.isEmpty()? getCollectionTableModel(): null);
+		final DefaultTableModel collectionModel = (useCollection() && !collections.isEmpty()? getCollectionTableModel(): null);
 		if(collectionModel != null)
-			collectionModel.setRowCount(collectionIDs.size());
+			collectionModel.setRowCount(collections.size());
 		int recordRow = 0;
 		int collectionRow = 0;
 		for(final Map<String, Object> record : records){
@@ -266,7 +288,7 @@ public final class PersonDialog extends CommonListDialog{
 			model.setValueAt(filterData, recordRow, TABLE_INDEX_FILTER);
 			model.setValueAt(identifier, recordRow, TABLE_INDEX_IDENTIFIER);
 
-			if(collectionModel != null && collectionIDs.contains(recordID)){
+			if(collectionModel != null && collections.containsKey(recordID)){
 				final List<Map<String, Object>> relationships = Repository.findRelationships(EntityManager.NODE_PERSON, recordID,
 					EntityManager.NODE_GROUP, filterGroupID,
 					EntityManager.RELATIONSHIP_BELONGS_TO
@@ -286,8 +308,17 @@ public final class PersonDialog extends CommonListDialog{
 	}
 
 	@Override
+	public void loadDataWithCollection(final int recordID){
+		loadCollections(recordID);
+		loadData();
+	}
+
+	@Override
 	protected void addToCollectionAction(){
 		//transfer selected record to collection table:
+
+		//TODO ask for relationship data (`role`, `certainty`, and `credibility`)
+		final Map<String, Object> relationshipData = new HashMap<>();
 
 		final DefaultTableModel model = getCollectionTableModel();
 		int row = model.getRowCount();
@@ -302,6 +333,7 @@ public final class PersonDialog extends CommonListDialog{
 		model.setValueAt(recordID, row, TABLE_INDEX_ID);
 //		model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
 		model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
+		model.setValueAt(relationshipData, row, TABLE_INDEX_DATA);
 
 
 		finalizeAddToCollectionAction();

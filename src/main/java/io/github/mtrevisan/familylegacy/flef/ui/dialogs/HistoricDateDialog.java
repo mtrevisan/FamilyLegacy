@@ -209,10 +209,10 @@ public final class HistoricDateDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(dateLabel, "align label,sizegroup lbl,split 3");
-		recordPanelBase.add(dateField, "grow,sizegroup dtf");
+		recordPanelBase.add(dateField, "growx,sizegroup dtf");
 		recordPanelBase.add(new JPanel(), "sizegroup btn,gapleft 30,wrap related");
 		recordPanelBase.add(dateOriginalLabel, "align label,sizegroup lbl,split 3");
-		recordPanelBase.add(dateOriginalField, "grow,sizegroup dtf");
+		recordPanelBase.add(dateOriginalField, "growx,sizegroup dtf");
 		recordPanelBase.add(calendarOriginalButton, "sizegroup btn,gapleft 30,wrap paragraph");
 		recordPanelBase.add(certaintyLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(certaintyComboBox, "wrap related");

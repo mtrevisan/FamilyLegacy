@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.panels.GroupListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.GroupPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.SupportedByGroupPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.TreePanel;
 import io.github.mtrevisan.familylegacy.flef.ui.tree.GenealogicalTree;
 import org.apache.commons.lang3.StringUtils;
@@ -276,11 +277,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onLinkPerson");
 
 		final PersonDialog dialog = PersonDialog.createSelectOnly(this);
+		//TODO save
 		dialog.loadData();
 
 		dialog.showDialog();
-
-		//TODO save
 	}
 
 	@Override
@@ -693,50 +693,43 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 			case PERSON_GROUP -> {
 				final PersonDialog personDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_PERSON_GROUP_BUTTON)
-						? PersonDialog.createCollectionViewOnly(recordID, this)
-						: PersonDialog.createCollection(recordID, this))
+						? PersonDialog.createCollectionViewOnly(recordID, SupportedByGroupPanel::create, this)
+						: PersonDialog.createCollection(recordID, SupportedByGroupPanel::create, this))
 					.withOnCloseGracefully(modifiedRecords -> {
 						final Set<Integer> currentPersonIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 								EntityManager.NODE_GROUP, recordID,
 								EntityManager.RELATIONSHIP_BELONGS_TO).stream()
 							.map(EntityManager::extractRecordID)
 							.collect(Collectors.toSet());
-						final Set<Integer> newPersonIDInGroup = modifiedRecords.getCollectionIDs();
+						final Map<Integer, Map<String, Object>> newPersonInGroup = modifiedRecords.getCollection();
 						//extract the intersection between `currentPersonIDInGroup` and `newPersonIDInGroup`
 						final Set<Integer> intersection = new HashSet<>(currentPersonIDInGroup);
-						intersection.retainAll(newPersonIDInGroup);
+						intersection.retainAll(newPersonInGroup.keySet());
 						//retain only difference
 						currentPersonIDInGroup.removeAll(intersection);
-						newPersonIDInGroup.removeAll(intersection);
+						for(final Integer newPersonID : intersection)
+							newPersonInGroup.remove(newPersonID);
 						//remove `currentPersonIDInGroup`
 						for(final Integer oldPersonID : currentPersonIDInGroup)
 							Repository.deleteRelationship(EntityManager.NODE_PERSON, oldPersonID,
 								EntityManager.NODE_GROUP, recordID,
 								EntityManager.RELATIONSHIP_BELONGS_TO);
 						//add `newPersonIDInGroup`
-						for(final Integer newPersonID : newPersonIDInGroup){
-							final Map<String, Object> relationshipData = dialog.extractRelationshipData(newPersonID,
-								PersonDialog.TABLE_INDEX_DATA);
-							Repository.upsertRelationship(EntityManager.NODE_PERSON, newPersonID,
+						for(final Map.Entry<Integer, Map<String, Object>> newPerson : newPersonInGroup.entrySet())
+							Repository.upsertRelationship(EntityManager.NODE_PERSON, newPerson.getKey(),
 								EntityManager.NODE_GROUP, recordID,
-								EntityManager.RELATIONSHIP_BELONGS_TO, relationshipData,
+								EntityManager.RELATIONSHIP_BELONGS_TO, newPerson.getValue(),
 								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-						}
 					});
-				final List<Map<String, Object>> people = Repository.findReferencingNodes(EntityManager.NODE_PERSON,
-					EntityManager.NODE_GROUP, recordID,
-					EntityManager.RELATIONSHIP_BELONGS_TO);
-				//load initial collection
-				personDialog.loadCollections(people);
-				personDialog.loadData();
+				personDialog.loadDataWithCollection(recordID);
 
 				personDialog.showDialog();
 			}
 
 			case GROUP_GROUP -> {
 				final GroupDialog groupDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_GROUP_GROUP_BUTTON)
-						? GroupDialog.createCollectionViewOnly(recordID, this)
-						: GroupDialog.createCollection(recordID, this))
+						? GroupDialog.createCollectionViewOnly(recordID, SupportedByGroupPanel::create, this)
+						: GroupDialog.createCollection(recordID, SupportedByGroupPanel::create, this))
 					.withCategory(EntityManager.NODE_GROUP)
 					.withOnCloseGracefully(modifiedRecords -> {
 						final Set<Integer> currentGroupIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
@@ -744,74 +737,62 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 								EntityManager.RELATIONSHIP_BELONGS_TO).stream()
 							.map(EntityManager::extractRecordID)
 							.collect(Collectors.toSet());
-						final Set<Integer> newGroupIDInGroup = modifiedRecords.getCollectionIDs();
+						final Map<Integer, Map<String, Object>> newGroupInGroup = modifiedRecords.getCollection();
 						//extract the intersection between `currentGroupIDInGroup` and `newGroupIDInGroup`
 						final Set<Integer> intersection = new HashSet<>(currentGroupIDInGroup);
-						intersection.retainAll(newGroupIDInGroup);
+						intersection.retainAll(newGroupInGroup.keySet());
 						//retain only difference
 						currentGroupIDInGroup.removeAll(intersection);
-						newGroupIDInGroup.removeAll(intersection);
+						for(final Integer newGroupID : intersection)
+							newGroupInGroup.remove(newGroupID);
 						//remove `currentGroupIDInGroup`
 						for(final Integer oldGroupID : currentGroupIDInGroup)
 							Repository.deleteRelationship(EntityManager.NODE_GROUP, oldGroupID,
 								EntityManager.NODE_GROUP, recordID,
 								EntityManager.RELATIONSHIP_BELONGS_TO);
 						//add `newGroupIDInGroup`
-						for(final Integer newGroupID : newGroupIDInGroup){
-							final Map<String, Object> relationshipData = dialog.extractRelationshipData(newGroupID, GroupDialog.TABLE_INDEX_DATA);
-							Repository.upsertRelationship(EntityManager.NODE_GROUP, newGroupID,
+						for(final Map.Entry<Integer, Map<String, Object>> newGroup : newGroupInGroup.entrySet())
+							Repository.upsertRelationship(EntityManager.NODE_GROUP, newGroup.getKey(),
 								EntityManager.NODE_GROUP, recordID,
-								EntityManager.RELATIONSHIP_BELONGS_TO, relationshipData,
+								EntityManager.RELATIONSHIP_BELONGS_TO, newGroup.getValue(),
 								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-						}
 					});
-				final List<Map<String, Object>> groups = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
-					EntityManager.NODE_GROUP, recordID,
-					EntityManager.RELATIONSHIP_BELONGS_TO);
-				//load initial collection
-				groupDialog.loadCollections(groups);
-				groupDialog.loadData();
+				groupDialog.loadDataWithCollection(recordID);
 
 				groupDialog.showDialog();
 			}
 
 			case PLACE_GROUP -> {
 				final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_PLACE_GROUP_BUTTON)
-						? PlaceDialog.createCollectionViewOnly(recordID, this)
-						: PlaceDialog.createCollection(recordID, this))
+						? PlaceDialog.createCollectionViewOnly(recordID, SupportedByGroupPanel::create, this)
+						: PlaceDialog.createCollection(recordID, SupportedByGroupPanel::create, this))
 					.withOnCloseGracefully(modifiedRecords -> {
 						final Set<Integer> currentPlaceIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
 								EntityManager.NODE_GROUP, recordID,
 								EntityManager.RELATIONSHIP_BELONGS_TO).stream()
 							.map(EntityManager::extractRecordID)
 							.collect(Collectors.toSet());
-						final Set<Integer> newPlaceIDInGroup = modifiedRecords.getCollectionIDs();
+						final Map<Integer, Map<String, Object>> newPlaceInGroup = modifiedRecords.getCollection();
 						//extract the intersection between `currentPlaceIDInGroup` and `newPlaceIDInGroup`
 						final Set<Integer> intersection = new HashSet<>(currentPlaceIDInGroup);
-						intersection.retainAll(newPlaceIDInGroup);
+						intersection.retainAll(newPlaceInGroup.keySet());
 						//retain only difference
 						currentPlaceIDInGroup.removeAll(intersection);
-						newPlaceIDInGroup.removeAll(intersection);
+						for(final Integer newPlaceID : intersection)
+							newPlaceInGroup.remove(newPlaceID);
 						//remove `currentPlaceIDInGroup`
 						for(final Integer oldPlaceID : currentPlaceIDInGroup)
 							Repository.deleteRelationship(EntityManager.NODE_PLACE, oldPlaceID,
 								EntityManager.NODE_GROUP, recordID,
 								EntityManager.RELATIONSHIP_BELONGS_TO);
 						//add `newPlaceIDInGroup`
-						for(final Integer newPlaceID : newPlaceIDInGroup){
-							final Map<String, Object> relationshipData = dialog.extractRelationshipData(newPlaceID, PlaceDialog.TABLE_INDEX_DATA);
-							Repository.upsertRelationship(EntityManager.NODE_PLACE, newPlaceID,
+						for(final Map.Entry<Integer, Map<String, Object>> newPlace : newPlaceInGroup.entrySet())
+							Repository.upsertRelationship(EntityManager.NODE_PLACE, newPlace.getKey(),
 								EntityManager.NODE_GROUP, recordID,
-								EntityManager.RELATIONSHIP_BELONGS_TO, relationshipData,
+								EntityManager.RELATIONSHIP_BELONGS_TO, newPlace.getValue(),
 								GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-						}
 					});
-				final List<Map<String, Object>> places = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
-					EntityManager.NODE_GROUP, recordID,
-					EntityManager.RELATIONSHIP_BELONGS_TO);
-				//load initial collection
-				placeDialog.loadCollections(places);
-				placeDialog.loadData();
+				placeDialog.loadDataWithCollection(recordID);
 
 				placeDialog.showDialog();
 			}

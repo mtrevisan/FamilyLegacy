@@ -232,11 +232,11 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(locationLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(locationField, "grow,wrap paragraph");
+		recordPanelBase.add(locationField, "growx,wrap paragraph");
 		recordPanelBase.add(extractLabel, "align label,top,sizegroup lbl,split 2");
 		recordPanelBase.add(extractTextPreview, "grow,wrap related");
 		recordPanelBase.add(extractLocaleLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(extractLocaleField, "grow,wrap related");
+		recordPanelBase.add(extractLocaleField, "growx,wrap related");
 		recordPanelBase.add(transcribedExtractButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(extractTypeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(extractTypeComboBox);

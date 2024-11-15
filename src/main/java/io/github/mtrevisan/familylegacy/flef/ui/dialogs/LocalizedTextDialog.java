@@ -266,13 +266,13 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 		recordPanelBase.add(textLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add((simplePrimaryText? simpleTextField: textTextPreview), "grow,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(localeField, "grow,wrap paragraph");
+		recordPanelBase.add(localeField, "growx,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(referenceTypeComboBox, "grow,wrap paragraph");
+		recordPanelBase.add(referenceTypeComboBox, "growx,wrap paragraph");
 		recordPanelBase.add(transcriptionLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(transcriptionComboBox, "grow,wrap related");
+		recordPanelBase.add(transcriptionComboBox, "growx,wrap related");
 		recordPanelBase.add(transcriptionTypeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(transcriptionTypeComboBox, "grow");
+		recordPanelBase.add(transcriptionTypeComboBox, "growx");
 
 		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
 	}

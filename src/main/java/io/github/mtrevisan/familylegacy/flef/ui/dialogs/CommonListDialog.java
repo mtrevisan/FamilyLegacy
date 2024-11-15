@@ -48,6 +48,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
@@ -390,8 +391,15 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		collectionTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		collectionTable.getSelectionModel()
 			.addListSelectionListener(evt -> {
-				if(!evt.getValueIsAdjusting() && collectionTable.getSelectedRow() >= 0)
+				if(!evt.getValueIsAdjusting() && collectionTable.getSelectedRow() >= 0){
+					final int viewRowIndex = collectionTable.getSelectedRow();
+					final int modelRowIndex = collectionTable.convertRowIndexToModel(viewRowIndex);
+					final TableModel model = getCollectionTableModel();
+					final Integer recordID = (Integer)model.getValueAt(modelRowIndex, TABLE_INDEX_ID);
+					relationshipDataPanel.loadData(recordID);
+
 					removeButton.setEnabled(true);
+				}
 			});
 		collectionTable.setAutoCreateRowSorter(true);
 		final TableRowSorter<TableModel> collectionSorter = new TableRowSorter<>(getCollectionTableModel());
@@ -472,19 +480,23 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			recordTabbedPane.setVisible(false);
 
 		setLayout(new MigLayout(StringUtils.EMPTY, (useCollection? "[sizegroup main,grow][sizegroup main,grow]": "[grow]")));
-		add(filterLabel, "align label,split 2,hidemode 3");
-		add(filterField, "grow,wrap related,hidemode 3");
-		add(recordTableScrollPane, "grow,wrap paragraph,hidemode 3");
-		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
-		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3"
+		add(filterLabel, "cell 0 0,align label,split 2,hidemode 3");
+		add(filterField, "cell 0 0,growx,wrap related,hidemode 3");
+		add(recordTableScrollPane, "cell 0 1,grow,wrap paragraph,hidemode 3");
+		add(newRecordButton, "cell 0 2,sizegroup btn,tag add,split 3,align right,hidemode 3");
+		add(unselectRecordButton, "cell 0 2,sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3"
 			+ (deleteRecordButton.isVisible()? StringUtils.EMPTY: ",wrap paragraph"));
-		add(deleteRecordButton, "sizegroup btn,tag delete,gapleft 30,hidemode 3"
+		add(deleteRecordButton, "cell 0 2,sizegroup btn,tag delete,gapleft 30,hidemode 3"
 			+ (deleteRecordButton.isVisible()? ",wrap paragraph": StringUtils.EMPTY));
-		add(removeButton, "sizegroup btn,tag add,split 2,align right,hidemode 3");
-		add(addButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3,wrap paragraph");
-		add(recordTabbedPane, "grow,hidemode 3");
-		if(useCollection)
-			add(collectionTableScrollPane, "grow,span 1 10,wrap,cell 1 0");
+		add(removeButton, "cell 0 3,sizegroup btn,tag add,split 2,align right,hidemode 3");
+		add(addButton, "cell 0 3,sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3,wrap paragraph");
+		add(recordTabbedPane, "cell 0 4,grow,hidemode 3,wrap");
+		if(useCollection){
+			final JPanel collectionPanel = new JPanel(new MigLayout());
+			collectionPanel.add(collectionTableScrollPane, "grow,pushy,wrap");
+			collectionPanel.add((Component)relationshipDataPanel, "growx");
+			add(collectionPanel, "cell 1 0,grow,pushy,span 1 5");
+		}
 
 		if(selectRecordOnly && showRecordOnly)
 			GUIHelper.setDisabled(recordTabbedPane, viewOnlyComponents);
@@ -628,7 +640,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 		selectedRecordID = extractRecordID(selectedRecord);
-		selectedRecordLink = null;
 
 		selectActionInner();
 	}
@@ -641,12 +652,12 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected final void selectAction(){
 		if(!validateData()){
 			final ListSelectionModel selectionModel = recordTable.getSelectionModel();
-			ignoreEvents = true;
-			if(previousIndex != -1)
-				selectionModel.setSelectionInterval(previousIndex, previousIndex);
-			else
-				selectionModel.clearSelection();
-			ignoreEvents = false;
+			callWithoutEvents(() -> {
+				if(previousIndex != -1)
+					selectionModel.setSelectionInterval(previousIndex, previousIndex);
+				else
+					selectionModel.clearSelection();
+			});
 		}
 		else{
 			previousIndex = recordTable.getSelectedRow();
@@ -659,7 +670,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 				modifiedRecords.addModifiedRecord(selectedRecord);
 			selectedRecord = new HashMap<>(record);
 			selectedRecordID = extractRecordID(record);
-			selectedRecordLink = null;
 
 			GUIHelper.setEnabled(recordPanel, (!showRecordOnly || !selectRecordOnly));
 
@@ -689,22 +699,20 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			newRecordDefault.accept(selectedRecord);
 
 
-		ignoreEvents = true;
+		callWithoutEvents(() -> {
+			fillData();
 
-		fillData();
-
-		final String tableName = getTableName();
-		final int recordID = extractRecordID(selectedRecord);
-		if(showRecordHistory){
-			historyPanel.withReference(tableName, recordID);
-			historyPanel.loadData();
-		}
-		if(showRecordResearchStatus){
-			researchStatusPanel.withReference(tableName, recordID);
-			researchStatusPanel.loadData();
-		}
-
-		ignoreEvents = false;
+			final String tableName = getTableName();
+			final int recordID = extractRecordID(selectedRecord);
+			if(showRecordHistory){
+				historyPanel.withReference(tableName, recordID);
+				historyPanel.loadData();
+			}
+			if(showRecordResearchStatus){
+				researchStatusPanel.withReference(tableName, recordID);
+				researchStatusPanel.loadData();
+			}
+		});
 	}
 
 	@Override
@@ -744,30 +752,28 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		if(selectedRecord != null && !validateData())
 			return;
 
-		ignoreEvents = true;
+		callWithoutEvents(() -> {
+			//create a new record
+			final int nextRecordID = Repository.upsert(new HashMap<>(), getTableName());
 
-		//create a new record
-		final int nextRecordID = Repository.upsert(new HashMap<>(), getTableName());
+			//reset filter
+			filterField.setText(null);
 
-		//reset filter
-		filterField.setText(null);
+			//add to table
+			final DefaultTableModel model = getRecordTableModel();
+			final int oldSize = model.getRowCount();
+			model.setRowCount(oldSize + 1);
+			model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_ID);
+			//resort rows
+			final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
+			recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
 
-		//add to table
-		final DefaultTableModel model = getRecordTableModel();
-		final int oldSize = model.getRowCount();
-		model.setRowCount(oldSize + 1);
-		model.setValueAt(nextRecordID, oldSize, TABLE_INDEX_ID);
-		//resort rows
-		final RowSorter<? extends TableModel> recordTableSorter = recordTable.getRowSorter();
-		recordTableSorter.setSortKeys(recordTableSorter.getSortKeys());
-
-		ignoreEvents = false;
-
-		//select the newly created record
-		final int newRowIndex = recordTable.convertRowIndexToView(oldSize);
-		recordTable.setRowSelectionInterval(newRowIndex, newRowIndex);
-		//make selected row visible
-		recordTable.scrollRectToVisible(recordTable.getCellRect(newRowIndex, 0, true));
+			//select the newly created record
+			final int newRowIndex = recordTable.convertRowIndexToView(oldSize);
+			recordTable.setRowSelectionInterval(newRowIndex, newRowIndex);
+			//make selected row visible
+			recordTable.scrollRectToVisible(recordTable.getCellRect(newRowIndex, 0, true));
+		});
 
 		setMandatoryFieldsBackgroundColor(MANDATORY_BACKGROUND_COLOR);
 	}
@@ -777,11 +783,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	protected void unselectAction(){
 		//clear previously selected row
 		selectedRecord = null;
-		selectedRecordLink = null;
 
-		ignoreEvents = true;
-		clearData();
-		ignoreEvents = false;
+		callWithoutEvents(this::clearData);
 
 		GUIHelper.setDisabled(recordTabbedPane, viewOnlyComponents);
 		unselectRecordButton.setEnabled(false);
@@ -806,11 +809,8 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		//clear previously selected row
 		selectedRecord = null;
-		selectedRecordLink = null;
 
-		ignoreEvents = true;
-		clearData();
-		ignoreEvents = false;
+		callWithoutEvents(this::clearData);
 
 		GUIHelper.setDisabled(recordTabbedPane, viewOnlyComponents);
 		newRecordButton.setEnabled(!selectRecordOnly);
@@ -827,7 +827,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	}
 
 	protected boolean canAddToCollection(final int recordID){
-		return !collectionIDs.contains(recordID);
+		return !collections.containsKey(recordID);
 	}
 
 	protected void addToCollectionAction(){}
@@ -845,8 +845,6 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		sorter.sort();
 
 
-		final Integer recordID = extractRecordID(selectedRecord);
-		collectionIDs.add(recordID);
 		addButton.setEnabled(false);
 	}
 
@@ -862,7 +860,12 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 
 		if(collectionRecordID != null){
-			collectionIDs.remove(collectionRecordID);
+			collections.remove(collectionRecordID);
+
+			//clean relationship data panel
+			relationshipDataPanel.clearData();
+
+
 			if(collectionRecordID.equals(selectedRecordID))
 				addButton.setEnabled(true);
 		}

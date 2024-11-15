@@ -211,7 +211,7 @@ public final class RepositoryDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(identifierField, "grow,wrap related");
+		recordPanelBase.add(identifierField, "growx,wrap related");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap paragraph");
 		recordPanelBase.add(referencePersonButton, "sizegroup btn,center,split 2");

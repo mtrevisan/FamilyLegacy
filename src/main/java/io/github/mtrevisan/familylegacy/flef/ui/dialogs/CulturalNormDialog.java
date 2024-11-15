@@ -86,7 +86,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	private static final String RECORD_PANEL_NAME_BASE = "base";
 	private static final String RECORD_PANEL_NAME_OTHER = "other";
-	private static final String RECORD_PANEL_NAME_LINK = "link";
 
 
 	private final JLabel identifierLabel = new JLabel("Identifier:");
@@ -107,11 +106,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	private final JButton assertionButton = new JButton("Assertions", ICON_ASSERTION);
 	private final JButton eventButton = new JButton("Events", ICON_EVENT);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-
-	private final JLabel linkCertaintyLabel = new JLabel("Certainty:");
-	private final JComboBox<String> linkCertaintyComboBox = new JComboBox<>(new CertaintyComboBoxModel());
-	private final JLabel linkCredibilityLabel = new JLabel("Credibility:");
-	private final JComboBox<String> linkCredibilityComboBox = new JComboBox<>(new CredibilityComboBoxModel());
 
 	private String filterReferenceTable;
 	private int filterReferenceID;
@@ -165,13 +159,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		Consumer<ModifiedRecords> innerOnCloseGracefully = modifiedRecords -> {
 			if(filterReferenceTable != null){
 				if(selectedRecord != null)
-					for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-						final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
-						Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, upsertedRecordID,
-							filterReferenceTable, filterReferenceID,
-							EntityManager.RELATIONSHIP_SUPPORTED_BY, new HashMap<>(selectedRecordLink),
-							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-					}
+					for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords())
+						Repository.upsert(upsertedRecord, EntityManager.NODE_CULTURAL_NORM);
 				final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
 				for(int i = 0, length = deletedIDs.size(); i < length; i ++)
 					Repository.deleteRelationship(EntityManager.NODE_CULTURAL_NORM, deletedIDs.get(i),
@@ -268,17 +257,13 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 			EditEvent.create(EditEvent.EditType.EVENT, this, selectedRecord)));
 
 		restrictionCheckBox.addItemListener(this::manageRestrictionCheckBox);
-
-
-		GUIHelper.bindLabelUndoAutoComplete(linkCertaintyLabel, linkCertaintyComboBox);
-		GUIHelper.bindLabelUndoAutoComplete(linkCredibilityLabel, linkCredibilityComboBox);
 	}
 
 	@Override
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(identifierField, "grow,wrap paragraph");
+		recordPanelBase.add(identifierField, "growx,wrap paragraph");
 		recordPanelBase.add(descriptionLabel, "align label,top,sizegroup lbl,split 2");
 		recordPanelBase.add(descriptionTextPreview, "grow,wrap paragraph");
 		recordPanelBase.add(placeButton, "sizegroup btn,center,wrap paragraph");
@@ -296,15 +281,8 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		recordPanelOther.add(eventButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelOther.add(restrictionCheckBox);
 
-		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
-		recordPanelLink.add(linkCertaintyLabel, "align label,sizegroup lbl,split 2");
-		recordPanelLink.add(linkCertaintyComboBox, "wrap related");
-		recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup lbl,split 2");
-		recordPanelLink.add(linkCredibilityComboBox);
-
 		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
 		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
-		recordTabbedPane.add(RECORD_PANEL_NAME_LINK, recordPanelLink);
 	}
 
 	@Override
@@ -354,29 +332,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 		setCheckBoxEnableAndBorder(restrictionCheckBox, EntityManager.RESTRICTION_CONFIDENTIAL.equals(restriction));
 
-		linkCertaintyComboBox.setSelectedItem(null);
-		linkCredibilityComboBox.setSelectedItem(null);
-		if(filterReferenceTable != null){
-			final List<Map<String, Object>> recordCulturalNormRelationships = Repository.findRelationships(
-				EntityManager.NODE_CULTURAL_NORM, culturalNormID,
-				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_SUPPORTED_BY);
-			if(recordCulturalNormRelationships.size() > 1)
-				throw new IllegalArgumentException("Data integrity error");
-
-			if(!recordCulturalNormRelationships.isEmpty()){
-				selectedRecordLink = recordCulturalNormRelationships.getFirst();
-
-				final String linkCertainty = extractRecordCertainty(selectedRecordLink);
-				final String linkCredibility = extractRecordCredibility(selectedRecordLink);
-
-				linkCertaintyComboBox.setSelectedItem(linkCertainty);
-				linkCredibilityComboBox.setSelectedItem(linkCredibility);
-			}
-		}
-
-		GUIHelper.enableTabByTitle(recordTabbedPane, RECORD_PANEL_NAME_LINK, (showRecordOnly || filterReferenceTable != null && selectedRecord != null));
-
 
 		refreshButtonStates(culturalNormID);
 	}
@@ -416,9 +371,6 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		GUIHelper.setDefaultBorder(eventButton);
 		GUIHelper.setDefaultBorder(assertionButton);
 		restrictionCheckBox.setSelected(false);
-
-		linkCertaintyComboBox.setSelectedItem(null);
-		linkCredibilityComboBox.setSelectedItem(null);
 	}
 
 	@Override
@@ -445,24 +397,9 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		final String certainty = GUIHelper.getTextTrimmed(certaintyComboBox);
 		final String credibility = GUIHelper.getTextTrimmed(credibilityComboBox);
 
-		final Integer recordID = extractRecordID(selectedRecord);
-		if(filterReferenceTable != null){
-			//read link panel:
-			final String linkCertainty = GUIHelper.getTextTrimmed(linkCertaintyComboBox);
-			final String linkCredibility = GUIHelper.getTextTrimmed(linkCredibilityComboBox);
-
-			if(selectedRecordLink == null)
-				selectedRecordLink = new HashMap<>(2);
-			insertRecordCertainty(selectedRecordLink, linkCertainty);
-			insertRecordCredibility(selectedRecordLink, linkCredibility);
-			Repository.upsertRelationship(EntityManager.NODE_CULTURAL_NORM, recordID,
-				filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_FOR, selectedRecordLink,
-				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		}
-
 		//update table:
 		if(!Objects.equals(identifier, extractRecordIdentifier(selectedRecord))){
+			final Integer recordID = extractRecordID(selectedRecord);
 			final DefaultTableModel model = getRecordTableModel();
 			for(int row = 0, length = model.getRowCount(); row < length; row ++){
 				final int viewRowIndex = recordTable.convertRowIndexToView(row);

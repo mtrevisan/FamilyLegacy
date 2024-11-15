@@ -129,11 +129,11 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	protected void initRecordLayout(final JComponent recordPanel){
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanel.add(copyrightLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(copyrightField, "grow,wrap paragraph");
+		recordPanel.add(copyrightField, "growx,wrap paragraph");
 		recordPanel.add(noteLabel, "align label,top,sizegroup lbl,split 2");
 		recordPanel.add(noteTextPreview, "grow,wrap related");
 		recordPanel.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(localeField, "grow,wrap paragraph");
+		recordPanel.add(localeField, "growx,wrap paragraph");
 		recordPanel.add(includeMediaPayloadLabel, "align label,sizegroup lbl,split 2");
 		recordPanel.add(includeMediaPayloadComboBox);
 	}
@@ -143,9 +143,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		final Map<String, Object> record = Repository.findByID(EntityManager.NODE_PROJECT, 1);
 		selectedRecord = (record != null? new HashMap<>(record): new HashMap<>());
 
-		ignoreEvents = true;
-		fillData();
-		ignoreEvents = false;
+		callWithoutEvents(this::fillData);
 
 
 		//set focus on first field
