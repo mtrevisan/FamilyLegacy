@@ -36,7 +36,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SupportedByGroupPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.BelongsToGroupPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,6 +44,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -55,6 +56,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.awt.event.ActionListener;
 import java.io.Serial;
 import java.util.Collections;
 import java.util.Comparator;
@@ -130,12 +132,12 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	public static PlaceDialog createCollection(final int filterGroupID,
-			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
 		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
 
 		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.filterGroupID = filterGroupID;
+		dialog.filterCollectionTargetID = filterGroupID;
 		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.initialize();
 		return dialog;
@@ -151,12 +153,12 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	public static PlaceDialog createCollectionViewOnly(final int filterGroupID,
-			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
 		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
 
 		final PlaceDialog dialog = new PlaceDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.filterGroupID = filterGroupID;
+		dialog.filterCollectionTargetID = filterGroupID;
 		dialog.showCollectionOnly = true;
 		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.eventButton,
@@ -371,10 +373,10 @@ public final class PlaceDialog extends CommonListDialog{
 
 				if(collectionModel != null && collections.containsKey(recordID)){
 					final List<Map<String, Object>> relationships = Repository.findRelationships(EntityManager.NODE_PLACE, recordID,
-						EntityManager.NODE_GROUP, filterGroupID,
+						EntityManager.NODE_GROUP, filterCollectionTargetID,
 						EntityManager.RELATIONSHIP_BELONGS_TO
 					);
-					final Map<String, Object> relationshipData = (!relationships.isEmpty()? relationships.getFirst(): Collections.emptyMap());
+					final Map<String, Object> relationshipData = (!relationships.isEmpty()? relationships.getFirst(): new HashMap<>(0));
 
 					collectionModel.setValueAt(recordID, collectionRow, TABLE_INDEX_ID);
 //					collectionModel.setValueAt(filterData, collectionRow, TABLE_INDEX_FILTER);
@@ -396,29 +398,45 @@ public final class PlaceDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void addToCollectionAction(){
-		//transfer selected record to collection table:
+	protected void addToCollection(){
+		final JDialog dialog = new JDialog(this, "Relationship data", true);
+		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-		//TODO ask for relationship data (`role`, `certainty`, and `credibility`)
-		final Map<String, Object> relationshipData = new HashMap<>();
-
-		final DefaultTableModel model = getCollectionTableModel();
-		int row = model.getRowCount();
-		model.setRowCount(row + 1);
 		final Integer recordID = extractRecordID(selectedRecord);
-		final String identifier = extractRecordIdentifier(selectedRecord);
-//		final FilterString filter = FilterString.create()
-//			.add(recordID)
-//			.add(identifier);
-//		final String filterData = filter.toString();
+		final BelongsToGroupPanel panel = BelongsToGroupPanel.create(getTableName(), filterCollectionTargetID);
+		panel.loadData(recordID);
+		dialog.add(panel);
 
-		model.setValueAt(recordID, row, TABLE_INDEX_ID);
-//		model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
-		model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
-		model.setValueAt(relationshipData, row, TABLE_INDEX_DATA);
+		dialog.pack();
+		dialog.setLocationRelativeTo(this);
+		//close dialog
+		final ActionListener onCloseAction = e -> {
+			final Map<String, Object> relationshipData = panel.getRelationshipData();
+
+			//transfer selected record to collection table:
+			final DefaultTableModel model = getCollectionTableModel();
+			int row = model.getRowCount();
+			model.setRowCount(row + 1);
+			final String identifier = extractRecordIdentifier(selectedRecord);
+//			final FilterString filter = FilterString.create()
+//				.add(recordID)
+//				.add(identifier);
+//			final String filterData = filter.toString();
+
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
+	//			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
+			model.setValueAt(relationshipData, row, TABLE_INDEX_DATA);
 
 
-		finalizeAddToCollectionAction();
+			finalizeAddToCollection(recordID, relationshipData);
+
+			dialog.dispose();
+		};
+		dialog.getRootPane()
+			.registerKeyboardAction(onCloseAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		dialog.setVisible(true);
 	}
 
 	@Override
@@ -824,30 +842,9 @@ public final class PlaceDialog extends CommonListDialog{
 							eventDialog.showDialog();
 						}
 
-						//TODO list of groups this place is in
 						case GROUP -> {
-							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_GROUP_BUTTON)
-									? GroupDialog.createSelectOnly(parent)
-									: GroupDialog.create(parent))
-								.withReference(EntityManager.NODE_PLACE, placeID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
-										Repository.upsertRelationship(EntityManager.NODE_PLACE, placeID,
-											EntityManager.NODE_GROUP, upsertedRecordID,
-											EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_PLACE, placeID,
-											EntityManager.NODE_GROUP, deletedIDs.get(i),
-											EntityManager.RELATIONSHIP_BELONGS_TO);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(placeID);
-								});
+							final GroupDialog groupDialog = GroupDialog.createShowOnly(parent)
+								.withReference(EntityManager.NODE_PLACE, placeID);
 							groupDialog.loadData();
 
 							groupDialog.showDialog();

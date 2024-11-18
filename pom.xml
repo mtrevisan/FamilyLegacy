@@ -81,7 +81,7 @@
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
-		<bytedeco.opencv.version>4.9.0-1.5.10</bytedeco.opencv.version>
+		<bytedeco.opencv.version>4.10.0-1.5.11</bytedeco.opencv.version>
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j -->

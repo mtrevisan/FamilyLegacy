@@ -36,7 +36,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SupportedByGroupPanel;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.BelongsToGroupPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -126,12 +126,12 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	public static GroupDialog createCollection(final int filterGroupID,
-			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
 		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
 
 		final GroupDialog dialog = new GroupDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.filterGroupID = filterGroupID;
+		dialog.filterCollectionTargetID = filterGroupID;
 		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.initialize();
 		return dialog;
@@ -147,12 +147,12 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	public static GroupDialog createCollectionViewOnly(final int filterGroupID,
-			final BiFunction<String, Integer, SupportedByGroupPanel> panelCreator, final Frame parent){
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
 		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
 
 		final GroupDialog dialog = new GroupDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.filterGroupID = filterGroupID;
+		dialog.filterCollectionTargetID = filterGroupID;
 		dialog.showCollectionOnly = true;
 		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterGroupID);
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.peopleGroupButton, dialog.groupsGroupButton, dialog.placesGroupButton,
@@ -164,7 +164,6 @@ public final class GroupDialog extends CommonListDialog{
 	public static GroupDialog createShowOnly(final Frame parent){
 		final GroupDialog dialog = new GroupDialog(parent);
 		dialog.selectRecordOnly = true;
-		dialog.showRecordOnly = true;
 		dialog.initialize();
 		return dialog;
 	}
@@ -263,6 +262,7 @@ public final class GroupDialog extends CommonListDialog{
 
 		super.initStoreComponents();
 
+
 		//hide data column
 		TableColumnModel columnModel = recordTable.getColumnModel();
 		//NOTE: the filter column was already removed, therefore the `- 1`
@@ -353,9 +353,11 @@ public final class GroupDialog extends CommonListDialog{
 		unselectAction();
 
 		final List<Map<String, Object>> records = (filterReferenceTable == null
-			? Repository.findAll(EntityManager.NODE_GROUP)
-			: Repository.findReferencingNodes(filterReferenceTable, filterReferenceID,
-				EntityManager.RELATIONSHIP_BELONGS_TO).stream().map(Map.Entry::getValue).collect(Collectors.toList()));
+				? Repository.findAll(EntityManager.NODE_GROUP)
+				: Repository.findReferencingNodes(filterReferenceTable, filterReferenceID,
+					EntityManager.RELATIONSHIP_BELONGS_TO).stream()
+			.map(Map.Entry::getValue)
+			.collect(Collectors.toList()));
 		//filter by category
 		if(filterCategory != null)
 			records.removeIf(record -> {
@@ -388,10 +390,10 @@ public final class GroupDialog extends CommonListDialog{
 
 			if(collectionModel != null && collections.containsKey(recordID)){
 				final List<Map<String, Object>> relationships = Repository.findRelationships(EntityManager.NODE_GROUP, recordID,
-					EntityManager.NODE_GROUP, filterGroupID,
+					EntityManager.NODE_GROUP, filterCollectionTargetID,
 					EntityManager.RELATIONSHIP_BELONGS_TO
 				);
-				final Map<String, Object> relationshipData = (!relationships.isEmpty()? relationships.getFirst(): Collections.emptyMap());
+				final Map<String, Object> relationshipData = (!relationships.isEmpty()? relationships.getFirst(): new HashMap<>(0));
 
 				collectionModel.setValueAt(recordID, collectionRow, TABLE_INDEX_ID);
 //				collectionModel.setValueAt(filterData, collectionRow, TABLE_INDEX_FILTER);
@@ -407,12 +409,6 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	@Override
-	public void loadDataWithCollection(final int recordID){
-		loadCollections(recordID);
-		loadData();
-	}
-
-	@Override
 	protected void unselectAction(){
 		peopleGroupButton.setEnabled(false);
 		groupsGroupButton.setEnabled(false);
@@ -422,11 +418,19 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 	@Override
-	protected void addToCollectionAction(){
+	public void loadDataWithCollection(final int recordID){
+		loadCollections(recordID);
+		loadData();
+	}
+
+	@Override
+	protected void addToCollection(){
 		final JDialog dialog = new JDialog(this, "Relationship data", true);
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
-		final SupportedByGroupPanel panel = SupportedByGroupPanel.create(getTableName(), filterGroupID);
+		final Integer recordID = extractRecordID(selectedRecord);
+		final BelongsToGroupPanel panel = BelongsToGroupPanel.create(getTableName(), filterCollectionTargetID);
+		panel.loadData(recordID);
 		dialog.add(panel);
 
 		dialog.pack();
@@ -439,7 +443,6 @@ public final class GroupDialog extends CommonListDialog{
 			final DefaultTableModel model = getCollectionTableModel();
 			int row = model.getRowCount();
 			model.setRowCount(row + 1);
-			final Integer recordID = extractRecordID(selectedRecord);
 			final String categoryIdentifier = extractIdentifier(selectedRecord, recordID);
 			final String category = categoryIdentifier.substring(0, categoryIdentifier.indexOf('|'));
 			final String identifier = categoryIdentifier.substring(categoryIdentifier.indexOf('|') + 1);
@@ -455,10 +458,7 @@ public final class GroupDialog extends CommonListDialog{
 			model.setValueAt(relationshipData, row, TABLE_INDEX_DATA);
 
 
-			collections.put(recordID, relationshipData);
-
-
-			finalizeAddToCollectionAction();
+			finalizeAddToCollection(recordID, relationshipData);
 
 			dialog.dispose();
 		};
@@ -1044,30 +1044,9 @@ public final class GroupDialog extends CommonListDialog{
 							eventDialog.showDialog();
 						}
 
-						//TODO list of groups this group is in
 						case GROUP -> {
-							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_GROUP_BUTTON)
-								? GroupDialog.createSelectOnly(parent)
-								: GroupDialog.create(parent))
-								.withReference(EntityManager.NODE_GROUP, groupID)
-								.withOnCloseGracefully(modifiedRecords -> {
-									for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
-										final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
-										Repository.upsertRelationship(EntityManager.NODE_GROUP, groupID,
-											EntityManager.NODE_GROUP, upsertedRecordID,
-											EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
-											GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-									}
-									final List<Integer> deletedIDs = modifiedRecords.getRemovedIDs();
-									for(int i = 0, length = deletedIDs.size(); i < length; i ++)
-										Repository.deleteRelationship(EntityManager.NODE_GROUP, groupID,
-											EntityManager.NODE_GROUP, deletedIDs.get(i),
-											EntityManager.RELATIONSHIP_BELONGS_TO);
-
-									//update UI
-									if(!deletedIDs.isEmpty())
-										dialog.refreshButtonStates(groupID);
-								});
+							final GroupDialog groupDialog = GroupDialog.createShowOnly(parent)
+								.withReference(EntityManager.NODE_GROUP, groupID);
 							groupDialog.loadData();
 
 							groupDialog.showDialog();
@@ -1075,8 +1054,8 @@ public final class GroupDialog extends CommonListDialog{
 
 						case PERSON_GROUP -> {
 							final PersonDialog personDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PERSON_GROUP_BUTTON)
-									? PersonDialog.createCollectionViewOnly(groupID, SupportedByGroupPanel::create, parent)
-									: PersonDialog.createCollection(groupID, SupportedByGroupPanel::create, parent))
+									? PersonDialog.createCollectionViewOnly(groupID, BelongsToGroupPanel::create, parent)
+									: PersonDialog.createCollection(groupID, BelongsToGroupPanel::create, parent))
 								.withOnCloseGracefully(modifiedRecords -> {
 									final Set<Integer> currentPersonIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 											EntityManager.NODE_GROUP, groupID,
@@ -1110,8 +1089,8 @@ public final class GroupDialog extends CommonListDialog{
 
 						case GROUP_GROUP -> {
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_GROUP_GROUP_BUTTON)
-									? GroupDialog.createCollectionViewOnly(groupID, SupportedByGroupPanel::create, parent)
-									: GroupDialog.createCollection(groupID, SupportedByGroupPanel::create, parent))
+									? GroupDialog.createCollectionViewOnly(groupID, BelongsToGroupPanel::create, parent)
+									: GroupDialog.createCollection(groupID, BelongsToGroupPanel::create, parent))
 								.withCategory(EntityManager.NODE_GROUP)
 								.withOnCloseGracefully(modifiedRecords -> {
 									final Set<Integer> currentGroupIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
@@ -1146,8 +1125,8 @@ public final class GroupDialog extends CommonListDialog{
 
 						case PLACE_GROUP -> {
 							final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_PLACE_GROUP_BUTTON)
-									? PlaceDialog.createCollectionViewOnly(groupID, SupportedByGroupPanel::create, parent)
-									: PlaceDialog.createCollection(groupID, SupportedByGroupPanel::create, parent))
+									? PlaceDialog.createCollectionViewOnly(groupID, BelongsToGroupPanel::create, parent)
+									: PlaceDialog.createCollection(groupID, BelongsToGroupPanel::create, parent))
 								.withOnCloseGracefully(modifiedRecords -> {
 									final Set<Integer> currentPlaceIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
 											EntityManager.NODE_GROUP, groupID,

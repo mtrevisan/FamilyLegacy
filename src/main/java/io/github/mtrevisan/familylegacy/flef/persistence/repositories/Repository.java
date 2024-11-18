@@ -177,11 +177,9 @@ public class Repository{
 			final String relationshipName, final Map<String, Object> record,
 			final GraphDatabaseManager.OnDeleteType onDelete){
 		try{
-			GraphDatabaseManager.upsertRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+			return GraphDatabaseManager.upsertRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
 				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
 				relationshipName, record, onDelete, onDelete);
-
-			return true;
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while upserting relationship: {}", e.getMessage(), e);
@@ -195,11 +193,9 @@ public class Repository{
 			final String relationshipName, final Map<String, Object> record,
 			final GraphDatabaseManager.OnDeleteType onDeleteStart, final GraphDatabaseManager.OnDeleteType onDeleteEnd){
 		try{
-			GraphDatabaseManager.upsertRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+			return GraphDatabaseManager.upsertRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
 				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
 				relationshipName, record, onDeleteStart, onDeleteEnd);
-
-			return true;
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while upserting relationship: {}", e.getMessage(), e);
@@ -211,11 +207,9 @@ public class Repository{
 	public static boolean deleteRelationship(final String tableNameStart, final Integer recordIDStart,
 			final String tableNameEnd, final Integer recordIDEnd){
 		try{
-			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+			return GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
 				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
 				null, null, null);
-
-			return true;
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);
@@ -228,11 +222,9 @@ public class Repository{
 			final String tableNameEnd,
 			final String relationshipName){
 		try{
-			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+			return GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
 				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, null,
 				relationshipName, null, null);
-
-			return true;
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);
@@ -245,11 +237,9 @@ public class Repository{
 			final String tableNameEnd, final Integer recordIDEnd,
 			final String relationshipName){
 		try{
-			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+			return GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
 				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
 				relationshipName, null, null);
-
-			return true;
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);
@@ -262,11 +252,9 @@ public class Repository{
 			final String tableNameEnd, final Integer recordIDEnd,
 			final String relationshipName, final String propertyName, final Object propertyValue){
 		try{
-			GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
+			return GraphDatabaseManager.deleteRelationship(tableNameStart, EntityManager.PROPERTY_PRIMARY_KEY, recordIDStart,
 				tableNameEnd, EntityManager.PROPERTY_PRIMARY_KEY, recordIDEnd,
 				relationshipName, propertyName, propertyValue);
-
-			return true;
 		}
 		catch(final Exception e){
 			LOGGER.error("Error while deleting relationship: {}", e.getMessage(), e);

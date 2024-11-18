@@ -41,11 +41,11 @@ import io.github.mtrevisan.familylegacy.flef.ui.dialogs.ResearchStatusDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.BelongsToGroupPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.GroupListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.GroupPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.PersonPanel;
-import io.github.mtrevisan.familylegacy.flef.ui.panels.SupportedByGroupPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.TreePanel;
 import io.github.mtrevisan.familylegacy.flef.ui.tree.GenealogicalTree;
 import org.apache.commons.lang3.StringUtils;
@@ -181,6 +181,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		if(!partner1Person.isEmpty()){
 			final Map<String, Object> groupRelationship = new HashMap<>();
 			insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
+			//TODO ask for belongs_to relationship data
 			Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(partner1Person),
 				EntityManager.NODE_GROUP, upsertedRecordID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -191,6 +192,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		if(!partner2Person.isEmpty()){
 			final Map<String, Object> groupRelationship = new HashMap<>();
 			insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
+			//TODO ask for belongs_to relationship data
 			Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(partner2Person),
 				EntityManager.NODE_GROUP, upsertedRecordID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -199,6 +201,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		for(final PersonPanel child : children){
 			final Map<String, Object> groupRelationship = new HashMap<>();
 			insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
+			//TODO ask for belongs_to relationship data
 			Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(child.getPerson()),
 				EntityManager.NODE_GROUP, upsertedRecordID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -212,12 +215,17 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Integer groupID = extractRecordID(group);
 		LOGGER.debug("onRemoveGroup {}", groupID);
 
+		//TODO remove children from removed group
+		final int index = treePanel.genealogicalTree.getIndexOf(groupPanel);
+		final int childIndex = GenealogicalTree.getParent(index);
+		final boolean isPartner1 = (index == GenealogicalTree.getLeftChild(childIndex));
+		final GroupPanel treeGroupPanel = treePanel.genealogicalTree.get(childIndex);
+		final PersonPanel child = (isPartner1? treeGroupPanel.getPartner1(): treeGroupPanel.getPartner2());
 		//TODO remove last attached relationship
-		final List<Integer> personIDs = getPersonIDsInGroup(groupID);
-		for(int i = 0, length = personIDs.size(); i < length; i ++)
-			Repository.deleteRelationship(EntityManager.NODE_PERSON, personIDs.get(i),
-				EntityManager.NODE_GROUP, groupID,
-				EntityManager.RELATIONSHIP_BELONGS_TO);
+		Repository.deleteRelationship(EntityManager.NODE_PERSON, extractRecordID(child.getPerson()),
+			EntityManager.NODE_GROUP, groupID,
+			EntityManager.RELATIONSHIP_BELONGS_TO);
+
 
 		treePanel.refresh();
 	}
@@ -297,9 +305,10 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						final Map<String, Object> currentParents = treeUnionPanel.getUnion();
 						final Integer unionID = extractRecordID(currentParents);
 
+						final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
 						final Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
-						final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
+						//TODO ask for belongs_to relationship data
 						Repository.upsertRelationship(EntityManager.NODE_PERSON, upsertedRecordID,
 							EntityManager.NODE_GROUP, unionID,
 							EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -317,6 +326,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 						Map<String, Object> groupRelationship = new HashMap<>();
 						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
+						//TODO ask for belongs_to relationship data
 						Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(upsertedRecord),
 							EntityManager.NODE_GROUP, unionID,
 							EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -324,6 +334,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						for(final Integer partnerID : partnerIDs){
 							groupRelationship = new HashMap<>();
 							insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
+							//TODO ask for belongs_to relationship data
 							Repository.upsertRelationship(EntityManager.NODE_PERSON, partnerID,
 								EntityManager.NODE_GROUP, unionID,
 								EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -671,6 +682,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 					.withOnCloseGracefully(modifiedRecords -> {
 						for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 							final int upsertedRecordID = Repository.upsert(upsertedRecord, tableName);
+							//TODO ask for belongs_to relationship data
 							Repository.upsertRelationship(tableName, recordID,
 								tableName, upsertedRecordID,
 								EntityManager.RELATIONSHIP_BELONGS_TO, Collections.emptyMap(),
@@ -693,8 +705,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 			case PERSON_GROUP -> {
 				final PersonDialog personDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_PERSON_GROUP_BUTTON)
-						? PersonDialog.createCollectionViewOnly(recordID, SupportedByGroupPanel::create, this)
-						: PersonDialog.createCollection(recordID, SupportedByGroupPanel::create, this))
+						? PersonDialog.createCollectionViewOnly(recordID, BelongsToGroupPanel::create, this)
+						: PersonDialog.createCollection(recordID, BelongsToGroupPanel::create, this))
 					.withOnCloseGracefully(modifiedRecords -> {
 						final Set<Integer> currentPersonIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 								EntityManager.NODE_GROUP, recordID,
@@ -728,8 +740,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 			case GROUP_GROUP -> {
 				final GroupDialog groupDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_GROUP_GROUP_BUTTON)
-						? GroupDialog.createCollectionViewOnly(recordID, SupportedByGroupPanel::create, this)
-						: GroupDialog.createCollection(recordID, SupportedByGroupPanel::create, this))
+						? GroupDialog.createCollectionViewOnly(recordID, BelongsToGroupPanel::create, this)
+						: GroupDialog.createCollection(recordID, BelongsToGroupPanel::create, this))
 					.withCategory(EntityManager.NODE_GROUP)
 					.withOnCloseGracefully(modifiedRecords -> {
 						final Set<Integer> currentGroupIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_GROUP,
@@ -764,8 +776,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 			case PLACE_GROUP -> {
 				final PlaceDialog placeDialog = (dialog.isViewOnlyComponent(GenealogicalDialogInterface.COMPONENT_ID_PLACE_GROUP_BUTTON)
-						? PlaceDialog.createCollectionViewOnly(recordID, SupportedByGroupPanel::create, this)
-						: PlaceDialog.createCollection(recordID, SupportedByGroupPanel::create, this))
+						? PlaceDialog.createCollectionViewOnly(recordID, BelongsToGroupPanel::create, this)
+						: PlaceDialog.createCollection(recordID, BelongsToGroupPanel::create, this))
 					.withOnCloseGracefully(modifiedRecords -> {
 						final Set<Integer> currentPlaceIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_PLACE,
 								EntityManager.NODE_GROUP, recordID,

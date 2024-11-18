@@ -47,7 +47,6 @@ import java.awt.EventQueue;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.Serial;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -60,7 +59,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 
 
-public class SupportedByGroupPanel extends JPanel implements RelationshipDataPanelInterface{
+public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanelInterface{
 
 	@Serial
 	private static final long serialVersionUID = -6000129782213382211L;
@@ -82,12 +81,12 @@ public class SupportedByGroupPanel extends JPanel implements RelationshipDataPan
 	protected volatile boolean ignoreEvents;
 
 
-	public static SupportedByGroupPanel create(final String tableName, final int groupID){
-		return new SupportedByGroupPanel(tableName, groupID);
+	public static BelongsToGroupPanel create(final String tableName, final int groupID){
+		return new BelongsToGroupPanel(tableName, groupID);
 	}
 
 
-	private SupportedByGroupPanel(final String tableName, final int groupID){
+	private BelongsToGroupPanel(final String tableName, final int groupID){
 		this.tableName = tableName;
 		this.groupID = groupID;
 
@@ -138,7 +137,7 @@ public class SupportedByGroupPanel extends JPanel implements RelationshipDataPan
 			EntityManager.NODE_GROUP, groupID,
 			EntityManager.RELATIONSHIP_BELONGS_TO
 		);
-		relationshipData = (!relationships.isEmpty()? relationships.getFirst(): Collections.emptyMap());
+		relationshipData = (!relationships.isEmpty()? relationships.getFirst(): new HashMap<>(0));
 
 		final String role = extractRecordRole(relationshipData);
 		final String certainty = extractRecordCertainty(relationshipData);
@@ -214,7 +213,7 @@ public class SupportedByGroupPanel extends JPanel implements RelationshipDataPan
 
 
 		EventQueue.invokeLater(() -> {
-			final SupportedByGroupPanel panel = create(EntityManager.NODE_PERSON, group1ID);
+			final BelongsToGroupPanel panel = create(EntityManager.NODE_PERSON, group1ID);
 			panel.loadData(person1ID);
 
 			EventBusService.subscribe(panel);

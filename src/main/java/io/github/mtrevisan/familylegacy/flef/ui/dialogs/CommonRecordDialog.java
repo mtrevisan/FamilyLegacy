@@ -139,7 +139,7 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 	protected volatile boolean ignoreEvents;
 
 	protected volatile boolean showCollectionOnly;
-	protected Integer filterGroupID;
+	protected Integer filterCollectionTargetID;
 	protected RelationshipDataPanelInterface relationshipDataPanel;
 	protected final Map<Integer, Map<String, Object>> collections = new HashMap<>(0);
 
@@ -238,7 +238,7 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 	}
 
 	protected boolean useCollection(){
-		return (filterGroupID != null);
+		return (filterCollectionTargetID != null);
 	}
 
 	/**

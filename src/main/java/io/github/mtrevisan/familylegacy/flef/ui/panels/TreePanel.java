@@ -707,11 +707,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 	public void refresh(){
-		final Integer homeUnionID = extractRecordID(homeUnion);
-		final Map<String, Object> union = (homeUnionID != null && Repository.findByID(EntityManager.NODE_GROUP, homeUnionID) != null
-			? Collections.emptyMap()
-			: homeUnion);
-		loadData(union, partner1, partner2);
+		loadData(homeUnion, partner1, partner2);
 	}
 
 	private void updateDisplay(){

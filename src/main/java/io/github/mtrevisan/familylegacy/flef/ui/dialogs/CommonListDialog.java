@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
+import io.github.mtrevisan.familylegacy.flef.persistence.db.GraphDatabaseManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.repositories.Repository;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
@@ -379,7 +381,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		final boolean useCollection = useCollection();
 		addButton.setEnabled(false);
-		addButton.addActionListener(evt -> addToCollectionAction());
+		addButton.addActionListener(evt -> addToCollection());
 		addButton.setVisible(useCollection && !showCollectionOnly);
 		removeButton.setEnabled(false);
 		removeButton.addActionListener(evt -> removeFromCollectionAction());
@@ -830,7 +832,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		return !collections.containsKey(recordID);
 	}
 
-	protected void addToCollectionAction(){}
+	protected void addToCollection(){}
 
 	/**
 	 * Performs final actions required after adding a record to the collection.
@@ -839,8 +841,20 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 	 * record ID from the selected record, adds it to the collection of record IDs, and then disables the add button to prevent further
 	 * additions without re-selection.
 	 * </p>
+	 *
+	 * @param recordID	The ID of the record to be added to the collection.
+	 * @param relationshipData	A map containing relationship metadata to be associated with the record.
 	 */
-	protected void finalizeAddToCollectionAction(){
+	protected void finalizeAddToCollection(final int recordID, final Map<String, Object> relationshipData){
+		collections.put(recordID, relationshipData);
+
+
+		Repository.upsertRelationship(getTableName(), filterCollectionTargetID,
+			EntityManager.NODE_GROUP, recordID,
+			EntityManager.RELATIONSHIP_BELONGS_TO, relationshipData,
+			GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
+
+
 		final TableRowSorter<TableModel> sorter = (TableRowSorter<TableModel>)collectionTable.getRowSorter();
 		sorter.sort();
 
@@ -870,6 +884,11 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 				addButton.setEnabled(true);
 		}
 		removeButton.setEnabled(false);
+
+
+		Repository.deleteRelationship(getTableName(), collectionRecordID,
+			EntityManager.NODE_GROUP, filterCollectionTargetID,
+			EntityManager.RELATIONSHIP_BELONGS_TO);
 	}
 
 	@Override

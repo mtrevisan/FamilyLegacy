@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.panels.BelongsToGroupPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,6 +47,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -54,8 +56,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumnModel;
 import java.awt.EventQueue;
 import java.awt.Frame;
+import java.awt.event.ActionListener;
 import java.io.Serial;
 import java.util.Collections;
 import java.util.Comparator;
@@ -63,6 +67,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordCertainty;
@@ -76,6 +81,7 @@ import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordIdentifier;
 
 
+//TODO terminate integrate SupportedByCulturalNormPanel
 public final class CulturalNormDialog extends CommonListDialog implements TextPreviewListenerInterface{
 
 	@Serial
@@ -83,6 +89,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 
 	private static final int TABLE_INDEX_IDENTIFIER = 2;
+	public static final int TABLE_INDEX_DATA = 3;
 
 	private static final String RECORD_PANEL_NAME_BASE = "base";
 	private static final String RECORD_PANEL_NAME_OTHER = "other";
@@ -117,9 +124,36 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		return dialog;
 	}
 
+	public static CulturalNormDialog createCollection(final int filterCulturalNormID,
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
+		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
+
+		final CulturalNormDialog dialog = new CulturalNormDialog(parent);
+		dialog.selectRecordOnly = true;
+		dialog.filterCollectionTargetID = filterCulturalNormID;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterCulturalNormID);
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static CulturalNormDialog createSelectOnly(final Frame parent){
 		final CulturalNormDialog dialog = new CulturalNormDialog(parent);
 		dialog.selectRecordOnly = true;
+		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateStartButton, dialog.dateEndButton, dialog.noteButton, dialog.mediaButton,
+			dialog.assertionButton, dialog.eventButton);
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static CulturalNormDialog createCollectionViewOnly(final int filterCulturalNormID,
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
+		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
+
+		final CulturalNormDialog dialog = new CulturalNormDialog(parent);
+		dialog.selectRecordOnly = true;
+		dialog.filterCollectionTargetID = filterCulturalNormID;
+		dialog.showCollectionOnly = true;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), filterCulturalNormID);
 		dialog.addViewOnlyComponents(dialog.placeButton, dialog.dateStartButton, dialog.dateEndButton, dialog.noteButton, dialog.mediaButton,
 			dialog.assertionButton, dialog.eventButton);
 		dialog.initialize();
@@ -209,6 +243,17 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
 
 		super.initStoreComponents();
+
+
+		//hide data column
+		TableColumnModel columnModel = recordTable.getColumnModel();
+		//NOTE: the filter column was already removed, therefore the `- 1`
+		columnModel.removeColumn(columnModel.getColumn(TABLE_INDEX_DATA - 1));
+
+		//hide data column
+		columnModel = collectionTable.getColumnModel();
+		//NOTE: the filter column was already removed, therefore the `- 1`
+		columnModel.removeColumn(columnModel.getColumn(TABLE_INDEX_DATA - 1));
 	}
 
 	@Override
@@ -289,11 +334,18 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	public void loadData(){
 		unselectAction();
 
-		final List<Map<String, Object>> records = Repository.findAll(EntityManager.NODE_CULTURAL_NORM);
+		final List<Map<String, Object>> records = (filterReferenceTable == null
+			? Repository.findAll(EntityManager.NODE_CULTURAL_NORM)
+			: Repository.findReferencingNodes(filterReferenceTable, filterReferenceID,
+				EntityManager.RELATIONSHIP_SUPPORTED_BY).stream().map(Map.Entry::getValue).toList());
 
 		final DefaultTableModel model = getRecordTableModel();
 		model.setRowCount(records.size());
-		int row = 0;
+		final DefaultTableModel collectionModel = (useCollection() && !collections.isEmpty()? getCollectionTableModel(): null);
+		if(collectionModel != null)
+			collectionModel.setRowCount(collections.size());
+		int recordRow = 0;
+		int collectionRow = 0;
 		for(final Map<String, Object> record : records){
 			final Integer recordID = extractRecordID(record);
 			final String identifier = extractRecordIdentifier(record);
@@ -302,12 +354,75 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 				.add(identifier);
 			final String filterData = filter.toString();
 
-			model.setValueAt(recordID, row, TABLE_INDEX_ID);
-			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
-			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
+			model.setValueAt(recordID, recordRow, TABLE_INDEX_ID);
+			model.setValueAt(filterData, recordRow, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, recordRow, TABLE_INDEX_IDENTIFIER);
 
-			row ++;
+			if(collectionModel != null && collections.containsKey(recordID)){
+				final List<Map<String, Object>> relationships = Repository.findRelationships(EntityManager.NODE_GROUP, recordID,
+					EntityManager.NODE_GROUP, filterCollectionTargetID,
+					EntityManager.RELATIONSHIP_BELONGS_TO
+				);
+				final Map<String, Object> relationshipData = (!relationships.isEmpty()? relationships.getFirst(): new HashMap<>(0));
+
+				collectionModel.setValueAt(recordID, collectionRow, TABLE_INDEX_ID);
+//				collectionModel.setValueAt(filterData, collectionRow, TABLE_INDEX_FILTER);
+				collectionModel.setValueAt(identifier, collectionRow, TABLE_INDEX_IDENTIFIER);
+				collectionModel.setValueAt(relationshipData, collectionRow, TABLE_INDEX_DATA);
+
+				collectionRow ++;
+			}
+
+			recordRow ++;
 		}
+	}
+
+	@Override
+	public void loadDataWithCollection(final int recordID){
+		loadCollections(recordID);
+		loadData();
+	}
+
+	@Override
+	protected void addToCollection(){
+		final JDialog dialog = new JDialog(this, "Relationship data", true);
+		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+
+		final Integer recordID = extractRecordID(selectedRecord);
+		final BelongsToGroupPanel panel = BelongsToGroupPanel.create(getTableName(), filterCollectionTargetID);
+		panel.loadData(recordID);
+		dialog.add(panel);
+
+		dialog.pack();
+		dialog.setLocationRelativeTo(this);
+		//close dialog
+		final ActionListener onCloseAction = e -> {
+			final Map<String, Object> relationshipData = panel.getRelationshipData();
+
+			//transfer selected record to collection table:
+			final DefaultTableModel model = getCollectionTableModel();
+			int row = model.getRowCount();
+			model.setRowCount(row + 1);
+			final String identifier = extractRecordIdentifier(selectedRecord);
+//			final FilterString filter = FilterString.create()
+//				.add(recordID)
+//				.add(identifier);
+//			final String filterData = filter.toString();
+
+			model.setValueAt(recordID, row, TABLE_INDEX_ID);
+//			model.setValueAt(filterData, row, TABLE_INDEX_FILTER);
+			model.setValueAt(identifier, row, TABLE_INDEX_IDENTIFIER);
+			model.setValueAt(relationshipData, row, TABLE_INDEX_DATA);
+
+
+			finalizeAddToCollection(recordID, relationshipData);
+
+			dialog.dispose();
+		};
+		dialog.getRootPane()
+			.registerKeyboardAction(onCloseAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
+
+		dialog.setVisible(true);
 	}
 
 	@Override
