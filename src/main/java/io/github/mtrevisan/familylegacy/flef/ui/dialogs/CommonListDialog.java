@@ -494,7 +494,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		add(addButton, "cell 0 3,sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3,wrap paragraph");
 		add(recordTabbedPane, "cell 0 4,grow,hidemode 3,wrap");
 		if(useCollection){
-			final JPanel collectionPanel = new JPanel(new MigLayout());
+			final JPanel collectionPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "0[grow]0", "0[grow]0"));
 			collectionPanel.add(collectionTableScrollPane, "grow,pushy,wrap");
 			collectionPanel.add((Component)relationshipDataPanel, "growx");
 			add(collectionPanel, "cell 1 0,grow,pushy,span 1 5");
@@ -674,6 +674,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 			selectedRecordID = extractRecordID(record);
 
 			GUIHelper.setEnabled(recordPanel, (!showRecordOnly || !selectRecordOnly));
+			GUIHelper.setEnabled(recordTabbedPane, (!showRecordOnly || !selectRecordOnly));
 
 			selectActionInner();
 

@@ -49,10 +49,12 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
+import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ActionListener;
@@ -96,6 +98,7 @@ public final class GroupDialog extends CommonListDialog{
 
 	private static final String RECORD_PANEL_NAME_BASE = "base";
 	private static final String RECORD_PANEL_NAME_OTHER = "other";
+	private static final String RECORD_PANEL_NAME_LINK = "link";
 
 
 	private final JLabel typeLabel = new JLabel("Type:");
@@ -146,6 +149,18 @@ public final class GroupDialog extends CommonListDialog{
 		return dialog;
 	}
 
+	public static GroupDialog createSelectOnly(final String filterCategory,
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
+		final GroupDialog dialog = new GroupDialog(parent)
+			.withCategory(filterCategory);
+		dialog.selectRecordOnly = true;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), 0);
+		dialog.addViewOnlyComponents(dialog.photoButton, dialog.peopleGroupButton, dialog.groupsGroupButton, dialog.placesGroupButton,
+			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.culturalNormButton, dialog.eventButton, dialog.groupButton);
+		dialog.initialize();
+		return dialog;
+	}
+
 	public static GroupDialog createCollectionViewOnly(final int filterGroupID,
 			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
 		Objects.requireNonNull(panelCreator, "Relationship data panel creator cannot be null");
@@ -171,6 +186,16 @@ public final class GroupDialog extends CommonListDialog{
 	public static GroupDialog createEditOnly(final Frame parent){
 		final GroupDialog dialog = new GroupDialog(parent);
 		dialog.showRecordOnly = true;
+		dialog.initialize();
+		return dialog;
+	}
+
+	public static GroupDialog createEditOnly(final String filterCategory,
+			final BiFunction<String, Integer, BelongsToGroupPanel> panelCreator, final Frame parent){
+		final GroupDialog dialog = new GroupDialog(parent)
+			.withCategory(filterCategory);
+		dialog.showRecordOnly = true;
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), 0);
 		dialog.initialize();
 		return dialog;
 	}
@@ -224,6 +249,12 @@ public final class GroupDialog extends CommonListDialog{
 		return this;
 	}
 
+	/**
+	 * Sets the category filter (the children category of the group) for the dialog and updates the dialog title accordingly.
+	 *
+	 * @param category	The category to filter by. If {@code null}, no category filter is applied.
+	 * @return	This instance.
+	 */
 	public GroupDialog withCategory(final String category){
 		filterCategory = category;
 
@@ -346,6 +377,20 @@ public final class GroupDialog extends CommonListDialog{
 
 		recordTabbedPane.add(RECORD_PANEL_NAME_BASE, recordPanelBase);
 		recordTabbedPane.add(RECORD_PANEL_NAME_OTHER, recordPanelOther);
+
+		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "0[grow]0", "0[grow]0"));
+		if(relationshipDataPanel != null){
+			final JPanel linkPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "0[grow]0", "0[grow]0"));
+			linkPanel.add((Component)relationshipDataPanel, "grow");
+			recordPanelLink.add(linkPanel, "grow");
+		}
+
+		recordTabbedPane.add(RECORD_PANEL_NAME_LINK, recordPanelLink);
+
+		if(relationshipDataPanel == null)
+			GUIHelper.enableTabByTitle((JTabbedPane)recordTabbedPane, RECORD_PANEL_NAME_LINK, false);
+		else if(filterCategory != null && (showRecordOnly || selectRecordOnly))
+			GUIHelper.enableTabByTitle((JTabbedPane)recordTabbedPane, RECORD_PANEL_NAME_LINK, true);
 	}
 
 	@Override
@@ -553,7 +598,7 @@ public final class GroupDialog extends CommonListDialog{
 	}
 
 
-	private String extractCategory(final int groupID){
+	private static String extractCategory(final int groupID){
 		final List<Map.Entry<String, Map<String, Object>>> storeGroupRelationships = Repository.findReferencingNodes(
 			EntityManager.NODE_GROUP, groupID,
 			EntityManager.RELATIONSHIP_BELONGS_TO);
@@ -1089,8 +1134,8 @@ public final class GroupDialog extends CommonListDialog{
 
 						case GROUP_GROUP -> {
 							final GroupDialog groupDialog = (dialog.isViewOnlyComponent(COMPONENT_ID_GROUP_GROUP_BUTTON)
-									? GroupDialog.createCollectionViewOnly(groupID, BelongsToGroupPanel::create, parent)
-									: GroupDialog.createCollection(groupID, BelongsToGroupPanel::create, parent))
+									? createCollectionViewOnly(groupID, BelongsToGroupPanel::create, parent)
+									: createCollection(groupID, BelongsToGroupPanel::create, parent))
 								.withCategory(EntityManager.NODE_GROUP)
 								.withOnCloseGracefully(modifiedRecords -> {
 									final Set<Integer> currentGroupIDInGroup = Repository.findReferencingNodes(EntityManager.NODE_GROUP,

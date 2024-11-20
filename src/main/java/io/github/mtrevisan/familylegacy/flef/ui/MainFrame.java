@@ -112,7 +112,11 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final Map<String, Object> group = groupPanel.getUnion();
 		LOGGER.debug("onEditGroup {}", extractRecordID(group));
 
-		final GroupDialog groupDialog = GroupDialog.createEditOnly(this);
+		final int index = treePanel.genealogicalTree.getIndexOf(groupPanel);
+		final boolean hasOneChild = (index > 0 || treePanel.genealogicalTree.getChildren().length == 1);
+		final GroupDialog groupDialog = (hasOneChild
+			? GroupDialog.createEditOnly(EntityManager.NODE_PERSON, BelongsToGroupPanel::create, this)
+			: GroupDialog.createEditOnly(this));
 		groupDialog.loadData(extractRecordID(group));
 
 		groupDialog.showDialog();
@@ -125,7 +129,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onAddGroup (partner 1: {}, partner 2: {})", extractRecordID(partner1.getPerson()),
 			extractRecordID(partner2.getPerson()));
 
-		final GroupDialog dialog = GroupDialog.createEditOnly(this)
+		final GroupDialog dialog = GroupDialog.createEditOnly(EntityManager.NODE_PERSON, BelongsToGroupPanel::create, this)
 			.withOnCloseGracefully(modifiedRecords -> {
 				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					addGroup(groupPanel, upsertedRecord);
@@ -146,8 +150,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		LOGGER.debug("onLinkPersonToSiblingGroup (partner 1: {}, partner 2: {}, group: {}", extractRecordID(partner1.getPerson()),
 			extractRecordID(partner2.getPerson()), extractRecordID(group));
 
-		final GroupDialog dialog = GroupDialog.createSelectOnly(this)
-			.withCategory(EntityManager.NODE_PERSON)
+		final GroupDialog dialog = GroupDialog.createSelectOnly(EntityManager.NODE_PERSON, BelongsToGroupPanel::create, this)
 			.withOnCloseGracefully(modifiedRecords -> {
 				for(final Map<String, Object> upsertedRecord : modifiedRecords.getUpsertedRecords()){
 					addGroup(groupPanel, upsertedRecord);
@@ -176,28 +179,6 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
 
-		final PersonPanel partner1 = groupPanel.getPartner1();
-		final Map<String, Object> partner1Person = partner1.getPerson();
-		if(!partner1Person.isEmpty()){
-			final Map<String, Object> groupRelationship = new HashMap<>();
-			insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
-			//TODO ask for belongs_to relationship data
-			Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(partner1Person),
-				EntityManager.NODE_GROUP, upsertedRecordID,
-				EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
-				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		}
-		final PersonPanel partner2 = groupPanel.getPartner2();
-		final Map<String, Object> partner2Person = partner2.getPerson();
-		if(!partner2Person.isEmpty()){
-			final Map<String, Object> groupRelationship = new HashMap<>();
-			insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
-			//TODO ask for belongs_to relationship data
-			Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(partner2Person),
-				EntityManager.NODE_GROUP, upsertedRecordID,
-				EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
-				GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
-		}
 		for(final PersonPanel child : children){
 			final Map<String, Object> groupRelationship = new HashMap<>();
 			insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
