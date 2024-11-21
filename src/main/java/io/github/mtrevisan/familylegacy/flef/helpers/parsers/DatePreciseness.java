@@ -107,7 +107,7 @@ public enum DatePreciseness{
 		 * @param d2	second date
 		 * @return	the midpoint between the two dates
 		 */
-		private LocalDate getMidpointOfDateRange(final LocalDate d1, final LocalDate d2){
+		private static LocalDate getMidpointOfDateRange(final LocalDate d1, final LocalDate d2){
 			final long daysBetween = ChronoUnit.DAYS.between(d1, d2);
 			return LocalDate.from(d1)
 				.plusDays(daysBetween / 2);

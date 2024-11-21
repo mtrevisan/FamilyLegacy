@@ -178,7 +178,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 	}
 
 
-	private String extractFirstName(final Integer personID){
+	private static String extractFirstName(final Integer personID){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 				EntityManager.NODE_PERSON, personID,
 				EntityManager.RELATIONSHIP_FOR).stream()
@@ -187,7 +187,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			.orElse(null);
 	}
 
-	private List<String> extractAllNames(final Integer personID){
+	private static List<String> extractAllNames(final Integer personID){
 		final List<String> names = new ArrayList<>(0);
 		Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 				EntityManager.NODE_PERSON, personID,
@@ -218,7 +218,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		return name.toString();
 	}
 
-	private Map<String, Object> extractEarliestBirthYearAndPlace(final Integer personID){
+	private static Map<String, Object> extractEarliestBirthYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String year = Integer.toString(entry.getKey().getYear());
@@ -237,7 +237,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		return (result != null? result: Collections.emptyMap());
 	}
 
-	private Map<String, Object> extractLatestDeathYearAndPlace(final Integer personID){
+	private static Map<String, Object> extractLatestDeathYearAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final String dateYear = Integer.toString(entry.getKey().getYear());
@@ -256,7 +256,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 		return (result != null? result: Collections.emptyMap());
 	}
 
-	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
+	private static <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
@@ -284,7 +284,7 @@ public class SearchPersonPanel extends CommonSearchPanel{
 			.orElse(null);
 	}
 
-	private Set<String> getEventTypes(final String category){
+	private static Set<String> getEventTypes(final String category){
 		return Repository.findAll(EntityManager.NODE_EVENT_TYPE)
 			.stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))

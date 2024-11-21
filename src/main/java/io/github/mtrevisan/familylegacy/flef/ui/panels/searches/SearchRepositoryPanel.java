@@ -166,7 +166,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 	}
 
 
-	private String extractFirstName(final Integer personID){
+	private static String extractFirstName(final Integer personID){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 				EntityManager.NODE_PERSON, personID,
 				EntityManager.RELATIONSHIP_FOR).stream()
@@ -175,7 +175,7 @@ public class SearchRepositoryPanel extends CommonSearchPanel{
 			.orElse(null);
 	}
 
-	private List<String> extractAllNames(final Integer personID){
+	private static List<String> extractAllNames(final Integer personID){
 		final List<String> names = new ArrayList<>(0);
 		Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 				EntityManager.NODE_PERSON, personID,

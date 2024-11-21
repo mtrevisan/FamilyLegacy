@@ -374,7 +374,7 @@ public final class EventDialog extends CommonListDialog{
 		setButtonSelectEnableAndBorder(mediaButton, hasMedia);
 	}
 
-	private String extractRecordType(final Integer eventID){
+	private static String extractRecordType(final Integer eventID){
 		final Map.Entry<String, Map<String, Object>> eventTypeNode = Repository.findReferencedNode(
 			EntityManager.NODE_EVENT, eventID,
 			EntityManager.RELATIONSHIP_OF);

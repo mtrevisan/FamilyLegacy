@@ -221,7 +221,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 	}
 
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
+	private static List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
@@ -229,7 +229,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			.collect(Collectors.toList());
 	}
 
-	private String extractFirstName(final Integer personID){
+	private static String extractFirstName(final Integer personID){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 				EntityManager.NODE_PERSON, personID,
 				EntityManager.RELATIONSHIP_FOR).stream()
@@ -238,7 +238,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			.orElse(null);
 	}
 
-	private List<String> extractAllNames(final Integer personID){
+	private static List<String> extractAllNames(final Integer personID){
 		final List<String> names = new ArrayList<>(0);
 		Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 				EntityManager.NODE_PERSON, personID,
@@ -269,25 +269,25 @@ public class SearchGroupPanel extends CommonSearchPanel{
 		return name.toString();
 	}
 
-	private String extractEarliestUnionYear(final Integer unionID){
+	private static String extractEarliestUnionYear(final Integer unionID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
 		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
-	private String extractEarliestBirthYear(final Integer personID){
+	private static String extractEarliestBirthYear(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
 		return extractData(personID, EVENT_TYPE_CATEGORY_BIRTH, comparator, extractor);
 	}
 
-	private String extractLatestDeathYear(final Integer personID){
+	private static String extractLatestDeathYear(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> Integer.toString(entry.getKey().getYear());
 		return extractData(personID, EVENT_TYPE_CATEGORY_DEATH, comparator.reversed(), extractor);
 	}
 
-	private String extractEarliestUnionPlace(final Integer unionID){
+	private static String extractEarliestUnionPlace(final Integer unionID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> {
 			final Integer eventID = extractRecordID(entry.getValue());
@@ -299,7 +299,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 		return extractData(unionID, EVENT_TYPE_CATEGORY_UNION, comparator, extractor);
 	}
 
-	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
+	private static <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
 		final String eventReferenceTable = (EVENT_TYPE_CATEGORY_UNION.equals(eventTypeCategory)
 			? EntityManager.NODE_GROUP
@@ -330,7 +330,7 @@ public class SearchGroupPanel extends CommonSearchPanel{
 			.orElse(null);
 	}
 
-	private Set<String> getEventTypes(final String category){
+	private static Set<String> getEventTypes(final String category){
 		return Repository.findAll(EntityManager.NODE_EVENT_TYPE)
 			.stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))

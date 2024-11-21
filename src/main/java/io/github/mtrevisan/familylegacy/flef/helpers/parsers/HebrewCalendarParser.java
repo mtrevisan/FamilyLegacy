@@ -79,7 +79,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 		return localDate;
 	}
 
-	private LocalDate managePreciseness(final int year, HebrewMonth month, Integer day, final DatePreciseness preciseness)
+	private static LocalDate managePreciseness(final int year, HebrewMonth month, Integer day, final DatePreciseness preciseness)
 			throws IllegalArgumentException{
 		if(preciseness == null)
 			throw new IllegalArgumentException("Unknown value for date handling preference");
@@ -114,7 +114,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @param day	The day within the month.
 	 * @return	The date in Gregorian form.
 	 */
-	private LocalDate convertToGregorian(final int year, final HebrewMonth month, final int day){
+	private static LocalDate convertToGregorian(final int year, final HebrewMonth month, final int day){
 		LocalDate c = getFirstDayOfHebrewYear(year);
 
 		//now count up days within the year
@@ -135,7 +135,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @param month	The Hebrew month.
 	 * @return	The number of days in the month on the specified year.
 	 */
-	private int getMonthLength(final int year, final HebrewMonth month){
+	private static int getMonthLength(final int year, final HebrewMonth month){
 		final int yearLength = getLengthOfYear(year);
 		final int monthNumber = month.ordinal() + 1;
 		//the regular length of a non-leap Hebrew year is 354 days. The regular length of a Hebrew leap year is 384 days.
@@ -167,7 +167,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @param year	The hebrew year.
 	 * @return	The gregorian date of the first day of the hebrew year supplied.
 	 */
-	private LocalDate getFirstDayOfHebrewYear(final int year){
+	private static LocalDate getFirstDayOfHebrewYear(final int year){
 		//Calculate how many days, hours and chalakim (1/1080th of an hour, about 3.333 secs) it has been from the molad (start of
 		//new moon) at the beginning of the year.
 		//The period between one new moon to the next is 29 days, 12 hours and 793 chalakim. We must multiply that by the amount of
@@ -246,7 +246,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @param year	The Hebrew year.
 	 * @return	The number of days in the year.
 	 */
-	private int getLengthOfYear(final int year){
+	private static int getLengthOfYear(final int year){
 		final LocalDate thisNewYear = getFirstDayOfHebrewYear(year);
 		final LocalDate nextNewYear = getFirstDayOfHebrewYear(year + 1);
 		return (int)ChronoUnit.DAYS.between(thisNewYear, nextNewYear);
@@ -258,7 +258,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @param year	The Hebrew year.
 	 * @return	The number of months since the first Molad.
 	 */
-	private int getMonthsSinceFirstMolad(final int year){
+	private static int getMonthsSinceFirstMolad(final int year){
 		//the months of this year haven't happened yet, so go back a year
 		int y = year - 1;
 
@@ -294,7 +294,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @param year	The Hebrew year.
 	 * @return	Whether the hebrew year supplied is a leap year.
 	 */
-	private boolean isLeapYear(final int year){
+	private static boolean isLeapYear(final int year){
 		final int yearInCycle = yearInLeapCycle(year);
 		return (yearInCycle == 3 || yearInCycle == 6 || yearInCycle == 8 || yearInCycle == 11 || yearInCycle == 14
 			|| yearInCycle == 17 || yearInCycle == 0);
@@ -306,7 +306,7 @@ class HebrewCalendarParser extends AbstractCalendarParser{
 	 * @param year	The Hebrew year.
 	 * @return	Which year within the cycle we're in. The 19th year of the cycle is zero.
 	 */
-	private int yearInLeapCycle(final int year){
+	private static int yearInLeapCycle(final int year){
 		return year % 19;
 	}
 

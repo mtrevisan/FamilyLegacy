@@ -413,7 +413,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		TextPreviewListenerInterface.centerDivider(this, visible);
 	}
 
-	private String extractRecordSourceIdentifier(final Integer citationID){
+	private static String extractRecordSourceIdentifier(final Integer citationID){
 		final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
 			EntityManager.NODE_CITATION, citationID,
 			EntityManager.RELATIONSHIP_QUOTES);

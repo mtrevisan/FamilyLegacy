@@ -467,7 +467,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		unlinkFromSiblingGroupItem.setEnabled(hasData && hasSiblingGroup);
 	}
 
-	private String extractIdentifier(final Integer personID){
+	private static String extractIdentifier(final Integer personID){
 		final StringJoiner identifier = new StringJoiner(" / ");
 		final List<Map<String, Object>> personNames = Repository.findReferencingNodes(EntityManager.NODE_PERSON_NAME,
 			EntityManager.NODE_PERSON, personID,
@@ -489,7 +489,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return name.toString();
 	}
 
-	private boolean hasParentGroup(final Map<String, Object> child){
+	private static boolean hasParentGroup(final Map<String, Object> child){
 		boolean hasParentGroup = false;
 		if(!child.isEmpty()){
 			final Integer childID = extractRecordID(child);
@@ -511,7 +511,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return hasParentGroup;
 	}
 
-	private List<Integer> getParentsIDs(final Integer personID, final String personRole){
+	private static List<Integer> getParentsIDs(final Integer personID, final String personRole){
 		return Repository.findReferencingNodes(EntityManager.NODE_GROUP,
 				EntityManager.NODE_PERSON, personID,
 				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, personRole).stream()
@@ -519,7 +519,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.toList();
 	}
 
-	private boolean hasSiblingGroup(final Map<String, Object> partner){
+	private static boolean hasSiblingGroup(final Map<String, Object> partner){
 		final Integer partnerID = extractRecordID(partner);
 		return Repository.hasReference(EntityManager.NODE_PERSON, partnerID,
 			EntityManager.NODE_GROUP,
@@ -582,7 +582,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		}
 	}
 
-	private Map<String, Object> extractEarliestBirthDateAndPlace(final Integer personID){
+	private static Map<String, Object> extractEarliestBirthDateAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> eventRecord = entry.getValue();
@@ -612,7 +612,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return (result != null? result: Collections.emptyMap());
 	}
 
-	private Map<String, Object> extractLatestDeathDateAndPlace(final Integer personID){
+	private static Map<String, Object> extractLatestDeathDateAndPlace(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, Map<String, Object>> extractor = entry -> {
 			final Map<String, Object> eventRecord = entry.getValue();
@@ -642,7 +642,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		return (result != null? result: Collections.emptyMap());
 	}
 
-	private <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
+	private static <T> T extractData(final Integer referenceID, final String eventTypeCategory, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
 		final Set<String> eventTypes = getEventTypes(eventTypeCategory);
 		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
@@ -670,7 +670,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 			.orElse(null);
 	}
 
-	private Set<String> getEventTypes(final String category){
+	private static Set<String> getEventTypes(final String category){
 		return Repository.findAll(EntityManager.NODE_EVENT_TYPE)
 			.stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))

@@ -180,7 +180,7 @@ public class ChildrenPanel extends JPanel{
 			setPersonListener(personListener);
 	}
 
-	private PersonPanel createChildPersonPanel(final Integer childID){
+	private static PersonPanel createChildPersonPanel(final Integer childID){
 		final PersonPanel childBox = PersonPanel.create(BoxPanelType.SECONDARY);
 		childBox.loadData(childID);
 
@@ -202,7 +202,7 @@ public class ChildrenPanel extends JPanel{
 		return box;
 	}
 
-	private Set<Integer> extractAdoptionEventIDs(final Integer unionID){
+	private static Set<Integer> extractAdoptionEventIDs(final Integer unionID){
 		final Set<String> eventTypesAdoptions = getEventTypes(EntityManager.EVENT_TYPE_CATEGORY_ADOPTION);
 		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
 				EntityManager.NODE_GROUP, unionID,
@@ -219,14 +219,14 @@ public class ChildrenPanel extends JPanel{
 			.collect(Collectors.toSet());
 	}
 
-	private List<Map<String, Object>> getGroups(final Integer personID){
+	private static List<Map<String, Object>> getGroups(final Integer personID){
 		return Repository.findReferencingNodes(EntityManager.NODE_GROUP,
 			EntityManager.NODE_PERSON, personID,
 			EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER);
 	}
 
 	@SuppressWarnings("unchecked")
-	private Map<String, Object>[] extractChildren(final Integer unionID){
+	private static Map<String, Object>[] extractChildren(final Integer unionID){
 		final Map<Integer, Map<String, Object>> persons = Repository.findAllNavigable(EntityManager.NODE_PERSON);
 		return getPersonIDsInGroup(unionID, EntityManager.GROUP_ROLE_CHILD).stream()
 			.map(persons::get)
@@ -234,7 +234,7 @@ public class ChildrenPanel extends JPanel{
 			.toArray(Map[]::new);
 	}
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
+	private static List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
@@ -250,7 +250,7 @@ public class ChildrenPanel extends JPanel{
 		return (index < adoptions.length && adoptions[index]);
 	}
 
-	private Set<String> getEventTypes(final String category){
+	private static Set<String> getEventTypes(final String category){
 		return Repository.findAll(EntityManager.NODE_EVENT_TYPE)
 			.stream()
 			.filter(entry -> Objects.equals(category, extractRecordCategory(entry)))

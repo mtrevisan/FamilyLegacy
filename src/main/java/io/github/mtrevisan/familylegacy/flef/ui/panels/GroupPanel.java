@@ -673,7 +673,7 @@ public class GroupPanel extends JPanel{
 		partner2Panel.repaint();
 	}
 
-	private List<Map<String, Object>> extractUnions(final Map<String, Object> person){
+	private static List<Map<String, Object>> extractUnions(final Map<String, Object> person){
 		final List<Map<String, Object>> unionGroups = new ArrayList<>(0);
 		if(!person.isEmpty()){
 			final Integer personID = extractRecordID(person);
@@ -697,7 +697,7 @@ public class GroupPanel extends JPanel{
 		removeGroupItem.setEnabled(hasData);
 	}
 
-	private void updatePreviousNextUnionIcons(final Integer groupID, final Map<String, Object> otherPartner, final JLabel previousLabel,
+	private static void updatePreviousNextUnionIcons(final Integer groupID, final Map<String, Object> otherPartner, final JLabel previousLabel,
 			final JLabel nextLabel){
 		//list the `groupID`s for the unions of the `other partner`
 		final Integer otherPartnerID = extractRecordID(otherPartner);
@@ -773,7 +773,7 @@ public class GroupPanel extends JPanel{
 	}
 
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
+	private static List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
@@ -781,19 +781,19 @@ public class GroupPanel extends JPanel{
 			.collect(Collectors.toList());
 	}
 
-	private List<Map<String, Object>> getUnions(final Integer personID){
+	private static List<Map<String, Object>> getUnions(final Integer personID){
 		return Repository.findReferencingNodes(EntityManager.NODE_GROUP,
 			EntityManager.NODE_PERSON, personID,
 			EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER);
 	}
 
-	private List<Integer> getUnionIDs(final Integer partnerID){
+	private static List<Integer> getUnionIDs(final Integer partnerID){
 		return getUnions(partnerID).stream()
 			.map(EntityManager::extractRecordID)
 			.toList();
 	}
 
-	private List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer adopteeID){
+	private static List<Integer> getBiologicalAndAdoptingParentsIDs(final Integer adopteeID){
 		final List<Integer> ids = Repository.findReferencedNodes(EntityManager.NODE_PERSON, adopteeID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_CHILD).stream()
 			.map(Map.Entry::getValue)

@@ -400,7 +400,7 @@ public final class PlaceDialog extends CommonListDialog{
 	@Override
 	protected void addToCollection(){
 		final JDialog dialog = new JDialog(this, "Relationship data", true);
-		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		dialog.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		final Integer recordID = extractRecordID(selectedRecord);
 		final BelongsToGroupPanel panel = BelongsToGroupPanel.create(getTableName(), filterCollectionTargetID);

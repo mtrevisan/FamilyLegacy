@@ -59,6 +59,7 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ActionListener;
 import java.io.Serial;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -154,6 +155,7 @@ public final class GroupDialog extends CommonListDialog{
 		final GroupDialog dialog = new GroupDialog(parent)
 			.withCategory(filterCategory);
 		dialog.selectRecordOnly = true;
+		//FIXME 0 for groupID?
 		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), 0);
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.peopleGroupButton, dialog.groupsGroupButton, dialog.placesGroupButton,
 			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.culturalNormButton, dialog.eventButton, dialog.groupButton);
@@ -195,6 +197,7 @@ public final class GroupDialog extends CommonListDialog{
 		final GroupDialog dialog = new GroupDialog(parent)
 			.withCategory(filterCategory);
 		dialog.showRecordOnly = true;
+		//FIXME 0 for groupID?
 		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), 0);
 		dialog.initialize();
 		return dialog;
@@ -438,7 +441,9 @@ public final class GroupDialog extends CommonListDialog{
 					EntityManager.NODE_GROUP, filterCollectionTargetID,
 					EntityManager.RELATIONSHIP_BELONGS_TO
 				);
-				final Map<String, Object> relationshipData = (!relationships.isEmpty()? relationships.getFirst(): new HashMap<>(0));
+				final Map<String, Object> relationshipData = (!relationships.isEmpty()
+					? relationships.getFirst()
+					: new HashMap<>(0));
 
 				collectionModel.setValueAt(recordID, collectionRow, TABLE_INDEX_ID);
 //				collectionModel.setValueAt(filterData, collectionRow, TABLE_INDEX_FILTER);
@@ -471,7 +476,7 @@ public final class GroupDialog extends CommonListDialog{
 	@Override
 	protected void addToCollection(){
 		final JDialog dialog = new JDialog(this, "Relationship data", true);
-		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		dialog.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		final Integer recordID = extractRecordID(selectedRecord);
 		final BelongsToGroupPanel panel = BelongsToGroupPanel.create(getTableName(), filterCollectionTargetID);
@@ -615,7 +620,7 @@ public final class GroupDialog extends CommonListDialog{
 		return StringUtils.EMPTY;
 	}
 
-	private String extractIdentifier(final Map<String, Object> groupRecord, final int groupID){
+	private static String extractIdentifier(final Map<String, Object> groupRecord, final int groupID){
 		final String mainGroupType = extractRecordType(groupRecord);
 		final List<Map.Entry<String, Map<String, Object>>> storeGroupRelationships = Repository.findReferencingNodes(
 			EntityManager.NODE_GROUP, groupID,
@@ -654,7 +659,7 @@ public final class GroupDialog extends CommonListDialog{
 			+ "|" + (identifier.length() > 0? identifier: NO_DATA);
 	}
 
-	private void extractAllPersonNames(final Integer personID, final StringJoiner identifier){
+	private static void extractAllPersonNames(final Integer personID, final StringJoiner identifier){
 		final List<Map<String, Object>> storePersonNames = Repository.findReferencingNodes(
 			EntityManager.NODE_PERSON_NAME,
 			EntityManager.NODE_PERSON, personID,
@@ -669,12 +674,12 @@ public final class GroupDialog extends CommonListDialog{
 		}
 	}
 
-	private List<String> extractPersonNames(final Map<String, Object> personNameRecord){
+	private static List<String> extractPersonNames(final Map<String, Object> personNameRecord){
 		final int personNameID = extractRecordID(personNameRecord);
 		final List<Map<String, Object>> localizedPersonNames = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_PERSON_NAME,
 			EntityManager.NODE_PERSON_NAME, personNameID,
 			EntityManager.RELATIONSHIP_TRANSCRIPTION_FOR);
-		final Set<String> names = new TreeSet<>();
+		final Collection<String> names = new TreeSet<>();
 		names.add(extractSinglePersonName(personNameRecord));
 		for(int i = 0, length = localizedPersonNames.size(); i < length; i ++){
 			final Map<String, Object> localizedPersonName = localizedPersonNames.get(i);
@@ -698,7 +703,7 @@ public final class GroupDialog extends CommonListDialog{
 		return name.toString();
 	}
 
-	private void extractAllPersonNamesInGroup(final Integer groupID, final StringJoiner identifier){
+	private static void extractAllPersonNamesInGroup(final Integer groupID, final StringJoiner identifier){
 		//extract the names of all the persons of all the groups
 		final List<Map<String, Object>> storeRecordsInGroup = Repository.findReferencedNodes(EntityManager.NODE_PERSON,
 			EntityManager.NODE_GROUP, groupID,

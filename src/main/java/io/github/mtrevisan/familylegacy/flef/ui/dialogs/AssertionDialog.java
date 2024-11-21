@@ -372,7 +372,7 @@ public final class AssertionDialog extends CommonListDialog{
 	}
 
 
-	private String extractRecordLocation(final Integer assertionID){
+	private static String extractRecordLocation(final Integer assertionID){
 		final Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
 			EntityManager.NODE_ASSERTION, assertionID,
 			EntityManager.RELATIONSHIP_INFERRED_FROM);
@@ -383,7 +383,7 @@ public final class AssertionDialog extends CommonListDialog{
 		return EntityManager.extractRecordLocation(citation);
 	}
 
-	private String extractRecordSourceIdentifier(final Map<String, Object> assertionRecord){
+	private static String extractRecordSourceIdentifier(final Map<String, Object> assertionRecord){
 		Map.Entry<String, Map<String, Object>> referencedNode = Repository.findReferencedNode(
 			EntityManager.NODE_ASSERTION, extractRecordID(assertionRecord),
 			EntityManager.RELATIONSHIP_INFERRED_FROM);

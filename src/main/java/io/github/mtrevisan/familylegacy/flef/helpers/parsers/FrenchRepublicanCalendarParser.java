@@ -79,7 +79,7 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 		return localDate;
 	}
 
-	private LocalDate managePreciseness(final int year, FrenchRepublicanMonth month, Integer day, final DatePreciseness preciseness)
+	private static LocalDate managePreciseness(final int year, FrenchRepublicanMonth month, Integer day, final DatePreciseness preciseness)
 			throws IllegalArgumentException{
 		if(preciseness == null)
 			throw new IllegalArgumentException("Unknown value for date handling preference: " + preciseness);
@@ -126,7 +126,7 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	 * @param day	The day within the month.
 	 * @return	The date in Gregorian form.
 	 */
-	private LocalDate convertToGregorian(final int year, final FrenchRepublicanMonth month, final int day){
+	private static LocalDate convertToGregorian(final int year, final FrenchRepublicanMonth month, final int day){
 		if(year < 1 || month == null || day < 1
 				//there were never more than 6 days in Jour Complementairs, and that was only on leap years
 				|| month == FrenchRepublicanMonth.JOUR_COMPLEMENTAIRS && day > 6
@@ -162,7 +162,7 @@ class FrenchRepublicanCalendarParser extends AbstractCalendarParser{
 	 * @param year	The French Republican Year.
 	 * @return	Whether it's a French Leap Year.
 	 */
-	private boolean isLeapYear(final int year){
+	private static boolean isLeapYear(final int year){
 		return (year == 3 || year == 7 || year == 11 || year == 15
 			|| year >= 20 && year % 4 == 0 && (year % 100 != 0 || year % 400 == 0));
 	}

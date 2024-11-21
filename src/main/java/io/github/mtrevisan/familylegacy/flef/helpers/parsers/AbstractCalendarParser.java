@@ -126,7 +126,7 @@ public abstract class AbstractCalendarParser{
 	 * @param dateRange	The date range string.
 	 * @return	The date, or null if no date could be parsed from the data.
 	 */
-	protected String[] getDatesFromRangeOrPeriod(final String dateRange){
+	protected static String[] getDatesFromRangeOrPeriod(final String dateRange){
 		//split the string into two dates
 		final String[] dates = splitDates(dateRange);
 		if(dates.length != 2)
@@ -142,7 +142,7 @@ public abstract class AbstractCalendarParser{
 	 * @return	An array of two strings, or an empty array if the supplied {@code dateString} value does not contain the
 	 *		{@code splitOn} delimiter value. Never returns null.
 	 */
-	private String[] splitDates(String date){
+	private static String[] splitDates(String date){
 		date = RegexHelper.clear(date, PATTERN_PREFIXES_RANGE);
 		return RegexHelper.split(date, PATTERN_RANGE_INFIX);
 	}
@@ -153,13 +153,13 @@ public abstract class AbstractCalendarParser{
 	 * @param date	The date string.
 	 * @return	A version of the string with approximation prefixes removed.
 	 */
-	protected String removeApproximations(String date){
+	protected static String removeApproximations(String date){
 		date = RegexHelper.clear(date, PATTERN_PREFIXES_APPROXIMATIONS);
 		date = RegexHelper.replaceAll(date, PATTERN_INTERPRETED, "$1");
 		return date;
 	}
 
-	protected String extractInterpretedFrom(final CharSequence date){
+	protected static String extractInterpretedFrom(final CharSequence date){
 		final Matcher matcher = RegexHelper.matcher(date, PATTERN_INTERPRETATION_TEXT);
 		return (matcher.find()? matcher.group(0): null);
 	}
@@ -170,7 +170,7 @@ public abstract class AbstractCalendarParser{
 	 * @param date	The date string.
 	 * @return	The same date string with range/period prefixes removed, but only if it's an open-ended period or range.
 	 */
-	protected String removeOpenEndedRangesAndPeriods(final String date){
+	protected static String removeOpenEndedRangesAndPeriods(final String date){
 		return (!RegexHelper.matches(date, PATTERN_TWO_DATES)? RegexHelper.clear(date, PATTERN_PREFIXES_FROM_TO_BEFORE_AFTER): date);
 	}
 

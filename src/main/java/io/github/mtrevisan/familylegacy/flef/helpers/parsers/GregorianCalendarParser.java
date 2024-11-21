@@ -105,7 +105,7 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 	 * @param doubleEntryYear	The double-entry for the year.
 	 * @return	The year, resolved to a Gregorian year.
 	 */
-	private String resolveEnglishCalendarSwitchYear(final String year, final String doubleEntryYear){
+	private static String resolveEnglishCalendarSwitchYear(final String year, final String doubleEntryYear){
 		int y = Integer.parseInt(year);
 		if(1582 <= y && y <= 1752 && doubleEntryYear != null){
 			final int yy = Integer.parseInt(doubleEntryYear);
@@ -118,7 +118,7 @@ class GregorianCalendarParser extends AbstractCalendarParser{
 		return year;
 	}
 
-	private LocalDate managePreciseness(final String day, final String month, final LocalDate localDate,
+	private static LocalDate managePreciseness(final String day, final String month, final LocalDate localDate,
 			final DatePreciseness preciseness) throws IllegalArgumentException{
 		if(preciseness == null)
 			throw new IllegalArgumentException("Unknown value for date handling preference");

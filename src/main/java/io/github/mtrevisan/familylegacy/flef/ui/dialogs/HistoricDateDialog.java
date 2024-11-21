@@ -294,7 +294,7 @@ public final class HistoricDateDialog extends CommonListDialog{
 		setButtonSelectEnableAndBorder(assertionButton, hasAssertions);
 	}
 
-	private Integer extractRecordCalendarID(final Integer historicDateID){
+	private static Integer extractRecordCalendarID(final Integer historicDateID){
 		final Map.Entry<String, Map<String, Object>> calendarNode = Repository.findReferencedNode(
 			EntityManager.NODE_HISTORIC_DATE, historicDateID,
 			EntityManager.RELATIONSHIP_EXPRESSED_IN);

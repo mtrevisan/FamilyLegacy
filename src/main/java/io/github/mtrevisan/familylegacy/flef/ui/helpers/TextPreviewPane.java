@@ -297,7 +297,7 @@ public class TextPreviewPane extends JSplitPane{
 		}
 	}
 
-	private String extractHtml(final Locale locale, final File htmlCssFile, final String title, final String body){
+	private static String extractHtml(final Locale locale, final File htmlCssFile, final String title, final String body){
 		return HTML_START_LANGUAGE + locale.getLanguage()
 			+ HTML_LANGUAGE_TITLE + title
 			+ HTML_TITLE_STYLE + extractStyle(htmlCssFile)

@@ -393,7 +393,7 @@ public final class PersonNameDialog extends CommonListDialog{
 		return true;
 	}
 
-	private String extractIdentifier(final int selectedRecordID){
+	private static String extractIdentifier(final int selectedRecordID){
 		final Map<String, Object> storePersonNames = Repository.findByID(EntityManager.NODE_PERSON_NAME, selectedRecordID);
 		final String personalName = extractRecordPersonalName(storePersonNames);
 		final String familyName = extractRecordFamilyName(storePersonNames);

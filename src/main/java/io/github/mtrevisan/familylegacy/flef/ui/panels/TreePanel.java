@@ -463,13 +463,13 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		loadData(Collections.emptyMap(), partner, Collections.emptyMap());
 	}
 
-	private String extractEarliestSex(final Integer personID){
+	private static String extractEarliestSex(final Integer personID){
 		final Comparator<LocalDate> comparator = Comparator.naturalOrder();
 		final Function<Map.Entry<LocalDate, Map<String, Object>>, String> extractor = entry -> extractRecordDescription(entry.getValue());
 		return extractData(personID, List.of("sex"), comparator, extractor);
 	}
 
-	private <T> T extractData(final Integer referenceID, final Collection<String> eventTypes, final Comparator<LocalDate> comparator,
+	private static <T> T extractData(final Integer referenceID, final Collection<String> eventTypes, final Comparator<LocalDate> comparator,
 			final Function<Map.Entry<LocalDate, Map<String, Object>>, T> extractor){
 		return Repository.findReferencingNodes(EntityManager.NODE_EVENT,
 				EntityManager.NODE_PERSON, referenceID,
@@ -768,7 +768,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	}
 
 
-	private List<Integer> getPartnerIDs(final Integer partnerID){
+	private static List<Integer> getPartnerIDs(final Integer partnerID){
 		return Repository.findReferencingNodes(EntityManager.NODE_GROUP,
 				EntityManager.NODE_PERSON, partnerID,
 				EntityManager.RELATIONSHIP_OF, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
@@ -798,7 +798,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		return parentsGroupID;
 	}
 
-	private Set<Map<String, Object>> extractUnions(final Map<String, Object> person){
+	private static Set<Map<String, Object>> extractUnions(final Map<String, Object> person){
 		final Set<Map<String, Object>> unionGroups = new HashSet<>(0);
 		if(!person.isEmpty()){
 			final Integer personID = extractRecordID(person);
@@ -807,7 +807,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 		return unionGroups;
 	}
 
-	private List<Map<String, Object>> getGroups(final Integer personID){
+	private static List<Map<String, Object>> getGroups(final Integer personID){
 		return Repository.findReferencedNodes(EntityManager.NODE_PERSON, personID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, EntityManager.GROUP_ROLE_PARTNER).stream()
 			.map(Map.Entry::getValue)

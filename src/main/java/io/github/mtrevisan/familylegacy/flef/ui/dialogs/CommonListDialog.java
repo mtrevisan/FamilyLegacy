@@ -576,7 +576,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 		GUIHelper.addBorder(button, hasData, DATA_BUTTON_BORDER_COLOR);
 	}
 
-	protected void setButtonEnableAndBorder(final JButton button, final boolean hasData){
+	protected static void setButtonEnableAndBorder(final JButton button, final boolean hasData){
 		button.setEnabled(hasData);
 		GUIHelper.addBorder(button, hasData, DATA_BUTTON_BORDER_COLOR);
 	}

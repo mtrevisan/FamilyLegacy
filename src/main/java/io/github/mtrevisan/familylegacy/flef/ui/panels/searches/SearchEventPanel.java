@@ -167,7 +167,7 @@ public class SearchEventPanel extends CommonSearchPanel{
 		}
 	}
 
-	private String extractRecordSuperType(final Integer eventTypeID){
+	private static String extractRecordSuperType(final Integer eventTypeID){
 		final Map.Entry<String, Map<String, Object>> eventSuperTypeNode = Repository.findReferencedNode(
 			EntityManager.NODE_EVENT_TYPE, eventTypeID,
 			EntityManager.RELATIONSHIP_OF);

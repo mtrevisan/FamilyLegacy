@@ -256,7 +256,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 	@Override
 	public void refreshButtonStates(final int recordID){}
 
-	private SuperTypeItem extractRecordSuperType(final Integer eventTypeID){
+	private static SuperTypeItem extractRecordSuperType(final Integer eventTypeID){
 		final Map.Entry<String, Map<String, Object>> eventSuperTypeNode = Repository.findReferencedNode(
 			EntityManager.NODE_EVENT_TYPE, eventTypeID,
 			EntityManager.RELATIONSHIP_OF);

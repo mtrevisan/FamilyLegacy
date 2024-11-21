@@ -319,7 +319,7 @@ public final class PersonDialog extends CommonListDialog{
 	@Override
 	protected void addToCollection(){
 		final JDialog dialog = new JDialog(this, "Relationship data", true);
-		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		dialog.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		final Integer recordID = extractRecordID(selectedRecord);
 		final BelongsToGroupPanel panel = BelongsToGroupPanel.create(getTableName(), filterCollectionTargetID);
@@ -412,13 +412,13 @@ public final class PersonDialog extends CommonListDialog{
 		return false;
 	}
 
-	private String extractIdentifier(final Integer personID){
+	private static String extractIdentifier(final Integer personID){
 		final StringJoiner identifier = new StringJoiner(" / ");
 		extractAllPersonNames(personID, identifier);
 		return identifier.toString();
 	}
 
-	private void extractAllPersonNames(final Integer personID, final StringJoiner identifier){
+	private static void extractAllPersonNames(final Integer personID, final StringJoiner identifier){
 		final List<Map<String, Object>> storePersonNames = Repository.findReferencingNodes(
 			EntityManager.NODE_PERSON_NAME,
 			EntityManager.NODE_PERSON, personID,
@@ -433,7 +433,7 @@ public final class PersonDialog extends CommonListDialog{
 		}
 	}
 
-	private List<String> extractPersonNames(final Map<String, Object> personNameRecord){
+	private static List<String> extractPersonNames(final Map<String, Object> personNameRecord){
 		final int personNameID = extractRecordID(personNameRecord);
 		final List<Map<String, Object>> localizedPersonNames = Repository.findReferencingNodes(EntityManager.NODE_LOCALIZED_PERSON_NAME,
 			EntityManager.NODE_PERSON_NAME, personNameID,

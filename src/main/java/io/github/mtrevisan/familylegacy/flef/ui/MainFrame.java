@@ -331,7 +331,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		dialog.showDialog();
 	}
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID){
+	private static List<Integer> getPersonIDsInGroup(final Integer groupID){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
 				EntityManager.RELATIONSHIP_BELONGS_TO).stream()
@@ -339,7 +339,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 			.collect(Collectors.toList());
 	}
 
-	private List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
+	private static List<Integer> getPersonIDsInGroup(final Integer groupID, final String role){
 		return Repository.findReferencingNodes(EntityManager.NODE_PERSON,
 				EntityManager.NODE_GROUP, groupID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, EntityManager.PROPERTY_ROLE, role).stream()
