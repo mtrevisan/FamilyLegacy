@@ -31,4 +31,6 @@ public interface RelationshipDataPanelInterface{
 
 	void clearData();
 
+	void undo();
+
 }

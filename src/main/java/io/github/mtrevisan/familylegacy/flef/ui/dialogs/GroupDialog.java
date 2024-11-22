@@ -58,6 +58,8 @@ import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.Serial;
 import java.util.Collection;
 import java.util.Collections;
@@ -155,8 +157,7 @@ public final class GroupDialog extends CommonListDialog{
 		final GroupDialog dialog = new GroupDialog(parent)
 			.withCategory(filterCategory);
 		dialog.selectRecordOnly = true;
-		//FIXME 0 for groupID?
-		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), 0);
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), BelongsToGroupPanel.GROUP_TO_BE_CREATED);
 		dialog.addViewOnlyComponents(dialog.photoButton, dialog.peopleGroupButton, dialog.groupsGroupButton, dialog.placesGroupButton,
 			dialog.noteButton, dialog.mediaButton, dialog.assertionButton, dialog.culturalNormButton, dialog.eventButton, dialog.groupButton);
 		dialog.initialize();
@@ -197,8 +198,7 @@ public final class GroupDialog extends CommonListDialog{
 		final GroupDialog dialog = new GroupDialog(parent)
 			.withCategory(filterCategory);
 		dialog.showRecordOnly = true;
-		//FIXME 0 for groupID?
-		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), 0);
+		dialog.relationshipDataPanel = panelCreator.apply(dialog.getTableName(), BelongsToGroupPanel.GROUP_TO_BE_CREATED);
 		dialog.initialize();
 		return dialog;
 	}
@@ -217,6 +217,16 @@ public final class GroupDialog extends CommonListDialog{
 		addButtonComponent(COMPONENT_ID_CULTURAL_NORM_BUTTON, culturalNormButton);
 		addButtonComponent(COMPONENT_ID_EVENT_BUTTON, eventButton);
 		addButtonComponent(COMPONENT_ID_GROUP_BUTTON, groupButton);
+
+
+		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
+
+		addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(final WindowEvent we){
+				relationshipDataPanel.undo();
+			}
+		});
 	}
 
 
@@ -292,8 +302,6 @@ public final class GroupDialog extends CommonListDialog{
 
 	@Override
 	protected void initStoreComponents(){
-		setTitle(StringUtils.capitalize(StringHelper.pluralize(getTableName())));
-
 		super.initStoreComponents();
 
 
@@ -322,14 +330,17 @@ public final class GroupDialog extends CommonListDialog{
 		peopleGroupButton.setToolTipText("People");
 		peopleGroupButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PERSON_GROUP, this, selectedRecord)));
+		peopleGroupButton.setEnabled(filterCategory == null || EntityManager.NODE_PERSON.equals(filterCategory));
 
 		groupsGroupButton.setToolTipText("Groups");
 		groupsGroupButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.GROUP_GROUP, this, selectedRecord)));
+		groupsGroupButton.setEnabled(filterCategory == null || EntityManager.NODE_GROUP.equals(filterCategory));
 
 		placesGroupButton.setToolTipText("Places");
 		placesGroupButton.addActionListener(e -> EventBusService.publish(
 			EditEvent.create(EditEvent.EditType.PLACE_GROUP, this, selectedRecord)));
+		placesGroupButton.setEnabled(filterCategory == null || EntityManager.NODE_PLACE.equals(filterCategory));
 
 
 		noteButton.setToolTipText("Notes");
@@ -547,11 +558,14 @@ public final class GroupDialog extends CommonListDialog{
 		final boolean hasPlaces = Repository.hasPlaces(tableName, recordID);
 		final String category = (filterCategory != null? filterCategory: extractCategory(extractRecordID(selectedRecord)));
 		setButtonSelectEnableAndBorder(photoButton, hasPhoto);
-		peopleGroupButton.setEnabled(category.isEmpty() || EntityManager.NODE_PERSON.equals(category) || hasPeople);
+		peopleGroupButton.setEnabled(category.isEmpty() || EntityManager.NODE_PERSON.equals(category) || hasPeople
+			|| filterCategory == null || EntityManager.NODE_PERSON.equals(filterCategory));
 		GUIHelper.addBorder(peopleGroupButton, EntityManager.NODE_PERSON.equals(category) && hasPeople, DATA_BUTTON_BORDER_COLOR);
-		groupsGroupButton.setEnabled(category.isEmpty() || EntityManager.NODE_GROUP.equals(category) || hasGroups);
+		groupsGroupButton.setEnabled(category.isEmpty() || EntityManager.NODE_GROUP.equals(category) || hasGroups
+			|| filterCategory == null || EntityManager.NODE_GROUP.equals(filterCategory));
 		GUIHelper.addBorder(groupsGroupButton, EntityManager.NODE_GROUP.equals(category) && hasGroups, DATA_BUTTON_BORDER_COLOR);
-		placesGroupButton.setEnabled(category.isEmpty() || EntityManager.NODE_PLACE.equals(category) || hasPlaces);
+		placesGroupButton.setEnabled(category.isEmpty() || EntityManager.NODE_PLACE.equals(category) || hasPlaces
+			|| filterCategory == null || EntityManager.NODE_PLACE.equals(filterCategory));
 		GUIHelper.addBorder(placesGroupButton, EntityManager.NODE_PLACE.equals(category) && hasPlaces, DATA_BUTTON_BORDER_COLOR);
 
 		final boolean hasNotes = Repository.hasNotes(tableName, recordID);

@@ -146,7 +146,12 @@ public class SupportedByCulturalNormPanel extends JPanel implements Relationship
 		});
 	}
 
-	protected void callWithoutEvents(final Runnable run){
+	@Override
+	public void undo(){
+
+	}
+
+	private void callWithoutEvents(final Runnable run){
 		ignoreEvents = true;
 
 		run.run();

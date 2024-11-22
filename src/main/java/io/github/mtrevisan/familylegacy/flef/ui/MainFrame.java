@@ -69,7 +69,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.extractRecordID;
-import static io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager.insertRecordRole;
 
 
 public final class MainFrame extends JFrame implements GroupListenerInterface, PersonListenerInterface{
@@ -180,9 +179,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 		final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_GROUP);
 
 		for(final PersonPanel child : children){
-			final Map<String, Object> groupRelationship = new HashMap<>();
-			insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
 			//TODO ask for belongs_to relationship data
+			final Map<String, Object> groupRelationship = new HashMap<>();
 			Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(child.getPerson()),
 				EntityManager.NODE_GROUP, upsertedRecordID,
 				EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -287,9 +285,8 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						final Integer unionID = extractRecordID(currentParents);
 
 						final int upsertedRecordID = Repository.upsert(upsertedRecord, EntityManager.NODE_PERSON_NAME);
-						final Map<String, Object> groupRelationship = new HashMap<>();
-						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_CHILD);
 						//TODO ask for belongs_to relationship data
+						final Map<String, Object> groupRelationship = new HashMap<>();
 						Repository.upsertRelationship(EntityManager.NODE_PERSON, upsertedRecordID,
 							EntityManager.NODE_GROUP, unionID,
 							EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
@@ -305,17 +302,15 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 						}
 						final List<Integer> partnerIDs = getPersonIDsInGroup(unionID, EntityManager.GROUP_ROLE_PARTNER);
 
-						Map<String, Object> groupRelationship = new HashMap<>();
-						insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
 						//TODO ask for belongs_to relationship data
+						Map<String, Object> groupRelationship = new HashMap<>();
 						Repository.upsertRelationship(EntityManager.NODE_PERSON, extractRecordID(upsertedRecord),
 							EntityManager.NODE_GROUP, unionID,
 							EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,
 							GraphDatabaseManager.OnDeleteType.RELATIONSHIP_ONLY);
 						for(final Integer partnerID : partnerIDs){
-							groupRelationship = new HashMap<>();
-							insertRecordRole(groupRelationship, EntityManager.GROUP_ROLE_PARTNER);
 							//TODO ask for belongs_to relationship data
+							groupRelationship = new HashMap<>();
 							Repository.upsertRelationship(EntityManager.NODE_PERSON, partnerID,
 								EntityManager.NODE_GROUP, unionID,
 								EntityManager.RELATIONSHIP_BELONGS_TO, groupRelationship,

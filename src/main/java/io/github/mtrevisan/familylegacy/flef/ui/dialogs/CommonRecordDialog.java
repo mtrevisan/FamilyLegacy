@@ -44,6 +44,7 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
+import javax.swing.JRootPane;
 import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -169,10 +170,11 @@ public abstract class CommonRecordDialog extends JDialog implements Genealogical
 
 	protected void initDialog(){
 		//close dialog
-		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE,
+		final JRootPane rootPane = getRootPane();
+		rootPane.registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE,
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 		//close dialog
-		getRootPane().registerKeyboardAction(this::closeActionNoModificationNote, GUIHelper.SHIFT_ESCAPE_STROKE,
+		rootPane.registerKeyboardAction(this::closeActionNoModificationNote, GUIHelper.SHIFT_ESCAPE_STROKE,
 			JComponent.WHEN_IN_FOCUSED_WINDOW);
 	}
 

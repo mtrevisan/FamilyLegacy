@@ -65,6 +65,9 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 	private static final long serialVersionUID = -6000129782213382211L;
 
 
+	public static final int GROUP_TO_BE_CREATED = 0;
+
+
 	private final JLabel roleLabel = new JLabel("Role:");
 	private final JTextField roleField = new JTextField();
 	private final JLabel certaintyLabel = new JLabel("Certainty:");
@@ -75,6 +78,7 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 	private final String tableName;
 	private Integer recordID;
 	private final int groupID;
+	private boolean groupCreated;
 
 	private Map<String, Object> relationshipData = new HashMap<>(0);
 
@@ -133,6 +137,11 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 		this.recordID = recordID;
 
 
+		int groupID = this.groupID;
+		if(this.groupID == GROUP_TO_BE_CREATED){
+			groupID = Repository.upsert(new HashMap<>(0), EntityManager.NODE_GROUP);
+			groupCreated = true;
+		}
 		final List<Map<String, Object>> relationships = Repository.findRelationships(tableName, recordID,
 			EntityManager.NODE_GROUP, groupID,
 			EntityManager.RELATIONSHIP_BELONGS_TO
@@ -159,7 +168,20 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 		});
 	}
 
-	protected void callWithoutEvents(final Runnable run){
+	@Override
+	public void undo(){
+		if(isGroupCreated())
+			//undo creation of group
+			Repository.deleteRelationship(tableName, recordID,
+				EntityManager.NODE_GROUP, groupID,
+				EntityManager.RELATIONSHIP_BELONGS_TO);
+	}
+
+	private boolean isGroupCreated(){
+		return (groupCreated && groupID > 0);
+	}
+
+	private void callWithoutEvents(final Runnable run){
 		ignoreEvents = true;
 
 		run.run();
@@ -175,6 +197,11 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 		final String certainty = GUIHelper.getTextTrimmed(certaintyComboBox);
 		final String credibility = GUIHelper.getTextTrimmed(credibilityComboBox);
 
+		int groupID = this.groupID;
+		if(this.groupID == GROUP_TO_BE_CREATED){
+			groupID = Repository.upsert(new HashMap<>(0), EntityManager.NODE_GROUP);
+			groupCreated = true;
+		}
 		insertRecordRole(relationshipData, role);
 		insertRecordCertainty(relationshipData, certainty);
 		insertRecordCredibility(relationshipData, credibility);
@@ -185,7 +212,6 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 
 		return true;
 	}
-
 
 
 	public static void main(final String[] args){
