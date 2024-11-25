@@ -77,7 +77,7 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 
 	private final String tableName;
 	private Integer recordID;
-	private final int groupID;
+	private int groupID;
 	private boolean groupCreated;
 
 	private Map<String, Object> relationshipData = new HashMap<>(0);
@@ -137,8 +137,7 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 		this.recordID = recordID;
 
 
-		int groupID = this.groupID;
-		if(this.groupID == GROUP_TO_BE_CREATED){
+		if(groupID == GROUP_TO_BE_CREATED){
 			groupID = Repository.upsert(new HashMap<>(0), EntityManager.NODE_GROUP);
 			groupCreated = true;
 		}
@@ -197,8 +196,7 @@ public class BelongsToGroupPanel extends JPanel implements RelationshipDataPanel
 		final String certainty = GUIHelper.getTextTrimmed(certaintyComboBox);
 		final String credibility = GUIHelper.getTextTrimmed(credibilityComboBox);
 
-		int groupID = this.groupID;
-		if(this.groupID == GROUP_TO_BE_CREATED){
+		if(groupID == GROUP_TO_BE_CREATED){
 			groupID = Repository.upsert(new HashMap<>(0), EntityManager.NODE_GROUP);
 			groupCreated = true;
 		}

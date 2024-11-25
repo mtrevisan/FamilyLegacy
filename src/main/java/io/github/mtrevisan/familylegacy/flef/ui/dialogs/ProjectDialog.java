@@ -75,7 +75,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	private final JLabel copyrightLabel = new JLabel("Copyright:");
 	private final JTextField copyrightField = new JTextField();
 	private final JLabel noteLabel = new JLabel("Note:");
-	private final TextPreviewPane noteTextPreview = TextPreviewPane.createWithPreview(ProjectDialog.this);
+	private TextPreviewPane noteTextPreview;
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final JTextField localeField = new JTextField();
 	private final JLabel includeMediaPayloadLabel = new JLabel("Include media payload:");
@@ -113,6 +113,7 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 		GUIHelper.bindLabelUndo(copyrightLabel, copyrightField);
 		GUIHelper.bindOnTextChange(copyrightField, this::saveData);
 
+		noteTextPreview = TextPreviewPane.createWithPreview(this);
 		GUIHelper.bindLabel(noteLabel, noteTextPreview);
 		GUIHelper.bindOnTextChange(noteTextPreview, this::saveData);
 		noteTextPreview.setTextViewFont(copyrightField.getFont());

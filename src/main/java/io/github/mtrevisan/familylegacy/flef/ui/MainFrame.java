@@ -76,7 +76,7 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 	private static final Logger LOGGER = LoggerFactory.getLogger(MainFrame.class);
 
 
-	private final TreePanel treePanel;
+	private TreePanel treePanel;
 
 
 	private MainFrame(final Map<String, Object> homeGroup){
@@ -87,9 +87,9 @@ public final class MainFrame extends JFrame implements GroupListenerInterface, P
 
 		final JFrame frame = new JFrame();
 		frame.getContentPane().setLayout(new BorderLayout());
-		frame.getContentPane().add(treePanel, BorderLayout.NORTH);
+		frame.getContentPane().add(treePanel, BorderLayout.PAGE_START);
 		frame.pack();
-		frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		frame.addWindowListener(new WindowAdapter(){
 			@Override
 			public void windowClosing(final WindowEvent e){

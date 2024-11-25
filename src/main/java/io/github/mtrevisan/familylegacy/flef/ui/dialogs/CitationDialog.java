@@ -91,7 +91,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 	private final JLabel locationLabel = new JLabel("Location:");
 	private final JTextField locationField = new JTextField();
 	private final JLabel extractLabel = new JLabel("Extract:");
-	private final TextPreviewPane extractTextPreview = TextPreviewPane.createWithPreview(CitationDialog.this);
+	private TextPreviewPane extractTextPreview;
 	private final JLabel extractLocaleLabel = new JLabel("Locale:");
 	private final JTextField extractLocaleField = new JTextField();
 	private final JButton transcribedExtractButton = new JButton("Transcribed extracts", ICON_TRANSLATION);
@@ -196,6 +196,7 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 		GUIHelper.bindLabelUndo(locationLabel, locationField);
 		GUIHelper.bindOnTextChange(locationField, this::saveData);
 
+		extractTextPreview = TextPreviewPane.createWithPreview(this);
 		GUIHelper.bindLabel(extractLabel, extractTextPreview);
 		extractTextPreview.setTextViewFont(extractLabel.getFont());
 		extractTextPreview.setMinimumSize(MINIMUM_NOTE_TEXT_PREVIEW_SIZE);

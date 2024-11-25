@@ -98,7 +98,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 	private final JLabel identifierLabel = new JLabel("Identifier:");
 	private final JTextField identifierField = new JTextField();
 	private final JLabel descriptionLabel = new JLabel("Description:");
-	private final TextPreviewPane descriptionTextPreview = TextPreviewPane.createWithPreview(CulturalNormDialog.this);
+	private TextPreviewPane descriptionTextPreview;
 	private final JButton placeButton = new JButton("Place", ICON_PLACE);
 	private final JButton dateStartButton = new JButton("Date start", ICON_CALENDAR);
 	private final JButton dateEndButton = new JButton("Date end", ICON_CALENDAR);
@@ -258,6 +258,7 @@ public final class CulturalNormDialog extends CommonListDialog implements TextPr
 
 	@Override
 	protected void initRecordComponents(){
+		descriptionTextPreview = TextPreviewPane.createWithPreview(this);
 		GUIHelper.bindLabelUndo(identifierLabel, identifierField);
 		GUIHelper.bindOnTextChange(identifierField, this::saveData);
 		addMandatoryField(identifierField);

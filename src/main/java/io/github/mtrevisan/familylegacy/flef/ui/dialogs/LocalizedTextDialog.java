@@ -86,7 +86,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 
 
 	private final JLabel textLabel = new JLabel("Text:");
-	private final TextPreviewPane textTextPreview = TextPreviewPane.createWithPreview(LocalizedTextDialog.this);
+	private TextPreviewPane textTextPreview;
 	private final JTextField simpleTextField = new JTextField();
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final JTextField localeField = new JTextField();
@@ -240,6 +240,7 @@ public final class LocalizedTextDialog extends CommonListDialog implements TextP
 			addMandatoryField(simpleTextField);
 		}
 		else{
+			textTextPreview = TextPreviewPane.createWithPreview(this);
 			GUIHelper.bindLabel(textLabel, textTextPreview);
 			GUIHelper.bindOnTextChange(textTextPreview, this::saveData);
 			textTextPreview.setTextViewFont(textLabel.getFont());

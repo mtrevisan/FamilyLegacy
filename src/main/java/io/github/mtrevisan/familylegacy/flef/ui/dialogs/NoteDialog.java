@@ -82,7 +82,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 
 	private final JLabel noteLabel = new JLabel("Note:");
-	private final TextPreviewPane noteTextPreview = TextPreviewPane.createWithPreview(NoteDialog.this);
+	private TextPreviewPane noteTextPreview;
 	private final JLabel localeLabel = new JLabel("Locale:");
 	private final JTextField localeField = new JTextField();
 
@@ -201,6 +201,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 
 	@Override
 	protected void initRecordComponents(){
+		noteTextPreview = TextPreviewPane.createWithPreview(this);
 		GUIHelper.bindLabel(noteLabel, noteTextPreview);
 		GUIHelper.bindOnTextChange(noteTextPreview, this::saveData);
 		noteTextPreview.setTextViewFont(noteLabel.getFont());
