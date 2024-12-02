@@ -73,7 +73,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core -->
-		<fasterxml.jackson-core.version>2.18.1</fasterxml.jackson-core.version>
+		<fasterxml.jackson-core.version>2.18.2</fasterxml.jackson-core.version>
 
 		<!-- LZMA compression -->
 		<!-- https://mvnrepository.com/artifact/org.tukaani/xz -->
@@ -108,7 +108,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>2.18.1</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>2.18.2</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>2.9.0</jayway.json-path.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.java-json-tools/jackson-coreutils -->
