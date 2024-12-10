@@ -55,7 +55,7 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin -->
 		<maven-source-plugin.version>3.3.1</maven-source-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin -->
-		<maven-javadoc-plugin.version>3.11.1</maven-javadoc-plugin.version>
+		<maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin -->
 		<maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-help-plugin -->
@@ -85,9 +85,9 @@
 
 		<!-- Database -->
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j -->
-		<neo4j.version>5.25.1</neo4j.version>
+		<neo4j.version>5.26.0</neo4j.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-core -->
-		<neo4j.ogm-core.version>4.0.12</neo4j.ogm-core.version>
+		<neo4j.ogm-core.version>4.0.13</neo4j.ogm-core.version>
 		<!-- https://mvnrepository.com/artifact/org.neo4j/neo4j-ogm-embedded-driver -->
 		<neo4j.ogm-embedded-driver.version>3.3.4</neo4j.ogm-embedded-driver.version>
 
