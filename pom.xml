@@ -57,7 +57,7 @@
 		<maven-shade-plugin.version>3.2.4</maven-shade-plugin.version>
 
 		<!-- Apache -->
-		<apache.commons-lang3.version>3.11</apache.commons-lang3.version>
+		<apache.commons-lang3.version>3.18.0</apache.commons-lang3.version>
 
 		<!-- Logging -->
 		<slf4j.slf4j-api.version>1.7.30</slf4j.slf4j-api.version>
