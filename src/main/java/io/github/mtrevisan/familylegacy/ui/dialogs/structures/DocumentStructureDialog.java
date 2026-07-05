@@ -26,13 +26,13 @@ package io.github.mtrevisan.familylegacy.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.ImagePreview;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TextPreviewPane;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ImagePreview;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
@@ -497,7 +497,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.8.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.9.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode source = store.getSources().get(0);
 

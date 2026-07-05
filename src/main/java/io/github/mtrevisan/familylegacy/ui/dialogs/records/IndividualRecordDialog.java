@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.ScaledImage;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
+import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ScaledImage;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.Gedcom;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -83,7 +83,7 @@ public class IndividualRecordDialog extends JDialog{
 	private static final ImageIcon ICON_NOTE = ResourceHelper.getImage("/images/note.png", 20, 20);
 
 	private final JLabel individualLabel = new JLabel("Indivisdual:");
-	private final ScaledImage individualImage = new ScaledImage();
+	private final ScaledImage individualImage = ScaledImage.create();
 	private final JLabel individualName = new JLabel(StringUtils.EMPTY);
 	private final JButton individualNoteButton = new JButton(StringUtils.EMPTY);
 	private final JButton eventButton = new JButton("Events");
