@@ -666,20 +666,16 @@ public class GedcomToFlefConverter{
 	// --------------------------- Main method ---------------------------
 
 	public static void main(String[] args){
-		if(args.length < 2){
-			System.err.println("Usage: java GedcomToFlefConverter <input.ged> <output.flef>");
-			System.exit(1);
-		}
-		File inputFile = new File(args[0]);
-		File outputFile = new File(args[1]);
+		File inputGEDFile = new File("C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso).ged");
+		File outputFLEFFile = new File("C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\\output.flef");
 
 		try{
 			System.out.println("Parsing GEDCOM...");
-			GedcomDatabase db = parseGedcom(inputFile);
+			GedcomDatabase db = parseGedcom(inputGEDFile);
 			System.out.println("Parsed " + db.topLevelRecords.size() + " top-level records.");
 			System.out.println("Converting to FLEF...");
-			convertToFlef(db, outputFile);
-			System.out.println("Conversion complete. Output written to " + outputFile.getAbsolutePath());
+			convertToFlef(db, outputFLEFFile);
+			System.out.println("Conversion complete. Output written to " + outputFLEFFile.getAbsolutePath());
 		}
 		catch(IOException e){
 			System.err.println("Error: " + e.getMessage());

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef;
 
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomDataException;
+import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomFileParser;
 import io.github.mtrevisan.familylegacy.flef.gedcom.GedcomGrammarException;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
@@ -139,6 +140,8 @@ public final class Main{
 
 //		final DatabaseManager dbManager = new DatabaseManager(JDBC_URL, USER, PASSWORD);
 //		dbManager.initialize(grammarFile);
+final GedcomFileParser gedcomParser = new GedcomFileParser();
+gedcomParser.load("/gedg/gedcom_5.5.1.gedg", "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso).ged");
 
 		final String gedcomFilename = "ged/TGMZ.ged";
 		final String flatGedcomFilename = "ged/TGMZ.txt";
