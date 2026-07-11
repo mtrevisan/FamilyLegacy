@@ -5,10 +5,15 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 
-import java.awt.*;
+import java.awt.Frame;
 
 
 public class NoteHandler implements RecordTypeHandler<NoteDialog>{
+
+	@Override
+	public String getLabel(){
+		return "Note";
+	}
 
 	@Override
 	public String getType(){
@@ -20,22 +25,13 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
 		String id = record.getId();
 		if(value != null && !value.isEmpty()){
-			// Tronca se più lungo di 50 caratteri
+			// Truncate long notes
 			if(value.length() > 50){
 				value = value.substring(0, 50) + "...";
 			}
 			return value + " (" + id + ")";
 		}
 		return id;
-	}
-
-	private String getChildValue(FLEFRecord parent, String tag){
-		for(FLEFRecord child : parent.getChildren()){
-			if(tag.equals(child.getTag())){
-				return child.getValue();
-			}
-		}
-		return null;
 	}
 
 	@Override

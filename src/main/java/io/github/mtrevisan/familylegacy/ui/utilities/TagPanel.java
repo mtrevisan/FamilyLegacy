@@ -59,7 +59,7 @@ public class TagPanel extends JPanel{
 
 
 	public TagPanel(){
-		setLayout(new HorizontalFlowLayout(FlowLayout.LEFT, 2, 0));
+		setLayout(new HorizontalFlowLayout(FlowLayout.LEFT, 2, 2));
 	}
 
 	public TagPanel(final BiConsumer<TagChangeType, Iterable<String>> tagsChanged){

@@ -300,7 +300,7 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow][]"));
 		add(filterLabel, "align label,spanx 3,split 2");
-		add(filterField, "grow,wrap");
+		add(filterField, "growx,wrap");
 		add(recordScrollPane, "growx,spanx 3,wrap related");
 		add(newButton, "tag add,spanx 3,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");

@@ -195,11 +195,11 @@ public final class LocalizedPersonNameDialog extends CommonListDialog implements
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(personalNameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(personalNameField, "grow,wrap related");
+		recordPanelBase.add(personalNameField, "growx,wrap related");
 		recordPanelBase.add(familyNameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(familyNameField, "grow,wrap related");
+		recordPanelBase.add(familyNameField, "growx,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(localeField, "grow,wrap paragraph");
+		recordPanelBase.add(localeField, "growx,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "grow,wrap paragraph");
 		recordPanelBase.add(transcriptionLabel, "align label,sizegroup lbl,split 2");

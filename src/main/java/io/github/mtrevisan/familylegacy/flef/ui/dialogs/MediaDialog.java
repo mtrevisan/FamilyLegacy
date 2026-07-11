@@ -456,12 +456,12 @@ public final class MediaDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(fileLabel, "align label,sizegroup lbl,split 3");
-		recordPanelBase.add(fileField, "grow");
+		recordPanelBase.add(fileField, "growx");
 		recordPanelBase.add(fileButton, "wrap related");
 		recordPanelBase.add(openFolderButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(openLinkButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(titleLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(titleField, "grow,wrap related");
+		recordPanelBase.add(titleField, "growx,wrap related");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap");
 		recordPanelBase.add(photoProjectionLabel, "align label,sizegroup lbl,split 2");

@@ -28,15 +28,31 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 
@@ -48,19 +64,25 @@ import java.util.function.Consumer;
  */
 public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
+	@Serial
+	private static final long serialVersionUID = 5675310282486257639L;
+
+
 	private final FLEFModel model;
 	private final RecordTypeHandler<T> handler;
-	private final Consumer<String> onSelection; // callback with selected record ID
+	private final Consumer<String> onSelection;
 
 	private final DefaultListModel<String> listModel = new DefaultListModel<>();
 	private final JList<String> list = new JList<>(listModel);
-	private final JTextField searchField = new JTextField(20);
+	private final JTextField searchField = new JTextField(15);
 	private final JButton searchButton = new JButton("Search");
 	private final JButton clearButton = new JButton("Clear");
+	private final JButton newButton = new JButton("New");
+	private final JButton selectButton = new JButton("Select");
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private List<FLEFRecord> allRecords = new ArrayList<>();
-	private List<FLEFRecord> filteredRecords = new ArrayList<>();
+	private final List<FLEFRecord> filteredRecords = new ArrayList<>();
 
 
 	/**
@@ -72,7 +94,8 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	 * @param onSelection callback invoked with the selected record ID, or null if cancelled
 	 */
 	public GenericSelectionDialog(Frame parent, FLEFModel model, RecordTypeHandler<T> handler, Consumer<String> onSelection){
-		super(parent, "Select " + handler.getType(), true);
+		super(parent, "Select " + handler.getLabel(), true);
+
 		this.model = model;
 		this.handler = handler;
 		this.onSelection = onSelection;
@@ -81,18 +104,18 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		loadAllRecords();
 		filterRecords("");
 		pack();
-		setMinimumSize(new Dimension(500, 400));
 		setLocationRelativeTo(parent);
 	}
 
 
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		// Search panel
-		JPanel searchPanel = new JPanel(new MigLayout("fill", "[grow][][][]"));
+		JPanel searchPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow][][][]"));
 		searchPanel.add(new JLabel("Search:"), "align label");
-		searchPanel.add(searchField, "grow");
+		searchPanel.add(searchField, "growx");
 		searchPanel.add(searchButton);
 		searchPanel.add(clearButton);
 		add(searchPanel, BorderLayout.NORTH);
@@ -100,12 +123,12 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		// List panel
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setBorder(BorderFactory.createTitledBorder(handler.getType() + " List"));
+		scrollPane.setBorder(BorderFactory.createTitledBorder(handler.getLabel() + " List"));
 		add(scrollPane, BorderLayout.CENTER);
 
 		// Button panel
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton selectButton = new JButton("Select");
+		buttonPanel.add(newButton);
 		buttonPanel.add(selectButton);
 		buttonPanel.add(cancelButton);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -120,6 +143,8 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 			onSelection.accept(null);
 			dispose();
 		});
+		newButton.addActionListener(e -> createNewRecord());
+		selectButton.addActionListener(e -> selectAndClose());
 
 		// Double-click on list selects and closes
 		list.addMouseListener(new MouseAdapter(){
@@ -130,8 +155,6 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 				}
 			}
 		});
-
-		selectButton.addActionListener(e -> selectAndClose());
 
 		// Real-time search as user types (with debounce)
 		searchField.getDocument().addDocumentListener(new DocumentListener(){
@@ -152,12 +175,14 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		});
 	}
 
+
 	private void loadAllRecords(){
 		allRecords = model.getRecordsByType(handler.getType());
 		if(allRecords == null){
 			allRecords = new ArrayList<>();
 		}
 	}
+
 
 	private void filterRecords(String searchText){
 		filteredRecords.clear();
@@ -171,6 +196,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		updateList();
 	}
 
+
 	private void updateList(){
 		listModel.clear();
 		for(FLEFRecord record : filteredRecords){
@@ -180,6 +206,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 			listModel.addElement("[No matching records]");
 		}
 	}
+
 
 	private void selectAndClose(){
 		int idx = list.getSelectedIndex();
@@ -192,6 +219,46 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 			// If nothing selected, show a message
 			JOptionPane.showMessageDialog(this, "Please select a record first.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
 		}
+	}
+
+
+	/**
+	 * Creates a new record of the handled type, then automatically selects it and closes the dialog.
+	 */
+	private void createNewRecord(){
+		// Remember existing IDs to detect the newly created one
+		Set<String> before = new HashSet<>();
+		for(FLEFRecord rec : allRecords){
+			String id = rec.getId();
+			if(id != null){
+				before.add(id);
+			}
+		}
+
+		// Open the creation dialog
+		JDialog newDialog = handler.createNewDialog((Frame)getParent(), model);
+		newDialog.setVisible(true);
+
+		// Reload all records and reapply the search filter
+		loadAllRecords();
+		filterRecords(searchField.getText().trim());
+
+		// Find the newly created record
+		String newId = null;
+		for(FLEFRecord rec : allRecords){
+			String id = rec.getId();
+			if(id != null && !before.contains(id)){
+				newId = id;
+				break;
+			}
+		}
+
+		if(newId != null){
+			// Automatically select the new record and close the dialog
+			onSelection.accept(newId);
+			dispose();
+		}
+		// If no new record was created (e.g., user cancelled), the dialog remains open.
 	}
 
 }

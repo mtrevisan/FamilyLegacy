@@ -4,10 +4,15 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.FamilyDialog;
 
-import java.awt.*;
+import java.awt.Frame;
 
 
 public class FamilyHandler implements RecordTypeHandler<FamilyDialog>{
+
+	@Override
+	public String getLabel(){
+		return "Family";
+	}
 
 	@Override
 	public String getType(){
@@ -44,12 +49,12 @@ public class FamilyHandler implements RecordTypeHandler<FamilyDialog>{
 
 	@Override
 	public FamilyDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		return new FamilyDialog(parent, model, record);
+		return FamilyDialog.createEdit(parent, model, record);
 	}
 
 	@Override
 	public FamilyDialog createNewDialog(Frame parent, FLEFModel model){
-		return new FamilyDialog(parent, model);
+		return FamilyDialog.createNew(parent, model);
 	}
 
 }

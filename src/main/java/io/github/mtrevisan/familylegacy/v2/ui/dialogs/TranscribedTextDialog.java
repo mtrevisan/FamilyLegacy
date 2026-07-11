@@ -27,9 +27,17 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JSeparator;
+import javax.swing.JTextField;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.io.Serial;
 
 
 /**
@@ -46,6 +54,10 @@ import java.awt.*;
  */
 public class TranscribedTextDialog extends JDialog{
 
+	@Serial
+	private static final long serialVersionUID = -2491081033037415929L;
+
+
 	private final FLEFRecord transRecord;
 	private boolean saved = false;
 
@@ -60,6 +72,7 @@ public class TranscribedTextDialog extends JDialog{
 
 	public TranscribedTextDialog(JDialog parent, FLEFRecord existing){
 		super(parent, "Edit Transcribed Text", true);
+
 		this.transRecord = existing != null? existing: new FLEFRecord();
 		initComponents();
 		if(existing != null) loadData();
@@ -69,30 +82,30 @@ public class TranscribedTextDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("fill", "[right]rel[grow]"));
+		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
 
 		// Phonetic section
 		add(new JLabel("Phonetic System:"), "align label");
-		add(phoneticSystemField, "grow,wrap");
+		add(phoneticSystemField, "growx,wrap");
 		add(new JLabel("Phonetic Value:"), "align label");
-		add(phoneticValueField, "grow,wrap");
+		add(phoneticValueField, "growx,wrap");
 
 		// Separator
-		add(new JSeparator(), "span 2, growx, wrap");
+		add(new JSeparator(), "span 2,growx,wrap");
 
 		// Transcription section
 		add(new JLabel("Transcription System:"), "align label");
-		add(transcriptionSystemField, "grow,wrap");
+		add(transcriptionSystemField, "growx,wrap");
 		add(new JLabel("Transcription Type:"), "align label");
-		add(transcriptionTypeField, "grow,wrap");
+		add(transcriptionTypeField, "growx,wrap");
 		add(new JLabel("Transcription Value:"), "align label");
-		add(transcriptionValueField, "grow,wrap");
+		add(transcriptionValueField, "growx,wrap");
 
 		// Buttons
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
 		buttonPanel.add(cancelButton);
-		add(buttonPanel, "span 2, growx");
+		add(buttonPanel, "span 2,growx");
 
 		saveButton.addActionListener(e -> {
 			saveData();

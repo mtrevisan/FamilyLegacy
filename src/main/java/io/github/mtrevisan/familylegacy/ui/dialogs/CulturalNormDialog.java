@@ -341,13 +341,13 @@ public class CulturalNormDialog extends JDialog{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap");
+		add(filterField, "growx,wrap");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
 		add(deleteButton, "tag delete,sizegroup button,wrap paragraph");
 
 		add(titleLabel, "align label,sizegroup label,split 2");
-		add(titleField, "grow,wrap");
+		add(titleField, "growx,wrap");
 		add(placePanel, "grow,wrap");
 		add(noteButton, "sizegroup button,split 2,center");
 		add(sourceButton, "sizegroup button,center,wrap paragraph");

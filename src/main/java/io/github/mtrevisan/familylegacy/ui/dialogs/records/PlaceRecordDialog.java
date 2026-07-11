@@ -150,9 +150,9 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 		addressPanel.setBorder(BorderFactory.createTitledBorder("Address"));
 		addressPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		addressPanel.add(addressLabel, "align label,split 2,sizegroup labelAddress");
-		addressPanel.add(addressField, "grow,wrap");
+		addressPanel.add(addressField, "growx,wrap");
 		addressPanel.add(addressHierarchyLabel, "align label,split 2,sizegroup labelAddress");
-		addressPanel.add(addressHierarchyField, "grow,wrap");
+		addressPanel.add(addressHierarchyField, "growx,wrap");
 		addressPanel.add(culturalNormButton, "grow,wrap");
 		addressPanel.add(noteButton, "grow,wrap");
 		addressPanel.add(sourceButton, "grow");
@@ -169,9 +169,9 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 		mapPanel.setBorder(BorderFactory.createTitledBorder("Coordinates"));
 		mapPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		mapPanel.add(latitudeLabel, "align label,split 2,sizegroup labelMap");
-		mapPanel.add(latitudeField, "grow,wrap");
+		mapPanel.add(latitudeField, "growx,wrap");
 		mapPanel.add(longitudeLabel, "align label,split 2,sizegroup labelMap");
-		mapPanel.add(longitudeField, "grow,wrap");
+		mapPanel.add(longitudeField, "growx,wrap");
 		mapPanel.add(certaintyLabel, "align label,split 2,sizegroup labelMap");
 		mapPanel.add(certaintyComboBox, "wrap");
 		mapPanel.add(credibilityLabel, "align label,split 2,sizegroup labelMap");
@@ -196,11 +196,11 @@ public class PlaceRecordDialog extends JDialog implements ActionListener{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(nameLabel, "align label,sizegroup label,split 2");
-		add(nameField, "grow,wrap");
+		add(nameField, "growx,wrap");
 		add(addressPanel, "grow,wrap");
 		add(mapPanel, "grow,wrap");
 		add(subordinateLabel, "align label,sizegroup label,split 2");
-		add(subordinateField, "grow,wrap paragraph");
+		add(subordinateField, "growx,wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button2");
 		add(okButton, "tag ok,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");

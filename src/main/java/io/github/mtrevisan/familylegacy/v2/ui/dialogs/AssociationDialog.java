@@ -34,22 +34,56 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
  * Dialog for editing an ASSOCIATION structure.
+ * <p>
+ * Supports two variants:
+ * <ul>
+ *   <li>ASSOCIATION @<XREF:ID>@ - reference to an existing individual or family</li>
+ *   <li>ASSOCIATION @VOID@ - reference to a record that lacks research (with NAME)</li>
+ * </ul>
  */
 public class AssociationDialog extends JDialog{
+
+	@Serial
+	private static final long serialVersionUID = -6278867401602648130L;
+
 
 	private final FLEFModel model;
 	private final Frame parentFrame;
@@ -94,8 +128,21 @@ public class AssociationDialog extends JDialog{
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 
-	public AssociationDialog(JDialog parent, FLEFModel model, FLEFRecord existingAssociation){
+
+	public static AssociationDialog createNew(JDialog parent, FLEFModel model){
+		return new AssociationDialog(parent, model, null);
+	}
+
+	public static AssociationDialog createEdit(JDialog parent, FLEFModel model, FLEFRecord existingEntry){
+		if(existingEntry == null)
+			throw new IllegalArgumentException("existingEntry cannot be null");
+
+		return new AssociationDialog(parent, model, existingEntry);
+	}
+
+	private AssociationDialog(JDialog parent, FLEFModel model, FLEFRecord existingAssociation){
 		super(parent, "Edit Association", true);
+
 		this.model = model;
 		this.parentFrame = getParentFrame(parent);
 		this.existingAssociation = existingAssociation;
@@ -104,9 +151,10 @@ public class AssociationDialog extends JDialog{
 			loadData();
 		}
 		pack();
-		setMinimumSize(new Dimension(550, 500));
+		setMinimumSize(new Dimension(550, 550));
 		setLocationRelativeTo(parent);
 	}
+
 
 	private Frame getParentFrame(Component comp){
 		Window w = SwingUtilities.getWindowAncestor(comp);
@@ -119,34 +167,34 @@ public class AssociationDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
-		JPanel mainPanel = new JPanel(new MigLayout("fill", "[grow]", "[]10[]10[]10[]10"));
+		JPanel mainPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]", "[]10[]10[]10[]"));
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// ---- Association Type (radio buttons) ----
 		typeGroup.add(existingRecordRadio);
 		typeGroup.add(voidRecordRadio);
 
-		JPanel typePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		JPanel typePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 10));
 		typePanel.add(new JLabel("Association Type:"));
 		typePanel.add(existingRecordRadio);
 		typePanel.add(voidRecordRadio);
-		mainPanel.add(typePanel, "grow,wrap");
+		mainPanel.add(typePanel, "growx,wrap");
 
 		// ---- Card panel: Existing Record or Void Record ----
 		cardPanel.setBorder(new TitledBorder("Target"));
 		cardPanel.add(createExistingPanel(), "EXISTING");
 		cardPanel.add(createVoidPanel(), "VOID");
-		mainPanel.add(cardPanel, "grow,wrap");
+		mainPanel.add(cardPanel, "growx,wrap");
 
 		// ---- Notes ----
-		mainPanel.add(createReferencePanel("Note References (0:M)", noteModel, noteList,
+		mainPanel.add(createReferencePanel("Note References", noteModel, noteList,
 			noteIds, noteDisplayMap, this::addNote, this::editNote, this::removeNote,
-			this::createNewNote), "grow,wrap");
+			this::createNewNote), "growx,wrap");
 
 		// ---- Sources ----
-		mainPanel.add(createReferencePanel("Source Citations (0:M)", sourceModel, sourceList,
+		mainPanel.add(createReferencePanel("Source Citations", sourceModel, sourceList,
 			sourceIds, sourceDisplayMap, this::addSource, this::editSource, this::removeSource,
-			this::createNewSource), "grow");
+			this::createNewSource), "growx");
 
 		add(mainPanel, BorderLayout.CENTER);
 
@@ -175,29 +223,29 @@ public class AssociationDialog extends JDialog{
 	// ==================== Existing panel ====================
 
 	private JPanel createExistingPanel(){
-		JPanel panel = new JPanel(new MigLayout("fill", "[right]rel[grow]", "[]5[]"));
+		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(new JLabel("Target Type:"), "align label");
-		panel.add(targetTypeCombo, "grow,wrap");
+		panel.add(targetTypeCombo, "growx,wrap");
 
 		panel.add(new JLabel("Target:"), "align label");
 		targetDisplayField.setEditable(false);
 		targetDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel targetPanel = new JPanel(new BorderLayout(5, 0));
+		JPanel targetPanel = new JPanel(new BorderLayout(5, 5));
 		targetPanel.add(targetDisplayField, BorderLayout.CENTER);
 		targetPanel.add(browseButton, BorderLayout.EAST);
-		panel.add(targetPanel, "grow,wrap");
+		panel.add(targetPanel, "growx,wrap");
 
 		return panel;
 	}
 
 	private JPanel createVoidPanel(){
-		JPanel panel = new JPanel(new MigLayout("fill", "[right]rel[grow]", "[]5"));
+		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(new JLabel("Name:"), "align label");
-		panel.add(voidNameField, "grow,wrap");
+		panel.add(voidNameField, "growx,wrap");
 
 		return panel;
 	}
@@ -215,15 +263,15 @@ public class AssociationDialog extends JDialog{
 		scrollPane.setPreferredSize(new Dimension(200, 70));
 		panel.add(scrollPane, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
 		JButton addBtn = new JButton("Add");
 		JButton newBtn = new JButton("New");
 		JButton editBtn = new JButton("Edit");
-		JButton removeBtn = new JButton("Remove");
+		JButton deleteBtn = new JButton("Remove");
 		btnPanel.add(addBtn);
 		btnPanel.add(newBtn);
 		btnPanel.add(editBtn);
-		btnPanel.add(removeBtn);
+		btnPanel.add(deleteBtn);
 		panel.add(btnPanel, BorderLayout.SOUTH);
 
 		list.addMouseListener(new MouseAdapter(){
@@ -237,15 +285,15 @@ public class AssociationDialog extends JDialog{
 		list.addListSelectionListener(e -> {
 			boolean selected = list.getSelectedIndex() != -1;
 			editBtn.setEnabled(selected);
-			removeBtn.setEnabled(selected);
+			deleteBtn.setEnabled(selected);
 		});
 		editBtn.setEnabled(false);
-		removeBtn.setEnabled(false);
+		deleteBtn.setEnabled(false);
 
 		addBtn.addActionListener(e -> addAction.run());
 		newBtn.addActionListener(e -> newAction.run());
 		editBtn.addActionListener(e -> editAction.run());
-		removeBtn.addActionListener(e -> deleteAction.run());
+		deleteBtn.addActionListener(e -> deleteAction.run());
 
 		return panel;
 	}
@@ -353,7 +401,8 @@ public class AssociationDialog extends JDialog{
 
 	private void editNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = noteIds.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -364,7 +413,7 @@ public class AssociationDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -373,7 +422,8 @@ public class AssociationDialog extends JDialog{
 
 	private void removeNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = noteIds.remove(idx);
@@ -382,15 +432,32 @@ public class AssociationDialog extends JDialog{
 		}
 	}
 
+	/**
+	 * Creates a new note and automatically adds it to the list.
+	 */
 	private void createNewNote(){
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createNewDialog(parentFrame, model);
+
+		// Store current note IDs to detect the newly created one
+		Set<String> beforeIds = new HashSet<>(noteIds);
+
+		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		JOptionPane.showMessageDialog(this, "Note created. Use 'Add' to add it.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+
+		// Find the newly created note and add it automatically
+		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
+			String id = rec.getId();
+			if(id != null && !beforeIds.contains(id) && !noteIds.contains(id)){
+				noteIds.add(id);
+				String display = getNoteDisplayName(id);
+				noteDisplayMap.put(id, display);
+				noteModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Source methods ====================
@@ -440,7 +507,8 @@ public class AssociationDialog extends JDialog{
 
 	private void editSource(){
 		int idx = sourceList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = sourceIds.get(idx);
 		if(sourceHandler == null){
 			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -451,7 +519,7 @@ public class AssociationDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Source not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)sourceHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = sourceHandler.createEditDialog(parentFrame, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getSourceDisplayName(id);
 		sourceDisplayMap.put(id, newDisplay);
@@ -460,7 +528,8 @@ public class AssociationDialog extends JDialog{
 
 	private void removeSource(){
 		int idx = sourceList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this source citation?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = sourceIds.remove(idx);
@@ -469,15 +538,32 @@ public class AssociationDialog extends JDialog{
 		}
 	}
 
+	/**
+	 * Creates a new source and automatically adds it to the list.
+	 */
 	private void createNewSource(){
 		if(sourceHandler == null){
 			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)sourceHandler.createNewDialog(parentFrame, model);
+
+		// Store current source IDs to detect the newly created one
+		Set<String> beforeIds = new HashSet<>(sourceIds);
+
+		JDialog dialog = sourceHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		JOptionPane.showMessageDialog(this, "Source created. Use 'Add' to add it.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+
+		// Find the newly created source and add it automatically
+		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
+			String id = rec.getId();
+			if(id != null && !beforeIds.contains(id) && !sourceIds.contains(id)){
+				sourceIds.add(id);
+				String display = getSourceDisplayName(id);
+				sourceDisplayMap.put(id, display);
+				sourceModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Load & Save ====================
@@ -569,7 +655,7 @@ public class AssociationDialog extends JDialog{
 		SwingUtilities.invokeLater(() -> {
 			JDialog parent = new JDialog();
 			parent.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-			AssociationDialog dialog = new AssociationDialog(parent, model, null);
+			AssociationDialog dialog = createEdit(parent, model, null);
 			dialog.setVisible(true);
 			if(dialog.isSaved()){
 				FLEFRecord record = dialog.getAssociationRecord();

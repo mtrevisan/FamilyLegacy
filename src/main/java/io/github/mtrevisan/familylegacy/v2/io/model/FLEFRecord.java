@@ -142,14 +142,12 @@ public class FLEFRecord{
 
 	@Override
 	public String toString(){
-		if(id != null){
+		if(id != null)
 			return type + " " + id;
-		}
-		else if(tag != null){
+		else if(tag != null)
 			return level + " " + tag + (value != null? " " + value: "");
-		}
-		else{
+		else
 			return type != null? type: "Record";
-		}
 	}
+
 }

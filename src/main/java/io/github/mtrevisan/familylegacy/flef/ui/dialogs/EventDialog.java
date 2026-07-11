@@ -284,7 +284,7 @@ public final class EventDialog extends CommonListDialog{
 		recordPanelBase.add(addTypeButton, "sizegroup btn,tag add,split 2,align right");
 		recordPanelBase.add(removeTypeButton, "sizegroup btn,tag delete,gapleft 20,wrap paragraph");
 		recordPanelBase.add(descriptionLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(descriptionField, "grow,wrap paragraph");
+		recordPanelBase.add(descriptionField, "growx,wrap paragraph");
 		recordPanelBase.add(placeButton, "sizegroup btn,center,split 2");
 		recordPanelBase.add(dateButton, "sizegroup btn,gapleft 30,center");
 

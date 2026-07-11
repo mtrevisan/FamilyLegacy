@@ -184,7 +184,7 @@ public class LinkIndividualDialog extends JDialog{
 
 		setLayout(new MigLayout());
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow");
+		add(filterField, "growx");
 		add(individualsScrollPane, "newline,width 100%,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");

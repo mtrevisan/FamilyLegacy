@@ -28,200 +28,140 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
+import java.awt.Frame;
+import java.io.Serial;
 import java.util.List;
 
 
 /**
  * Abstract base class for all record editing dialogs.
  * Provides common functionality and utility methods.
- * <p>
- * IMPORTANT: Subclasses MUST call initComponents() and loadData()
- * in their constructors after calling super().
  */
 public abstract class BaseRecordDialog extends JDialog{
+
+	@Serial
+	private static final long serialVersionUID = 6460878052412992481L;
+
 
 	protected final FLEFModel model;
 	protected final FLEFRecord record;
 	protected final boolean isNew;
 
-	/**
-	 * Constructor for editing an existing record.
-	 * Subclasses must call initComponents() and loadData() after this.
-	 */
-	protected BaseRecordDialog(Frame parent, FLEFModel model, FLEFRecord record, String title){
-		super(parent, title, true);
-		this.model = model;
-		this.record = record;
-		this.isNew = false;
-	}
 
-	/**
-	 * Constructor for creating a new record.
-	 * Subclasses must call initComponents() and loadData() after this.
-	 */
-	protected BaseRecordDialog(Frame parent, FLEFModel model, String title){
+	protected BaseRecordDialog(Frame parent, FLEFModel model, String title, FLEFRecord record){
 		super(parent, title, true);
+
 		this.model = model;
-		this.record = createNewRecord();
-		this.isNew = true;
+		this.record = (record != null? record: createNewRecord());
+		this.isNew = (record == null);
 	}
 
 	// ==================== Abstract methods ====================
 
-	/**
-	 * Initializes the UI components. Must be implemented by subclasses.
-	 * Called by the subclass constructor after super().
-	 */
 	protected abstract void initComponents();
 
-	/**
-	 * Loads data from the record into the UI. Must be implemented by subclasses.
-	 * Called by the subclass constructor after initComponents().
-	 */
 	protected abstract void loadData();
 
 	/**
-	 * Saves the record data to the model. Must be implemented by subclasses.
-	 * Called when the user clicks the Save button.
+	 * Validates the data before saving.
+	 * Subclasses must implement this method to check required fields.
+	 *
+	 * @return true if the data is valid, false otherwise
+	 */
+	protected abstract boolean validateData();
+
+	/**
+	 * Saves the record data to the model.
+	 * Subclasses must call validateData() at the beginning of this method.
 	 */
 	protected abstract void saveRecord();
 
-	/**
-	 * Creates a new empty record for this dialog type.
-	 * Used when creating a new record.
-	 *
-	 * @return a new empty FLEFRecord
-	 */
 	protected abstract FLEFRecord createNewRecord();
 
-	/**
-	 * Generates a new unique ID for this record type.
-	 *
-	 * @return a new unique ID
-	 */
 	protected abstract String generateNewId();
 
-	// ==================== Utility methods (delegated to FLEFRecordUtils) ====================
-
 	/**
-	 * Finds the value of the first child with the given tag.
+	 * Public save method that performs validation and then saves.
+	 * Called by the Save button.
 	 */
+	public final void save(){
+		if(validateData()){
+			saveRecord();
+		}
+	}
+
+	// ==================== Utility methods ====================
+
 	protected String getChildValue(String tag){
 		return FLEFRecordUtils.getChildValue(record, tag);
 	}
 
-	/**
-	 * Finds the value of the first child with the given tag in a specific parent.
-	 */
 	protected String getChildValue(FLEFRecord parent, String tag){
 		return FLEFRecordUtils.getChildValue(parent, tag);
 	}
 
-	/**
-	 * Finds the first child with the given tag.
-	 */
 	protected FLEFRecord findChild(String tag){
 		return FLEFRecordUtils.findChild(record, tag);
 	}
 
-	/**
-	 * Finds the first child with the given tag in a specific parent.
-	 */
 	protected FLEFRecord findChild(FLEFRecord parent, String tag){
 		return FLEFRecordUtils.findChild(parent, tag);
 	}
 
-	/**
-	 * Finds all children with the given tag.
-	 */
 	protected List<FLEFRecord> findChildren(String tag){
 		return FLEFRecordUtils.findChildren(record, tag);
 	}
 
-	/**
-	 * Finds all children with the given tag in a specific parent.
-	 */
 	protected List<FLEFRecord> findChildren(FLEFRecord parent, String tag){
 		return FLEFRecordUtils.findChildren(parent, tag);
 	}
 
-	/**
-	 * Collects values of all children with the given tag as a comma-separated string.
-	 */
 	protected String getChildValuesAsString(String tag){
 		return FLEFRecordUtils.getChildValuesAsString(record, tag);
 	}
 
-	/**
-	 * Collects values of all children with the given tag in a specific parent as a comma-separated string.
-	 */
 	protected String getChildValuesAsString(FLEFRecord parent, String tag){
 		return FLEFRecordUtils.getChildValuesAsString(parent, tag);
 	}
 
-	/**
-	 * Updates or creates a child with the given tag and value.
-	 */
 	protected void updateChildValue(String tag, String value){
 		FLEFRecordUtils.updateChildValue(record, tag, value);
 	}
 
-	/**
-	 * Updates or creates a child with the given tag and value in a specific parent.
-	 */
 	protected void updateChildValue(FLEFRecord parent, String tag, String value){
 		FLEFRecordUtils.updateChildValue(parent, tag, value);
 	}
 
-	/**
-	 * Adds a single child with the given tag and value.
-	 */
 	protected void addChild(String tag, int level, String value){
 		FLEFRecordUtils.addChild(record, tag, level, value);
 	}
 
-	/**
-	 * Adds a single child with the given tag and value to a specific parent.
-	 */
 	protected void addChild(FLEFRecord parent, String tag, int level, String value){
 		FLEFRecordUtils.addChild(parent, tag, level, value);
 	}
 
-	/**
-	 * Adds multiple children from a comma-separated string of values.
-	 */
 	protected void addChildrenFromString(String tag, String values){
 		FLEFRecordUtils.addChildrenFromString(record, tag, values);
 	}
 
-	/**
-	 * Adds multiple children from a comma-separated string of values to a specific parent.
-	 */
 	protected void addChildrenFromString(FLEFRecord parent, String tag, String values){
 		FLEFRecordUtils.addChildrenFromString(parent, tag, values);
 	}
 
-	/**
-	 * Removes all children with the given tag.
-	 */
 	protected void removeChildren(String tag){
 		FLEFRecordUtils.removeChildren(record, tag);
 	}
 
-	/**
-	 * Removes all children with the given tag from a specific parent.
-	 */
 	protected void removeChildren(FLEFRecord parent, String tag){
 		FLEFRecordUtils.removeChildren(parent, tag);
 	}
 
-	// ==================== Common UI helpers ====================
-
-	/**
-	 * Helper to create a panel with a label for text areas.
-	 */
 	protected JPanel createTextAreaPanel(String label){
 		JPanel panel = new JPanel(new BorderLayout());
 		JLabel lbl = new JLabel(label);
@@ -230,25 +170,14 @@ public abstract class BaseRecordDialog extends JDialog{
 		return panel;
 	}
 
-	/**
-	 * Shows an error message dialog.
-	 */
 	protected void showError(String title, String message){
 		JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
 	}
 
-	/**
-	 * Shows an information message dialog.
-	 */
 	protected void showInfo(String title, String message){
 		JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
 	}
 
-	/**
-	 * Shows a confirmation dialog.
-	 *
-	 * @return true if the user confirmed, false otherwise
-	 */
 	protected boolean showConfirm(String title, String message){
 		return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 	}

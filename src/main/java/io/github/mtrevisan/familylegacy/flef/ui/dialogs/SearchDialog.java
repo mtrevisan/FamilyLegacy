@@ -206,7 +206,7 @@ public final class SearchDialog extends JDialog{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap related");
+		add(filterField, "growx,wrap related");
 		add(recordTabbedPane, "grow");
 
 		pack();

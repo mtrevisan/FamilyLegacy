@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -33,16 +34,40 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 
 /**
@@ -59,6 +84,10 @@ import java.util.Map;
  */
 public class FamilyLinkDialog extends JDialog{
 
+	@Serial
+	private static final long serialVersionUID = -2425933933340943236L;
+
+
 	private final FLEFModel model;
 	private final Frame parentFrame;
 	private final String familyId;
@@ -67,8 +96,7 @@ public class FamilyLinkDialog extends JDialog{
 	private boolean saved = false;
 
 	// ========== CERTAINTY & CREDIBILITY ==========
-	private final JComboBox<String> certaintyCombo = new JComboBox<>(new String[]{"", "challenged", "disproven", "proven"});
-	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{"", "0", "1", "2", "3"});
+	private final EvidenceQualifiersPanel qualifiersPanel = new EvidenceQualifiersPanel("Link Evidence");
 
 	// ========== NOTE references (direct children of the link) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
@@ -152,6 +180,7 @@ public class FamilyLinkDialog extends JDialog{
 
 	public FamilyLinkDialog(JDialog parent, FLEFModel model, String familyId, String linkType, FLEFRecord existingLink){
 		super(parent, "Edit " + linkType + " Link", true);
+
 		this.model = model;
 		this.parentFrame = getParentFrame(parent);
 		this.familyId = familyId;
@@ -205,30 +234,25 @@ public class FamilyLinkDialog extends JDialog{
 	// ==================== Main Panel (with Notes integrated) ====================
 
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout("fill", "[right]rel[grow]", "[]10[]10[]10[]10"));
+		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// Family ID (read-only)
 		panel.add(new JLabel("Family ID:"), "align label");
-		panel.add(new JLabel(familyId), "grow,wrap");
+		panel.add(new JLabel(familyId), "growx,wrap");
 
 		// Link Type (read-only)
 		panel.add(new JLabel("Link Type:"), "align label");
-		panel.add(new JLabel(linkType), "grow,wrap");
+		panel.add(new JLabel(linkType), "growx,wrap");
 
-		// Certainty
-		panel.add(new JLabel("Certainty:"), "align label");
-		panel.add(certaintyCombo, "grow,wrap");
-
-		// Credibility
-		panel.add(new JLabel("Credibility:"), "align label");
-		panel.add(credibilityCombo, "grow,wrap");
+		// CERTAINTY + CREDIBILITY (grouped in EvidenceQualifiersPanel)
+		panel.add(qualifiersPanel, "span 2,growx,wrap");
 
 		// ----- Notes (integrated) -----
-		panel.add(new JLabel("Notes (0:M):"), "align label,top");
+		panel.add(new JLabel("Notes:"), "align label,top");
 		JPanel notesPanel = createNotesPanel("Note References", noteModel, noteList, noteIds, noteDisplayMap,
 			this::addNote, this::editNote, this::removeNote, this::createNewNote);
-		panel.add(notesPanel, "grow,wrap");
+		panel.add(notesPanel, "growx,wrap");
 
 		return panel;
 	}
@@ -246,9 +270,9 @@ public class FamilyLinkDialog extends JDialog{
 		scrollPane.setPreferredSize(new Dimension(200, 70));
 		panel.add(scrollPane, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
-		JButton addBtn = new JButton("Add Note");
-		JButton newBtn = new JButton("New Note");
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
+		JButton addBtn = new JButton("Add");
+		JButton newBtn = new JButton("New");
 		JButton editBtn = new JButton("Edit");
 		JButton removeBtn = new JButton("Remove");
 		btnPanel.add(addBtn);
@@ -328,7 +352,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void editNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String noteId = noteIds.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -339,7 +364,7 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + noteId, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createEditDialog(parentFrame, model, note);
+		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, note);
 		dialog.setVisible(true);
 		// Update display after edit
 		String newDisplay = getNoteDisplayName(noteId);
@@ -349,7 +374,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void removeNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = noteIds.remove(idx);
@@ -363,11 +389,20 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createNewDialog(parentFrame, model);
+		Set<String> before = new HashSet<>(noteIds);
+		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		// After creation, the note is in the model. User can then add it using "Add Note".
-		JOptionPane.showMessageDialog(this, "Note created. Use 'Add Note' to add it to this association.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+		// Check if a new note was added to the model
+		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id) && !noteIds.contains(id)){
+				noteIds.add(id);
+				String display = getNoteDisplayName(id);
+				noteDisplayMap.put(id, display);
+				noteModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Narrative Notes methods ====================
@@ -420,7 +455,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void editNarrativeNote(){
 		int idx = narrativeNoteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String noteId = narrativeNoteIds.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -431,7 +467,7 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + noteId, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createEditDialog(parentFrame, model, note);
+		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, note);
 		dialog.setVisible(true);
 		String newDisplay = getNarrativeNoteDisplayName(noteId);
 		narrativeNoteDisplayMap.put(noteId, newDisplay);
@@ -440,7 +476,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void removeNarrativeNote(){
 		int idx = narrativeNoteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this narrative note?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = narrativeNoteIds.remove(idx);
@@ -454,10 +491,19 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createNewDialog(parentFrame, model);
+		Set<String> before = new HashSet<>(narrativeNoteIds);
+		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		JOptionPane.showMessageDialog(this, "Note created. Use 'Add Note' to add it to the narrative.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id) && !narrativeNoteIds.contains(id)){
+				narrativeNoteIds.add(id);
+				String display = getNarrativeNoteDisplayName(id);
+				narrativeNoteDisplayMap.put(id, display);
+				narrativeNoteModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Conclusion Source Citations methods ====================
@@ -510,7 +556,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void editConclusionSource(){
 		int idx = conclusionSourceList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String sourceId = conclusionSourceIds.get(idx);
 		if(sourceHandler == null){
 			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -521,7 +568,7 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Source not found: " + sourceId, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)sourceHandler.createEditDialog(parentFrame, model, source);
+		JDialog dialog = sourceHandler.createEditDialog(parentFrame, model, source);
 		dialog.setVisible(true);
 		String newDisplay = getSourceDisplayName(sourceId);
 		conclusionSourceDisplayMap.put(sourceId, newDisplay);
@@ -530,7 +577,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void removeConclusionSource(){
 		int idx = conclusionSourceList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this source citation?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = conclusionSourceIds.remove(idx);
@@ -544,10 +592,19 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)sourceHandler.createNewDialog(parentFrame, model);
+		Set<String> before = new HashSet<>(conclusionSourceIds);
+		JDialog dialog = sourceHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		JOptionPane.showMessageDialog(this, "Source created. Use 'Add Source' to add it to the conclusion.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id) && !conclusionSourceIds.contains(id)){
+				conclusionSourceIds.add(id);
+				String display = getSourceDisplayName(id);
+				conclusionSourceDisplayMap.put(id, display);
+				conclusionSourceModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Conclusion Note methods ====================
@@ -600,7 +657,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void editConclusionNote(){
 		int idx = conclusionNoteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String noteId = conclusionNoteIds.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -611,7 +669,7 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + noteId, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createEditDialog(parentFrame, model, note);
+		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, note);
 		dialog.setVisible(true);
 		String newDisplay = getConclusionNoteDisplayName(noteId);
 		conclusionNoteDisplayMap.put(noteId, newDisplay);
@@ -620,7 +678,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void removeConclusionNote(){
 		int idx = conclusionNoteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this conclusion note?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = conclusionNoteIds.remove(idx);
@@ -634,10 +693,19 @@ public class FamilyLinkDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createNewDialog(parentFrame, model);
+		Set<String> before = new HashSet<>(conclusionNoteIds);
+		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		JOptionPane.showMessageDialog(this, "Note created. Use 'Add Note' to add it to the conclusion.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id) && !conclusionNoteIds.contains(id)){
+				conclusionNoteIds.add(id);
+				String display = getConclusionNoteDisplayName(id);
+				conclusionNoteDisplayMap.put(id, display);
+				conclusionNoteModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Conclusion Container (with sub-tabs) ====================
@@ -661,12 +729,12 @@ public class FamilyLinkDialog extends JDialog{
 	// ==================== Conclusion Panel ====================
 
 	private JPanel createConclusionPanel(){
-		JPanel panel = new JPanel(new MigLayout("fill", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]5[]5"));
-		panel.setBorder(new TitledBorder("CONCLUSION_STRUCTURE"));
+		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]5[]5[]"));
+		panel.setBorder(new TitledBorder("Conclusion"));
 
 		// CONTEXT (1:1)
 		panel.add(new JLabel("Context:"), "align label");
-		panel.add(conclusionContextField, "grow,wrap");
+		panel.add(conclusionContextField, "growx,wrap");
 
 		// RESOLVES (0:M) - list of event references (single selection)
 		panel.add(new JLabel("Resolves (Events):"), "align label,top");
@@ -689,7 +757,7 @@ public class FamilyLinkDialog extends JDialog{
 		resolvesBtnPanel.add(setPreferredBtn, BorderLayout.EAST);
 
 		resolvesPanel.add(resolvesBtnPanel, BorderLayout.SOUTH);
-		panel.add(resolvesPanel, "grow,wrap");
+		panel.add(resolvesPanel, "growx,wrap");
 
 		resolvesList.addMouseListener(new MouseAdapter(){
 			@Override
@@ -717,17 +785,17 @@ public class FamilyLinkDialog extends JDialog{
 		preferredField.setEditable(false);
 		preferredField.setBackground(UIManager.getColor("TextField.background"));
 		preferredField.setForeground(UIManager.getColor("TextField.foreground"));
-		panel.add(preferredField, "grow,wrap");
+		panel.add(preferredField, "growx,wrap");
 
 		// PROOF_STATUS (1:1)
 		panel.add(new JLabel("Proof Status:"), "align label");
-		panel.add(proofStatusCombo, "grow,wrap");
+		panel.add(proofStatusCombo, "growx,wrap");
 
 		// NARRATIVE (0:1)
 		panel.add(new JLabel("Narrative:"), "align label,top");
 		JScrollPane narrScroll = new JScrollPane(narrativeArea);
 		narrScroll.setPreferredSize(new Dimension(200, 60));
-		panel.add(narrScroll, "grow,wrap");
+		panel.add(narrScroll, "growx,wrap");
 
 		// NARRATIVE -> NOTE (0:M)
 		panel.add(new JLabel("Narrative Notes:"), "align label,top");
@@ -735,11 +803,11 @@ public class FamilyLinkDialog extends JDialog{
 			narrativeNoteList, narrativeNoteIds, narrativeNoteDisplayMap,
 			this::addNarrativeNote, this::editNarrativeNote, this::removeNarrativeNote,
 			this::createNewNarrativeNote);
-		panel.add(narrativeNotePanel, "grow,wrap");
+		panel.add(narrativeNotePanel, "growx,wrap");
 
 		// DATE (0:1)
 		panel.add(new JLabel("Date:"), "align label");
-		panel.add(conclusionDateField, "grow,wrap");
+		panel.add(conclusionDateField, "growx,wrap");
 
 		// SOURCE_CITATION (0:M) - references under CONCLUSION
 		panel.add(new JLabel("Source Citations:"), "align label,top");
@@ -747,7 +815,7 @@ public class FamilyLinkDialog extends JDialog{
 			conclusionSourceList, conclusionSourceIds, conclusionSourceDisplayMap,
 			this::addConclusionSource, this::editConclusionSource, this::removeConclusionSource,
 			this::createNewConclusionSource);
-		panel.add(sourcePanel, "grow,wrap");
+		panel.add(sourcePanel, "growx,wrap");
 
 		// NOTE (0:M) - references under CONCLUSION
 		panel.add(new JLabel("Conclusion Notes:"), "align label,top");
@@ -755,7 +823,7 @@ public class FamilyLinkDialog extends JDialog{
 			conclusionNoteList, conclusionNoteIds, conclusionNoteDisplayMap,
 			this::addConclusionNote, this::editConclusionNote, this::removeConclusionNote,
 			this::createNewConclusionNote);
-		panel.add(conclusionNotePanel, "grow,wrap");
+		panel.add(conclusionNotePanel, "growx,wrap");
 
 		return panel;
 	}
@@ -763,12 +831,12 @@ public class FamilyLinkDialog extends JDialog{
 	// ==================== Modification Panel (sub-tab) ====================
 
 	private JPanel createModificationPanel(){
-		JPanel panel = new JPanel(new MigLayout("fill", "[right]rel[grow]", "[]10[]10"));
-		panel.setBorder(new TitledBorder("MODIFICATION_STRUCTURE (under CONCLUSION)"));
+		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
+		panel.setBorder(new TitledBorder("Modification (under Conclusion)"));
 
 		// CREATION (1:1)
 		panel.add(new JLabel("Creation Date:"), "align label");
-		panel.add(creationDateField, "grow,wrap");
+		panel.add(creationDateField, "growx,wrap");
 
 		// UPDATE (0:M)
 		panel.add(new JLabel("Updates:"), "align label,top");
@@ -776,7 +844,7 @@ public class FamilyLinkDialog extends JDialog{
 		updatePanel.add(new JScrollPane(updateList), BorderLayout.CENTER);
 
 		JPanel updateBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		JButton addUpdateBtn = new JButton("Add Update");
+		JButton addUpdateBtn = new JButton("Add");
 		JButton editUpdateBtn = new JButton("Edit");
 		JButton removeUpdateBtn = new JButton("Remove");
 		updateBtnPanel.add(addUpdateBtn);
@@ -784,7 +852,7 @@ public class FamilyLinkDialog extends JDialog{
 		updateBtnPanel.add(removeUpdateBtn);
 		updatePanel.add(updateBtnPanel, BorderLayout.SOUTH);
 
-		panel.add(updatePanel, "grow,wrap");
+		panel.add(updatePanel, "growx,wrap");
 
 		updateList.addMouseListener(new MouseAdapter(){
 			@Override
@@ -841,7 +909,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void editResolves(){
 		int idx = resolvesList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String currentId = resolvesIds.get(idx);
 		String newId = (String)JOptionPane.showInputDialog(
 			this,
@@ -852,7 +921,8 @@ public class FamilyLinkDialog extends JDialog{
 			null,
 			currentId
 		);
-		if(newId == null || newId.trim().isEmpty()) return;
+		if(newId == null || newId.trim().isEmpty())
+			return;
 		String trimmed = newId.trim();
 		if(!trimmed.equals(currentId) && resolvesIds.contains(trimmed)){
 			JOptionPane.showMessageDialog(this, "ID already in use.", "Duplicate", JOptionPane.WARNING_MESSAGE);
@@ -869,7 +939,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void removeResolves(){
 		int idx = resolvesList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String removedId = resolvesIds.get(idx);
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this event reference?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
@@ -894,7 +965,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void editUpdate(){
 		int idx = updateList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		UpdateRecord current = updateRecords.get(idx);
 		UpdateRecord updated = showUpdateDialog(current);
 		if(updated != null){
@@ -905,7 +977,8 @@ public class FamilyLinkDialog extends JDialog{
 
 	private void removeUpdate(){
 		int idx = updateList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this update?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			updateRecords.remove(idx);
@@ -922,7 +995,7 @@ public class FamilyLinkDialog extends JDialog{
 	 */
 	private UpdateRecord showUpdateDialog(UpdateRecord existing){
 		JDialog dialog = new JDialog(this, existing == null? "Add Update": "Edit Update", true);
-		dialog.setLayout(new MigLayout("fill", "[right]rel[grow]", "[]10[]10"));
+		dialog.setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
 		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 
 		JTextField dateField = new JTextField(15);
@@ -939,19 +1012,19 @@ public class FamilyLinkDialog extends JDialog{
 		}
 
 		dialog.add(new JLabel("Date:"), "align label");
-		dialog.add(dateField, "grow,wrap");
+		dialog.add(dateField, "growx,wrap");
 
 		// Note: 0:1 reference
 		dialog.add(new JLabel("Note (optional):"), "align label");
-		JPanel notePanel = new JPanel(new BorderLayout(5, 0));
+		JPanel notePanel = new JPanel(new BorderLayout(5, 5));
 		notePanel.add(noteDisplayField, BorderLayout.CENTER);
 		JButton browseBtn = new JButton("Browse...");
 		JButton clearBtn = new JButton("Clear");
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 0));
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 		btnPanel.add(browseBtn);
 		btnPanel.add(clearBtn);
 		notePanel.add(btnPanel, BorderLayout.EAST);
-		dialog.add(notePanel, "grow,wrap");
+		dialog.add(notePanel, "growx,wrap");
 
 		// Store the selected note ID
 		final String[] selectedNoteId = {existing != null? existing.noteId: null};
@@ -983,7 +1056,7 @@ public class FamilyLinkDialog extends JDialog{
 		JButton cancelBtn = new JButton("Cancel");
 		btnPanelBottom.add(okBtn);
 		btnPanelBottom.add(cancelBtn);
-		dialog.add(btnPanelBottom, "span 2, growx");
+		dialog.add(btnPanelBottom, "span 2,growx");
 
 		final UpdateRecord[] result = {null};
 		okBtn.addActionListener(e -> {
@@ -1011,8 +1084,7 @@ public class FamilyLinkDialog extends JDialog{
 		// Load CERTAINTY & CREDIBILITY
 		String certainty = FLEFRecordUtils.getChildValue(existingLink, "CERTAINTY");
 		String credibility = FLEFRecordUtils.getChildValue(existingLink, "CREDIBILITY");
-		certaintyCombo.setSelectedItem(certainty != null? certainty: "");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: "");
+		qualifiersPanel.load(certainty, credibility);
 
 		// Load NOTE references
 		loadNotes();
@@ -1101,8 +1173,14 @@ public class FamilyLinkDialog extends JDialog{
 		}
 
 		// CERTAINTY & CREDIBILITY
-		FLEFRecordUtils.updateChildValue(record, "CERTAINTY", (String)certaintyCombo.getSelectedItem());
-		FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", (String)credibilityCombo.getSelectedItem());
+		String certainty = qualifiersPanel.getCertainty();
+		if(certainty != null && !certainty.isEmpty()){
+			FLEFRecordUtils.updateChildValue(record, "CERTAINTY", certainty);
+		}
+		String credibility = qualifiersPanel.getCredibility();
+		if(credibility != null && !credibility.isEmpty()){
+			FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
+		}
 
 		// NOTE references (direct children)
 		FLEFRecordUtils.removeChildren(record, "NOTE");
@@ -1119,7 +1197,7 @@ public class FamilyLinkDialog extends JDialog{
 		String conclusionDate = conclusionDateField.getText().trim();
 		String preferred = preferredField.getText().trim();
 
-		if(!context.isEmpty() || !proofStatus.isEmpty() || !narrative.isEmpty() ||
+		if(!context.isEmpty() || !Objects.requireNonNull(proofStatus).isEmpty() || !narrative.isEmpty() ||
 			!conclusionDate.isEmpty() || !preferred.isEmpty() ||
 			!resolvesIds.isEmpty() || !conclusionSourceIds.isEmpty() ||
 			!conclusionNoteIds.isEmpty() || !narrativeNoteIds.isEmpty() ||
@@ -1201,7 +1279,6 @@ public class FamilyLinkDialog extends JDialog{
 		return saved;
 	}
 
-	// ==================== Main for testing ====================
 
 	public static void main(String[] args){
 		try{

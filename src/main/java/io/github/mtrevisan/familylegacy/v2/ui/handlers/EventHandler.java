@@ -4,10 +4,15 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.EventDialog;
 
-import java.awt.*;
+import java.awt.Frame;
 
 
 public class EventHandler implements RecordTypeHandler<EventDialog>{
+
+	@Override
+	public String getLabel(){
+		return "Event";
+	}
 
 	@Override
 	public String getType(){
@@ -20,13 +25,20 @@ public class EventHandler implements RecordTypeHandler<EventDialog>{
 		String date = getChildValue(record, "DATE");
 		String id = record.getId();
 		StringBuilder sb = new StringBuilder();
-		if(type != null) sb.append(type);
+		if(type != null)
+			sb.append(type);
 		if(date != null){
-			if(sb.length() > 0) sb.append(" ");
-			sb.append("(").append(date).append(")");
+			if(!sb.isEmpty())
+				sb.append(" ");
+			sb.append("(")
+				.append(date)
+				.append(")");
 		}
-		if(sb.length() == 0) sb.append("Event");
-		sb.append(" (").append(id).append(")");
+		if(sb.isEmpty())
+			sb.append("Event");
+		sb.append(" (")
+			.append(id)
+			.append(")");
 		return sb.toString();
 	}
 

@@ -1,0 +1,231 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.io.Serial;
+
+
+/**
+ * Dialog for editing a TRANSLATION structure.
+ * <p>
+ * Structure:
+ * <pre>
+ * TRANSLATION :=
+ *   +1 LOCALE <LOCALE_CODE>    {0:1}
+ *   +1 VALUE <SUBMITTER_TRANSLATED_TEXT>    {1:1}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * </pre>
+ */
+public class TranslationDialog extends JDialog{
+
+	@Serial
+	private static final long serialVersionUID = 6510714972204378850L;
+
+
+	private final FLEFRecord transRecord;
+	private boolean saved = false;
+
+	// ========== Basic fields ==========
+	private final JTextField localeField = new JTextField(10);
+	private final JTextArea valueArea = new JTextArea(3, 20);
+
+	// ========== MODIFICATION (1:1) ==========
+	private final ModificationPanel modificationPanel;
+
+	// ========== Buttons ==========
+	private final JButton okButton = new JButton("OK");
+	private final JButton cancelButton = new JButton("Cancel");
+
+	// ========== Handlers ==========
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+
+	/**
+	 * Creates a dialog to edit an existing translation.
+	 *
+	 * @param parent      the parent dialog
+	 * @param model       the FLEF model
+	 * @param transRecord the translation record to edit
+	 */
+	public TranslationDialog(JDialog parent, FLEFModel model, FLEFRecord transRecord){
+		super(parent, transRecord == null? "Add Translation": "Edit Translation", true);
+
+		this.transRecord = transRecord != null? transRecord: new FLEFRecord();
+		this.modificationPanel = new ModificationPanel(model, this);
+		initComponents();
+		if(transRecord != null){
+			loadData();
+		}
+		pack();
+		setMinimumSize(new Dimension(550, 500));
+		setLocationRelativeTo(parent);
+	}
+
+	/**
+	 * Creates a dialog to create a new translation.
+	 *
+	 * @param parent the parent dialog
+	 * @param model  the FLEF model
+	 */
+	public TranslationDialog(JDialog parent, FLEFModel model){
+		this(parent, model, null);
+	}
+
+	private void initComponents(){
+		setLayout(new BorderLayout(10, 10));
+
+		JTabbedPane tabbedPane = new JTabbedPane();
+
+		// ===== Basic tab =====
+		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
+		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		basicPanel.add(new JLabel("Locale:"), "align label");
+		basicPanel.add(localeField, "growx,wrap");
+
+		basicPanel.add(new JLabel("Value:"), "align label,top");
+		JScrollPane scroll = new JScrollPane(valueArea);
+		scroll.setPreferredSize(new Dimension(200, 60));
+		basicPanel.add(scroll, "growx,wrap");
+
+		tabbedPane.addTab("Basic", basicPanel);
+
+		// ===== Modification tab =====
+		tabbedPane.addTab("Modification", modificationPanel);
+
+		add(tabbedPane, BorderLayout.CENTER);
+
+		// ===== Button panel =====
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		btnPanel.add(okButton);
+		btnPanel.add(cancelButton);
+		add(btnPanel, BorderLayout.SOUTH);
+
+		okButton.addActionListener(e -> {
+			if(validateData()){
+				saveData();
+				saved = true;
+				dispose();
+			}
+		});
+		cancelButton.addActionListener(e -> dispose());
+	}
+
+	private void loadData(){
+		localeField.setText(FLEFRecordUtils.getChildValue(transRecord, "LOCALE"));
+		valueArea.setText(FLEFRecordUtils.getChildValue(transRecord, "VALUE"));
+
+		// MODIFICATION (1:1)
+		modificationPanel.loadFromRecord(transRecord);
+	}
+
+	private boolean validateData(){
+		// VALUE (1:1) - required
+		if(valueArea.getText().trim().isEmpty()){
+			JOptionPane.showMessageDialog(this,
+				"VALUE is required for a translation.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+			valueArea.requestFocusInWindow();
+			return false;
+		}
+
+		// MODIFICATION_STRUCTURE (1:1) - required
+		if(!modificationPanel.hasData()){
+			JOptionPane.showMessageDialog(this,
+				"Modification is required.\nPlease add a CREATION date.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return modificationPanel.validateRequiredFields();
+	}
+
+	private void saveData(){
+		transRecord.getChildren().clear();
+
+		// Main fields
+		FLEFRecordUtils.updateChildValue(transRecord, "LOCALE", localeField.getText().trim());
+		FLEFRecordUtils.updateChildValue(transRecord, "VALUE", valueArea.getText().trim());
+
+		// MODIFICATION (1:1)
+		modificationPanel.saveToRecord(transRecord);
+	}
+
+	public boolean isSaved(){
+		return saved;
+	}
+
+	public FLEFRecord getTranslationRecord(){
+		return transRecord;
+	}
+
+	// ==================== Main per test ====================
+
+	public static void main(String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(Exception ignored){
+		}
+
+		FLEFModel model = new FLEFModel();
+		HandlerRegistry.register(new NoteHandler());
+
+		SwingUtilities.invokeLater(() -> {
+			JDialog parent = new JDialog();
+			parent.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+			TranslationDialog dialog = new TranslationDialog(parent, model);
+			dialog.setVisible(true);
+			if(dialog.isSaved()){
+				System.out.println("Translation saved.");
+			}
+			System.exit(0);
+		});
+	}
+
+}

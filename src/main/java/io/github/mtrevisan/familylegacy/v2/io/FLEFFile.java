@@ -61,52 +61,54 @@ public final class FLEFFile{
 	 * @param flefPath path to the .flef data file
 	 * @param gedgPath path to the .gedg protocol file
 	 * @return validated FLEFModel
-	 * @throws IOException         if files cannot be read
-	 * @throws ValidationException if validation fails
+	 * @throws IOException	If files cannot be read
+	 * @throws ValidationException	If validation fails
 	 */
-	public static FLEFModel loadAndValidate(Path flefPath, Path gedgPath)
-			throws IOException, ValidationException{
-		FLEFGrammar grammar = FLEFGrammar.loadFromPath(gedgPath);
-		FLEFModel model = load(flefPath);
-		FLEFValidator validator = new FLEFValidator(grammar);
-		List<ValidationError> errors = validator.validate(model);
-		if(!errors.isEmpty()){
-			throw new ValidationException(errors);
-		}
+	public static FLEFModel loadAndValidate(final Path flefPath, final Path gedgPath) throws IOException,
+			ValidationException{
+		final FLEFGrammar grammar = FLEFGrammar.createFromPath(gedgPath);
+		final FLEFModel model = load(flefPath);
+
+		final FLEFValidator validator = FLEFValidator.create(grammar);
+		final List<ValidationError> errors = validator.validate(model);
+		if(!errors.isEmpty())
+			throw ValidationException.create(errors);
+
 		return model;
 	}
 
 	/**
 	 * Loads a FLEF data file and validates it against a pre-loaded grammar.
 	 *
-	 * @param flefFilePath path to the .flef data file
-	 * @param grammar      the grammar to validate against
-	 * @return validated FLEFModel
-	 * @throws IOException         if the file cannot be read
-	 * @throws ValidationException if validation fails
+	 * @param flefFilePath	Path to the .flef data file
+	 * @param grammar	The grammar to validate against
+	 * @return	Validated FLEFModel
+	 * @throws IOException	If the file cannot be read
+	 * @throws ValidationException	If validation fails
 	 */
-	public static FLEFModel loadWithGrammar(String flefFilePath, FLEFGrammar grammar)
-			throws IOException, ValidationException{
+	public static FLEFModel loadWithGrammar(final String flefFilePath, final FLEFGrammar grammar) throws IOException,
+			ValidationException{
 		return loadWithGrammar(Path.of(flefFilePath), grammar);
 	}
 
 	/**
 	 * Loads a FLEF data file and validates it against a pre-loaded grammar.
 	 *
-	 * @param flefPath path to the .flef data file
-	 * @param grammar  the grammar to validate against
-	 * @return validated FLEFModel
-	 * @throws IOException         if the file cannot be read
-	 * @throws ValidationException if validation fails
+	 * @param flefPath	Path to the .flef data file
+	 * @param grammar	The grammar to validate against
+	 * @return	Validated FLEFModel
+	 * @throws IOException	If the file cannot be read
+	 * @throws ValidationException	If validation fails
 	 */
-	public static FLEFModel loadWithGrammar(Path flefPath, FLEFGrammar grammar)
-			throws IOException, ValidationException{
-		FLEFModel model = load(flefPath);
-		FLEFValidator validator = new FLEFValidator(grammar);
-		List<ValidationError> errors = validator.validate(model);
-		if(!errors.isEmpty()){
-			throw new ValidationException(errors);
-		}
+	public static FLEFModel loadWithGrammar(final Path flefPath, final FLEFGrammar grammar) throws IOException,
+			ValidationException{
+		final FLEFModel model = load(flefPath);
+
+		final FLEFValidator validator = FLEFValidator.create(grammar);
+		final List<ValidationError> errors = validator.validate(model);
+		if(!errors.isEmpty())
+			throw ValidationException.create(errors);
+
 		return model;
 	}
 
@@ -117,7 +119,7 @@ public final class FLEFFile{
 	 * @return populated model
 	 * @throws IOException if the file cannot be read
 	 */
-	public static FLEFModel load(Path filePath) throws IOException{
+	public static FLEFModel load(final Path filePath) throws IOException{
 		final FLEFModel model = new FLEFModel();
 		final List<String> lines = readLines(filePath);
 
@@ -134,13 +136,11 @@ public final class FLEFFile{
 				model.addRecord(record);
 				index += record.getLineCount();
 			}
-			else if(isEndOfFileLine(line)){
+			else if(isEndOfFileLine(line))
 				// EOF marker
 				break;
-			}
-			else{
-				index++;
-			}
+			else
+				index ++;
 		}
 
 		return model;
@@ -157,19 +157,17 @@ public final class FLEFFile{
 		final StringBuilder sb = new StringBuilder();
 
 		// Header
-		if(model.getHeader() != null){
+		if(model.getHeader() != null)
 			sb.append(serializeRecord(model.getHeader(), 0));
-		}
 
 		// Records
-		for(final FLEFRecord record : model.getRecords()){
+		for(final FLEFRecord record : model.getRecords())
 			sb.append(serializeRecord(record, 0));
-		}
 
 		// EOF
 		sb.append("0 EOF\n");
 
-		try(BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))){
+		try(final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))){
 			writer.write(sb.toString());
 		}
 	}
@@ -179,12 +177,11 @@ public final class FLEFFile{
 	 */
 	private static List<String> readLines(final Path filePath) throws IOException{
 		final List<String> lines = new ArrayList<>();
-		try(BufferedReader reader = new BufferedReader(new FileReader(filePath.toString()))){
+		try(final BufferedReader reader = new BufferedReader(new FileReader(filePath.toString()))){
 			String line;
 			while((line = reader.readLine()) != null){
-				if(!line.trim().isEmpty()){
+				if(!line.trim().isEmpty())
 					lines.add(line.trim());
-				}
 			}
 		}
 		return lines;
@@ -221,10 +218,10 @@ public final class FLEFFile{
 		int index = startIndex + 1;
 		while(index < lines.size()){
 			final String line = lines.get(index);
-			if(line.startsWith("0 ")){
+			if(line.startsWith("0 "))
 				// Start of a new record or EOF
 				break;
-			}
+
 			// Parsing a header line (e.g., "1 PROTOCOL", "2 NAME FLEF")
 			final FLEFRecord child = parseChildLine(line);
 			record.addChild(child);
@@ -234,7 +231,7 @@ public final class FLEFFile{
 				// The child's children have already been added during parsing.
 			}
 
-			index++;
+			index ++;
 		}
 
 		// Save the number of parsed lines
@@ -259,13 +256,13 @@ public final class FLEFFile{
 		int index = startIndex + 1;
 		while(index < lines.size()){
 			final String line = lines.get(index);
-			if(line.startsWith("0 ")){
+			if(line.startsWith("0 "))
 				// Start of a new record
 				break;
-			}
+
 			final FLEFRecord child = parseChildLine(line);
 			record.addChild(child);
-			index++;
+			index ++;
 		}
 
 		record.setLineCount(index - startIndex);
@@ -302,23 +299,27 @@ public final class FLEFFile{
 
 		// The main line of the record
 		if(record.getLevel() == 0){
-			if(record.getId() != null){
-				sb.append("0 @").append(record.getId()).append("@ ").append(record.getType()).append("\n");
-			}
-			else{
-				sb.append("0 ").append(record.getType()).append("\n");
-			}
+			if(record.getId() != null)
+				sb.append("0 @")
+					.append(record.getId())
+					.append("@ ")
+					.append(record.getType())
+					.append("\n");
+			else
+				sb.append("0 ")
+					.append(record.getType())
+					.append("\n");
 		}
 		else{
 			final String line = record.getLevel() + " " + record.getTag() +
 				(record.getValue() != null? " " + record.getValue(): "");
-			sb.append(line).append("\n");
+			sb.append(line)
+				.append("\n");
 		}
 
 		// Children
-		for(final FLEFRecord child : record.getChildren()){
+		for(final FLEFRecord child : record.getChildren())
 			sb.append(serializeRecord(child, child.getLevel()));
-		}
 
 		return sb.toString();
 	}
@@ -332,15 +333,15 @@ public final class FLEFFile{
 	 * @return the file system path as a String
 	 * @throws IOException if the resource cannot be found or accessed
 	 */
-	private static Path getResourcePath(String resourceName) throws IOException{
-		URL resource = FLEFFile.class.getResource(resourceName);
-		if(resource == null){
+	private static Path getResourcePath(final String resourceName) throws IOException{
+		final URL resource = FLEFFile.class.getResource(resourceName);
+		if(resource == null)
 			throw new IOException("Resource not found: " + resourceName);
-		}
+
 		try{
 			return Paths.get(resource.toURI());
 		}
-		catch(URISyntaxException e){
+		catch(final URISyntaxException e){
 			throw new IOException("Invalid resource URI: " + resourceName, e);
 		}
 	}
@@ -352,17 +353,16 @@ public final class FLEFFile{
 	 * @return the file system path as a String
 	 * @throws IOException if the resource cannot be found
 	 */
-	private static Path findGrammarResource(String baseName) throws IOException{
+	private static Path findGrammarResource(final String baseName) throws IOException{
 		// Try with .gedg extension first
-		String[] extensions = {".gedg", ".gedg.txt"};
-		for(String ext : extensions){
+		final String[] extensions = {".gedg", ".gedg.txt"};
+		for(final String ext : extensions){
 			try{
 				return getResourcePath(baseName + ext);
 			}
-			catch(IOException ignored){
-				// Try next extension
-			}
+			catch(final IOException ignored){}
 		}
+
 		throw new IOException("Grammar resource not found: " + baseName + " with .gedg or .gedg.txt extension");
 	}
 
@@ -374,11 +374,10 @@ public final class FLEFFile{
 	 * @return the file system path as a String
 	 * @throws IOException if the resource cannot be found
 	 */
-	private static Path findDataResource(String baseName, String extension) throws IOException{
+	private static Path findDataResource(final String baseName, final String extension) throws IOException{
 		return getResourcePath(baseName + extension);
 	}
 
-	// ==================== Main Methods ====================
 
 	/**
 	 * Example usage: loads a data file and validates it against a grammar file.
@@ -394,19 +393,17 @@ public final class FLEFFile{
 			System.out.println("Data: " + dataPath);
 
 			// Load and validate in one call
-			//FIXME this does not work
-//			FLEFModel model = loadAndValidate(dataPath, grammarPath);
-			FLEFModel model = load(dataPath);
+			FLEFModel model = loadAndValidate(dataPath, grammarPath);
 
 			System.out.println("✅ Valid file! " + model.getRecordCount() + " record(s) loaded.");
 			System.out.println("Record types: " + model.getRecordTypes());
 		}
-//		catch(ValidationException e){
-//			System.err.println("❌ Errori di validazione (" + e.getErrors().size() + "):");
-//			for(ValidationError err : e.getErrors()){
-//				System.err.println("  - " + err);
-//			}
-//		}
+		catch(ValidationException e){
+			System.err.println("❌ Errori di validazione (" + e.getErrors().size() + "):");
+			for(ValidationError err : e.getErrors()){
+				System.err.println("  - " + err);
+			}
+		}
 		catch(IOException e){
 			System.err.println("❌ Errore di I/O: " + e.getMessage());
 			e.printStackTrace();
@@ -441,8 +438,6 @@ public final class FLEFFile{
 			e.printStackTrace();
 		}
 	}
-
-	// ==================== Test Data Creators ====================
 
 	private static FLEFRecord createTestHeader(){
 		final FLEFRecord header = new FLEFRecord();

@@ -289,17 +289,17 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap");
+		add(filterField, "growx,wrap");
 		add(filesScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
 		add(fileLabel, "align label,sizegroup label,split 3");
-		add(fileField, "grow");
+		add(fileField, "growx");
 		add(fileButton, "wrap");
 		add(sphericalCheckBox, "wrap");
 		add(mappingLabel, "align label,sizegroup label,split 2");
 		add(mappingComboBox, "wrap paragraph");
 		add(descriptionLabel, "align label,sizegroup label,split 2");
-		add(descriptionField, "grow,wrap");
+		add(descriptionField, "growx,wrap");
 		add(extractPanel, "grow,wrap");
 		add(restrictionCheckBox, "wrap paragraph");
 		add(noteButton, "grow,wrap paragraph");

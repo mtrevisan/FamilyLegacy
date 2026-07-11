@@ -1,6 +1,28 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
-
-import java.util.regex.Pattern;
 
 
 /**
@@ -10,56 +32,40 @@ import java.util.regex.Pattern;
  */
 public final class Cardinality{
 
-	private static final Pattern PATTERN = Pattern.compile("\\{(\\d+):(\\d+|M)\\}");
-
 	private final int min;
-	private final int max; // Integer.MAX_VALUE for unlimited
+	// Integer.MAX_VALUE for unlimited
+	private final int max;
 
-	private Cardinality(int min, int max){
-		if(min < 0) throw new IllegalArgumentException("min cannot be negative");
-		if(max < min && max != Integer.MAX_VALUE) throw new IllegalArgumentException("max must be >= min");
+
+	/**
+	 * Creates a Cardinality from a string like "{1:1}", "{0:M}", etc.
+	 */
+	public static Cardinality parse(final String s){
+		if(s == null || s.isEmpty())
+			throw new IllegalArgumentException("Cardinality string cannot be null or empty");
+
+		final String trimmed = s.trim();
+		if(!trimmed.startsWith("{") || !trimmed.endsWith("}"))
+			throw new IllegalArgumentException("Invalid cardinality format: " + s);
+
+		final String inner = trimmed.substring(1, trimmed.length() - 1);
+		final String[] parts = inner.split(":");
+		if(parts.length != 2)
+			throw new IllegalArgumentException("Invalid cardinality format: " + s);
+
+		final int min = Integer.parseInt(parts[0]);
+		final int max = ("M".equals(parts[1])? Integer.MAX_VALUE: Integer.parseInt(parts[1]));
+		return new Cardinality(min, max);
+	}
+
+
+	private Cardinality(final int min, final int max){
 		this.min = min;
 		this.max = max;
 	}
 
-	/**
-	 * Parses a cardinality string like "{1:1}" or "{0:M}".
-	 *
-	 * @param s the string to parse
-	 * @return the Cardinality object
-	 * @throws IllegalArgumentException if the string is malformed
-	 */
-	public static Cardinality parse(String s){
-		if(s == null || s.isEmpty()){
-			throw new IllegalArgumentException("Cardinality string cannot be null or empty");
-		}
-		var matcher = PATTERN.matcher(s.trim());
-		if(!matcher.matches()){
-			throw new IllegalArgumentException("Invalid cardinality format: " + s);
-		}
-		int min = Integer.parseInt(matcher.group(1));
-		String maxStr = matcher.group(2);
-		int max = "M".equals(maxStr)? Integer.MAX_VALUE: Integer.parseInt(maxStr);
-		return new Cardinality(min, max);
-	}
-
-	public int getMin(){
-		return min;
-	}
-
-	public int getMax(){
-		return max;
-	}
-
-	public boolean isUnlimited(){
-		return max == Integer.MAX_VALUE;
-	}
-
-	/**
-	 * Checks if a given count satisfies this cardinality.
-	 */
-	public boolean isValidCount(int count){
-		return count >= min && count <= max;
+	public boolean isValidCount(final int count){
+		return (count >= min && count <= max);
 	}
 
 	@Override

@@ -302,7 +302,7 @@ public final class GroupDialog extends CommonListDialog{
 
 		final JPanel recordPanelLink = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelLink.add(linkRoleLabel, "align label,sizegroup lbl,split 2");
-		recordPanelLink.add(linkRoleField, "grow,wrap paragraph");
+		recordPanelLink.add(linkRoleField, "growx,wrap paragraph");
 		recordPanelLink.add(linkCertaintyLabel, "align label,sizegroup lbl,split 2");
 		recordPanelLink.add(linkCertaintyComboBox, "wrap related");
 		recordPanelLink.add(linkCredibilityLabel, "align label,sizegroup lbl,split 2");

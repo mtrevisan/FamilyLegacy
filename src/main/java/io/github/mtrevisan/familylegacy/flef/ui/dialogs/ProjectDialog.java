@@ -123,11 +123,11 @@ public final class ProjectDialog extends CommonRecordDialog implements TextPrevi
 	protected void initRecordLayout(final JComponent recordPanel){
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanel.add(copyrightLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(copyrightField, "grow,wrap paragraph");
+		recordPanel.add(copyrightField, "growx,wrap paragraph");
 		recordPanel.add(noteLabel, "align label,top,sizegroup lbl,split 2");
 		recordPanel.add(noteTextPreview, "grow,wrap related");
 		recordPanel.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(localeField, "grow");
+		recordPanel.add(localeField, "growx");
 	}
 
 	@Override

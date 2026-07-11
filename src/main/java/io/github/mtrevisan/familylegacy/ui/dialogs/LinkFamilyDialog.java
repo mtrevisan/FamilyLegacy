@@ -200,7 +200,7 @@ public class LinkFamilyDialog extends JDialog{
 
 		setLayout(new MigLayout());
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow");
+		add(filterField, "growx");
 		add(familiesScrollPane, "newline,width 100%,wrap paragraph");
 		add(okButton, "tag ok,split 2,sizegroup button2");
 		add(cancelButton, "tag cancel,sizegroup button2");

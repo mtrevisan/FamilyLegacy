@@ -208,7 +208,7 @@ public final class AssertionDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(roleLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(roleField, "grow,wrap paragraph");
+		recordPanelBase.add(roleField, "growx,wrap paragraph");
 		recordPanelBase.add(certaintyLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(certaintyComboBox, "wrap related");
 		recordPanelBase.add(credibilityLabel, "align label,sizegroup lbl,split 2");

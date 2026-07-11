@@ -89,7 +89,7 @@ public class EventsPanel extends JPanel{
 
 		setBorder(BorderFactory.createTitledBorder("Events"));
 		add(eventLabel, "align label,split 3");
-		add(eventField, "grow");
+		add(eventField, "growx");
 		add(eventAddButton, "wrap");
 		add(eventScrollPane, "grow,height 46");
 	}

@@ -4,10 +4,15 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupDialog;
 
-import java.awt.*;
+import java.awt.Frame;
 
 
 public class GroupHandler implements RecordTypeHandler<GroupDialog>{
+
+	@Override
+	public String getLabel(){
+		return "Group";
+	}
 
 	@Override
 	public String getType(){

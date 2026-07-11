@@ -402,7 +402,7 @@ public abstract class CommonListDialog extends CommonRecordDialog implements Val
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2,hidemode 3");
-		add(filterField, "grow,wrap related,hidemode 3");
+		add(filterField, "growx,wrap related,hidemode 3");
 		add(tableScrollPane, "grow,wrap paragraph,hidemode 3");
 		add(newRecordButton, "sizegroup btn,tag add,split 3,align right,hidemode 3");
 		add(unselectRecordButton, "sizegroup btn,tag unselect,gapleft 30,align right,hidemode 3");

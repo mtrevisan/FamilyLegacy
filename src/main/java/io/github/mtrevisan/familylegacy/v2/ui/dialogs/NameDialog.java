@@ -34,15 +34,39 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -52,6 +76,10 @@ import java.util.Map;
  * Transcription lists show at least 3 rows and have a "Transcriptions" title.
  */
 public class NameDialog extends JDialog{
+
+	@Serial
+	private static final long serialVersionUID = 5856181538971193737L;
+
 
 	private final FLEFModel model;
 	private final Frame parentFrame;
@@ -117,6 +145,7 @@ public class NameDialog extends JDialog{
 
 	public NameDialog(JDialog parent, FLEFModel model, FLEFRecord nameRecord){
 		super(parent, "Edit Name", true);
+
 		this.model = model;
 		this.parentFrame = getParentFrame(parent);
 		this.nameRecord = nameRecord != null? nameRecord: new FLEFRecord();
@@ -148,7 +177,7 @@ public class NameDialog extends JDialog{
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
 		// Type (no transcriptions)
-		JPanel typeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+		JPanel typeRow = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		typeRow.add(new JLabel("Type:"));
 		typeRow.add(typeCombo);
 		mainPanel.add(typeRow);
@@ -187,26 +216,26 @@ public class NameDialog extends JDialog{
 		tabbedPane.addTab("Main", mainPanel);
 
 		// ===== References tab =====
-		JPanel refPanel = new JPanel(new MigLayout("fill, insets 5", "[grow]", "[]10[]10[]10"));
+		JPanel refPanel = new JPanel(new MigLayout("insets 5", "[grow]", "[]10[]10[]"));
 		refPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		// Cultural Norms
 		refPanel.add(createReferencePanel("Cultural Norms", culturalNormsModel, culturalNormsList,
 			culturalNormIds, culturalNormDisplayMap,
 			this::addCulturalNorm, this::editCulturalNorm, this::deleteCulturalNorm,
-			this::createNewCulturalNorm), "grow");
+			this::createNewCulturalNorm), "growx");
 
 		// Notes
 		refPanel.add(createReferencePanel("Notes", notesModel, notesList,
 			noteIds, noteDisplayMap,
 			this::addNote, this::editNote, this::deleteNote,
-			this::createNewNote), "grow");
+			this::createNewNote), "growx");
 
 		// Sources
 		refPanel.add(createReferencePanel("Sources", sourcesModel, sourcesList,
 			sourceIds, sourceDisplayMap,
 			this::addSource, this::editSource, this::deleteSource,
-			this::createNewSource), "grow");
+			this::createNewSource), "growx");
 
 		tabbedPane.addTab("References", refPanel);
 
@@ -236,7 +265,7 @@ public class NameDialog extends JDialog{
 		row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
 		row.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
-		JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+		JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
 		top.add(new JLabel(label));
 		top.add(field);
 
@@ -275,7 +304,7 @@ public class NameDialog extends JDialog{
 		scrollPane.setPreferredSize(new Dimension(200, 90));
 		transPanel.add(scrollPane, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
 		JButton addBtn = new JButton("Add");
 		JButton editBtn = new JButton("Edit");
 		JButton deleteBtn = new JButton("Delete");
@@ -325,7 +354,7 @@ public class NameDialog extends JDialog{
 		scrollPane.setPreferredSize(new Dimension(200, 80));
 		panel.add(scrollPane, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
 		JButton addBtn = new JButton("Add");
 		JButton newBtn = new JButton("New");
 		JButton editBtn = new JButton("Edit");
@@ -407,7 +436,8 @@ public class NameDialog extends JDialog{
 
 	private void editCulturalNorm(){
 		int idx = culturalNormsList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = culturalNormIds.get(idx);
 		if(culturalNormHandler == null){
 			JOptionPane.showMessageDialog(this, "Cultural norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -418,7 +448,7 @@ public class NameDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Cultural norm not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)culturalNormHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = culturalNormHandler.createEditDialog(parentFrame, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getCulturalNormDisplayName(id);
 		culturalNormDisplayMap.put(id, newDisplay);
@@ -427,7 +457,8 @@ public class NameDialog extends JDialog{
 
 	private void deleteCulturalNorm(){
 		int idx = culturalNormsList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this cultural norm reference?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = culturalNormIds.remove(idx);
@@ -437,18 +468,31 @@ public class NameDialog extends JDialog{
 	}
 
 	/**
-	 * Creates a new cultural norm record by opening the CulturalNormDialog.
+	 * Creates a new cultural norm record and automatically adds it to the list.
 	 */
 	private void createNewCulturalNorm(){
 		if(culturalNormHandler == null){
 			JOptionPane.showMessageDialog(this, "Cultural norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)culturalNormHandler.createNewDialog(parentFrame, model);
+		// Remember the current IDs to detect the new one
+		Set<String> beforeIds = new HashSet<>(culturalNormIds);
+
+		JDialog dialog = culturalNormHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		// After creation, the cultural norm is in the model. User can then add it using "Add".
-		JOptionPane.showMessageDialog(this, "Cultural norm created. Use 'Add' to add it to this name.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+
+		// After the dialog closes, check if a new cultural norm was added
+		List<FLEFRecord> allNorms = model.getRecordsByType("CULTURAL_NORM");
+		for(FLEFRecord rec : allNorms){
+			String id = rec.getId();
+			if(id != null && !beforeIds.contains(id) && !culturalNormIds.contains(id)){
+				culturalNormIds.add(id);
+				String display = getCulturalNormDisplayName(id);
+				culturalNormDisplayMap.put(id, display);
+				culturalNormsModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Notes methods ====================
@@ -498,7 +542,8 @@ public class NameDialog extends JDialog{
 
 	private void editNote(){
 		int idx = notesList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = noteIds.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -509,7 +554,7 @@ public class NameDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -518,7 +563,8 @@ public class NameDialog extends JDialog{
 
 	private void deleteNote(){
 		int idx = notesList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = noteIds.remove(idx);
@@ -528,17 +574,31 @@ public class NameDialog extends JDialog{
 	}
 
 	/**
-	 * Creates a new note record by opening the NoteDialog.
+	 * Creates a new note record and automatically adds it to the list.
 	 */
 	private void createNewNote(){
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)noteHandler.createNewDialog(parentFrame, model);
+		// Remember the current IDs to detect the new one
+		Set<String> beforeIds = new HashSet<>(noteIds);
+
+		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		JOptionPane.showMessageDialog(this, "Note created. Use 'Add' to add it to this name.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+
+		// After the dialog closes, check if a new note was added
+		List<FLEFRecord> allNotes = model.getRecordsByType("NOTE");
+		for(FLEFRecord rec : allNotes){
+			String id = rec.getId();
+			if(id != null && !beforeIds.contains(id) && !noteIds.contains(id)){
+				noteIds.add(id);
+				String display = getNoteDisplayName(id);
+				noteDisplayMap.put(id, display);
+				notesModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Sources methods ====================
@@ -588,7 +648,8 @@ public class NameDialog extends JDialog{
 
 	private void editSource(){
 		int idx = sourcesList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = sourceIds.get(idx);
 		if(sourceHandler == null){
 			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -599,7 +660,7 @@ public class NameDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Source not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)sourceHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = sourceHandler.createEditDialog(parentFrame, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getSourceDisplayName(id);
 		sourceDisplayMap.put(id, newDisplay);
@@ -608,7 +669,8 @@ public class NameDialog extends JDialog{
 
 	private void deleteSource(){
 		int idx = sourcesList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this source citation?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = sourceIds.remove(idx);
@@ -618,17 +680,31 @@ public class NameDialog extends JDialog{
 	}
 
 	/**
-	 * Creates a new source record by opening the SourceDialog.
+	 * Creates a new source record and automatically adds it to the list.
 	 */
 	private void createNewSource(){
 		if(sourceHandler == null){
 			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = (JDialog)sourceHandler.createNewDialog(parentFrame, model);
+		// Remember the current IDs to detect the new one
+		Set<String> beforeIds = new HashSet<>(sourceIds);
+
+		JDialog dialog = sourceHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
-		JOptionPane.showMessageDialog(this, "Source created. Use 'Add' to add it to this name.",
-			"Success", JOptionPane.INFORMATION_MESSAGE);
+
+		// After the dialog closes, check if a new source was added
+		List<FLEFRecord> allSources = model.getRecordsByType("SOURCE");
+		for(FLEFRecord rec : allSources){
+			String id = rec.getId();
+			if(id != null && !beforeIds.contains(id) && !sourceIds.contains(id)){
+				sourceIds.add(id);
+				String display = getSourceDisplayName(id);
+				sourceDisplayMap.put(id, display);
+				sourcesModel.addElement(display);
+				break;
+			}
+		}
 	}
 
 	// ==================== Transcriptions management ====================
@@ -659,7 +735,8 @@ public class NameDialog extends JDialog{
 	private void editTranscription(DefaultListModel<String> model, List<FLEFRecord> records,
 		JList<String> list){
 		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		FLEFRecord transRecord = records.get(idx);
 		TranscribedTextDialog dialog = new TranscribedTextDialog(this, transRecord);
 		dialog.setVisible(true);
@@ -671,7 +748,8 @@ public class NameDialog extends JDialog{
 	private void deleteTranscription(DefaultListModel<String> model, List<FLEFRecord> records,
 		JList<String> list, String parentTag){
 		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this transcription?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			FLEFRecord transRecord = records.remove(idx);
@@ -788,7 +866,8 @@ public class NameDialog extends JDialog{
 		model.clear();
 		records.clear();
 		FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
-		if(parent == null) return;
+		if(parent == null)
+			return;
 		for(FLEFRecord child : parent.getChildren()){
 			if("TRANSCRIBED_TEXT".equals(child.getTag())){
 				records.add(child);
@@ -802,7 +881,8 @@ public class NameDialog extends JDialog{
 		model.clear();
 		records.clear();
 		FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
-		if(parent == null) return;
+		if(parent == null)
+			return;
 		for(FLEFRecord child : parent.getChildren()){
 			if(childTag.equals(child.getTag())){
 				records.add(child);
@@ -815,12 +895,17 @@ public class NameDialog extends JDialog{
 		String phonetic = FLEFRecordUtils.getChildValue(transRecord, "PHONETIC");
 		String transcription = FLEFRecordUtils.getChildValue(transRecord, "TRANSCRIPTION");
 		StringBuilder sb = new StringBuilder();
-		if(phonetic != null) sb.append("phonetic: ").append(phonetic);
+		if(phonetic != null)
+			sb.append("phonetic: ")
+				.append(phonetic);
 		if(transcription != null){
-			if(sb.length() > 0) sb.append(" | ");
-			sb.append("transcription: ").append(transcription);
+			if(!sb.isEmpty())
+				sb.append(" | ");
+			sb.append("transcription: ")
+				.append(transcription);
 		}
-		if(sb.length() == 0) sb.append("[empty]");
+		if(sb.isEmpty())
+			sb.append("[empty]");
 		return sb.toString();
 	}
 
@@ -885,7 +970,6 @@ public class NameDialog extends JDialog{
 		return nameRecord;
 	}
 
-	// ==================== Main for testing ====================
 
 	public static void main(String[] args){
 		try{

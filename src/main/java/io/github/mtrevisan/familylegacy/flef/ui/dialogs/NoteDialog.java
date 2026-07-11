@@ -220,7 +220,7 @@ public final class NoteDialog extends CommonListDialog implements TextPreviewLis
 		recordPanelBase.add(noteLabel, "align label,top,sizegroup lbl,split 2");
 		recordPanelBase.add(noteTextPreview, "grow,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(localeField, "grow");
+		recordPanelBase.add(localeField, "growx");
 
 		final JPanel recordPanelOther = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelOther.add(mediaButton, "sizegroup btn,center,wrap paragraph");

@@ -67,10 +67,10 @@ public class DatePanel extends JPanel{
 
 		setBorder(BorderFactory.createTitledBorder("Date"));
 		add(dateLabel, "align label,split 3,sizegroup label");
-		add(dateField, "grow");
+		add(dateField, "growx");
 		add(dateButton, "wrap");
 		add(dateOriginalTextLabel, "align label,split 2,sizegroup label");
-		add(dateOriginalTextField, "grow,wrap");
+		add(dateOriginalTextField, "growx,wrap");
 		add(dateCredibilityLabel, "align label,split 2,sizegroup label");
 		add(dateCredibilityComboBox);
 	}

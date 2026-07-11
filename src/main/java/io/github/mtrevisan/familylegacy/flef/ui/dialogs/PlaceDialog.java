@@ -255,11 +255,11 @@ public final class PlaceDialog extends CommonListDialog{
 	protected void initRecordLayout(final JComponent recordTabbedPane){
 		final JPanel recordPanelBase = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		recordPanelBase.add(identifierLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(identifierField, "grow,wrap paragraph");
+		recordPanelBase.add(identifierField, "growx,wrap paragraph");
 		recordPanelBase.add(nameLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(nameField, "grow,wrap related");
+		recordPanelBase.add(nameField, "growx,wrap related");
 		recordPanelBase.add(localeLabel, "align label,sizegroup lbl,split 2");
-		recordPanelBase.add(localeField, "grow,wrap related");
+		recordPanelBase.add(localeField, "growx,wrap related");
 		recordPanelBase.add(transcribedNameButton, "sizegroup btn,gapleft 30,center,wrap paragraph");
 		recordPanelBase.add(typeLabel, "align label,sizegroup lbl,split 2");
 		recordPanelBase.add(typeComboBox, "wrap paragraph");

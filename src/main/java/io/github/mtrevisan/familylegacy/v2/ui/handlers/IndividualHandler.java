@@ -4,10 +4,15 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualDialog;
 
-import java.awt.*;
+import java.awt.Frame;
 
 
 public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
+
+	@Override
+	public String getLabel(){
+		return "Individual";
+	}
 
 	@Override
 	public String getType(){
@@ -50,12 +55,12 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 
 	@Override
 	public IndividualDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		return new IndividualDialog(parent, model, record);
+		return IndividualDialog.createEdit(parent, model, record);
 	}
 
 	@Override
 	public IndividualDialog createNewDialog(Frame parent, FLEFModel model){
-		return new IndividualDialog(parent, model);
+		return IndividualDialog.createNew(parent, model);
 	}
 
 }

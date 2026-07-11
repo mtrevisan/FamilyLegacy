@@ -229,15 +229,15 @@ public class ContactStructureDialog extends JDialog implements ActionListener{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow,wrap");
+		add(filterField, "growx,wrap");
 		add(contactsScrollPane, "grow,wrap related");
 		add(addButton, "tag add,split 3,sizegroup button2,wrap paragraph");
 		add(contactIDLabel, "align label,sizegroup label,split 2");
-		add(contactIDField, "grow,wrap");
+		add(contactIDField, "growx,wrap");
 		add(typeLabel, "align label,sizegroup label,split 2");
-		add(typeField, "grow,wrap");
+		add(typeField, "growx,wrap");
 		add(callerIDLabel, "align label,sizegroup label,split 2");
-		add(callerIDField, "grow,wrap paragraph");
+		add(callerIDField, "growx,wrap paragraph");
 		add(noteButton, "grow,wrap paragraph");
 		add(restrictionCheckBox, "wrap paragraph");
 		add(helpButton, "tag help2,split 3,sizegroup button2");

@@ -147,7 +147,7 @@ public final class EventTypeDialog extends CommonRecordDialog{
 		recordPanel.add(superTypeLabel, "align label,sizegroup lbl,split 2");
 		recordPanel.add(superTypeComboBox, "grow,wrap related");
 		recordPanel.add(typeLabel, "align label,sizegroup lbl,split 2");
-		recordPanel.add(typeField, "grow,wrap related");
+		recordPanel.add(typeField, "growx,wrap related");
 		recordPanel.add(categoryLabel, "align label,sizegroup lbl,split 2");
 		recordPanel.add(categoryComboBox, "grow");
 	}

@@ -357,23 +357,23 @@ public class RepositoryDialog extends JDialog{
 		citationPanel.setBorder(BorderFactory.createTitledBorder("Citation"));
 		citationPanel.setLayout(new MigLayout());
 		citationPanel.add(locationLabel, "align label,sizegroup label,split 2");
-		citationPanel.add(locationField, "grow,wrap");
+		citationPanel.add(locationField, "growx,wrap");
 		citationPanel.add(citationNoteButton, "sizegroup button,center");
 		GUIHelper.setEnabled(citationPanel, false);
 
 		final JPanel recordPanel1 = new JPanel(new MigLayout());
 		recordPanel1.add(titleLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(titleField, "grow,wrap");
+		recordPanel1.add(titleField, "growx,wrap");
 		recordPanel1.add(authorLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(authorField, "grow,wrap");
+		recordPanel1.add(authorField, "growx,wrap");
 		recordPanel1.add(publicationPlaceButton, "split 2,center,wrap");
 		recordPanel1.add(datePanel, "grow,wrap");
 		recordPanel1.add(publisherLabel, "align label,sizegroup label,split 2");
-		recordPanel1.add(publisherField, "grow");
+		recordPanel1.add(publisherField, "growx");
 		final JPanel recordPanel2 = new JPanel(new MigLayout());
 		recordPanel2.add(repositoryButton, "center,wrap");
 		recordPanel2.add(mediaTypeLabel, "align label,sizegroup label,split 2");
-		recordPanel2.add(mediaTypeField, "grow,wrap");
+		recordPanel2.add(mediaTypeField, "growx,wrap");
 		recordPanel2.add(documentButton, "split 3,center");
 		recordPanel2.add(sourceButton, "center");
 		recordPanel2.add(recordNoteButton, "center,wrap");
@@ -396,7 +396,7 @@ public class RepositoryDialog extends JDialog{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[50%][50%]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow");
+		add(filterField, "growx");
 		add(tabbedPane, "span 1 4,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");

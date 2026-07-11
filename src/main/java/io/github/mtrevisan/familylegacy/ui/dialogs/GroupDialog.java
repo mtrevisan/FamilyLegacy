@@ -343,7 +343,7 @@ public class GroupDialog extends JDialog{
 		citationPanel.setBorder(BorderFactory.createTitledBorder("Citation"));
 		citationPanel.setLayout(new MigLayout());
 		citationPanel.add(roleLabel, "align label,sizegroup label,split 2");
-		citationPanel.add(roleField, "grow,wrap");
+		citationPanel.add(roleField, "growx,wrap");
 		citationPanel.add(citationNoteButton, "sizegroup button,center,wrap");
 		citationPanel.add(credibilityLabel, "align label,sizegroup label,split 2");
 		citationPanel.add(credibilityComboBox);
@@ -351,9 +351,9 @@ public class GroupDialog extends JDialog{
 
 		recordPanel.setBorder(BorderFactory.createTitledBorder("Record"));
 		recordPanel.add(nameLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(nameField, "grow,wrap");
+		recordPanel.add(nameField, "growx,wrap");
 		recordPanel.add(typeLabel, "align label,sizegroup label,split 2");
-		recordPanel.add(typeField, "grow,wrap");
+		recordPanel.add(typeField, "growx,wrap");
 		recordPanel.add(individualButton, "split 2,center");
 		recordPanel.add(familyButton, "center,wrap");
 		recordPanel.add(eventButton, "split 3,center");
@@ -373,7 +373,7 @@ public class GroupDialog extends JDialog{
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[50%][50%]"));
 		add(filterLabel, "align label,split 2");
-		add(filterField, "grow");
+		add(filterField, "growx");
 		add(recordPanel, "span 1 4,grow,wrap paragraph");
 		add(recordScrollPane, "grow,wrap related");
 		add(newButton, "tag add,split 2,sizegroup button");
