@@ -202,12 +202,13 @@ public class IndividualDialog extends BaseRecordDialog{
 	public static IndividualDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
+
 		return new IndividualDialog(parent, model, record);
 	}
 
 
 	private IndividualDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, buildTitle(record), record);
+		super(parent, model, buildTitle(model, record), record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		this.conclusionPanel = new ConclusionPanel(model, this);
@@ -218,17 +219,10 @@ public class IndividualDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	/**
-	 * Builds the window title: if record is not null, returns "Edit Individual - <id>",
-	 * otherwise "New Individual".
-	 */
-	private static String buildTitle(FLEFRecord record){
-		if(record == null){
-			return "New Individual";
-		}
-
-		String id = record.getId();
-		return (id != null && !id.isEmpty()? "Edit Individual - " + id: "Edit Individual");
+	private static String buildTitle(final FLEFModel model, final FLEFRecord record){
+		return (record == null
+			? "New Individual - " + FLEFRecordUtils.generateNewId(model, "INDIVIDUAL", "I") + "*"
+			: "Edit Individual - " + record.getId());
 	}
 
 
@@ -261,8 +255,6 @@ public class IndividualDialog extends BaseRecordDialog{
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-		// ID is no longer shown as a field; it's in the title.
 
 		panel.add(new JLabel("Sex:"), "align label");
 		panel.add(sexCombo, "growx,wrap");
@@ -475,6 +467,8 @@ public class IndividualDialog extends BaseRecordDialog{
 	// ==================== Data loading ====================
 	@Override
 	protected void loadData(){
+		setTitle(buildTitle(model, record));
+
 		// ID is shown in the title, no field to set
 		sexCombo.setSelectedItem(FLEFRecordUtils.getChildValue(record, "SEX"));
 		restrictionCheckBox.setSelected("confidential".equals(FLEFRecordUtils.getChildValue(record, "RESTRICTION")));

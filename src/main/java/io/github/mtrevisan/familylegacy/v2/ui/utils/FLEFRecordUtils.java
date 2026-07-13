@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.utils;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import java.util.ArrayList;
@@ -36,7 +37,8 @@ import java.util.List;
  */
 public final class FLEFRecordUtils{
 
-	private FLEFRecordUtils(){}
+	private FLEFRecordUtils(){
+	}
 
 	/**
 	 * Finds the value of the first child with the given tag.
@@ -197,24 +199,25 @@ public final class FLEFRecordUtils{
 	/**
 	 * Generates a new unique ID for a record type.
 	 *
-	 * @param model  the FLEF model
-	 * @param type   the record type (e.g., "INDIVIDUAL", "FAMILY", "EVENT")
-	 * @param prefix the ID prefix (e.g., "I", "F", "E")
-	 * @return a new unique ID
+	 * @param model	The FLEF model.
+	 * @param type	The record type (e.g., "INDIVIDUAL", "FAMILY", "EVENT").
+	 * @param prefix	The ID prefix (e.g., "I", "F", "E").
+	 * @return	A new unique ID.
 	 */
-	public static String generateNewId(io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel model, String type, String prefix){
+	public static String generateNewId(final FLEFModel model, final String type, final String prefix){
 		int max = 0;
-		for(FLEFRecord rec : model.getRecordsByType(type)){
-			String id = rec.getId();
+		for(final FLEFRecord rec : model.getRecordsByType(type)){
+			final String id = rec.getId();
 			if(id != null && id.startsWith(prefix)){
 				try{
-					int num = Integer.parseInt(id.substring(1));
-					if(num > max) max = num;
+					final int num = Integer.parseInt(id.substring(1));
+					if(num > max)
+						max = num;
 				}
-				catch(NumberFormatException ignored){
-				}
+				catch(final NumberFormatException ignored){}
 			}
 		}
 		return prefix + (max + 1);
 	}
+
 }

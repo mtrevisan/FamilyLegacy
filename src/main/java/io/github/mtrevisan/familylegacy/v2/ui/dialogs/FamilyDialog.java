@@ -92,6 +92,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import javax.swing.ImageIcon;
 
@@ -119,14 +120,10 @@ public class FamilyDialog extends BaseRecordDialog{
 	}
 
 	// Basic fields
-	private final JTextField idField = new JTextField(10);
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	// Partner1
 	private final JTextField partner1DisplayField = new JTextField(20);
-	private final JButton partner1NewBtn = new JButton("New");
-	private final JButton partner1BrowseBtn = new JButton("Browse...");
-	private final JButton partner1ClearBtn = new JButton("Clear");
 	private String partner1Id;
 	private final DefaultListModel<String> partner1NoteModel = new DefaultListModel<>();
 	private final JList<String> partner1NoteList = new JList<>(partner1NoteModel);
@@ -135,9 +132,6 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	// Partner2
 	private final JTextField partner2DisplayField = new JTextField(20);
-	private final JButton partner2NewBtn = new JButton("New");
-	private final JButton partner2BrowseBtn = new JButton("Browse...");
-	private final JButton partner2ClearBtn = new JButton("Clear");
 	private String partner2Id;
 	private final DefaultListModel<String> partner2NoteModel = new DefaultListModel<>();
 	private final JList<String> partner2NoteList = new JList<>(partner2NoteModel);
@@ -221,19 +215,27 @@ public class FamilyDialog extends BaseRecordDialog{
 	public static FamilyDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
+
 		return new FamilyDialog(parent, model, record);
 	}
 
 
 	private FamilyDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, (record != null? "Edit Family": "New Family"), record);
+		super(parent, model, buildTitle(model, record), record);
+
 		this.modificationPanel = new ModificationPanel(model, this);
 		this.conclusionPanel = new ConclusionPanel(model, this);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(950, 550));
+		setMinimumSize(new Dimension(500, 550));
 		pack();
 		setLocationRelativeTo(parent);
+	}
+
+	private static String buildTitle(final FLEFModel model, final FLEFRecord record){
+		return (record == null
+			? "New Family - " + FLEFRecordUtils.generateNewId(model, "FAMILY", "F") + "*"
+			: "Edit Family - " + record.getId());
 	}
 
 
@@ -242,8 +244,7 @@ public class FamilyDialog extends BaseRecordDialog{
 		setLayout(new MigLayout("fillx"));
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Basic", createBasicPanel());
-		tabbedPane.addTab("Partners & Children", createPartnersAndChildrenPanel());
+		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Modification", modificationPanel);
 		tabbedPane.addTab("Conclusion", conclusionPanel);
@@ -257,54 +258,6 @@ public class FamilyDialog extends BaseRecordDialog{
 
 		saveButton.addActionListener(e -> save());
 		cancelButton.addActionListener(e -> dispose());
-	}
-
-
-	// ==================== Basic Panel (with Preferred Image) ====================
-	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-		idField.setEditable(false);
-		idField.setText(record.getId());
-
-		panel.add(new JLabel("ID:"), "align label");
-		panel.add(idField, "growx,wrap");
-		panel.add(restrictionCheckBox, "span 2,wrap");
-
-		// Image button: left-click selects, right-click shows Clear popup
-		imageButton.setPreferredSize(new Dimension(80, 80));
-		imageButton.setIcon(createPlaceholderIcon());
-		imageButton.setToolTipText("Left-click to select an image, right-click for options");
-
-		// Left-click: open GenericSelectionDialog directly
-		imageButton.addActionListener(e -> selectAndCropImage());
-
-		// Right-click: popup with "Clear"
-		JPopupMenu imagePopup = new JPopupMenu();
-		JMenuItem clearImageMenuItem = new JMenuItem("Clear");
-		clearImageMenuItem.addActionListener(e -> clearImage());
-		imagePopup.add(clearImageMenuItem);
-
-		imageButton.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					imagePopup.show(imageButton, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					imagePopup.show(imageButton, e.getX(), e.getY());
-				}
-			}
-		});
-
-		panel.add(imageButton, "wrap");
-
-		return panel;
 	}
 
 
@@ -353,15 +306,15 @@ public class FamilyDialog extends BaseRecordDialog{
 		}
 
 		//FIXME
-//		ImageCropDialog cropDialog = new ImageCropDialog(this, image);
-//		cropDialog.setVisible(true);
-//
-//		Rectangle cropRect = cropDialog.getCrop();
-//		if(cropRect != null){
-//			preferredImageId = sourceId;
-//			cropString = cropRect.x + " " + cropRect.y + " " + cropRect.width + " " + cropRect.height;
-//			updateImageButton(sourceId);
-//		}
+		ImageCropDialog cropDialog = new ImageCropDialog(getParentFrame(), image);
+		cropDialog.setVisible(true);
+
+		Rectangle cropRect = cropDialog.getCrop();
+		if(cropRect != null){
+			preferredImageId = sourceId;
+			cropString = cropRect.x + " " + cropRect.y + " " + cropRect.width + " " + cropRect.height;
+			updateImageButton(sourceId);
+		}
 	}
 
 	/**
@@ -563,41 +516,55 @@ public class FamilyDialog extends BaseRecordDialog{
 
 
 	// ==================== Partners & Children Panel ====================
-	private JPanel createPartnersAndChildrenPanel(){
-		JPanel panel = new JPanel(new BorderLayout(10, 10));
+	private JPanel createMainPanel(){
+		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[grow]", "[]10[]10[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		JPanel partnersAndChildrenPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
-		partnersAndChildrenPanel.add(createPartnerField("Partner 1:", partner1DisplayField,
-				partner1NewBtn, partner1BrowseBtn, partner1ClearBtn,
-				partner1NoteList, partner1NoteModel, partner1NoteIds, partner1NoteDisplayMap,
-				this::addPartner1Note, this::editPartner1Note, this::deletePartner1Note),
-			"span 2,growx,wrap");
+		imageButton.setPreferredSize(new Dimension(80, 80));
+		imageButton.setIcon(createPlaceholderIcon());
+		imageButton.setToolTipText("Left-click to select an image, right-click for options");
 
-		partnersAndChildrenPanel.add(createPartnerField("Partner 2:", partner2DisplayField,
-				partner2NewBtn, partner2BrowseBtn, partner2ClearBtn,
-				partner2NoteList, partner2NoteModel, partner2NoteIds, partner2NoteDisplayMap,
-				this::addPartner2Note, this::editPartner2Note, this::deletePartner2Note),
-			"span 2,growx,wrap");
+		imageButton.addActionListener(e -> selectAndCropImage());
 
-		partner1NewBtn.addActionListener(e -> createNewPartner1());
-		partner1BrowseBtn.addActionListener(e -> browsePartner1());
-		partner1ClearBtn.addActionListener(e -> {
-			partner1Id = null;
-			partner1DisplayField.setText("");
+		JPopupMenu imagePopup = new JPopupMenu();
+		JMenuItem clearImageMenuItem = new JMenuItem("Clear");
+		clearImageMenuItem.addActionListener(e -> clearImage());
+		imagePopup.add(clearImageMenuItem);
+
+		imageButton.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(MouseEvent e){
+				if(e.isPopupTrigger()){
+					imagePopup.show(imageButton, e.getX(), e.getY());
+				}
+			}
+			@Override
+			public void mouseReleased(MouseEvent e){
+				if(e.isPopupTrigger()){
+					imagePopup.show(imageButton, e.getX(), e.getY());
+				}
+			}
 		});
 
-		partner2NewBtn.addActionListener(e -> createNewPartner2());
-		partner2BrowseBtn.addActionListener(e -> browsePartner2());
-		partner2ClearBtn.addActionListener(e -> {
-			partner2Id = null;
-			partner2DisplayField.setText("");
-		});
+		panel.add(imageButton, "growx, align center");
+
+		JPanel partner1Panel = createPartnerPanel("Partner 1:", partner1DisplayField,
+			partner1NoteList, partner1NoteModel, partner1NoteIds, partner1NoteDisplayMap,
+			this::addPartner1Note, this::editPartner1Note, this::deletePartner1Note,
+			this::createNewPartner1, this::browsePartner1, this::clearPartner1);
+		panel.add(partner1Panel, "growx");
+
+		JPanel partner2Panel = createPartnerPanel("Partner 2:", partner2DisplayField,
+			partner2NoteList, partner2NoteModel, partner2NoteIds, partner2NoteDisplayMap,
+			this::addPartner2Note, this::editPartner2Note, this::deletePartner2Note,
+			this::createNewPartner2, this::browsePartner2, this::clearPartner2);
+		panel.add(partner2Panel, "growx");
 
 		JPanel childrenPanel = createChildrenPanel();
-		partnersAndChildrenPanel.add(childrenPanel, "span 2,growx,wrap");
+		panel.add(childrenPanel, "growx");
 
-		panel.add(partnersAndChildrenPanel, BorderLayout.NORTH);
+		panel.add(restrictionCheckBox, "growx,align left");
+
 		return panel;
 	}
 
@@ -609,17 +576,21 @@ public class FamilyDialog extends BaseRecordDialog{
 		childList.setVisibleRowCount(4);
 		childList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+		// ---- Popup menu ----
 		JPopupMenu popup = new JPopupMenu();
 		JMenuItem addChildItem = new JMenuItem("Add Existing...");
 		JMenuItem newChildItem = new JMenuItem("Create New...");
 		JMenuItem editChildItem = new JMenuItem("Edit");
+		JMenuItem notesChildItem = new JMenuItem("Notes...");
 		JMenuItem deleteChildItem = new JMenuItem("Delete");
 		popup.add(addChildItem);
 		popup.add(newChildItem);
 		popup.addSeparator();
 		popup.add(editChildItem);
+		popup.add(notesChildItem);
 		popup.add(deleteChildItem);
 
+		// ---- Mouse listener ----
 		childList.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(MouseEvent e){
@@ -651,6 +622,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			}
 		});
 
+		// ---- Keyboard shortcuts ----
 		childList.addKeyListener(new KeyAdapter(){
 			@Override
 			public void keyPressed(KeyEvent e){
@@ -665,129 +637,99 @@ public class FamilyDialog extends BaseRecordDialog{
 			}
 		});
 
+		// ---- Scroll pane ----
 		JScrollPane scrollPane = new JScrollPane(childList);
 		scrollPane.setPreferredSize(childList.getPreferredScrollableViewportSize());
 		panel.add(scrollPane, "growx,wrap");
 
+		// ---- Enable/disable menu items based on selection ----
 		childList.addListSelectionListener(e -> {
 			boolean selected = childList.getSelectedIndex() != -1;
 			editChildItem.setEnabled(selected);
+			notesChildItem.setEnabled(selected);
 			deleteChildItem.setEnabled(selected);
 		});
 		editChildItem.setEnabled(false);
+		notesChildItem.setEnabled(false);
 		deleteChildItem.setEnabled(false);
 
+		// ---- Actions ----
 		addChildItem.addActionListener(e -> addChild());
 		newChildItem.addActionListener(e -> createNewChild());
 		editChildItem.addActionListener(e -> editChild());
+		notesChildItem.addActionListener(e -> {
+			int idx = childList.getSelectedIndex();
+			if(idx != -1){
+				ChildEntry existing = childEntries.get(idx);
+				ChildEntry updated = showChildNotesDialog(existing.childId, existing);
+				if(updated != null){
+					childEntries.set(idx, updated);
+					childListModel.set(idx, updated.toString());
+				}
+			}
+		});
 		deleteChildItem.addActionListener(e -> deleteChild());
 
 		return panel;
 	}
 
 
-	// ==================== Partner Field ====================
-	private JPanel createPartnerField(String label, JTextField displayField, JButton newBtn, JButton browseBtn, JButton clearBtn,
-		JList<String> noteList, DefaultListModel<String> noteModel,
-		List<String> noteIds, Map<String, String> noteDisplayMap,
-		Runnable addNote, Runnable editNote, Runnable deleteNote){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow][][]", "[]5[]"));
+	// ==================== Partner Panel ====================
+	private JPanel createPartnerPanel(String label, JTextField displayField,
+			JList<String> noteList, DefaultListModel<String> noteModel,
+			List<String> noteIds, Map<String, String> noteDisplayMap,
+			Runnable addNote, Runnable editNote, Runnable deleteNote,
+			Runnable actionNew, Runnable actionBrowse, Runnable actionClear){
+		noteList.setVisibleRowCount(4);
+
+		JPanel panel = new JPanel(new MigLayout("insets n n 0 n", "[right]rel[grow][][]", "[]5[]"));
 		panel.setBorder(new TitledBorder(label));
 
 		displayField.setEditable(false);
 		displayField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel idPanel = new JPanel(new BorderLayout(5, 5));
-		idPanel.add(displayField, BorderLayout.CENTER);
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-		btnPanel.add(newBtn);
-		btnPanel.add(browseBtn);
-		btnPanel.add(clearBtn);
-		idPanel.add(btnPanel, BorderLayout.EAST);
+
+		JPanel idPanel = new JPanel(new MigLayout("ins 0,gap 0,fill", "[grow]", ""));
+		idPanel.add(displayField, "grow");
 		panel.add(idPanel, "span 3,growx,wrap");
 
-		panel.add(new JLabel("Notes:"), "align label,top");
-		JPanel notePanel = new JPanel(new MigLayout("fillx"));
-		JScrollPane scrollPane = new JScrollPane(noteList);
-		scrollPane.setPreferredSize(noteList.getPreferredScrollableViewportSize());
-		notePanel.add(scrollPane, "growx,wrap");
+		JPopupMenu popup = new JPopupMenu();
+		JMenuItem newItem = new JMenuItem("New");
+		JMenuItem browseItem = new JMenuItem("Browse...");
+		JMenuItem clearItem = new JMenuItem("Clear");
+		JMenuItem notesItem = new JMenuItem("Notes...");
+		popup.add(newItem);
+		popup.add(browseItem);
+		popup.add(clearItem);
+		popup.addSeparator();
+		popup.add(notesItem);
 
-		JPopupMenu notePopup = new JPopupMenu();
-		JMenuItem addNoteItem = new JMenuItem("Add Existing...");
-		JMenuItem newNoteItem = new JMenuItem("Create New...");
-		JMenuItem editNoteItem = new JMenuItem("Edit");
-		JMenuItem deleteNoteItem = new JMenuItem("Delete");
-		notePopup.add(addNoteItem);
-		notePopup.add(newNoteItem);
-		notePopup.addSeparator();
-		notePopup.add(editNoteItem);
-		notePopup.add(deleteNoteItem);
-
-		noteList.addMouseListener(new MouseAdapter(){
+		displayField.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(MouseEvent e){
 				if(e.isPopupTrigger()){
-					int index = noteList.locationToIndex(e.getPoint());
-					if(index != -1 && !noteList.isSelectedIndex(index)){
-						noteList.setSelectedIndex(index);
-					}
-					notePopup.show(noteList, e.getX(), e.getY());
+					popup.show(displayField, e.getX(), e.getY());
 				}
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e){
 				if(e.isPopupTrigger()){
-					int index = noteList.locationToIndex(e.getPoint());
-					if(index != -1 && !noteList.isSelectedIndex(index)){
-						noteList.setSelectedIndex(index);
-					}
-					notePopup.show(noteList, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editNote.run();
+					popup.show(displayField, e.getX(), e.getY());
 				}
 			}
 		});
 
-		noteList.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(KeyEvent e){
-				if(e.getKeyCode() == KeyEvent.VK_INSERT){
-					createNewNote(noteModel, noteIds, noteDisplayMap);
-					e.consume();
-				}
-				else if(e.getKeyCode() == KeyEvent.VK_DELETE){
-					deleteNote.run();
-					e.consume();
-				}
-			}
-		});
+		newItem.addActionListener(e -> actionNew.run());
+		browseItem.addActionListener(e -> actionBrowse.run());
+		clearItem.addActionListener(e -> actionClear.run());
+		notesItem.addActionListener(e -> addNote.run());
 
-		noteList.addListSelectionListener(e -> {
-			boolean selected = noteList.getSelectedIndex() != -1;
-			editNoteItem.setEnabled(selected);
-			deleteNoteItem.setEnabled(selected);
-		});
-		editNoteItem.setEnabled(false);
-		deleteNoteItem.setEnabled(false);
-
-		addNoteItem.addActionListener(e -> addNote.run());
-		newNoteItem.addActionListener(e -> createNewNote(noteModel, noteIds, noteDisplayMap));
-		editNoteItem.addActionListener(e -> editNote.run());
-		deleteNoteItem.addActionListener(e -> deleteNote.run());
-
-		panel.add(notePanel, "span 3,growx");
 		return panel;
 	}
 
-
 	// ==================== Generic List Panel ====================
 	private JPanel createListPanel(String title, JList<String> list, DefaultListModel<String> model,
-		Runnable addAction, Runnable editAction, Runnable deleteAction){
+			Runnable addAction, Runnable editAction, Runnable deleteAction){
 		JPanel panel = new JPanel(new MigLayout("fillx"));
 		panel.setBorder(new TitledBorder(title));
 
@@ -851,7 +793,6 @@ public class FamilyDialog extends BaseRecordDialog{
 		});
 
 		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
 		panel.add(scrollPane, "growx,wrap");
 
 		list.addListSelectionListener(e -> {
@@ -917,6 +858,22 @@ public class FamilyDialog extends BaseRecordDialog{
 		});
 	}
 
+	private void browsePartner1(){
+		browsePartner(selectedId -> {
+			partner1Id = selectedId;
+			FLEFRecord rec = model.getRecordById(selectedId);
+			if(rec != null && individualHandler != null)
+				partner1DisplayField.setText(individualHandler.getDisplayName(rec));
+			else
+				partner1DisplayField.setText(selectedId);
+		});
+	}
+
+	private void clearPartner1(){
+		partner1Id = null;
+		partner1DisplayField.setText("");
+	}
+
 	private void createNewPartner2(){
 		createNewPartner(id -> {
 			partner2Id = id;
@@ -928,7 +885,23 @@ public class FamilyDialog extends BaseRecordDialog{
 		});
 	}
 
-	private void createNewPartner(java.util.function.Consumer<String> onCreated){
+	private void browsePartner2(){
+		browsePartner(selectedId -> {
+			partner2Id = selectedId;
+			FLEFRecord rec = model.getRecordById(selectedId);
+			if(rec != null && individualHandler != null)
+				partner2DisplayField.setText(individualHandler.getDisplayName(rec));
+			else
+				partner2DisplayField.setText(selectedId);
+		});
+	}
+
+	private void clearPartner2(){
+		partner2Id = null;
+		partner2DisplayField.setText("");
+	}
+
+	private void createNewPartner(Consumer<String> onCreated){
 		if(individualHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -952,29 +925,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			onCreated.accept(newId);
 	}
 
-	private void browsePartner1(){
-		browsePartner(selectedId -> {
-			partner1Id = selectedId;
-			FLEFRecord rec = model.getRecordById(selectedId);
-			if(rec != null && individualHandler != null)
-				partner1DisplayField.setText(individualHandler.getDisplayName(rec));
-			else
-				partner1DisplayField.setText(selectedId);
-		});
-	}
-
-	private void browsePartner2(){
-		browsePartner(selectedId -> {
-			partner2Id = selectedId;
-			FLEFRecord rec = model.getRecordById(selectedId);
-			if(rec != null && individualHandler != null)
-				partner2DisplayField.setText(individualHandler.getDisplayName(rec));
-			else
-				partner2DisplayField.setText(selectedId);
-		});
-	}
-
-	private void browsePartner(java.util.function.Consumer<String> onSelected){
+	private void browsePartner(Consumer<String> onSelected){
 		if(individualHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -1024,7 +975,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		RecordBrowserDialog<?> dialog = new RecordBrowserDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !ids.contains(selectedId)){
 				ids.add(selectedId);
@@ -1523,6 +1474,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -1680,7 +1632,8 @@ public class FamilyDialog extends BaseRecordDialog{
 	// ==================== Load Data ====================
 	@Override
 	protected void loadData(){
-		idField.setText(record.getId());
+		setTitle(buildTitle(model, record));
+
 		restrictionCheckBox.setSelected("confidential".equals(FLEFRecordUtils.getChildValue(record, "RESTRICTION")));
 
 		// Partner1
