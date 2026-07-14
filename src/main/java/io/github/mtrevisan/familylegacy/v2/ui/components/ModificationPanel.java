@@ -317,6 +317,7 @@ public class ModificationPanel extends JPanel{
 	public void loadFromRecord(FLEFRecord record){
 		// Clear current data
 		creationDateField.setText("");
+creationDateField.setText("21 JAN 2000");
 		updateModel.clear();
 		updateRecords.clear();
 

@@ -26,49 +26,24 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.FamilyHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.imageio.ImageIO;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.GridLayout;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,382 +54,796 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a GROUP_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a GROUP_RECORD according to FLEF 0.0.10.
  * <p>
- * A group can be of genealogical, historical, or general interest.
- * Examples: households, neighborhoods, fraternities, communes, orphanages, etc.
+ * Structure (relevant parts):
+ * <pre>
+ * GROUP_RECORD :=
+ * n @<XREF:GROUP>@ GROUP    {1:1}
+ *   +1 NAME <GROUP_NAME>    {1:1}
+ *   +1 TYPE <TYPE_DESCRIPTION>    {0:1}
+ *   +1 EVENT @<XREF:EVENT>@    {0:M}
+ *   +1 <<GROUP_CITATION>>    {0:M}
+ *   +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}
+ *   +1 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 <<SOURCE_CITATION>>    {0:M}
+ *     +2 ROLE <ROLE_IN_EVENT>    {0:1}
+ *   +1 PREFERRED_IMAGE @<XREF:SOURCE>@    {0:1}
+ *     +2 CROP <CROP_COORDINATES>    {0:1}
+ *   +1 RESTRICTION <confidential>    {0:1}
+ *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * </pre>
+ * <p>
+ * A family is represented as a GROUP_RECORD with TYPE = "family".
+ * Members are represented as GROUP_CITATION children with a ROLE
+ * (e.g., "parent1", "parent2", "child", "member", "president", etc.).
  */
 public class GroupDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 413684899528463158L;
+	private static final long serialVersionUID = -4670126000119212972L;
 
+	// Handlers
+	private final IndividualHandler individualHandler = new IndividualHandler();
+	private final GroupHandler groupHandler = new GroupHandler();
+	private final GroupCitationHandler groupCitationHandler = new GroupCitationHandler();
+	private final EventHandler eventHandler = new EventHandler();
+	private final NoteHandler noteHandler = new NoteHandler();
+	private final SourceHandler sourceHandler = new SourceHandler();
+	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
-	static{
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new FamilyHandler());
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new EventHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new PlaceHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new RepositoryHandler());
-		HandlerRegistry.register(new CalendarHandler());
-	}
+	// Preferred Image
+	private String preferredImageId;
+	private String preferredImageCrop;
+	private final JButton preferredImageButton = new JButton();
 
-	// ==================== Basic fields ====================
-	private final JTextField idField = new JTextField(10);
-	private final JTextField nameField = new JTextField(30);
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-		"", "neighborhood", "fraternity", "ladies club", "literary society",
-		"commune", "orphanage", "group home", "household", "workplace",
-		"school", "church", "military unit", "association", "club"
-	});
+	// UI components
+	private final JTextField nameField = new JTextField();
+	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "family", "neighborhood", "club", "research group", "household"});
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// ========== INDIVIDUAL (0:M) ==========
-	private final DefaultListModel<String> individualListModel = new DefaultListModel<>();
-	private final JList<String> individualList = new JList<>(individualListModel);
-	private final List<String> individualIds = new ArrayList<>();
+	// Members (unified list)
+	private final DefaultListModel<String> memberListModel = new DefaultListModel<>();
+	private final JList<String> memberList = new JList<>(memberListModel);
+	private final List<MemberEntry> memberEntries = new ArrayList<>();
 
-	// ========== FAMILY (0:M) ==========
-	private final DefaultListModel<String> familyListModel = new DefaultListModel<>();
-	private final JList<String> familyList = new JList<>(familyListModel);
-	private final List<String> familyIds = new ArrayList<>();
-
-	// ========== EVENT (0:M) ==========
+	// Events
 	private final DefaultListModel<String> eventListModel = new DefaultListModel<>();
 	private final JList<String> eventList = new JList<>(eventListModel);
 	private final List<String> eventIds = new ArrayList<>();
 
-	// ========== NOTE (0:M) ==========
+	// Group Citations (non-family memberships)
+	private final DefaultListModel<String> groupCitationListModel = new DefaultListModel<>();
+	private final JList<String> groupCitationList = new JList<>(groupCitationListModel);
+	private final List<FLEFRecord> groupCitationRecords = new ArrayList<>();
+
+	// Cultural Norms
+	private final DefaultListModel<String> culturalNormListModel = new DefaultListModel<>();
+	private final JList<String> culturalNormList = new JList<>(culturalNormListModel);
+	private final List<String> culturalNormIds = new ArrayList<>();
+
+	// Notes (top-level)
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== SOURCE_CITATION (0:M) ==========
+	// Source Citations
 	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
-	// ========== MODIFICATION (1:1) ==========
-	private final ModificationPanel modificationPanel;
+	// Modification & Conclusion
+	private ModificationPanel modificationPanel;
+	private ConclusionPanel conclusionPanel;
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
-	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
-	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
-	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler("EVENT");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
+	// ----- Inner class for member entries -----
+	private static class MemberEntry{
+		String individualId;
+		String role;
+		List<String> noteIds;
 
-	// ==================== Constructors ====================
-	public GroupDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Group", model, record);
+		MemberEntry(String individualId, String role, List<String> noteIds){
+			this.individualId = individualId;
+			this.role = role != null? role: "";
+			this.noteIds = noteIds != null? noteIds: new ArrayList<>();
+		}
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		@Override
+		public String toString(){
+			StringBuilder sb = new StringBuilder(individualId);
+			if(!role.isEmpty()){
+				sb.append(" [").append(role).append("]");
+			}
+			if(!noteIds.isEmpty()){
+				sb.append(" (").append(noteIds.size()).append(" notes)");
+			}
+			return sb.toString();
+		}
+	}
+
+	// ----- Factory methods -----
+	public static GroupDialog createNew(Frame parent, FLEFModel model){
+		return new GroupDialog(parent, model, null);
+	}
+
+	public static GroupDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+		return new GroupDialog(parent, model, record);
+	}
+
+	// ----- Constructor -----
+	private GroupDialog(Frame parent, FLEFModel model, FLEFRecord record){
+		super(parent, buildTitle(model, record), model, record);
+
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(900, 700));
+		setMinimumSize(new Dimension(500, 550));
 		pack();
 		setLocationRelativeTo(parent);
 	}
 
-	public GroupDialog(Frame parent, FLEFModel model){
-		super(parent, "New Group", model, null);
-
-		this.modificationPanel = new ModificationPanel(model, this);
-		initComponents();
-		loadData();
-		setMinimumSize(new Dimension(900, 700));
-		pack();
-		setLocationRelativeTo(parent);
+	private static String buildTitle(FLEFModel model, FLEFRecord record){
+		return (record == null
+			? "New Group - " + FLEFRecordUtils.generateNewId(model, GroupHandler.TYPE, GroupHandler.ID_PREFIX) + "*"
+			: "Edit Group - " + record.getId());
 	}
 
-	// ==================== UI Initialization ====================
+	// ----- Initialization -----
 	@Override
 	protected void initComponents(){
-		setLayout(new BorderLayout(10, 10));
+		modificationPanel = new ModificationPanel(model, this);
+		conclusionPanel = new ConclusionPanel(model, this);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-
-		// --- Basic tab ---
-		tabbedPane.addTab("Basic", createBasicPanel());
-
-		// --- Members tab ---
-		tabbedPane.addTab("Members", createMembersPanel());
-
-		// --- Events tab ---
-		tabbedPane.addTab("Events", createEventsPanel());
-
-		// --- Notes tab ---
-		tabbedPane.addTab("Notes", createNotesPanel());
-
-		// --- Source Citations tab ---
-		tabbedPane.addTab("Source Citations", createSourceCitationsPanel());
-
-		// --- Modification tab ---
+		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Conclusion", conclusionPanel);
 
-		add(tabbedPane, BorderLayout.CENTER);
+		setLayout(new MigLayout("fillx"));
+		add(tabbedPane, "growx,push");
 
-		// --- Button panel ---
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
 		buttonPanel.add(cancelButton);
 		add(buttonPanel, BorderLayout.SOUTH);
 
-		saveButton.addActionListener(e -> saveRecord());
+		saveButton.addActionListener(e -> save());
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
-
-	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]"));
+	// ==================== Main Panel ====================
+	private JPanel createMainPanel(){
+		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[grow]", "[]5[]5[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		idField.setEditable(false);
-		idField.setText(record.getId());
-		panel.add(new JLabel("ID:"), "align label");
-		panel.add(idField, "growx,wrap");
+		// Preferred Image
+		preferredImageButton.setPreferredSize(new Dimension(80, 80));
+		preferredImageButton.setIcon(createPlaceholderIcon());
+		preferredImageButton.setToolTipText("Left-click to select an image, right-click for options");
+		preferredImageButton.addActionListener(e -> selectAndCropImage());
 
-		panel.add(new JLabel("Name:"), "align label");
-		panel.add(nameField, "growx,wrap");
+		JPopupMenu imagePopup = new JPopupMenu();
+		JMenuItem clearImageMenuItem = new JMenuItem("Clear");
+		clearImageMenuItem.addActionListener(e -> clearImage());
+		imagePopup.add(clearImageMenuItem);
 
-		panel.add(new JLabel("Type:"), "align label");
-		panel.add(typeCombo, "growx,wrap");
-
-		panel.add(restrictionCheckBox, "span 2,wrap");
-
-		return panel;
-	}
-
-	private JPanel createMembersPanel(){
-		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 10));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-		// Individuals list
-		JPanel individualPanel = createReferenceListPanel(
-			"Individuals",
-			individualList,
-			individualListModel,
-			individualIds,
-			this::addIndividual,
-			this::removeIndividual
-		);
-
-		// Families list
-		JPanel familyPanel = createReferenceListPanel(
-			"Families",
-			familyList,
-			familyListModel,
-			familyIds,
-			this::addFamily,
-			this::removeFamily
-		);
-
-		panel.add(individualPanel);
-		panel.add(familyPanel);
-
-		return panel;
-	}
-
-	private JPanel createEventsPanel(){
-		return createListPanel("Events", eventList, eventListModel,
-			this::addEvent, this::editEvent, this::deleteEvent);
-	}
-
-	private JPanel createNotesPanel(){
-		return createListPanel("Notes", noteList, noteListModel,
-			this::addNote, this::editNote, this::deleteNote);
-	}
-
-	private JPanel createSourceCitationsPanel(){
-		return createListPanel("Source Citations", sourceCitationList, sourceCitationListModel,
-			this::addSourceCitation, this::editSourceCitation, this::deleteSourceCitation);
-	}
-
-	// ==================== Reference list panel helper ====================
-
-	private JPanel createReferenceListPanel(String title, JList<String> list, DefaultListModel<String> model,
-		List<String> ids, Runnable addAction, Runnable removeAction){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
-		panel.setBorder(new TitledBorder(title));
-
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(200, 150));
-		panel.add(scrollPane, BorderLayout.CENTER);
-
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton removeBtn = new JButton("Remove");
-		btnPanel.add(addBtn);
-		btnPanel.add(removeBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
-
-		list.addListSelectionListener(e -> removeBtn.setEnabled(list.getSelectedIndex() != -1));
-		removeBtn.setEnabled(false);
-
-		addBtn.addActionListener(e -> addAction.run());
-		removeBtn.addActionListener(e -> removeAction.run());
-
-		return panel;
-	}
-
-	private JPanel createListPanel(String title, JList<String> list, DefaultListModel<String> model,
-		Runnable addAction, Runnable editAction, Runnable deleteAction){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
-		panel.setBorder(new TitledBorder(title));
-
-		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		list.addMouseListener(new MouseAdapter(){
+		preferredImageButton.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2)
-					editAction.run();
+			public void mousePressed(MouseEvent e){
+				if(e.isPopupTrigger()) imagePopup.show(preferredImageButton, e.getX(), e.getY());
+			}
+
+			@Override
+			public void mouseReleased(MouseEvent e){
+				if(e.isPopupTrigger()) imagePopup.show(preferredImageButton, e.getX(), e.getY());
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
-		panel.add(scrollPane, BorderLayout.CENTER);
+		panel.add(preferredImageButton, "growx, align center");
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton newBtn = new JButton("New");
-		JButton editBtn = new JButton("Edit");
-		JButton deleteBtn = new JButton("Delete");
-		btnPanel.add(addBtn);
-		btnPanel.add(newBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(deleteBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
+		// Name (obligatory)
+		JPanel namePanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		namePanel.add(new JLabel("Name:"), "align label");
+		namePanel.add(nameField, "growx");
+		panel.add(namePanel, "growx");
 
-		list.addListSelectionListener(e -> {
-			boolean selected = list.getSelectedIndex() != -1;
-			editBtn.setEnabled(selected);
-			deleteBtn.setEnabled(selected);
-		});
-		editBtn.setEnabled(false);
-		deleteBtn.setEnabled(false);
+		// Type
+		JPanel typePanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		typePanel.add(new JLabel("Type:"), "align label");
+		typeCombo.setEditable(true);
+		typePanel.add(typeCombo, "growx");
+		panel.add(typePanel, "growx");
 
-		addBtn.addActionListener(e -> addAction.run());
-		newBtn.addActionListener(e -> createNewItemForList(list, model));
-		editBtn.addActionListener(e -> editAction.run());
-		deleteBtn.addActionListener(e -> deleteAction.run());
+		// Members (unified)
+		JPanel membersPanel = createMembersPanel();
+		panel.add(membersPanel, "growx");
+
+		panel.add(restrictionCheckBox, "growx,align left");
 
 		return panel;
 	}
 
-	// ==================== Members methods ====================
+	// ----- Members panel -----
+	private JPanel createMembersPanel(){
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder("Members"));
+		memberList.setVisibleRowCount(4);
+		memberList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-	private void addIndividual(){
+		GUIHelper.installBehaviour(memberList,
+			() -> (memberList.getSelectedIndex() >= 0),
+			this::createNewMember,                    // double‑click action
+			this::addMember,                         // INSERT key
+			this::deleteMember,                            // DELETE key
+			builder -> {
+				builder.item("Create New...", this::createNewMember);
+				builder.item("Add Existing...", this::addMember);
+				builder.selectionSensitiveItem("Edit Individual...", this::editMember);
+				builder.selectionSensitiveItem("Edit Role...", this::editMemberRole);
+				builder.selectionSensitiveItem("Delete", this::deleteMember);
+
+				builder.separator();
+
+				// Notes (selection‑sensitive)
+				builder.selectionSensitiveItem("Notes...", () -> {
+					int idx = memberList.getSelectedIndex();
+					if(idx != -1){
+						MemberEntry existing = memberEntries.get(idx);
+						MemberEntry updated = showMemberNotesDialog(existing);
+						if(updated != null){
+							memberEntries.set(idx, updated);
+							memberListModel.set(idx, updated.toString());
+						}
+					}
+				});
+			});
+
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(memberList,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(memberList.getPreferredScrollableViewportSize());
+		panel.add(scrollPane, "growx,wrap");
+		return panel;
+	}
+
+	// ==================== References Panel ====================
+	private JPanel createReferencesPanel(){
+		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]5[]5[]5"));
+		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		panel.add(createListPanel("Events",
+				eventList, eventListModel,
+				this::addEvent, this::editEvent, this::deleteEvent),
+			"growx");
+
+		panel.add(createListPanel("Group Citations (other memberships)",
+				groupCitationList, groupCitationListModel,
+				this::addGroupCitation, this::editGroupCitation, this::deleteGroupCitation),
+			"growx");
+
+		panel.add(createListPanel("Cultural Norms",
+				culturalNormList, culturalNormListModel,
+				this::addCulturalNorm, this::editCulturalNorm, this::deleteCulturalNorm),
+			"growx");
+
+		panel.add(createListPanel("Notes",
+				noteList, noteListModel,
+				this::addNote, this::editNote, this::deleteNote),
+			"growx");
+
+		panel.add(createListPanel("Source Citations",
+				sourceCitationList, sourceCitationListModel,
+				this::addSourceCitation, this::editSourceCitation, this::deleteSourceCitation),
+			"growx");
+
+		return panel;
+	}
+
+	// ----- Generic list panel builder -----
+	private JPanel createListPanel(String title, JList<String> list, DefaultListModel<String> model,
+		Runnable addAction, Runnable editAction, Runnable deleteAction){
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder(title));
+
+		list.setVisibleRowCount(4);
+		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		GUIHelper.installBehaviour(list,
+			() -> list.getSelectedIndex() >= 0,
+			() -> createNewItemForList(list, model),
+			addAction,
+			editAction,
+			deleteAction,
+			null);
+
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		panel.add(scrollPane, "growx,wrap");
+		return panel;
+	}
+
+	// ----- Helper to create new item from list context -----
+	private void createNewItemForList(JList<String> list, DefaultListModel<String> model){
+		if(list == eventList){
+			createNewEvent();
+		}
+		else if(list == groupCitationList){
+			createNewGroupCitation();
+		}
+		else if(list == culturalNormList){
+			createNewCulturalNorm();
+		}
+		else if(list == noteList){
+			createNewNote();
+		}
+		else if(list == sourceCitationList){
+			createNewSource();
+		}
+	}
+
+	// ==================== Preferred Image ====================
+	private Icon createPlaceholderIcon(){
+		BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2 = img.createGraphics();
+		g2.setColor(Color.LIGHT_GRAY);
+		g2.fillRect(0, 0, 80, 80);
+		g2.setColor(Color.DARK_GRAY);
+		g2.drawString("No img", 10, 45);
+		g2.dispose();
+		return new ImageIcon(img);
+	}
+
+	private void selectAndCropImage(){
+		if(sourceHandler == null){
+			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		final String[] result = {null};
+		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			getParentFrame(), model, sourceHandler, selectedId -> result[0] = selectedId);
+		dialog.setVisible(true);
+		String sourceId = result[0];
+		if(sourceId == null) return;
+
+		BufferedImage image = loadImageFromSource(sourceId);
+		if(image == null){
+			JOptionPane.showMessageDialog(this,
+				"Could not load image from the selected source.",
+				"Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		ImageCropDialog cropDialog = new ImageCropDialog(getParentFrame(), image);
+		cropDialog.setVisible(true);
+
+		Rectangle cropRect = cropDialog.getCrop();
+		if(cropRect != null){
+			preferredImageId = sourceId;
+			preferredImageCrop = cropRect.x + " " + cropRect.y + " " + cropRect.width + " " + cropRect.height;
+			updateImageButton(sourceId);
+		}
+	}
+
+	private BufferedImage loadImageFromSource(String sourceId){
+		FLEFRecord source = model.getRecordById(sourceId);
+		if(source == null) return null;
+
+		FLEFRecord doc = FLEFRecordUtils.findChild(source, "DOCUMENT_STRUCTURE");
+		if(doc == null) return null;
+
+		String filePath = FLEFRecordUtils.getChildValue(doc, "FILE");
+		if(filePath == null || filePath.isEmpty()) return null;
+
+		try{
+			File file = new File(filePath);
+			if(!file.exists()) return null;
+			return ImageIO.read(file);
+		}
+		catch(IOException e){
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	private void updateImageButton(String sourceId){
+		BufferedImage img = loadImageFromSource(sourceId);
+		if(img != null){
+			Image scaled = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+			preferredImageButton.setIcon(new ImageIcon(scaled));
+		}
+		else{
+			preferredImageButton.setIcon(createPlaceholderIcon());
+		}
+	}
+
+	private void clearImage(){
+		preferredImageId = null;
+		preferredImageCrop = null;
+		preferredImageButton.setIcon(createPlaceholderIcon());
+	}
+
+	// ==================== Inner Crop Dialog ====================
+	private static class ImageCropDialog extends JDialog{
+		private final BufferedImage image;
+		private Rectangle cropRect;
+		private final CropPanel cropPanel;
+
+		public ImageCropDialog(Frame parent, BufferedImage image){
+			super(parent, "Select Crop Area", true);
+			this.image = image;
+			cropPanel = new CropPanel(image);
+			initComponents();
+			pack();
+			setSize(600, 500);
+			setLocationRelativeTo(parent);
+		}
+
+		private void initComponents(){
+			setLayout(new BorderLayout(5, 5));
+
+			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+			JButton okBtn = new JButton("OK");
+			JButton cancelBtn = new JButton("Cancel");
+			buttonPanel.add(okBtn);
+			buttonPanel.add(cancelBtn);
+
+			add(cropPanel, BorderLayout.CENTER);
+			add(buttonPanel, BorderLayout.SOUTH);
+
+			okBtn.addActionListener(e -> {
+				cropRect = cropPanel.getCropRect();
+				dispose();
+			});
+			cancelBtn.addActionListener(e -> {
+				cropRect = null;
+				dispose();
+			});
+		}
+
+		public Rectangle getCrop(){
+			return cropRect;
+		}
+
+		private static class CropPanel extends JPanel{
+			private final BufferedImage image;
+			private final int imgWidth;
+			private final int imgHeight;
+			private Rectangle rect;
+			private Point start;
+			private boolean drawing;
+
+			public CropPanel(BufferedImage image){
+				this.image = image;
+				this.imgWidth = image.getWidth();
+				this.imgHeight = image.getHeight();
+				setPreferredSize(new Dimension(500, 400));
+				setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+
+				MouseAdapter adapter = new MouseAdapter(){
+					@Override
+					public void mousePressed(MouseEvent e){
+						start = e.getPoint();
+						rect = null;
+						drawing = true;
+						repaint();
+					}
+
+					@Override
+					public void mouseDragged(MouseEvent e){
+						if(start != null && drawing){
+							int x = Math.min(start.x, e.getX());
+							int y = Math.min(start.y, e.getY());
+							int w = Math.abs(e.getX() - start.x);
+							int h = Math.abs(e.getY() - start.y);
+							rect = new Rectangle(x, y, w, h);
+							repaint();
+						}
+					}
+
+					@Override
+					public void mouseReleased(MouseEvent e){
+						drawing = false;
+					}
+				};
+				addMouseListener(adapter);
+				addMouseMotionListener(adapter);
+			}
+
+			@Override
+			protected void paintComponent(Graphics g){
+				super.paintComponent(g);
+				Graphics2D g2 = (Graphics2D)g;
+
+				int panelWidth = getWidth();
+				int panelHeight = getHeight();
+				double scale = Math.min((double)panelWidth / imgWidth, (double)panelHeight / imgHeight);
+				int scaledW = (int)(imgWidth * scale);
+				int scaledH = (int)(imgHeight * scale);
+				int x = (panelWidth - scaledW) / 2;
+				int y = (panelHeight - scaledH) / 2;
+				g2.drawImage(image, x, y, scaledW, scaledH, null);
+
+				if(rect != null){
+					g2.setColor(Color.RED);
+					g2.drawRect(rect.x, rect.y, rect.width, rect.height);
+					g2.setColor(new Color(255, 0, 0, 50));
+					g2.fillRect(rect.x, rect.y, rect.width, rect.height);
+				}
+			}
+
+			public Rectangle getCropRect(){
+				if(rect == null) return null;
+				int panelWidth = getWidth();
+				int panelHeight = getHeight();
+				double scale = Math.min((double)panelWidth / imgWidth, (double)panelHeight / imgHeight);
+				int scaledW = (int)(imgWidth * scale);
+				int scaledH = (int)(imgHeight * scale);
+				int offsetX = (panelWidth - scaledW) / 2;
+				int offsetY = (panelHeight - scaledH) / 2;
+
+				int imgX = (int)((rect.x - offsetX) / scale);
+				int imgY = (int)((rect.y - offsetY) / scale);
+				int imgW = (int)(rect.width / scale);
+				int imgH = (int)(rect.height / scale);
+
+				imgX = Math.clamp(imgX, 0, imgWidth - 1);
+				imgY = Math.clamp(imgY, 0, imgHeight - 1);
+				imgW = Math.min(imgW, imgWidth - imgX);
+				imgH = Math.min(imgH, imgHeight - imgY);
+				return new Rectangle(imgX, imgY, imgW, imgH);
+			}
+		}
+	}
+
+	// ==================== Member methods ====================
+	private void addMember(){
 		if(individualHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, individualHandler, selectedId -> {
-			if(selectedId != null && !individualIds.contains(selectedId)){
-				individualIds.add(selectedId);
-				individualListModel.addElement(getIndividualDisplayName(selectedId));
+			if(selectedId != null){
+				String role = askRole(null);
+				if(role != null){
+					memberEntries.add(new MemberEntry(selectedId, role, new ArrayList<>()));
+					memberListModel.addElement(memberEntries.getLast().toString());
+				}
 			}
-		}
-		);
+		});
 		dialog.setVisible(true);
 	}
 
-	private void removeIndividual(){
-		int idx = individualList.getSelectedIndex();
-		if(idx == -1)
+	private void createNewMember(){
+		if(individualHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
-		int confirm = JOptionPane.showConfirmDialog(this, "Remove this individual from the group?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			individualIds.remove(idx);
-			individualListModel.remove(idx);
+		}
+		Set<String> before = new HashSet<>();
+		for(FLEFRecord rec : model.getRecordsByType("INDIVIDUAL")){
+			String id = rec.getId();
+			if(id != null) before.add(id);
+		}
+		JDialog dialog = individualHandler.createNewDialog(getParentFrame(), model);
+		dialog.setVisible(true);
+		for(FLEFRecord rec : model.getRecordsByType("INDIVIDUAL")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id)){
+				String role = askRole(null);
+				if(role != null){
+					memberEntries.add(new MemberEntry(id, role, new ArrayList<>()));
+					memberListModel.addElement(memberEntries.getLast().toString());
+				}
+				return;
+			}
 		}
 	}
 
-	private void addFamily(){
-		if(familyHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Family handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+	private void editMember(){
+		if(individualHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+		int idx = memberList.getSelectedIndex();
+		String individualId = memberEntries.get(idx)
+			.individualId;
+		FLEFRecord rec = model.getRecordById(individualId);
+		JDialog dialog = individualHandler.createEditDialog(getParentFrame(), model, rec);
+		dialog.setVisible(true);
 
+		String newDisplay = individualHandler.getDisplayName(rec);
+		noteDisplayMap.put(individualId, newDisplay);
+		noteListModel.set(idx, newDisplay);
+	}
+
+	private void editMemberRole(){
+		int idx = memberList.getSelectedIndex();
+		if(idx == -1) return;
+		MemberEntry existing = memberEntries.get(idx);
+		// Edit role only (could also allow changing the individual, but keep it simple)
+		String newRole = askRole(existing.role);
+		if(newRole != null){
+			existing.role = newRole;
+			memberListModel.set(idx, existing.toString());
+		}
+	}
+
+	private void deleteMember(){
+		int idx = memberList.getSelectedIndex();
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this member?")) return;
+		memberEntries.remove(idx);
+		memberListModel.remove(idx);
+	}
+
+	private MemberEntry showMemberNotesDialog(MemberEntry entry){
+		JDialog dialog = new JDialog(this, "Member Notes", true);
+		dialog.setLayout(new MigLayout("fillx"));
+		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		panel.add(new JLabel("Member:"), "align label");
+		panel.add(new JLabel(entry.individualId + " [" + entry.role + "]"), "growx,wrap");
+
+		DefaultListModel<String> noteModel = new DefaultListModel<>();
+		JList<String> noteList = new JList<>(noteModel);
+		List<String> noteIds = new ArrayList<>(entry.noteIds);
+		Map<String, String> displayMap = new HashMap<>();
+		for(String id : noteIds){
+			displayMap.put(id, getNoteDisplayName(id));
+			noteModel.addElement(displayMap.get(id));
+		}
+
+		GUIHelper.installBehaviour(noteList,
+			() -> noteList.getSelectedIndex() >= 0,
+			() -> createNewNote(noteModel, noteIds, displayMap),
+			() -> addNoteToList(noteModel, noteIds, displayMap),
+			() -> editNoteFromList(noteList, noteModel, noteIds, displayMap),
+			() -> deleteNoteFromList(noteList, noteModel, noteIds, displayMap),
+			null);
+
+		JPanel notePanel = new JPanel(new MigLayout("fillx"));
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(noteList,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(noteList.getPreferredScrollableViewportSize());
+		notePanel.add(scrollPane, "growx,wrap");
+
+		panel.add(notePanel, "growx,wrap");
+		dialog.add(panel, BorderLayout.CENTER);
+
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		JButton okBtn = new JButton("OK");
+		JButton cancelBtn = new JButton("Cancel");
+		btnPanel.add(okBtn);
+		btnPanel.add(cancelBtn);
+		dialog.add(btnPanel, BorderLayout.SOUTH);
+
+		final MemberEntry[] result = {null};
+		okBtn.addActionListener(e -> {
+			result[0] = new MemberEntry(entry.individualId, entry.role, new ArrayList<>(noteIds));
+			dialog.dispose();
+		});
+		cancelBtn.addActionListener(e -> dialog.dispose());
+
+		dialog.pack();
+		dialog.setLocationRelativeTo(this);
+		dialog.setVisible(true);
+
+		return result[0];
+	}
+
+	private String askRole(String initial){
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.add(new JLabel("Role:"), "align label");
+		JTextField roleField = new JTextField(initial != null? initial: "", 15);
+		panel.add(roleField, "growx");
+		int result = JOptionPane.showConfirmDialog(this, panel, "Enter role for member",
+			JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+		if(result == JOptionPane.OK_OPTION){
+			return roleField.getText().trim();
+		}
+		return null;
+	}
+
+	// ==================== Note helper methods (shared) ====================
+	private String getNoteDisplayName(String id){
+		if(noteHandler != null){
+			FLEFRecord rec = model.getRecordById(id);
+			if(rec != null) return noteHandler.getDisplayName(rec);
+		}
+		return id;
+	}
+
+	private void addNoteToList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
+		if(noteHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, familyHandler, selectedId -> {
-			if(selectedId != null && !familyIds.contains(selectedId)){
-				familyIds.add(selectedId);
-				familyListModel.addElement(getFamilyDisplayName(selectedId));
+			getParentFrame(), model, noteHandler, selectedId -> {
+			if(selectedId != null && !ids.contains(selectedId)){
+				ids.add(selectedId);
+				String display = getNoteDisplayName(selectedId);
+				displayMap.put(selectedId, display);
+				listModel.addElement(display);
 			}
-		}
-		);
+		});
 		dialog.setVisible(true);
 	}
 
-	private void removeFamily(){
-		int idx = familyList.getSelectedIndex();
-		if(idx == -1)
+	private void editNoteFromList(JList<String> list, DefaultListModel<String> listModel,
+		List<String> ids, Map<String, String> displayMap){
+		int idx = list.getSelectedIndex();
+		if(idx == -1) return;
+		String id = ids.get(idx);
+		if(noteHandler == null) return;
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec == null) return;
+		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+		dialog.setVisible(true);
+		String newDisplay = getNoteDisplayName(id);
+		displayMap.put(id, newDisplay);
+		listModel.set(idx, newDisplay);
+	}
+
+	private void deleteNoteFromList(JList<String> list, DefaultListModel<String> listModel,
+		List<String> ids, Map<String, String> displayMap){
+		int idx = list.getSelectedIndex();
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this note?")) return;
+		String removedId = ids.remove(idx);
+		displayMap.remove(removedId);
+		listModel.remove(idx);
+	}
+
+	private void createNewNote(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
+		if(noteHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
-		int confirm = JOptionPane.showConfirmDialog(this, "Remove this family from the group?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			familyIds.remove(idx);
-			familyListModel.remove(idx);
 		}
-	}
-
-	private String getIndividualDisplayName(String id){
-		if(individualHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null)
-				return individualHandler.getDisplayName(rec);
+		Set<String> before = new HashSet<>(ids);
+		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
+		dialog.setVisible(true);
+		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id) && !ids.contains(id)){
+				ids.add(id);
+				String display = getNoteDisplayName(id);
+				displayMap.put(id, display);
+				listModel.addElement(display);
+				break;
+			}
 		}
-		return id;
-	}
-
-	private String getFamilyDisplayName(String id){
-		if(familyHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null)
-				return familyHandler.getDisplayName(rec);
-		}
-		return id;
 	}
 
 	// ==================== Event methods ====================
-
 	private void addEvent(){
 		if(eventHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Event handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, eventHandler, selectedId -> {
 			if(selectedId != null && !eventIds.contains(selectedId)){
 				eventIds.add(selectedId);
 				eventListModel.addElement(getEventDisplayName(selectedId));
 			}
-		}
-		);
+		});
 		dialog.setVisible(true);
 	}
 
 	private void editEvent(){
 		int idx = eventList.getSelectedIndex();
-		if(idx == -1)
-			return;
+		if(idx == -1) return;
 		String id = eventIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null)
-			return;
+		if(rec == null) return;
 		JDialog dialog = eventHandler.createEditDialog(getParentFrame(), model, rec);
 		dialog.setVisible(true);
 		eventListModel.set(idx, getEventDisplayName(id));
@@ -462,106 +851,254 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private void deleteEvent(){
 		int idx = eventList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		int confirm = JOptionPane.showConfirmDialog(this, "Remove this event?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			eventIds.remove(idx);
-			eventListModel.remove(idx);
-		}
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this event?")) return;
+		eventIds.remove(idx);
+		eventListModel.remove(idx);
 	}
 
 	private String getEventDisplayName(String id){
 		if(eventHandler != null){
 			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null)
-				return eventHandler.getDisplayName(rec);
+			if(rec != null) return eventHandler.getDisplayName(rec);
 		}
 		return id;
 	}
 
-	// ==================== Note methods ====================
-
-	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null)
-				return noteHandler.getDisplayName(rec);
-		}
-		return id;
-	}
-
-	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+	private void createNewEvent(){
+		if(eventHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Event handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, noteHandler, selectedId -> {
-			if(selectedId != null && !noteIds.contains(selectedId)){
-				noteIds.add(selectedId);
-				String display = getNoteDisplayName(selectedId);
-				noteDisplayMap.put(selectedId, display);
-				noteListModel.addElement(display);
+		Set<String> before = new HashSet<>();
+		for(FLEFRecord rec : model.getRecordsByType("EVENT")){
+			String id = rec.getId();
+			if(id != null) before.add(id);
+		}
+		JDialog dialog = eventHandler.createNewDialog(getParentFrame(), model);
+		dialog.setVisible(true);
+		for(FLEFRecord rec : model.getRecordsByType("EVENT")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id)){
+				eventIds.add(id);
+				eventListModel.addElement(getEventDisplayName(id));
+				return;
 			}
 		}
-		);
+	}
+
+	// ==================== Group Citation methods (non-family) ====================
+	private void addGroupCitation(){
+		addGroupCitation(null);
+	}
+
+	private boolean addGroupCitation(String preSelectedGroupId){
+		if(groupCitationHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Group Citation handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		FLEFRecord citationRecord;
+		if(preSelectedGroupId != null && !preSelectedGroupId.isEmpty()){
+			citationRecord = new FLEFRecord();
+			citationRecord.setValue(preSelectedGroupId);
+			citationRecord.setLevel(1);
+			citationRecord.setTag("GROUP_CITATION");
+		}
+		else{
+			citationRecord = null;
+		}
+		GroupCitationDialog dialog = (GroupCitationDialog)groupCitationHandler.createEditDialog(getParentFrame(), model, citationRecord);
 		dialog.setVisible(true);
+		if(dialog.isSaved()){
+			FLEFRecord citation = dialog.getCitationRecord();
+			if(citation != null){
+				citation.setLevel(1);
+				citation.setTag("GROUP_CITATION");
+				groupCitationRecords.add(citation);
+				groupCitationListModel.addElement(getGroupCitationDisplay(citation));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private void editGroupCitation(){
+		if(groupCitationHandler == null) return;
+		int idx = groupCitationList.getSelectedIndex();
+		if(idx == -1) return;
+		FLEFRecord existing = groupCitationRecords.get(idx);
+		GroupCitationDialog dialog = (GroupCitationDialog)groupCitationHandler.createEditDialog(getParentFrame(), model, existing);
+		dialog.setVisible(true);
+		if(dialog.isSaved()){
+			FLEFRecord updated = dialog.getCitationRecord();
+			if(updated != null){
+				groupCitationRecords.set(idx, updated);
+				groupCitationListModel.set(idx, getGroupCitationDisplay(updated));
+			}
+		}
+	}
+
+	private void deleteGroupCitation(){
+		int idx = groupCitationList.getSelectedIndex();
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this group citation?")) return;
+		groupCitationRecords.remove(idx);
+		groupCitationListModel.remove(idx);
+	}
+
+	private String getGroupCitationDisplay(FLEFRecord citation){
+		String groupId = citation.getValue();
+		String role = FLEFRecordUtils.getChildValue(citation, "ROLE");
+		StringBuilder display = new StringBuilder();
+		if(groupId != null){
+			FLEFRecord rec = model.getRecordById(groupId);
+			if(rec != null && groupHandler != null){
+				display.append(groupHandler.getDisplayName(rec));
+			}
+			else{
+				display.append(groupId);
+			}
+		}
+		else{
+			display.append("[empty]");
+		}
+		if(role != null && !role.isEmpty()){
+			display.append(" [").append(role).append("]");
+		}
+		return display.toString();
+	}
+
+	private void createNewGroupCitation(){
+		if(groupHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		Set<String> before = new HashSet<>();
+		for(FLEFRecord rec : model.getRecordsByType("GROUP")){
+			String id = rec.getId();
+			if(id != null) before.add(id);
+		}
+		JDialog dialog = groupHandler.createNewDialog(getParentFrame(), model);
+		dialog.setVisible(true);
+		for(FLEFRecord rec : model.getRecordsByType("GROUP")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id)){
+				boolean saved = addGroupCitation(id);
+				if(!saved){
+					model.removeRecord(id);
+					JOptionPane.showMessageDialog(getParentFrame(),
+						"Group creation cancelled. The group record has been removed.",
+						"Info", JOptionPane.INFORMATION_MESSAGE);
+				}
+				return;
+			}
+		}
+	}
+
+	// ==================== Cultural Norm methods ====================
+	private void addCulturalNorm(){
+		if(culturalNormHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			getParentFrame(), model, culturalNormHandler, selectedId -> {
+			if(selectedId != null && !culturalNormIds.contains(selectedId)){
+				culturalNormIds.add(selectedId);
+				culturalNormListModel.addElement(getCulturalNormDisplayName(selectedId));
+			}
+		});
+		dialog.setVisible(true);
+	}
+
+	private void editCulturalNorm(){
+		if(culturalNormHandler == null) return;
+		int idx = culturalNormList.getSelectedIndex();
+		if(idx == -1) return;
+		String id = culturalNormIds.get(idx);
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec == null) return;
+		JDialog dialog = culturalNormHandler.createEditDialog(getParentFrame(), model, rec);
+		dialog.setVisible(true);
+		culturalNormListModel.set(idx, getCulturalNormDisplayName(id));
+	}
+
+	private void deleteCulturalNorm(){
+		int idx = culturalNormList.getSelectedIndex();
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this cultural norm?")) return;
+		culturalNormIds.remove(idx);
+		culturalNormListModel.remove(idx);
+	}
+
+	private String getCulturalNormDisplayName(String id){
+		if(culturalNormHandler != null){
+			FLEFRecord rec = model.getRecordById(id);
+			if(rec != null) return culturalNormHandler.getDisplayName(rec);
+		}
+		return id;
+	}
+
+	private void createNewCulturalNorm(){
+		if(culturalNormHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		Set<String> before = new HashSet<>();
+		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
+			String id = rec.getId();
+			if(id != null) before.add(id);
+		}
+		JDialog dialog = culturalNormHandler.createNewDialog(getParentFrame(), model);
+		dialog.setVisible(true);
+		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id)){
+				culturalNormIds.add(id);
+				culturalNormListModel.addElement(getCulturalNormDisplayName(id));
+				return;
+			}
+		}
+	}
+
+	// ==================== Note methods (top-level) ====================
+	private void addNote(){
+		addNoteToList(noteListModel, noteIds, noteDisplayMap);
 	}
 
 	private void editNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		String id = noteIds.get(idx);
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null)
-			return;
-		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
-		dialog.setVisible(true);
-		String newDisplay = getNoteDisplayName(id);
-		noteDisplayMap.put(id, newDisplay);
-		noteListModel.set(idx, newDisplay);
+		editNoteFromList(noteList, noteListModel, noteIds, noteDisplayMap);
 	}
 
 	private void deleteNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		int confirm = JOptionPane.showConfirmDialog(this, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			String removedId = noteIds.remove(idx);
-			noteDisplayMap.remove(removedId);
-			noteListModel.remove(idx);
-		}
+		deleteNoteFromList(noteList, noteListModel, noteIds, noteDisplayMap);
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
-		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
-		dialog.setVisible(true);
-		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !noteIds.contains(id)){
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteListModel.addElement(display);
-				break;
-			}
-		}
+		createNewNote(noteListModel, noteIds, noteDisplayMap);
 	}
 
 	// ==================== Source Citation methods ====================
-
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, null);
+		addSourceCitation(null);
+	}
+
+	private boolean addSourceCitation(String preSelectedSourceId){
+		if(sourceHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		FLEFRecord citationRecord;
+		if(preSelectedSourceId != null && !preSelectedSourceId.isEmpty()){
+			citationRecord = new FLEFRecord();
+			citationRecord.setValue(preSelectedSourceId);
+			citationRecord.setLevel(1);
+			citationRecord.setTag("SOURCE_CITATION");
+		}
+		else{
+			citationRecord = null;
+		}
+		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, citationRecord);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord citation = dialog.getCitationRecord();
@@ -570,14 +1107,15 @@ public class GroupDialog extends BaseRecordDialog{
 				citation.setTag("SOURCE_CITATION");
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
+				return true;
 			}
 		}
+		return false;
 	}
 
 	private void editSourceCitation(){
 		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1)
-			return;
+		if(idx == -1) return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
 		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
 		dialog.setVisible(true);
@@ -592,24 +1130,32 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private void deleteSourceCitation(){
 		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		int confirm = JOptionPane.showConfirmDialog(this, "Remove this source citation?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			sourceCitationRecords.remove(idx);
-			sourceCitationListModel.remove(idx);
-		}
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this source citation?")) return;
+		sourceCitationRecords.remove(idx);
+		sourceCitationListModel.remove(idx);
 	}
 
 	private String getSourceCitationDisplay(FLEFRecord citation){
 		String sourceId = citation.getValue();
+		String role = FLEFRecordUtils.getChildValue(citation, "ROLE");
+		StringBuilder display = new StringBuilder();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null)
-				return sourceHandler.getDisplayName(rec);
-			return sourceId;
+			if(rec != null && sourceHandler != null){
+				display.append(sourceHandler.getDisplayName(rec));
+			}
+			else{
+				display.append(sourceId);
+			}
 		}
-		return "[empty]";
+		else{
+			display.append("[empty]");
+		}
+		if(role != null && !role.isEmpty()){
+			display.append(" [").append(role).append("]");
+		}
+		return display.toString();
 	}
 
 	private void createNewSource(){
@@ -617,157 +1163,226 @@ public class GroupDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-
+		Set<String> before = new HashSet<>();
+		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
+			String id = rec.getId();
+			if(id != null) before.add(id);
+		}
 		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
-	}
-
-	private void createNewEvent(){
-		if(eventHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Event handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
-		JDialog dialog = eventHandler.createNewDialog(getParentFrame(), model);
-		dialog.setVisible(true);
-	}
-
-	private void createNewItemForList(JList<String> list, DefaultListModel<String> model){
-		if(list == eventList){
-			createNewEvent();
-			return;
-		}
-		if(list == noteList){
-			createNewNote();
-			return;
-		}
-		if(list == sourceCitationList){
-			createNewSource();
-			return;
+		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id)){
+				addSourceCitation(id);
+				return;
+			}
 		}
 	}
 
 	// ==================== Load Data ====================
-
 	@Override
 	protected void loadData(){
-		idField.setText(record.getId());
-		nameField.setText(FLEFRecordUtils.getChildValue(record, "NAME"));
-		typeCombo.setSelectedItem(FLEFRecordUtils.getChildValue(record, "TYPE"));
+		setTitle(buildTitle(model, record));
+
+		// Basic fields
+		String name = FLEFRecordUtils.getChildValue(record, "NAME");
+		nameField.setText(name != null? name: "");
+
+		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
+		typeCombo.setSelectedItem(type != null? type: "");
+
 		restrictionCheckBox.setSelected("confidential".equals(FLEFRecordUtils.getChildValue(record, "RESTRICTION")));
 
-		// --- INDIVIDUALS ---
-		individualIds.clear();
-		individualListModel.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("INDIVIDUAL".equals(child.getTag()) && child.getValue() != null){
-				String id = child.getValue();
-				individualIds.add(id);
-				individualListModel.addElement(getIndividualDisplayName(id));
-			}
-		}
+		// Clear members
+		memberEntries.clear();
+		memberListModel.clear();
 
-		// --- FAMILIES ---
-		familyIds.clear();
-		familyListModel.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("FAMILY".equals(child.getTag()) && child.getValue() != null){
-				String id = child.getValue();
-				familyIds.add(id);
-				familyListModel.addElement(getFamilyDisplayName(id));
-			}
-		}
-
-		// --- EVENTS ---
+		// Reset other lists
 		eventIds.clear();
 		eventListModel.clear();
+		groupCitationRecords.clear();
+		groupCitationListModel.clear();
+		culturalNormIds.clear();
+		culturalNormListModel.clear();
+		noteIds.clear();
+		noteListModel.clear();
+		noteDisplayMap.clear();
+		sourceCitationRecords.clear();
+		sourceCitationListModel.clear();
+
+		// Process all children
 		for(FLEFRecord child : record.getChildren()){
-			if("EVENT".equals(child.getTag()) && child.getValue() != null){
+			String tag = child.getTag();
+
+			if("GROUP_CITATION".equals(tag)){
+				String role = FLEFRecordUtils.getChildValue(child, "ROLE");
+				String individualId = child.getValue();
+				if(individualId != null){
+					// Check if this is a member (references an INDIVIDUAL)
+					// We assume that any GROUP_CITATION with a value that points to an INDIVIDUAL
+					// is a member. Other GROUP_CITATION (pointing to other groups) are kept as "other memberships".
+					FLEFRecord target = model.getRecordById(individualId);
+					if(target != null && "INDIVIDUAL".equals(target.getType())){
+						List<String> notes = loadCitationNotesOnly(child);
+						memberEntries.add(new MemberEntry(individualId, role, notes));
+						memberListModel.addElement(memberEntries.getLast().toString());
+					}
+					else{
+						// Non-individual group citation – store as is
+						groupCitationRecords.add(child);
+						groupCitationListModel.addElement(getGroupCitationDisplay(child));
+					}
+				}
+			}
+			else if("EVENT".equals(tag) && child.getValue() != null){
 				String id = child.getValue();
 				eventIds.add(id);
 				eventListModel.addElement(getEventDisplayName(id));
 			}
-		}
-
-		// --- NOTES ---
-		noteIds.clear();
-		noteListModel.clear();
-		noteDisplayMap.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("NOTE".equals(child.getTag()) && child.getValue() != null){
+			else if("CULTURAL_NORM".equals(tag) && child.getValue() != null){
+				String id = child.getValue();
+				culturalNormIds.add(id);
+				culturalNormListModel.addElement(getCulturalNormDisplayName(id));
+			}
+			else if("NOTE".equals(tag) && child.getValue() != null){
 				String id = child.getValue();
 				noteIds.add(id);
 				String display = getNoteDisplayName(id);
 				noteDisplayMap.put(id, display);
 				noteListModel.addElement(display);
 			}
-		}
-
-		// --- SOURCE CITATIONS ---
-		sourceCitationRecords.clear();
-		sourceCitationListModel.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			else if("SOURCE_CITATION".equals(tag)){
 				sourceCitationRecords.add(child);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
 			}
 		}
 
-		// --- MODIFICATION ---
+		// Preferred Image
+		FLEFRecord pref = FLEFRecordUtils.findChild(record, "PREFERRED_IMAGE");
+		if(pref != null){
+			preferredImageId = pref.getValue();
+			preferredImageCrop = FLEFRecordUtils.getChildValue(pref, "CROP");
+			updateImageButton(preferredImageId);
+		}
+		else{
+			clearImage();
+		}
+
+		// Modification
 		modificationPanel.loadFromRecord(record);
+
+		// Conclusion
+		FLEFRecord conclusion = FLEFRecordUtils.findChild(record, "CONCLUSION");
+		conclusionPanel.loadFromRecord(conclusion);
+	}
+
+	private List<String> loadCitationNotesOnly(FLEFRecord citationRecord){
+		List<String> notes = new ArrayList<>();
+		for(FLEFRecord child : citationRecord.getChildren()){
+			if("NOTE".equals(child.getTag()) && child.getValue() != null){
+				notes.add(child.getValue());
+			}
+		}
+		return notes;
+	}
+
+	// ==================== Validation ====================
+	@Override
+	protected boolean validateData(){
+		// NAME is obligatory
+		if(nameField.getText().trim().isEmpty()){
+			JOptionPane.showMessageDialog(this,
+				"Group NAME is required.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+
+		if(!modificationPanel.hasData()){
+			JOptionPane.showMessageDialog(this,
+				"Modification is required for a group.\nPlease add a CREATION date.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		if(!modificationPanel.validateRequiredFields()){
+			return false;
+		}
+		return !conclusionPanel.hasData() || conclusionPanel.validateRequiredFields();
 	}
 
 	// ==================== Save ====================
-
 	@Override
 	protected void saveRecord(){
 		record.getChildren().clear();
 
-		// NAME (1:1) - required
-		String name = nameField.getText().trim();
-		if(!name.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "NAME", name);
-		}
+		// NAME (obligatory)
+		FLEFRecordUtils.updateChildValue(record, "NAME", nameField.getText().trim());
 
-		// TYPE (0:1)
+		// TYPE (optional)
 		String type = (String)typeCombo.getSelectedItem();
 		if(type != null && !type.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "TYPE", type);
 		}
 
-		// RESTRICTION (0:1)
+		// RESTRICTION
 		FLEFRecordUtils.updateChildValue(record, "RESTRICTION",
 			restrictionCheckBox.isSelected()? "confidential": null);
 
-		// INDIVIDUALS
-		for(String id : individualIds){
-			FLEFRecordUtils.addChild(record, "INDIVIDUAL", 1, id);
+		// --- Members (GROUP_CITATION with roles) ---
+		for(MemberEntry entry : memberEntries){
+			FLEFRecord citation = createGroupCitation(entry.individualId, entry.role, entry.noteIds);
+			record.addChild(citation);
 		}
 
-		// FAMILIES
-		for(String id : familyIds){
-			FLEFRecordUtils.addChild(record, "FAMILY", 1, id);
+		// --- Other group citations (non-individual) ---
+		for(FLEFRecord citation : groupCitationRecords){
+			citation.setLevel(1);
+			citation.setTag("GROUP_CITATION");
+			record.addChild(citation);
 		}
 
-		// EVENTS
+		// --- Other elements ---
 		for(String id : eventIds){
 			FLEFRecordUtils.addChild(record, "EVENT", 1, id);
 		}
 
-		// NOTES
+		for(String id : culturalNormIds){
+			FLEFRecordUtils.addChild(record, "CULTURAL_NORM", 1, id);
+		}
+
 		for(String id : noteIds){
 			FLEFRecordUtils.addChild(record, "NOTE", 1, id);
 		}
 
-		// SOURCE CITATIONS
 		for(FLEFRecord citation : sourceCitationRecords){
 			citation.setLevel(1);
 			citation.setTag("SOURCE_CITATION");
 			record.addChild(citation);
 		}
 
-		// MODIFICATION
+		// Preferred Image
+		if(preferredImageId != null && !preferredImageId.isEmpty()){
+			FLEFRecord pref = new FLEFRecord();
+			pref.setLevel(1);
+			pref.setTag("PREFERRED_IMAGE");
+			pref.setValue(preferredImageId);
+			record.addChild(pref);
+			if(preferredImageCrop != null && !preferredImageCrop.isEmpty()){
+				FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
+			}
+		}
+
+		// Modification
 		modificationPanel.saveToRecord(record);
+
+		// Conclusion
+		if(conclusionPanel.hasData()){
+			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
+			if(conclusion != null){
+				conclusion.setLevel(1);
+				conclusion.setTag("CONCLUSION");
+				record.addChild(conclusion);
+			}
+		}
 
 		if(isNew){
 			model.addRecord(record);
@@ -775,36 +1390,32 @@ public class GroupDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Validation ====================
-
-	@Override
-	protected boolean validateData(){
-		// NAME (1:1) - required
-		if(nameField.getText().trim().isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				"NAME is required for a group.\nPlease enter a group name.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			nameField.requestFocusInWindow();
-			return false;
+	private FLEFRecord createGroupCitation(String individualId, String role, List<String> noteIds){
+		FLEFRecord citation = new FLEFRecord();
+		citation.setLevel(1);
+		citation.setTag("GROUP_CITATION");
+		citation.setValue(individualId);
+		if(role != null && !role.isEmpty()){
+			FLEFRecordUtils.updateChildValue(citation, "ROLE", role);
 		}
-
-		// MODIFICATION_STRUCTURE (1:1) - required if group has data
-		return modificationPanel.validateRequiredFields();
+		for(String noteId : noteIds){
+			FLEFRecordUtils.addChild(citation, "NOTE", 2, noteId);
+		}
+		return citation;
 	}
 
 	// ==================== Overrides ====================
-
 	@Override
 	protected FLEFRecord createNewRecord(){
 		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("GROUP");
+		newRecord.setType(GroupHandler.TYPE);
 		newRecord.setId(generateNewId());
 		return newRecord;
 	}
 
 	@Override
 	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "GROUP", "G");
+		return FLEFRecordUtils.generateNewId(model, GroupHandler.TYPE, GroupHandler.ID_PREFIX);
 	}
 
 	private Frame getParentFrame(){
@@ -815,8 +1426,7 @@ public class GroupDialog extends BaseRecordDialog{
 		return (Frame)parent;
 	}
 
-	// ==================== Main per test ====================
-
+	// ==================== Main test ====================
 	public static void main(String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -825,27 +1435,6 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 
 		FLEFModel model = new FLEFModel();
-		// Tutti gli handler vengono registrati automaticamente tramite i blocchi static
-
-		// Aggiungi alcuni dati di esempio
-		FLEFRecord ind = new FLEFRecord();
-		ind.setId("I1");
-		ind.setType("INDIVIDUAL");
-		FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
-		name.setTag("NAME");
-		FLEFRecord given = new FLEFRecord();
-		given.setLevel(2);
-		given.setTag("INDIVIDUAL_NAME");
-		given.setValue("John");
-		name.addChild(given);
-		FLEFRecord family = new FLEFRecord();
-		family.setLevel(2);
-		family.setTag("FAMILY_NAME");
-		family.setValue("Doe");
-		name.addChild(family);
-		ind.addChild(name);
-		model.addRecord(ind);
 
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Test Group Dialog");
@@ -856,7 +1445,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Group");
 			btn.addActionListener(e -> {
-				GroupDialog dialog = new GroupDialog(frame, model);
+				GroupDialog dialog = GroupDialog.createNew(frame, model);
 				dialog.setVisible(true);
 				System.out.println("Group saved.");
 			});

@@ -1,154 +1,245 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
-import javax.swing.AbstractAction;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JPopupMenu;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
-public class GUIHelper{
+/**
+ * Utilities for installing UI behaviours (popup menus, double‑click, keyboard shortcuts).
+ * <p>
+ * The main entry point is {@link #installBehaviour(JComponent, Supplier, Runnable, Runnable, Runnable, Consumer)},
+ * which lets you define the popup menu structure exactly via a {@link MenuBuilder}.
+ * You can specify any number of items, separators, and custom enable conditions.
+ * <p>
+ * A legacy overload is provided for backward compatibility, but it is just a wrapper
+ * that builds a standard menu using the same builder.
+ */
+public final class GUIHelper{
 
 	private GUIHelper(){}
 
 
-	public static void installBehaviour(final JComponent component,
-			final Supplier<Boolean> hasSelection,
-			final Runnable newAction,
-			final Runnable addAction,
-			final Runnable editAction,
-			final Runnable clearAction,
-			final Runnable notesAction){
-		final JPopupMenu popupMenu = new JPopupMenu();
+	/**
+	 * Installs behavior with full control over the popup menu structure.
+	 * <p>
+	 * The menu is built using a {@link MenuBuilder} that lets you specify the exact
+	 * sequence of items, separators, and their enabled state. The popup is re‑created
+	 * each time it is shown, so enabled states are always current.
+	 *
+	 * @param component	The component to enhance.
+	 * @param hasSelection	Supplier that tells whether an item is selected.
+	 * @param doubleClickAction	Action invoked on double‑click (may be {@code null}).
+	 * @param keyInsertAction	Action invoked by the INSERT key (may be {@code null}).
+	 * @param keyDeleteAction	Action invoked by the DELETE key (may be {@code null}).
+	 * @param menuBuilder	Consumer that defines the popup menu structure.
+	 */
+	public static void installBehaviour(final JComponent component, final Supplier<Boolean> hasSelection,
+			final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
+			final Consumer<MenuBuilder> menuBuilder){
+		// Collect the menu entries from the builder
+		final MenuBuilder builder = new MenuBuilder(hasSelection);
+		menuBuilder.accept(builder);
+		final List<MenuEntry> entries = builder.getEntries();
 
-		final JMenuItem newItem;
-		if(newAction != null){
-			newItem = new JMenuItem("Create New...");
-			newItem.addActionListener(e -> newAction.run());
-			popupMenu.add(newItem);
-		}
-
-		final JMenuItem addItem;
-		if(addAction != null){
-			addItem = new JMenuItem("Add Existing...");
-			addItem.addActionListener(e -> addAction.run());
-			popupMenu.add(addItem);
-		}
-
-		final JMenuItem editItem;
-		if(editAction != null){
-			editItem = new JMenuItem("Edit...");
-			editItem.addActionListener(e -> editAction.run());
-			popupMenu.add(editItem);
-
-			editItem.setEnabled(false);
-		}
-		else
-			editItem = null;
-
-		final JMenuItem clearItem;
-		if(clearAction != null){
-			clearItem = new JMenuItem("Clear");
-			clearItem.addActionListener(e -> clearAction.run());
-			popupMenu.add(clearItem);
-
-			clearItem.setEnabled(false);
-		}
-		else
-			clearItem = null;
-
-		final JMenuItem notesItem;
-		if(notesAction != null){
-			notesItem = new JMenuItem("Notes...");
-			notesItem.addActionListener(e -> notesAction.run());
-			popupMenu.addSeparator();
-			popupMenu.add(notesItem);
-
-			notesItem.setEnabled(false);
-		}
-		else
-			notesItem = null;
-
-		// Mouse handling
+		// Mouse listener for popup trigger and double‑click
 		component.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent me){
-				if(me.getClickCount() == 2
-						&& (!(component instanceof JList<?> list) || list.getSelectedIndex() >= 0)
-						&& editAction != null)
-					editAction.run();
+				if(me.getClickCount() == 2 && doubleClickAction != null
+						&& (!(component instanceof JList<?> list) || list.getSelectedIndex() >= 0))
+					doubleClickAction.run();
 			}
 
 			@Override
 			public void mousePressed(final MouseEvent me){
-				processEvent(me);
+				if(me.isPopupTrigger())
+					showPopup(me);
 			}
 
 			@Override
 			public void mouseReleased(final MouseEvent me){
-				processEvent(me);
+				if(me.isPopupTrigger())
+					showPopup(me);
 			}
 
-			private void processEvent(final MouseEvent me){
-				if(!component.isEnabled() || !me.isPopupTrigger())
-					return;
-
+			private void showPopup(final MouseEvent me){
+				// Ensure the clicked item gets selected
 				if(component instanceof JList<?> list){
 					final int index = list.locationToIndex(me.getPoint());
 					if(index >= 0 && !list.isSelectedIndex(index))
 						list.setSelectedIndex(index);
 				}
-
-				updateMenuState(hasSelection, editItem, clearItem, notesItem);
-				popupMenu.show(component, me.getX(), me.getY());
+				// Build the popup from scratch (enabled states are evaluated now)
+				final JPopupMenu popup = buildPopup(entries);
+				popup.show(component, me.getX(), me.getY());
 			}
 		});
 
-		// INSERT
-		if(newAction != null)
-			addAction(component, "new-item", KeyEvent.VK_INSERT, newAction);
-
-		// DELETE
-		if(clearAction != null && component instanceof JList<?> list)
-			addAction(component, "delete-item", KeyEvent.VK_DELETE, () -> {
-				if(list.getSelectedIndex() >= 0)
-					clearAction.run();
+		// Keyboard shortcuts
+		if(keyInsertAction != null)
+			addKeyboardShortcut(component, KeyEvent.VK_INSERT, "insert-action", keyInsertAction);
+		if(keyDeleteAction != null && component instanceof JList)
+			addKeyboardShortcut(component, KeyEvent.VK_DELETE, "delete-action", () -> {
+				if(hasSelection.get())
+					keyDeleteAction.run();
 			});
 	}
 
-	private static void updateMenuState(final Supplier<Boolean> hasSelection,
-			final JMenuItem editItem, final JMenuItem deleteItem, final JMenuItem notesItem){
-		final boolean enabled = hasSelection.get();
-		if(editItem != null)
-			editItem.setEnabled(enabled);
-		if(deleteItem != null)
-			deleteItem.setEnabled(enabled);
-		if(notesItem != null)
-			notesItem.setEnabled(enabled);
-	}
-
-	private static void addAction(final JComponent component, final String key, final int keyCode,
+	private static void addKeyboardShortcut(final JComponent component, final int virtualKey, final String actionMapKey,
 			final Runnable action){
-		component.getInputMap().put(
-			KeyStroke.getKeyStroke(keyCode, 0),
-			key
-		);
-
-		component.getActionMap().put(
-			key,
-			new AbstractAction(){
+		component.getInputMap()
+			.put(KeyStroke.getKeyStroke(virtualKey, 0), actionMapKey);
+		component.getActionMap()
+			.put(actionMapKey, new AbstractAction(){
 				@Override
-				public void actionPerformed(final ActionEvent e){
+				public void actionPerformed(final ActionEvent ae){
 					action.run();
 				}
+			});
+	}
+
+	/**
+	 * Legacy overload for backward compatibility.
+	 * It builds a standard menu with "Create New...", "Add Existing...",
+	 * "Edit...", "Clear", "Notes..." (where "Edit", "Clear", and "Notes"
+	 * are selection‑sensitive). This is just a convenience wrapper around
+	 * the builder version.
+	 *
+	 * @deprecated	Use the builder version instead for full customisation.
+	 */
+	@Deprecated
+	public static void installBehaviour(final JComponent component, final Supplier<Boolean> hasSelection,
+			final Runnable newAction, final Runnable addAction, final Runnable editAction, final Runnable clearAction,
+			final Runnable notesAction){
+		installBehaviour(component, hasSelection, editAction, newAction, clearAction,
+			builder -> {
+				if(newAction != null)
+					builder.item("Create New...", newAction);
+				if(addAction != null)
+					builder.item("Add Existing...", addAction);
+				if(editAction != null || clearAction != null || notesAction != null)
+					builder.separator();
+				if(editAction != null)
+					builder.selectionSensitiveItem("Edit...", editAction);
+				if(clearAction != null)
+					builder.selectionSensitiveItem("Clear", clearAction);
+				if(notesAction != null){
+					if(editAction != null || clearAction != null)
+						builder.separator();
+
+					builder.selectionSensitiveItem("Notes...", notesAction);
+				}
+			});
+	}
+
+	// ===================== Private helpers =====================
+
+	private static JPopupMenu buildPopup(final List<MenuEntry> entries){
+		final JPopupMenu popup = new JPopupMenu();
+		for(final MenuEntry e : entries){
+			if(e.isSeparator)
+				popup.addSeparator();
+			else{
+				final JMenuItem item = new JMenuItem(e.label);
+				item.addActionListener(ev -> e.action.run());
+				item.setEnabled(e.enabledCondition.get());
+				popup.add(item);
 			}
-		);
+		}
+		return popup;
+	}
+
+	// ===================== Inner classes =====================
+
+	/**
+	 * Builder that collects menu entries.
+	 * <p>
+	 * You can call {@link #item(String, Runnable)} to add a plain item,
+	 * {@link #selectionSensitiveItem(String, Runnable)} for an item that is enabled only when there is a selection, or
+	 * {@link #item(String, Runnable, Supplier)} for a fully custom enable condition.
+	 * {@link #separator()} inserts a separator.
+	 */
+	public static final class MenuBuilder{
+
+		private final Supplier<Boolean> hasSelection;
+		private final List<MenuEntry> entries = new ArrayList<>();
+
+
+		private MenuBuilder(final Supplier<Boolean> hasSelection){
+			this.hasSelection = hasSelection;
+		}
+
+		/**
+		 * Adds a menu item that is always enabled.
+		 *
+		 * @param label	The item label.
+		 * @param action	The action to run when clicked.
+		 * @return	This builder.
+		 */
+		public MenuBuilder item(final String label, final Runnable action){
+			entries.add(MenuEntry.createEntry(label, action, () -> true));
+			return this;
+		}
+
+		/**
+		 * Adds a menu item that is enabled only when {@link #hasSelection} is {@code true}.
+		 *
+		 * @param label	The item label.
+		 * @param action	The action to run when clicked.
+		 * @return	This builder.
+		 */
+		public MenuBuilder selectionSensitiveItem(final String label, final Runnable action){
+			entries.add(MenuEntry.createEntry(label, action, hasSelection));
+			return this;
+		}
+
+		/**
+		 * Adds a menu item with a custom enable condition.
+		 *
+		 * @param label	The item label.
+		 * @param action	The action to run when clicked.
+		 * @param enabledCondition	Supplier that returns {@code true} when the item should be enabled.
+		 * @return	This builder.
+		 */
+		public MenuBuilder item(final String label, final Runnable action, final Supplier<Boolean> enabledCondition){
+			entries.add(MenuEntry.createEntry(label, action, enabledCondition));
+			return this;
+		}
+
+		/**
+		 * Adds a separator.
+		 *
+		 * @return this builder
+		 */
+		public MenuBuilder separator(){
+			entries.add(MenuEntry.createSeparator());
+			return this;
+		}
+
+		private List<MenuEntry> getEntries(){
+			return entries;
+		}
+	}
+
+
+	/**
+	 * Immutable record representing a menu entry.
+	 */
+	private record MenuEntry(String label, Runnable action, Supplier<Boolean> enabledCondition, boolean isSeparator){
+		private static MenuEntry createEntry(String label, Runnable action, Supplier<Boolean> enabledCondition){
+			return new MenuEntry(label, action, enabledCondition, false);
+		}
+
+		private static MenuEntry createSeparator(){
+			return new MenuEntry(null, null, null, true);
+		}
 	}
 
 }

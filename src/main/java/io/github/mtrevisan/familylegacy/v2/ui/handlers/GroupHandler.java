@@ -2,14 +2,15 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupDialog2;
 
 import java.awt.Frame;
 
 
-public class GroupHandler implements RecordTypeHandler<GroupDialog>{
+public class GroupHandler implements RecordTypeHandler<GroupDialog2>{
 
 	public static final String TYPE = "GROUP";
+	public static final String ID_PREFIX = "G";
 
 
 	@Override
@@ -44,13 +45,13 @@ public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 	}
 
 	@Override
-	public GroupDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		return new GroupDialog(parent, model, record);
+	public GroupDialog2 createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+		return new GroupDialog2(parent, model, record);
 	}
 
 	@Override
-	public GroupDialog createNewDialog(Frame parent, FLEFModel model){
-		return new GroupDialog(parent, model);
+	public GroupDialog2 createNewDialog(Frame parent, FLEFModel model){
+		return new GroupDialog2(parent, model);
 	}
 
 }
