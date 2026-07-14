@@ -9,6 +9,9 @@ import java.awt.Frame;
 
 public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 
+	public static final String TYPE = "INDIVIDUAL";
+
+
 	@Override
 	public String getLabel(){
 		return "Individual";
@@ -16,7 +19,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 
 	@Override
 	public String getType(){
-		return "INDIVIDUAL";
+		return TYPE;
 	}
 
 	@Override

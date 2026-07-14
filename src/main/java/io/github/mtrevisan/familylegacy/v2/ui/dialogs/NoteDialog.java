@@ -140,7 +140,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public NoteDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Note", record);
+		super(parent, "Edit Note", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -151,7 +151,7 @@ public class NoteDialog extends BaseRecordDialog{
 	}
 
 	public NoteDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Note", null);
+		super(parent, "New Note", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

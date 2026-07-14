@@ -136,7 +136,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 
 	public CalendarDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Calendar", record);
+		super(parent, "Edit Calendar", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -147,7 +147,7 @@ public class CalendarDialog extends BaseRecordDialog{
 	}
 
 	public CalendarDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Calendar", null);
+		super(parent, "New Calendar", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

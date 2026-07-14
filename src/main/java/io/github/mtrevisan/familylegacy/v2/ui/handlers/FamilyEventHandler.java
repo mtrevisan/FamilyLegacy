@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class FamilyEventHandler implements RecordTypeHandler<FamilyEventDialog>{
 
+	public static final String TYPE = "EVENT";
+
+
 	@Override
 	public String getLabel(){
 		return "Family Event";
@@ -44,7 +47,7 @@ public class FamilyEventHandler implements RecordTypeHandler<FamilyEventDialog>{
 
 	@Override
 	public String getType(){
-		return "EVENT";
+		return TYPE;
 	}
 
 	@Override

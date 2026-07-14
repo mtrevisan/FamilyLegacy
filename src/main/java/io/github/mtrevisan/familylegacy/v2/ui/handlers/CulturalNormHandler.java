@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class CulturalNormHandler implements RecordTypeHandler<CulturalNormDialog>{
 
+	public static final String TYPE = "CULTURAL_NORM";
+
+
 	@Override
 	public String getLabel(){
 		return "Cultural Norm";
@@ -44,7 +47,7 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormDialog
 
 	@Override
 	public String getType(){
-		return "CULTURAL_NORM";
+		return TYPE;
 	}
 
 	@Override

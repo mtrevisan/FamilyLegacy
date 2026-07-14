@@ -131,10 +131,10 @@ public class IndividualDialog extends BaseRecordDialog{
 	private final List<String> childFamilyIds = new ArrayList<>();
 	private final Map<String, FLEFRecord> childFamilyLinkDetails = new HashMap<>();
 
-	private final DefaultListModel<String> partnerFamilyListModel = new DefaultListModel<>();
-	private final JList<String> partnerFamilyList = new JList<>(partnerFamilyListModel);
-	private final List<String> partnerFamilyIds = new ArrayList<>();
-	private final Map<String, FLEFRecord> partnerFamilyLinkDetails = new HashMap<>();
+	private final DefaultListModel<String> parentFamilyListModel = new DefaultListModel<>();
+	private final JList<String> parentFamilyList = new JList<>(parentFamilyListModel);
+	private final List<String> parentFamilyIds = new ArrayList<>();
+	private final Map<String, FLEFRecord> parentFamilyLinkDetails = new HashMap<>();
 
 	// Associations
 	private final DefaultListModel<String> associationListModel = new DefaultListModel<>();
@@ -208,7 +208,7 @@ public class IndividualDialog extends BaseRecordDialog{
 
 
 	private IndividualDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, buildTitle(model, record), record);
+		super(parent, buildTitle(model, record), model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		this.conclusionPanel = new ConclusionPanel(model, this);
@@ -305,11 +305,11 @@ public class IndividualDialog extends BaseRecordDialog{
 	// ==================== Names Panel (riutilizzato da Basic) ====================
 	private JPanel createNamesPanel(){
 		return createListPanel("Personal Names", nameList, nameListModel,
-			this::addName, this::editName, this::deleteName);
+			null, this::editName, this::deleteName);
 	}
 
 
-	// ==================== Family Panel (Child e Partner per riga) ====================
+	// ==================== Family Panel ====================
 	private JPanel createFamilyPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -319,9 +319,9 @@ public class IndividualDialog extends BaseRecordDialog{
 				this::addChildFamily, this::editChildFamily, this::deleteChildFamily),
 			"growx");
 
-		panel.add(createListPanel("Partner in Families",
-				partnerFamilyList, partnerFamilyListModel,
-				this::addPartnerFamily, this::editPartnerFamily, this::deletePartnerFamily),
+		panel.add(createListPanel("Parent in Families",
+				parentFamilyList, parentFamilyListModel,
+				this::addParentFamily, this::editParentFamily, this::deleteParentFamily),
 			"growx");
 
 		return panel;
@@ -376,7 +376,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 
-	// ==================== Generic List Panel (con menu contestuale, senza pulsanti) ====================
+	// ==================== Generic List Panel ====================
 	private JPanel createListPanel(String title, JList<String> list, DefaultListModel<String> model,
 		Runnable addAction, Runnable editAction, Runnable deleteAction){
 		JPanel panel = new JPanel(new MigLayout("fillx"));
@@ -391,7 +391,8 @@ public class IndividualDialog extends BaseRecordDialog{
 		JMenuItem newItem = new JMenuItem("Create New...");
 		JMenuItem editItem = new JMenuItem("Edit");
 		JMenuItem deleteItem = new JMenuItem("Delete");
-		popup.add(addItem);
+		if(addAction != null)
+			popup.add(addItem);
 		popup.add(newItem);
 		popup.addSeparator();
 		popup.add(editItem);
@@ -455,7 +456,8 @@ public class IndividualDialog extends BaseRecordDialog{
 		editItem.setEnabled(false);
 		deleteItem.setEnabled(false);
 
-		addItem.addActionListener(e -> addAction.run());
+		if(addAction != null)
+			addItem.addActionListener(e -> addAction.run());
 		newItem.addActionListener(e -> createNewItemForList(list, model));
 		editItem.addActionListener(e -> editAction.run());
 		deleteItem.addActionListener(e -> deleteAction.run());
@@ -564,15 +566,15 @@ public class IndividualDialog extends BaseRecordDialog{
 				childFamilyListModel.addElement(getFamilyDisplayName(id));
 			}
 		}
-		partnerFamilyListModel.clear();
-		partnerFamilyIds.clear();
-		partnerFamilyLinkDetails.clear();
+		parentFamilyListModel.clear();
+		parentFamilyIds.clear();
+		parentFamilyLinkDetails.clear();
 		for(FLEFRecord child : record.getChildren()){
-			if("FAMILY_PARTNER".equals(child.getTag()) && child.getValue() != null){
+			if("FAMILY_PARENT".equals(child.getTag()) && child.getValue() != null){
 				String id = child.getValue();
-				partnerFamilyIds.add(id);
-				partnerFamilyLinkDetails.put(id, child);
-				partnerFamilyListModel.addElement(getFamilyDisplayName(id));
+				parentFamilyIds.add(id);
+				parentFamilyLinkDetails.put(id, child);
+				parentFamilyListModel.addElement(getFamilyDisplayName(id));
 			}
 		}
 	}
@@ -632,50 +634,50 @@ public class IndividualDialog extends BaseRecordDialog{
 		childFamilyListModel.remove(idx);
 	}
 
-	private void addPartnerFamily(){
+	private void addParentFamily(){
 		if(familyHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Family handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, familyHandler, selectedId -> {
-			if(selectedId != null && !partnerFamilyIds.contains(selectedId)){
-				FLEFRecord link = showFamilyLinkDialog(selectedId, "FAMILY_PARTNER", null);
+			if(selectedId != null && !parentFamilyIds.contains(selectedId)){
+				FLEFRecord link = showFamilyLinkDialog(selectedId, "FAMILY_PARENT", null);
 				if(link != null){
-					partnerFamilyIds.add(selectedId);
-					partnerFamilyLinkDetails.put(selectedId, link);
-					partnerFamilyListModel.addElement(getFamilyDisplayName(selectedId));
+					parentFamilyIds.add(selectedId);
+					parentFamilyLinkDetails.put(selectedId, link);
+					parentFamilyListModel.addElement(getFamilyDisplayName(selectedId));
 				}
 			}
 		});
 		dialog.setVisible(true);
 	}
 
-	private void editPartnerFamily(){
-		int idx = partnerFamilyList.getSelectedIndex();
+	private void editParentFamily(){
+		int idx = parentFamilyList.getSelectedIndex();
 		if(idx == -1) return;
-		String id = partnerFamilyIds.get(idx);
-		FLEFRecord existing = partnerFamilyLinkDetails.get(id);
+		String id = parentFamilyIds.get(idx);
+		FLEFRecord existing = parentFamilyLinkDetails.get(id);
 		if(existing == null){
 			existing = new FLEFRecord();
 			existing.setLevel(1);
-			existing.setTag("FAMILY_PARTNER");
+			existing.setTag("FAMILY_PARENT");
 			existing.setValue(id);
 		}
-		FLEFRecord updated = showFamilyLinkDialog(id, "FAMILY_PARTNER", existing);
+		FLEFRecord updated = showFamilyLinkDialog(id, "FAMILY_PARENT", existing);
 		if(updated != null){
-			partnerFamilyLinkDetails.put(id, updated);
-			partnerFamilyListModel.set(idx, getFamilyDisplayName(id));
+			parentFamilyLinkDetails.put(id, updated);
+			parentFamilyListModel.set(idx, getFamilyDisplayName(id));
 		}
 	}
 
-	private void deletePartnerFamily(){
-		int idx = partnerFamilyList.getSelectedIndex();
+	private void deleteParentFamily(){
+		int idx = parentFamilyList.getSelectedIndex();
 		if(idx == -1) return;
 		if(!showConfirm("Confirm", "Remove this family link?")) return;
-		String id = partnerFamilyIds.remove(idx);
-		partnerFamilyLinkDetails.remove(id);
-		partnerFamilyListModel.remove(idx);
+		String id = parentFamilyIds.remove(idx);
+		parentFamilyLinkDetails.remove(id);
+		parentFamilyListModel.remove(idx);
 	}
 
 	private FLEFRecord showFamilyLinkDialog(String familyId, String linkType, FLEFRecord existing){
@@ -1318,8 +1320,8 @@ public class IndividualDialog extends BaseRecordDialog{
 		else if(list == childFamilyList){
 			createNewChildFamily();
 		}
-		else if(list == partnerFamilyList){
-			createNewPartnerFamily();
+		else if(list == parentFamilyList){
+			createNewParentFamily();
 		}
 		else if(list == associationList){
 			createNewAssociation();
@@ -1375,7 +1377,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		}
 	}
 
-	private void createNewPartnerFamily(){
+	private void createNewParentFamily(){
 		if(familyHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Family handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -1396,11 +1398,11 @@ public class IndividualDialog extends BaseRecordDialog{
 			}
 		}
 		if(newId != null && !newId.isEmpty()){
-			FLEFRecord link = showFamilyLinkDialog(newId, "FAMILY_PARTNER", null);
+			FLEFRecord link = showFamilyLinkDialog(newId, "FAMILY_PARENT", null);
 			if(link != null){
-				partnerFamilyIds.add(newId);
-				partnerFamilyLinkDetails.put(newId, link);
-				partnerFamilyListModel.addElement(getFamilyDisplayName(newId));
+				parentFamilyIds.add(newId);
+				parentFamilyLinkDetails.put(newId, link);
+				parentFamilyListModel.addElement(getFamilyDisplayName(newId));
 			}
 			else{
 				model.removeRecord(newId);
@@ -1594,8 +1596,8 @@ public class IndividualDialog extends BaseRecordDialog{
 			FLEFRecord link = childFamilyLinkDetails.get(id);
 			if(link != null) record.addChild(link);
 		}
-		for(String id : partnerFamilyIds){
-			FLEFRecord link = partnerFamilyLinkDetails.get(id);
+		for(String id : parentFamilyIds){
+			FLEFRecord link = parentFamilyLinkDetails.get(id);
 			if(link != null) record.addChild(link);
 		}
 

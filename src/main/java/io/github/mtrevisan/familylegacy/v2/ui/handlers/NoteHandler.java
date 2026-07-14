@@ -10,6 +10,9 @@ import java.awt.Frame;
 
 public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 
+	public static final String TYPE = "NOTE";
+
+
 	@Override
 	public String getLabel(){
 		return "Note";
@@ -17,7 +20,7 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 
 	@Override
 	public String getType(){
-		return "NOTE";
+		return TYPE	;
 	}
 
 	@Override

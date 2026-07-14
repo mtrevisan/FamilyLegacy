@@ -72,8 +72,8 @@ public class EventDialog extends BaseRecordDialog{
 	private final JComboBox<String> typeCombo = new JComboBox<>();
 	private final JTextField familyField = new JTextField(15);
 	private final JTextField twinField = new JTextField(30);
-	private final JComboBox<String> pedigreePartner1Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
-	private final JComboBox<String> pedigreePartner2Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
 
 	// ========== Details tab components (EVENT_STRUCTURE) ==========
 	private final JTextArea descriptionArea = new JTextArea(3, 30);
@@ -107,7 +107,7 @@ public class EventDialog extends BaseRecordDialog{
 	 * Creates a dialog to edit an existing event record.
 	 */
 	public EventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Event", record);
+		super(parent, "Edit Event", model, record);
 
 		initComponents();
 		loadData();
@@ -120,7 +120,7 @@ public class EventDialog extends BaseRecordDialog{
 	 * Creates a dialog to create a new event record.
 	 */
 	public EventDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Event", null);
+		super(parent, "New Event", model, null);
 
 		initComponents();
 		loadData();
@@ -151,10 +151,10 @@ public class EventDialog extends BaseRecordDialog{
 		basicPanel.add(familyField, "growx,wrap");
 		basicPanel.add(new JLabel("Twins (IDs, comma separated):"), "align label");
 		basicPanel.add(twinField, "growx,wrap");
-		basicPanel.add(new JLabel("Pedigree Partner 1:"), "align label");
-		basicPanel.add(pedigreePartner1Combo, "growx,wrap");
-		basicPanel.add(new JLabel("Pedigree Partner 2:"), "align label");
-		basicPanel.add(pedigreePartner2Combo, "growx");
+		basicPanel.add(new JLabel("Parent 1 Relationship:"), "align label");
+		basicPanel.add(relationshipParent1Combo, "growx,wrap");
+		basicPanel.add(new JLabel("Parent 2 Relationship:"), "align label");
+		basicPanel.add(relationshipParent2Combo, "growx");
 		tabbedPane.addTab("Basic", basicPanel);
 
 		// --- Details tab (EVENT_STRUCTURE) ---
@@ -267,8 +267,8 @@ public class EventDialog extends BaseRecordDialog{
 
 		familyField.setEnabled(isBirth || isAdoption);
 		twinField.setEnabled(isBirth);
-		pedigreePartner1Combo.setEnabled(isAdoption);
-		pedigreePartner2Combo.setEnabled(isAdoption);
+		relationshipParent1Combo.setEnabled(isAdoption);
+		relationshipParent2Combo.setEnabled(isAdoption);
 
 		if(isAdoption){
 			familyField.setBackground(new Color(255, 255, 200));
@@ -285,8 +285,8 @@ public class EventDialog extends BaseRecordDialog{
 
 		familyField.setText(getChildValue("FAMILY"));
 		twinField.setText(getChildValuesAsString("TWIN"));
-		pedigreePartner1Combo.setSelectedItem(getChildValue("PEDIGREE_PARTNER1"));
-		pedigreePartner2Combo.setSelectedItem(getChildValue("PEDIGREE_PARTNER2"));
+		relationshipParent1Combo.setSelectedItem(getChildValue("PARENT1_RELATIONSHIP"));
+		relationshipParent2Combo.setSelectedItem(getChildValue("PARENT2_RELATIONSHIP"));
 
 		descriptionArea.setText(getChildValue("DESCRIPTION"));
 		dateField.setText(getChildValue("DATE"));
@@ -347,8 +347,8 @@ public class EventDialog extends BaseRecordDialog{
 		addChild("TYPE", 1, type);
 		addChild("FAMILY", 1, familyField.getText().trim());
 		addChildrenFromString("TWIN", twinField.getText().trim());
-		addChild("PEDIGREE_PARTNER1", 1, (String)pedigreePartner1Combo.getSelectedItem());
-		addChild("PEDIGREE_PARTNER2", 1, (String)pedigreePartner2Combo.getSelectedItem());
+		addChild("PARENT1_RELATIONSHIP", 1, (String)relationshipParent1Combo.getSelectedItem());
+		addChild("PARENT2_RELATIONSHIP", 1, (String)relationshipParent2Combo.getSelectedItem());
 
 		addChild("DESCRIPTION", 1, descriptionArea.getText().trim());
 		addChild("DATE", 1, dateField.getText().trim());

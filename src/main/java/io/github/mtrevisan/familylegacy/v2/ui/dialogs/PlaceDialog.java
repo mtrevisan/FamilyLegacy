@@ -186,7 +186,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public PlaceDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Place", record);
+		super(parent, "Edit Place", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -197,7 +197,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	}
 
 	public PlaceDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Place", null);
+		super(parent, "New Place", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

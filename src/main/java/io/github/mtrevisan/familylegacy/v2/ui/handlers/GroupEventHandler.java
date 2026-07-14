@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 
+	public static final String TYPE = "EVENT";
+
+
 	@Override
 	public String getLabel(){
 		return "Group Event";
@@ -44,7 +47,7 @@ public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 
 	@Override
 	public String getType(){
-		return "EVENT";
+		return TYPE;
 	}
 
 	@Override

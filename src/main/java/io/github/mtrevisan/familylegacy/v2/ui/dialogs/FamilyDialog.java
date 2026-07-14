@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.FamilyHandler;
@@ -37,10 +36,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -78,8 +77,6 @@ import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -99,11 +96,34 @@ import javax.swing.ImageIcon;
 
 /**
  * Dialog for editing a FAMILY_RECORD according to FLEF 0.0.9.
+ * <p>
+ * Structure:
+ * <pre>
+ * FAMILY_RECORD :=
+ * n @<XREF:FAMILY>@ FAMILY    {1:1}
+ *   +1 PARENT1 @<XREF:INDIVIDUAL>@    {0:1}
+ *     +2 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 PARENT2 @<XREF:INDIVIDUAL>@    {0:1}
+ *     +2 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 CHILD @<XREF:INDIVIDUAL>@    {0:M}
+ *     +2 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 EVENT @<XREF:EVENT>@    {0:M}
+ *   +1 <<GROUP_CITATION>>    {0:M}
+ *   +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}
+ *   +1 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 <<SOURCE_CITATION>>    {0:M}
+ *   +1 PREFERRED_IMAGE @<XREF:SOURCE>@    {0:1}
+ *     +2 CROP <CROP_COORDINATES>    {0:1}
+ *   +1 RESTRICTION <confidential>    {0:1}
+ *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * </pre>
  */
 public class FamilyDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = -4670126000119212971L;
+
 
 	static{
 		HandlerRegistry.register(new IndividualHandler());
@@ -111,32 +131,34 @@ public class FamilyDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new GroupCitationHandler());
 		HandlerRegistry.register(new EventHandler());
-		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new RepositoryHandler());
-		HandlerRegistry.register(new CalendarHandler());
 	}
+
+	// Preferred Image
+	private String preferredImageId;
+	private String preferredImageCrop;
+	private final JButton preferredImageButton = new JButton();
 
 	// Basic fields
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// Partner1
-	private final JTextField partner1DisplayField = new JTextField(20);
-	private String partner1Id;
-	private final DefaultListModel<String> partner1NoteModel = new DefaultListModel<>();
-	private final JList<String> partner1NoteList = new JList<>(partner1NoteModel);
-	private final List<String> partner1NoteIds = new ArrayList<>();
-	private final Map<String, String> partner1NoteDisplayMap = new HashMap<>();
+	// Parent1
+	private final JTextField parent1DisplayField = new JTextField(20);
+	private String parent1Id;
+	private final DefaultListModel<String> parent1NoteModel = new DefaultListModel<>();
+	private final JList<String> parent1NoteList = new JList<>(parent1NoteModel);
+	private final List<String> parent1NoteIds = new ArrayList<>();
+	private final Map<String, String> parent1NoteDisplayMap = new HashMap<>();
 
-	// Partner2
-	private final JTextField partner2DisplayField = new JTextField(20);
-	private String partner2Id;
-	private final DefaultListModel<String> partner2NoteModel = new DefaultListModel<>();
-	private final JList<String> partner2NoteList = new JList<>(partner2NoteModel);
-	private final List<String> partner2NoteIds = new ArrayList<>();
-	private final Map<String, String> partner2NoteDisplayMap = new HashMap<>();
+	// Parent2
+	private final JTextField parent2DisplayField = new JTextField(20);
+	private String parent2Id;
+	private final DefaultListModel<String> parent2NoteModel = new DefaultListModel<>();
+	private final JList<String> parent2NoteList = new JList<>(parent2NoteModel);
+	private final List<String> parent2NoteIds = new ArrayList<>();
+	private final Map<String, String> parent2NoteDisplayMap = new HashMap<>();
 
 	// Children
 	private final DefaultListModel<String> childListModel = new DefaultListModel<>();
@@ -169,27 +191,23 @@ public class FamilyDialog extends BaseRecordDialog{
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
-	// Preferred Image
-	private String preferredImageId;
-	private String cropString;
-	private final JButton imageButton = new JButton();
-
 	// Modification
-	private final ModificationPanel modificationPanel;
+	private ModificationPanel modificationPanel;
 
 	// Conclusion
-	private final ConclusionPanel conclusionPanel;
+	private ConclusionPanel conclusionPanel;
+
 
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
-	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
-	private final RecordTypeHandler<?> groupCitationHandler = HandlerRegistry.getHandler("GROUP_CITATION");
-	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler("EVENT");
-	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler("CULTURAL_NORM");
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler(GroupHandler.TYPE);
+	private final RecordTypeHandler<?> groupCitationHandler = HandlerRegistry.getHandler(GroupCitationHandler.TYPE);
+	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
+	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
 
 
 	private static class ChildEntry{
@@ -221,10 +239,8 @@ public class FamilyDialog extends BaseRecordDialog{
 
 
 	private FamilyDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, buildTitle(model, record), record);
+		super(parent, buildTitle(model, record), model, record);
 
-		this.modificationPanel = new ModificationPanel(model, this);
-		this.conclusionPanel = new ConclusionPanel(model, this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(500, 550));
@@ -234,14 +250,15 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private static String buildTitle(final FLEFModel model, final FLEFRecord record){
 		return (record == null
-			? "New Family - " + FLEFRecordUtils.generateNewId(model, "FAMILY", "F") + "*"
+			? "New Family - " + FLEFRecordUtils.generateNewId(model, FamilyHandler.TYPE, FamilyHandler.ID_PREFIX) + "*"
 			: "Edit Family - " + record.getId());
 	}
 
 
 	@Override
 	protected void initComponents(){
-		setLayout(new MigLayout("fillx"));
+		modificationPanel = new ModificationPanel(model, this);
+		conclusionPanel = new ConclusionPanel(model, this);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
@@ -249,6 +266,7 @@ public class FamilyDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Modification", modificationPanel);
 		tabbedPane.addTab("Conclusion", conclusionPanel);
 
+		setLayout(new MigLayout("fillx"));
 		add(tabbedPane, "growx,push");
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -295,7 +313,8 @@ public class FamilyDialog extends BaseRecordDialog{
 			selectedId -> result[0] = selectedId);
 		dialog.setVisible(true);
 		String sourceId = result[0];
-		if(sourceId == null) return;
+		if(sourceId == null)
+			return;
 
 		BufferedImage image = loadImageFromSource(sourceId);
 		if(image == null){
@@ -312,7 +331,7 @@ public class FamilyDialog extends BaseRecordDialog{
 		Rectangle cropRect = cropDialog.getCrop();
 		if(cropRect != null){
 			preferredImageId = sourceId;
-			cropString = cropRect.x + " " + cropRect.y + " " + cropRect.width + " " + cropRect.height;
+			preferredImageCrop = cropRect.x + " " + cropRect.y + " " + cropRect.width + " " + cropRect.height;
 			updateImageButton(sourceId);
 		}
 	}
@@ -357,10 +376,10 @@ public class FamilyDialog extends BaseRecordDialog{
 		BufferedImage img = loadImageFromSource(sourceId);
 		if(img != null){
 			Image scaled = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
-			imageButton.setIcon(new ImageIcon(scaled));
+			preferredImageButton.setIcon(new ImageIcon(scaled));
 		}
 		else{
-			imageButton.setIcon(createPlaceholderIcon());
+			preferredImageButton.setIcon(createPlaceholderIcon());
 		}
 	}
 
@@ -369,8 +388,8 @@ public class FamilyDialog extends BaseRecordDialog{
 	 */
 	private void clearImage(){
 		preferredImageId = null;
-		cropString = null;
-		imageButton.setIcon(createPlaceholderIcon());
+		preferredImageCrop = null;
+		preferredImageButton.setIcon(createPlaceholderIcon());
 	}
 
 
@@ -491,7 +510,8 @@ public class FamilyDialog extends BaseRecordDialog{
 			}
 
 			public Rectangle getCropRect(){
-				if(rect == null) return null;
+				if(rect == null)
+					return null;
 				int panelWidth = getWidth();
 				int panelHeight = getHeight();
 				double scale = Math.min((double)panelWidth / imgWidth, (double)panelHeight / imgHeight);
@@ -515,50 +535,48 @@ public class FamilyDialog extends BaseRecordDialog{
 	}
 
 
-	// ==================== Partners & Children Panel ====================
+	// ==================== Parents & Children Panel ====================
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[grow]", "[]10[]10[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		imageButton.setPreferredSize(new Dimension(80, 80));
-		imageButton.setIcon(createPlaceholderIcon());
-		imageButton.setToolTipText("Left-click to select an image, right-click for options");
+		preferredImageButton.setPreferredSize(new Dimension(80, 80));
+		preferredImageButton.setIcon(createPlaceholderIcon());
+		preferredImageButton.setToolTipText("Left-click to select an image, right-click for options");
 
-		imageButton.addActionListener(e -> selectAndCropImage());
+		preferredImageButton.addActionListener(e -> selectAndCropImage());
 
 		JPopupMenu imagePopup = new JPopupMenu();
 		JMenuItem clearImageMenuItem = new JMenuItem("Clear");
 		clearImageMenuItem.addActionListener(e -> clearImage());
 		imagePopup.add(clearImageMenuItem);
 
-		imageButton.addMouseListener(new MouseAdapter(){
+		preferredImageButton.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(MouseEvent e){
 				if(e.isPopupTrigger()){
-					imagePopup.show(imageButton, e.getX(), e.getY());
+					imagePopup.show(preferredImageButton, e.getX(), e.getY());
 				}
 			}
 			@Override
 			public void mouseReleased(MouseEvent e){
 				if(e.isPopupTrigger()){
-					imagePopup.show(imageButton, e.getX(), e.getY());
+					imagePopup.show(preferredImageButton, e.getX(), e.getY());
 				}
 			}
 		});
 
-		panel.add(imageButton, "growx, align center");
+		panel.add(preferredImageButton, "growx, align center");
 
-		JPanel partner1Panel = createPartnerPanel("Partner 1:", partner1DisplayField,
-			partner1NoteList, partner1NoteModel, partner1NoteIds, partner1NoteDisplayMap,
-			this::addPartner1Note, this::editPartner1Note, this::deletePartner1Note,
-			this::createNewPartner1, this::browsePartner1, this::clearPartner1);
-		panel.add(partner1Panel, "growx");
+		JPanel parent1Panel = createParentPanel("Parent 1:", parent1DisplayField,
+			parent1NoteList, parent1NoteModel, parent1NoteIds, parent1NoteDisplayMap,
+			this::createNewParent1, this::browseParent1, this::editParent1, this::clearParent1, this::notesParent1);
+		panel.add(parent1Panel, "growx");
 
-		JPanel partner2Panel = createPartnerPanel("Partner 2:", partner2DisplayField,
-			partner2NoteList, partner2NoteModel, partner2NoteIds, partner2NoteDisplayMap,
-			this::addPartner2Note, this::editPartner2Note, this::deletePartner2Note,
-			this::createNewPartner2, this::browsePartner2, this::clearPartner2);
-		panel.add(partner2Panel, "growx");
+		JPanel parent2Panel = createParentPanel("Parent 2:", parent2DisplayField,
+			parent2NoteList, parent2NoteModel, parent2NoteIds, parent2NoteDisplayMap,
+			this::createNewParent2, this::browseParent2, this::editParent2, this::clearParent2, this::notesParent2);
+		panel.add(parent2Panel, "growx");
 
 		JPanel childrenPanel = createChildrenPanel();
 		panel.add(childrenPanel, "growx");
@@ -577,109 +595,38 @@ public class FamilyDialog extends BaseRecordDialog{
 		childList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		// ---- Popup menu ----
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem addChildItem = new JMenuItem("Add Existing...");
-		JMenuItem newChildItem = new JMenuItem("Create New...");
-		JMenuItem editChildItem = new JMenuItem("Edit");
-		JMenuItem notesChildItem = new JMenuItem("Notes...");
-		JMenuItem deleteChildItem = new JMenuItem("Delete");
-		popup.add(addChildItem);
-		popup.add(newChildItem);
-		popup.addSeparator();
-		popup.add(editChildItem);
-		popup.add(notesChildItem);
-		popup.add(deleteChildItem);
-
-		// ---- Mouse listener ----
-		childList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = childList.locationToIndex(e.getPoint());
-					if(index != -1 && !childList.isSelectedIndex(index)){
-						childList.setSelectedIndex(index);
+		GUIHelper.installBehaviour(childList,
+			() -> (childList.getSelectedIndex() >= 0),
+			this::createNewChild,
+			this::addChild,
+			this::editChild,
+			this::deleteChild,
+			() -> {
+				final int idx = childList.getSelectedIndex();
+				if(idx != -1){
+					final ChildEntry existing = childEntries.get(idx);
+					final ChildEntry updated = showChildNotesDialog(existing.childId, existing);
+					if(updated != null){
+						childEntries.set(idx, updated);
+						childListModel.set(idx, updated.toString());
 					}
-					popup.show(childList, e.getX(), e.getY());
 				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = childList.locationToIndex(e.getPoint());
-					if(index != -1 && !childList.isSelectedIndex(index)){
-						childList.setSelectedIndex(index);
-					}
-					popup.show(childList, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editChild();
-				}
-			}
-		});
-
-		// ---- Keyboard shortcuts ----
-		childList.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(KeyEvent e){
-				if(e.getKeyCode() == KeyEvent.VK_INSERT){
-					createNewChild();
-					e.consume();
-				}
-				else if(e.getKeyCode() == KeyEvent.VK_DELETE){
-					deleteChild();
-					e.consume();
-				}
-			}
-		});
+			});
 
 		// ---- Scroll pane ----
-		JScrollPane scrollPane = new JScrollPane(childList);
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(childList,
+			ScrollableContainerHost.ScrollType.VERTICAL));
 		scrollPane.setPreferredSize(childList.getPreferredScrollableViewportSize());
 		panel.add(scrollPane, "growx,wrap");
-
-		// ---- Enable/disable menu items based on selection ----
-		childList.addListSelectionListener(e -> {
-			boolean selected = childList.getSelectedIndex() != -1;
-			editChildItem.setEnabled(selected);
-			notesChildItem.setEnabled(selected);
-			deleteChildItem.setEnabled(selected);
-		});
-		editChildItem.setEnabled(false);
-		notesChildItem.setEnabled(false);
-		deleteChildItem.setEnabled(false);
-
-		// ---- Actions ----
-		addChildItem.addActionListener(e -> addChild());
-		newChildItem.addActionListener(e -> createNewChild());
-		editChildItem.addActionListener(e -> editChild());
-		notesChildItem.addActionListener(e -> {
-			int idx = childList.getSelectedIndex();
-			if(idx != -1){
-				ChildEntry existing = childEntries.get(idx);
-				ChildEntry updated = showChildNotesDialog(existing.childId, existing);
-				if(updated != null){
-					childEntries.set(idx, updated);
-					childListModel.set(idx, updated.toString());
-				}
-			}
-		});
-		deleteChildItem.addActionListener(e -> deleteChild());
-
 		return panel;
 	}
 
 
-	// ==================== Partner Panel ====================
-	private JPanel createPartnerPanel(String label, JTextField displayField,
+	// ==================== Parent Panel ====================
+	private JPanel createParentPanel(String label, JTextField displayField,
 			JList<String> noteList, DefaultListModel<String> noteModel,
 			List<String> noteIds, Map<String, String> noteDisplayMap,
-			Runnable addNote, Runnable editNote, Runnable deleteNote,
-			Runnable actionNew, Runnable actionBrowse, Runnable actionClear){
+			Runnable actionNew, Runnable actionBrowse, Runnable actionEdit, Runnable actionClear, Runnable actionNotes){
 		noteList.setVisibleRowCount(4);
 
 		JPanel panel = new JPanel(new MigLayout("insets n n 0 n", "[right]rel[grow][][]", "[]5[]"));
@@ -688,42 +635,17 @@ public class FamilyDialog extends BaseRecordDialog{
 		displayField.setEditable(false);
 		displayField.setBackground(UIManager.getColor("TextField.background"));
 
+		GUIHelper.installBehaviour(displayField,
+			() -> !displayField.getText().isBlank(),
+			actionNew,
+			actionBrowse,
+			actionEdit,
+			actionClear,
+			actionNotes);
+
 		JPanel idPanel = new JPanel(new MigLayout("ins 0,gap 0,fill", "[grow]", ""));
 		idPanel.add(displayField, "grow");
 		panel.add(idPanel, "span 3,growx,wrap");
-
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem newItem = new JMenuItem("New");
-		JMenuItem browseItem = new JMenuItem("Browse...");
-		JMenuItem clearItem = new JMenuItem("Clear");
-		JMenuItem notesItem = new JMenuItem("Notes...");
-		popup.add(newItem);
-		popup.add(browseItem);
-		popup.add(clearItem);
-		popup.addSeparator();
-		popup.add(notesItem);
-
-		displayField.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					popup.show(displayField, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					popup.show(displayField, e.getX(), e.getY());
-				}
-			}
-		});
-
-		newItem.addActionListener(e -> actionNew.run());
-		browseItem.addActionListener(e -> actionBrowse.run());
-		clearItem.addActionListener(e -> actionClear.run());
-		notesItem.addActionListener(e -> addNote.run());
-
 		return panel;
 	}
 
@@ -736,78 +658,17 @@ public class FamilyDialog extends BaseRecordDialog{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem addItem = new JMenuItem("Add Existing...");
-		JMenuItem newItem = new JMenuItem("Create New...");
-		JMenuItem editItem = new JMenuItem("Edit");
-		JMenuItem deleteItem = new JMenuItem("Delete");
-		popup.add(addItem);
-		popup.add(newItem);
-		popup.addSeparator();
-		popup.add(editItem);
-		popup.add(deleteItem);
+		GUIHelper.installBehaviour(list,
+			() -> (list.getSelectedIndex() >= 0),
+			() -> createNewItemForList(list, model),
+			addAction,
+			editAction,
+			deleteAction,
+			null);
 
-		list.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = list.locationToIndex(e.getPoint());
-					if(index != -1 && !list.isSelectedIndex(index)){
-						list.setSelectedIndex(index);
-					}
-					popup.show(list, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = list.locationToIndex(e.getPoint());
-					if(index != -1 && !list.isSelectedIndex(index)){
-						list.setSelectedIndex(index);
-					}
-					popup.show(list, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editAction.run();
-				}
-			}
-		});
-
-		list.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(KeyEvent e){
-				if(e.getKeyCode() == KeyEvent.VK_INSERT){
-					createNewItemForList(list, model);
-					e.consume();
-				}
-				else if(e.getKeyCode() == KeyEvent.VK_DELETE){
-					deleteAction.run();
-					e.consume();
-				}
-			}
-		});
-
-		JScrollPane scrollPane = new JScrollPane(list);
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
 		panel.add(scrollPane, "growx,wrap");
-
-		list.addListSelectionListener(e -> {
-			boolean selected = list.getSelectedIndex() != -1;
-			editItem.setEnabled(selected);
-			deleteItem.setEnabled(selected);
-		});
-		editItem.setEnabled(false);
-		deleteItem.setEnabled(false);
-
-		addItem.addActionListener(e -> addAction.run());
-		newItem.addActionListener(e -> createNewItemForList(list, model));
-		editItem.addActionListener(e -> editAction.run());
-		deleteItem.addActionListener(e -> deleteAction.run());
-
 		return panel;
 	}
 
@@ -846,62 +707,88 @@ public class FamilyDialog extends BaseRecordDialog{
 	}
 
 
-	// ==================== Partner methods ====================
-	private void createNewPartner1(){
-		createNewPartner(id -> {
-			partner1Id = id;
+	// ==================== Parent methods ====================
+	private void createNewParent1(){
+		createNewParent(id -> {
+			parent1Id = id;
 			FLEFRecord rec = model.getRecordById(id);
 			if(rec != null && individualHandler != null)
-				partner1DisplayField.setText(individualHandler.getDisplayName(rec));
+				parent1DisplayField.setText(individualHandler.getDisplayName(rec));
 			else
-				partner1DisplayField.setText(id);
+				parent1DisplayField.setText(id);
 		});
 	}
 
-	private void browsePartner1(){
-		browsePartner(selectedId -> {
-			partner1Id = selectedId;
+	private void browseParent1(){
+		browseParent(selectedId -> {
+			parent1Id = selectedId;
 			FLEFRecord rec = model.getRecordById(selectedId);
 			if(rec != null && individualHandler != null)
-				partner1DisplayField.setText(individualHandler.getDisplayName(rec));
+				parent1DisplayField.setText(individualHandler.getDisplayName(rec));
 			else
-				partner1DisplayField.setText(selectedId);
+				parent1DisplayField.setText(selectedId);
 		});
 	}
 
-	private void clearPartner1(){
-		partner1Id = null;
-		partner1DisplayField.setText("");
+	private void editParent1(){
+		editIndividual(parent1Id);
+
+		FLEFRecord rec = model.getRecordById(parent1Id);
+		parent1DisplayField.setText(individualHandler.getDisplayName(rec));
 	}
 
-	private void createNewPartner2(){
-		createNewPartner(id -> {
-			partner2Id = id;
+	private void clearParent1(){
+		parent1Id = null;
+		parent1DisplayField.setText("");
+	}
+
+	//TODO
+	private void notesParent1(){
+		parent1Id = null;
+		parent1DisplayField.setText("");
+	}
+
+	private void createNewParent2(){
+		createNewParent(id -> {
+			parent2Id = id;
 			FLEFRecord rec = model.getRecordById(id);
 			if(rec != null && individualHandler != null)
-				partner2DisplayField.setText(individualHandler.getDisplayName(rec));
+				parent2DisplayField.setText(individualHandler.getDisplayName(rec));
 			else
-				partner2DisplayField.setText(id);
+				parent2DisplayField.setText(id);
 		});
 	}
 
-	private void browsePartner2(){
-		browsePartner(selectedId -> {
-			partner2Id = selectedId;
+	private void browseParent2(){
+		browseParent(selectedId -> {
+			parent2Id = selectedId;
 			FLEFRecord rec = model.getRecordById(selectedId);
 			if(rec != null && individualHandler != null)
-				partner2DisplayField.setText(individualHandler.getDisplayName(rec));
+				parent2DisplayField.setText(individualHandler.getDisplayName(rec));
 			else
-				partner2DisplayField.setText(selectedId);
+				parent2DisplayField.setText(selectedId);
 		});
 	}
 
-	private void clearPartner2(){
-		partner2Id = null;
-		partner2DisplayField.setText("");
+	private void editParent2(){
+		editIndividual(parent2Id);
+
+		FLEFRecord rec = model.getRecordById(parent2Id);
+		parent2DisplayField.setText(individualHandler.getDisplayName(rec));
 	}
 
-	private void createNewPartner(Consumer<String> onCreated){
+	private void clearParent2(){
+		parent2Id = null;
+		parent2DisplayField.setText("");
+	}
+
+	//TODO
+	private void notesParent2(){
+		parent2Id = null;
+		parent2DisplayField.setText("");
+	}
+
+	private void createNewParent(Consumer<String> onCreated){
 		if(individualHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -925,7 +812,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			onCreated.accept(newId);
 	}
 
-	private void browsePartner(Consumer<String> onSelected){
+	private void browseParent(Consumer<String> onSelected){
 		if(individualHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -935,8 +822,25 @@ public class FamilyDialog extends BaseRecordDialog{
 		dialog.setVisible(true);
 	}
 
+	private void editIndividual(String individualId){
+		if(individualHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 
-	// ==================== Partner note methods ====================
+		if(individualId == null)
+			return;
+
+		FLEFRecord rec = model.getRecordById(individualId);
+		if(rec == null)
+			return;
+
+		JDialog dialog = individualHandler.createEditDialog(getParentFrame(), model, rec);
+		dialog.setVisible(true);
+	}
+
+
+	// ==================== Parent note methods ====================
 	private String getNoteDisplayName(String id){
 		if(noteHandler != null){
 			FLEFRecord rec = model.getRecordById(id);
@@ -946,28 +850,28 @@ public class FamilyDialog extends BaseRecordDialog{
 		return id;
 	}
 
-	private void addPartner1Note(){
-		addNoteToList(partner1NoteModel, partner1NoteIds, partner1NoteDisplayMap);
+	private void addParent1Note(){
+		addNoteToList(parent1NoteModel, parent1NoteIds, parent1NoteDisplayMap);
 	}
 
-	private void editPartner1Note(){
-		editNoteFromList(partner1NoteList, partner1NoteModel, partner1NoteIds, partner1NoteDisplayMap);
+	private void editParent1Note(){
+		editNoteFromList(parent1NoteList, parent1NoteModel, parent1NoteIds, parent1NoteDisplayMap);
 	}
 
-	private void deletePartner1Note(){
-		deleteNoteFromList(partner1NoteList, partner1NoteModel, partner1NoteIds, partner1NoteDisplayMap);
+	private void deleteParent1Note(){
+		deleteNoteFromList(parent1NoteList, parent1NoteModel, parent1NoteIds, parent1NoteDisplayMap);
 	}
 
-	private void addPartner2Note(){
-		addNoteToList(partner2NoteModel, partner2NoteIds, partner2NoteDisplayMap);
+	private void addParent2Note(){
+		addNoteToList(parent2NoteModel, parent2NoteIds, parent2NoteDisplayMap);
 	}
 
-	private void editPartner2Note(){
-		editNoteFromList(partner2NoteList, partner2NoteModel, partner2NoteIds, partner2NoteDisplayMap);
+	private void editParent2Note(){
+		editNoteFromList(parent2NoteList, parent2NoteModel, parent2NoteIds, parent2NoteDisplayMap);
 	}
 
-	private void deletePartner2Note(){
-		deleteNoteFromList(partner2NoteList, partner2NoteModel, partner2NoteIds, partner2NoteDisplayMap);
+	private void deleteParent2Note(){
+		deleteNoteFromList(parent2NoteList, parent2NoteModel, parent2NoteIds, parent2NoteDisplayMap);
 	}
 
 	private void addNoteToList(DefaultListModel<String> defaultListModel, List<String> ids, Map<String, String> displayMap){
@@ -975,6 +879,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		RecordBrowserDialog<?> dialog = new RecordBrowserDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !ids.contains(selectedId)){
@@ -988,16 +893,18 @@ public class FamilyDialog extends BaseRecordDialog{
 	}
 
 	private void editNoteFromList(JList<String> list, DefaultListModel<String> defaultListModel,
-		List<String> ids, Map<String, String> displayMap){
+			List<String> ids, Map<String, String> displayMap){
 		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = ids.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return;
+		if(rec == null)
+			return;
 		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
@@ -1008,8 +915,10 @@ public class FamilyDialog extends BaseRecordDialog{
 	private void deleteNoteFromList(JList<String> list, DefaultListModel<String> defaultListModel,
 		List<String> ids, Map<String, String> displayMap){
 		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this note?")) return;
+		if(idx == -1)
+			return;
+		if(!showConfirm("Confirm", "Remove this note?"))
+			return;
 		String removedId = ids.remove(idx);
 		displayMap.remove(removedId);
 		defaultListModel.remove(idx);
@@ -1020,6 +929,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		Set<String> before = new HashSet<>(ids);
 		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
@@ -1045,11 +955,9 @@ public class FamilyDialog extends BaseRecordDialog{
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, individualHandler, selectedId -> {
 			if(selectedId != null){
-				ChildEntry entry = showChildNotesDialog(selectedId, null);
-				if(entry != null){
-					childEntries.add(entry);
-					childListModel.addElement(entry.toString());
-				}
+				final ChildEntry entry = new ChildEntry(selectedId, new ArrayList<>());
+				childEntries.add(entry);
+				childListModel.addElement(entry.toString());
 			}
 		});
 		dialog.setVisible(true);
@@ -1060,6 +968,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		Set<String> before = new HashSet<>();
 		for(FLEFRecord rec : model.getRecordsByType("INDIVIDUAL")){
 			String id = rec.getId();
@@ -1076,40 +985,42 @@ public class FamilyDialog extends BaseRecordDialog{
 			}
 		}
 		if(newId != null && !newId.isEmpty()){
-			ChildEntry entry = showChildNotesDialog(newId, null);
-			if(entry != null){
-				childEntries.add(entry);
-				childListModel.addElement(entry.toString());
-			}
-			else{
-				model.removeRecord(newId);
-				JOptionPane.showMessageDialog(getParentFrame(),
-					"Child creation cancelled. The individual record has been removed.",
-					"Info", JOptionPane.INFORMATION_MESSAGE);
-			}
+			ChildEntry entry = new ChildEntry(newId, new ArrayList<>());
+			childEntries.add(entry);
+			childListModel.addElement(entry.toString());
 		}
 	}
 
 	private void editChild(){
 		int idx = childList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
+
 		ChildEntry existing = childEntries.get(idx);
-		ChildEntry updated = showChildNotesDialog(existing.childId, existing);
-		if(updated != null){
-			childEntries.set(idx, updated);
-			childListModel.set(idx, updated.toString());
-		}
+		FLEFRecord rec = model.getRecordById(existing.childId);
+		if(rec == null)
+			return;
+
+		JDialog dialog = individualHandler.createEditDialog(getParentFrame(), model, rec);
+		dialog.setVisible(true);
+
+		String newDisplay = getNoteDisplayName(existing.childId);
+		noteDisplayMap.put(existing.childId, newDisplay);
+		childListModel.set(idx, newDisplay);
 	}
 
 	private void deleteChild(){
 		int idx = childList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this child?")) return;
+		if(idx == -1)
+			return;
+		if(!showConfirm("Confirm", "Remove this child?"))
+			return;
+
 		childEntries.remove(idx);
 		childListModel.remove(idx);
 	}
 
-	private ChildEntry showChildNotesDialog(String childId, ChildEntry existing){
+	private ChildEntry showChildNotesDialog(String childId, ChildEntry childEntry){
 		JDialog dialog = new JDialog(this, "Child Notes", true);
 		dialog.setLayout(new MigLayout("fillx"));
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
@@ -1119,84 +1030,36 @@ public class FamilyDialog extends BaseRecordDialog{
 
 		DefaultListModel<String> noteModel = new DefaultListModel<>();
 		JList<String> noteList = new JList<>(noteModel);
-		List<String> noteIds = new ArrayList<>(existing != null? existing.noteIds: new ArrayList<>());
+		List<String> noteIds = new ArrayList<>(childEntry != null? childEntry.noteIds: new ArrayList<>());
 		Map<String, String> displayMap = new HashMap<>();
 		for(String id : noteIds){
 			displayMap.put(id, getNoteDisplayName(id));
 			noteModel.addElement(displayMap.get(id));
 		}
 
+		GUIHelper.installBehaviour(childList,
+			() -> (childList.getSelectedIndex() >= 0),
+			() -> createNewNote(noteModel, noteIds, displayMap),
+			() -> addNoteToList(noteModel, noteIds, displayMap),
+			() -> editNoteFromList(noteList, noteModel, noteIds, displayMap),
+			() -> deleteNoteFromList(noteList, noteModel, noteIds, displayMap),
+			() -> {
+				final int idx = childList.getSelectedIndex();
+				if(idx != -1){
+					final ChildEntry existing = childEntries.get(idx);
+					final ChildEntry updated = showChildNotesDialog(existing.childId, existing);
+					if(updated != null){
+						childEntries.set(idx, updated);
+						childListModel.set(idx, updated.toString());
+					}
+				}
+			});
+
 		JPanel notePanel = new JPanel(new MigLayout("fillx"));
-		JScrollPane scrollPane = new JScrollPane(noteList);
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(noteList,
+			ScrollableContainerHost.ScrollType.VERTICAL));
 		scrollPane.setPreferredSize(noteList.getPreferredScrollableViewportSize());
 		notePanel.add(scrollPane, "growx,wrap");
-
-		JPopupMenu notePopup = new JPopupMenu();
-		JMenuItem addNoteItem = new JMenuItem("Add Existing...");
-		JMenuItem newNoteItem = new JMenuItem("Create New...");
-		JMenuItem editNoteItem = new JMenuItem("Edit");
-		JMenuItem deleteNoteItem = new JMenuItem("Delete");
-		notePopup.add(addNoteItem);
-		notePopup.add(newNoteItem);
-		notePopup.addSeparator();
-		notePopup.add(editNoteItem);
-		notePopup.add(deleteNoteItem);
-
-		noteList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = noteList.locationToIndex(e.getPoint());
-					if(index != -1 && !noteList.isSelectedIndex(index)){
-						noteList.setSelectedIndex(index);
-					}
-					notePopup.show(noteList, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = noteList.locationToIndex(e.getPoint());
-					if(index != -1 && !noteList.isSelectedIndex(index)){
-						noteList.setSelectedIndex(index);
-					}
-					notePopup.show(noteList, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editNoteFromList(noteList, noteModel, noteIds, displayMap);
-				}
-			}
-		});
-		noteList.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(KeyEvent e){
-				if(e.getKeyCode() == KeyEvent.VK_INSERT){
-					createNewNote(noteModel, noteIds, displayMap);
-					e.consume();
-				}
-				else if(e.getKeyCode() == KeyEvent.VK_DELETE){
-					deleteNoteFromList(noteList, noteModel, noteIds, displayMap);
-					e.consume();
-				}
-			}
-		});
-		noteList.addListSelectionListener(e -> {
-			boolean selected = noteList.getSelectedIndex() != -1;
-			editNoteItem.setEnabled(selected);
-			deleteNoteItem.setEnabled(selected);
-		});
-		editNoteItem.setEnabled(false);
-		deleteNoteItem.setEnabled(false);
-
-		addNoteItem.addActionListener(e -> addNoteToList(noteModel, noteIds, displayMap));
-		newNoteItem.addActionListener(e -> createNewNote(noteModel, noteIds, displayMap));
-		editNoteItem.addActionListener(e -> editNoteFromList(noteList, noteModel, noteIds, displayMap));
-		deleteNoteItem.addActionListener(e -> deleteNoteFromList(noteList, noteModel, noteIds, displayMap));
 
 		panel.add(notePanel, "growx,wrap");
 		dialog.add(panel, BorderLayout.CENTER);
@@ -1241,10 +1104,12 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void editEvent(){
 		int idx = eventList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = eventIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return;
+		if(rec == null)
+			return;
 		JDialog dialog = eventHandler.createEditDialog(getParentFrame(), model, rec);
 		dialog.setVisible(true);
 		eventListModel.set(idx, getEventDisplayName(id));
@@ -1252,8 +1117,10 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void deleteEvent(){
 		int idx = eventList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this event?")) return;
+		if(idx == -1)
+			return;
+		if(!showConfirm("Confirm", "Remove this event?"))
+			return;
 		eventIds.remove(idx);
 		eventListModel.remove(idx);
 	}
@@ -1261,7 +1128,8 @@ public class FamilyDialog extends BaseRecordDialog{
 	private String getEventDisplayName(String id){
 		if(eventHandler != null){
 			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null) return eventHandler.getDisplayName(rec);
+			if(rec != null)
+				return eventHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -1329,13 +1197,15 @@ public class FamilyDialog extends BaseRecordDialog{
 	}
 
 	private void editGroupCitation(){
-		int idx = groupCitationList.getSelectedIndex();
-		if(idx == -1) return;
-		FLEFRecord existing = groupCitationRecords.get(idx);
 		if(groupCitationHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Group Citation handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
+		int idx = groupCitationList.getSelectedIndex();
+		if(idx == -1)
+			return;
+		FLEFRecord existing = groupCitationRecords.get(idx);
 		GroupCitationDialog dialog = (GroupCitationDialog)groupCitationHandler.createEditDialog(getParentFrame(), model, existing);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
@@ -1349,8 +1219,10 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void deleteGroupCitation(){
 		int idx = groupCitationList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this group citation?")) return;
+		if(idx == -1)
+			return;
+		if(!showConfirm("Confirm", "Remove this group citation?"))
+			return;
 		groupCitationRecords.remove(idx);
 		groupCitationListModel.remove(idx);
 	}
@@ -1371,6 +1243,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		Set<String> before = new HashSet<>();
 		for(FLEFRecord rec : model.getRecordsByType("GROUP")){
 			String id = rec.getId();
@@ -1404,6 +1277,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
@@ -1415,11 +1289,18 @@ public class FamilyDialog extends BaseRecordDialog{
 	}
 
 	private void editCulturalNorm(){
+		if(culturalNormHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
 		int idx = culturalNormList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = culturalNormIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return;
+		if(rec == null)
+			return;
 		JDialog dialog = culturalNormHandler.createEditDialog(getParentFrame(), model, rec);
 		dialog.setVisible(true);
 		culturalNormListModel.set(idx, getCulturalNormDisplayName(id));
@@ -1427,8 +1308,10 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void deleteCulturalNorm(){
 		int idx = culturalNormList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this cultural norm?")) return;
+		if(idx == -1)
+			return;
+		if(!showConfirm("Confirm", "Remove this cultural norm?"))
+			return;
 		culturalNormIds.remove(idx);
 		culturalNormListModel.remove(idx);
 	}
@@ -1436,7 +1319,8 @@ public class FamilyDialog extends BaseRecordDialog{
 	private String getCulturalNormDisplayName(String id){
 		if(culturalNormHandler != null){
 			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null) return culturalNormHandler.getDisplayName(rec);
+			if(rec != null)
+				return culturalNormHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -1446,6 +1330,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		Set<String> before = new HashSet<>();
 		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
 			String id = rec.getId();
@@ -1489,10 +1374,12 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void editNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		String id = noteIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return;
+		if(rec == null)
+			return;
 		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
@@ -1502,8 +1389,10 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void deleteNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this note reference?")) return;
+		if(idx == -1)
+			return;
+		if(!showConfirm("Confirm", "Remove this note reference?"))
+			return;
 		String id = noteIds.remove(idx);
 		noteDisplayMap.remove(id);
 		noteListModel.remove(idx);
@@ -1551,7 +1440,8 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void editSourceCitation(){
 		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1) return;
+		if(idx == -1)
+			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
 		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
 		dialog.setVisible(true);
@@ -1566,8 +1456,10 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	private void deleteSourceCitation(){
 		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this source citation?")) return;
+		if(idx == -1)
+			return;
+		if(!showConfirm("Confirm", "Remove this source citation?"))
+			return;
 		sourceCitationRecords.remove(idx);
 		sourceCitationListModel.remove(idx);
 	}
@@ -1636,34 +1528,34 @@ public class FamilyDialog extends BaseRecordDialog{
 
 		restrictionCheckBox.setSelected("confidential".equals(FLEFRecordUtils.getChildValue(record, "RESTRICTION")));
 
-		// Partner1
-		FLEFRecord p1 = FLEFRecordUtils.findChild(record, "PARTNER1");
+		// Parent1
+		FLEFRecord p1 = FLEFRecordUtils.findChild(record, "PARENT1");
 		if(p1 != null){
 			String id = p1.getValue();
 			if(id != null && !id.isEmpty()){
-				partner1Id = id;
+				parent1Id = id;
 				FLEFRecord rec = model.getRecordById(id);
 				if(rec != null && individualHandler != null)
-					partner1DisplayField.setText(individualHandler.getDisplayName(rec));
+					parent1DisplayField.setText(individualHandler.getDisplayName(rec));
 				else
-					partner1DisplayField.setText(id);
+					parent1DisplayField.setText(id);
 			}
-			loadPartnerNotes(p1, partner1NoteModel, partner1NoteIds, partner1NoteDisplayMap);
+			loadParentNotes(p1, parent1NoteModel, parent1NoteIds, parent1NoteDisplayMap);
 		}
 
-		// Partner2
-		FLEFRecord p2 = FLEFRecordUtils.findChild(record, "PARTNER2");
+		// Parent2
+		FLEFRecord p2 = FLEFRecordUtils.findChild(record, "PARENT2");
 		if(p2 != null){
 			String id = p2.getValue();
 			if(id != null && !id.isEmpty()){
-				partner2Id = id;
+				parent2Id = id;
 				FLEFRecord rec = model.getRecordById(id);
 				if(rec != null && individualHandler != null)
-					partner2DisplayField.setText(individualHandler.getDisplayName(rec));
+					parent2DisplayField.setText(individualHandler.getDisplayName(rec));
 				else
-					partner2DisplayField.setText(id);
+					parent2DisplayField.setText(id);
 			}
-			loadPartnerNotes(p2, partner2NoteModel, partner2NoteIds, partner2NoteDisplayMap);
+			loadParentNotes(p2, parent2NoteModel, parent2NoteIds, parent2NoteDisplayMap);
 		}
 
 		// Children
@@ -1743,7 +1635,7 @@ public class FamilyDialog extends BaseRecordDialog{
 		FLEFRecord pref = FLEFRecordUtils.findChild(record, "PREFERRED_IMAGE");
 		if(pref != null){
 			preferredImageId = pref.getValue();
-			cropString = FLEFRecordUtils.getChildValue(pref, "CROP");
+			preferredImageCrop = FLEFRecordUtils.getChildValue(pref, "CROP");
 			updateImageButton(preferredImageId);
 		}
 		else{
@@ -1758,12 +1650,12 @@ public class FamilyDialog extends BaseRecordDialog{
 		conclusionPanel.loadFromRecord(conclusion);
 	}
 
-	private void loadPartnerNotes(FLEFRecord partnerRec, DefaultListModel<String> model,
+	private void loadParentNotes(FLEFRecord parentRec, DefaultListModel<String> model,
 		List<String> ids, Map<String, String> displayMap){
 		model.clear();
 		ids.clear();
 		displayMap.clear();
-		for(FLEFRecord child : partnerRec.getChildren()){
+		for(FLEFRecord child : parentRec.getChildren()){
 			if("NOTE".equals(child.getTag()) && child.getValue() != null){
 				String id = child.getValue();
 				ids.add(id);
@@ -1800,26 +1692,26 @@ public class FamilyDialog extends BaseRecordDialog{
 		FLEFRecordUtils.updateChildValue(record, "RESTRICTION",
 			restrictionCheckBox.isSelected()? "confidential": null);
 
-		// PARTNER1
-		if(partner1Id != null && !partner1Id.isEmpty()){
+		// PARENT1
+		if(parent1Id != null && !parent1Id.isEmpty()){
 			FLEFRecord p1 = new FLEFRecord();
 			p1.setLevel(1);
-			p1.setTag("PARTNER1");
-			p1.setValue(partner1Id);
+			p1.setTag("PARENT1");
+			p1.setValue(parent1Id);
 			record.addChild(p1);
-			for(String noteId : partner1NoteIds){
+			for(String noteId : parent1NoteIds){
 				FLEFRecordUtils.addChild(p1, "NOTE", 2, noteId);
 			}
 		}
 
-		// PARTNER2
-		if(partner2Id != null && !partner2Id.isEmpty()){
+		// PARENT2
+		if(parent2Id != null && !parent2Id.isEmpty()){
 			FLEFRecord p2 = new FLEFRecord();
 			p2.setLevel(1);
-			p2.setTag("PARTNER2");
-			p2.setValue(partner2Id);
+			p2.setTag("PARENT2");
+			p2.setValue(parent2Id);
 			record.addChild(p2);
-			for(String noteId : partner2NoteIds){
+			for(String noteId : parent2NoteIds){
 				FLEFRecordUtils.addChild(p2, "NOTE", 2, noteId);
 			}
 		}
@@ -1872,8 +1764,8 @@ public class FamilyDialog extends BaseRecordDialog{
 			pref.setTag("PREFERRED_IMAGE");
 			pref.setValue(preferredImageId);
 			record.addChild(pref);
-			if(cropString != null && !cropString.isEmpty()){
-				FLEFRecordUtils.updateChildValue(pref, "CROP", cropString);
+			if(preferredImageCrop != null && !preferredImageCrop.isEmpty()){
+				FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
 			}
 		}
 
@@ -1901,14 +1793,14 @@ public class FamilyDialog extends BaseRecordDialog{
 	@Override
 	protected FLEFRecord createNewRecord(){
 		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("FAMILY");
+		newRecord.setType(FamilyHandler.TYPE);
 		newRecord.setId(generateNewId());
 		return newRecord;
 	}
 
 	@Override
 	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "FAMILY", "F");
+		return FLEFRecordUtils.generateNewId(model, FamilyHandler.TYPE, FamilyHandler.ID_PREFIX);
 	}
 
 	private Frame getParentFrame(){

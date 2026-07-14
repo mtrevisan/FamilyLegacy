@@ -41,6 +41,9 @@ import java.awt.Frame;
  */
 public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDialog>{
 
+	public static final String TYPE = "GROUP_CITATION";
+
+
 	@Override
 	public String getLabel(){
 		return "Group Citation";
@@ -48,7 +51,7 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 
 	@Override
 	public String getType(){
-		return "GROUP_CITATION";
+		return TYPE;
 	}
 
 	@Override

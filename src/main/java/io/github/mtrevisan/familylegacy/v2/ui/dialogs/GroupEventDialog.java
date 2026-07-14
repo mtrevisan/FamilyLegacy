@@ -127,7 +127,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public GroupEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Group Event", record);
+		super(parent, "Edit Group Event", model, record);
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -138,7 +138,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 	}
 
 	public GroupEventDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Group Event", null);
+		super(parent, "New Group Event", model, null);
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();

@@ -9,6 +9,10 @@ import java.awt.Frame;
 
 public class FamilyHandler implements RecordTypeHandler<FamilyDialog>{
 
+	public static final String TYPE = "FAMILY";
+	public static final String ID_PREFIX = "F";
+
+
 	@Override
 	public String getLabel(){
 		return "Family";
@@ -16,22 +20,22 @@ public class FamilyHandler implements RecordTypeHandler<FamilyDialog>{
 
 	@Override
 	public String getType(){
-		return "FAMILY";
+		return TYPE;
 	}
 
 	@Override
 	public String getDisplayName(FLEFRecord record){
 		String id = record.getId();
-		String p1 = getChildValue(record, "PARTNER1");
-		String p2 = getChildValue(record, "PARTNER2");
+		String p1 = getChildValue(record, "PARENT1");
+		String p2 = getChildValue(record, "PARENT2");
 		if(p1 != null && p2 != null){
 			return p1 + " + " + p2 + " (" + id + ")";
 		}
 		else if(p1 != null){
-			return p1 + " (with partner) (" + id + ")";
+			return p1 + " (with parent) (" + id + ")";
 		}
 		else if(p2 != null){
-			return p2 + " (with partner) (" + id + ")";
+			return p2 + " (with parent) (" + id + ")";
 		}
 		else{
 			return id;

@@ -159,7 +159,7 @@ public class DNAMatchDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public DNAMatchDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit DNA Match", record);
+		super(parent, "Edit DNA Match", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -170,7 +170,7 @@ public class DNAMatchDialog extends BaseRecordDialog{
 	}
 
 	public DNAMatchDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New DNA Match", null);
+		super(parent, "New DNA Match", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

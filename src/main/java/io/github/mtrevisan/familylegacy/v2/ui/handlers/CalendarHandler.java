@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class CalendarHandler implements RecordTypeHandler<CalendarDialog>{
 
+	public static final String TYPE = "CALENDAR";
+
+
 	@Override
 	public String getLabel(){
 		return "Calendar";
@@ -44,7 +47,7 @@ public class CalendarHandler implements RecordTypeHandler<CalendarDialog>{
 
 	@Override
 	public String getType(){
-		return "CALENDAR";
+		return TYPE;
 	}
 
 	@Override

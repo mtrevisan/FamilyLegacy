@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs.records;
 
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
@@ -303,7 +302,7 @@ public final class CalendarRecordDialog extends JDialog{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.9.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.0.10.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode calendar = store.getCalendars().get(0);
 

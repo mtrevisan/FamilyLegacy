@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class HistoricEventHandler implements RecordTypeHandler<HistoricEventDialog>{
 
+	public static final String TYPE = "HISTORIC_EVENT";
+
+
 	@Override
 	public String getLabel(){
 		return "Historic Event";
@@ -44,7 +47,7 @@ public class HistoricEventHandler implements RecordTypeHandler<HistoricEventDial
 
 	@Override
 	public String getType(){
-		return "HISTORIC_EVENT";
+		return TYPE;
 	}
 
 	@Override

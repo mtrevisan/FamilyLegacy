@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
 
+	public static final String TYPE = "PLACE";
+
+
 	@Override
 	public String getLabel(){
 		return "Place";
@@ -44,7 +47,7 @@ public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
 
 	@Override
 	public String getType(){
-		return "PLACE";
+		return TYPE;
 	}
 
 	@Override

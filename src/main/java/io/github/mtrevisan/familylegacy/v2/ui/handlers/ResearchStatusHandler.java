@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDialog>{
 
+	public static final String TYPE = "RESEARCH_STATUS";
+
+
 	@Override
 	public String getLabel(){
 		return "Research Status";
@@ -44,7 +47,7 @@ public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDi
 
 	@Override
 	public String getType(){
-		return "RESEARCH_STATUS";
+		return TYPE;
 	}
 
 	@Override

@@ -163,7 +163,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public ResearchStatusDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Research Status", record);
+		super(parent, "Edit Research Status", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -174,7 +174,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	}
 
 	public ResearchStatusDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Research Status", null);
+		super(parent, "New Research Status", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

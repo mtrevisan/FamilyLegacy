@@ -151,7 +151,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public RepositoryDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Repository", record);
+		super(parent, "Edit Repository", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -162,7 +162,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	public RepositoryDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Repository", null);
+		super(parent, "New Repository", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

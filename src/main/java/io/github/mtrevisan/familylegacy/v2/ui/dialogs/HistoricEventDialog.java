@@ -122,7 +122,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public HistoricEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Historic Event", record);
+		super(parent, "Edit Historic Event", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -133,7 +133,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	}
 
 	public HistoricEventDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Historic Event", null);
+		super(parent, "New Historic Event", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

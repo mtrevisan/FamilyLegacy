@@ -143,7 +143,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public SourceDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Source", record);
+		super(parent, "Edit Source", model, record);
 
 		this.datePanel = new DateStructurePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);
@@ -156,7 +156,7 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	public SourceDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Source", null);
+		super(parent, "New Source", model, null);
 
 		this.datePanel = new DateStructurePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);

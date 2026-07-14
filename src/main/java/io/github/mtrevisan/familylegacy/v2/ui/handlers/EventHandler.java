@@ -9,6 +9,9 @@ import java.awt.Frame;
 
 public class EventHandler implements RecordTypeHandler<EventDialog>{
 
+	public static final String TYPE = "EVENT";
+
+
 	@Override
 	public String getLabel(){
 		return "Event";
@@ -16,7 +19,7 @@ public class EventHandler implements RecordTypeHandler<EventDialog>{
 
 	@Override
 	public String getType(){
-		return "EVENT";
+		return TYPE;
 	}
 
 	@Override

@@ -155,7 +155,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public GroupDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Group", record);
+		super(parent, "Edit Group", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -166,7 +166,7 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	public GroupDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Group", null);
+		super(parent, "New Group", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

@@ -9,6 +9,9 @@ import java.awt.Frame;
 
 public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 
+	public static final String TYPE = "GROUP";
+
+
 	@Override
 	public String getLabel(){
 		return "Group";
@@ -16,7 +19,7 @@ public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 
 	@Override
 	public String getType(){
-		return "GROUP";
+		return TYPE;
 	}
 
 	@Override

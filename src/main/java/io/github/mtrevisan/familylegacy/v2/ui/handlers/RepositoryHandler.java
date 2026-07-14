@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class RepositoryHandler implements RecordTypeHandler<RepositoryDialog>{
 
+	public static final String TYPE = "REPOSITORY";
+
+
 	@Override
 	public String getLabel(){
 		return "Repository";
@@ -44,7 +47,7 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryDialog>{
 
 	@Override
 	public String getType(){
-		return "REPOSITORY";
+		return TYPE;
 	}
 
 	@Override

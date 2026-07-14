@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class SourceHandler implements RecordTypeHandler<SourceDialog>{
 
+	public static final String TYPE = "SOURCE";
+
+
 	@Override
 	public String getLabel(){
 		return "Source";
@@ -44,7 +47,7 @@ public class SourceHandler implements RecordTypeHandler<SourceDialog>{
 
 	@Override
 	public String getType(){
-		return "SOURCE";
+		return TYPE;
 	}
 
 	@Override

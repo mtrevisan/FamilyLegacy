@@ -135,7 +135,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public CulturalNormDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Cultural Norm", record);
+		super(parent, "Edit Cultural Norm", model, record);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -146,7 +146,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	}
 
 	public CulturalNormDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Cultural Norm", null);
+		super(parent, "New Cultural Norm", model, null);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

@@ -54,7 +54,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected final boolean isNew;
 
 
-	protected BaseRecordDialog(Frame parent, FLEFModel model, String title, FLEFRecord record){
+	protected BaseRecordDialog(final Frame parent, final String title, final FLEFModel model, final FLEFRecord record){
 		super(parent, title, true);
 
 		this.model = model;
@@ -72,7 +72,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * Validates the data before saving.
 	 * Subclasses must implement this method to check required fields.
 	 *
-	 * @return true if the data is valid, false otherwise
+	 * @return	Whether the data is valid.
 	 */
 	protected abstract boolean validateData();
 
@@ -91,94 +91,96 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * Called by the Save button.
 	 */
 	public final void save(){
-		if(validateData()){
+		if(validateData())
 			saveRecord();
-		}
 	}
 
 	// ==================== Utility methods ====================
 
-	protected String getChildValue(String tag){
+	protected String getChildValue(final String tag){
 		return FLEFRecordUtils.getChildValue(record, tag);
 	}
 
-	protected String getChildValue(FLEFRecord parent, String tag){
+	protected String getChildValue(final FLEFRecord parent, final String tag){
 		return FLEFRecordUtils.getChildValue(parent, tag);
 	}
 
-	protected FLEFRecord findChild(String tag){
+	protected FLEFRecord findChild(final String tag){
 		return FLEFRecordUtils.findChild(record, tag);
 	}
 
-	protected FLEFRecord findChild(FLEFRecord parent, String tag){
+	protected FLEFRecord findChild(final FLEFRecord parent, final String tag){
 		return FLEFRecordUtils.findChild(parent, tag);
 	}
 
-	protected List<FLEFRecord> findChildren(String tag){
+	protected List<FLEFRecord> findChildren(final String tag){
 		return FLEFRecordUtils.findChildren(record, tag);
 	}
 
-	protected List<FLEFRecord> findChildren(FLEFRecord parent, String tag){
+	protected List<FLEFRecord> findChildren(final FLEFRecord parent, final String tag){
 		return FLEFRecordUtils.findChildren(parent, tag);
 	}
 
-	protected String getChildValuesAsString(String tag){
+	protected String getChildValuesAsString(final String tag){
 		return FLEFRecordUtils.getChildValuesAsString(record, tag);
 	}
 
-	protected String getChildValuesAsString(FLEFRecord parent, String tag){
+	protected String getChildValuesAsString(final FLEFRecord parent, final String tag){
 		return FLEFRecordUtils.getChildValuesAsString(parent, tag);
 	}
 
-	protected void updateChildValue(String tag, String value){
+	protected void updateChildValue(final String tag, final String value){
 		FLEFRecordUtils.updateChildValue(record, tag, value);
 	}
 
-	protected void updateChildValue(FLEFRecord parent, String tag, String value){
+	protected void updateChildValue(final FLEFRecord parent, final String tag, final String value){
 		FLEFRecordUtils.updateChildValue(parent, tag, value);
 	}
 
-	protected void addChild(String tag, int level, String value){
+	protected void addChild(final String tag, final int level, final String value){
 		FLEFRecordUtils.addChild(record, tag, level, value);
 	}
 
-	protected void addChild(FLEFRecord parent, String tag, int level, String value){
+	protected void addChild(final FLEFRecord parent, final String tag, final int level, final String value){
 		FLEFRecordUtils.addChild(parent, tag, level, value);
 	}
 
-	protected void addChildrenFromString(String tag, String values){
+	protected void addChildrenFromString(final String tag, final String values){
 		FLEFRecordUtils.addChildrenFromString(record, tag, values);
 	}
 
-	protected void addChildrenFromString(FLEFRecord parent, String tag, String values){
+	protected void addChildrenFromString(final FLEFRecord parent, final String tag, final String values){
 		FLEFRecordUtils.addChildrenFromString(parent, tag, values);
 	}
 
-	protected void removeChildren(String tag){
+
+	protected void removeChildren(final String tag){
 		FLEFRecordUtils.removeChildren(record, tag);
 	}
 
-	protected void removeChildren(FLEFRecord parent, String tag){
+	protected void removeChildren(final FLEFRecord parent, final String tag){
 		FLEFRecordUtils.removeChildren(parent, tag);
 	}
 
-	protected JPanel createTextAreaPanel(String label){
-		JPanel panel = new JPanel(new BorderLayout());
-		JLabel lbl = new JLabel(label);
+
+	protected JPanel createTextAreaPanel(final String label){
+		final JPanel panel = new JPanel(new BorderLayout());
+		final JLabel lbl = new JLabel(label);
 		lbl.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		panel.add(lbl, BorderLayout.NORTH);
 		return panel;
 	}
 
-	protected void showError(String title, String message){
+
+	protected void showError(final String title, final String message){
 		JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
 	}
 
-	protected void showInfo(String title, String message){
+	protected void showInfo(final String title, final String message){
 		JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
 	}
 
-	protected boolean showConfirm(String title, String message){
+	protected boolean showConfirm(final String title, final String message){
 		return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 	}
 

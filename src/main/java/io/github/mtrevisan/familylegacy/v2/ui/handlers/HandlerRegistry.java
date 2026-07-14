@@ -40,20 +40,19 @@ public final class HandlerRegistry{
 	private HandlerRegistry(){}
 
 	/**
-	 *
 	 * Registers a handler for a record type.
 	 *
-	 * @param handler the handler to register
+	 * @param handler	The handler to register.
 	 */
 	public static void register(RecordTypeHandler<?> handler){
-		handlers.put(handler.getType(), handler);
+		handlers.putIfAbsent(handler.getType(), handler);
 	}
 
 	/**
 	 * Returns the handler for the given record type.
 	 *
-	 * @param type the record type (e.g., "INDIVIDUAL")
-	 * @return the handler, or null if not registered
+	 * @param type	The record type (e.g., "INDIVIDUAL").
+	 * @return	The handler, or null if not registered.
 	 */
 	public static RecordTypeHandler<?> getHandler(String type){
 		return handlers.get(type);

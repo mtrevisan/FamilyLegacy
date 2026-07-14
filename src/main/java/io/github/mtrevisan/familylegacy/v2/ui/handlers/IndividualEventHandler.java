@@ -37,6 +37,9 @@ import java.awt.Frame;
  */
 public class IndividualEventHandler implements RecordTypeHandler<IndividualEventDialog>{
 
+	public static final String TYPE = "EVENT";
+
+
 	@Override
 	public String getLabel(){
 		return "Individual Event";
@@ -44,7 +47,7 @@ public class IndividualEventHandler implements RecordTypeHandler<IndividualEvent
 
 	@Override
 	public String getType(){
-		return "EVENT";
+		return TYPE;
 	}
 
 	@Override

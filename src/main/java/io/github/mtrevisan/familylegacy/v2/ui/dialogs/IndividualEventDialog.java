@@ -76,7 +76,7 @@ import java.util.List;
  * Supports three variants:
  * <ul>
  *   <li>BIRTH: with optional FAMILY and multiple TWIN references</li>
- *   <li>ADOPTION: with mandatory FAMILY and optional PEDIGREE_PARTNER1/PARTNER2</li>
+ *   <li>ADOPTION: with mandatory FAMILY and optional PARENT1_RELATIONSHIP/PARENT2</li>
  *   <li>Generic: all other event types with just EVENT_STRUCTURE</li>
  * </ul>
  */
@@ -114,8 +114,8 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	private final List<String> twinIds = new ArrayList<>();
 
 	// ========== ADOPTION fields ==========
-	private final JComboBox<String> pedigreePartner1Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
-	private final JComboBox<String> pedigreePartner2Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
 
 	// ========== EVENT_STRUCTURE (0:1) ==========
 	private final EventStructurePanel eventStructurePanel;
@@ -130,7 +130,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public IndividualEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, "Edit Individual Event", record);
+		super(parent, "Edit Individual Event", model, record);
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -141,7 +141,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	}
 
 	public IndividualEventDialog(Frame parent, FLEFModel model){
-		super(parent, model, "New Individual Event", null);
+		super(parent, "New Individual Event", model, null);
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -226,9 +226,9 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 		// Twin: only for BIRTH
 		twinList.setEnabled(isBirth);
-		// Pedigree: only for ADOPTION
-		pedigreePartner1Combo.setEnabled(isAdoption);
-		pedigreePartner2Combo.setEnabled(isAdoption);
+		// Relationship: only for ADOPTION
+		relationshipParent1Combo.setEnabled(isAdoption);
+		relationshipParent2Combo.setEnabled(isAdoption);
 
 		// Visual feedback for mandatory field in ADOPTION
 		if(isAdoption){
@@ -288,13 +288,13 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 		panel.add(twinPanel, "growx,wrap");
 
-		// PEDIGREE_PARTNER1 (0:1) for ADOPTION
-		panel.add(new JLabel("Pedigree Partner 1:"), "align label");
-		panel.add(pedigreePartner1Combo, "growx,wrap");
+		// PARENT1_RELATIONSHIP (0:1) for ADOPTION
+		panel.add(new JLabel("Parent 1 Relationship:"), "align label");
+		panel.add(relationshipParent1Combo, "growx,wrap");
 
-		// PEDIGREE_PARTNER2 (0:1) for ADOPTION
-		panel.add(new JLabel("Pedigree Partner 2:"), "align label");
-		panel.add(pedigreePartner2Combo, "growx");
+		// PARENT2_RELATIONSHIP (0:1) for ADOPTION
+		panel.add(new JLabel("Parent 2 Relationship:"), "align label");
+		panel.add(relationshipParent2Combo, "growx");
 
 		// Apply initial state
 		onTypeChanged(null);
@@ -404,13 +404,13 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		// TWIN (0:M)
 		loadTwins();
 
-		// PEDIGREE_PARTNER1 (0:1)
-		String p1 = FLEFRecordUtils.getChildValue(record, "PEDIGREE_PARTNER1");
-		pedigreePartner1Combo.setSelectedItem(p1 != null? p1: "");
+		// PARENT1_RELATIONSHIP (0:1)
+		String p1 = FLEFRecordUtils.getChildValue(record, "PARENT1_RELATIONSHIP");
+		relationshipParent1Combo.setSelectedItem(p1 != null? p1: "");
 
-		// PEDIGREE_PARTNER2 (0:1)
-		String p2 = FLEFRecordUtils.getChildValue(record, "PEDIGREE_PARTNER2");
-		pedigreePartner2Combo.setSelectedItem(p2 != null? p2: "");
+		// PARENT2_RELATIONSHIP (0:1)
+		String p2 = FLEFRecordUtils.getChildValue(record, "PARENT2_RELATIONSHIP");
+		relationshipParent2Combo.setSelectedItem(p2 != null? p2: "");
 
 		// EVENT_STRUCTURE (0:1)
 		FLEFRecord eventStruct = FLEFRecordUtils.findChild(record, "EVENT_STRUCTURE");
@@ -469,16 +469,16 @@ public class IndividualEventDialog extends BaseRecordDialog{
 			FLEFRecordUtils.addChild(record, "TWIN", 1, id);
 		}
 
-		// PEDIGREE_PARTNER1 (0:1)
-		String p1 = (String)pedigreePartner1Combo.getSelectedItem();
+		// PARENT1_RELATIONSHIP (0:1)
+		String p1 = (String)relationshipParent1Combo.getSelectedItem();
 		if(p1 != null && !p1.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PEDIGREE_PARTNER1", p1);
+			FLEFRecordUtils.updateChildValue(record, "PARENT1_RELATIONSHIP", p1);
 		}
 
-		// PEDIGREE_PARTNER2 (0:1)
-		String p2 = (String)pedigreePartner2Combo.getSelectedItem();
+		// PARENT2_RELATIONSHIP (0:1)
+		String p2 = (String)relationshipParent2Combo.getSelectedItem();
 		if(p2 != null && !p2.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PEDIGREE_PARTNER2", p2);
+			FLEFRecordUtils.updateChildValue(record, "PARENT2_RELATIONSHIP", p2);
 		}
 
 		// EVENT_STRUCTURE (0:1)

@@ -1,7 +1,7 @@
-GEDCOM_VERSION=0.0.9
+GEDCOM_VERSION=0.0.10
 GEDCOM_DATE=2026-07-14
 GEDCOM_SOURCE=localhost
-GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.9
+GEDCOM_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.0.10
 
 
 ROOT :=
@@ -203,7 +203,8 @@ RELATIONSHIP_RECORD :=	/* A relationship connecting two genealogical entities. A
 n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}   /* An xref ID of a relationship record. */
   +1 SUBJECT @<XREF:ID>@|@VOID@    {1:1}    /* The entity for which the relationship is being asserted. This may be an INDIVIDUAL, FAMILY, GROUP, or another supported record type. If the entity is unknown, @VOID@ may be used. */
   +1 OBJECT @<XREF:ID>@|@VOID@    {1:1} /* The entity to which the subject is related. This may be an INDIVIDUAL, FAMILY, GROUP, or another supported record type. If the entity is unknown, @VOID@ may be used. */
-  +1 TYPE <RELATIONSHIP_TYPE>    {1:1}  /* The specific nature of the relationship of the subject toward the object. Known values include: 'biological_child' (Relationship exists through birth), 'adoptive_child' (Relationship created through legal adoption), 'foster_child' (Temporary foster-care relationship), 'ward' (Court-appointed legal guardianship relationship), 'step_child' (Relationship created through marriage and not through descent), 'civil_spouse', (Marriage recognized by civil authority), 'religious_spouse', (Marriage recognized by religious authority), 'customary_spouse' (Marriage recognized by local custom or tradition), 'cohabitation' (Non-marital domestic partnership), 'engagement' (Promise or agreement to marry), 'group_member' (Membership in a family or group), 'associate' (General association), ... */
+  +1 TYPE <RELATIONSHIP_TYPE>    {1:1}  /* The specific nature of the relationship of the subject toward the object. Known values include: 'biological_child' (Relationship exists through birth), 'adoptive_child' (Relationship created through legal adoption), 'foster_child' (Temporary foster-care relationship), 'guarded_child' (Court-appointed legal guardianship relationship), 'step_child' (Relationship created through marriage and not through descent), 'civil_spouse', (Marriage recognized by civil authority), 'religious_spouse', (Marriage recognized by religious authority), 'customary_spouse' (Marriage recognized by local custom or tradition), 'cohabiting_partner' (Non-marital domestic partnership), 'engaged_partner' (Promise or agreement to marry), 'family_member' (Membership in a family), 'group_member' (Membership in a group), 'associate' (General association), ... */
+  +1 ROLE <RELATIONSHIP_ROLE>    {0:1}	/* Indicates the function, position, capacity or responsibility held by the subject within the relationship. For example 'president', 'member', 'resident' (in a neighborhood), 'head of household', 'tribal leader'. */
   +1 STATUS <RELATIONSHIP_STATUS>    {0:1}  /* Indicates the current status of the relationship. Known values include: 'active' (Relationship currently exists), 'ended' (Relationship no longer exists), 'disputed' (Relationship is challenged by conflicting evidence), 'proposed' (Relationship has been suggested but not sufficiently demonstrated), 'unknown' (Relationship status is not known) */
   +1 <<DATE_STRUCTURE>>    {0:1}    /* A DATE_STRUCTURE object giving the date the relationship was established, recognized, or documented. */
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
@@ -261,12 +262,13 @@ n @<XREF:PLACE>@ PLACE    {1:1}	/* An xref ID of a place record. */
     +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name. The latitude coordinate is the direction North or South from the equator in degrees and fraction of degrees carried out to give the desired accuracy. For example: 18 degrees, 9 minutes, and 3.4 seconds North would be formatted as N18.150944, or with plus (N)/minus (S) symbols. */
     +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name. The longitude coordinate is Degrees and fraction of degrees east or west of the zero or base meridian coordinate. For example: 168 degrees, 9 minutes, and 3.4 seconds East would be formatted as E168.150944, or with plus (E)/minus (W) symbols. */
     +2 <<EVIDENCE_QUALIFIERS>>    {0:1}
-  +1 SUBORDINATE @<XREF:PLACE>@    {0:1}	/* A SUBORDINATE object this place structure is subordinated to, that is, the parent address (eg. state < country, or town < city). */
+  +1 PARENT_PLACE @<XREF:PLACE>@    {0:1}	/* A PARENT_PLACE object this place structure is subordinated to, that is, the parent address (eg. state < country, or town < city). */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* An object that provides data related to the creation/modification of this structure. */
 
 
 NOTE_RECORD :=
 n @<XREF:NOTE>@ NOTE    {1:1}	/* An xref ID of a note record. */
+  +1 TITLE <TEXT>    {0:1}	/* Note title. */
   +1 VALUE <SUBMITTER_TEXT>    {1:1}	/* Comments or opinions from the submitter following markdown language. Reference to structures in this GEDCOM can be written as `[text](@<XREF:ID>@)`, "confidential" data can be written as `[text](confidential)`. */
   +1 MIME <MIME_TYPE>    {0:1} /* ex. text/html, text/markdown. */
   +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the not (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
@@ -410,8 +412,8 @@ n UPDATE    {0:M}	/* An object giving the date of the changing of this structure
 CONCLUSION_STRUCTURE :=	/* A formal statement that resolves a conflict between conflicting evidence by selecting the hypothesis deemed most truthful based on a critical analysis of the sources. */
 n CONCLUSION    {1:1}
   +1 CONTEXT <RESOLUTION_CONTEXT>    {1:1}	/* The specific context that is resolved, for example, "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type". */
-  +1 RESOLVES @<XREF:EVENT>@    {0:M}	/* A pointer to one or more conflicting events (or associations) that this conclusion is intended to resolve. */
-  +1 PREFERRED @<XREF:EVENT>@    {0:1}	/* The record (usually an EVENT, but can be a FAMILY or INDIVIDUAL) that this conclusion determines to be the true one. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. */
+  +1 RESOLVES @<XREF:ID>@    {0:M}	/* A pointer to one or more conflicting events (or associations) that this conclusion is intended to resolve. */
+  +1 PREFERRED @<XREF:ID>@    {0:1}	/* The record (usually an EVENT, but can be a FAMILY or INDIVIDUAL or PLACE etc.) that this conclusion determines to be the true one. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. */
   +1 PROOF_STATUS <PROOF_STATUS_VALUE>    {1:1}	/* The status of the test according to the genealogical standard. Permitted values: "unresearched" (not yet sought), "conflicting_evidence" (the evidence is conflicting, none prevails), "preponderance_of_evidence" (preponderance of evidence, but not absolute certainty), "proven" (proven according to the Genealogical Proof Standard), "disproven" (proven false). */
   +1 NARRATIVE <PROOF_NARRATIVE_TEXT>    {0:1}	/* A discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen. */
     +2 NOTE @<XREF:NOTE>@    {0:M}

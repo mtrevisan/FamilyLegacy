@@ -71,7 +71,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a FAMILY_CHILD or FAMILY_PARTNER link details.
+ * Dialog for editing a FAMILY_CHILD or FAMILY_PARENT link details.
  * <p>
  * Fields:
  * <ul>
@@ -91,7 +91,7 @@ public class FamilyLinkDialog extends JDialog{
 	private final FLEFModel model;
 	private final Frame parentFrame;
 	private final String familyId;
-	private final String linkType; // "FAMILY_CHILD" or "FAMILY_PARTNER"
+	private final String linkType; // "FAMILY_CHILD" or "FAMILY_PARENT"
 	private final FLEFRecord existingLink; // may be null for new links
 	private boolean saved = false;
 
