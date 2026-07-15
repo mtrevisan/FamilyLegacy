@@ -314,10 +314,7 @@ public class ContactStructurePanel extends JPanel{
 		// Find CALLER_ID under the parent (CONTACT)
 		FLEFRecord callerId = FLEFRecordUtils.findChild(parent, "CALLER_ID");
 		if(callerId == null){
-			callerId = new FLEFRecord();
-			callerId.setLevel(2);
-			callerId.setTag("CALLER_ID");
-			callerId.setValue(callerIdField.getText().trim());
+			callerId = FLEFRecord.createChildWithValue(2, "CALLER_ID", callerIdField.getText().trim());
 			parent.addChild(callerId);
 		}
 		return callerId;
@@ -563,10 +560,7 @@ public class ContactStructurePanel extends JPanel{
 		// CALLER_ID (0:1) with its TRANSCRIBED_TEXT children
 		String callerId = callerIdField.getText().trim();
 		if(!callerId.isEmpty() || !transcriptionRecords.isEmpty()){
-			FLEFRecord callerIdRecord = new FLEFRecord();
-			callerIdRecord.setLevel(1);
-			callerIdRecord.setTag("CALLER_ID");
-			callerIdRecord.setValue(callerId);
+			FLEFRecord callerIdRecord = FLEFRecord.createChildWithValue(1, "CALLER_ID", callerId);
 			contactRecord.addChild(callerIdRecord);
 
 			for(FLEFRecord transRecord : transcriptionRecords){

@@ -1,0 +1,263 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
+import net.miginfocom.swing.MigLayout;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+
+/**
+ * A modal dialog for editing the list of notes attached to any record
+ * that has children with tag {@code NOTE}. The dialog allows the user
+ * to add existing {@code NOTE} records, create new ones, edit them,
+ * or remove them.
+ * <p>
+ * This class follows the same design pattern as {@code GroupDialog}
+ * for managing a list of referenced entities.
+ */
+public class NoteListEditorDialog extends JDialog{
+
+	private final FLEFModel model;
+	private final FLEFRecord ownerRecord;
+	private final NoteHandler noteHandler;
+
+	// UI components
+	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
+	private final JList<String> noteList = new JList<>(noteListModel);
+	private final List<String> noteIds = new ArrayList<>();
+	private final Map<String, String> noteDisplayMap = new HashMap<>();
+
+	private boolean saved = false;
+
+	/**
+	 * Creates a new note list editor dialog.
+	 *
+	 * @param parent      the parent frame (or dialog) for modality
+	 * @param model       the FLEF model
+	 * @param ownerRecord the record whose notes are being edited
+	 */
+	public NoteListEditorDialog(Dialog parent, FLEFModel model, FLEFRecord ownerRecord){
+		super(parent, "Notes for " + ownerRecord.getId(), true);
+		this.model = model;
+		this.ownerRecord = ownerRecord;
+		this.noteHandler = new NoteHandler();
+
+		initComponents();
+		loadData();
+		pack();
+		setMinimumSize(new Dimension(400, 300));
+		setLocationRelativeTo(parent);
+	}
+
+	private void initComponents(){
+		setLayout(new MigLayout("fillx"));
+
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+		JPanel listPanel = createNoteListPanel();
+		panel.add(listPanel, "growx,wrap");
+
+		add(panel, BorderLayout.CENTER);
+
+		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		JButton okBtn = new JButton("OK");
+		JButton cancelBtn = new JButton("Cancel");
+		buttonPanel.add(okBtn);
+		buttonPanel.add(cancelBtn);
+		add(buttonPanel, BorderLayout.SOUTH);
+
+		okBtn.addActionListener(e -> {
+			save();
+			saved = true;
+			dispose();
+		});
+		cancelBtn.addActionListener(e -> dispose());
+	}
+
+	private JPanel createNoteListPanel(){
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder("Notes"));
+		noteList.setVisibleRowCount(4);
+		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		GUIHelper.installBehaviour(noteList,
+			() -> noteList.getSelectedIndex() >= 0,
+			this::createNewNote,
+			this::addExistingNote,
+			this::editNote,
+			this::deleteNote,
+			null);
+
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(noteList,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		FontMetrics fm = noteList.getFontMetrics(noteList.getFont());
+		int rowHeight = fm.getHeight() + 2;
+		scrollPane.setPreferredSize(new Dimension(0, 4 * rowHeight + 10));
+		panel.add(scrollPane, "growx,wrap");
+		return panel;
+	}
+
+	private void loadData(){
+		noteIds.clear();
+		noteListModel.clear();
+		noteDisplayMap.clear();
+
+		// Collect all NOTE children of the owner record
+		for(FLEFRecord child : ownerRecord.getChildren()){
+			if("NOTE".equals(child.getTag()) && child.getValue() != null){
+				String id = child.getValue();
+				noteIds.add(id);
+				String display = getNoteDisplayName(id);
+				noteDisplayMap.put(id, display);
+				noteListModel.addElement(display);
+			}
+		}
+	}
+
+	private String getNoteDisplayName(String id){
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null && noteHandler != null){
+			return noteHandler.getDisplayName(rec);
+		}
+		return id;
+	}
+
+	// ----- Actions -----
+
+	private void createNewNote(){
+		if(noteHandler == null){
+			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		Set<String> before = new HashSet<>(noteIds);
+		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
+		dialog.setVisible(true);
+		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id) && !noteIds.contains(id)){
+				noteIds.add(id);
+				String display = getNoteDisplayName(id);
+				noteDisplayMap.put(id, display);
+				noteListModel.addElement(display);
+				break;
+			}
+		}
+	}
+
+	private void addExistingNote(){
+		if(noteHandler == null){
+			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			getParentFrame(), model, noteHandler, selectedId -> {
+			if(selectedId != null && !noteIds.contains(selectedId)){
+				noteIds.add(selectedId);
+				String display = getNoteDisplayName(selectedId);
+				noteDisplayMap.put(selectedId, display);
+				noteListModel.addElement(display);
+			}
+		});
+		dialog.setVisible(true);
+	}
+
+	private void editNote(){
+		int idx = noteList.getSelectedIndex();
+		if(idx == -1) return;
+		String id = noteIds.get(idx);
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec == null) return;
+		if(noteHandler == null){
+			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+		dialog.setVisible(true);
+		String newDisplay = getNoteDisplayName(id);
+		noteDisplayMap.put(id, newDisplay);
+		noteListModel.set(idx, newDisplay);
+	}
+
+	private void deleteNote(){
+		int idx = noteList.getSelectedIndex();
+		if(idx == -1) return;
+		if(JOptionPane.showConfirmDialog(this, "Remove this note?", "Confirm",
+			JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
+		String removedId = noteIds.remove(idx);
+		noteDisplayMap.remove(removedId);
+		noteListModel.remove(idx);
+	}
+
+	private void save(){
+		// Remove all existing NOTE children from the owner record
+		List<FLEFRecord> toRemove = new ArrayList<>();
+		for(FLEFRecord child : ownerRecord.getChildren()){
+			if("NOTE".equals(child.getTag())){
+				toRemove.add(child);
+			}
+		}
+		toRemove.forEach(ownerRecord::removeChild);
+
+		// Add the current note list as new children
+		for(String id : noteIds){
+			FLEFRecord noteChild = new FLEFRecord();
+			noteChild.setLevel(2);
+			noteChild.setTag("NOTE");
+			noteChild.setValue(id);
+			ownerRecord.addChild(noteChild);
+		}
+	}
+
+	private Frame getParentFrame(){
+		Container parent = getParent();
+		while(parent != null && !(parent instanceof Frame)){
+			parent = parent.getParent();
+		}
+		return (Frame)parent;
+	}
+
+	/**
+	 * Returns {@code true} if the user pressed OK and the changes were saved.
+	 */
+	public boolean isSaved(){
+		return saved;
+	}
+
+}

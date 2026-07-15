@@ -197,7 +197,7 @@ n @<XREF:INDIVIDUAL_EVENT>@ INDIVIDUAL_EVENT    {1:1}
   +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_STRUCTURE object giving details of the event. */
   +1 TWIN @<XREF:INDIVIDUAL>@    {0:M}	/* An xref ID of an individual record(s) that are twins. */
 |
-n @<XREF:INDIVIDUAL_EVENT>@ INDIVIDUAL_EVENT    {1:1}	/* ADOPTION represents the historical event through which an adoptive relationship may have been established. The resulting parent-child relationship is represented by one or more RELATIONSHIP_RECORD objects of type 'adoptive_child'. The event and the relationship are distinct concepts: the event documents that an adoption occurred, while the relationship documents the resulting genealogical association.*/
+n @<XREF:INDIVIDUAL_EVENT>@ INDIVIDUAL_EVENT    {1:1}	/* ADOPTION represents the historical event through which an adoptive relationship may have been established. The resulting parent-child relationship is represented by one or more RELATIONSHIP_RECORD objects of type 'adoptive_child'. The event and the relationship are distinct concepts: the event documents that an adoption occurred, while the relationship documents the resulting genealogical association.*/
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {1:1}	/* An xref ID of an individual record affected by this event. */
   +1 TYPE ADOPTION    {1:1}
   +1 <<EVENT_STRUCTURE>>    {0:1}	/* A EVENT_STRUCTURE object giving details of the event. */

@@ -255,10 +255,7 @@ public class FamilyEventDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("EVENT");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "EVENT");
 	}
 
 	@Override

@@ -135,10 +135,7 @@ public final class FLEFRecordUtils{
 		if(existing != null)
 			existing.setValue(value);
 		else{
-			final FLEFRecord newChild = new FLEFRecord();
-			newChild.setLevel(1);
-			newChild.setTag(tag);
-			newChild.setValue(value);
+			final FLEFRecord newChild = FLEFRecord.createChildWithValue(1, tag, value);
 			parent.addChild(newChild);
 		}
 	}
@@ -155,10 +152,7 @@ public final class FLEFRecordUtils{
 		if(parent == null || value == null || value.isEmpty())
 			return;
 
-		final FLEFRecord child = new FLEFRecord();
-		child.setLevel(level);
-		child.setTag(tag);
-		child.setValue(value);
+		final FLEFRecord child = FLEFRecord.createChildWithValue(level, tag, value);
 		parent.addChild(child);
 	}
 
@@ -176,10 +170,7 @@ public final class FLEFRecordUtils{
 		for(final String val : values.split(",")){
 			final String trimmed = val.trim();
 			if(!trimmed.isEmpty()){
-				final FLEFRecord child = new FLEFRecord();
-				child.setLevel(1);
-				child.setTag(tag);
-				child.setValue(trimmed);
+				final FLEFRecord child = FLEFRecord.createChildWithValue(1, tag, trimmed);
 				parent.addChild(child);
 			}
 		}

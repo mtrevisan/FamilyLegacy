@@ -780,10 +780,7 @@ public class DNAMatchDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("DNA_MATCH");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "DNA_MATCH");
 	}
 
 	@Override
@@ -811,9 +808,7 @@ public class DNAMatchDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi un individuo di esempio
-		FLEFRecord ind = new FLEFRecord();
-		ind.setId("I1");
-		ind.setType("INDIVIDUAL");
+		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");

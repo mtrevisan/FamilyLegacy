@@ -249,9 +249,7 @@ public final class FLEFFile{
 		final String id = parts[1].substring(1, parts[1].length() - 1); // rimuove @
 		final String type = parts[2];
 
-		final FLEFRecord record = new FLEFRecord();
-		record.setId(id);
-		record.setType(type);
+		final FLEFRecord record = FLEFRecord.createMainRecord(id, type);
 
 		int index = startIndex + 1;
 		while(index < lines.size()){
@@ -279,10 +277,7 @@ public final class FLEFFile{
 		final String tag = parts[1];
 		final String value = (parts.length > 2)? parts[2]: null;
 
-		final FLEFRecord child = new FLEFRecord();
-		child.setLevel(level);
-		child.setTag(tag);
-		child.setValue(value);
+		final FLEFRecord child = FLEFRecord.createChildWithValue(level, tag, value);
 
 		// We don't handle children of children recursively for simplicity.
 		// In a real implementation, we would parse recursively.
@@ -443,79 +438,48 @@ public final class FLEFFile{
 		final FLEFRecord header = new FLEFRecord();
 		header.setType("HEADER");
 
-		final FLEFRecord protocol = new FLEFRecord();
-		protocol.setLevel(1);
-		protocol.setTag("PROTOCOL");
-		protocol.setValue("FLEF");
+		final FLEFRecord protocol = FLEFRecord.createChildWithValue(1, "PROTOCOL", "FLEF");
 		header.addChild(protocol);
 
-		final FLEFRecord version = new FLEFRecord();
-		version.setLevel(2);
-		version.setTag("VERSION");
-		version.setValue("0.0.9");
+		final FLEFRecord version = FLEFRecord.createChildWithValue(2, "VERSION", "0.1.0");
 		protocol.addChild(version);
 
-		final FLEFRecord source = new FLEFRecord();
-		source.setLevel(1);
-		source.setTag("SOURCE");
-		source.setValue("MyApp");
+		final FLEFRecord source = FLEFRecord.createChildWithValue(1, "SOURCE", "MyApp");
 		header.addChild(source);
 
-		final FLEFRecord date = new FLEFRecord();
-		date.setLevel(1);
-		date.setTag("DATE");
-		date.setValue("2026-07-10");
+		final FLEFRecord date = FLEFRecord.createChildWithValue(1, "DATE", "2026-07-10");
 		header.addChild(date);
 
 		return header;
 	}
 
 	private static FLEFRecord createTestIndividual(){
-		final FLEFRecord individual = new FLEFRecord();
-		individual.setId("I1");
-		individual.setType("INDIVIDUAL");
+		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 
 		final FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");
 		individual.addChild(name);
 
-		final FLEFRecord givenName = new FLEFRecord();
-		givenName.setLevel(2);
-		givenName.setTag("INDIVIDUAL_NAME");
-		givenName.setValue("Mario");
+		final FLEFRecord givenName = FLEFRecord.createChildWithValue(2, "INDIVIDUAL_NAME", "Mario");
 		name.addChild(givenName);
 
-		final FLEFRecord familyName = new FLEFRecord();
-		familyName.setLevel(2);
-		familyName.setTag("FAMILY_NAME");
-		familyName.setValue("Rossi");
+		final FLEFRecord familyName = FLEFRecord.createChildWithValue(2, "FAMILY_NAME", "Rossi");
 		name.addChild(familyName);
 
-		final FLEFRecord sex = new FLEFRecord();
-		sex.setLevel(1);
-		sex.setTag("SEX");
-		sex.setValue("MALE");
+		final FLEFRecord sex = FLEFRecord.createChildWithValue(1, "SEX", "MALE");
 		individual.addChild(sex);
 
 		return individual;
 	}
 
 	private static FLEFRecord createTestPlace(){
-		final FLEFRecord place = new FLEFRecord();
-		place.setId("P1");
-		place.setType("PLACE");
+		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
 
-		final FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
-		name.setTag("NAME");
-		name.setValue("Rome");
+		final FLEFRecord name = FLEFRecord.createChildWithValue(1, "NAME", "Rome");
 		place.addChild(name);
 
-		final FLEFRecord address = new FLEFRecord();
-		address.setLevel(1);
-		address.setTag("ADDRESS");
-		address.setValue("Piazza Venezia");
+		final FLEFRecord address = FLEFRecord.createChildWithValue(1, "ADDRESS", "Piazza Venezia");
 		place.addChild(address);
 
 		final FLEFRecord map = new FLEFRecord();
@@ -523,16 +487,10 @@ public final class FLEFFile{
 		map.setTag("MAP");
 		place.addChild(map);
 
-		final FLEFRecord latitude = new FLEFRecord();
-		latitude.setLevel(2);
-		latitude.setTag("LATITUDE");
-		latitude.setValue("41.9028");
+		final FLEFRecord latitude = FLEFRecord.createChildWithValue(2, "LATITUDE", "41.9028");
 		map.addChild(latitude);
 
-		final FLEFRecord longitude = new FLEFRecord();
-		longitude.setLevel(2);
-		longitude.setTag("LONGITUDE");
-		longitude.setValue("12.4964");
+		final FLEFRecord longitude = FLEFRecord.createChildWithValue(2, "LONGITUDE", "12.4964");
 		map.addChild(longitude);
 
 		return place;

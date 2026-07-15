@@ -743,10 +743,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("REPOSITORY");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "REPOSITORY");
 	}
 
 	@Override
@@ -774,9 +771,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi un individuo di esempio
-		FLEFRecord ind = new FLEFRecord();
-		ind.setId("I1");
-		ind.setType("INDIVIDUAL");
+		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");
@@ -794,9 +789,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 		model.addRecord(ind);
 
 		// Aggiungi un place di esempio
-		FLEFRecord place = new FLEFRecord();
-		place.setId("P1");
-		place.setType("PLACE");
+		FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
 		FLEFRecord placeName = new FLEFRecord();
 		placeName.setLevel(1);
 		placeName.setTag("NAME");

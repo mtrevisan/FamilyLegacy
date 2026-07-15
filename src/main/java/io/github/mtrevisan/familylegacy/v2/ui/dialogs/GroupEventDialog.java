@@ -403,9 +403,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("EVENT");
-		newRecord.setId(generateNewId());
+		FLEFRecord newRecord = FLEFRecord.createMainRecord(generateNewId(), "EVENT");
 		return newRecord;
 	}
 
@@ -434,9 +432,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi un evento di esempio per il TYPE
-		FLEFRecord eventType = new FLEFRecord();
-		eventType.setId("E1");
-		eventType.setType("EVENT");
+		FLEFRecord eventType = FLEFRecord.createMainRecord("E1", "EVENT");
 		FLEFRecord type = new FLEFRecord();
 		type.setLevel(1);
 		type.setTag("TYPE");
@@ -445,9 +441,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		model.addRecord(eventType);
 
 		// Aggiungi un gruppo di esempio
-		FLEFRecord group = new FLEFRecord();
-		group.setId("G1");
-		group.setType("GROUP");
+		FLEFRecord group = FLEFRecord.createMainRecord("G1", "GROUP");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");

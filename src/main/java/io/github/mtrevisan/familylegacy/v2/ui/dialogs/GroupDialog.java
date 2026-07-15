@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -53,31 +52,18 @@ import java.util.Map;
 import java.util.Set;
 
 
-//TODO
 /**
- * Dialog for editing a GROUP_RECORD according to FLEF 0.1.0.
+ * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.0.
  * <p>
- * Structure (relevant parts):
- * <pre>
- * GROUP_RECORD :=
- * n @<XREF:GROUP>@ GROUP    {1:1}
- *   +1 NAME <GROUP_NAME>    {1:1}
- *   +1 TYPE <TYPE_DESCRIPTION>    {0:1}
- *   +1 EVENT @<XREF:EVENT>@    {0:M}
- *   +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *     +2 ROLE <ROLE_IN_EVENT>    {0:1}
- *   +1 PREFERRED_IMAGE @<XREF:SOURCE>@    {0:1}
- *     +2 CROP <CROP_COORDINATES>    {0:1}
- *   +1 RESTRICTION <confidential>    {0:1}
- *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
- * </pre>
+ * The group record represents an aggregation of genealogical entities (family, household,
+ * club, neighbourhood, etc.). Membership is expressed via {@code RELATIONSHIP_RECORD}
+ * objects that link the group to individuals (or other entities) with a specific
+ * {@code TYPE} and optionally a {@code ROLE}.
  * <p>
- * A family is represented as a GROUP_RECORD with TYPE = "family".
- * Members are represented as RELATIONSHIP entities with a ROLE
- * (e.g., "parent1", "parent2", "child", "member", "president", etc.).
+ * The group itself has one or more names (via {@code NAME_STRUCTURE}), a type, and
+ * various other properties (preferred image, restrictions, conclusions, etc.).
+ *
+ * @see <a href="https://github.com/your-repo/flef">FLEF Specification 0.1.0</a>
  */
 public class GroupDialog extends BaseRecordDialog{
 
@@ -86,7 +72,6 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// Handlers
 	private final IndividualHandler individualHandler = new IndividualHandler();
-	private final GroupHandler groupHandler = new GroupHandler();
 	private final RelationshipHandler relationshipHandler = new RelationshipHandler();
 	private final EventHandler eventHandler = new EventHandler();
 	private final NoteHandler noteHandler = new NoteHandler();
@@ -103,20 +88,20 @@ public class GroupDialog extends BaseRecordDialog{
 	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "family", "neighborhood", "club", "research group", "household"});
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// Members (unified list)
+	// Members (relationships that link the group to individuals)
 	private final DefaultListModel<String> memberListModel = new DefaultListModel<>();
 	private final JList<String> memberList = new JList<>(memberListModel);
-	private final List<MemberEntry> memberEntries = new ArrayList<>();
+	private final List<FLEFRecord> memberRelationshipRecords = new ArrayList<>();
 
 	// Events
 	private final DefaultListModel<String> eventListModel = new DefaultListModel<>();
 	private final JList<String> eventList = new JList<>(eventListModel);
 	private final List<String> eventIds = new ArrayList<>();
 
-	// Relationships
+	// All other relationships (non‑member)
 	private final DefaultListModel<String> relationshipListModel = new DefaultListModel<>();
 	private final JList<String> relationshipList = new JList<>(relationshipListModel);
-	private final List<FLEFRecord> relationshipRecords = new ArrayList<>();
+	private final List<FLEFRecord> otherRelationshipRecords = new ArrayList<>();
 
 	// Cultural Norms
 	private final DefaultListModel<String> culturalNormListModel = new DefaultListModel<>();
@@ -140,45 +125,6 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
-
-	// ----- Inner class for member entries -----
-	private static class MemberEntry{
-		String relationshipId;
-		String individualId;
-		String relationshipType;
-		String role;
-		List<String> noteIds;
-
-		MemberEntry(final MemberEntry entry, final List<String> noteIds){
-			this(entry.relationshipId, entry.individualId, entry.relationshipType, entry.role, noteIds);
-		}
-
-		MemberEntry(final String relationshipId, final String individualId, final String relationshipType,
-				final String role){
-			this(relationshipId, individualId, relationshipType, role, null);
-		}
-
-		MemberEntry(final String relationshipId, final String individualId, final String relationshipType,
-				final String role, final List<String> noteIds){
-			this.relationshipId = relationshipId;
-			this.individualId = individualId;
-			this.relationshipType = relationshipType;
-			this.role = role != null? role: "";
-			this.noteIds = noteIds != null? noteIds: new ArrayList<>();
-		}
-
-		@Override
-		public String toString(){
-			StringBuilder sb = new StringBuilder(individualId);
-			if(!role.isEmpty()){
-				sb.append(" [").append(role).append("]");
-			}
-			if(!noteIds.isEmpty()){
-				sb.append(" (").append(noteIds.size()).append(" notes)");
-			}
-			return sb.toString();
-		}
-	}
 
 	// ----- Factory methods -----
 	public static GroupDialog createNew(Frame parent, FLEFModel model){
@@ -208,7 +154,7 @@ public class GroupDialog extends BaseRecordDialog{
 			: "Edit Group - " + record.getId());
 	}
 
-	// ----- Initialization -----
+	// ----- Initialisation -----
 	@Override
 	protected void initComponents(){
 		modificationPanel = new ModificationPanel(model, this);
@@ -261,7 +207,7 @@ public class GroupDialog extends BaseRecordDialog{
 		});
 		panel.add(preferredImageButton, "growx, align center");
 
-		// Name (obligatory)
+		// Name (obligatory) – for now we keep a single name; the model supports multiple names.
 		JPanel namePanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
 		namePanel.add(new JLabel("Name:"), "align label");
 		namePanel.add(nameField, "growx");
@@ -283,46 +229,69 @@ public class GroupDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ----- Members panel -----
+	// ----- Members panel (relationships that link the group to individuals) -----
 	private JPanel createMembersPanel(){
 		JPanel panel = new JPanel(new MigLayout("fillx"));
 		panel.setBorder(new TitledBorder("Members"));
 		memberList.setVisibleRowCount(4);
 		memberList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+		// Build a custom popup menu using the builder.
+		// We define: Create New, Add Existing, Edit Relationship, Delete, and Notes.
+		// All selection‑sensitive items are enabled only when a member is selected.
 		GUIHelper.installBehaviour(memberList,
-			() -> (memberList.getSelectedIndex() >= 0),
-			this::createNewMember,                    // double‑click action
-			this::addMember,                         // INSERT key
-			this::deleteMember,                            // DELETE key
+			() -> memberList.getSelectedIndex() >= 0,           // hasSelection
+			this::editMemberRelationship,                       // double‑click → edit relationship
+			this::createNewMember,                              // INSERT key → create new member
+			this::deleteMember,                                 // DELETE key → delete member
 			builder -> {
 				builder.item("Create New...", this::createNewMember);
 				builder.item("Add Existing...", this::addMember);
-				builder.selectionSensitiveItem("Edit Individual...", this::editMember);
-				builder.selectionSensitiveItem("Edit Role...", this::editMemberRole);
-				builder.selectionSensitiveItem("Delete", this::deleteMember);
-
 				builder.separator();
-
-				// Notes (selection‑sensitive)
+				builder.selectionSensitiveItem("Edit Relationship...", this::editMemberRelationship);
+				builder.selectionSensitiveItem("Edit Individual...", this::editMemberIndividual);
+				builder.selectionSensitiveItem("Delete", this::deleteMember);
+				builder.separator();
 				builder.selectionSensitiveItem("Notes...", () -> {
 					int idx = memberList.getSelectedIndex();
 					if(idx != -1){
-						MemberEntry existing = memberEntries.get(idx);
-						MemberEntry updated = showMemberNotesDialog(existing);
-						if(updated != null){
-							memberEntries.set(idx, updated);
-							memberListModel.set(idx, updated.toString());
-						}
+						FLEFRecord relationship = memberRelationshipRecords.get(idx);
+						showRelationshipNotesDialog(relationship);
 					}
 				});
 			});
 
 		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(memberList,
 			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(memberList.getPreferredScrollableViewportSize());
+		// Ensure minimum height to show 4 rows even when empty
+		FontMetrics fm = memberList.getFontMetrics(memberList.getFont());
+		int rowHeight = fm.getHeight() + 2;
+		scrollPane.setPreferredSize(new Dimension(0, 4 * rowHeight + 10));
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
+	}
+
+	/**
+	 * Shows a dialog to manage notes attached to a relationship record.
+	 * This dialog allows the user to add, remove, create, and edit notes
+	 * that are directly attached as children of the relationship record.
+	 */
+	private void showRelationshipNotesDialog(FLEFRecord relationship){
+		if(relationship == null) return;
+		NoteListEditorDialog dialog = new NoteListEditorDialog(this, model, relationship);
+		dialog.setVisible(true);
+		if(dialog.isSaved()){
+			// Refresh the display in the members list (if the relationship is in the members list)
+			int idx = memberRelationshipRecords.indexOf(relationship);
+			if(idx != -1){
+				memberListModel.set(idx, getRelationshipDisplay(relationship));
+			}
+			// Also update the relationship list in the References tab
+			int otherIdx = otherRelationshipRecords.indexOf(relationship);
+			if(otherIdx != -1){
+				relationshipListModel.set(otherIdx, getRelationshipDisplay(relationship));
+			}
+		}
 	}
 
 	// ==================== References Panel ====================
@@ -335,7 +304,7 @@ public class GroupDialog extends BaseRecordDialog{
 				this::addEvent, this::editEvent, this::deleteEvent),
 			"growx");
 
-		panel.add(createListPanel("Relationships",
+		panel.add(createListPanel("Relationships (all)",
 				relationshipList, relationshipListModel,
 				this::addRelationship, this::editRelationship, this::deleteRelationship),
 			"growx");
@@ -377,7 +346,9 @@ public class GroupDialog extends BaseRecordDialog{
 
 		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
 			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		FontMetrics fm = list.getFontMetrics(list.getFont());
+		int rowHeight = fm.getHeight() + 2;
+		scrollPane.setPreferredSize(new Dimension(0, 4 * rowHeight + 10));
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
@@ -616,25 +587,64 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Member methods ====================
+	// ==================== Member methods (relationships) ====================
+
+	/**
+	 * Adds an existing relationship record to the members list.
+	 * Opens the RelationshipDialog with a new relationship pre‑configured to link
+	 * this group to a selected individual.
+	 */
 	private void addMember(){
-		if(individualHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+		if(relationshipHandler == null || individualHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+		// First select an individual
+		final String[] selectedIndividualId = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, individualHandler, selectedId -> {
-			if(selectedId != null){
-				String role = askRole(null);
-				if(role != null){
-					memberEntries.add(new MemberEntry(null, selectedId, null, role));
-					memberListModel.addElement(memberEntries.getLast().toString());
+			getParentFrame(), model, individualHandler, id -> selectedIndividualId[0] = id);
+		dialog.setVisible(true);
+		String individualId = selectedIndividualId[0];
+		if(individualId == null) return;
+
+		// Open RelationshipDialog with pre-filled subject (this group) and object (selected individual)
+		RelationshipDialog relDialog = new RelationshipDialog(
+			getParentFrame(), model, null, getGroupId(), individualId);
+		relDialog.setVisible(true);
+		if(relDialog.isSaved()){
+			FLEFRecord saved = relDialog.getCitationRecord();
+			if(saved != null){
+				saved.setLevel(1);
+				saved.setTag("RELATIONSHIP");
+				otherRelationshipRecords.add(saved);
+				relationshipListModel.addElement(getRelationshipDisplay(saved));
+				if(isMemberRelationship(saved)){
+					memberRelationshipRecords.add(saved);
+					memberListModel.addElement(getRelationshipDisplay(saved));
 				}
 			}
-		});
-		dialog.setVisible(true);
+		}
 	}
 
+	private FLEFRecord getFlefRecord(String individualId){
+		// Create a relationship template
+		FLEFRecord template = new FLEFRecord();
+		template.setTag("RELATIONSHIP");
+		// SUBJECT = this group
+		FLEFRecord subject = FLEFRecord.createChildWithValue(2, "SUBJECT", getGroupId());
+		template.addChild(subject);
+		// OBJECT = selected individual
+		FLEFRecord object = FLEFRecord.createChildWithValue(2, "OBJECT", individualId);
+		template.addChild(object);
+		// Add a default TYPE
+		FLEFRecord type = FLEFRecord.createChildWithValue(2, "TYPE", "group_member");
+		template.addChild(type);
+		return template;
+	}
+
+	/**
+	 * Creates a new individual and then a new relationship linking that individual to this group.
+	 */
 	private void createNewMember(){
 		if(individualHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -647,122 +657,131 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 		JDialog dialog = individualHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
+		String newIndividualId = null;
 		for(FLEFRecord rec : model.getRecordsByType("INDIVIDUAL")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id)){
-				String role = askRole(null);
-				if(role != null){
-					memberEntries.add(new MemberEntry(null, id, null, role));
-					memberListModel.addElement(memberEntries.getLast().toString());
+				newIndividualId = id;
+				break;
+			}
+		}
+		if(newIndividualId != null){
+			// Open RelationshipDialog with pre-filled subject (this group) and object (new individual)
+			RelationshipDialog relDialog = new RelationshipDialog(
+				getParentFrame(), model, null, getGroupId(), newIndividualId);
+			relDialog.setVisible(true);
+			if(relDialog.isSaved()){
+				FLEFRecord saved = relDialog.getCitationRecord();
+				if(saved != null){
+					saved.setLevel(1);
+					saved.setTag("RELATIONSHIP");
+					otherRelationshipRecords.add(saved);
+					relationshipListModel.addElement(getRelationshipDisplay(saved));
+					if(isMemberRelationship(saved)){
+						memberRelationshipRecords.add(saved);
+						memberListModel.addElement(getRelationshipDisplay(saved));
+					}
 				}
-				return;
 			}
 		}
 	}
 
-	private void editMember(){
-		if(individualHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		int idx = memberList.getSelectedIndex();
-		String individualId = memberEntries.get(idx)
-			.individualId;
-		FLEFRecord rec = model.getRecordById(individualId);
-		JDialog dialog = individualHandler.createEditDialog(getParentFrame(), model, rec);
-		dialog.setVisible(true);
-
-		String newDisplay = individualHandler.getDisplayName(rec);
-		noteDisplayMap.put(individualId, newDisplay);
-		noteListModel.set(idx, newDisplay);
+	/**
+	 * Factory method to create a RELATIONSHIP record linking this group to an individual.
+	 * The group is the SUBJECT, the individual is the OBJECT, and the TYPE is "group_member".
+	 * The user can change the type/role later via the edit dialog.
+	 */
+	private FLEFRecord createMemberRelationship(String individualId){
+		if(individualId == null) return null;
+		FLEFRecord rel = getFlefRecord(individualId);
+		// ROLE (optional default)
+		FLEFRecord role = FLEFRecord.createChildWithValue(2, "ROLE", "member");
+		rel.addChild(role);
+		// Minimal MODIFICATION_STRUCTURE (will be added by the handler later if missing)
+		return rel;
 	}
 
-	private void editMemberRole(){
+	/**
+	 * Edits the selected member relationship.
+	 */
+	private void editMemberRelationship(){
 		int idx = memberList.getSelectedIndex();
 		if(idx == -1) return;
-		MemberEntry existing = memberEntries.get(idx);
-		// Edit role only (could also allow changing the individual, but keep it simple)
-		String newRole = askRole(existing.role);
-		if(newRole != null){
-			existing.role = newRole;
-			memberListModel.set(idx, existing.toString());
+		FLEFRecord existing = memberRelationshipRecords.get(idx);
+		if(relationshipHandler == null) return;
+		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, existing);
+		dialog.setVisible(true);
+		if(dialog.isSaved()){
+			FLEFRecord updated = dialog.getCitationRecord();
+			if(updated != null){
+				memberRelationshipRecords.set(idx, updated);
+				memberListModel.set(idx, getRelationshipDisplay(updated));
+				// Also update in otherRelationshipRecords
+				int otherIdx = otherRelationshipRecords.indexOf(existing);
+				if(otherIdx != -1){
+					otherRelationshipRecords.set(otherIdx, updated);
+					relationshipListModel.set(otherIdx, getRelationshipDisplay(updated));
+				}
+			}
 		}
 	}
 
+	/**
+	 * Opens the edit dialog for the individual associated with the selected member relationship.
+	 */
+	private void editMemberIndividual(){
+		int idx = memberList.getSelectedIndex();
+		if(idx == -1)
+			return;
+		FLEFRecord relationship = memberRelationshipRecords.get(idx);
+		if(relationship == null)
+			return;
+
+		// Get the OBJECT child (which is the individual)
+		FLEFRecord objectChild = relationship.findChild("OBJECT");
+		if(objectChild == null){
+			JOptionPane.showMessageDialog(this, "No OBJECT found in this relationship.", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		String individualId = objectChild.getValue();
+		if(individualId == null)
+			return;
+
+		FLEFRecord individual = model.getRecordById(individualId);
+		if(individual == null){
+			JOptionPane.showMessageDialog(this, "Individual record not found: " + individualId, "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		if(individualHandler == null){
+			JOptionPane.showMessageDialog(this, "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		JDialog dialog = individualHandler.createEditDialog(getParentFrame(), model, individual);
+		dialog.setVisible(true);
+
+		// After editing, refresh the display for this relationship (name may have changed)
+		memberListModel.set(idx, getRelationshipDisplay(relationship));
+		// Also update in the "Relationships (all)" list if present
+		int otherIdx = otherRelationshipRecords.indexOf(relationship);
+		if(otherIdx != -1){
+			relationshipListModel.set(otherIdx, getRelationshipDisplay(relationship));
+		}
+	}
+
+	/**
+	 * Deletes the selected member relationship.
+	 */
 	private void deleteMember(){
 		int idx = memberList.getSelectedIndex();
 		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this member?")) return;
-		memberEntries.remove(idx);
+		if(!showConfirm("Confirm", "Remove this member relationship?")) return;
+		FLEFRecord removed = memberRelationshipRecords.remove(idx);
 		memberListModel.remove(idx);
-	}
-
-	private MemberEntry showMemberNotesDialog(MemberEntry entry){
-		JDialog dialog = new JDialog(this, "Member Notes", true);
-		dialog.setLayout(new MigLayout("fillx"));
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		panel.add(new JLabel("Member:"), "align label");
-		panel.add(new JLabel(entry.individualId + " [" + entry.role + "]"), "growx,wrap");
-
-		DefaultListModel<String> noteModel = new DefaultListModel<>();
-		JList<String> noteList = new JList<>(noteModel);
-		List<String> noteIds = new ArrayList<>(entry.noteIds);
-		Map<String, String> displayMap = new HashMap<>();
-		for(String id : noteIds){
-			displayMap.put(id, getNoteDisplayName(id));
-			noteModel.addElement(displayMap.get(id));
-		}
-
-		GUIHelper.installBehaviour(noteList,
-			() -> noteList.getSelectedIndex() >= 0,
-			() -> createNewNote(noteModel, noteIds, displayMap),
-			() -> addNoteToList(noteModel, noteIds, displayMap),
-			() -> editNoteFromList(noteList, noteModel, noteIds, displayMap),
-			() -> deleteNoteFromList(noteList, noteModel, noteIds, displayMap),
-			null);
-
-		JPanel notePanel = new JPanel(new MigLayout("fillx"));
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(noteList,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(noteList.getPreferredScrollableViewportSize());
-		notePanel.add(scrollPane, "growx,wrap");
-
-		panel.add(notePanel, "growx,wrap");
-		dialog.add(panel, BorderLayout.CENTER);
-
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okBtn = new JButton("OK");
-		JButton cancelBtn = new JButton("Cancel");
-		btnPanel.add(okBtn);
-		btnPanel.add(cancelBtn);
-		dialog.add(btnPanel, BorderLayout.SOUTH);
-
-		final MemberEntry[] result = {null};
-		okBtn.addActionListener(e -> {
-			result[0] = new MemberEntry(entry, new ArrayList<>(noteIds));
-			dialog.dispose();
-		});
-		cancelBtn.addActionListener(e -> dialog.dispose());
-
-		dialog.pack();
-		dialog.setLocationRelativeTo(this);
-		dialog.setVisible(true);
-
-		return result[0];
-	}
-
-	private String askRole(String initial){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
-		panel.add(new JLabel("Role:"), "align label");
-		JTextField roleField = new JTextField(initial != null? initial: "", 15);
-		panel.add(roleField, "growx");
-		int result = JOptionPane.showConfirmDialog(this, panel, "Enter role for member",
-			JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-		if(result == JOptionPane.OK_OPTION){
-			return roleField.getText().trim();
-		}
-		return null;
+		// Also remove from otherRelationshipRecords
+		otherRelationshipRecords.remove(removed);
+		relationshipListModel.removeElement(getRelationshipDisplay(removed));
 	}
 
 	// ==================== Note helper methods (shared) ====================
@@ -816,7 +835,7 @@ public class GroupDialog extends BaseRecordDialog{
 		listModel.remove(idx);
 	}
 
-	private void createNewNote(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
+	private void createNewNoteForList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -901,7 +920,7 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Relationship methods ====================
+	// ==================== Relationship methods (for the References tab) ====================
 	private void addRelationship(){
 		addRelationship(null);
 	}
@@ -911,43 +930,53 @@ public class GroupDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(getParentFrame(), "Relationship handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		FLEFRecord citationRecord;
-		if(preSelectedGroupId != null && !preSelectedGroupId.isEmpty()){
-			citationRecord = new FLEFRecord();
-			citationRecord.setValue(preSelectedGroupId);
-			citationRecord.setLevel(1);
-			citationRecord.setTag("RELATIONSHIP");
-		}
-		else{
-			citationRecord = null;
-		}
-		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, citationRecord);
+		FLEFRecord record = null;
+		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, record);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
-			FLEFRecord citation = dialog.getCitationRecord();
-			if(citation != null){
-				citation.setLevel(1);
-				citation.setTag("RELATIONSHIP");
-				relationshipRecords.add(citation);
-				relationshipListModel.addElement(getRelationshipDisplay(citation));
+			FLEFRecord saved = dialog.getCitationRecord();
+			if(saved != null){
+				saved.setLevel(1);
+				saved.setTag("RELATIONSHIP");
+				otherRelationshipRecords.add(saved);
+				relationshipListModel.addElement(getRelationshipDisplay(saved));
+				if(isMemberRelationship(saved)){
+					memberRelationshipRecords.add(saved);
+					memberListModel.addElement(getRelationshipDisplay(saved));
+				}
 				return true;
 			}
 		}
 		return false;
 	}
 
+	private boolean isMemberRelationship(FLEFRecord relationship){
+		String subjectId = FLEFRecordUtils.getChildValue(relationship, "SUBJECT");
+		String objectId = FLEFRecordUtils.getChildValue(relationship, "OBJECT");
+		String groupId = getGroupId();
+		if(groupId == null) return false;
+		boolean groupIsSubject = groupId.equals(subjectId);
+		boolean groupIsObject = groupId.equals(objectId);
+		if(!groupIsSubject && !groupIsObject) return false;
+		String otherId = groupIsSubject? objectId: subjectId;
+		if(otherId == null) return false;
+		FLEFRecord other = model.getRecordById(otherId);
+		return other != null && "INDIVIDUAL".equals(other.getType());
+	}
+
 	private void editRelationship(){
 		if(relationshipHandler == null) return;
 		int idx = relationshipList.getSelectedIndex();
 		if(idx == -1) return;
-		FLEFRecord existing = relationshipRecords.get(idx);
+		FLEFRecord existing = otherRelationshipRecords.get(idx);
 		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, existing);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
 			if(updated != null){
-				relationshipRecords.set(idx, updated);
+				otherRelationshipRecords.set(idx, updated);
 				relationshipListModel.set(idx, getRelationshipDisplay(updated));
+				refreshMemberList();
 			}
 		}
 	}
@@ -956,25 +985,28 @@ public class GroupDialog extends BaseRecordDialog{
 		int idx = relationshipList.getSelectedIndex();
 		if(idx == -1) return;
 		if(!showConfirm("Confirm", "Remove this relationship?")) return;
-		relationshipRecords.remove(idx);
+		otherRelationshipRecords.remove(idx);
 		relationshipListModel.remove(idx);
+		refreshMemberList();
 	}
 
-	private String getRelationshipDisplay(FLEFRecord citation){
-		String groupId = citation.getValue();
-		String role = FLEFRecordUtils.getChildValue(citation, "ROLE");
+	private String getRelationshipDisplay(FLEFRecord relationship){
+//		String subjectId = FLEFRecordUtils.getChildValue(relationship, "SUBJECT");
+		String objectId = FLEFRecordUtils.getChildValue(relationship, "OBJECT");
+//		String type = FLEFRecordUtils.getChildValue(relationship, "TYPE");
+		String role = FLEFRecordUtils.getChildValue(relationship, "ROLE");
 		StringBuilder display = new StringBuilder();
-		if(groupId != null){
-			FLEFRecord rec = model.getRecordById(groupId);
-			if(rec != null && groupHandler != null){
-				display.append(groupHandler.getDisplayName(rec));
+		if(objectId != null){
+			FLEFRecord obj = model.getRecordById(objectId);
+			if(obj != null && individualHandler != null){
+				display.append(individualHandler.getDisplayName(obj));
 			}
 			else{
-				display.append(groupId);
+				display.append(objectId);
 			}
 		}
 		else{
-			display.append("[empty]");
+			display.append("?");
 		}
 		if(role != null && !role.isEmpty()){
 			display.append(" [").append(role).append("]");
@@ -983,28 +1015,37 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	private void createNewRelationship(){
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+		if(relationshipHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Relationship handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		Set<String> before = new HashSet<>();
-		for(FLEFRecord rec : model.getRecordsByType("GROUP")){
-			String id = rec.getId();
-			if(id != null) before.add(id);
-		}
-		JDialog dialog = groupHandler.createNewDialog(getParentFrame(), model);
+		RelationshipDialog dialog = relationshipHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
-		for(FLEFRecord rec : model.getRecordsByType("GROUP")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id)){
-				boolean saved = addRelationship(id);
-				if(!saved){
-					model.removeRecord(id);
-					JOptionPane.showMessageDialog(getParentFrame(),
-						"Relationship cancelled. The group record has been removed.",
-						"Info", JOptionPane.INFORMATION_MESSAGE);
+		if(dialog.isSaved()){
+			FLEFRecord saved = dialog.getCitationRecord();
+			if(saved != null){
+				saved.setLevel(1);
+				saved.setTag("RELATIONSHIP");
+				otherRelationshipRecords.add(saved);
+				relationshipListModel.addElement(getRelationshipDisplay(saved));
+				if(isMemberRelationship(saved)){
+					memberRelationshipRecords.add(saved);
+					memberListModel.addElement(getRelationshipDisplay(saved));
 				}
-				return;
+			}
+		}
+	}
+
+	/**
+	 * Refreshes the members list by scanning all relationships again.
+	 */
+	private void refreshMemberList(){
+		memberRelationshipRecords.clear();
+		memberListModel.clear();
+		for(FLEFRecord rel : otherRelationshipRecords){
+			if(isMemberRelationship(rel)){
+				memberRelationshipRecords.add(rel);
+				memberListModel.addElement(getRelationshipDisplay(rel));
 			}
 		}
 	}
@@ -1089,7 +1130,7 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	private void createNewNote(){
-		createNewNote(noteListModel, noteIds, noteDisplayMap);
+		createNewNoteForList(noteListModel, noteIds, noteDisplayMap);
 	}
 
 	// ==================== Source Citation methods ====================
@@ -1104,10 +1145,7 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 		FLEFRecord citationRecord;
 		if(preSelectedSourceId != null && !preSelectedSourceId.isEmpty()){
-			citationRecord = new FLEFRecord();
-			citationRecord.setValue(preSelectedSourceId);
-			citationRecord.setLevel(1);
-			citationRecord.setTag("SOURCE_CITATION");
+			citationRecord = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", preSelectedSourceId);
 		}
 		else{
 			citationRecord = null;
@@ -1198,9 +1236,15 @@ public class GroupDialog extends BaseRecordDialog{
 	protected void loadData(){
 		setTitle(buildTitle(model, record));
 
-		// Basic fields
-		String name = FLEFRecordUtils.getChildValue(record, "NAME");
-		nameField.setText(name != null? name: "");
+		// Basic fields: NAME_STRUCTURE -> first TEXT_VALUE
+		FLEFRecord nameStruct = FLEFRecordUtils.findChild(record, "NAME_STRUCTURE");
+		if(nameStruct != null){
+			String name = FLEFRecordUtils.getChildValue(nameStruct, "VALUE");
+			nameField.setText(name != null? name: "");
+		}
+		else{
+			nameField.setText("");
+		}
 
 		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
 		typeCombo.setSelectedItem(type != null? type: "");
@@ -1208,13 +1252,13 @@ public class GroupDialog extends BaseRecordDialog{
 		restrictionCheckBox.setSelected("confidential".equals(FLEFRecordUtils.getChildValue(record, "RESTRICTION")));
 
 		// Clear members
-		memberEntries.clear();
+		memberRelationshipRecords.clear();
 		memberListModel.clear();
 
 		// Reset other lists
 		eventIds.clear();
 		eventListModel.clear();
-		relationshipRecords.clear();
+		otherRelationshipRecords.clear();
 		relationshipListModel.clear();
 		culturalNormIds.clear();
 		culturalNormListModel.clear();
@@ -1229,23 +1273,11 @@ public class GroupDialog extends BaseRecordDialog{
 			String tag = child.getTag();
 
 			if("RELATIONSHIP".equals(tag)){
-				String role = FLEFRecordUtils.getChildValue(child, "ROLE");
-				String individualId = child.getValue();
-				if(individualId != null){
-					// Check if this is a member (references an INDIVIDUAL)
-					// We assume that any RELATIONSHIP with a value that points to an INDIVIDUAL
-					// is a member. Other RELATIONSHIP (pointing to other groups) are kept as "other memberships".
-					FLEFRecord target = model.getRecordById(individualId);
-					if(target != null && "INDIVIDUAL".equals(target.getType())){
-						List<String> notes = loadCitationNotesOnly(child);
-						memberEntries.add(new MemberEntry(null, individualId, null, role, notes));
-						memberListModel.addElement(memberEntries.getLast().toString());
-					}
-					else{
-						// Non-individual relationship – store as is
-						relationshipRecords.add(child);
-						relationshipListModel.addElement(getRelationshipDisplay(child));
-					}
+				otherRelationshipRecords.add(child);
+				relationshipListModel.addElement(getRelationshipDisplay(child));
+				if(isMemberRelationship(child)){
+					memberRelationshipRecords.add(child);
+					memberListModel.addElement(getRelationshipDisplay(child));
 				}
 			}
 			else if("EVENT".equals(tag) && child.getValue() != null){
@@ -1290,23 +1322,12 @@ public class GroupDialog extends BaseRecordDialog{
 		conclusionPanel.loadFromRecord(conclusion);
 	}
 
-	private List<String> loadCitationNotesOnly(FLEFRecord citationRecord){
-		List<String> notes = new ArrayList<>();
-		for(FLEFRecord child : citationRecord.getChildren()){
-			if("NOTE".equals(child.getTag()) && child.getValue() != null){
-				notes.add(child.getValue());
-			}
-		}
-		return notes;
-	}
-
 	// ==================== Validation ====================
 	@Override
 	protected boolean validateData(){
-		// NAME is obligatory
 		if(nameField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
-				"Group NAME is required.",
+				"Group must have at least one name.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -1328,10 +1349,16 @@ public class GroupDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		record.getChildren().clear();
 
-		// NAME (obligatory)
-		FLEFRecordUtils.updateChildValue(record, "NAME", nameField.getText().trim());
+		// NAME_STRUCTURE
+		String name = nameField.getText().trim();
+		if(!name.isEmpty()){
+			FLEFRecord nameStruct = FLEFRecord.createChild(1, "NAME_STRUCTURE");
+			FLEFRecord value = FLEFRecord.createChildWithValue(2, "VALUE", name);
+			nameStruct.addChild(value);
+			record.addChild(nameStruct);
+		}
 
-		// TYPE (optional)
+		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		if(type != null && !type.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "TYPE", type);
@@ -1341,17 +1368,21 @@ public class GroupDialog extends BaseRecordDialog{
 		FLEFRecordUtils.updateChildValue(record, "RESTRICTION",
 			restrictionCheckBox.isSelected()? "confidential": null);
 
-		// --- Members (RELATIONSHIP with roles) ---
-		for(MemberEntry entry : memberEntries){
-			FLEFRecord relationship = createRelationship(entry.individualId, entry.role, entry.noteIds);
-			record.addChild(relationship);
+		// --- Relationships (including members) ---
+		// Save all relationships from otherRelationshipRecords (which includes all)
+		for(FLEFRecord rel : otherRelationshipRecords){
+			rel.setLevel(1);
+			rel.setTag("RELATIONSHIP");
+			record.addChild(rel);
 		}
-
-		// --- Other relationships (non-individual) ---
-		for(FLEFRecord relationship : relationshipRecords){
-			relationship.setLevel(1);
-			relationship.setTag("RELATIONSHIP");
-			record.addChild(relationship);
+		// In case some relationships were added directly to memberRelationshipRecords but not to otherRelationshipRecords,
+		// add them as well.
+		for(FLEFRecord rel : memberRelationshipRecords){
+			if(!otherRelationshipRecords.contains(rel)){
+				rel.setLevel(1);
+				rel.setTag("RELATIONSHIP");
+				record.addChild(rel);
+			}
 		}
 
 		// --- Other elements ---
@@ -1375,10 +1406,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 		// Preferred Image
 		if(preferredImageId != null && !preferredImageId.isEmpty()){
-			FLEFRecord pref = new FLEFRecord();
-			pref.setLevel(1);
-			pref.setTag("PREFERRED_IMAGE");
-			pref.setValue(preferredImageId);
+			FLEFRecord pref = FLEFRecord.createChildWithValue(1, "PREFERRED_IMAGE", preferredImageId);
 			record.addChild(pref);
 			if(preferredImageCrop != null && !preferredImageCrop.isEmpty()){
 				FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
@@ -1404,27 +1432,19 @@ public class GroupDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	private FLEFRecord createRelationship(String individualId, String role, List<String> noteIds){
-		FLEFRecord relationship = new FLEFRecord();
-		relationship.setLevel(1);
-		relationship.setTag("RELATIONSHIP");
-		relationship.setValue(individualId);
-		if(role != null && !role.isEmpty()){
-			FLEFRecordUtils.updateChildValue(relationship, "ROLE", role);
-		}
-		for(String noteId : noteIds){
-			FLEFRecordUtils.addChild(relationship, "NOTE", 2, noteId);
-		}
-		return relationship;
+	// ==================== Utility methods ====================
+
+	/**
+	 * Returns the ID of the group being edited (or the new ID if it's a new group).
+	 */
+	private String getGroupId(){
+		return record != null? record.getId(): null;
 	}
 
 	// ==================== Overrides ====================
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType(GroupHandler.TYPE);
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), GroupHandler.TYPE);
 	}
 
 	@Override

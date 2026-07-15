@@ -501,10 +501,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("EVENT");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "EVENT");
 	}
 
 	@Override
@@ -532,15 +529,11 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi una famiglia di esempio
-		FLEFRecord family = new FLEFRecord();
-		family.setId("F1");
-		family.setType("FAMILY");
+		FLEFRecord family = FLEFRecord.createMainRecord("F1", "FAMILY");
 		model.addRecord(family);
 
 		// Aggiungi un individuo di esempio per i gemelli
-		FLEFRecord ind = new FLEFRecord();
-		ind.setId("I1");
-		ind.setType("INDIVIDUAL");
+		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");

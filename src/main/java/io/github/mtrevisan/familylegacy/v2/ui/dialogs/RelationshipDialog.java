@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
@@ -64,7 +65,6 @@ import java.util.Map;
 import java.util.Set;
 
 
-//TODO
 /**
  * Dialog for editing a RELATIONSHIP structure according to FLEF 0.1.0.
  * <p>
@@ -91,23 +91,34 @@ public class RelationshipDialog extends JDialog{
 	@Serial
 	private static final long serialVersionUID = 6392435736491575834L;
 
-
 	static{
 		HandlerRegistry.register(new GroupHandler());
+		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new NoteHandler());
 	}
 
 	private final FLEFModel model;
 	private final Frame parentFrame;
 	private final FLEFRecord existingCitation; // may be null for new
+	private final String prefilledSubjectId;
+	private final String prefilledObjectId;
 	private boolean saved = false;
 
-	// ========== GROUP field ==========
-	private final JTextField groupDisplayField = new JTextField(20);
-	private final JButton browseBtn = new JButton("Browse...");
-	private final JButton editBtn = new JButton("Edit");
-	private final JButton clearBtn = new JButton("Clear");
-	private String selectedGroupId;
+	// ========== SUBJECT & OBJECT fields ==========
+	private final JTextField subjectDisplayField = new JTextField(20);
+	private final JButton browseSubjectBtn = new JButton("Browse...");
+	private final JButton editSubjectBtn = new JButton("Edit");
+	private final JButton clearSubjectBtn = new JButton("Clear");
+	private String selectedSubjectId;
+
+	private final JTextField objectDisplayField = new JTextField(20);
+	private final JButton browseObjectBtn = new JButton("Browse...");
+	private final JButton editObjectBtn = new JButton("Edit");
+	private final JButton clearObjectBtn = new JButton("Clear");
+	private String selectedObjectId;
+
+	// ========== TYPE (1:1) ==========
+	private final JTextField typeField = new JTextField(15);
 
 	// ========== ROLE (0:1) ==========
 	private final JTextField roleField = new JTextField(15);
@@ -123,6 +134,7 @@ public class RelationshipDialog extends JDialog{
 
 	// ========== Handlers ==========
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
+	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
 	// ========== Buttons ==========
@@ -131,19 +143,55 @@ public class RelationshipDialog extends JDialog{
 
 
 	public RelationshipDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation){
-		super(parent, existingCitation == null? "Add Relationship": "Edit Relationship", true);
+		this(parent, model, existingCitation, null, null);
+	}
+
+	/**
+	 * Creates a new RelationshipDialog.
+	 *
+	 * @param parent             the parent frame
+	 * @param model              the FLEF model
+	 * @param existingCitation   an existing relationship record to edit, or null for a new one
+	 * @param prefilledSubjectId a subject ID to pre-fill (may be null)
+	 * @param prefilledObjectId  an object ID to pre-fill (may be null)
+	 */
+	public RelationshipDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation,
+			String prefilledSubjectId, String prefilledObjectId){
+		super(parent, (existingCitation == null? "Add Relationship": "Edit Relationship"), true);
+
 		this.model = model;
 		this.parentFrame = parent;
 		this.existingCitation = existingCitation;
+		this.prefilledSubjectId = prefilledSubjectId;
+		this.prefilledObjectId = prefilledObjectId;
+
 		initComponents();
 		if(existingCitation != null){
 			loadData();
 		}
+		else{
+			// Apply pre-filled IDs if provided
+			if(prefilledSubjectId != null){
+				selectSubject(prefilledSubjectId);
+				// Disable editing for subject if pre-filled
+				browseSubjectBtn.setEnabled(false);
+				clearSubjectBtn.setEnabled(false);
+				subjectDisplayField.setEditable(false);
+				subjectDisplayField.setBackground(UIManager.getColor("TextField.background"));
+			}
+			if(prefilledObjectId != null){
+				selectObject(prefilledObjectId);
+				// Disable editing for object if pre-filled
+				browseObjectBtn.setEnabled(false);
+				clearObjectBtn.setEnabled(false);
+				objectDisplayField.setEditable(false);
+				objectDisplayField.setBackground(UIManager.getColor("TextField.background"));
+			}
+		}
 		pack();
-		setMinimumSize(new Dimension(550, 500));
+		setMinimumSize(new Dimension(600, 550));
 		setLocationRelativeTo(parent);
 	}
-
 
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
@@ -151,32 +199,56 @@ public class RelationshipDialog extends JDialog{
 		JTabbedPane tabbedPane = new JTabbedPane();
 
 		// --- Basic tab ---
-		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
+		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// GROUP (1:1)
-		basicPanel.add(new JLabel("Group:"), "align label");
-		groupDisplayField.setEditable(false);
-		groupDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel groupPanel = new JPanel(new BorderLayout(5, 5));
-		groupPanel.add(groupDisplayField, BorderLayout.CENTER);
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-		btnPanel.add(browseBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(clearBtn);
-		groupPanel.add(btnPanel, BorderLayout.EAST);
-		basicPanel.add(groupPanel, "growx,wrap");
+		// SUBJECT (1:1)
+		basicPanel.add(new JLabel("Subject:"), "align label");
+		subjectDisplayField.setEditable(false);
+		subjectDisplayField.setBackground(UIManager.getColor("TextField.background"));
+		JPanel subjectPanel = new JPanel(new BorderLayout(5, 5));
+		subjectPanel.add(subjectDisplayField, BorderLayout.CENTER);
+		JPanel subjectBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+		subjectBtnPanel.add(browseSubjectBtn);
+		subjectBtnPanel.add(editSubjectBtn);
+		subjectBtnPanel.add(clearSubjectBtn);
+		subjectPanel.add(subjectBtnPanel, BorderLayout.EAST);
+		basicPanel.add(subjectPanel, "growx,wrap");
 
-		browseBtn.addActionListener(e -> browseGroup());
-		editBtn.addActionListener(e -> editGroup());
-		clearBtn.addActionListener(e -> {
-			selectedGroupId = null;
-			groupDisplayField.setText("");
-			editBtn.setEnabled(false);
+		browseSubjectBtn.addActionListener(e -> browseSubject());
+		editSubjectBtn.addActionListener(e -> editSubject());
+		clearSubjectBtn.addActionListener(e -> {
+			selectedSubjectId = null;
+			subjectDisplayField.setText("");
+			editSubjectBtn.setEnabled(false);
 		});
+		editSubjectBtn.setEnabled(false);
 
-		// Initially disable Edit (Edit is only enabled when a group is selected)
-		editBtn.setEnabled(false);
+		// OBJECT (1:1)
+		basicPanel.add(new JLabel("Object:"), "align label");
+		objectDisplayField.setEditable(false);
+		objectDisplayField.setBackground(UIManager.getColor("TextField.background"));
+		JPanel objectPanel = new JPanel(new BorderLayout(5, 5));
+		objectPanel.add(objectDisplayField, BorderLayout.CENTER);
+		JPanel objectBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+		objectBtnPanel.add(browseObjectBtn);
+		objectBtnPanel.add(editObjectBtn);
+		objectBtnPanel.add(clearObjectBtn);
+		objectPanel.add(objectBtnPanel, BorderLayout.EAST);
+		basicPanel.add(objectPanel, "growx,wrap");
+
+		browseObjectBtn.addActionListener(e -> browseObject());
+		editObjectBtn.addActionListener(e -> editObject());
+		clearObjectBtn.addActionListener(e -> {
+			selectedObjectId = null;
+			objectDisplayField.setText("");
+			editObjectBtn.setEnabled(false);
+		});
+		editObjectBtn.setEnabled(false);
+
+		// TYPE (1:1)
+		basicPanel.add(new JLabel("Type:"), "align label");
+		basicPanel.add(typeField, "growx,wrap");
 
 		// ROLE (0:1)
 		basicPanel.add(new JLabel("Role:"), "align label");
@@ -255,9 +327,20 @@ public class RelationshipDialog extends JDialog{
 		return panel;
 	}
 
-	// ==================== Group methods ====================
+	// ==================== Subject methods ====================
 
-	private void browseGroup(){
+	private void browseSubject(){
+		if(groupHandler == null && individualHandler == null){
+			JOptionPane.showMessageDialog(this, "No handler for Subject!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		// Use GroupHandler if the subject is expected to be a group; otherwise IndividualHandler.
+		// For now, we assume GroupHandler because we're editing a relationship with a group as subject.
+		// But we could allow both. For simplicity, we'll use the same handler as for the group field.
+		// Actually, we'll use a generic selection dialog that can handle both.
+		// We'll use a composite: first ask the user what type of entity, then open the appropriate handler.
+		// For now, we'll use a dialog that selects from all records? That's not ideal.
+		// We'll assume the subject is a group for now.
 		if(groupHandler == null){
 			JOptionPane.showMessageDialog(this, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -265,33 +348,76 @@ public class RelationshipDialog extends JDialog{
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, groupHandler, selectedId -> {
 			if(selectedId != null){
-				selectGroup(selectedId);
+				selectSubject(selectedId);
 			}
 		});
 		dialog.setVisible(true);
 	}
 
-	private void editGroup(){
-		// Edit is only enabled when a group is already selected
-		if(selectedGroupId == null || selectedGroupId.isEmpty()){
-			JOptionPane.showMessageDialog(this, "No group selected to edit.", "Info", JOptionPane.INFORMATION_MESSAGE);
+	private void editSubject(){
+		// Edit is only enabled when a subject is already selected
+		if(selectedSubjectId == null || selectedSubjectId.isEmpty()){
+			JOptionPane.showMessageDialog(this, "No subject selected to edit.", "Info", JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
-		// Open the same selection dialog, but allow changing to another group
-		browseGroup();
+		browseSubject();
 	}
 
-	private void selectGroup(String groupId){
-		selectedGroupId = groupId;
-		FLEFRecord rec = model.getRecordById(groupId);
-		if(rec != null && groupHandler != null){
-			groupDisplayField.setText(groupHandler.getDisplayName(rec));
+	private void selectSubject(String id){
+		selectedSubjectId = id;
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			String displayName = null;
+			if(groupHandler != null && "GROUP".equals(rec.getType())){
+				displayName = groupHandler.getDisplayName(rec);
+			}
+			else if(individualHandler != null && "INDIVIDUAL".equals(rec.getType())){
+				displayName = individualHandler.getDisplayName(rec);
+			}
+			subjectDisplayField.setText(displayName != null? displayName: id);
 		}
 		else{
-			groupDisplayField.setText(groupId);
+			subjectDisplayField.setText(id);
 		}
-		editBtn.setEnabled(true);
-		clearBtn.setEnabled(true);
+		editSubjectBtn.setEnabled(true);
+		clearSubjectBtn.setEnabled(true);
+	}
+
+	// ==================== Object methods ====================
+
+	private void browseObject(){
+		if(individualHandler == null){
+			JOptionPane.showMessageDialog(this, "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			parentFrame, model, individualHandler, selectedId -> {
+			if(selectedId != null){
+				selectObject(selectedId);
+			}
+		});
+		dialog.setVisible(true);
+	}
+
+	private void editObject(){
+		if(selectedObjectId == null || selectedObjectId.isEmpty()){
+			JOptionPane.showMessageDialog(this, "No object selected to edit.", "Info", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+		browseObject();
+	}
+
+	private void selectObject(String id){
+		selectedObjectId = id;
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null && individualHandler != null){
+			objectDisplayField.setText(individualHandler.getDisplayName(rec));
+		}
+		else{
+			objectDisplayField.setText(id);
+		}
+		editObjectBtn.setEnabled(true);
+		clearObjectBtn.setEnabled(true);
 	}
 
 	// ==================== Note methods ====================
@@ -325,8 +451,7 @@ public class RelationshipDialog extends JDialog{
 
 	private void editNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
-			return;
+		if(idx == -1) return;
 		String noteId = noteIds.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -346,8 +471,7 @@ public class RelationshipDialog extends JDialog{
 
 	private void deleteNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
-			return;
+		if(idx == -1) return;
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = noteIds.remove(idx);
@@ -379,11 +503,40 @@ public class RelationshipDialog extends JDialog{
 	// ==================== Load Data ====================
 
 	private void loadData(){
-		// GROUP (1:1)
-		String groupId = existingCitation.getValue();
-		if(groupId != null && !groupId.isEmpty()){
-			selectGroup(groupId);
+		// SUBJECT (1:1)
+		String subjectId = FLEFRecordUtils.getChildValue(existingCitation, "SUBJECT");
+		if(subjectId != null && !subjectId.isEmpty()){
+			selectSubject(subjectId);
+			if(prefilledSubjectId != null && prefilledSubjectId.equals(subjectId)){
+				// Disable editing if it was pre-filled
+				browseSubjectBtn.setEnabled(false);
+				clearSubjectBtn.setEnabled(false);
+			}
 		}
+		else if(prefilledSubjectId != null){
+			selectSubject(prefilledSubjectId);
+			browseSubjectBtn.setEnabled(false);
+			clearSubjectBtn.setEnabled(false);
+		}
+
+		// OBJECT (1:1)
+		String objectId = FLEFRecordUtils.getChildValue(existingCitation, "OBJECT");
+		if(objectId != null && !objectId.isEmpty()){
+			selectObject(objectId);
+			if(prefilledObjectId != null && prefilledObjectId.equals(objectId)){
+				browseObjectBtn.setEnabled(false);
+				clearObjectBtn.setEnabled(false);
+			}
+		}
+		else if(prefilledObjectId != null){
+			selectObject(prefilledObjectId);
+			browseObjectBtn.setEnabled(false);
+			clearObjectBtn.setEnabled(false);
+		}
+
+		// TYPE (1:1)
+		String type = FLEFRecordUtils.getChildValue(existingCitation, "TYPE");
+		typeField.setText(type != null? type: "");
 
 		// ROLE (0:1)
 		String role = FLEFRecordUtils.getChildValue(existingCitation, "ROLE");
@@ -411,10 +564,24 @@ public class RelationshipDialog extends JDialog{
 	// ==================== Validation ====================
 
 	private boolean validateFields(){
-		// GROUP (1:1) is required
-		if(selectedGroupId == null || selectedGroupId.isEmpty()){
+		// SUBJECT (1:1) is required
+		if(selectedSubjectId == null || selectedSubjectId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
-				"Group is required.\nPlease select a group.",
+				"Subject is required.\nPlease select a subject.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		// OBJECT (1:1) is required
+		if(selectedObjectId == null || selectedObjectId.isEmpty()){
+			JOptionPane.showMessageDialog(this,
+				"Object is required.\nPlease select an object.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		// TYPE (1:1) is required
+		if(typeField.getText().trim().isEmpty()){
+			JOptionPane.showMessageDialog(this,
+				"Type is required.\nPlease enter a relationship type.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
@@ -423,6 +590,12 @@ public class RelationshipDialog extends JDialog{
 
 	// ==================== Save ====================
 
+	/**
+	 * Returns the relationship record with all modifications applied.
+	 * If this is a new record, a new FLEFRecord is created.
+	 *
+	 * @return the relationship record, or null if not saved
+	 */
 	public FLEFRecord getCitationRecord(){
 		if(!saved){
 			return null;
@@ -434,22 +607,32 @@ public class RelationshipDialog extends JDialog{
 			record.setTag("RELATIONSHIP");
 		}
 
-		// GROUP (1:1)
-		record.setValue(selectedGroupId);
+		// SUBJECT (1:1) – child
+		FLEFRecordUtils.updateChildValue(record, "SUBJECT", selectedSubjectId);
+		// OBJECT (1:1) – child
+		FLEFRecordUtils.updateChildValue(record, "OBJECT", selectedObjectId);
+		// TYPE (1:1) – child
+		FLEFRecordUtils.updateChildValue(record, "TYPE", typeField.getText().trim());
 
-		// ROLE (0:1)
+		// ROLE (0:1) – child
 		String role = roleField.getText().trim();
 		if(!role.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "ROLE", role);
 		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "ROLE");
+		}
 
-		// CREDIBILITY (0:1)
+		// CREDIBILITY (0:1) – child
 		String credibility = (String)credibilityCombo.getSelectedItem();
 		if(credibility != null && !credibility.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
 		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "CREDIBILITY");
+		}
 
-		// NOTE (0:M)
+		// NOTE (0:M) – children
 		FLEFRecordUtils.removeChildren(record, "NOTE");
 		for(String noteId : noteIds){
 			FLEFRecordUtils.addChild(record, "NOTE", 2, noteId);
@@ -482,7 +665,7 @@ public class RelationshipDialog extends JDialog{
 
 			JButton btn = new JButton("New Relationship");
 			btn.addActionListener(e -> {
-				RelationshipDialog dialog = new RelationshipDialog(frame, model, null);
+				RelationshipDialog dialog = new RelationshipDialog(frame, model, null, "G1", "I1");
 				dialog.setVisible(true);
 				System.out.println("Relationship saved.");
 			});

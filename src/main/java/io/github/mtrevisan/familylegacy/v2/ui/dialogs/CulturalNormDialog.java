@@ -615,10 +615,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("CULTURAL_NORM");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "CULTURAL_NORM");
 	}
 
 	@Override
@@ -646,9 +643,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi un place di esempio
-		FLEFRecord place = new FLEFRecord();
-		place.setId("P1");
-		place.setType("PLACE");
+		FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");

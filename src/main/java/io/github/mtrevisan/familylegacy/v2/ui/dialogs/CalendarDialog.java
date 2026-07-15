@@ -698,10 +698,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("CALENDAR");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "CALENDAR");
 	}
 
 	@Override
@@ -729,9 +726,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi una cultural norm di esempio
-		FLEFRecord norm = new FLEFRecord();
-		norm.setId("CN1");
-		norm.setType("CULTURAL_NORM");
+		FLEFRecord norm = FLEFRecord.createMainRecord("CN1", "CULTURAL_NORM");
 		FLEFRecord title = new FLEFRecord();
 		title.setLevel(1);
 		title.setTag("TITLE");
@@ -740,9 +735,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		model.addRecord(norm);
 
 		// Aggiungi una nota di esempio
-		FLEFRecord note = new FLEFRecord();
-		note.setId("N1");
-		note.setType("NOTE");
+		FLEFRecord note = FLEFRecord.createMainRecord("N1", "NOTE");
 		FLEFRecord value = new FLEFRecord();
 		value.setLevel(1);
 		value.setTag("VALUE");

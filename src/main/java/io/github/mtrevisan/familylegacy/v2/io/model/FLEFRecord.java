@@ -47,6 +47,31 @@ public class FLEFRecord{
 	private int lineCount;
 
 
+	public static FLEFRecord createMainRecord(final String id, final String type){
+		final FLEFRecord record = new FLEFRecord();
+		record.setId(id);
+		record.setType(type);
+		return record;
+	}
+
+	public static FLEFRecord createChildWithValue(final int level, final String tag, final String value){
+		final FLEFRecord record = new FLEFRecord();
+		record.setLevel(level);
+		record.setTag(tag);
+		record.setValue(value);
+		return record;
+	}
+
+	public static FLEFRecord createChild(final int level, final String tag){
+		final FLEFRecord record = new FLEFRecord();
+		record.setLevel(level);
+		record.setTag(tag);
+		return record;
+	}
+
+	//FIXME restore private constructor
+//	private FLEFRecord(){}
+
 	public String getId(){
 		return id;
 	}
@@ -93,6 +118,34 @@ public class FLEFRecord{
 
 	public void addChild(final FLEFRecord child){
 		children.add(child);
+	}
+
+	/**
+	 * Removes a specific child record from this record's children list.
+	 *
+	 * @param child the child record to remove
+	 * @return {@code true} if the child was found and removed, {@code false} otherwise
+	 */
+	public boolean removeChild(final FLEFRecord child){
+		return children.remove(child);
+	}
+
+	/**
+	 * Removes all children with the given tag.
+	 *
+	 * @param tag the tag of children to remove
+	 * @return the list of removed children (empty if none were found)
+	 */
+	public List<FLEFRecord> removeChildren(final String tag){
+		final List<FLEFRecord> removed = new ArrayList<>();
+		children.removeIf(child -> {
+			if(tag.equals(child.getTag())){
+				removed.add(child);
+				return true;
+			}
+			return false;
+		});
+		return removed;
 	}
 
 	public boolean hasChildren(){

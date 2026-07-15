@@ -561,10 +561,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("NOTE");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "NOTE");
 	}
 
 	@Override
@@ -592,9 +589,7 @@ public class NoteDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi una fonte di esempio per le source citations
-		FLEFRecord source = new FLEFRecord();
-		source.setId("S1");
-		source.setType("SOURCE");
+		FLEFRecord source = FLEFRecord.createMainRecord("S1", "SOURCE");
 		FLEFRecord title = new FLEFRecord();
 		title.setLevel(1);
 		title.setTag("TITLE");

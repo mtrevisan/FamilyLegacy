@@ -1685,10 +1685,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	// ==================== Overrides ====================
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("INDIVIDUAL");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "INDIVIDUAL");
 	}
 
 	@Override

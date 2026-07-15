@@ -842,10 +842,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("SOURCE");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "SOURCE");
 	}
 
 	@Override
@@ -873,9 +870,7 @@ public class SourceDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi place di esempio
-		FLEFRecord place = new FLEFRecord();
-		place.setId("P1");
-		place.setType("PLACE");
+		FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");
@@ -884,9 +879,7 @@ public class SourceDialog extends BaseRecordDialog{
 		model.addRecord(place);
 
 		// Aggiungi repository di esempio
-		FLEFRecord repo = new FLEFRecord();
-		repo.setId("R1");
-		repo.setType("REPOSITORY");
+		FLEFRecord repo = FLEFRecord.createMainRecord("R1", "REPOSITORY");
 		FLEFRecord repoName = new FLEFRecord();
 		repoName.setLevel(1);
 		repoName.setTag("NAME");

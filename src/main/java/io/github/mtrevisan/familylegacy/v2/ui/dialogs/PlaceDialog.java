@@ -801,10 +801,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("PLACE");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "PLACE");
 	}
 
 	@Override
@@ -832,9 +829,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi un place di esempio per subordinate
-		FLEFRecord parentPlace = new FLEFRecord();
-		parentPlace.setId("P1");
-		parentPlace.setType("PLACE");
+		FLEFRecord parentPlace = FLEFRecord.createMainRecord("P1", "PLACE");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");

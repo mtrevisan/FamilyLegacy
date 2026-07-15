@@ -848,10 +848,7 @@ public class ConclusionPanel extends JPanel{
 
 		String narrative = narrativeArea.getText().trim();
 		if(!narrative.isEmpty() || !narrativeNoteIds.isEmpty()){
-			FLEFRecord narrativeRecord = new FLEFRecord();
-			narrativeRecord.setLevel(3);
-			narrativeRecord.setTag("NARRATIVE");
-			narrativeRecord.setValue(narrative);
+			FLEFRecord narrativeRecord = FLEFRecord.createChildWithValue(3, "NARRATIVE", narrative);
 			conclusionRecord.addChild(narrativeRecord);
 			for(String id : narrativeNoteIds){
 				FLEFRecordUtils.addChild(narrativeRecord, "NOTE", 4, id);

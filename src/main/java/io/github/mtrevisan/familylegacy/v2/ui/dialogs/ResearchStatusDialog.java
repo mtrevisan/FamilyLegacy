@@ -677,10 +677,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("RESEARCH_STATUS");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "RESEARCH_STATUS");
 	}
 
 	@Override
@@ -708,9 +705,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		// Aggiungi un individuo di esempio per le associazioni
-		FLEFRecord ind = new FLEFRecord();
-		ind.setId("I1");
-		ind.setType("INDIVIDUAL");
+		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");
@@ -728,9 +723,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		model.addRecord(ind);
 
 		// Aggiungi un research status di esempio
-		FLEFRecord research = new FLEFRecord();
-		research.setId("R1");
-		research.setType("RESEARCH_STATUS");
+		FLEFRecord research = FLEFRecord.createMainRecord("R1", "RESEARCH_STATUS");
 		FLEFRecord question = new FLEFRecord();
 		question.setLevel(1);
 		question.setTag("QUESTION");

@@ -1792,10 +1792,7 @@ public class FamilyDialog extends BaseRecordDialog{
 	// ==================== Overrides ====================
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType(FamilyHandler.TYPE);
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), FamilyHandler.TYPE);
 	}
 
 	@Override

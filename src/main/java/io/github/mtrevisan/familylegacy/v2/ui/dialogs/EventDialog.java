@@ -417,10 +417,7 @@ public class EventDialog extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("EVENT");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "EVENT");
 	}
 
 	@Override
@@ -432,9 +429,7 @@ public class EventDialog extends BaseRecordDialog{
 	public static void main(String[] args){
 		FLEFModel model = new FLEFModel();
 
-		FLEFRecord event = new FLEFRecord();
-		event.setId("E1");
-		event.setType("EVENT");
+		FLEFRecord event = FLEFRecord.createMainRecord("E1", "EVENT");
 		FLEFRecord type = new FLEFRecord();
 		type.setLevel(1);
 		type.setTag("TYPE");

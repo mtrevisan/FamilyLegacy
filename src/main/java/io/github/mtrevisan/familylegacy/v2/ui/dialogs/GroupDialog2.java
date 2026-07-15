@@ -796,10 +796,7 @@ public class GroupDialog2 extends BaseRecordDialog{
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = new FLEFRecord();
-		newRecord.setType("GROUP");
-		newRecord.setId(generateNewId());
-		return newRecord;
+		return FLEFRecord.createMainRecord(generateNewId(), "GROUP");
 	}
 
 	@Override
@@ -828,9 +825,7 @@ public class GroupDialog2 extends BaseRecordDialog{
 		// Tutti gli handler vengono registrati automaticamente tramite i blocchi static
 
 		// Aggiungi alcuni dati di esempio
-		FLEFRecord ind = new FLEFRecord();
-		ind.setId("I1");
-		ind.setType("INDIVIDUAL");
+		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");

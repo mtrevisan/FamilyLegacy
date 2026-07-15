@@ -457,9 +457,7 @@ public class AliasDialog extends JDialog{
 		HandlerRegistry.register(new NoteHandler());
 
 		// Add a sample individual
-		FLEFRecord ind = new FLEFRecord();
-		ind.setId("I1");
-		ind.setType("INDIVIDUAL");
+		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
 		name.setLevel(1);
 		name.setTag("NAME");
