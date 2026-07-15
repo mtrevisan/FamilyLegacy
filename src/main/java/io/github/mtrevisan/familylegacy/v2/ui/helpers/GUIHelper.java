@@ -216,7 +216,7 @@ public final class GUIHelper{
 		/**
 		 * Adds a separator.
 		 *
-		 * @return this builder
+		 * @return	This builder.
 		 */
 		public MenuBuilder separator(){
 			entries.add(MenuEntry.createSeparator());

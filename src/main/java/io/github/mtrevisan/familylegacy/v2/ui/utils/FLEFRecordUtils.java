@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.utils;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,82 +38,79 @@ import java.util.List;
  */
 public final class FLEFRecordUtils{
 
-	private FLEFRecordUtils(){
-	}
+	private FLEFRecordUtils(){}
+
 
 	/**
 	 * Finds the value of the first child with the given tag.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag to search for
-	 * @return the value of the first matching child, or null if not found
+	 * @param parent	The parent record.
+	 * @param tag	The tag to search for.
+	 * @return	The value of the first matching child, or {@code null} if not found.
 	 */
-	public static String getChildValue(FLEFRecord parent, String tag){
+	public static String getChildValue(final FLEFRecord parent, final String tag){
 		if(parent == null)
 			return null;
-		for(FLEFRecord child : parent.getChildren()){
-			if(tag.equals(child.getTag())){
+
+		for(final FLEFRecord child : parent.getChildren())
+			if(tag.equals(child.getTag()))
 				return child.getValue();
-			}
-		}
 		return null;
 	}
 
 	/**
 	 * Finds the first child with the given tag.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag to search for
-	 * @return the first matching child record, or null if not found
+	 * @param parent	The parent record.
+	 * @param tag	The tag to search for.
+	 * @return	The first matching child record, or {@code null} if not found.
 	 */
-	public static FLEFRecord findChild(FLEFRecord parent, String tag){
+	public static FLEFRecord findChild(final FLEFRecord parent, final String tag){
 		if(parent == null)
 			return null;
-		for(FLEFRecord child : parent.getChildren()){
-			if(tag.equals(child.getTag())){
+
+		for(final FLEFRecord child : parent.getChildren())
+			if(tag.equals(child.getTag()))
 				return child;
-			}
-		}
 		return null;
 	}
 
 	/**
 	 * Finds all children with the given tag.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag to search for
-	 * @return a list of matching child records
+	 * @param parent	The parent record.
+	 * @param tag	The tag to search for.
+	 * @return	A list of matching child records.
 	 */
-	public static List<FLEFRecord> findChildren(FLEFRecord parent, String tag){
-		List<FLEFRecord> result = new ArrayList<>();
+	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String tag){
+		final List<FLEFRecord> result = new ArrayList<>();
 		if(parent == null)
 			return result;
-		for(FLEFRecord child : parent.getChildren()){
-			if(tag.equals(child.getTag())){
+
+		for(final FLEFRecord child : parent.getChildren())
+			if(tag.equals(child.getTag()))
 				result.add(child);
-			}
-		}
 		return result;
 	}
 
 	/**
 	 * Collects values of all children with the given tag as a comma-separated string.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag to search for
-	 * @return a comma-separated string of values, or empty string if none found
+	 * @param parent	The parent record.
+	 * @param tag	The tag to search for.
+	 * @return	A comma-separated string of values, or empty string if none found.
 	 */
-	public static String getChildValuesAsString(FLEFRecord parent, String tag){
+	public static String getChildValuesAsString(final FLEFRecord parent, final String tag){
 		if(parent == null)
-			return "";
-		StringBuilder sb = new StringBuilder();
-		for(FLEFRecord child : parent.getChildren()){
+			return StringUtils.EMPTY;
+
+		final StringBuilder sb = new StringBuilder();
+		for(final FLEFRecord child : parent.getChildren())
 			if(tag.equals(child.getTag()) && child.getValue() != null && !child.getValue().isEmpty()){
 				if(!sb.isEmpty())
 					sb.append(",");
 				sb.append(child.getValue());
 			}
-		}
 		return sb.toString();
 	}
 
@@ -120,23 +118,24 @@ public final class FLEFRecordUtils{
 	 * Updates or creates a child with the given tag and value.
 	 * If the value is null or empty, the child is removed.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag to update
-	 * @param value  the new value (null or empty to remove)
+	 * @param parent	The parent record.
+	 * @param tag	The tag to update.
+	 * @param value	The new value ({@code null} or empty to remove).
 	 */
-	public static void updateChildValue(FLEFRecord parent, String tag, String value){
+	public static void updateChildValue(final FLEFRecord parent, final String tag, final String value){
 		if(parent == null)
 			return;
+
 		if(value == null || value.isEmpty()){
 			parent.getChildren().removeIf(c -> tag.equals(c.getTag()));
 			return;
 		}
-		FLEFRecord existing = findChild(parent, tag);
-		if(existing != null){
+
+		final FLEFRecord existing = findChild(parent, tag);
+		if(existing != null)
 			existing.setValue(value);
-		}
 		else{
-			FLEFRecord newChild = new FLEFRecord();
+			final FLEFRecord newChild = new FLEFRecord();
 			newChild.setLevel(1);
 			newChild.setTag(tag);
 			newChild.setValue(value);
@@ -147,15 +146,16 @@ public final class FLEFRecordUtils{
 	/**
 	 * Adds a single child with the given tag and value, if value is not empty.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag for the new child
-	 * @param level  the level for the new child
-	 * @param value  the value to set (ignored if null or empty)
+	 * @param parent	The parent record.
+	 * @param tag	The tag for the new child.
+	 * @param level	The level for the new child.
+	 * @param value	The value to set (ignored if {@code null} or empty).
 	 */
-	public static void addChild(FLEFRecord parent, String tag, int level, String value){
+	public static void addChild(final FLEFRecord parent, final String tag, final int level, final String value){
 		if(parent == null || value == null || value.isEmpty())
 			return;
-		FLEFRecord child = new FLEFRecord();
+
+		final FLEFRecord child = new FLEFRecord();
 		child.setLevel(level);
 		child.setTag(tag);
 		child.setValue(value);
@@ -165,17 +165,18 @@ public final class FLEFRecordUtils{
 	/**
 	 * Adds multiple children from a comma-separated string of values.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag for the new children
-	 * @param values comma-separated string of values (e.g., "I1,I2,I3")
+	 * @param parent	The parent record.
+	 * @param tag	The tag for the new children.
+	 * @param values	Comma-separated string of values (e.g., "I1,I2,I3").
 	 */
-	public static void addChildrenFromString(FLEFRecord parent, String tag, String values){
+	public static void addChildrenFromString(final FLEFRecord parent, final String tag, final String values){
 		if(parent == null || values == null || values.isEmpty())
 			return;
-		for(String val : values.split(",")){
-			String trimmed = val.trim();
+
+		for(final String val : values.split(",")){
+			final String trimmed = val.trim();
 			if(!trimmed.isEmpty()){
-				FLEFRecord child = new FLEFRecord();
+				final FLEFRecord child = new FLEFRecord();
 				child.setLevel(1);
 				child.setTag(tag);
 				child.setValue(trimmed);
@@ -187,12 +188,13 @@ public final class FLEFRecordUtils{
 	/**
 	 * Removes all children with the given tag.
 	 *
-	 * @param parent the parent record
-	 * @param tag    the tag to remove
+	 * @param parent	The parent record.
+	 * @param tag	The tag to remove.
 	 */
-	public static void removeChildren(FLEFRecord parent, String tag){
+	public static void removeChildren(final FLEFRecord parent, final String tag){
 		if(parent == null)
 			return;
+
 		parent.getChildren().removeIf(c -> tag.equals(c.getTag()));
 	}
 

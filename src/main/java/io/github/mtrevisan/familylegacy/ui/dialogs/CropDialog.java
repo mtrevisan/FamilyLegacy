@@ -118,7 +118,7 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.10.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.1.0.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 
 		final File file = new File("C:\\\\Users/mauro/Documents/My Genealogy Projects/Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)/Photos/Tosatto Luigia Maria.psd");

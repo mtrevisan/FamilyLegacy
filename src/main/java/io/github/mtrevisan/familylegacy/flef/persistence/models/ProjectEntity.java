@@ -42,7 +42,7 @@ public class ProjectEntity extends AbstractEntity{
 	@Column(name = "protocol_name", nullable = false)
 	private String protocolName;
 
-	//"0.0.10"
+	//"0.1.0"
 	@Column(name = "protocol_version", nullable = false)
 	private String protocolVersion;
 

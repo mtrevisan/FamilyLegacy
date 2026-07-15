@@ -60,7 +60,7 @@ public class EntityManager{
 	public static final String SEX_FEMALE = "female";
 
 	public static final String PROTOCOL_NAME_DEFAULT = "Family LEgacy Format";
-	public static final String PROTOCOL_VERSION_DEFAULT = "0.0.10";
+	public static final String PROTOCOL_VERSION_DEFAULT = "0.1.0";
 
 	public static final String MEDIA_TYPE_LINK = "link";
 	public static final String MEDIA_TYPE_PHOTO = "photo";

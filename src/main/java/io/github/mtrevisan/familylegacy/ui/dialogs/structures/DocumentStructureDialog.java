@@ -497,7 +497,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 		catch(final Exception ignored){}
 
 		final Flef store = new Flef();
-		store.load("/gedg/flef_0.0.10.gedg", "src/main/resources/ged/small.flef.ged")
+		store.load("/gedg/flef_0.1.0.gedg", "src/main/resources/ged/small.flef.ged")
 			.transform();
 		final GedcomNode source = store.getSources().get(0);
 

@@ -64,19 +64,29 @@ import java.util.Map;
 import java.util.Set;
 
 
+//TODO
 /**
- * Dialog for editing a GROUP_CITATION structure according to FLEF 0.0.9.
+ * Dialog for editing a RELATIONSHIP structure according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
- * GROUP_CITATION :=
- *   n GROUP @<XREF:GROUP>@    {1:1}
- *     +1 ROLE <ROLE_IN_GROUP>    {0:1}
- *     +1 NOTE @<XREF:NOTE>@    {0:M}
- *     +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
+ * RELATIONSHIP_RECORD :=
+ * n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
+ *   +1 SUBJECT @<XREF:ID>@|@VOID@    {1:1}
+ *   +1 OBJECT @<XREF:ID>@|@VOID@    {1:1}
+ *   +1 TYPE <RELATIONSHIP_TYPE>    {1:1}
+ *   +1 ROLE <RELATIONSHIP_ROLE>    {0:1}
+ *   +1 STATUS <RELATIONSHIP_STATUS>    {0:1}
+ *   +1 <<DATE_STRUCTURE>>    {0:1}
+ *   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+ *   +1 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 <<SOURCE_CITATION>>    {0:M}
+ *   +1 CONCLUSION <<CONCLUSION_STRUCTURE>>    {0:1}
+ *   +1 RESTRICTION <confidential>    {0:1}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
-public class GroupCitationDialog extends JDialog{
+public class RelationshipDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6392435736491575834L;
@@ -120,8 +130,8 @@ public class GroupCitationDialog extends JDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 
-	public GroupCitationDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation){
-		super(parent, existingCitation == null? "Add Group Citation": "Edit Group Citation", true);
+	public RelationshipDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation){
+		super(parent, existingCitation == null? "Add Relationship": "Edit Relationship", true);
 		this.model = model;
 		this.parentFrame = parent;
 		this.existingCitation = existingCitation;
@@ -421,7 +431,7 @@ public class GroupCitationDialog extends JDialog{
 		FLEFRecord record = existingCitation != null? existingCitation: new FLEFRecord();
 		if(existingCitation == null){
 			record.setLevel(1);
-			record.setTag("GROUP_CITATION");
+			record.setTag("RELATIONSHIP");
 		}
 
 		// GROUP (1:1)
@@ -464,17 +474,17 @@ public class GroupCitationDialog extends JDialog{
 		// Register all handlers (done via static blocks)
 
 		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Test Group Citation Dialog");
+			JFrame frame = new JFrame("Test Relationship Dialog");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			frame.setLayout(new FlowLayout());
 			frame.setSize(400, 150);
 			frame.setLocationRelativeTo(null);
 
-			JButton btn = new JButton("New Group Citation");
+			JButton btn = new JButton("New Relationship");
 			btn.addActionListener(e -> {
-				GroupCitationDialog dialog = new GroupCitationDialog(frame, model, null);
+				RelationshipDialog dialog = new RelationshipDialog(frame, model, null);
 				dialog.setVisible(true);
-				System.out.println("Group Citation saved.");
+				System.out.println("Relationship saved.");
 			});
 
 			frame.add(btn);

@@ -699,7 +699,7 @@ CREATE TABLE PROJECT
 (
  "ID"             bigint PRIMARY KEY,
  PROTOCOL_NAME    text NOT NULL,			-- "Family LEgacy Format"
- PROTOCOL_VERSION text NOT NULL,			-- "0.0.10"
+ PROTOCOL_VERSION text NOT NULL,			-- "0.1.0"
  COPYRIGHT        text,						-- A copyright statement.
  NOTE             text,						-- Text following markdown language.
  LOCALE           text,						-- Locale as defined in ISO 639 (https://en.wikipedia.org/wiki/ISO_639).

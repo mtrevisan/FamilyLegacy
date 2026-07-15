@@ -53,8 +53,9 @@ import java.util.Map;
 import java.util.Set;
 
 
+//TODO
 /**
- * Dialog for editing a GROUP_RECORD according to FLEF 0.0.10.
+ * Dialog for editing a GROUP_RECORD according to FLEF 0.1.0.
  * <p>
  * Structure (relevant parts):
  * <pre>
@@ -63,7 +64,6 @@ import java.util.Set;
  *   +1 NAME <GROUP_NAME>    {1:1}
  *   +1 TYPE <TYPE_DESCRIPTION>    {0:1}
  *   +1 EVENT @<XREF:EVENT>@    {0:M}
- *   +1 <<GROUP_CITATION>>    {0:M}
  *   +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}
  *   +1 NOTE @<XREF:NOTE>@    {0:M}
  *   +1 <<SOURCE_CITATION>>    {0:M}
@@ -76,7 +76,7 @@ import java.util.Set;
  * </pre>
  * <p>
  * A family is represented as a GROUP_RECORD with TYPE = "family".
- * Members are represented as GROUP_CITATION children with a ROLE
+ * Members are represented as RELATIONSHIP entities with a ROLE
  * (e.g., "parent1", "parent2", "child", "member", "president", etc.).
  */
 public class GroupDialog extends BaseRecordDialog{
@@ -87,7 +87,7 @@ public class GroupDialog extends BaseRecordDialog{
 	// Handlers
 	private final IndividualHandler individualHandler = new IndividualHandler();
 	private final GroupHandler groupHandler = new GroupHandler();
-	private final GroupCitationHandler groupCitationHandler = new GroupCitationHandler();
+	private final RelationshipHandler relationshipHandler = new RelationshipHandler();
 	private final EventHandler eventHandler = new EventHandler();
 	private final NoteHandler noteHandler = new NoteHandler();
 	private final SourceHandler sourceHandler = new SourceHandler();
@@ -113,10 +113,10 @@ public class GroupDialog extends BaseRecordDialog{
 	private final JList<String> eventList = new JList<>(eventListModel);
 	private final List<String> eventIds = new ArrayList<>();
 
-	// Group Citations (non-family memberships)
-	private final DefaultListModel<String> groupCitationListModel = new DefaultListModel<>();
-	private final JList<String> groupCitationList = new JList<>(groupCitationListModel);
-	private final List<FLEFRecord> groupCitationRecords = new ArrayList<>();
+	// Relationships
+	private final DefaultListModel<String> relationshipListModel = new DefaultListModel<>();
+	private final JList<String> relationshipList = new JList<>(relationshipListModel);
+	private final List<FLEFRecord> relationshipRecords = new ArrayList<>();
 
 	// Cultural Norms
 	private final DefaultListModel<String> culturalNormListModel = new DefaultListModel<>();
@@ -143,12 +143,26 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// ----- Inner class for member entries -----
 	private static class MemberEntry{
+		String relationshipId;
 		String individualId;
+		String relationshipType;
 		String role;
 		List<String> noteIds;
 
-		MemberEntry(String individualId, String role, List<String> noteIds){
+		MemberEntry(final MemberEntry entry, final List<String> noteIds){
+			this(entry.relationshipId, entry.individualId, entry.relationshipType, entry.role, noteIds);
+		}
+
+		MemberEntry(final String relationshipId, final String individualId, final String relationshipType,
+				final String role){
+			this(relationshipId, individualId, relationshipType, role, null);
+		}
+
+		MemberEntry(final String relationshipId, final String individualId, final String relationshipType,
+				final String role, final List<String> noteIds){
+			this.relationshipId = relationshipId;
 			this.individualId = individualId;
+			this.relationshipType = relationshipType;
 			this.role = role != null? role: "";
 			this.noteIds = noteIds != null? noteIds: new ArrayList<>();
 		}
@@ -321,9 +335,9 @@ public class GroupDialog extends BaseRecordDialog{
 				this::addEvent, this::editEvent, this::deleteEvent),
 			"growx");
 
-		panel.add(createListPanel("Group Citations (other memberships)",
-				groupCitationList, groupCitationListModel,
-				this::addGroupCitation, this::editGroupCitation, this::deleteGroupCitation),
+		panel.add(createListPanel("Relationships",
+				relationshipList, relationshipListModel,
+				this::addRelationship, this::editRelationship, this::deleteRelationship),
 			"growx");
 
 		panel.add(createListPanel("Cultural Norms",
@@ -373,8 +387,8 @@ public class GroupDialog extends BaseRecordDialog{
 		if(list == eventList){
 			createNewEvent();
 		}
-		else if(list == groupCitationList){
-			createNewGroupCitation();
+		else if(list == relationshipList){
+			createNewRelationship();
 		}
 		else if(list == culturalNormList){
 			createNewCulturalNorm();
@@ -613,7 +627,7 @@ public class GroupDialog extends BaseRecordDialog{
 			if(selectedId != null){
 				String role = askRole(null);
 				if(role != null){
-					memberEntries.add(new MemberEntry(selectedId, role, new ArrayList<>()));
+					memberEntries.add(new MemberEntry(null, selectedId, null, role));
 					memberListModel.addElement(memberEntries.getLast().toString());
 				}
 			}
@@ -638,7 +652,7 @@ public class GroupDialog extends BaseRecordDialog{
 			if(id != null && !before.contains(id)){
 				String role = askRole(null);
 				if(role != null){
-					memberEntries.add(new MemberEntry(id, role, new ArrayList<>()));
+					memberEntries.add(new MemberEntry(null, id, null, role));
 					memberListModel.addElement(memberEntries.getLast().toString());
 				}
 				return;
@@ -726,7 +740,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 		final MemberEntry[] result = {null};
 		okBtn.addActionListener(e -> {
-			result[0] = new MemberEntry(entry.individualId, entry.role, new ArrayList<>(noteIds));
+			result[0] = new MemberEntry(entry, new ArrayList<>(noteIds));
 			dialog.dispose();
 		});
 		cancelBtn.addActionListener(e -> dialog.dispose());
@@ -887,14 +901,14 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Group Citation methods (non-family) ====================
-	private void addGroupCitation(){
-		addGroupCitation(null);
+	// ==================== Relationship methods ====================
+	private void addRelationship(){
+		addRelationship(null);
 	}
 
-	private boolean addGroupCitation(String preSelectedGroupId){
-		if(groupCitationHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Group Citation handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+	private boolean addRelationship(String preSelectedGroupId){
+		if(relationshipHandler == null){
+			JOptionPane.showMessageDialog(getParentFrame(), "Relationship handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
 		FLEFRecord citationRecord;
@@ -902,51 +916,51 @@ public class GroupDialog extends BaseRecordDialog{
 			citationRecord = new FLEFRecord();
 			citationRecord.setValue(preSelectedGroupId);
 			citationRecord.setLevel(1);
-			citationRecord.setTag("GROUP_CITATION");
+			citationRecord.setTag("RELATIONSHIP");
 		}
 		else{
 			citationRecord = null;
 		}
-		GroupCitationDialog dialog = (GroupCitationDialog)groupCitationHandler.createEditDialog(getParentFrame(), model, citationRecord);
+		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, citationRecord);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord citation = dialog.getCitationRecord();
 			if(citation != null){
 				citation.setLevel(1);
-				citation.setTag("GROUP_CITATION");
-				groupCitationRecords.add(citation);
-				groupCitationListModel.addElement(getGroupCitationDisplay(citation));
+				citation.setTag("RELATIONSHIP");
+				relationshipRecords.add(citation);
+				relationshipListModel.addElement(getRelationshipDisplay(citation));
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private void editGroupCitation(){
-		if(groupCitationHandler == null) return;
-		int idx = groupCitationList.getSelectedIndex();
+	private void editRelationship(){
+		if(relationshipHandler == null) return;
+		int idx = relationshipList.getSelectedIndex();
 		if(idx == -1) return;
-		FLEFRecord existing = groupCitationRecords.get(idx);
-		GroupCitationDialog dialog = (GroupCitationDialog)groupCitationHandler.createEditDialog(getParentFrame(), model, existing);
+		FLEFRecord existing = relationshipRecords.get(idx);
+		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, existing);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
 			if(updated != null){
-				groupCitationRecords.set(idx, updated);
-				groupCitationListModel.set(idx, getGroupCitationDisplay(updated));
+				relationshipRecords.set(idx, updated);
+				relationshipListModel.set(idx, getRelationshipDisplay(updated));
 			}
 		}
 	}
 
-	private void deleteGroupCitation(){
-		int idx = groupCitationList.getSelectedIndex();
+	private void deleteRelationship(){
+		int idx = relationshipList.getSelectedIndex();
 		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this group citation?")) return;
-		groupCitationRecords.remove(idx);
-		groupCitationListModel.remove(idx);
+		if(!showConfirm("Confirm", "Remove this relationship?")) return;
+		relationshipRecords.remove(idx);
+		relationshipListModel.remove(idx);
 	}
 
-	private String getGroupCitationDisplay(FLEFRecord citation){
+	private String getRelationshipDisplay(FLEFRecord citation){
 		String groupId = citation.getValue();
 		String role = FLEFRecordUtils.getChildValue(citation, "ROLE");
 		StringBuilder display = new StringBuilder();
@@ -968,7 +982,7 @@ public class GroupDialog extends BaseRecordDialog{
 		return display.toString();
 	}
 
-	private void createNewGroupCitation(){
+	private void createNewRelationship(){
 		if(groupHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -983,11 +997,11 @@ public class GroupDialog extends BaseRecordDialog{
 		for(FLEFRecord rec : model.getRecordsByType("GROUP")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id)){
-				boolean saved = addGroupCitation(id);
+				boolean saved = addRelationship(id);
 				if(!saved){
 					model.removeRecord(id);
 					JOptionPane.showMessageDialog(getParentFrame(),
-						"Group creation cancelled. The group record has been removed.",
+						"Relationship cancelled. The group record has been removed.",
 						"Info", JOptionPane.INFORMATION_MESSAGE);
 				}
 				return;
@@ -1200,8 +1214,8 @@ public class GroupDialog extends BaseRecordDialog{
 		// Reset other lists
 		eventIds.clear();
 		eventListModel.clear();
-		groupCitationRecords.clear();
-		groupCitationListModel.clear();
+		relationshipRecords.clear();
+		relationshipListModel.clear();
 		culturalNormIds.clear();
 		culturalNormListModel.clear();
 		noteIds.clear();
@@ -1214,23 +1228,23 @@ public class GroupDialog extends BaseRecordDialog{
 		for(FLEFRecord child : record.getChildren()){
 			String tag = child.getTag();
 
-			if("GROUP_CITATION".equals(tag)){
+			if("RELATIONSHIP".equals(tag)){
 				String role = FLEFRecordUtils.getChildValue(child, "ROLE");
 				String individualId = child.getValue();
 				if(individualId != null){
 					// Check if this is a member (references an INDIVIDUAL)
-					// We assume that any GROUP_CITATION with a value that points to an INDIVIDUAL
-					// is a member. Other GROUP_CITATION (pointing to other groups) are kept as "other memberships".
+					// We assume that any RELATIONSHIP with a value that points to an INDIVIDUAL
+					// is a member. Other RELATIONSHIP (pointing to other groups) are kept as "other memberships".
 					FLEFRecord target = model.getRecordById(individualId);
 					if(target != null && "INDIVIDUAL".equals(target.getType())){
 						List<String> notes = loadCitationNotesOnly(child);
-						memberEntries.add(new MemberEntry(individualId, role, notes));
+						memberEntries.add(new MemberEntry(null, individualId, null, role, notes));
 						memberListModel.addElement(memberEntries.getLast().toString());
 					}
 					else{
-						// Non-individual group citation – store as is
-						groupCitationRecords.add(child);
-						groupCitationListModel.addElement(getGroupCitationDisplay(child));
+						// Non-individual relationship – store as is
+						relationshipRecords.add(child);
+						relationshipListModel.addElement(getRelationshipDisplay(child));
 					}
 				}
 			}
@@ -1327,17 +1341,17 @@ public class GroupDialog extends BaseRecordDialog{
 		FLEFRecordUtils.updateChildValue(record, "RESTRICTION",
 			restrictionCheckBox.isSelected()? "confidential": null);
 
-		// --- Members (GROUP_CITATION with roles) ---
+		// --- Members (RELATIONSHIP with roles) ---
 		for(MemberEntry entry : memberEntries){
-			FLEFRecord citation = createGroupCitation(entry.individualId, entry.role, entry.noteIds);
-			record.addChild(citation);
+			FLEFRecord relationship = createRelationship(entry.individualId, entry.role, entry.noteIds);
+			record.addChild(relationship);
 		}
 
-		// --- Other group citations (non-individual) ---
-		for(FLEFRecord citation : groupCitationRecords){
-			citation.setLevel(1);
-			citation.setTag("GROUP_CITATION");
-			record.addChild(citation);
+		// --- Other relationships (non-individual) ---
+		for(FLEFRecord relationship : relationshipRecords){
+			relationship.setLevel(1);
+			relationship.setTag("RELATIONSHIP");
+			record.addChild(relationship);
 		}
 
 		// --- Other elements ---
@@ -1390,18 +1404,18 @@ public class GroupDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	private FLEFRecord createGroupCitation(String individualId, String role, List<String> noteIds){
-		FLEFRecord citation = new FLEFRecord();
-		citation.setLevel(1);
-		citation.setTag("GROUP_CITATION");
-		citation.setValue(individualId);
+	private FLEFRecord createRelationship(String individualId, String role, List<String> noteIds){
+		FLEFRecord relationship = new FLEFRecord();
+		relationship.setLevel(1);
+		relationship.setTag("RELATIONSHIP");
+		relationship.setValue(individualId);
 		if(role != null && !role.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citation, "ROLE", role);
+			FLEFRecordUtils.updateChildValue(relationship, "ROLE", role);
 		}
 		for(String noteId : noteIds){
-			FLEFRecordUtils.addChild(citation, "NOTE", 2, noteId);
+			FLEFRecordUtils.addChild(relationship, "NOTE", 2, noteId);
 		}
-		return citation;
+		return relationship;
 	}
 
 	// ==================== Overrides ====================
