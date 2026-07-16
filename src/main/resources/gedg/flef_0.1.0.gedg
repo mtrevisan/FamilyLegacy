@@ -132,7 +132,7 @@ n @<XREF:EVENT>@ EVENT    {1:1}
 INDIVIDUAL_ATTRIBUTE_RECORD :=	/* A characteristic, condition, status, classification, or descriptive property attributed to an individual. Attributes may be directly recorded in sources, derived from evidence, inferred from research, or reported through oral tradition. */
 n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {1:1}	/* An xref ID of the individual to whom this attribute applies. */
-  +1 TYPE [ CHARACTERISTIC | RESIDENCE | OCCUPATION | POSSESSION | MILITARY_RANK | CASTE | NATIONALITY | SSN | TITLE | CHILDREN_COUNT | MARRIAGES_COUNT | RELIGION | <ATTRIBUTE_TYPE> ]    {1:1}
+  +1 TYPE [ CHARACTERISTIC | RESIDENCE | OCCUPATION | POSSESSION | MILITARY_RANK | CASTE | ETHNICITY | CITIZENSHIP | SSN | TITLE | CHILDREN_COUNT | MARRIAGES_COUNT | RELIGION | <ATTRIBUTE_TYPE> ]    {1:1}
   +1 VALUE <TEXT>    {0:1}
   +1 <<DATE_STRUCTURE>>    {0:1}
   +1 VALID_FROM    {0:1}
@@ -193,7 +193,7 @@ RELATIONSHIP_RECORD :=	/* Represents an enduring association between genealogica
 n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
   +1 SUBJECT @<XREF:ID>@|@VOID@    {1:1}	/* The entity for which the relationship is being asserted. This may be an INDIVIDUAL, GROUP, or another supported record type. If the entity is unknown, @VOID@ may be used. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the OBJECT. */
   +1 OBJECT @<XREF:ID>@|@VOID@    {1:1}	/* The entity to which the subject is related. This may be an INDIVIDUAL, GROUP, or another supported record type. If the entity is unknown, @VOID@ may be used. */
-  +1 TYPE <RELATIONSHIP_TYPE>    {1:1}	/* The specific nature of the relationship of the subject toward the object. Known values include: 'biological_child' (Relationship exists through birth), 'adoptive_child' (Relationship created through legal adoption), 'foster_child' (Temporary foster-care relationship), 'guarded_child' (Court-appointed legal guardianship relationship), 'step_child' (Relationship created through marriage and not through descent), 'civil_spouse', (Marriage recognized by civil authority), 'religious_spouse', (Marriage recognized by religious authority), 'customary_spouse' (Marriage recognized by local custom or tradition), 'cohabiting_partner' (Non-marital domestic partnership), 'engaged_partner' (Promise or agreement to marry), 'group_member' (Membership in a group), 'associate' (General association), ... */
+  +1 TYPE <RELATIONSHIP_TYPE>    {1:1}	/* The specific nature of the relationship of the subject toward the object. Known values include: 'biological_child' (Relationship exists through birth), 'adoptive_child' (Relationship created through legal adoption), 'foster_child' (Temporary foster-care relationship), 'guarded_child' (Court-appointed legal guardianship relationship), 'step_child' (Relationship created through marriage and not through descent), 'civil_spouse' (Marriage recognized by civil authority), 'religious_spouse', (Marriage recognized by religious authority), 'customary_spouse' (Marriage recognized by local custom or tradition), 'cohabiting_partner' (Non-marital domestic partnership), 'engaged_partner' (Promise or agreement to marry), 'group_member' (Membership in a group), 'associate' (General association), ... */
   +1 ROLE <RELATIONSHIP_ROLE>    {0:1}	/* Indicates the function, position, capacity or responsibility held by the subject within the relationship. For example 'president', 'member', 'resident' (in a neighborhood), 'head of household', 'tribal leader'. */
   +1 STATUS <RELATIONSHIP_STATUS>    {0:1}	/* Indicates the current status of the relationship. Known values include: 'active' (Relationship currently exists), 'ended' (Relationship no longer exists), 'disputed' (Relationship is challenged by conflicting evidence), 'proposed' (Relationship has been suggested but not sufficiently demonstrated), 'unknown' (Relationship status is not known) */
   +1 <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date the relationship was established, recognized, or documented. */
@@ -247,7 +247,7 @@ n @<XREF:PLACE>@ PLACE    {1:1}
   +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
-  +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this source. */
+  +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this place. */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* An object that provides data related to the creation/modification of this structure. */
 
 PLACE_STRUCTURE :=
@@ -353,7 +353,7 @@ n FILE <RESOURCE_URI>    {1:1}	/* Resource URI (following RFC 3986 specification
   +1 SPHERICAL Y    {0:1}	/* Whether the file is spherical (panorama/360° or truly spherical U/V mapped). */
   +1 MAPPING <MAPPING_TYPE>    {0:1}	/* The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image). */
   +1 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:1}	/* A description of the source. For example 'cover', 'back', etc. */
-  +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
+  +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
     +2 TYPE <EXTRACT_TYPE>    {0:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
     +2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -430,16 +430,14 @@ n @<XREF:RESEARCH_STATUS>@ RESEARCH_STATUS    {1:1}
 
 RESEARCH_LOG_RECORD :=	/* A chronological record of genealogical research activities. Research logs document what was searched, when it was searched, the sources consulted, and the results obtained, including unsuccessful searches. */
 n @<XREF:RESEARCH_LOG>@ RESEARCH_LOG    {1:1}
-  +1 DATE <DATE>    {1:1}	/* The date of the research activity (as defined by ISO 8601 here https://en.wikipedia.org/wiki/ISO_8601). */
   +1 ACTION <TEXT>    {1:1}	/* Description of the research activity that was performed. For example, a repository search, source review, correspondence, or archive consultation. */
   +1 TARGET @<XREF:ID>@|@VOID@    {0:M}	/* An xref ID of a record that was the subject of the research activity. This may reference any supported record type. If the target is not represented elsewhere in the file, @VOID@ may be used. */
   +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* An xref ID of a source record that was consulted, reviewed, searched, or discovered during the research activity. */
-  +1 SEARCH_OUTCOME <SEARCH_OUTCOME>    {0:1}	/* Values: "found", "not_found", "partially_found", "unreadable", "destroyed" */
   +1 SEARCH_SCOPE <SEARCH_SCOPE_DESCRIPTION>    {0:1}	/* What was searched: "entire_volume", "pages_10_to_20", "index_only", "selected_entries" */
-  +1 SEARCH_DATE <DATE>    {0:1}	/* The date of when the search was performed (as defined by ISO 8601 here https://en.wikipedia.org/wiki/ISO_8601). */
+  +1 SEARCH_OUTCOME <SEARCH_OUTCOME>    {0:1}	/* The outcome of the research activity. Values are defined by SEARCH_OUTCOME, for example "found", "not_found", "partially_found", "unreadable", or "destroyed". */
   +1 FINDING <TEXT>    {0:1}	/* A note describing the outcome, findings, observations, or conclusions of the research activity. */
-  +1 STATUS <SEARCH_OUTCOME>    {0:1}	/* The outcome of the research activity. Values are defined by SEARCH_OUTCOME, for example "found", "not_found", "partially_found", "unreadable", or "destroyed". */
   +1 RESEARCH @<XREF:RESEARCH_STATUS>@    {0:M}	/* An xref ID of a research question or research objective to which this research activity contributes. */
+  +1 DATE <DATE>    {0:1}	/* The date of when the search was performed (as defined by ISO 8601 here https://en.wikipedia.org/wiki/ISO_8601). */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* An object that provides data related to the creation/modification of this structure. */
 
 
