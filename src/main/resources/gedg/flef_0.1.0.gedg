@@ -77,7 +77,6 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}
   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
   +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<SOURCE_CITATION>>    {0:M}
-    +2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this individual played in the event that is being cited in this context. Known values are: CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. */
   +1 PREFERRED_IMAGE <RESOURCE_URI>    {0:1}	/* Resource URI (following RFC 3986 specifications). */
     +2 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. Required when citing a specific part of an image-based source. */
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -159,12 +158,11 @@ n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
 
 GROUP_RECORD :=	/* A group of genealogical entities. A group can be a family, a household, a neighborhood, a club, a research group, etc. Membership in a GROUP is determined exclusively through RELATIONSHIP_RECORD objects whose OBJECT references the GROUP record and whose TYPE identifies a group membership relationship. GROUP_RECORD does not directly contain a member list. */
 n @<XREF:GROUP>@ GROUP    {1:1}
-  +1 <<NAME_STRUCTURE>>    {0:M}	/* One or more names associated with the group. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts. */
+  +1 <<NAME_STRUCTURE>>    {0:M}	/* Names associated with the group. For family this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts. */
   +1 TYPE <GROUP_TYPE>    {0:1}	/* The type of the group. For example 'family', 'household', 'neighborhood', 'fraternity', 'club', 'literary society', 'association', 'organization', 'tribe', etc. Custom values are permitted. */
   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
   +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<SOURCE_CITATION>>    {0:M}
-    +2 ROLE <ROLE_IN_EVENT>    {0:1}	/* Indicates what role this group played in the event that is being cited in this context. Known values are: CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. */
   +1 PREFERRED_IMAGE <RESOURCE_URI>    {0:1}	/* Resource URI (following RFC 3986 specifications). */
     +2 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. Required when citing a specific part of an image-based source. */
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -229,7 +227,7 @@ EVENT_PARTICIPATION_RECORD :=	/* Associates an entity with an event and describe
 n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
   +1 EVENT @<XREF:EVENT>@    {1:1}
   +1 ENTITY @<XREF:ID>@    {1:1}
-  +1 ROLE <ROLE_IN_EVENT>    {1:1}
+  +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* The role the entity played in the event. Known values are: CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. */
   +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
   +1 NOTE @<XREF:NOTE>@    {0:M}
@@ -295,15 +293,15 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
 REPOSITORY_CITATION :=
 n REPOSITORY @<XREF:REPOSITORY>@    {1:1}	/* A list of xref ID of repository records who owns this source. */
   +1 LOCATION <WHERE_WITHIN_REPOSITORY>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
-  +1 NOTE <TEXT>    {0:1}
+  +1 NOTE <TEXT>    {0:1}	/* Free-text note. */
 
 
 CONTACT_STRUCTURE :=
 n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 3986 specifications, or any other type of contact address. */
   +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
-  +1 CALLER_ID <CALLED_ID_VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
+  +1 CALLER_ID <VALUE>    {0:1}	/* Indicates the name of the person associated with this contact. */
     +2 <<TEXT_VALUE_VARIANT>>    {0:M}
-  +1 NOTE <TEXT>    {0:1}
+  +1 NOTE <TEXT>    {0:1}	/* Free-text note. */
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 
 
@@ -344,7 +342,7 @@ SOURCE_CITATION :=
 n SOURCE @<XREF:SOURCE>@    {1:1}
   +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location within the information referenced. The data in this field should be in the form of a label and value pair (eg. 'Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17'). */
   +1 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
-  +1 NOTE <TEXT>    {0:M}
+  +1 NOTE <TEXT>    {0:M}	/* Free-text note. */
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 
 
@@ -354,7 +352,7 @@ n FILE <RESOURCE_URI>    {1:1}	/* Resource URI (following RFC 3986 specification
   +1 MAPPING <MAPPING_TYPE>    {0:1}	/* The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image). */
   +1 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:1}	/* A description of the source. For example 'cover', 'back', etc. */
   +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
-    +2 TYPE <EXTRACT_TYPE>    {0:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
+    +2 TYPE <EXTRACT_TYPE>    {1:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
     +2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47 here https://tools.ietf.org/html/bcp47). */
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 NOTE @<XREF:NOTE>@    {0:M}
@@ -394,14 +392,14 @@ n APPROXIMATE    {0:1}	/* Present only when this specific point is itself an est
 SINGLE_DATE :=	/* A single point in time expressed at an explicitly declared level of precision. The granularity is determined by the selected representation and is not inferred from formatting conventions. */
 [
 n ISO <DATE>    {1:1}	/* A calendar date (as defined by ISO 8601 here https://en.wikipedia.org/wiki/ISO_8601). */
-  +1 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
+  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
 |
 n CENTURY <ORDINAL>    {1:1}	/* A century designation, such as 15 for the 15th century. Optional qualifiers may indicate a subdivision of the century. */
   +1 PART <CENTURY_PART>    {0:1}	/* A subdivision of the century, such as a quarter, half, or relative position ('first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter', 'first_half', 'second_half', 'early', 'mid', 'late'). */
-  +1 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
+  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
 |
 n DECADE <DECADE_START_YEAR>    {1:1}	/* A decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'. */
-  +1 CALENDAR <CALENDAR_TYPE>    {0:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
+  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type (values can be 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ...). */
 ]
 
 
@@ -423,22 +421,23 @@ n @<XREF:RESEARCH_STATUS>@ RESEARCH_STATUS    {1:1}
   +1 ASSOCIATION @<XREF:ID>@|@VOID@    {0:M}	/* An xref ID of a record that lacks research. */
     +2 NAME <TEXT>    {0:1}	/* The name of the individual, only for VOID reference. */
   +1 BLOCKED_BY @<XREF:RESEARCH_STATUS>@    {0:M}	/* If this research is blocked by another unresolved question. */
-  +1 PLAN <RULE_DESCRIPTION>    {0:1}	/* Detailed description of what needs to be done. */
-  +1 RESOLUTION <RESOLUTION_DESCRIPTION>    {0:1}	/* How the question was resolved, if completed. */
+  +1 PLAN <TEXT>    {0:1}	/* Detailed description of what needs to be done. */
+  +1 RESOLUTION <TEXT>    {0:1}	/* How the question was resolved, if completed. */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
 
 
 RESEARCH_LOG_RECORD :=	/* A chronological record of genealogical research activities. Research logs document what was searched, when it was searched, the sources consulted, and the results obtained, including unsuccessful searches. */
 n @<XREF:RESEARCH_LOG>@ RESEARCH_LOG    {1:1}
   +1 ACTION <TEXT>    {1:1}	/* Description of the research activity that was performed. For example, a repository search, source review, correspondence, or archive consultation. */
-  +1 TARGET @<XREF:ID>@|@VOID@    {0:M}	/* An xref ID of a record that was the subject of the research activity. This may reference any supported record type. If the target is not represented elsewhere in the file, @VOID@ may be used. */
+  +1 TARGET @<XREF:ID>@|@VOID@    {0:1}	/* An xref ID of a record that was the subject of the research activity. This may reference any supported record type. If the target is not represented elsewhere in the file, @VOID@ may be used. */
   +1 SOURCE @<XREF:SOURCE>@    {0:M}	/* An xref ID of a source record that was consulted, reviewed, searched, or discovered during the research activity. */
   +1 SEARCH_SCOPE <SEARCH_SCOPE_DESCRIPTION>    {0:1}	/* What was searched: "entire_volume", "pages_10_to_20", "index_only", "selected_entries" */
   +1 SEARCH_OUTCOME <SEARCH_OUTCOME>    {0:1}	/* The outcome of the research activity. Values are defined by SEARCH_OUTCOME, for example "found", "not_found", "partially_found", "unreadable", or "destroyed". */
   +1 FINDING <TEXT>    {0:1}	/* A note describing the outcome, findings, observations, or conclusions of the research activity. */
   +1 RESEARCH @<XREF:RESEARCH_STATUS>@    {0:M}	/* An xref ID of a research question or research objective to which this research activity contributes. */
-  +1 DATE <DATE>    {0:1}	/* The date of when the search was performed (as defined by ISO 8601 here https://en.wikipedia.org/wiki/ISO_8601). */
+  +1 DATE <DATE>    {1:1}	/* The date of when the search was performed (as defined by ISO 8601 here https://en.wikipedia.org/wiki/ISO_8601). */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* An object that provides data related to the creation/modification of this structure. */
+  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 
 
 RESTRICTION_STRUCTURE :=	/* Specifies how this structure may be displayed, exported, or distributed. The restriction expresses the intent of the data contributor and should be respected regardless of any automatic privacy policy applied by the receiving system. */
@@ -475,6 +474,7 @@ n @<XREF:IDENTITY_HYPOTHESIS>@ IDENTITY_HYPOTHESIS    {1:1}
   +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
   +1 COMMENT <TEXT>    {0:1}	/* A note explaining the basis for the possible duplicate hypothesis. */
+  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* An object that provides data related to the creation/modification of this structure. */
 
 
 EVIDENCE_QUALIFIERS :=
