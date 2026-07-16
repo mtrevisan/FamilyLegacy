@@ -106,16 +106,12 @@ public final class GUIHelper{
 	}
 
 	/**
-	 * Legacy overload for backward compatibility.
 	 * It builds a standard menu with "Create New...", "Add Existing...",
 	 * "Edit...", "Clear", "Notes..." (where "Edit", "Clear", and "Notes"
 	 * are selection‑sensitive). This is just a convenience wrapper around
 	 * the builder version.
-	 *
-	 * @deprecated	Use the builder version instead for full customisation.
 	 */
-	@Deprecated
-	public static void installBehaviour(final JComponent component, final Supplier<Boolean> hasSelection,
+	public static void installStandardBehaviour(final JComponent component, final Supplier<Boolean> hasSelection,
 			final Runnable newAction, final Runnable addAction, final Runnable editAction, final Runnable clearAction,
 			final Runnable notesAction){
 		installBehaviour(component, hasSelection, editAction, newAction, clearAction,

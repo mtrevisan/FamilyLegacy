@@ -595,7 +595,7 @@ public class FamilyDialog extends BaseRecordDialog{
 		childList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		// ---- Popup menu ----
-		GUIHelper.installBehaviour(childList,
+		GUIHelper.installStandardBehaviour(childList,
 			() -> (childList.getSelectedIndex() >= 0),
 			this::createNewChild,
 			this::addChild,
@@ -635,7 +635,7 @@ public class FamilyDialog extends BaseRecordDialog{
 		displayField.setEditable(false);
 		displayField.setBackground(UIManager.getColor("TextField.background"));
 
-		GUIHelper.installBehaviour(displayField,
+		GUIHelper.installStandardBehaviour(displayField,
 			() -> !displayField.getText().isBlank(),
 			actionNew,
 			actionBrowse,
@@ -658,7 +658,7 @@ public class FamilyDialog extends BaseRecordDialog{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(list,
+		GUIHelper.installStandardBehaviour(list,
 			() -> (list.getSelectedIndex() >= 0),
 			() -> createNewItemForList(list, model),
 			addAction,
@@ -1037,7 +1037,7 @@ public class FamilyDialog extends BaseRecordDialog{
 			noteModel.addElement(displayMap.get(id));
 		}
 
-		GUIHelper.installBehaviour(childList,
+		GUIHelper.installStandardBehaviour(childList,
 			() -> (childList.getSelectedIndex() >= 0),
 			() -> createNewNote(noteModel, noteIds, displayMap),
 			() -> addNoteToList(noteModel, noteIds, displayMap),

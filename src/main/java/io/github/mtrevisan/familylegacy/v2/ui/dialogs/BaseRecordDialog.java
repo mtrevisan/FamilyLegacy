@@ -181,7 +181,9 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 	protected boolean showConfirm(final String title, final String message){
-		return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
+		final int selectedOption = JOptionPane.showConfirmDialog(this, message, title,
+			JOptionPane.YES_NO_OPTION);
+		return (selectedOption == JOptionPane.YES_OPTION);
 	}
 
 }

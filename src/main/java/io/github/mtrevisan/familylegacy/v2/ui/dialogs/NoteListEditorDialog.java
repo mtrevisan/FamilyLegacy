@@ -117,7 +117,7 @@ public class NoteListEditorDialog extends JDialog{
 		noteList.setVisibleRowCount(4);
 		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(noteList,
+		GUIHelper.installStandardBehaviour(noteList,
 			() -> noteList.getSelectedIndex() >= 0,
 			this::createNewNote,
 			this::addExistingNote,

@@ -56,14 +56,28 @@ import java.util.Set;
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.0.
  * <p>
  * The group record represents an aggregation of genealogical entities (family, household,
- * club, neighbourhood, etc.). Membership is expressed via {@code RELATIONSHIP_RECORD}
+ * club, neighborhood, etc.). Membership is expressed via {@code RELATIONSHIP_RECORD}
  * objects that link the group to individuals (or other entities) with a specific
  * {@code TYPE} and optionally a {@code ROLE}.
  * <p>
  * The group itself has one or more names (via {@code NAME_STRUCTURE}), a type, and
  * various other properties (preferred image, restrictions, conclusions, etc.).
  *
- * @see <a href="https://github.com/your-repo/flef">FLEF Specification 0.1.0</a>
+ * <pre>{@code
+ * GROUP_RECORD :=
+ * n @<XREF:GROUP>@ GROUP    {1:1}
+ *   +1 <<NAME_STRUCTURE>>    {0:M}
+ *   +1 TYPE <GROUP_TYPE>    {0:1}
+ *   +1 CULTURAL_NORM @<XREF:RULE>@    {0:M}
+ *   +1 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 <<SOURCE_CITATION>>    {0:M}
+ *     +2 ROLE <ROLE_IN_EVENT>    {0:1}
+ *   +1 PREFERRED_IMAGE @<XREF:SOURCE>@    {0:1}
+ *     +2 CROP <CROP_COORDINATES>    {0:1}
+ *   +1 RESTRICTION <LEVEL>    {0:1}
+ *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * }</pre>
  */
 public class GroupDialog extends BaseRecordDialog{
 
@@ -85,7 +99,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// UI components
 	private final JTextField nameField = new JTextField();
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "family", "neighborhood", "club", "research group", "household"});
+	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "family", "household", "neighborhood", "fraternity", "club", "research group", "literary society", "association", "organization", "tribe"});
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	// Members (relationships that link the group to individuals)
@@ -126,6 +140,7 @@ public class GroupDialog extends BaseRecordDialog{
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
+
 	// ----- Factory methods -----
 	public static GroupDialog createNew(Frame parent, FLEFModel model){
 		return new GroupDialog(parent, model, null);
@@ -134,6 +149,7 @@ public class GroupDialog extends BaseRecordDialog{
 	public static GroupDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
+
 		return new GroupDialog(parent, model, record);
 	}
 
@@ -240,7 +256,7 @@ public class GroupDialog extends BaseRecordDialog{
 		// We define: Create New, Add Existing, Edit Relationship, Delete, and Notes.
 		// All selection‑sensitive items are enabled only when a member is selected.
 		GUIHelper.installBehaviour(memberList,
-			() -> memberList.getSelectedIndex() >= 0,           // hasSelection
+			() -> (memberList.getSelectedIndex() >= 0),
 			this::editMemberRelationship,                       // double‑click → edit relationship
 			this::createNewMember,                              // INSERT key → create new member
 			this::deleteMember,                                 // DELETE key → delete member
@@ -261,14 +277,16 @@ public class GroupDialog extends BaseRecordDialog{
 				});
 			});
 
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(memberList,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		// Ensure minimum height to show 4 rows even when empty
-		FontMetrics fm = memberList.getFontMetrics(memberList.getFont());
-		int rowHeight = fm.getHeight() + 2;
-		scrollPane.setPreferredSize(new Dimension(0, 4 * rowHeight + 10));
+		JScrollPane scrollPane = createScrollPane(memberList);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
+	}
+
+	private JScrollPane createScrollPane(final JList<String> list){
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
 	}
 
 	/**
@@ -336,19 +354,15 @@ public class GroupDialog extends BaseRecordDialog{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(list,
-			() -> list.getSelectedIndex() >= 0,
+		GUIHelper.installStandardBehaviour(list,
+			() -> (list.getSelectedIndex() >= 0),
 			() -> createNewItemForList(list, model),
 			addAction,
 			editAction,
 			deleteAction,
 			null);
 
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		FontMetrics fm = list.getFontMetrics(list.getFont());
-		int rowHeight = fm.getHeight() + 2;
-		scrollPane.setPreferredSize(new Dimension(0, 4 * rowHeight + 10));
+		JScrollPane scrollPane = createScrollPane(list);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
