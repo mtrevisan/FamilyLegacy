@@ -27,162 +27,144 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.FamilyHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
- * Dialog for editing a NOTE_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
  * NOTE_RECORD :=
- *   n @<XREF:NOTE>@ NOTE    {1:1}
- *     +1 VALUE <SUBMITTER_TEXT>    {1:1}
- *     +1 MIME <MIME_TYPE>    {0:1}
- *     +1 LOCALE <LOCALE_CODE>    {0:1}
- *     +1 TRANSLATION <SUBMITTER_TRANSLATED_TEXT>    {0:M}
- *       +2 LOCALE <LOCALE_CODE>    {0:1}
- *       +2 <<MODIFICATION_STRUCTURE>>    {1:1}
- *     +1 <<SOURCE_CITATION>>    {0:M}
- *     +1 RESTRICTION <confidential>    {0:1}
- *     +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * n @<XREF:NOTE>@ NOTE    {1:1}
+ *   +1 TITLE <TEXT>    {0:1}
+ *   +1 VALUE <SUBMITTER_TEXT>    {1:1}
+ *   +1 MIME <MIME_TYPE>    {0:1}
+ *   +1 LOCALE <LOCALE_CODE>    {0:1}
+ *   +1 TRANSLATION <SUBMITTER_TRANSLATED_TEXT>    {0:M}
+ *     +2 LOCALE <LOCALE_CODE>    {0:1}
+ *   +1 <<SOURCE_CITATION>>    {0:M}
+ *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
 public class NoteDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 57751279346094768L;
+	private static final long serialVersionUID = -4670126000119212975L;
 
+	// Handlers
+	private final SourceHandler sourceHandler = new SourceHandler();
 
-	static{
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new PlaceHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new CalendarHandler());
-		HandlerRegistry.register(new RepositoryHandler());
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new FamilyHandler());
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new EventHandler());
-	}
+	// UI components
+	private final JTextField titleField = new JTextField(30);
+	private final JTextArea valueArea = new JTextArea(10, 30);
+	private final JScrollPane valueScrollPane = new JScrollPane(valueArea);
+	private final JComboBox<String> mimeCombo = new JComboBox<>(new String[]{"", "text/plain", "text/html", "text/markdown"});
+	private final JComboBox<String> localeCombo = new JComboBox<>(new String[]{"", "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 
-	// ========== Basic fields ==========
-	private final JTextField idField = new JTextField(10);
-	private final JTextArea valueArea = new JTextArea(5, 30);
-	private final JTextField mimeField = new JTextField(15);
-	private final JTextField localeField = new JTextField(10);
-	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
+	// Translations (0:M)
+	private final DefaultListModel<TranslationEntry> translationModel = new DefaultListModel<>();
+	private final JList<TranslationEntry> translationList = new JList<>(translationModel);
+	private final List<TranslationEntry> translationEntries = new ArrayList<>();
 
-	// ========== TRANSLATION (0:M) ==========
-	private final DefaultListModel<String> translationListModel = new DefaultListModel<>();
-	private final JList<String> translationList = new JList<>(translationListModel);
-	private final List<FLEFRecord> translationRecords = new ArrayList<>();
+	// Source Citations (0:M)
+	private final DefaultListModel<String> sourceListModel = new DefaultListModel<>();
+	private final JList<String> sourceList = new JList<>(sourceListModel);
+	private final List<FLEFRecord> sourceCitations = new ArrayList<>();
 
-	// ========== SOURCE_CITATION (0:M) ==========
-	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
-	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
-	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
+	// Panels
+	private RestrictionPanel restrictionPanel;
+	private ModificationPanel modificationPanel;
 
-	// ========== MODIFICATION (1:1) ==========
-	private final ModificationPanel modificationPanel;
-
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	/**
+	 * Internal representation of a TRANSLATION entry.
+	 */
+	private static class TranslationEntry{
+		private final String locale;
+		private final String value;
 
-	// ==================== Constructors ====================
-	public NoteDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Note", model, record);
+		TranslationEntry(String locale, String value){
+			this.locale = locale != null? locale: "";
+			this.value = value != null? value: "";
+		}
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		@Override
+		public String toString(){
+			StringBuilder sb = new StringBuilder();
+			if(!locale.isEmpty()){
+				sb.append("[").append(locale).append("] ");
+			}
+			String display = value;
+			if(display.length() > 50){
+				display = display.substring(0, 47) + "...";
+			}
+			sb.append(display);
+			return sb.toString();
+		}
+	}
+
+	// ----- Factory methods -----
+	public static NoteDialog createNew(Frame parent, FLEFModel model){
+		return new NoteDialog(parent, model, null);
+	}
+
+	public static NoteDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+		return new NoteDialog(parent, model, record);
+	}
+
+	// ----- Constructor -----
+	private NoteDialog(Frame parent, FLEFModel model, FLEFRecord record){
+		super(parent, buildTitle(model, record), model, record);
+
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 750));
+		setMinimumSize(new Dimension(550, 600));
 		pack();
 		setLocationRelativeTo(parent);
 	}
 
-	public NoteDialog(Frame parent, FLEFModel model){
-		super(parent, "New Note", model, null);
-
-		this.modificationPanel = new ModificationPanel(model, this);
-		initComponents();
-		loadData();
-		setMinimumSize(new Dimension(850, 750));
-		pack();
-		setLocationRelativeTo(parent);
+	private static String buildTitle(FLEFModel model, FLEFRecord record){
+		return (record == null
+					  ? "New Note"
+					  : "Edit Note - " + record.getId());
 	}
 
-	// ==================== UI Initialization ====================
+	// ----- Initialisation -----
 	@Override
 	protected void initComponents(){
-		setLayout(new BorderLayout(10, 10));
+		restrictionPanel = new RestrictionPanel(this);
+		modificationPanel = new ModificationPanel(model, this);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
-
-		// --- Basic tab ---
-		tabbedPane.addTab("Basic", createBasicPanel());
-
-		// --- Translations tab ---
-		tabbedPane.addTab("Translations", createTranslationsPanel());
-
-		// --- Source Citations tab ---
-		tabbedPane.addTab("Source Citations", createSourceCitationsPanel());
-
-		// --- Modification tab ---
+		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("References", createReferencesPanel());
+		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
 
-		add(tabbedPane, BorderLayout.CENTER);
+		setLayout(new MigLayout("fillx"));
+		add(tabbedPane, "growx,push");
 
-		// --- Button panel ---
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
 		buttonPanel.add(cancelButton);
@@ -192,238 +174,251 @@ public class NoteDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
-
-	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]"));
+	// ==================== Main Panel ====================
+	private JPanel createMainPanel(){
+		JPanel panel = new JPanel(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// ID (read-only)
-		idField.setEditable(false);
-		idField.setText(record.getId());
-		panel.add(new JLabel("ID:"), "align label");
-		panel.add(idField, "growx,wrap");
+		// TITLE (optional)
+		panel.add(new JLabel("Title:"), "align label");
+		panel.add(titleField, "growx,wrap");
 
-		// VALUE (1:1) - marked with an asterisk
-		panel.add(new JLabel("Value*:"), "align label,top");
-		JScrollPane valueScroll = new JScrollPane(valueArea);
-		valueScroll.setPreferredSize(new Dimension(200, 80));
-		panel.add(valueScroll, "growx,wrap");
+		// VALUE (required) - multi-line
+		panel.add(new JLabel("Value:"), "align label,top");
+		valueArea.setLineWrap(true);
+		valueArea.setWrapStyleWord(true);
+		valueScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		valueArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
+		panel.add(valueScrollPane, "growx,wrap");
 
-		// MIME (0:1)
+		// MIME (optional)
 		panel.add(new JLabel("MIME:"), "align label");
-		panel.add(mimeField, "growx,wrap");
+		mimeCombo.setEditable(true);
+		panel.add(mimeCombo, "growx,wrap");
 
-		// LOCALE (0:1)
+		// LOCALE (optional)
 		panel.add(new JLabel("Locale:"), "align label");
-		panel.add(localeField, "growx,wrap");
-
-		// RESTRICTION (0:1)
-		panel.add(restrictionCheckBox, "span 2");
+		localeCombo.setEditable(true);
+		panel.add(localeCombo, "growx,wrap");
 
 		return panel;
 	}
 
+	// ==================== References Panel ====================
+	private JPanel createReferencesPanel(){
+		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]"));
+		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		panel.add(createTranslationsPanel(), "growx");
+		panel.add(createSourceCitationsPanel(), "growx");
+
+		return panel;
+	}
+
+	// ==================== Translations Panel ====================
 	private JPanel createTranslationsPanel(){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
-		panel.setBorder(new TitledBorder("Translation"));
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder("Translations"));
 
+		translationList.setVisibleRowCount(4);
 		translationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		translationList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editTranslation();
-				}
-			}
-		});
-		JScrollPane scrollPane = new JScrollPane(translationList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
-		panel.add(scrollPane, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton newBtn = new JButton("New");
-		JButton editBtn = new JButton("Edit");
-		JButton deleteBtn = new JButton("Delete");
-		btnPanel.add(addBtn);
-		btnPanel.add(newBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(deleteBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
+		GUIHelper.installBehaviour(translationList,
+			() -> translationList.getSelectedIndex() >= 0,
+			this::editTranslation,
+			this::addTranslation,
+			this::removeTranslation,
+			builder -> {
+				builder.item("Add Translation...", this::addTranslation);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editTranslation);
+				builder.selectionSensitiveItem("Remove", this::removeTranslation);
+			});
 
-		translationList.addListSelectionListener(e -> {
-			boolean selected = translationList.getSelectedIndex() != -1;
-			editBtn.setEnabled(selected);
-			deleteBtn.setEnabled(selected);
-		});
-		editBtn.setEnabled(false);
-		deleteBtn.setEnabled(false);
-
-		addBtn.addActionListener(e -> addTranslation());
-		newBtn.addActionListener(e -> createNewTranslation());
-		editBtn.addActionListener(e -> editTranslation());
-		deleteBtn.addActionListener(e -> deleteTranslation());
+		JScrollPane scrollPane = createScrollPane(translationList);
+		scrollPane.setPreferredSize(translationList.getPreferredScrollableViewportSize());
+		panel.add(scrollPane, "growx,wrap");
 
 		return panel;
 	}
 
+	// ==================== Source Citations Panel ====================
 	private JPanel createSourceCitationsPanel(){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
-		panel.setBorder(new TitledBorder("Source Citation"));
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder("Source Citations"));
 
-		sourceCitationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		sourceCitationList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editSourceCitation();
-				}
-			}
-		});
-		JScrollPane scrollPane = new JScrollPane(sourceCitationList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
-		panel.add(scrollPane, BorderLayout.CENTER);
+		sourceList.setVisibleRowCount(4);
+		sourceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton newBtn = new JButton("New Source");
-		JButton editBtn = new JButton("Edit");
-		JButton deleteBtn = new JButton("Delete");
-		btnPanel.add(addBtn);
-		btnPanel.add(newBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(deleteBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
+		GUIHelper.installBehaviour(sourceList,
+			() -> sourceList.getSelectedIndex() >= 0,
+			this::editSourceCitation,
+			this::addSourceCitation,
+			this::removeSourceCitation,
+			builder -> {
+				builder.item("Add Source...", this::addSourceCitation);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editSourceCitation);
+				builder.selectionSensitiveItem("Remove", this::removeSourceCitation);
+			});
 
-		sourceCitationList.addListSelectionListener(e -> {
-			boolean selected = sourceCitationList.getSelectedIndex() != -1;
-			editBtn.setEnabled(selected);
-			deleteBtn.setEnabled(selected);
-		});
-		editBtn.setEnabled(false);
-		deleteBtn.setEnabled(false);
-
-		addBtn.addActionListener(e -> addSourceCitation());
-		newBtn.addActionListener(e -> createNewSource());
-		editBtn.addActionListener(e -> editSourceCitation());
-		deleteBtn.addActionListener(e -> deleteSourceCitation());
+		JScrollPane scrollPane = createScrollPane(sourceList);
+		scrollPane.setPreferredSize(sourceList.getPreferredScrollableViewportSize());
+		panel.add(scrollPane, "growx,wrap");
 
 		return panel;
 	}
 
-	// ==================== Translation methods ====================
-
-	private String getTranslationDisplay(FLEFRecord trans){
-		String locale = FLEFRecordUtils.getChildValue(trans, "LOCALE");
-		String value = FLEFRecordUtils.getChildValue(trans, "VALUE");
-		if(locale != null && !locale.isEmpty() && value != null && !value.isEmpty()){
-			return locale + ": " + value;
-		}
-		else if(locale != null && !locale.isEmpty()){
-			return locale + ": [empty]";
-		}
-		else if(value != null && !value.isEmpty()){
-			return value;
-		}
-		return "[empty]";
-	}
-
-	private void loadTranslations(){
-		translationListModel.clear();
-		translationRecords.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("TRANSLATION".equals(child.getTag())){
-				translationRecords.add(child);
-				translationListModel.addElement(getTranslationDisplay(child));
-			}
-		}
-	}
+	// ==================== Translation Methods ====================
 
 	private void addTranslation(){
-		TranslationDialog dialog = new TranslationDialog(this, model);
-		dialog.setVisible(true);
-		if(dialog.isSaved()){
-			FLEFRecord trans = dialog.getTranslationRecord();
-			if(trans != null){
-				trans.setLevel(1);
-				trans.setTag("TRANSLATION");
-				translationRecords.add(trans);
-				translationListModel.addElement(getTranslationDisplay(trans));
-			}
+		TranslationEntry newEntry = showTranslationDialog(null);
+		if(newEntry != null){
+			translationEntries.add(newEntry);
+			translationModel.addElement(newEntry);
 		}
 	}
 
 	private void editTranslation(){
 		int idx = translationList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		FLEFRecord existing = translationRecords.get(idx);
-		TranslationDialog dialog = new TranslationDialog(this, model, existing);
-		dialog.setVisible(true);
-		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getTranslationRecord();
-			if(updated != null){
-				translationRecords.set(idx, updated);
-				translationListModel.set(idx, getTranslationDisplay(updated));
-			}
+		if(idx == -1) return;
+
+		TranslationEntry current = translationEntries.get(idx);
+		TranslationEntry updated = showTranslationDialog(current);
+		if(updated != null){
+			translationEntries.set(idx, updated);
+			translationModel.set(idx, updated);
 		}
 	}
 
-	private void deleteTranslation(){
+	private void removeTranslation(){
 		int idx = translationList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		if(!showConfirm("Confirm", "Remove this translation?"))
-			return;
-		translationRecords.remove(idx);
-		translationListModel.remove(idx);
+		if(idx == -1) return;
+
+		if(JOptionPane.showConfirmDialog(this, "Remove this translation?", "Confirm",
+			JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+			translationEntries.remove(idx);
+			translationModel.remove(idx);
+		}
 	}
 
-	private void createNewTranslation(){
-		addTranslation();
+	/**
+	 * Shows a dialog to create or edit a translation entry.
+	 *
+	 * @param initial the existing entry, or {@code null} for a new one
+	 * @return the updated entry, or {@code null} if cancelled
+	 */
+	private TranslationEntry showTranslationDialog(TranslationEntry initial){
+		JDialog dialog = new JDialog(this, initial == null? "Add Translation": "Edit Translation", true);
+		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]10[]"));
+
+		// LOCALE
+		JComboBox<String> localeCombo = new JComboBox<>(new String[]{"", "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		localeCombo.setEditable(true);
+		if(initial != null && !initial.locale.isEmpty()){
+			localeCombo.setSelectedItem(initial.locale);
+		}
+
+		dialog.add(new JLabel("Locale:"), "align label");
+		dialog.add(localeCombo, "growx,wrap");
+
+		// VALUE (multi-line)
+		JTextArea valueArea = new JTextArea(5, 25);
+		valueArea.setLineWrap(true);
+		valueArea.setWrapStyleWord(true);
+		if(initial != null){
+			valueArea.setText(initial.value);
+		}
+		JScrollPane valueScroll = new JScrollPane(valueArea);
+		valueScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		valueScroll.setPreferredSize(new Dimension(300, 80));
+
+		dialog.add(new JLabel("Value:"), "align label,top");
+		dialog.add(valueScroll, "growx,wrap");
+
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		JButton okBtn = new JButton("OK");
+		JButton cancelBtn = new JButton("Cancel");
+		btnPanel.add(okBtn);
+		btnPanel.add(cancelBtn);
+		dialog.add(btnPanel, "span 2,growx");
+
+		final TranslationEntry[] result = {null};
+		okBtn.addActionListener(e -> {
+			String locale = (String)localeCombo.getSelectedItem();
+			String value = valueArea.getText().trim();
+
+			if(value.isEmpty()){
+				JOptionPane.showMessageDialog(dialog, "Translation value cannot be empty.",
+					"Validation Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			result[0] = new TranslationEntry(
+				locale != null && !locale.isEmpty()? locale: null,
+				value);
+			dialog.dispose();
+		});
+		cancelBtn.addActionListener(e -> dialog.dispose());
+
+		dialog.pack();
+		dialog.setLocationRelativeTo(this);
+		dialog.setVisible(true);
+		return result[0];
 	}
 
-	// ==================== Source Citation methods ====================
+	private JScrollPane createScrollPane(final JList<?> list){
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
+	}
+
+	// ==================== Source Citation Methods ====================
 
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, null);
-		dialog.setVisible(true);
-		if(dialog.isSaved()){
-			FLEFRecord citation = dialog.getCitationRecord();
-			if(citation != null){
-				citation.setLevel(1);
-				citation.setTag("SOURCE_CITATION");
-				sourceCitationRecords.add(citation);
-				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
-			}
+		if(sourceHandler == null){
+			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
 		}
+
+		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
+			getParentFrame(), model, sourceHandler, selectedId -> {
+			if(selectedId != null){
+				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", selectedId);
+				sourceCitations.add(citation);
+				sourceListModel.addElement(getSourceCitationDisplay(citation));
+			}
+		});
+		selDialog.setVisible(true);
 	}
 
 	private void editSourceCitation(){
-		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		FLEFRecord existing = sourceCitationRecords.get(idx);
+		int idx = sourceList.getSelectedIndex();
+		if(idx == -1) return;
+
+		FLEFRecord existing = sourceCitations.get(idx);
 		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
 			if(updated != null){
-				sourceCitationRecords.set(idx, updated);
-				sourceCitationListModel.set(idx, getSourceCitationDisplay(updated));
+				sourceCitations.set(idx, updated);
+				sourceListModel.set(idx, getSourceCitationDisplay(updated));
 			}
 		}
 	}
 
-	private void deleteSourceCitation(){
-		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		if(!showConfirm("Confirm", "Remove this source citation?"))
-			return;
-		sourceCitationRecords.remove(idx);
-		sourceCitationListModel.remove(idx);
+	private void removeSourceCitation(){
+		int idx = sourceList.getSelectedIndex();
+		if(idx == -1) return;
+
+		if(JOptionPane.showConfirmDialog(this, "Remove this source citation?", "Confirm",
+			JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+			sourceCitations.remove(idx);
+			sourceListModel.remove(idx);
+		}
 	}
 
 	private String getSourceCitationDisplay(FLEFRecord citation){
@@ -438,147 +433,187 @@ public class NoteDialog extends BaseRecordDialog{
 		return "[empty]";
 	}
 
-	private void createNewSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
-		dialog.setVisible(true);
-	}
-
 	// ==================== Load Data ====================
-
 	@Override
 	protected void loadData(){
-		idField.setText(record.getId());
+		setTitle(buildTitle(model, record));
 
-		// VALUE (1:1)
-		valueArea.setText(FLEFRecordUtils.getChildValue(record, "VALUE"));
+		// TITLE (optional)
+		String title = FLEFRecordUtils.getChildValue(record, "TITLE");
+		titleField.setText(title != null? title: "");
 
-		// MIME (0:1)
-		mimeField.setText(FLEFRecordUtils.getChildValue(record, "MIME"));
+		// VALUE (required)
+		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
+		valueArea.setText(value != null? value: "");
 
-		// LOCALE (0:1)
-		localeField.setText(FLEFRecordUtils.getChildValue(record, "LOCALE"));
+		// MIME (optional)
+		String mime = FLEFRecordUtils.getChildValue(record, "MIME");
+		mimeCombo.setSelectedItem(mime != null? mime: "");
 
-		// RESTRICTION (0:1)
-		restrictionCheckBox.setSelected("confidential".equals(FLEFRecordUtils.getChildValue(record, "RESTRICTION")));
+		// LOCALE (optional)
+		String locale = FLEFRecordUtils.getChildValue(record, "LOCALE");
+		localeCombo.setSelectedItem(locale != null? locale: "");
 
-		// TRANSLATION (0:M)
-		loadTranslations();
-
-		// SOURCE_CITATION (0:M)
-		sourceCitationRecords.clear();
-		sourceCitationListModel.clear();
+		// TRANSLATION
+		translationEntries.clear();
+		translationModel.clear();
 		for(FLEFRecord child : record.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
-				sourceCitationRecords.add(child);
-				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
+			if("TRANSLATION".equals(child.getTag())){
+				String translationLocale = FLEFRecordUtils.getChildValue(child, "LOCALE");
+				String translationValue = FLEFRecordUtils.getChildValue(child, "VALUE");
+				// Note: The structure has VALUE directly under TRANSLATION (not nested)
+				// But we need to handle both possibilities
+				if(translationValue == null){
+					// Try to get from child
+					translationValue = FLEFRecordUtils.getChildValue(child, "VALUE");
+				}
+				if(translationValue != null && !translationValue.isEmpty()){
+					TranslationEntry entry = new TranslationEntry(translationLocale, translationValue);
+					translationEntries.add(entry);
+					translationModel.addElement(entry);
+				}
 			}
 		}
 
-		// MODIFICATION (1:1)
+		// SOURCE_CITATION
+		sourceCitations.clear();
+		sourceListModel.clear();
+		for(FLEFRecord child : record.getChildren()){
+			if("SOURCE_CITATION".equals(child.getTag())){
+				sourceCitations.add(child);
+				sourceListModel.addElement(getSourceCitationDisplay(child));
+			}
+		}
+
+		// RESTRICTION_STRUCTURE
+		FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
+		restrictionPanel.loadFromRecord(restrictionStruct);
+
+		// MODIFICATION_STRUCTURE
 		modificationPanel.loadFromRecord(record);
 	}
 
 	// ==================== Validation ====================
-
 	@Override
 	protected boolean validateData(){
-		// VALUE (1:1) - required
+		// VALUE is required
 		if(valueArea.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
-				"VALUE is required.\nPlease enter the note content.",
+				"Note VALUE is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			valueArea.requestFocusInWindow();
 			return false;
 		}
 
-		// MODIFICATION_STRUCTURE (1:1) - required
 		if(!modificationPanel.hasData()){
 			JOptionPane.showMessageDialog(this,
-				"Modification is required.\nPlease add a CREATION date.",
+				"Modification is required for a note.\nPlease add a CREATION date.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		return modificationPanel.validateRequiredFields();
+
+		if(!modificationPanel.validateRequiredFields()){
+			return false;
+		}
+
+		if(restrictionPanel.hasData() && !restrictionPanel.validateRequiredFields()){
+			return false;
+		}
+
+		return true;
 	}
 
 	// ==================== Save ====================
-
 	@Override
 	protected void saveRecord(){
-		// Validation is already done by save() before calling this method
 		record.getChildren().clear();
 
-		// VALUE (1:1)
+		// TITLE (optional)
+		String title = titleField.getText().trim();
+		if(!title.isEmpty()){
+			FLEFRecordUtils.updateChildValue(record, "TITLE", title);
+		}
+
+		// VALUE (required)
 		String value = valueArea.getText().trim();
 		if(!value.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "VALUE", value);
 		}
 
-		// MIME (0:1)
-		String mime = mimeField.getText().trim();
-		if(!mime.isEmpty()){
+		// MIME (optional)
+		String mime = (String)mimeCombo.getSelectedItem();
+		if(mime != null && !mime.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "MIME", mime);
 		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "MIME");
+		}
 
-		// LOCALE (0:1)
-		String locale = localeField.getText().trim();
-		if(!locale.isEmpty()){
+		// LOCALE (optional)
+		String locale = (String)localeCombo.getSelectedItem();
+		if(locale != null && !locale.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "LOCALE", locale);
 		}
-
-		// RESTRICTION (0:1)
-		FLEFRecordUtils.updateChildValue(record, "RESTRICTION",
-			restrictionCheckBox.isSelected()? "confidential": null);
-
-		// TRANSLATION (0:M)
-		for(FLEFRecord trans : translationRecords){
-			trans.setLevel(1);
-			trans.setTag("TRANSLATION");
-			record.addChild(trans);
+		else{
+			FLEFRecordUtils.removeChildren(record, "LOCALE");
 		}
 
-		// SOURCE_CITATION (0:M)
-		for(FLEFRecord citation : sourceCitationRecords){
+		// TRANSLATION
+		FLEFRecordUtils.removeChildren(record, "TRANSLATION");
+		for(TranslationEntry entry : translationEntries){
+			FLEFRecord translation = FLEFRecord.createChild(1, "TRANSLATION");
+
+			if(entry.locale != null && !entry.locale.isEmpty()){
+				FLEFRecord localeChild = FLEFRecord.createChildWithValue(2, "LOCALE", entry.locale);
+				translation.addChild(localeChild);
+			}
+
+			if(entry.value != null && !entry.value.isEmpty()){
+				FLEFRecord valueChild = FLEFRecord.createChildWithValue(2, "VALUE", entry.value);
+				translation.addChild(valueChild);
+			}
+
+			record.addChild(translation);
+		}
+
+		// SOURCE_CITATION
+		for(FLEFRecord citation : sourceCitations){
 			citation.setLevel(1);
 			citation.setTag("SOURCE_CITATION");
 			record.addChild(citation);
 		}
 
-		// MODIFICATION (1:1)
+		// RESTRICTION_STRUCTURE
+		if(restrictionPanel.hasData()){
+			FLEFRecord restriction = restrictionPanel.saveToRecord(null);
+			if(restriction != null){
+				restriction.setLevel(1);
+				restriction.setTag("RESTRICTION");
+				record.addChild(restriction);
+			}
+		}
+
+		// MODIFICATION_STRUCTURE
 		modificationPanel.saveToRecord(record);
 
 		if(isNew){
 			model.addRecord(record);
 		}
+
 		dispose();
 	}
 
 	// ==================== Overrides ====================
-
 	@Override
 	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "NOTE");
+		return FLEFRecord.createMainRecord(generateNewId(), NoteHandler.TYPE);
 	}
 
 	@Override
 	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "NOTE", "N");
+		return FLEFRecordUtils.generateNewId(model, NoteHandler.TYPE, NoteHandler.ID_PREFIX);
 	}
 
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
-	}
-
-	// ==================== Main per test ====================
-
+	// ==================== Main test ====================
 	public static void main(String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -587,15 +622,6 @@ public class NoteDialog extends BaseRecordDialog{
 		}
 
 		FLEFModel model = new FLEFModel();
-
-		// Aggiungi una fonte di esempio per le source citations
-		FLEFRecord source = FLEFRecord.createMainRecord("S1", "SOURCE");
-		FLEFRecord title = new FLEFRecord();
-		title.setLevel(1);
-		title.setTag("TITLE");
-		title.setValue("Sample Book");
-		source.addChild(title);
-		model.addRecord(source);
 
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Test Note Dialog");
@@ -606,7 +632,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Note");
 			btn.addActionListener(e -> {
-				NoteDialog dialog = new NoteDialog(frame, model);
+				NoteDialog dialog = NoteDialog.createNew(frame, model);
 				dialog.setVisible(true);
 				System.out.println("Note saved.");
 			});

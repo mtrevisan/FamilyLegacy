@@ -10,6 +10,7 @@ import java.awt.Frame;
 public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 
 	public static final String TYPE = "INDIVIDUAL";
+	public static final String ID_PREFIX = "I";
 
 
 	@Override

@@ -27,909 +27,594 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Frame;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.io.Serial;
+import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
 /**
- * Reusable panel for editing a CONCLUSION_STRUCTURE.
+ * Panel for editing a {@code CONCLUSION_STRUCTURE} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
  * CONCLUSION_STRUCTURE :=
+ * n CONCLUSION    {1:1}
  *   +1 CONTEXT <RESOLUTION_CONTEXT>    {1:1}
- *   +1 RESOLVES @<XREF:EVENT>@    {0:M}
- *   +1 PREFERRED @<XREF:EVENT>@    {0:1}
+ *   +1 RESOLVES @<XREF:ID>@    {0:M}
+ *   +1 PREFERRED @<XREF:ID>@    {0:1}
  *   +1 PROOF_STATUS <PROOF_STATUS_VALUE>    {1:1}
- *   +1 NARRATIVE <PROOF_NARRATIVE_TEXT>    {0:1}
- *     +2 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 DATE <CONCLUSION_DATE>    {0:1}
+ *   +1 NARRATIVE <TEXT>    {0:1}
+ *   +1 RESEARCH @<XREF:RESEARCH_STATUS>@    {0:M}
+ *   +1 DATE <DATE>    {0:1}
  *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
 public class ConclusionPanel extends JPanel{
 
-	@Serial
-	private static final long serialVersionUID = -6705559964442556599L;
+	// UI components
+	private final JTextField contextField = new JTextField(30);
+	private final JComboBox<String> proofStatusCombo = new JComboBox<>(new String[]{
+		"", "unresearched", "conflicting_evidence", "preponderance_of_evidence", "proven", "disproven"
+	});
+	private final JTextArea narrativeArea = new JTextArea(4, 30);
+	private final JScrollPane narrativeScrollPane = new JScrollPane(narrativeArea);
+	private final JTextField dateField = new JTextField(15);
+
+	// RESOLVES (0:M) - References to conflicting events or associations
+	private final DefaultListModel<String> resolvesListModel = new DefaultListModel<>();
+	private final JList<String> resolvesList = new JList<>(resolvesListModel);
+	private final List<String> resolvesIds = new ArrayList<>();
+
+	// PREFERRED (0:1) - The record determined to be the true one
+	private final JTextField preferredDisplayField = new JTextField(20);
+	private final JButton browsePreferredBtn = new JButton("Browse...");
+	private final JButton clearPreferredBtn = new JButton("Clear");
+	private String preferredId;
+
+	// RESEARCH (0:M) - References to research questions
+	private final DefaultListModel<String> researchListModel = new DefaultListModel<>();
+	private final JList<String> researchList = new JList<>(researchListModel);
+	private final List<String> researchIds = new ArrayList<>();
+
+	// SOURCE_CITATION (0:M) - Sources that support the conclusion
+	private final DefaultListModel<String> sourceListModel = new DefaultListModel<>();
+	private final JList<String> sourceList = new JList<>(sourceListModel);
+	private final List<FLEFRecord> sourceCitations = new ArrayList<>();
 
 	private final FLEFModel model;
-	private final Component parent;
-	private final ModificationPanel modificationPanel;
+	private final Dialog parentDialog;
+	private final RecordTypeHandler<?> sourceHandler = new SourceHandler();
+	private final RecordTypeHandler<?> researchHandler = new ResearchStatusHandler();
 
-	private final JTextField contextField = new JTextField(15);
-	private final DefaultListModel<String> resolvesModel = new DefaultListModel<>();
-	private final JList<String> resolvesList = new JList<>(resolvesModel);
-	private final List<String> resolvesIds = new ArrayList<>();
-	private final JTextField preferredField = new JTextField(15);
-	private final JButton setPreferredBtn = new JButton("Set from Resolves");
-	private final JComboBox<String> proofStatusCombo = new JComboBox<>(new String[]{
-		"", "unresearched", "conflicting_evidence", "preponderance_of_evidence",
-		"proven", "disproven"
-	});
-	private final JTextArea narrativeArea = new JTextArea(3, 20);
-	private final DefaultListModel<String> narrativeNoteModel = new DefaultListModel<>();
-	private final JList<String> narrativeNoteList = new JList<>(narrativeNoteModel);
-	private final List<String> narrativeNoteIds = new ArrayList<>();
-	private final Map<String, String> narrativeNoteDisplayMap = new HashMap<>();
-	private final JTextField dateField = new JTextField(15);
-	private final DefaultListModel<String> sourceModel = new DefaultListModel<>();
-	private final JList<String> sourceList = new JList<>(sourceModel);
-	private final List<String> sourceIds = new ArrayList<>();
-	private final Map<String, String> sourceDisplayMap = new HashMap<>();
-	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
-	private final JList<String> noteList = new JList<>(noteModel);
-	private final List<String> noteIds = new ArrayList<>();
-	private final Map<String, String> noteDisplayMap = new HashMap<>();
-
-	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler("EVENT");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
-
-
-	public ConclusionPanel(FLEFModel model, Component parent){
+	/**
+	 * Constructs a new ConclusionPanel.
+	 *
+	 * @param model  the FLEF model
+	 * @param parent the parent dialog (used for showing message dialogs)
+	 */
+	public ConclusionPanel(FLEFModel model, Dialog parent){
 		this.model = model;
-		this.parent = parent;
-		this.modificationPanel = new ModificationPanel(model, parent);
+		this.parentDialog = parent;
 		initComponents();
 	}
 
-
 	private void initComponents(){
-		setLayout(new BorderLayout());
+		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
+		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		JTabbedPane tabbedPane = new JTabbedPane();
+		// CONTEXT (required)
+		add(new JLabel("Context:"), "align label");
+		contextField.setToolTipText("e.g., 'birth_date', 'marriage_place', 'parentage', 'death_cause', 'relationship_type'");
+		add(contextField, "growx,wrap");
 
-		// ==================== Main Tab (fields up to Date) ====================
-		JPanel mainPanel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]5[]"));
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		// PROOF_STATUS (required)
+		add(new JLabel("Proof Status:"), "align label");
+		add(proofStatusCombo, "growx,wrap");
 
-		// CONTEXT
-		mainPanel.add(new JLabel("Context:"), "align label");
-		mainPanel.add(contextField, "growx,wrap");
+		// NARRATIVE (optional)
+		add(new JLabel("Narrative:"), "align label,top");
+		narrativeArea.setLineWrap(true);
+		narrativeArea.setWrapStyleWord(true);
+		add(narrativeScrollPane, "growx,wrap");
 
-		// RESOLVES - with popup menu and keyboard shortcuts
-		mainPanel.add(new JLabel("Resolves (Events):"), "align label,top");
-		JPanel resolvesPanel = createPopupListPanel(resolvesList, resolvesModel,
-			this::addResolves, this::editResolves, this::removeResolves,
-			this::createNewResolves);
-		mainPanel.add(resolvesPanel, "growx,wrap");
+		// DATE (optional)
+		add(new JLabel("Date:"), "align label");
+		dateField.setToolTipText("ISO 8601 date (e.g., 2026-07-18)");
+		add(dateField, "growx,wrap");
 
-		// PREFERRED
-		mainPanel.add(new JLabel("Preferred Event:"), "align label");
-		preferredField.setEditable(false);
-		preferredField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel preferredPanel = new JPanel(new BorderLayout(5, 5));
-		preferredPanel.add(preferredField, BorderLayout.CENTER);
-		preferredPanel.add(setPreferredBtn, BorderLayout.EAST);
-		mainPanel.add(preferredPanel, "growx,wrap");
-		setPreferredBtn.addActionListener(e -> setPreferredFromResolves());
+		// RESOLVES (0:M)
+		add(createResolvesPanel(), "span 2,growx,wrap");
 
-		// PROOF_STATUS
-		mainPanel.add(new JLabel("Proof Status:"), "align label");
-		mainPanel.add(proofStatusCombo, "growx,wrap");
+		// PREFERRED (0:1)
+		add(createPreferredPanel(), "span 2,growx,wrap");
 
-		// NARRATIVE
-		mainPanel.add(new JLabel("Narrative:"), "align label,top");
-		JScrollPane narrScroll = new JScrollPane(narrativeArea);
-		narrScroll.setPreferredSize(new Dimension(200, 60));
-		mainPanel.add(narrScroll, "growx,wrap");
+		// RESEARCH (0:M)
+		add(createResearchPanel(), "span 2,growx,wrap");
 
-		// NARRATIVE NOTES
-		mainPanel.add(new JLabel("Narrative Notes:"), "align label,top");
-		JPanel narrativeNotePanel = createPopupListPanel("Narrative Note References",
-			narrativeNoteList, narrativeNoteModel,
-			this::addNarrativeNote, this::editNarrativeNote, this::removeNarrativeNote,
-			this::createNewNarrativeNote);
-		mainPanel.add(narrativeNotePanel, "growx,wrap");
-
-		// DATE
-		mainPanel.add(new JLabel("Date:"), "align label");
-		mainPanel.add(dateField, "growx,wrap");
-
-		tabbedPane.addTab("Main", mainPanel);
-
-		// ==================== References Tab ====================
-		JPanel referencesPanel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]"));
-		referencesPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-		// SOURCE CITATIONS
-		referencesPanel.add(new JLabel("Source Citations:"), "align label,top");
-		JPanel sourcePanel = createPopupListPanel("Source References",
-			sourceList, sourceModel,
-			this::addSource, this::editSource, this::removeSource,
-			this::createNewSource);
-		referencesPanel.add(sourcePanel, "growx,wrap");
-
-		// NOTES
-		referencesPanel.add(new JLabel("Notes:"), "align label,top");
-		JPanel notePanel = createPopupListPanel("Note References",
-			noteList, noteModel,
-			this::addNote, this::editNote, this::removeNote,
-			this::createNewNote);
-		referencesPanel.add(notePanel, "growx,wrap");
-
-		// MODIFICATION
-		referencesPanel.add(new JLabel("Modification:"), "align label,top");
-		referencesPanel.add(modificationPanel, "growx,wrap");
-
-		tabbedPane.addTab("References", referencesPanel);
-
-		add(tabbedPane, BorderLayout.CENTER);
+		// SOURCE_CITATION (0:M)
+		add(createSourcePanel(), "span 2,growx,wrap");
 	}
 
+	// ==================== Resolves Panel ====================
 
-	// ==================== Generic popup list panel (no buttons) ====================
-	private JPanel createPopupListPanel(String title, JList<String> list, DefaultListModel<String> model,
-		Runnable addAction, Runnable editAction, Runnable deleteAction,
-		Runnable newAction){
+	private JPanel createResolvesPanel(){
 		JPanel panel = new JPanel(new MigLayout("fillx"));
-		panel.setBorder(new TitledBorder(title));
+		panel.setBorder(new TitledBorder("Resolves (Conflicting Events/Associations)"));
+		resolvesList.setVisibleRowCount(3);
+		resolvesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		list.setVisibleRowCount(4);
-		list.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+		GUIHelper.installBehaviour(resolvesList,
+			() -> resolvesList.getSelectedIndex() >= 0,
+			this::editResolves,                // double‑click → edit
+			this::addResolves,                 // INSERT key → add
+			this::removeResolves,              // DELETE key → remove
+			builder -> {
+				builder.item("Add Existing...", this::addResolves);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editResolves);
+				builder.selectionSensitiveItem("Remove", this::removeResolves);
+			});
 
-		// Popup menu
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem addItem = new JMenuItem("Add Existing...");
-		JMenuItem newItem = new JMenuItem("Create New...");
-		JMenuItem editItem = new JMenuItem("Edit");
-		JMenuItem deleteItem = new JMenuItem("Delete");
-		popup.add(addItem);
-		popup.add(newItem);
-		popup.addSeparator();
-		popup.add(editItem);
-		popup.add(deleteItem);
-
-		list.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = list.locationToIndex(e.getPoint());
-					if(index != -1 && !list.isSelectedIndex(index)){
-						list.setSelectedIndex(index);
-					}
-					popup.show(list, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = list.locationToIndex(e.getPoint());
-					if(index != -1 && !list.isSelectedIndex(index)){
-						list.setSelectedIndex(index);
-					}
-					popup.show(list, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editAction.run();
-				}
-			}
-		});
-
-		// Keyboard shortcuts: Ins = New, Canc = Delete
-		list.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(KeyEvent e){
-				if(e.getKeyCode() == KeyEvent.VK_INSERT){
-					newAction.run();
-					e.consume();
-				}
-				else if(e.getKeyCode() == KeyEvent.VK_DELETE){
-					deleteAction.run();
-					e.consume();
-				}
-			}
-		});
-
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		JScrollPane scrollPane = createScrollPane(resolvesList);
 		panel.add(scrollPane, "growx,wrap");
-
-		list.addListSelectionListener(e -> {
-			boolean selected = list.getSelectedIndex() != -1;
-			editItem.setEnabled(selected);
-			deleteItem.setEnabled(selected);
-		});
-		editItem.setEnabled(false);
-		deleteItem.setEnabled(false);
-
-		addItem.addActionListener(e -> addAction.run());
-		newItem.addActionListener(e -> newAction.run());
-		editItem.addActionListener(e -> editAction.run());
-		deleteItem.addActionListener(e -> deleteAction.run());
-
 		return panel;
 	}
-
-
-	// Overloaded for Resolves panel (no title, as title is outside)
-	private JPanel createPopupListPanel(JList<String> list, DefaultListModel<String> model,
-		Runnable addAction, Runnable editAction, Runnable deleteAction,
-		Runnable newAction){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
-		list.setVisibleRowCount(4);
-		list.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
-
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem addItem = new JMenuItem("Add Existing...");
-		JMenuItem newItem = new JMenuItem("Create New...");
-		JMenuItem editItem = new JMenuItem("Edit");
-		JMenuItem deleteItem = new JMenuItem("Delete");
-		popup.add(addItem);
-		popup.add(newItem);
-		popup.addSeparator();
-		popup.add(editItem);
-		popup.add(deleteItem);
-
-		list.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = list.locationToIndex(e.getPoint());
-					if(index != -1 && !list.isSelectedIndex(index)){
-						list.setSelectedIndex(index);
-					}
-					popup.show(list, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = list.locationToIndex(e.getPoint());
-					if(index != -1 && !list.isSelectedIndex(index)){
-						list.setSelectedIndex(index);
-					}
-					popup.show(list, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editAction.run();
-				}
-			}
-		});
-
-		list.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(KeyEvent e){
-				if(e.getKeyCode() == KeyEvent.VK_INSERT){
-					newAction.run();
-					e.consume();
-				}
-				else if(e.getKeyCode() == KeyEvent.VK_DELETE){
-					deleteAction.run();
-					e.consume();
-				}
-			}
-		});
-
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		panel.add(scrollPane, "growx,wrap");
-
-		list.addListSelectionListener(e -> {
-			boolean selected = list.getSelectedIndex() != -1;
-			editItem.setEnabled(selected);
-			deleteItem.setEnabled(selected);
-		});
-		editItem.setEnabled(false);
-		deleteItem.setEnabled(false);
-
-		addItem.addActionListener(e -> addAction.run());
-		newItem.addActionListener(e -> newAction.run());
-		editItem.addActionListener(e -> editAction.run());
-		deleteItem.addActionListener(e -> deleteAction.run());
-
-		return panel;
-	}
-
-
-	// ==================== RESOLVES methods ====================
 
 	private void addResolves(){
-		if(eventHandler == null){
-			JOptionPane.showMessageDialog(parent, "Event handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
-			model, eventHandler, selectedId -> {
-			if(selectedId != null && !resolvesIds.contains(selectedId)){
-				resolvesIds.add(selectedId);
-				resolvesModel.addElement(selectedId);
+		String input = JOptionPane.showInputDialog(parentDialog,
+			"Enter the XREF ID of the conflicting event or association (e.g., @E123@):",
+			"Add Resolves", JOptionPane.PLAIN_MESSAGE);
+		if(input != null && !input.trim().isEmpty()){
+			String id = input.trim();
+			if(!resolvesIds.contains(id)){
+				resolvesIds.add(id);
+				resolvesListModel.addElement(id);
 			}
-		});
-		dialog.setVisible(true);
+		}
 	}
 
 	private void editResolves(){
 		int idx = resolvesList.getSelectedIndex();
 		if(idx == -1) return;
-		String currentId = resolvesIds.get(idx);
-		String newId = (String)JOptionPane.showInputDialog(
-			parent,
-			"Enter new Event ID:",
-			"Edit Resolves",
-			JOptionPane.PLAIN_MESSAGE,
-			null,
-			null,
-			currentId
-		);
-		if(newId == null || newId.trim().isEmpty()) return;
-		String trimmed = newId.trim();
-		if(!trimmed.equals(currentId) && resolvesIds.contains(trimmed)){
-			JOptionPane.showMessageDialog(parent, "ID already in use.", "Duplicate", JOptionPane.WARNING_MESSAGE);
-			return;
+
+		String current = resolvesIds.get(idx);
+		String input = JOptionPane.showInputDialog(parentDialog,
+			"Edit XREF ID:", "Edit Resolves", JOptionPane.PLAIN_MESSAGE);
+		if(input != null && !input.trim().isEmpty()){
+			String newId = input.trim();
+			if(!resolvesIds.contains(newId) || newId.equals(current)){
+				resolvesIds.set(idx, newId);
+				resolvesListModel.set(idx, newId);
+			}
+			else{
+				JOptionPane.showMessageDialog(parentDialog,
+					"This ID is already in the list.", "Duplicate", JOptionPane.WARNING_MESSAGE);
+			}
 		}
-		String preferredId = preferredField.getText().trim();
-		if(preferredId.equals(currentId)){
-			preferredField.setText(trimmed);
-		}
-		resolvesIds.set(idx, trimmed);
-		resolvesModel.set(idx, trimmed);
 	}
 
 	private void removeResolves(){
 		int idx = resolvesList.getSelectedIndex();
 		if(idx == -1) return;
-		String removedId = resolvesIds.get(idx);
-		int confirm = JOptionPane.showConfirmDialog(parent, "Remove this event reference?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			String preferredId = preferredField.getText().trim();
-			if(preferredId.equals(removedId)){
-				preferredField.setText("");
-			}
+		if(JOptionPane.showConfirmDialog(parentDialog, "Remove this reference?",
+			"Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
 			resolvesIds.remove(idx);
-			resolvesModel.remove(idx);
+			resolvesListModel.remove(idx);
 		}
 	}
 
-	private void createNewResolves(){
-		// For Resolves, "Create New" means create a new Event and add it
-		if(eventHandler == null){
-			JOptionPane.showMessageDialog(parent, "Event handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+	// ==================== Preferred Panel ====================
+
+	private JPanel createPreferredPanel(){
+		JPanel panel = new JPanel(new MigLayout("fillx", "[right]rel[grow]", ""));
+		panel.setBorder(new TitledBorder("Preferred Record"));
+
+		preferredDisplayField.setEditable(false);
+		preferredDisplayField.setBackground(UIManager.getColor("TextField.background"));
+
+		JPanel preferredPanel = new JPanel(new BorderLayout(5, 5));
+		preferredPanel.add(preferredDisplayField, BorderLayout.CENTER);
+
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+		btnPanel.add(browsePreferredBtn);
+		btnPanel.add(clearPreferredBtn);
+		preferredPanel.add(btnPanel, BorderLayout.EAST);
+
+		panel.add(preferredPanel, "growx,wrap");
+
+		browsePreferredBtn.addActionListener(e -> browsePreferred());
+		clearPreferredBtn.addActionListener(e -> clearPreferred());
+		clearPreferredBtn.setEnabled(false);
+
+		return panel;
+	}
+
+	private void browsePreferred(){
+		String input = JOptionPane.showInputDialog(parentDialog,
+			"Enter the XREF ID of the preferred record (e.g., @E123@, @I456@):",
+			"Select Preferred Record", JOptionPane.PLAIN_MESSAGE);
+		if(input != null && !input.trim().isEmpty()){
+			preferredId = input.trim();
+			preferredDisplayField.setText(preferredId);
+			clearPreferredBtn.setEnabled(true);
+		}
+	}
+
+	private void clearPreferred(){
+		preferredId = null;
+		preferredDisplayField.setText("");
+		clearPreferredBtn.setEnabled(false);
+	}
+
+	// ==================== Research Panel ====================
+
+	private JPanel createResearchPanel(){
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder("Research References"));
+		researchList.setVisibleRowCount(3);
+		researchList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		GUIHelper.installBehaviour(researchList,
+			() -> researchList.getSelectedIndex() >= 0,
+			this::editResearch,                // double‑click → edit
+			this::addResearch,                 // INSERT key → add
+			this::removeResearch,              // DELETE key → remove
+			builder -> {
+				builder.item("Add Existing...", this::addResearch);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editResearch);
+				builder.selectionSensitiveItem("Remove", this::removeResearch);
+			});
+
+		JScrollPane scrollPane = createScrollPane(researchList);
+		panel.add(scrollPane, "growx,wrap");
+		return panel;
+	}
+
+	private void addResearch(){
+		if(researchHandler == null){
+			JOptionPane.showMessageDialog(parentDialog, "Research Status handler not registered!",
+				"Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		Set<String> before = new HashSet<>();
-		for(FLEFRecord rec : model.getRecordsByType("EVENT")){
-			String id = rec.getId();
-			if(id != null) before.add(id);
-		}
-		JDialog dialog = eventHandler.createNewDialog((parent instanceof Frame? (Frame)parent: null), model);
-		dialog.setVisible(true);
-		String newId = null;
-		for(FLEFRecord rec : model.getRecordsByType("EVENT")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id)){
-				newId = id;
-				break;
-			}
-		}
-		if(newId != null && !newId.isEmpty() && !resolvesIds.contains(newId)){
-			resolvesIds.add(newId);
-			resolvesModel.addElement(newId);
-		}
-	}
 
-	private void setPreferredFromResolves(){
-		int idx = resolvesList.getSelectedIndex();
-		if(idx == -1){
-			JOptionPane.showMessageDialog(parent, "Please select an event from the Resolves list first.",
-				"No Selection", JOptionPane.INFORMATION_MESSAGE);
-			return;
-		}
-		String selectedId = resolvesIds.get(idx);
-		preferredField.setText(selectedId);
-	}
-
-
-	// ==================== Narrative Note methods ====================
-
-	private String getNarrativeNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
-		}
-		return id;
-	}
-
-	private void addNarrativeNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
-			model, noteHandler, selectedId -> {
-			if(selectedId != null && !narrativeNoteIds.contains(selectedId)){
-				narrativeNoteIds.add(selectedId);
-				String display = getNarrativeNoteDisplayName(selectedId);
-				narrativeNoteDisplayMap.put(selectedId, display);
-				narrativeNoteModel.addElement(display);
-			}
-		});
+			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, researchHandler,
+			selectedId -> {
+				if(selectedId != null && !researchIds.contains(selectedId)){
+					researchIds.add(selectedId);
+					researchListModel.addElement(getResearchDisplayName(selectedId));
+				}
+			});
 		dialog.setVisible(true);
 	}
 
-	private void editNarrativeNote(){
-		int idx = narrativeNoteList.getSelectedIndex();
+	private void editResearch(){
+		int idx = researchList.getSelectedIndex();
 		if(idx == -1) return;
-		String id = narrativeNoteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+
+		String id = researchIds.get(idx);
+		if(researchHandler == null) return;
+
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
-			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parentDialog, "Research record not found: " + id,
+				"Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog((parent instanceof Frame? (Frame)parent: null), model, rec);
+
+		JDialog dialog = researchHandler.createEditDialog(
+			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, rec);
 		dialog.setVisible(true);
-		String newDisplay = getNarrativeNoteDisplayName(id);
-		narrativeNoteDisplayMap.put(id, newDisplay);
-		narrativeNoteModel.set(idx, newDisplay);
+
+		researchListModel.set(idx, getResearchDisplayName(id));
 	}
 
-	private void removeNarrativeNote(){
-		int idx = narrativeNoteList.getSelectedIndex();
+	private void removeResearch(){
+		int idx = researchList.getSelectedIndex();
 		if(idx == -1) return;
-		int confirm = JOptionPane.showConfirmDialog(parent, "Remove this narrative note?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			String removedId = narrativeNoteIds.remove(idx);
-			narrativeNoteDisplayMap.remove(removedId);
-			narrativeNoteModel.remove(idx);
+		if(JOptionPane.showConfirmDialog(parentDialog, "Remove this research reference?",
+			"Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+			researchIds.remove(idx);
+			researchListModel.remove(idx);
 		}
 	}
 
-	private void createNewNarrativeNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		Set<String> before = new HashSet<>(narrativeNoteIds);
-		JDialog dialog = noteHandler.createNewDialog((parent instanceof Frame? (Frame)parent: null), model);
-		dialog.setVisible(true);
-		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !narrativeNoteIds.contains(id)){
-				narrativeNoteIds.add(id);
-				String display = getNarrativeNoteDisplayName(id);
-				narrativeNoteDisplayMap.put(id, display);
-				narrativeNoteModel.addElement(display);
-				break;
-			}
-		}
-	}
-
-
-	// ==================== Source Citation methods ====================
-
-	private String getSourceDisplayName(String id){
-		if(sourceHandler != null){
+	private String getResearchDisplayName(String id){
+		if(researchHandler != null){
 			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
-			}
+			if(rec != null) return researchHandler.getDisplayName(rec);
 		}
 		return id;
+	}
+
+	// ==================== Source Citations Panel ====================
+
+	private JPanel createSourcePanel(){
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder("Source Citations"));
+		sourceList.setVisibleRowCount(3);
+		sourceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		GUIHelper.installBehaviour(sourceList,
+			() -> sourceList.getSelectedIndex() >= 0,
+			this::editSource,                  // double‑click → edit
+			this::addSource,                   // INSERT key → add
+			this::removeSource,                // DELETE key → remove
+			builder -> {
+				builder.item("Add Existing...", this::addSource);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editSource);
+				builder.selectionSensitiveItem("Remove", this::removeSource);
+			});
+
+		JScrollPane scrollPane = createScrollPane(sourceList);
+		panel.add(scrollPane, "growx,wrap");
+		return panel;
+	}
+
+	private JScrollPane createScrollPane(final JList<?> list){
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
 	}
 
 	private void addSource(){
 		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(parent, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parentDialog, "Source handler not registered!",
+				"Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
+
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
-			model, sourceHandler, selectedId -> {
-			if(selectedId != null && !sourceIds.contains(selectedId)){
-				sourceIds.add(selectedId);
-				String display = getSourceDisplayName(selectedId);
-				sourceDisplayMap.put(selectedId, display);
-				sourceModel.addElement(display);
-			}
-		});
+			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, sourceHandler,
+			selectedId -> {
+				if(selectedId != null){
+					FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", selectedId);
+					sourceCitations.add(citation);
+					sourceListModel.addElement(getSourceCitationDisplay(citation));
+				}
+			});
 		dialog.setVisible(true);
 	}
 
 	private void editSource(){
 		int idx = sourceList.getSelectedIndex();
 		if(idx == -1) return;
-		String id = sourceIds.get(idx);
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(parent, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null){
-			JOptionPane.showMessageDialog(parent, "Source not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		JDialog dialog = sourceHandler.createEditDialog((parent instanceof Frame? (Frame)parent: null), model, rec);
+
+		FLEFRecord existing = sourceCitations.get(idx);
+		SourceCitationDialog dialog = new SourceCitationDialog(
+			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, existing);
 		dialog.setVisible(true);
-		String newDisplay = getSourceDisplayName(id);
-		sourceDisplayMap.put(id, newDisplay);
-		sourceModel.set(idx, newDisplay);
+
+		if(dialog.isSaved()){
+			FLEFRecord updated = dialog.getCitationRecord();
+			if(updated != null){
+				sourceCitations.set(idx, updated);
+				sourceListModel.set(idx, getSourceCitationDisplay(updated));
+			}
+		}
 	}
 
 	private void removeSource(){
 		int idx = sourceList.getSelectedIndex();
 		if(idx == -1) return;
-		int confirm = JOptionPane.showConfirmDialog(parent, "Remove this source citation?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			String removedId = sourceIds.remove(idx);
-			sourceDisplayMap.remove(removedId);
-			sourceModel.remove(idx);
+		if(JOptionPane.showConfirmDialog(parentDialog, "Remove this source citation?",
+			"Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+			sourceCitations.remove(idx);
+			sourceListModel.remove(idx);
 		}
 	}
 
-	private void createNewSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(parent, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		Set<String> before = new HashSet<>(sourceIds);
-		JDialog dialog = sourceHandler.createNewDialog((parent instanceof Frame? (Frame)parent: null), model);
-		dialog.setVisible(true);
-		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !sourceIds.contains(id)){
-				sourceIds.add(id);
-				String display = getSourceDisplayName(id);
-				sourceDisplayMap.put(id, display);
-				sourceModel.addElement(display);
-				break;
+	private String getSourceCitationDisplay(FLEFRecord citation){
+		String sourceId = citation.getValue();
+		if(sourceId != null){
+			FLEFRecord rec = model.getRecordById(sourceId);
+			if(rec != null && sourceHandler != null){
+				return sourceHandler.getDisplayName(rec);
 			}
+			return sourceId;
 		}
+		return "[empty]";
 	}
 
-
-	// ==================== Note methods ====================
-
-	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
-		}
-		return id;
-	}
-
-	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
-			model, noteHandler, selectedId -> {
-			if(selectedId != null && !noteIds.contains(selectedId)){
-				noteIds.add(selectedId);
-				String display = getNoteDisplayName(selectedId);
-				noteDisplayMap.put(selectedId, display);
-				noteModel.addElement(display);
-			}
-		});
-		dialog.setVisible(true);
-	}
-
-	private void editNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
-		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null){
-			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		JDialog dialog = noteHandler.createEditDialog((parent instanceof Frame? (Frame)parent: null), model, rec);
-		dialog.setVisible(true);
-		String newDisplay = getNoteDisplayName(id);
-		noteDisplayMap.put(id, newDisplay);
-		noteModel.set(idx, newDisplay);
-	}
-
-	private void removeNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
-		int confirm = JOptionPane.showConfirmDialog(parent, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			String removedId = noteIds.remove(idx);
-			noteDisplayMap.remove(removedId);
-			noteModel.remove(idx);
-		}
-	}
-
-	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog((parent instanceof Frame? (Frame)parent: null), model);
-		dialog.setVisible(true);
-		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !noteIds.contains(id)){
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteModel.addElement(display);
-				break;
-			}
-		}
-	}
-
-
-	// ==================== Public API ====================
+	// ==================== Load / Save ====================
 
 	public void loadFromRecord(FLEFRecord conclusionRecord){
-		contextField.setText("");
-		resolvesModel.clear();
-		resolvesIds.clear();
-		preferredField.setText("");
-		proofStatusCombo.setSelectedItem("");
-		narrativeArea.setText("");
-		narrativeNoteModel.clear();
-		narrativeNoteIds.clear();
-		narrativeNoteDisplayMap.clear();
-		dateField.setText("");
-		sourceModel.clear();
-		sourceIds.clear();
-		sourceDisplayMap.clear();
-		noteModel.clear();
-		noteIds.clear();
-		noteDisplayMap.clear();
-		modificationPanel.clear();
+		clear();
 
 		if(conclusionRecord == null){
 			return;
 		}
 
-		contextField.setText(FLEFRecordUtils.getChildValue(conclusionRecord, "CONTEXT"));
+		// CONTEXT
+		String context = FLEFRecordUtils.getChildValue(conclusionRecord, "CONTEXT");
+		contextField.setText(context != null? context: "");
 
-		for(FLEFRecord child : conclusionRecord.getChildren()){
-			if("RESOLVES".equals(child.getTag()) && child.getValue() != null){
-				resolvesIds.add(child.getValue());
-				resolvesModel.addElement(child.getValue());
-			}
-		}
-
-		String preferred = FLEFRecordUtils.getChildValue(conclusionRecord, "PREFERRED");
-		preferredField.setText(preferred != null? preferred: "");
-
+		// PROOF_STATUS
 		String proofStatus = FLEFRecordUtils.getChildValue(conclusionRecord, "PROOF_STATUS");
 		proofStatusCombo.setSelectedItem(proofStatus != null? proofStatus: "");
 
-		narrativeArea.setText(FLEFRecordUtils.getChildValue(conclusionRecord, "NARRATIVE"));
+		// NARRATIVE
+		String narrative = FLEFRecordUtils.getChildValue(conclusionRecord, "NARRATIVE");
+		narrativeArea.setText(narrative != null? narrative: "");
 
-		FLEFRecord narrative = FLEFRecordUtils.findChild(conclusionRecord, "NARRATIVE");
-		if(narrative != null){
-			for(FLEFRecord child : narrative.getChildren()){
-				if("NOTE".equals(child.getTag()) && child.getValue() != null){
-					String id = child.getValue();
-					narrativeNoteIds.add(id);
-					String display = getNarrativeNoteDisplayName(id);
-					narrativeNoteDisplayMap.put(id, display);
-					narrativeNoteModel.addElement(display);
-				}
-			}
-		}
+		// DATE
+		String date = FLEFRecordUtils.getChildValue(conclusionRecord, "DATE");
+		dateField.setText(date != null? date: "");
 
-		dateField.setText(FLEFRecordUtils.getChildValue(conclusionRecord, "DATE"));
-
+		// RESOLVES
+		resolvesIds.clear();
+		resolvesListModel.clear();
 		for(FLEFRecord child : conclusionRecord.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag()) && child.getValue() != null){
-				String id = child.getValue();
-				sourceIds.add(id);
-				String display = getSourceDisplayName(id);
-				sourceDisplayMap.put(id, display);
-				sourceModel.addElement(display);
+			if("RESOLVES".equals(child.getTag()) && child.getValue() != null){
+				resolvesIds.add(child.getValue());
+				resolvesListModel.addElement(child.getValue());
 			}
 		}
 
+		// PREFERRED
+		String preferred = FLEFRecordUtils.getChildValue(conclusionRecord, "PREFERRED");
+		if(preferred != null && !preferred.isEmpty()){
+			preferredId = preferred;
+			preferredDisplayField.setText(preferred);
+			clearPreferredBtn.setEnabled(true);
+		}
+
+		// RESEARCH
+		researchIds.clear();
+		researchListModel.clear();
 		for(FLEFRecord child : conclusionRecord.getChildren()){
-			if("NOTE".equals(child.getTag()) && child.getValue() != null){
-				String id = child.getValue();
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteModel.addElement(display);
+			if("RESEARCH".equals(child.getTag()) && child.getValue() != null){
+				researchIds.add(child.getValue());
+				researchListModel.addElement(getResearchDisplayName(child.getValue()));
 			}
 		}
 
-		modificationPanel.loadFromRecord(conclusionRecord);
+		// SOURCE_CITATION
+		sourceCitations.clear();
+		sourceListModel.clear();
+		for(FLEFRecord child : conclusionRecord.getChildren()){
+			if("SOURCE_CITATION".equals(child.getTag())){
+				sourceCitations.add(child);
+				sourceListModel.addElement(getSourceCitationDisplay(child));
+			}
+		}
 	}
 
-	public FLEFRecord saveToRecord(FLEFRecord conclusionRecord){
-		if(!validateRequiredFields()){
+	public FLEFRecord saveToRecord(FLEFRecord targetRecord){
+		if(!hasData()){
 			return null;
 		}
 
-		if(conclusionRecord == null){
-			conclusionRecord = new FLEFRecord();
-			conclusionRecord.setLevel(2);
-			conclusionRecord.setTag("CONCLUSION");
-		}
+		FLEFRecord record = targetRecord != null? targetRecord: new FLEFRecord();
+		// Level and tag will be set by the caller
 
-		conclusionRecord.getChildren().clear();
-
+		// CONTEXT (required)
 		String context = contextField.getText().trim();
 		if(!context.isEmpty()){
-			FLEFRecordUtils.updateChildValue(conclusionRecord, "CONTEXT", context);
+			FLEFRecordUtils.updateChildValue(record, "CONTEXT", context);
+		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "CONTEXT");
 		}
 
-		for(String id : resolvesIds){
-			FLEFRecordUtils.addChild(conclusionRecord, "RESOLVES", 3, id);
-		}
-
-		String preferred = preferredField.getText().trim();
-		if(!preferred.isEmpty()){
-			FLEFRecordUtils.updateChildValue(conclusionRecord, "PREFERRED", preferred);
-		}
-
+		// PROOF_STATUS (required)
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
 		if(proofStatus != null && !proofStatus.isEmpty()){
-			FLEFRecordUtils.updateChildValue(conclusionRecord, "PROOF_STATUS", proofStatus);
+			FLEFRecordUtils.updateChildValue(record, "PROOF_STATUS", proofStatus);
+		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "PROOF_STATUS");
 		}
 
+		// NARRATIVE (optional)
 		String narrative = narrativeArea.getText().trim();
-		if(!narrative.isEmpty() || !narrativeNoteIds.isEmpty()){
-			FLEFRecord narrativeRecord = FLEFRecord.createChildWithValue(3, "NARRATIVE", narrative);
-			conclusionRecord.addChild(narrativeRecord);
-			for(String id : narrativeNoteIds){
-				FLEFRecordUtils.addChild(narrativeRecord, "NOTE", 4, id);
+		if(!narrative.isEmpty()){
+			FLEFRecordUtils.updateChildValue(record, "NARRATIVE", narrative);
+		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "NARRATIVE");
+		}
+
+		// DATE (optional)
+		String date = dateField.getText().trim();
+		if(!date.isEmpty()){
+			FLEFRecordUtils.updateChildValue(record, "DATE", date);
+		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "DATE");
+		}
+
+		// RESOLVES (0:M)
+		FLEFRecordUtils.removeChildren(record, "RESOLVES");
+		for(String id : resolvesIds){
+			if(id != null && !id.isEmpty()){
+				FLEFRecordUtils.addChild(record, "RESOLVES", 1, id);
 			}
 		}
 
-		String date = dateField.getText().trim();
-		if(!date.isEmpty()){
-			FLEFRecordUtils.updateChildValue(conclusionRecord, "DATE", date);
+		// PREFERRED (0:1)
+		if(preferredId != null && !preferredId.isEmpty()){
+			FLEFRecordUtils.updateChildValue(record, "PREFERRED", preferredId);
+		}
+		else{
+			FLEFRecordUtils.removeChildren(record, "PREFERRED");
 		}
 
-		for(String id : sourceIds){
-			FLEFRecordUtils.addChild(conclusionRecord, "SOURCE_CITATION", 3, id);
+		// RESEARCH (0:M)
+		FLEFRecordUtils.removeChildren(record, "RESEARCH");
+		for(String id : researchIds){
+			if(id != null && !id.isEmpty()){
+				FLEFRecordUtils.addChild(record, "RESEARCH", 1, id);
+			}
 		}
 
-		for(String id : noteIds){
-			FLEFRecordUtils.addChild(conclusionRecord, "NOTE", 3, id);
+		// SOURCE_CITATION (0:M)
+		FLEFRecordUtils.removeChildren(record, "SOURCE_CITATION");
+		for(FLEFRecord citation : sourceCitations){
+			citation.setLevel(1);
+			citation.setTag("SOURCE_CITATION");
+			record.addChild(citation);
 		}
 
-		modificationPanel.saveToRecord(conclusionRecord);
+		return record;
+	}
 
-		return conclusionRecord;
+	public void clear(){
+		contextField.setText("");
+		proofStatusCombo.setSelectedIndex(0);
+		narrativeArea.setText("");
+		dateField.setText("");
+		resolvesIds.clear();
+		resolvesListModel.clear();
+		preferredId = null;
+		preferredDisplayField.setText("");
+		clearPreferredBtn.setEnabled(false);
+		researchIds.clear();
+		researchListModel.clear();
+		sourceCitations.clear();
+		sourceListModel.clear();
+	}
+
+	public boolean hasData(){
+		String context = contextField.getText().trim();
+		String proofStatus = (String)proofStatusCombo.getSelectedItem();
+		return !context.isEmpty() || (proofStatus != null && !proofStatus.isEmpty());
 	}
 
 	public boolean validateRequiredFields(){
-		if(!hasData()){
-			return true;
-		}
-
-		if(contextField.getText().trim().isEmpty()){
-			JOptionPane.showMessageDialog(parent,
+		String context = contextField.getText().trim();
+		if(context.isEmpty()){
+			JOptionPane.showMessageDialog(parentDialog,
 				"CONTEXT is required for a conclusion.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			contextField.requestFocusInWindow();
 			return false;
 		}
 
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
 		if(proofStatus == null || proofStatus.isEmpty()){
-			JOptionPane.showMessageDialog(parent,
+			JOptionPane.showMessageDialog(parentDialog,
 				"PROOF_STATUS is required for a conclusion.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			proofStatusCombo.requestFocusInWindow();
 			return false;
 		}
 
 		return true;
-	}
-
-	public boolean hasData(){
-		return !contextField.getText().trim().isEmpty() ||
-			!resolvesModel.isEmpty() ||
-			!preferredField.getText().trim().isEmpty() ||
-			(proofStatusCombo.getSelectedItem() != null &&
-				!((String)proofStatusCombo.getSelectedItem()).isEmpty()) ||
-			!narrativeArea.getText().trim().isEmpty() ||
-			!narrativeNoteModel.isEmpty() ||
-			!dateField.getText().trim().isEmpty() ||
-			!sourceModel.isEmpty() ||
-			!noteModel.isEmpty() ||
-			modificationPanel.hasData();
-	}
-
-	public void clear(){
-		contextField.setText("");
-		resolvesModel.clear();
-		resolvesIds.clear();
-		preferredField.setText("");
-		proofStatusCombo.setSelectedItem("");
-		narrativeArea.setText("");
-		narrativeNoteModel.clear();
-		narrativeNoteIds.clear();
-		narrativeNoteDisplayMap.clear();
-		dateField.setText("");
-		sourceModel.clear();
-		sourceIds.clear();
-		sourceDisplayMap.clear();
-		noteModel.clear();
-		noteIds.clear();
-		noteDisplayMap.clear();
-		modificationPanel.clear();
 	}
 
 }

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -202,7 +203,7 @@ public class SourceCitationPanel extends JPanel{
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 
-		JScrollPane scrollPane = new JScrollPane(noteList);
+		JScrollPane scrollPane = createScrollPane(noteList);
 		scrollPane.setPreferredSize(new Dimension(200, 60));
 		panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -239,6 +240,13 @@ public class SourceCitationPanel extends JPanel{
 		deleteBtn.addActionListener(e -> deleteNote());
 
 		return panel;
+	}
+
+	private JScrollPane createScrollPane(final JList<?> list){
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
 	}
 
 	// ==================== Note methods ====================

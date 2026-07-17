@@ -263,14 +263,6 @@ public class FamilyEventDialog extends BaseRecordDialog{
 		return FLEFRecordUtils.generateNewId(model, "EVENT", "E");
 	}
 
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
-	}
-
 	// ==================== Main per test ====================
 
 	public static void main(String[] args){

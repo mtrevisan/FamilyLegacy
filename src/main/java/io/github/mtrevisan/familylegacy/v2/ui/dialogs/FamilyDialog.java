@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -393,148 +394,6 @@ public class FamilyDialog extends BaseRecordDialog{
 	}
 
 
-	// ==================== Internal Image Crop Dialog ====================
-
-	/**
-	 * A dialog that allows the user to select a rectangular crop area on an image.
-	 */
-	private static class ImageCropDialog extends JDialog{
-		private final BufferedImage image;
-		private Rectangle cropRect;
-		private final CropPanel cropPanel;
-
-		public ImageCropDialog(Frame parent, BufferedImage image){
-			super(parent, "Select Crop Area", true);
-			this.image = image;
-			cropPanel = new CropPanel(image);
-			initComponents();
-			pack();
-			setSize(600, 500);
-			setLocationRelativeTo(parent);
-		}
-
-		private void initComponents(){
-			setLayout(new BorderLayout(5, 5));
-
-			JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-			JButton okBtn = new JButton("OK");
-			JButton cancelBtn = new JButton("Cancel");
-			buttonPanel.add(okBtn);
-			buttonPanel.add(cancelBtn);
-
-			add(cropPanel, BorderLayout.CENTER);
-			add(buttonPanel, BorderLayout.SOUTH);
-
-			okBtn.addActionListener(e -> {
-				cropRect = cropPanel.getCropRect();
-				dispose();
-			});
-			cancelBtn.addActionListener(e -> {
-				cropRect = null;
-				dispose();
-			});
-		}
-
-		public Rectangle getCrop(){
-			return cropRect;
-		}
-
-		/**
-		 * Panel that displays an image and allows the user to draw a crop rectangle.
-		 */
-		private static class CropPanel extends JPanel{
-			private final BufferedImage image;
-			private final int imgWidth;
-			private final int imgHeight;
-			private Rectangle rect;
-			private Point start;
-			private boolean drawing;
-
-			public CropPanel(BufferedImage image){
-				this.image = image;
-				this.imgWidth = image.getWidth();
-				this.imgHeight = image.getHeight();
-				setPreferredSize(new Dimension(500, 400));
-				setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-
-				MouseAdapter adapter = new MouseAdapter(){
-					@Override
-					public void mousePressed(MouseEvent e){
-						start = e.getPoint();
-						rect = null;
-						drawing = true;
-						repaint();
-					}
-
-					@Override
-					public void mouseDragged(MouseEvent e){
-						if(start != null && drawing){
-							int x = Math.min(start.x, e.getX());
-							int y = Math.min(start.y, e.getY());
-							int w = Math.abs(e.getX() - start.x);
-							int h = Math.abs(e.getY() - start.y);
-							rect = new Rectangle(x, y, w, h);
-							repaint();
-						}
-					}
-
-					@Override
-					public void mouseReleased(MouseEvent e){
-						drawing = false;
-					}
-				};
-				addMouseListener(adapter);
-				addMouseMotionListener(adapter);
-			}
-
-			@Override
-			protected void paintComponent(Graphics g){
-				super.paintComponent(g);
-				Graphics2D g2 = (Graphics2D)g;
-
-				int panelWidth = getWidth();
-				int panelHeight = getHeight();
-				double scale = Math.min((double)panelWidth / imgWidth, (double)panelHeight / imgHeight);
-				int scaledW = (int)(imgWidth * scale);
-				int scaledH = (int)(imgHeight * scale);
-				int x = (panelWidth - scaledW) / 2;
-				int y = (panelHeight - scaledH) / 2;
-				g2.drawImage(image, x, y, scaledW, scaledH, null);
-
-				if(rect != null){
-					g2.setColor(Color.RED);
-					g2.drawRect(rect.x, rect.y, rect.width, rect.height);
-					g2.setColor(new Color(255, 0, 0, 50));
-					g2.fillRect(rect.x, rect.y, rect.width, rect.height);
-				}
-			}
-
-			public Rectangle getCropRect(){
-				if(rect == null)
-					return null;
-				int panelWidth = getWidth();
-				int panelHeight = getHeight();
-				double scale = Math.min((double)panelWidth / imgWidth, (double)panelHeight / imgHeight);
-				int scaledW = (int)(imgWidth * scale);
-				int scaledH = (int)(imgHeight * scale);
-				int offsetX = (panelWidth - scaledW) / 2;
-				int offsetY = (panelHeight - scaledH) / 2;
-
-				int imgX = (int)((rect.x - offsetX) / scale);
-				int imgY = (int)((rect.y - offsetY) / scale);
-				int imgW = (int)(rect.width / scale);
-				int imgH = (int)(rect.height / scale);
-
-				imgX = Math.clamp(imgX, 0, imgWidth - 1);
-				imgY = Math.clamp(imgY, 0, imgHeight - 1);
-				imgW = Math.min(imgW, imgWidth - imgX);
-				imgH = Math.min(imgH, imgHeight - imgY);
-				return new Rectangle(imgX, imgY, imgW, imgH);
-			}
-		}
-	}
-
-
 	// ==================== Parents & Children Panel ====================
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[grow]", "[]10[]10[]10[]"));
@@ -675,7 +534,7 @@ public class FamilyDialog extends BaseRecordDialog{
 
 	// ==================== References Panel ====================
 	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]5[]5[]5"));
+		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(createListPanel("Events",
@@ -1798,14 +1657,6 @@ public class FamilyDialog extends BaseRecordDialog{
 	@Override
 	protected String generateNewId(){
 		return FLEFRecordUtils.generateNewId(model, FamilyHandler.TYPE, FamilyHandler.ID_PREFIX);
-	}
-
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
 	}
 
 

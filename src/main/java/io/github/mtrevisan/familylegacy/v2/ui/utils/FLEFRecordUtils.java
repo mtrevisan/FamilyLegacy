@@ -190,6 +190,25 @@ public final class FLEFRecordUtils{
 	}
 
 	/**
+	 * Copies a record and all its children, adjusting the level offset.
+	 *
+	 * @param source   the source record to copy
+	 * @param newLevel the new level for the root of the copied tree
+	 * @return a deep copy of the record with adjusted levels
+	 */
+	public static FLEFRecord copyRecordWithLevel(FLEFRecord source, int newLevel){
+		if(source == null) return null;
+		FLEFRecord copy = new FLEFRecord();
+		copy.setLevel(newLevel);
+		copy.setTag(source.getTag());
+		copy.setValue(source.getValue());
+		for(FLEFRecord child : source.getChildren()){
+			copy.addChild(copyRecordWithLevel(child, newLevel + 1));
+		}
+		return copy;
+	}
+
+	/**
 	 * Generates a new unique ID for a record type.
 	 *
 	 * @param model	The FLEF model.

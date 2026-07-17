@@ -193,17 +193,29 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 				filteredRecords.add(record);
 			}
 		}
+		// Order by display name
+		filteredRecords.sort((a, b) -> {
+			String nameA = handler.getDisplayName(a);
+			String nameB = handler.getDisplayName(b);
+			return nameA.compareToIgnoreCase(nameB);
+		});
 		updateList();
 	}
 
 
 	private void updateList(){
 		listModel.clear();
-		for(FLEFRecord record : filteredRecords){
-			listModel.addElement(handler.getDisplayName(record));
-		}
 		if(filteredRecords.isEmpty()){
 			listModel.addElement("[No matching records]");
+			list.setEnabled(false);
+			selectButton.setEnabled(false);
+		}
+		else{
+			list.setEnabled(true);
+			selectButton.setEnabled(true);
+			for(FLEFRecord record : filteredRecords){
+				listModel.addElement(handler.getDisplayName(record));
+			}
 		}
 	}
 

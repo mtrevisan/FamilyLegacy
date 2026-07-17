@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TranscribedTextDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +51,7 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -128,7 +130,7 @@ public class ContactStructurePanel extends JPanel{
 	public ContactStructurePanel(FLEFModel model, Component parent){
 		this.model = model;
 		this.parent = parent;
-		this.modificationPanel = new ModificationPanel(model, parent);
+		this.modificationPanel = new ModificationPanel(model, (Dialog)parent);
 		initComponents();
 	}
 
@@ -188,7 +190,7 @@ public class ContactStructurePanel extends JPanel{
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.setBorder(new TitledBorder("Caller ID Transcriptions"));
 
-		JScrollPane scrollPane = new JScrollPane(transcriptionList);
+		JScrollPane scrollPane = createScrollPane(transcriptionList);
 		scrollPane.setPreferredSize(new Dimension(200, 100));
 		panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -224,13 +226,20 @@ public class ContactStructurePanel extends JPanel{
 		return panel;
 	}
 
+	private JScrollPane createScrollPane(final JList<?> list){
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
+	}
+
 	// ==================== Notes Tab ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.setBorder(new TitledBorder("Note References"));
 
-		JScrollPane scrollPane = new JScrollPane(noteList);
+		JScrollPane scrollPane = createScrollPane(noteList);
 		scrollPane.setPreferredSize(new Dimension(200, 70));
 		panel.add(scrollPane, BorderLayout.CENTER);
 

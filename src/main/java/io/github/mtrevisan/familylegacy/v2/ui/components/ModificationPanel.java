@@ -26,426 +26,360 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 
 
 /**
- * Reusable panel for editing a MODIFICATION_STRUCTURE.
+ * Panel for editing a {@code MODIFICATION_STRUCTURE} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
  * MODIFICATION_STRUCTURE :=
- *   n CREATION    {1:1}
- *     +1 DATE <CREATION_DATE>    {1:1}
- *   n UPDATE    {0:M}
- *     +1 DATE <UPDATE_DATE>    {1:1}
- *     +1 NOTE <TEXT>    {0:1}
+ * n CREATION    {1:1}
+ *   +1 DATE <DATE>    {1:1}
+ * n UPDATE    {0:M}
+ *   +1 DATE <DATE>    {1:1}
+ *   +1 COMMENT <TEXT>    {0:1}
+ * </pre>
  */
 public class ModificationPanel extends JPanel{
 
 	@Serial
-	private static final long serialVersionUID = 7707110647553098799L;
+	private static final long serialVersionUID = -8538135290834556766L;
 
+	private final FLEFModel model;
+	private final Dialog parentDialog;
 
-	private final Component parent;
-
-	// CREATION (1:1)
+	// Creation fields
 	private final JTextField creationDateField = new JTextField(15);
+	private final JTextArea creationCommentArea = new JTextArea(2, 30);
 
-	// UPDATE (0:M)
-	private final DefaultListModel<UpdateRecord> updateModel = new DefaultListModel<>();
-	private final JList<UpdateRecord> updateList = new JList<>(updateModel);
-	private final List<UpdateRecord> updateRecords = new ArrayList<>();
+	// Update entries
+	private final DefaultListModel<UpdateEntry> updateModel = new DefaultListModel<>();
+	private final JList<UpdateEntry> updateList = new JList<>(updateModel);
+	private final List<UpdateEntry> updateEntries = new ArrayList<>();
 
 	/**
-	 * Represents a single UPDATE record.
+	 * Internal representation of an UPDATE entry.
 	 */
-	public static class UpdateRecord{
-		public String date;
-		public String noteText;
+	private static class UpdateEntry{
+		private final String date;
+		private final String comment;
 
-		public UpdateRecord(String date, String noteText){
-			this.date = date;
-			this.noteText = noteText;
+		UpdateEntry(String date, String comment){
+			this.date = date != null? date: "";
+			this.comment = comment != null? comment: "";
 		}
 
 		@Override
 		public String toString(){
-			if(date != null && !date.isEmpty()){
-				return date + (noteText != null && !noteText.isEmpty()? " (note: " + noteText + ")": "");
+			StringBuilder sb = new StringBuilder(date);
+			if(!comment.isEmpty()){
+				sb.append(": ").append(comment);
 			}
-			return "(empty)";
+			if(sb.length() > 60){
+				return sb.substring(0, 57) + "...";
+			}
+			return sb.toString();
 		}
 	}
 
 	/**
-	 * Creates a new ModificationPanel.
+	 * Constructs a new ModificationPanel.
 	 *
-	 * @param model  the FLEF model (kept for compatibility, but not used for note references)
-	 * @param parent the parent component (for showing dialogs)
+	 * @param model  the FLEF model
+	 * @param parent the parent dialog (used for showing message dialogs)
 	 */
-	public ModificationPanel(FLEFModel model, Component parent){
-		this.parent = parent;
+	public ModificationPanel(FLEFModel model, Dialog parent){
+		this.model = model;
+		this.parentDialog = parent;
 		initComponents();
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
-		setBorder(new TitledBorder("Modification"));
+		setLayout(new MigLayout("ins 10, fillx, wrap 2", "[right]rel[grow]", "[]10[]10[]"));
+		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// CREATION (1:1)
-		add(new JLabel("Creation Date:"), "align label");
-		add(creationDateField, "growx,wrap");
+		// CREATION section
+		JPanel creationPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]", "[]5[]"));
+		creationPanel.setBorder(new TitledBorder("Creation"));
 
-		// UPDATE (0:M)
-		add(new JLabel("Updates:"), "align label,top");
+		creationPanel.add(new JLabel("Date:"), "align label");
+		creationPanel.add(creationDateField, "growx,wrap");
 
-		JPanel updatePanel = createModificationPanel();
-		add(updatePanel, "growx");
-	}
+		creationPanel.add(new JLabel("Comment:"), "align label,top");
+		creationCommentArea.setLineWrap(true);
+		creationCommentArea.setWrapStyleWord(true);
+		JScrollPane commentScroll = new JScrollPane(creationCommentArea);
+		commentScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		commentScroll.setPreferredSize(new Dimension(300, 40));
+		creationPanel.add(commentScroll, "growx,wrap");
 
-	private JPanel createModificationPanel(){
-		JPanel panel = new JPanel(new BorderLayout(3, 3));
+		add(creationPanel, "span 2,growx");
 
-		updateList.setVisibleRowCount(4);
-		JScrollPane scrollPane = new JScrollPane(updateList);
+		// UPDATES section
+		JPanel updatePanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]", ""));
+		updatePanel.setBorder(new TitledBorder("Updates"));
+
+		updateList.setVisibleRowCount(3);
+		updateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		// Install popup behaviour (no buttons!)
+		GUIHelper.installBehaviour(updateList,
+			() -> updateList.getSelectedIndex() >= 0,
+			this::editUpdate,                    // double‑click → edit
+			this::addUpdate,                     // INSERT key → add
+			this::removeUpdate,                  // DELETE key → remove
+			builder -> {
+				builder.item("Add Update...", this::addUpdate);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editUpdate);
+				builder.selectionSensitiveItem("Remove", this::removeUpdate);
+			});
+
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(updateList,
+			ScrollableContainerHost.ScrollType.VERTICAL));
 		scrollPane.setPreferredSize(updateList.getPreferredScrollableViewportSize());
-		panel.add(scrollPane, BorderLayout.CENTER);
+		updatePanel.add(scrollPane, "growx,wrap");
 
-		// ----- Menu contestuale -----
-		JPopupMenu popup = new JPopupMenu();
-		JMenuItem addItem = new JMenuItem("Add");
-		JMenuItem editItem = new JMenuItem("Edit");
-		JMenuItem deleteItem = new JMenuItem("Delete");
-		popup.add(addItem);
-		popup.addSeparator();
-		popup.add(editItem);
-		popup.add(deleteItem);
-
-		// Mouse listener per popup (click destro) e doppio click
-		updateList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = updateList.locationToIndex(e.getPoint());
-					if(index != -1 && !updateList.isSelectedIndex(index)){
-						updateList.setSelectedIndex(index);
-					}
-					popup.show(updateList, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()){
-					int index = updateList.locationToIndex(e.getPoint());
-					if(index != -1 && !updateList.isSelectedIndex(index)){
-						updateList.setSelectedIndex(index);
-					}
-					popup.show(updateList, e.getX(), e.getY());
-				}
-			}
-
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editUpdate();
-				}
-			}
-		});
-
-		// Scorciatoie da tastiera: Ins per Add, Canc per Delete
-		updateList.addKeyListener(new KeyAdapter(){
-			@Override
-			public void keyPressed(KeyEvent e){
-				if(e.getKeyCode() == KeyEvent.VK_INSERT){
-					addUpdate();
-					e.consume();
-				}
-				else if(e.getKeyCode() == KeyEvent.VK_DELETE){
-					removeUpdate();
-					e.consume();
-				}
-			}
-		});
-
-		// Abilitazione/disabilitazione delle voci del menu in base alla selezione
-		updateList.addListSelectionListener(e -> {
-			boolean selected = updateList.getSelectedIndex() != -1;
-			editItem.setEnabled(selected);
-			deleteItem.setEnabled(selected);
-		});
-		editItem.setEnabled(false);
-		deleteItem.setEnabled(false);
-
-		// Azioni del menu contestuale
-		addItem.addActionListener(e -> addUpdate());
-		editItem.addActionListener(e -> editUpdate());
-		deleteItem.addActionListener(e -> removeUpdate());
-
-		return panel;
+		add(updatePanel, "span 2,growx");
 	}
 
-	// ==================== UPDATE methods ====================
+	// ==================== Update Management ====================
 
 	private void addUpdate(){
-		UpdateRecord newRec = showUpdateDialog(null);
-		if(newRec != null){
-			updateRecords.add(newRec);
-			updateModel.addElement(newRec);
+		UpdateEntry newEntry = showUpdateDialog(null);
+		if(newEntry != null){
+			updateEntries.add(newEntry);
+			updateModel.addElement(newEntry);
 		}
 	}
 
 	private void editUpdate(){
 		int idx = updateList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		UpdateRecord current = updateRecords.get(idx);
-		UpdateRecord updated = showUpdateDialog(current);
+		if(idx == -1) return;
+
+		UpdateEntry current = updateEntries.get(idx);
+		UpdateEntry updated = showUpdateDialog(current);
 		if(updated != null){
-			updateRecords.set(idx, updated);
+			updateEntries.set(idx, updated);
 			updateModel.set(idx, updated);
 		}
 	}
 
 	private void removeUpdate(){
 		int idx = updateList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		int confirm = JOptionPane.showConfirmDialog(
-			parent,
-			"Remove this update?",
-			"Confirm",
-			JOptionPane.YES_NO_OPTION
-		);
+		if(idx == -1) return;
+
+		int confirm = JOptionPane.showConfirmDialog(parentDialog,
+			"Remove this update?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
-			updateRecords.remove(idx);
+			updateEntries.remove(idx);
 			updateModel.remove(idx);
 		}
 	}
 
 	/**
-	 * Shows a sub-dialog to edit an Update record.
-	 * The NOTE is a simple text field (0:1).
+	 * Shows a dialog to add or edit an update entry.
+	 *
+	 * @param initial the existing entry, or {@code null} for a new one
+	 * @return the updated entry, or {@code null} if cancelled
 	 */
-	private UpdateRecord showUpdateDialog(UpdateRecord existing){
-		JDialog dialog = new JDialog(
-			(Frame)SwingUtilities.getWindowAncestor(parent),
-			existing == null? "Add Update": "Edit Update",
-			true
-		);
-		dialog.setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
-		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+	private UpdateEntry showUpdateDialog(UpdateEntry initial){
+		JDialog dialog = new JDialog(parentDialog, initial == null? "Add Update": "Edit Update", true);
+		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]10[]"));
 
+		// DATE (required)
 		JTextField dateField = new JTextField(15);
-		JTextField noteField = new JTextField(20);
-
-		if(existing != null){
-			dateField.setText(existing.date);
-			noteField.setText(existing.noteText != null? existing.noteText: "");
+		if(initial != null){
+			dateField.setText(initial.date);
 		}
+		dateField.setToolTipText("ISO 8601 date (e.g., 2026-07-18)");
 
 		dialog.add(new JLabel("Date:"), "align label");
 		dialog.add(dateField, "growx,wrap");
 
-		dialog.add(new JLabel("Note (optional):"), "align label");
-		dialog.add(noteField, "growx,wrap");
+		// COMMENT (optional) - multi-line text area
+		JTextArea commentArea = new JTextArea(3, 25);
+		commentArea.setLineWrap(true);
+		commentArea.setWrapStyleWord(true);
+		if(initial != null){
+			commentArea.setText(initial.comment);
+		}
+		JScrollPane commentScroll = new JScrollPane(commentArea);
+		commentScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		commentScroll.setPreferredSize(new Dimension(300, 60));
 
-		JPanel btnPanelBottom = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		dialog.add(new JLabel("Comment:"), "align label,top");
+		dialog.add(commentScroll, "growx,wrap");
+
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JButton okBtn = new JButton("OK");
 		JButton cancelBtn = new JButton("Cancel");
-		btnPanelBottom.add(okBtn);
-		btnPanelBottom.add(cancelBtn);
-		dialog.add(btnPanelBottom, "span 2,growx");
+		btnPanel.add(okBtn);
+		btnPanel.add(cancelBtn);
+		dialog.add(btnPanel, "span 2,growx");
 
-		final UpdateRecord[] result = {null};
+		final UpdateEntry[] result = {null};
 		okBtn.addActionListener(e -> {
 			String date = dateField.getText().trim();
 			if(date.isEmpty()){
-				JOptionPane.showMessageDialog(dialog, "Date is required for an update.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+				JOptionPane.showMessageDialog(dialog, "Date cannot be empty.",
+					"Validation Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			String note = noteField.getText().trim();
-			result[0] = new UpdateRecord(date, note.isEmpty()? null: note);
+			if(!date.matches("\\d{4}-\\d{2}-\\d{2}")){
+				JOptionPane.showMessageDialog(dialog, "Date must be in ISO 8601 format (YYYY-MM-DD).",
+					"Validation Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+			String comment = commentArea.getText().trim();
+			result[0] = new UpdateEntry(date, comment);
 			dialog.dispose();
 		});
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setMinimumSize(new Dimension(450, 180));
-		dialog.setLocationRelativeTo(parent);
+		dialog.setLocationRelativeTo(parentDialog);
 		dialog.setVisible(true);
-
 		return result[0];
 	}
 
-	// ==================== Public API ====================
+	// ==================== Load / Save ====================
 
 	/**
-	 * Loads the modification data from a FLEFRecord.
+	 * Loads data from a record's MODIFICATION_STRUCTURE into the panel.
 	 *
-	 * @param record the record that may contain a MODIFICATION child
+	 * @param record the record containing the MODIFICATION_STRUCTURE
 	 */
 	public void loadFromRecord(FLEFRecord record){
-		// Clear current data
-		creationDateField.setText("");
-creationDateField.setText("21 JAN 2000");
-		updateModel.clear();
-		updateRecords.clear();
+		clear();
 
-		if(record == null){
-			return;
-		}
-
-		FLEFRecord mod = FLEFRecordUtils.findChild(record, "MODIFICATION");
-		if(mod == null){
-			return;
-		}
-
-		// CREATION (1:1)
-		FLEFRecord creation = FLEFRecordUtils.findChild(mod, "CREATION");
+		// Find CREATION
+		FLEFRecord creation = FLEFRecordUtils.findChild(record, "CREATION");
 		if(creation != null){
-			creationDateField.setText(FLEFRecordUtils.getChildValue(creation, "DATE"));
+			String date = FLEFRecordUtils.getChildValue(creation, "DATE");
+			creationDateField.setText(date != null? date: "");
+
+			// Load creation comment if present (non-standard, but we keep it)
+			String comment = FLEFRecordUtils.getChildValue(creation, "COMMENT");
+			creationCommentArea.setText(comment != null? comment: "");
 		}
 
-		// UPDATE (0:M)
-		for(FLEFRecord child : mod.getChildren()){
+		// Find UPDATE entries
+		updateEntries.clear();
+		updateModel.clear();
+		for(FLEFRecord child : record.getChildren()){
 			if("UPDATE".equals(child.getTag())){
 				String date = FLEFRecordUtils.getChildValue(child, "DATE");
-				String note = FLEFRecordUtils.getChildValue(child, "NOTE");
-				if(date != null){
-					UpdateRecord rec = new UpdateRecord(date, note);
-					updateRecords.add(rec);
-					updateModel.addElement(rec);
-				}
+				String comment = FLEFRecordUtils.getChildValue(child, "COMMENT");
+				UpdateEntry entry = new UpdateEntry(date, comment);
+				updateEntries.add(entry);
+				updateModel.addElement(entry);
 			}
 		}
 	}
 
 	/**
-	 * Saves the modification data into a FLEFRecord.
-	 * The MODIFICATION child will be created or updated.
+	 * Saves the panel data into a record's MODIFICATION_STRUCTURE.
 	 *
 	 * @param record the record to save into
 	 */
 	public void saveToRecord(FLEFRecord record){
-		if(record == null){
-			return;
-		}
+		// Remove existing CREATION and UPDATE children
+		FLEFRecordUtils.removeChildren(record, "CREATION");
+		FLEFRecordUtils.removeChildren(record, "UPDATE");
 
-		// Validate before saving
-		if(!validateRequiredFields()){
-			return;
-		}
-
-		// Remove existing MODIFICATION child
-		FLEFRecordUtils.removeChildren(record, "MODIFICATION");
-
+		// CREATION (required)
 		String creationDate = creationDateField.getText().trim();
-
-		// Only create MODIFICATION if there is at least CREATION or some UPDATE
-		if(creationDate.isEmpty() && updateRecords.isEmpty()){
-			return;
-		}
-
-		FLEFRecord mod = new FLEFRecord();
-		mod.setLevel(1);
-		mod.setTag("MODIFICATION");
-		record.addChild(mod);
-
-		// CREATION (1:1) - required if MODIFICATION is used
 		if(!creationDate.isEmpty()){
-			FLEFRecord creation = new FLEFRecord();
-			creation.setLevel(2);
-			creation.setTag("CREATION");
-			mod.addChild(creation);
-			FLEFRecordUtils.updateChildValue(creation, "DATE", creationDate);
+			FLEFRecord creation = FLEFRecord.createChild(1, "CREATION");
+			FLEFRecord date = FLEFRecord.createChildWithValue(2, "DATE", creationDate);
+			creation.addChild(date);
+
+			// Save creation comment if present
+			String creationComment = creationCommentArea.getText().trim();
+			if(!creationComment.isEmpty()){
+				FLEFRecord comment = FLEFRecord.createChildWithValue(2, "COMMENT", creationComment);
+				creation.addChild(comment);
+			}
+
+			record.addChild(creation);
 		}
 
-		// UPDATE (0:M)
-		for(UpdateRecord upd : updateRecords){
-			if(upd.date != null && !upd.date.isEmpty()){
-				FLEFRecord updateRec = new FLEFRecord();
-				updateRec.setLevel(2);
-				updateRec.setTag("UPDATE");
-				mod.addChild(updateRec);
-				FLEFRecordUtils.updateChildValue(updateRec, "DATE", upd.date);
-				if(upd.noteText != null && !upd.noteText.isEmpty()){
-					FLEFRecordUtils.updateChildValue(updateRec, "NOTE", upd.noteText);
-				}
+		// UPDATE entries
+		for(UpdateEntry entry : updateEntries){
+			FLEFRecord update = FLEFRecord.createChild(1, "UPDATE");
+			if(entry.date != null && !entry.date.isEmpty()){
+				FLEFRecord date = FLEFRecord.createChildWithValue(2, "DATE", entry.date);
+				update.addChild(date);
 			}
+			if(entry.comment != null && !entry.comment.isEmpty()){
+				FLEFRecord comment = FLEFRecord.createChildWithValue(2, "COMMENT", entry.comment);
+				update.addChild(comment);
+			}
+			record.addChild(update);
 		}
 	}
 
+	public void clear(){
+		creationDateField.setText("");
+		creationCommentArea.setText("");
+		updateEntries.clear();
+		updateModel.clear();
+	}
+
 	/**
-	 * Validates that required fields (CREATION_DATE) are filled
-	 * if the modification has any data.
+	 * Checks whether the panel has any data.
 	 *
-	 * @return true if valid, false otherwise
+	 * @return {@code true} if CREATION date is present, otherwise {@code false}
+	 */
+	public boolean hasData(){
+		return !creationDateField.getText().trim().isEmpty();
+	}
+
+	/**
+	 * Validates required fields.
+	 *
+	 * @return {@code true} if CREATION date is present and valid, otherwise {@code false}
 	 */
 	public boolean validateRequiredFields(){
-		// If no data at all, validation passes (modification can be empty)
-		if(!hasData()){
-			return true;
-		}
-
-		// CREATION_DATE (1:1) - required if modification has data
-		if(creationDateField.getText().trim().isEmpty()){
-			JOptionPane.showMessageDialog(parent,
-				"Creation Date is required when MODIFICATION is used.\n" +
-					"Please enter a date for CREATION.",
+		String creationDate = creationDateField.getText().trim();
+		if(creationDate.isEmpty()){
+			JOptionPane.showMessageDialog(parentDialog,
+				"CREATION date is required.\nPlease add a CREATION date.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			creationDateField.requestFocusInWindow();
 			return false;
 		}
 
+		if(!creationDate.matches("\\d{4}-\\d{2}-\\d{2}")){
+			JOptionPane.showMessageDialog(parentDialog,
+				"CREATION date must be in ISO 8601 format (YYYY-MM-DD).",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+
+		// Validate each update date if present
+		for(UpdateEntry entry : updateEntries){
+			if(!entry.date.matches("\\d{4}-\\d{2}-\\d{2}")){
+				JOptionPane.showMessageDialog(parentDialog,
+					"Update date must be in ISO 8601 format (YYYY-MM-DD).",
+					"Validation Error", JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+		}
+
 		return true;
-	}
-
-	/**
-	 * Checks if the modification has any data.
-	 *
-	 * @return true if any field has data
-	 */
-	public boolean hasData(){
-		return !creationDateField.getText().trim().isEmpty() || !updateRecords.isEmpty();
-	}
-
-	/**
-	 * Clears all fields in the panel.
-	 */
-	public void clear(){
-		creationDateField.setText("");
-		updateModel.clear();
-		updateRecords.clear();
 	}
 
 }

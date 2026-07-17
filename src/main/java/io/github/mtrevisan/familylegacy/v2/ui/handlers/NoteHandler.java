@@ -11,6 +11,7 @@ import java.awt.Frame;
 public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 
 	public static final String TYPE = "NOTE";
+	public static final String ID_PREFIX = "N";
 
 
 	@Override
@@ -39,12 +40,12 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 
 	@Override
 	public NoteDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		return new NoteDialog(parent, model, record);
+		return NoteDialog.createEdit(parent, model, record);
 	}
 
 	@Override
 	public NoteDialog createNewDialog(Frame parent, FLEFModel model){
-		return new NoteDialog(parent, model);
+		return NoteDialog.createNew(parent, model);
 	}
 
 }

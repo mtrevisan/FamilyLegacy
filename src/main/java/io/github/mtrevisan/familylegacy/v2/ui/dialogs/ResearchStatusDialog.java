@@ -685,14 +685,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		return FLEFRecordUtils.generateNewId(model, "RESEARCH_STATUS", "R");
 	}
 
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
-	}
-
 	// ==================== Main per test ====================
 
 	public static void main(String[] args){

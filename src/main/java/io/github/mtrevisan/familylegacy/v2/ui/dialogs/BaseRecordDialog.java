@@ -34,6 +34,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Frame;
 import java.io.Serial;
 import java.util.List;
@@ -60,6 +61,14 @@ public abstract class BaseRecordDialog extends JDialog{
 		this.model = model;
 		this.record = (record != null? record: createNewRecord());
 		this.isNew = (record == null);
+	}
+
+	protected Frame getParentFrame(){
+		Container parent = getParent();
+		while(parent != null && !(parent instanceof Frame)){
+			parent = parent.getParent();
+		}
+		return (Frame)parent;
 	}
 
 	// ==================== Abstract methods ====================

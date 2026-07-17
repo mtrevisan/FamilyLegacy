@@ -706,14 +706,6 @@ public class CalendarDialog extends BaseRecordDialog{
 		return FLEFRecordUtils.generateNewId(model, "CALENDAR", "C");
 	}
 
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
-	}
-
 	// ==================== Main per test ====================
 
 	public static void main(String[] args){

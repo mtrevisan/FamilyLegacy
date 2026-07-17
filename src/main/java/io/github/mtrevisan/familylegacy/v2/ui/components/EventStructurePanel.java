@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -53,6 +54,7 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -168,8 +170,8 @@ public class EventStructurePanel extends JPanel{
 		this.model = model;
 		this.parent = parent;
 		this.datePanel = new DateStructurePanel(model, parent);
-		this.modificationPanel = new ModificationPanel(model, parent);
-		this.conclusionPanel = new ConclusionPanel(model, parent);
+		this.modificationPanel = new ModificationPanel(model, (Dialog)parent);
+		this.conclusionPanel = new ConclusionPanel(model, (Dialog)parent);
 		initComponents();
 	}
 
@@ -258,6 +260,13 @@ public class EventStructurePanel extends JPanel{
 		return panel;
 	}
 
+	private JScrollPane createScrollPane(final JList<?> list){
+		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
+	}
+
 	// ==================== Notes & Sources Tab ====================
 
 	private JPanel createNotesSourcesPanel(){
@@ -298,7 +307,7 @@ public class EventStructurePanel extends JPanel{
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 		panel.setBorder(new TitledBorder(title));
 
-		JScrollPane scrollPane = new JScrollPane(list);
+		JScrollPane scrollPane = createScrollPane(list);
 		scrollPane.setPreferredSize(new Dimension(200, 70));
 		panel.add(scrollPane, BorderLayout.CENTER);
 
@@ -352,7 +361,7 @@ public class EventStructurePanel extends JPanel{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(sourceList);
+		JScrollPane scrollPane = createScrollPane(sourceList);
 		scrollPane.setPreferredSize(new Dimension(200, 70));
 		panel.add(scrollPane, BorderLayout.CENTER);
 

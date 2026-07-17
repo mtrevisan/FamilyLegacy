@@ -174,12 +174,12 @@ n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
 
 Extensions are declared using a namespace prefix to avoid collisions.
 
-Syntax: `+n <NAMESPACE>_<TAG>`
+Syntax: `+n <NAMESPACE>:<TAG>`
 
 Examples:
 
-- `+1 MYAPP_CUSTOM_ATTRIBUTE "value"`
-- `+1 FAMILYSEARCH_LINK @UUID@`
+- `+1 MYAPP:CUSTOM_ATTRIBUTE "value"`
+- `+1 FAMILYSEARCH:LINK @UUID@`
 
 ### 2. Extension Declaration
 
@@ -191,20 +191,20 @@ n HEADER    {1:1}
   ...
   +1 EXTENSIONS    {0:1}	/* List of custom extensions used in this file. */
     +2 EXTENSION    {1:M}
-      +3 NAMESPACE <TEXT>    {1:1}	/* e.g., 'MYAPP' */
-      +3 VERSION <VERSION_NUMBER>    {0:1}
+      +3 NAMESPACE <TEXT>    {1:1}	/* e.g., 'DNAAPP' */
+      +3 VERSION <VERSION_NUMBER>    {0:1}	/* Version of the extension. */
       +3 URI <RESOURCE_URI>    {0:1}	/* Documentation URI for the extension. */
-      +3 DESCRIPTION <TEXT>    {0:1}	/* Brief description of the extension. */
-      +3 LICENSE <TEXT>    {0:1}
-      +3 CONTACT <TEXT>    {0:1}
+      +3 DESCRIPTION <TEXT>    {1:1}	/* Brief description of the extension. */
+      +3 LICENSE <TEXT>    {0:1}	/* License under which the extension is provided. */
+      +3 CONTACT <TEXT>    {0:1}	/* Contact information for the extension developer. */
+      +3 SCHEMA <RESOURCE_URI>    {0:1}	/* URI to a JSON Schema for validating the extension. */
 ```
 
 ### 3. Extension Usage Rules
 
-1. All custom tags MUST use a namespace prefix (e.g., `MYAPP_MY_TAG`).
-2. Underscore without a prefix (`_TAG`) is reserved for local, non-standard metadata that does not require interoperability.
-3. Parsers MAY ignore any tag they do not recognize, but SHOULD preserve it when round-tripping.
-4. Extensions SHOULD NOT redefine existing FLEF tags or structures.
+1. All custom tags MUST use a namespace prefix followed by a colon (e.g., `MYAPP:MY_TAG`).
+2. Parsers MAY ignore any tag they do not recognize, but SHOULD preserve it when round-tripping.
+3. Extensions SHOULD NOT redefine existing FLEF tags or structures.
 
 ### 4. Example Extension Declaration
 
