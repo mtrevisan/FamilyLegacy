@@ -95,7 +95,7 @@ n NAME    {1:1}
   +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<SOURCE_CITATION>>    {0:M}
 
-NAME_STRUCTURE :=
+NAME_STRUCTURE :=	/* A generic naming structure used for places, organizations, repositories, groups, and other non-person entities. Unlike PERSONAL_NAME_STRUCTURE, this structure does not decompose the name into culturally-specific components. */
 n NAME    {1:1}
   +1 <<TEXT_VALUE>>    {1:1}	/* The textual value of the name, with optional locale and validity dates. */
   +1 TYPE <NAME_TYPE>    {0:1}	/* Geographical/Institutional: 'official', 'colonial', 'indigenous'. */
@@ -207,7 +207,7 @@ n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-EVENT_STRUCTURE :=
+EVENT_STRUCTURE :=	/* Shared descriptive structure containing the details associated with an EVENT record. */
 n DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or group, or the value of an attribute. */
 n <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date of the event. */
 n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the event. */
@@ -235,7 +235,7 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-PLACE_RECORD :=
+PLACE_RECORD :=	/* A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP records in order to model changing jurisdictions and historical geography. */
 n @<XREF:PLACE>@ PLACE    {1:1}
   +1 <<NAME_STRUCTURE>>    {1:M}	/* The name of the place formatted for display and address generation. */
   +1 TYPE <PLACE_TYPE>    {0:1}	/* The classification of the place. Known values include: 'address', 'building', 'street', 'hamlet', 'village', 'town', 'municipality', 'city', 'metropolitan_area', 'county', 'province', 'department', 'district', 'region', 'macro_region', 'country', 'empire', 'parish', 'diocese', 'cemetery', 'archive', 'unknown'. Custom values are permitted. */
@@ -249,7 +249,7 @@ n @<XREF:PLACE>@ PLACE    {1:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this place. */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
-PLACE_STRUCTURE :=
+PLACE_STRUCTURE :=	/* Reference to a PLACE record together with location-specific citations and evidence qualifiers. */
 n PLACE @<XREF:PLACE>@    {1:1}
   +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
@@ -291,13 +291,13 @@ n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
-REPOSITORY_CITATION :=
+REPOSITORY_CITATION :=	/* Citation of a repository holding a source or source collection. Allows recording repository-specific call numbers, shelf marks, page references, entry identifiers, or other retrieval information. */
 n REPOSITORY @<XREF:REPOSITORY>@    {1:1}	/* A list of xref ID of repository records who owns this source. */
   +1 LOCATION <WHERE_WITHIN_REPOSITORY>    {0:1}	/* A note on the location of the document inside the repository (Usually an identification or reference description used to file and retrieve items from the holdings of a repository, or the page and number of the entry inside a registry). */
   +1 NOTE <TEXT>    {0:1}	/* Free-text note. */
 
 
-CONTACT_STRUCTURE :=
+CONTACT_STRUCTURE :=	/* Machine-readable contact information for a person, organization, repository, submitter, or other entity. */
 n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 3986 specifications, or any other type of contact address. */
   +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
   +1 CALLER_ID <TEXT>    {0:1}	/* Indicates the name of the person associated with this contact. */
@@ -322,7 +322,7 @@ n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
 /* Example: women: 22 years minor (31 JAN 1807 - 13 MAY 1809) (21, respectful act however up to 25, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V). */
 
 
-SOURCE_RECORD :=
+SOURCE_RECORD :=	/* A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral testimony, database entry, image, audio recording, or any other evidence-bearing artifact. */
 n @<XREF:SOURCE>@ SOURCE    {1:1}
   +1 TITLE    {1:M}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
     +2 <<TEXT_VALUE>>    {1:1}
@@ -339,7 +339,7 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this source. */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
-SOURCE_CITATION :=
+SOURCE_CITATION :=	/* Reference to a SOURCE record used as evidence for an assertion, together with optional location, notes, crop coordinates, and evidence assessment. */
 n SOURCE @<XREF:SOURCE>@    {1:1}
   +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location within the information referenced. The data in this field should be in the form of a label and value pair (e.g., 'Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17'). */
   +1 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
@@ -347,7 +347,7 @@ n SOURCE @<XREF:SOURCE>@    {1:1}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 
 
-DOCUMENT_STRUCTURE :=
+DOCUMENT_STRUCTURE :=	/* A digital or physical representation associated with a source, such as an image, PDF, scan, transcription, audio recording, video, or other media resource. */
 n FILE <RESOURCE_URI>    {1:1}	/* Resource URI (following RFC 3986 specifications). */
   +1 SPHERICAL Y    {0:1}	/* Whether the file is spherical (panorama/360° or truly spherical U/V mapped). */
   +1 MAPPING <MAPPING_TYPE>    {0:1}	/* The projection/mapping/coordinate system of an image. Known values include "spherical_UV" (spherical UV mapped image), "cylindrical_equirectangular_horizontal"/"cylindrical_equirectangular_vertical" (equirectangular image). */
@@ -365,7 +365,7 @@ n DATE    {1:1}	/* A date object giving the date that this event happened (usual
   +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 
-DATE_VALUE :=
+DATE_VALUE :=	/* Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time. */
 [
 n VALUE    {1:1}	/* A single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence. */
   +1 <<QUALIFIED_DATE>>    {1:1}
@@ -404,7 +404,7 @@ n DECADE <DECADE_START_YEAR>    {1:1}	/* A decade identified by its starting yea
 ]
 
 
-HISTORIC_EVENT_RECORD :=	/* A significant historical event that may provide context for genealogical research. Historic events can explain migrations, mortality patterns, social changes, legal reforms, economic conditions, territorial changes, epidemics, wars, natural disasters, or scientific discoveries that affected individuals, families, groups, or places. */
+HISTORIC_EVENT_RECORD :=	/* A significant historical event that may provide context for genealogical research. Historic events can explain migrations, mortality patterns, social changes, legal reforms, economic conditions, territorial changes, epidemics, wars, natural disasters, or scientific discoveries that affected individuals, families, groups, or places. Unlike EVENT records, a HISTORIC_EVENT is not normally tied to a specific individual or group. It exists primarily to provide historical, legal, social, environmental, or political context. */
 n @<XREF:HISTORIC_EVENT>@ HISTORIC_EVENT    {1:1}
   +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
   +1 <<DATE_STRUCTURE>>    {0:1}	/* The date on which this historic event happened. */
@@ -450,7 +450,7 @@ n RESTRICTION    {1:1}
   +1 EXPIRES <DATE>    {0:1}	/* The date this restriction expires (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
 
 
-MODIFICATION_STRUCTURE :=
+MODIFICATION_STRUCTURE :=	/* Audit trail describing when the structure was created and subsequently modified. This information concerns the record itself, not the historical subject represented by the record. */
 n CREATION    {1:1}	/* An object giving the date of the creation of this structure. */
   +1 DATE <DATE>    {1:1}	/* A date object giving the date of the creation of this structure (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
 n UPDATE    {0:M}	/* An object giving the date of the changing of this structure. */
@@ -470,7 +470,7 @@ n CONCLUSION    {1:1}
   +1 <<SOURCE_CITATION>>    {0:M}	/* Any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict). */
 
 
-IDENTITY_HYPOTHESIS_RECORD :=
+IDENTITY_HYPOTHESIS_RECORD :=	/* Represents a research hypothesis that two records may describe the same real-world entity. The hypothesis itself does not establish identity; it merely records the possibility pending evaluation. */
 n @<XREF:IDENTITY_HYPOTHESIS>@ IDENTITY_HYPOTHESIS    {1:1}
   +1 SUBJECT @<XREF:ID>@    {1:1}	/* The first record in the identity hypothesis. */
   +1 CANDIDATE @<XREF:ID>@    {1:1}	/* The second record in the identity hypothesis. */
@@ -480,7 +480,7 @@ n @<XREF:IDENTITY_HYPOTHESIS>@ IDENTITY_HYPOTHESIS    {1:1}
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-EVIDENCE_QUALIFIERS :=
+EVIDENCE_QUALIFIERS :=	/* Qualifiers describing the confidence assigned to an assertion and the quality of evidence supporting that assertion. */
 n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* Measures confidence in the assertion itself. An assessment of whether the asserted fact, event, relationship, attribute, or association is believed to be correct. This reflects the researcher's confidence in the assertion itself, after evaluating the available evidence. Known values: proven: supported by sufficient evidence and accepted as correct; challenged: questioned by conflicting, incomplete, or uncertain evidence; disproven: demonstrated to be incorrect based on available evidence.
 */
 n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* Measures confidence in the supporting evidence. An assessment of the strength and reliability of the evidence supporting this assertion. Unlike CERTAINTY, which evaluates whether the assertion is believed to be correct, CREDIBILITY evaluates the quality of the evidence available. Values: 0: speculative, estimated, or unsupported; 1: weak evidence, limited support, or evidence of questionable reliability; 2: moderate evidence, reasonably reliable but incomplete or indirect; 3: strong evidence, multiple reliable sources, or evidence considered highly convincing.

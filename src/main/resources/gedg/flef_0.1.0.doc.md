@@ -1,5 +1,15 @@
 # 📐 FLEF Architecture Specification v0.1.0
 
+## Core modeling principles:
+
+1. Individuals, groups, events, relationships, places, and sources are represented as independent records.
+2. Events describe things that happened.
+   Relationships describe enduring associations.
+3. Assertions may be supported by evidence, challenged by evidence, or resolved through conclusions.
+4. Sources describe evidence.
+   Conclusions describe interpretations of evidence.
+5. Historical uncertainty is modeled explicitly, not hidden.
+
 ## Abstract Data Model
 
 ### 1. Core Entities
