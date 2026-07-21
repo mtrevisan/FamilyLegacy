@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.FamilyHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -63,7 +62,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -85,7 +83,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new FamilyHandler());
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new EventHandler());
 		HandlerRegistry.register(new PlaceHandler());

@@ -522,8 +522,8 @@ public class PersonalNamePanel extends JPanel{
 			() -> addNoteInList(dialog, currentNoteIds, noteModel),
 			() -> removeNoteFromList(dialog, noteList, currentNoteIds, noteModel),
 			builder -> {
-				builder.item("Add Existing...", () -> addNoteInList(dialog, currentNoteIds, noteModel));
 				builder.item("Create New...", () -> createNewNoteInList(dialog, currentNoteIds, noteModel));
+				builder.item("Add Existing...", () -> addNoteInList(dialog, currentNoteIds, noteModel));
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", () -> editNoteInList(dialog, noteList, currentNoteIds, noteModel));
 				builder.selectionSensitiveItem("Remove", () -> removeNoteFromList(dialog, noteList, currentNoteIds, noteModel));

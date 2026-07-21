@@ -108,7 +108,7 @@ public class EventStructurePanel extends JPanel{
 	private final JTextArea descriptionArea = new JTextArea(3, 20);
 
 	// ========== DATE_STRUCTURE (0:1) ==========
-	private final DateStructurePanel datePanel;
+	private final DatePanel datePanel;
 
 	// ========== PLACE (0:1) ==========
 	private final JTextField placeDisplayField = new JTextField(20);
@@ -166,12 +166,12 @@ public class EventStructurePanel extends JPanel{
 	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
 	 */
-	public EventStructurePanel(FLEFModel model, Component parent){
+	public EventStructurePanel(FLEFModel model, Dialog parent){
 		this.model = model;
 		this.parent = parent;
-		this.datePanel = new DateStructurePanel(model, parent);
-		this.modificationPanel = new ModificationPanel(model, (Dialog)parent);
-		this.conclusionPanel = new ConclusionPanel(model, (Dialog)parent);
+		this.datePanel = new DatePanel(model, parent);
+		this.modificationPanel = new ModificationPanel(model, parent);
+		this.conclusionPanel = new ConclusionPanel(model, parent);
 		initComponents();
 	}
 

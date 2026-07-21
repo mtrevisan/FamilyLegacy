@@ -401,7 +401,7 @@ public class GroupDialog extends BaseRecordDialog{
 		g2.setColor(Color.LIGHT_GRAY);
 		g2.fillRect(0, 0, 80, 80);
 		g2.setColor(Color.DARK_GRAY);
-		g2.drawString("No img", 10, 45);
+		g2.drawString("[No img]", 10, 45);
 		g2.dispose();
 		return new ImageIcon(img);
 	}
@@ -1369,27 +1369,13 @@ public class GroupDialog extends BaseRecordDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Test Group Dialog");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setLayout(new FlowLayout());
-			frame.setSize(400, 150);
-			frame.setLocationRelativeTo(null);
-
-			JButton btn = new JButton("New Group");
-			btn.addActionListener(e -> {
-				GroupDialog dialog = GroupDialog.createNew(frame, model);
-				dialog.setVisible(true);
-				System.out.println("Group saved.");
-			});
-
-			frame.add(btn);
-			frame.setVisible(true);
+			GroupDialog dialog = GroupDialog.createNew(null, model);
+			dialog.setVisible(true);
 		});
 	}
 

@@ -48,6 +48,7 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -103,7 +104,7 @@ public class SourceCitationPanel extends JPanel{
 	private final JTextField scopeField = new JTextField(20);
 
 	// ========== SEARCH_DATE (0:1) - using DateStructurePanel ==========
-	private final DateStructurePanel searchDatePanel;
+	private final DatePanel searchDatePanel;
 
 	// ========== LOCATION (0:1) ==========
 	private final JTextField locationField = new JTextField(20);
@@ -133,10 +134,10 @@ public class SourceCitationPanel extends JPanel{
 	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
 	 */
-	public SourceCitationPanel(FLEFModel model, Component parent){
+	public SourceCitationPanel(FLEFModel model, Dialog parent){
 		this.model = model;
 		this.parent = parent;
-		this.searchDatePanel = new DateStructurePanel(model, parent);
+		this.searchDatePanel = new DatePanel(model, parent);
 		initComponents();
 	}
 

@@ -156,108 +156,160 @@ public class NameListPanel extends JPanel{
 		 * @param record the FLEFRecord representing a date node
 		 * @return a human-readable date string, or empty string if not extractable
 		 */
-		private static String extractDateValue(FLEFRecord record){
-			if(record == null) return "";
-
-			String tag = record.getTag();
-			String value = record.getValue();
-
-			// --- Leaf nodes with direct values ---
-			if("ISO".equals(tag)){
-				return value != null? value: "";
-			}
-			if("CENTURY".equals(tag)){
-				if(value != null && !value.isEmpty()){
-					FLEFRecord part = FLEFRecordUtils.findChild(record, "PART");
-					String partStr = (part != null && part.getValue() != null)? " (" + part.getValue() + ")": "";
-					return value + "th century" + partStr;
-				}
-				return "";
-			}
-			if("DECADE".equals(tag)){
-				return value != null? value + "s": "";
-			}
-
-			// --- Structural nodes ---
-			if("DATE_STRUCTURE".equals(tag)){
-				FLEFRecord dateValue = FLEFRecordUtils.findChild(record, "DATE_VALUE");
-				return extractDateValue(dateValue);
-			}
-
-			if("DATE_VALUE".equals(tag)){
-				FLEFRecord valueNode = FLEFRecordUtils.findChild(record, "VALUE");
-				if(valueNode != null){
-					FLEFRecord qualified = FLEFRecordUtils.findChild(valueNode, "QUALIFIED_DATE");
-					if(qualified != null) return extractDateValue(qualified);
-				}
-				FLEFRecord bounded = FLEFRecordUtils.findChild(record, "BOUNDED");
-				if(bounded != null) return extractDateValue(bounded);
-				FLEFRecord spanning = FLEFRecordUtils.findChild(record, "SPANNING");
-				if(spanning != null) return extractDateValue(spanning);
+		private static String extractDateValue(final FLEFRecord record){
+			if(record == null){
 				return "";
 			}
 
-			if("QUALIFIED_DATE".equals(tag)){
-				FLEFRecord singleDate = FLEFRecordUtils.findChild(record, "SINGLE_DATE");
-				return singleDate != null? extractDateValue(singleDate): "";
-			}
-
-			if("SINGLE_DATE".equals(tag)){
-				FLEFRecord iso = FLEFRecordUtils.findChild(record, "ISO");
-				if(iso != null) return extractDateValue(iso);
-				FLEFRecord century = FLEFRecordUtils.findChild(record, "CENTURY");
-				if(century != null) return extractDateValue(century);
-				FLEFRecord decade = FLEFRecordUtils.findChild(record, "DECADE");
-				if(decade != null) return extractDateValue(decade);
+			if(!"DATE".equals(record.getTag())){
 				return "";
 			}
 
-			if("BOUNDED".equals(tag)){
-				FLEFRecord notBefore = FLEFRecordUtils.findChild(record, "NOT_BEFORE");
-				FLEFRecord notAfter = FLEFRecordUtils.findChild(record, "NOT_AFTER");
-				String beforeStr = extractDateValue(notBefore);
-				String afterStr = extractDateValue(notAfter);
-				if(!beforeStr.isEmpty() && !afterStr.isEmpty()){
-					return "between " + beforeStr + " and " + afterStr;
-				}
-				else if(!beforeStr.isEmpty()){
-					return "after " + beforeStr;
-				}
-				else if(!afterStr.isEmpty()){
-					return "before " + afterStr;
-				}
+			FLEFRecord dateValue =
+				FLEFRecordUtils.findChild(record, "DATE_VALUE");
+
+			if(dateValue == null){
 				return "";
 			}
 
-			if("SPANNING".equals(tag)){
-				FLEFRecord from = FLEFRecordUtils.findChild(record, "FROM");
-				FLEFRecord to = FLEFRecordUtils.findChild(record, "TO");
-				String fromStr = extractDateValue(from);
-				String toStr = extractDateValue(to);
-				if(!fromStr.isEmpty() && !toStr.isEmpty()){
-					return "from " + fromStr + " to " + toStr;
-				}
-				else if(!fromStr.isEmpty()){
-					return "from " + fromStr;
-				}
-				else if(!toStr.isEmpty()){
-					return "until " + toStr;
-				}
-				return "";
-			}
-
-			if("NOT_BEFORE".equals(tag) || "NOT_AFTER".equals(tag) || "FROM".equals(tag) || "TO".equals(tag)){
-				// These nodes contain a DATE_STRUCTURE or QUALIFIED_DATE
-				FLEFRecord dateStruct = FLEFRecordUtils.findChild(record, "DATE_STRUCTURE");
-				if(dateStruct != null) return extractDateValue(dateStruct);
-				FLEFRecord qualified = FLEFRecordUtils.findChild(record, "QUALIFIED_DATE");
-				if(qualified != null) return extractDateValue(qualified);
-				return "";
-			}
-
-			// Fallback: if the record has a value, return it
-			return (value != null)? value: "";
+			return extractDateValueNode(dateValue);
 		}
+
+		private static String extractDateValueNode(final FLEFRecord dateValue){
+			FLEFRecord value = FLEFRecordUtils.findChild(dateValue, "VALUE");
+
+			if(value != null){
+				FLEFRecord qualified = FLEFRecordUtils.findChild(value, "QUALIFIED_DATE");
+				return formatQualifiedDate(qualified);
+			}
+
+			FLEFRecord bounded = FLEFRecordUtils.findChild(dateValue, "BOUNDED");
+			if(bounded != null){
+				return formatBounded(bounded);
+			}
+
+			FLEFRecord spanning = FLEFRecordUtils.findChild(dateValue, "SPANNING");
+			if(spanning != null){
+				return formatSpanning(spanning);
+			}
+
+			return "";
+		}
+
+		private static String formatQualifiedDate(final FLEFRecord qualifiedDate){
+			if(qualifiedDate == null){
+				return "";
+			}
+
+			FLEFRecord singleDate = FLEFRecordUtils.findChild(qualifiedDate, "SINGLE_DATE");
+			if(singleDate == null){
+				return "";
+			}
+
+			String value = formatSingleDate(singleDate);
+			FLEFRecord approximate = FLEFRecordUtils.findChild(qualifiedDate, "APPROXIMATE");
+			if(approximate != null){
+				value = "~" + value;
+			}
+
+			return value;
+		}
+
+		private static String formatSingleDate(final FLEFRecord singleDate){
+			FLEFRecord iso = FLEFRecordUtils.findChild(singleDate, "ISO");
+			if(iso != null){
+				return iso.getValue();
+			}
+
+			FLEFRecord century = FLEFRecordUtils.findChild(singleDate, "CENTURY");
+			if(century != null){
+				return formatCentury(century);
+			}
+
+			FLEFRecord decade = FLEFRecordUtils.findChild(singleDate, "DECADE");
+			if(decade != null){
+				return formatDecade(decade);
+			}
+
+			return "";
+		}
+
+		private static String formatCentury(final FLEFRecord century){
+			String ordinal = century.getValue();
+			if(ordinal == null || ordinal.isBlank()){
+				return "";
+			}
+
+			StringBuilder result = new StringBuilder(ordinal)
+				.append("th century");
+
+			String part = FLEFRecordUtils.getChildValue(century, "PART");
+			if(part != null && !part.isBlank()){
+				result.append(" (")
+					.append(part)
+					.append(')');
+			}
+
+			return result.toString();
+		}
+
+		private static String formatDecade(final FLEFRecord decade){
+			String value = decade.getValue();
+			return (value != null
+				? value + "s"
+				: "");
+		}
+
+		private static String formatBounded(final FLEFRecord bounded){
+			String before = "";
+			FLEFRecord notBefore = FLEFRecordUtils.findChild(bounded, "NOT_BEFORE");
+			if(notBefore != null){
+				before = formatQualifiedDate(FLEFRecordUtils.findChild(notBefore, "QUALIFIED_DATE"));
+			}
+
+			String after = "";
+			FLEFRecord notAfter = FLEFRecordUtils.findChild(bounded, "NOT_AFTER");
+			if(notAfter != null){
+				after = formatQualifiedDate(FLEFRecordUtils.findChild(notAfter, "QUALIFIED_DATE"));
+			}
+
+			if(!before.isEmpty() && !after.isEmpty()){
+				return "between " + before + " and " + after;
+			}
+			if(!before.isEmpty()){
+				return "after " + before;
+			}
+			if(!after.isEmpty()){
+				return "before " + after;
+			}
+			return "";
+		}
+
+		private static String formatSpanning(final FLEFRecord spanning){
+			String fromValue = "";
+			FLEFRecord from = FLEFRecordUtils.findChild(spanning, "FROM");
+			if(from != null){
+				fromValue = formatQualifiedDate(FLEFRecordUtils.findChild(from, "QUALIFIED_DATE"));
+			}
+
+			String toValue = "";
+			FLEFRecord to = FLEFRecordUtils.findChild(spanning, "TO");
+			if(to != null){
+				toValue = formatQualifiedDate(FLEFRecordUtils.findChild(to, "QUALIFIED_DATE"));
+			}
+
+			if(!fromValue.isEmpty() && !toValue.isEmpty()){
+				return "from " + fromValue + " to " + toValue;
+			}
+			if(!fromValue.isEmpty()){
+				return "from " + fromValue;
+			}
+			if(!toValue.isEmpty()){
+				return "until " + toValue;
+			}
+			return "";
+		}
+
 	}
 
 	public NameListPanel(FLEFModel model, Dialog parent){
@@ -657,8 +709,8 @@ public class NameListPanel extends JPanel{
 				}
 			},
 			builder -> {
-				builder.item("Add Existing...", () -> addExistingNote(dialog, currentNoteIds, noteModel));
 				builder.item("Create New...", () -> createNewNote(dialog, currentNoteIds, noteModel));
+				builder.item("Add Existing...", () -> addExistingNote(dialog, currentNoteIds, noteModel));
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", () -> {
 					int idx = noteList.getSelectedIndex();

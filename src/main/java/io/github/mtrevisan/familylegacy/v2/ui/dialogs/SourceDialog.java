@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.DateStructurePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DocumentStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
@@ -109,7 +109,7 @@ public class SourceDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
 
 	// Date
-	private final DateStructurePanel datePanel;
+	private final DatePanel datePanel;
 
 	// Repository Citations
 	private final DefaultListModel<String> repositoryListModel = new DefaultListModel<>();
@@ -145,7 +145,7 @@ public class SourceDialog extends BaseRecordDialog{
 	public SourceDialog(Frame parent, FLEFModel model, FLEFRecord record){
 		super(parent, "Edit Source", model, record);
 
-		this.datePanel = new DateStructurePanel(model, this);
+		this.datePanel = new DatePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -158,7 +158,7 @@ public class SourceDialog extends BaseRecordDialog{
 	public SourceDialog(Frame parent, FLEFModel model){
 		super(parent, "New Source", model, null);
 
-		this.datePanel = new DateStructurePanel(model, this);
+		this.datePanel = new DatePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();

@@ -281,7 +281,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		g2.setColor(Color.LIGHT_GRAY);
 		g2.fillRect(0, 0, 80, 80);
 		g2.setColor(Color.DARK_GRAY);
-		g2.drawString("No img", 10, 45);
+		g2.drawString("[No img]", 10, 45);
 		g2.dispose();
 		return new ImageIcon(img);
 	}

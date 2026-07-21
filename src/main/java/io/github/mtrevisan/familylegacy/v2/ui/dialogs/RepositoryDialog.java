@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.FamilyHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -105,7 +104,6 @@ public class RepositoryDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new CalendarHandler());
 		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new FamilyHandler());
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new EventHandler());
 	}

@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.EventStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.FamilyHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualEventHandler;
@@ -88,7 +87,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new IndividualEventHandler());
-		HandlerRegistry.register(new FamilyHandler());
 		HandlerRegistry.register(new EventHandler());
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());

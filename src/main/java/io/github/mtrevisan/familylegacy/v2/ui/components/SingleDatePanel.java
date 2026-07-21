@@ -142,10 +142,20 @@ public class SingleDatePanel extends JPanel{
 	}
 
 	public FLEFRecord saveToQualifiedDate(FLEFRecord target){
+		if(!hasData()){
+			return null;
+		}
+
 		FLEFRecord record = target != null? target: new FLEFRecord();
 		if(target == null){
 			record.setTag("QUALIFIED_DATE");
 		}
+
+		if(target == null){
+			record.setTag("QUALIFIED_DATE");
+		}
+
+		record.getChildren().clear();
 
 		// APPROXIMATE
 		approxPanel.saveToRecord(record);
@@ -195,11 +205,6 @@ public class SingleDatePanel extends JPanel{
 			record.addChild(singleDate);
 		}
 
-		// If no data, return null
-		if(!record.hasChildren() && !approxPanel.hasData()){
-			return null;
-		}
-
 		return record;
 	}
 
@@ -215,29 +220,71 @@ public class SingleDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		return !isoField.getText().trim().isEmpty()
-					 || !centuryField.getText().trim().isEmpty()
-					 || !decadeField.getText().trim().isEmpty()
-					 || approxPanel.hasData();
+		String dateType = (String)dateTypeCombo.getSelectedItem();
+		if("ISO".equals(dateType)){
+			return !isoField.getText().trim().isEmpty();
+		}
+		if("CENTURY".equals(dateType)){
+			return !centuryField.getText().trim().isEmpty();
+		}
+		if("DECADE".equals(dateType)){
+			return !decadeField.getText().trim().isEmpty();
+		}
+		return false;
 	}
 
 	public boolean validateRequiredFields(){
 		String dateType = (String)dateTypeCombo.getSelectedItem();
-		if("ISO".equals(dateType) && isoField.getText().trim().isEmpty()){
-			JOptionPane.showMessageDialog(this, "Date is required for ISO type.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
+		if("ISO".equals(dateType)
+			&& isoField.getText().trim().isEmpty()){
+
+			JOptionPane.showMessageDialog(
+				this,
+				"Date is required for ISO type.",
+				"Validation Error",
+				JOptionPane.ERROR_MESSAGE
+			);
 			return false;
 		}
-		if("CENTURY".equals(dateType) && centuryField.getText().trim().isEmpty()){
-			JOptionPane.showMessageDialog(this, "Century is required for CENTURY type.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
+		if("CENTURY".equals(dateType)
+			&& centuryField.getText().trim().isEmpty()){
+
+			JOptionPane.showMessageDialog(
+				this,
+				"Century is required for CENTURY type.",
+				"Validation Error",
+				JOptionPane.ERROR_MESSAGE
+			);
 			return false;
 		}
-		if("DECADE".equals(dateType) && decadeField.getText().trim().isEmpty()){
-			JOptionPane.showMessageDialog(this, "Decade is required for DECADE type.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
+		if("DECADE".equals(dateType)
+			&& decadeField.getText().trim().isEmpty()){
+
+			JOptionPane.showMessageDialog(
+				this,
+				"Decade is required for DECADE type.",
+				"Validation Error",
+				JOptionPane.ERROR_MESSAGE
+			);
 			return false;
 		}
+
+		String calendar = (String)calendarCombo.getSelectedItem();
+
+		if(calendar == null || calendar.trim().isEmpty()){
+			JOptionPane.showMessageDialog(
+				this,
+				"Calendar is required.",
+				"Validation Error",
+				JOptionPane.ERROR_MESSAGE
+			);
+			return false;
+		}
+
 		return approxPanel.validateRequiredFields();
 	}
+
 }
