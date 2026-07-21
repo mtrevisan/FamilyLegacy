@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
