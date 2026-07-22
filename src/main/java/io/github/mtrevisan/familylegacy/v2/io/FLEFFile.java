@@ -415,7 +415,6 @@ public final class FLEFFile{
 
 		final List<PathSegment> segments = parsePath(path);
 		FLEFRecord current = root;
-
 		for(int i = 0; i < segments.size(); i ++){
 			final PathSegment seg = segments.get(i);
 			final List<FLEFRecord> children = current.findChildren(seg.tag);

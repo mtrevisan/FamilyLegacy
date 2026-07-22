@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -36,7 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -85,44 +87,33 @@ public class SourceCitationPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -8036724779224867360L;
 
+	private final BindingManager bindingManager = new BindingManager();
 
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== SOURCE (1:1) ==========
+	// ========== SOURCE (1:1) – manual ==========
 	private final JTextField sourceDisplayField = new JTextField(20);
 	private final JButton browseSourceBtn = new JButton("Browse...");
 	private final JButton clearSourceBtn = new JButton("Clear");
 	private String selectedSourceId;
 
-	// ========== SEARCH_OUTCOME (0:1) ==========
-	private final JComboBox<String> outcomeCombo = new JComboBox<>(new String[]{
-		"", "found", "not_found", "partially_found", "unreadable", "destroyed"
-	});
+	// ========== Simple fields – bound ==========
+	private final BoundComboBox<String> outcomeCombo;
+	private final BoundTextField scopeField;
+	private final BoundTextField locationField;
+	private final BoundTextField roleField;
+	private final BoundTextField cropField;
+	private final BoundComboBox<String> credibilityCombo;
 
-	// ========== SEARCH_SCOPE (0:1) ==========
-	private final JTextField scopeField = new JTextField(20);
-
-	// ========== SEARCH_DATE (0:1) - using DateStructurePanel ==========
+	// ========== SEARCH_DATE (0:1) – manual (complex) ==========
 	private final DatePanel searchDatePanel;
 
-	// ========== LOCATION (0:1) ==========
-	private final JTextField locationField = new JTextField(20);
-
-	// ========== ROLE (0:1) ==========
-	private final JTextField roleField = new JTextField(15);
-
-	// ========== CROP (1:1) ==========
-	private final JTextField cropField = new JTextField(20);
-
-	// ========== NOTE (0:M) ==========
+	// ========== NOTE (0:M) – manual ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
-
-	// ========== CREDIBILITY (0:1) ==========
-	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{"", "0", "1", "2", "3"});
 
 	// ========== Handlers ==========
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
@@ -137,6 +128,17 @@ public class SourceCitationPanel extends JPanel{
 	public SourceCitationPanel(FLEFModel model, Dialog parent){
 		this.model = model;
 		this.parent = parent;
+
+		// Initialize bound components
+		outcomeCombo = new BoundComboBox<>("SEARCH_OUTCOME",
+			new String[]{"", "found", "not_found", "partially_found", "unreadable", "destroyed"});
+		scopeField = new BoundTextField("SEARCH_SCOPE", 20);
+		locationField = new BoundTextField("LOCATION", 20);
+		roleField = new BoundTextField("ROLE", 15);
+		cropField = new BoundTextField("CROP", 20);
+		credibilityCombo = new BoundComboBox<>("CREDIBILITY",
+			new String[]{"", "0", "1", "2", "3"});
+
 		this.searchDatePanel = new DatePanel(model, parent);
 		initComponents();
 	}
@@ -145,9 +147,17 @@ public class SourceCitationPanel extends JPanel{
 		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]5[]5[]5[]"));
 		setBorder(new TitledBorder("Source Citation"));
 
+		// Register bound components
+		bindingManager.bind(outcomeCombo);
+		bindingManager.bind(scopeField);
+		bindingManager.bind(locationField);
+		bindingManager.bind(roleField);
+		bindingManager.bind(cropField);
+		bindingManager.bind(credibilityCombo);
+
 		noteList.setVisibleRowCount(4);
 
-		// ===== SOURCE (1:1) =====
+		// ===== SOURCE (1:1) – manual =====
 		add(new JLabel("Source:"), "align label");
 		sourceDisplayField.setEditable(false);
 		sourceDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -165,36 +175,36 @@ public class SourceCitationPanel extends JPanel{
 			sourceDisplayField.setText("");
 		});
 
-		// ===== SEARCH_OUTCOME (0:1) =====
+		// ===== SEARCH_OUTCOME (0:1) – bound =====
 		add(new JLabel("Search Outcome:"), "align label");
 		add(outcomeCombo, "growx,wrap");
 
-		// ===== SEARCH_SCOPE (0:1) =====
+		// ===== SEARCH_SCOPE (0:1) – bound =====
 		add(new JLabel("Search Scope:"), "align label");
 		add(scopeField, "growx,wrap");
 
-		// ===== SEARCH_DATE (0:1) - using DateStructurePanel =====
+		// ===== SEARCH_DATE (0:1) – manual (DatePanel) =====
 		add(new JLabel("Search Date:"), "align label,top");
 		add(searchDatePanel, "growx,wrap");
 
-		// ===== LOCATION (0:1) =====
+		// ===== LOCATION (0:1) – bound =====
 		add(new JLabel("Location:"), "align label");
 		add(locationField, "growx,wrap");
 
-		// ===== ROLE (0:1) =====
+		// ===== ROLE (0:1) – bound =====
 		add(new JLabel("Role:"), "align label");
 		add(roleField, "growx,wrap");
 
-		// ===== CROP (1:1) =====
+		// ===== CROP (1:1) – bound =====
 		add(new JLabel("Crop:"), "align label");
 		add(cropField, "growx,wrap");
 
-		// ===== NOTE (0:M) =====
+		// ===== NOTE (0:M) – manual =====
 		add(new JLabel("Notes:"), "align label,top");
 		JPanel notePanel = createNotePanel();
 		add(notePanel, "growx,wrap");
 
-		// ===== CREDIBILITY (0:1) =====
+		// ===== CREDIBILITY (0:1) – bound =====
 		add(new JLabel("Credibility:"), "align label");
 		add(credibilityCombo, "growx");
 	}
@@ -368,23 +378,24 @@ public class SourceCitationPanel extends JPanel{
 	 * @param citationRecord the SOURCE_CITATION record (may be null)
 	 */
 	public void loadFromRecord(FLEFRecord citationRecord){
-		// Clear all fields
+		// Clear all manual fields
 		selectedSourceId = null;
 		sourceDisplayField.setText("");
-		outcomeCombo.setSelectedItem("");
-		scopeField.setText("");
 		searchDatePanel.clear();
-		locationField.setText("");
-		roleField.setText("");
-		cropField.setText("");
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
-		credibilityCombo.setSelectedItem("");
 
 		if(citationRecord == null){
+			// Still load bound fields (they will be empty since record is null)
+			bindingManager.loadFromRecord(null);
 			return;
 		}
+
+		// ---- Load bound simple fields ----
+		bindingManager.loadFromRecord(citationRecord);
+
+		// ---- Load manual fields ----
 
 		// SOURCE (1:1)
 		String sourceId = citationRecord.getValue();
@@ -399,25 +410,9 @@ public class SourceCitationPanel extends JPanel{
 			}
 		}
 
-		// SEARCH_OUTCOME (0:1)
-		String outcome = FLEFRecordUtils.getChildValue(citationRecord, "SEARCH_OUTCOME");
-		outcomeCombo.setSelectedItem(outcome != null? outcome: "");
-
-		// SEARCH_SCOPE (0:1)
-		scopeField.setText(FLEFRecordUtils.getChildValue(citationRecord, "SEARCH_SCOPE"));
-
-		// SEARCH_DATE (0:1) - use DateStructurePanel
+		// SEARCH_DATE (0:1)
 		FLEFRecord dateRecord = FLEFRecordUtils.findChild(citationRecord, "SEARCH_DATE");
 		searchDatePanel.loadFromRecord(dateRecord);
-
-		// LOCATION (0:1)
-		locationField.setText(FLEFRecordUtils.getChildValue(citationRecord, "LOCATION"));
-
-		// ROLE (0:1)
-		roleField.setText(FLEFRecordUtils.getChildValue(citationRecord, "ROLE"));
-
-		// CROP (1:1)
-		cropField.setText(FLEFRecordUtils.getChildValue(citationRecord, "CROP"));
 
 		// NOTE (0:M)
 		for(FLEFRecord child : citationRecord.getChildren()){
@@ -429,10 +424,6 @@ public class SourceCitationPanel extends JPanel{
 				noteModel.addElement(display);
 			}
 		}
-
-		// CREDIBILITY (0:1)
-		String credibility = FLEFRecordUtils.getChildValue(citationRecord, "CREDIBILITY");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: "");
 	}
 
 	/**
@@ -451,30 +442,20 @@ public class SourceCitationPanel extends JPanel{
 		if(citationRecord == null){
 			citationRecord = new FLEFRecord();
 			citationRecord.setLevel(1);
-			citationRecord.setTag("SOURCE_CITATION");
+			citationRecord.setTag("SOURCE");
 		}
 
 		// Clear existing children
 		citationRecord.getChildren().clear();
 
-		// SOURCE (1:1) - required
+		// ---- Save manual fields ----
+
+		// SOURCE (1:1) – required
 		if(selectedSourceId != null && !selectedSourceId.isEmpty()){
 			citationRecord.setValue(selectedSourceId);
 		}
 
-		// SEARCH_OUTCOME (0:1)
-		String outcome = (String)outcomeCombo.getSelectedItem();
-		if(outcome != null && !outcome.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "SEARCH_OUTCOME", outcome);
-		}
-
-		// SEARCH_SCOPE (0:1)
-		String scope = scopeField.getText().trim();
-		if(!scope.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "SEARCH_SCOPE", scope);
-		}
-
-		// SEARCH_DATE (0:1) - use DateStructurePanel
+		// SEARCH_DATE (0:1) – manual
 		if(searchDatePanel.hasData()){
 			FLEFRecord dateRecord = searchDatePanel.saveToRecord(null);
 			if(dateRecord != null){
@@ -484,34 +465,13 @@ public class SourceCitationPanel extends JPanel{
 			}
 		}
 
-		// LOCATION (0:1)
-		String location = locationField.getText().trim();
-		if(!location.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "LOCATION", location);
-		}
-
-		// ROLE (0:1)
-		String role = roleField.getText().trim();
-		if(!role.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "ROLE", role);
-		}
-
-		// CROP (1:1) - required
-		String crop = cropField.getText().trim();
-		if(!crop.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "CROP", crop);
-		}
-
-		// NOTE (0:M)
+		// NOTE (0:M) – manual
 		for(String id : noteIds){
 			FLEFRecordUtils.addChild(citationRecord, "NOTE", 2, id);
 		}
 
-		// CREDIBILITY (0:1)
-		String credibility = (String)credibilityCombo.getSelectedItem();
-		if(credibility != null && !credibility.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "CREDIBILITY", credibility);
-		}
+		// ---- Save bound simple fields ----
+		bindingManager.saveToRecord(citationRecord);
 
 		return citationRecord;
 	}
@@ -547,16 +507,14 @@ public class SourceCitationPanel extends JPanel{
 	 */
 	public boolean hasData(){
 		return (selectedSourceId != null && !selectedSourceId.isEmpty()) ||
-			outcomeCombo.getSelectedItem() != null &&
-				!((String)outcomeCombo.getSelectedItem()).isEmpty() ||
-			!scopeField.getText().trim().isEmpty() ||
-			searchDatePanel.hasData() ||
-			!locationField.getText().trim().isEmpty() ||
-			!roleField.getText().trim().isEmpty() ||
-			!cropField.getText().trim().isEmpty() ||
-			!noteModel.isEmpty() ||
-			credibilityCombo.getSelectedItem() != null &&
-				!((String)credibilityCombo.getSelectedItem()).isEmpty();
+					 outcomeCombo.getSelectedIndex() >= 0 ||
+					 !scopeField.getText().trim().isEmpty() ||
+					 searchDatePanel.hasData() ||
+					 !locationField.getText().trim().isEmpty() ||
+					 !roleField.getText().trim().isEmpty() ||
+					 !cropField.getText().trim().isEmpty() ||
+					 !noteModel.isEmpty() ||
+					 credibilityCombo.getSelectedIndex() >= 0;
 	}
 
 	/**

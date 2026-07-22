@@ -477,7 +477,7 @@ public class AssociationDialog extends JDialog{
 		sourceIds.clear();
 		sourceDisplayMap.clear();
 		for(FLEFRecord child : existingAssociation.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag()) && child.getValue() != null){
+			if("SOURCE".equals(child.getTag()) && child.getValue() != null){
 				String id = child.getValue();
 				sourceIds.add(id);
 				String display = getSourceDisplayName(id);
@@ -627,9 +627,9 @@ public class AssociationDialog extends JDialog{
 		}
 
 		// SOURCE_CITATION references
-		FLEFRecordUtils.removeChildren(record, "SOURCE_CITATION");
+		FLEFRecordUtils.removeChildren(record, "SOURCE");
 		for(String id : sourceIds){
-			FLEFRecordUtils.addChild(record, "SOURCE_CITATION", 2, id);
+			FLEFRecordUtils.addChild(record, "SOURCE", 2, id);
 		}
 
 		return record;

@@ -26,6 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DocumentStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -41,29 +44,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -80,7 +63,6 @@ public class SourceDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 8722200901398839002L;
 
-
 	static{
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new RepositoryHandler());
@@ -89,48 +71,48 @@ public class SourceDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new CalendarHandler());
 	}
 
-	// Basic fields
+	private final BindingManager bindingManager = new BindingManager();
+
+	// Basic fields – bound
 	private final JTextField idField = new JTextField(10);
-	private final JTextField titleField = new JTextField(30);
-	private final JTextField authorField = new JTextField(30);
-	private final JTextField publisherField = new JTextField(30);
-	private final JComboBox<String> mediaTypeCombo = new JComboBox<>(new String[]{
-		"", "audio", "book", "card", "electronic", "fiche", "film",
-		"magazine", "manuscript", "map", "newspaper", "photo",
-		"tombstone", "video"
-	});
+	private final BoundTextField titleField;        // path: "TITLE.VALUE"
+	private final BoundTextField authorField;       // path: "AUTHOR"
+	private final BoundTextField publisherField;    // path: "PUBLISHER"
+	private final BoundComboBox<String> mediaTypeCombo; // path: "MEDIA_TYPE"
+
+	// Restriction – manual
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// Place
+	// Place – manual
 	private final JTextField placeDisplayField = new JTextField(20);
 	private final JButton placeBrowseBtn = new JButton("Browse...");
 	private final JButton placeClearBtn = new JButton("Clear");
 	private String selectedPlaceId;
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
 
-	// Date
+	// Date – manual
 	private final DatePanel datePanel;
 
-	// Repository Citations
+	// Repository Citations – manual
 	private final DefaultListModel<String> repositoryListModel = new DefaultListModel<>();
 	private final JList<String> repositoryList = new JList<>(repositoryListModel);
 	private final List<FLEFRecord> repositoryRecords = new ArrayList<>();
 
-	// Document
+	// Document – manual
 	private final DocumentStructurePanel documentPanel;
 
-	// Source Citations
+	// Source Citations – manual
 	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
-	// Notes
+	// Notes – manual
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// Modification
+	// Modification – manual
 	private final ModificationPanel modificationPanel;
 
 	private final JButton saveButton = new JButton("Save");
@@ -145,6 +127,15 @@ public class SourceDialog extends BaseRecordDialog{
 	public SourceDialog(Frame parent, FLEFModel model, FLEFRecord record){
 		super(parent, "Edit Source", model, record);
 
+		// Initialize bound components
+		titleField = new BoundTextField("TITLE.VALUE", 30);
+		authorField = new BoundTextField("AUTHOR", 30);
+		publisherField = new BoundTextField("PUBLISHER", 30);
+		mediaTypeCombo = new BoundComboBox<>("MEDIA_TYPE",
+			new String[]{"", "audio", "book", "card", "electronic", "fiche", "film",
+				"magazine", "manuscript", "map", "newspaper", "photo",
+				"tombstone", "video"});
+
 		this.datePanel = new DatePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);
 		this.modificationPanel = new ModificationPanel(model, this);
@@ -158,6 +149,15 @@ public class SourceDialog extends BaseRecordDialog{
 	public SourceDialog(Frame parent, FLEFModel model){
 		super(parent, "New Source", model, null);
 
+		// Initialize bound components
+		titleField = new BoundTextField("TITLE.VALUE", 30);
+		authorField = new BoundTextField("AUTHOR", 30);
+		publisherField = new BoundTextField("PUBLISHER", 30);
+		mediaTypeCombo = new BoundComboBox<>("MEDIA_TYPE",
+			new String[]{"", "audio", "book", "card", "electronic", "fiche", "film",
+				"magazine", "manuscript", "map", "newspaper", "photo",
+				"tombstone", "video"});
+
 		this.datePanel = new DatePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);
 		this.modificationPanel = new ModificationPanel(model, this);
@@ -170,6 +170,12 @@ public class SourceDialog extends BaseRecordDialog{
 
 	@Override
 	protected void initComponents(){
+		// Register bound components
+		bindingManager.bind(titleField);
+		bindingManager.bind(authorField);
+		bindingManager.bind(publisherField);
+		bindingManager.bind(mediaTypeCombo);
+
 		setLayout(new BorderLayout(10, 10));
 
 		JTabbedPane tabbedPane = new JTabbedPane();
@@ -200,7 +206,7 @@ public class SourceDialog extends BaseRecordDialog{
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		idField.setEditable(false);
-		idField.setText(record.getId());
+		idField.setText(record != null? record.getId(): "");
 		panel.add(new JLabel("ID:"), "align label");
 		panel.add(idField, "growx,wrap");
 
@@ -440,7 +446,6 @@ public class SourceDialog extends BaseRecordDialog{
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, repositoryHandler, selectedId -> {
 			if(selectedId != null){
-				// Usa la firma a 4 parametri (nessun default)
 				String location = JOptionPane.showInputDialog(
 					this,
 					"Enter location within repository:",
@@ -475,11 +480,9 @@ public class SourceDialog extends BaseRecordDialog{
 			return;
 		}
 
-		// Mostra un dialog per selezionare un nuovo repository
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, repositoryHandler, selectedId -> {
 			if(selectedId != null){
-				// Usa la firma a 7 parametri per avere il valore predefinito
 				String newLocation = (String)JOptionPane.showInputDialog(
 					this,
 					"Enter location within repository:",
@@ -532,7 +535,7 @@ public class SourceDialog extends BaseRecordDialog{
 			FLEFRecord citation = dialog.getCitationRecord();
 			if(citation != null){
 				citation.setLevel(1);
-				citation.setTag("SOURCE_CITATION");
+				citation.setTag("SOURCE");
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 			}
@@ -688,12 +691,16 @@ public class SourceDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		idField.setText(record.getId());
-		titleField.setText(FLEFRecordUtils.getChildValue(record, "TITLE"));
-		authorField.setText(FLEFRecordUtils.getChildValue(record, "AUTHOR"));
-		publisherField.setText(FLEFRecordUtils.getChildValue(record, "PUBLISHER"));
-		mediaTypeCombo.setSelectedItem(FLEFRecordUtils.getChildValue(record, "MEDIA_TYPE"));
-		restrictionCheckBox.setSelected("confidential".equals(FLEFRecordUtils.getChildValue(record, "RESTRICTION")));
+		idField.setText(record != null? record.getId(): "");
+
+		// ---- Load bound simple fields ----
+		bindingManager.loadFromRecord(record);
+
+		// ---- Load manual fields ----
+
+		// Restriction (checkbox)
+		String restriction = FLEFRecordUtils.getChildValue(record, "RESTRICTION");
+		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		// Place
 		FLEFRecord place = FLEFRecordUtils.findChild(record, "PLACE");
@@ -729,7 +736,7 @@ public class SourceDialog extends BaseRecordDialog{
 		sourceCitationRecords.clear();
 		sourceCitationListModel.clear();
 		for(FLEFRecord child : record.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			if("SOURCE".equals(child.getTag())){
 				sourceCitationRecords.add(child);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -761,17 +768,12 @@ public class SourceDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		record.getChildren().clear();
 
-		// Basic fields
-		String title = titleField.getText().trim();
-		if(!title.isEmpty()) FLEFRecordUtils.updateChildValue(record, "TITLE", title);
-		String author = authorField.getText().trim();
-		if(!author.isEmpty()) FLEFRecordUtils.updateChildValue(record, "AUTHOR", author);
-		String publisher = publisherField.getText().trim();
-		if(!publisher.isEmpty()) FLEFRecordUtils.updateChildValue(record, "PUBLISHER", publisher);
-		String mediaType = (String)mediaTypeCombo.getSelectedItem();
-		if(mediaType != null && !mediaType.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "MEDIA_TYPE", mediaType);
-		}
+		// ---- Save bound simple fields ----
+		bindingManager.saveToRecord(record);
+
+		// ---- Save manual fields ----
+
+		// Restriction
 		FLEFRecordUtils.updateChildValue(record, "RESTRICTION",
 			restrictionCheckBox.isSelected()? "confidential": null);
 
@@ -822,7 +824,7 @@ public class SourceDialog extends BaseRecordDialog{
 		// Source Citations
 		for(FLEFRecord citation : sourceCitationRecords){
 			citation.setLevel(1);
-			citation.setTag("SOURCE_CITATION");
+			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 

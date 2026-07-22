@@ -293,7 +293,7 @@ public class EventDialog extends BaseRecordDialog{
 
 		culturalNormsField.setText(getChildValuesAsString("CULTURAL_NORM"));
 		notesField.setText(getChildValuesAsString("NOTE"));
-		sourcesField.setText(getChildValuesAsString("SOURCE_CITATION"));
+		sourcesField.setText(getChildValuesAsString("SOURCE"));
 		conclusionArea.setText(getChildValue("CONCLUSION"));
 		modificationArea.setText(getChildValue("MODIFICATION"));
 
@@ -371,7 +371,7 @@ public class EventDialog extends BaseRecordDialog{
 
 		addChildrenFromString("CULTURAL_NORM", culturalNormsField.getText().trim());
 		addChildrenFromString("NOTE", notesField.getText().trim());
-		addChildrenFromString("SOURCE_CITATION", sourcesField.getText().trim());
+		addChildrenFromString("SOURCE", sourcesField.getText().trim());
 
 		addChild("CONCLUSION", 1, conclusionArea.getText().trim());
 		addChild("MODIFICATION", 1, modificationArea.getText().trim());

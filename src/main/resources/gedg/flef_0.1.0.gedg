@@ -268,13 +268,14 @@ n @<XREF:PLACE_RELATIONSHIP>@ PLACE_RELATIONSHIP    {1:1}
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-NOTE_RECORD :=
+NOTE_RECORD :=	/* DONE */
 n @<XREF:NOTE>@ NOTE    {1:1}
   +1 TITLE <TEXT>    {0:1}	/* Note title. */
   +1 VALUE <SUBMITTER_TEXT>    {1:1}	/* Comments or opinions from the submitter following markdown language. Reference to structures in this file can be written as `[text](@<XREF:ID>@)`, "confidential" data can be written as `[text](confidential)`. */
   +1 MIME <MIME_TYPE>    {0:1}	/* e.g., text/html, text/markdown. */
   +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the note (as defined by IETF BCP 47: https://tools.ietf.org/html/bcp47). */
-  +1 TRANSLATION <SUBMITTER_TRANSLATED_TEXT>    {0:M}	/* A translated version of the note. */
+  +1 TRANSLATION    {0:M}
+    +2 VALUE <TEXT>    {1:1}	/* A translated version of the note. */
     +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the translated note (as defined by IETF BCP 47: https://tools.ietf.org/html/bcp47). */
   +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}

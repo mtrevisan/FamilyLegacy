@@ -274,7 +274,7 @@ public class PersonalNamePanel extends JPanel{
 
 			List<FLEFRecord> sourceCitations = new ArrayList<>();
 			for(FLEFRecord child : nameStruct.getChildren()){
-				if("SOURCE_CITATION".equals(child.getTag())){
+				if("SOURCE".equals(child.getTag())){
 					sourceCitations.add(child);
 				}
 			}
@@ -345,7 +345,7 @@ public class PersonalNamePanel extends JPanel{
 
 			for(FLEFRecord citation : entry.sourceCitations){
 				citation.setLevel(baseLevel + 1);
-				citation.setTag("SOURCE_CITATION");
+				citation.setTag("SOURCE");
 				nameStruct.addChild(citation);
 			}
 
@@ -905,7 +905,7 @@ public class PersonalNamePanel extends JPanel{
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(parent), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
 				currentSources.add(citation);
 				listModel.addElement(getSourceCitationDisplay(citation));
 			}

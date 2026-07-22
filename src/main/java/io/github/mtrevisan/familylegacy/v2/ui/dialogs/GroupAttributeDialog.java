@@ -398,7 +398,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 			}
@@ -451,7 +451,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id)){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", id);
+				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", id);
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 				return;
@@ -541,7 +541,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		sourceCitationRecords.clear();
 		sourceCitationListModel.clear();
 		for(FLEFRecord child : record.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			if("SOURCE".equals(child.getTag())){
 				sourceCitationRecords.add(child);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -716,7 +716,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		// SOURCE_CITATION
 		for(FLEFRecord citation : sourceCitationRecords){
 			citation.setLevel(1);
-			citation.setTag("SOURCE_CITATION");
+			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 

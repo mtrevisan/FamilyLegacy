@@ -816,7 +816,7 @@ public class EventStructurePanel extends JPanel{
 		sourceRecords.clear();
 		sourceModel.clear();
 		for(FLEFRecord child : eventStructure.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			if("SOURCE".equals(child.getTag())){
 				sourceRecords.add(child);
 				sourceModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -932,7 +932,7 @@ public class EventStructurePanel extends JPanel{
 		for(FLEFRecord citation : sourceRecords){
 			// Ensure the citation has the correct level and tag
 			citation.setLevel(1);
-			citation.setTag("SOURCE_CITATION");
+			citation.setTag("SOURCE");
 			eventStructure.addChild(citation);
 		}
 

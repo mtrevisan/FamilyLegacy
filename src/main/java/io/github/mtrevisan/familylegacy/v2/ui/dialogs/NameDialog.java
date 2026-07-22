@@ -618,7 +618,7 @@ public class NameDialog extends JDialog{
 		sourceIds.clear();
 		sourceDisplayMap.clear();
 		for(FLEFRecord child : nameRecord.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag()) && child.getValue() != null){
+			if("SOURCE".equals(child.getTag()) && child.getValue() != null){
 				String id = child.getValue();
 				sourceIds.add(id);
 				String display = getSourceDisplayName(id);
@@ -941,7 +941,7 @@ public class NameDialog extends JDialog{
 		// References
 		FLEFRecordUtils.removeChildren(nameRecord, "CULTURAL_NORM");
 		FLEFRecordUtils.removeChildren(nameRecord, "NOTE");
-		FLEFRecordUtils.removeChildren(nameRecord, "SOURCE_CITATION");
+		FLEFRecordUtils.removeChildren(nameRecord, "SOURCE");
 		for(String id : culturalNormIds){
 			FLEFRecordUtils.addChild(nameRecord, "CULTURAL_NORM", 1, id);
 		}
@@ -949,7 +949,7 @@ public class NameDialog extends JDialog{
 			FLEFRecordUtils.addChild(nameRecord, "NOTE", 1, id);
 		}
 		for(String id : sourceIds){
-			FLEFRecordUtils.addChild(nameRecord, "SOURCE_CITATION", 1, id);
+			FLEFRecordUtils.addChild(nameRecord, "SOURCE", 1, id);
 		}
 	}
 

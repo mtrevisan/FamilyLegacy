@@ -384,7 +384,7 @@ public class ConclusionPanel extends JPanel{
 			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, sourceHandler,
 			selectedId -> {
 				if(selectedId != null){
-					FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", selectedId);
+					FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
 					sourceCitations.add(citation);
 					sourceListModel.addElement(getSourceCitationDisplay(citation));
 				}
@@ -489,7 +489,7 @@ public class ConclusionPanel extends JPanel{
 		sourceCitations.clear();
 		sourceListModel.clear();
 		for(FLEFRecord child : conclusionRecord.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			if("SOURCE".equals(child.getTag())){
 				sourceCitations.add(child);
 				sourceListModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -565,10 +565,10 @@ public class ConclusionPanel extends JPanel{
 		}
 
 		// SOURCE_CITATION (0:M)
-		FLEFRecordUtils.removeChildren(record, "SOURCE_CITATION");
+		FLEFRecordUtils.removeChildren(record, "SOURCE");
 		for(FLEFRecord citation : sourceCitations){
 			citation.setLevel(1);
-			citation.setTag("SOURCE_CITATION");
+			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 

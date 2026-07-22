@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -44,7 +45,9 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 /**
@@ -76,7 +79,7 @@ public class NoteDialog extends BaseRecordDialog{
 	private final SourceHandler sourceHandler = new SourceHandler();
 
 	// UI components – now bound
-	private final BoundTextField titleField = new BoundTextField("TITLE", 30);;
+	private final BoundTextField titleField = new BoundTextField("TITLE", 30);
 	private final BoundTextArea valueArea = new BoundTextArea("VALUE", 10, 30);
 	private final JScrollPane valueScrollPane = new JScrollPane(valueArea);
 	private final BoundComboBox<String> mimeCombo = new BoundComboBox<>("MIME", new String[]{"", "text/plain", "text/html", "text/markdown"});
@@ -159,6 +162,7 @@ public class NoteDialog extends BaseRecordDialog{
 	protected void initComponents(){
 		// Register bound components
 		bindingManager.bind(titleField);
+		bindingManager.bind(valueArea);
 		bindingManager.bind(mimeCombo);
 		bindingManager.bind(localeCombo);
 
@@ -177,8 +181,9 @@ public class NoteDialog extends BaseRecordDialog{
 		modificationContainer.add(modificationPanel, "grow");
 		tabbedPane.addTab("Modification", modificationContainer);
 
-		setLayout(new MigLayout("fillx"));
-		add(tabbedPane, "growx,push");
+		// Use "fillx, top" to keep content at the top and not stretch vertically
+		setLayout(new MigLayout("fillx, top"));
+		add(tabbedPane, "growx");
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
@@ -198,7 +203,7 @@ public class NoteDialog extends BaseRecordDialog{
 		panel.add(new JLabel("Title:"), "align label");
 		panel.add(titleField, "growx,wrap");
 
-		// VALUE (required) – multi-line (manual because it's a JTextArea)
+		// VALUE (required) – bound text area
 		panel.add(new JLabel("Value:"), "align label,top");
 		valueArea.setLineWrap(true);
 		valueArea.setWrapStyleWord(true);
@@ -230,7 +235,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 	// ==================== Translations Panel ====================
 	private JPanel createTranslationsPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
+		JPanel panel = new JPanel(new MigLayout("fillx, top"));
 		panel.setBorder(new TitledBorder("Translations"));
 
 		translationList.setVisibleRowCount(4);
@@ -257,7 +262,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 	// ==================== Source Citations Panel ====================
 	private JPanel createSourceCitationsPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
+		JPanel panel = new JPanel(new MigLayout("fillx, top"));
 		panel.setBorder(new TitledBorder("Source Citations"));
 
 		sourceList.setVisibleRowCount(4);
@@ -266,12 +271,15 @@ public class NoteDialog extends BaseRecordDialog{
 		GUIHelper.installBehaviour(sourceList,
 			() -> sourceList.getSelectedIndex() >= 0,
 			this::editSourceCitation,
-			this::addSourceCitation,
+			() -> {
+			}, // INSERT key – not used, we have explicit menu items
 			this::removeSourceCitation,
 			builder -> {
-				builder.item("Add Source...", this::addSourceCitation);
+				builder.item("Add Existing Source...", this::addSourceCitation);
+				builder.item("New Source...", this::createNewSourceAndAddCitation);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editSourceCitation);
+				builder.selectionSensitiveItem("Edit Source...", this::editSource);
+				builder.selectionSensitiveItem("Edit Citation...", this::editSourceCitation);
 				builder.selectionSensitiveItem("Remove", this::removeSourceCitation);
 			});
 
@@ -389,6 +397,9 @@ public class NoteDialog extends BaseRecordDialog{
 
 	// ==================== Source Citation Methods ====================
 
+	/**
+	 * Adds an existing source citation by selecting a source from the model.
+	 */
 	private void addSourceCitation(){
 		if(sourceHandler == null){
 			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -398,12 +409,96 @@ public class NoteDialog extends BaseRecordDialog{
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
 				sourceCitations.add(citation);
 				sourceListModel.addElement(getSourceCitationDisplay(citation));
 			}
 		});
 		selDialog.setVisible(true);
+	}
+
+	/**
+	 * Creates a new source using SourceDialog, then automatically adds a citation for it.
+	 */
+	/**
+	 * Creates a new source using SourceDialog, then opens SourceCitationDialog
+	 * to add a citation for it with full details (location, crop, notes, etc.).
+	 */
+	private void createNewSourceAndAddCitation(){
+		if(sourceHandler == null){
+			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		// Remember existing source IDs before opening the dialog
+		Set<String> before = new HashSet<>();
+		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
+			String id = rec.getId();
+			if(id != null) before.add(id);
+		}
+
+		// Open SourceDialog to create a new source
+		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
+		dialog.setVisible(true);
+
+		// After dialog closes, check for a newly added source
+		String newSourceId = null;
+		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id)){
+				newSourceId = id;
+				break;
+			}
+		}
+
+		// If a new source was created, open SourceCitationDialog to add a citation
+		if(newSourceId != null){
+			// Create a citation record with the source ID pre-filled
+			FLEFRecord citationRecord = FLEFRecord.createChildWithValue(1, "SOURCE", newSourceId);
+
+			// Open SourceCitationDialog in edit mode (with pre-filled source)
+			SourceCitationDialog citationDialog = new SourceCitationDialog(getParentFrame(), model, citationRecord);
+			citationDialog.setVisible(true);
+
+			if(citationDialog.isSaved()){
+				FLEFRecord savedCitation = citationDialog.getCitationRecord();
+				if(savedCitation != null){
+					savedCitation.setLevel(1);
+					savedCitation.setTag("SOURCE");
+					sourceCitations.add(savedCitation);
+					sourceListModel.addElement(getSourceCitationDisplay(savedCitation));
+				}
+			}
+			// If the user cancels the citation dialog, we don't add the citation
+		}
+	}
+
+	/**
+	 * Edits the source record associated with the selected citation.
+	 * Opens SourceDialog in edit mode for the referenced source.
+	 */
+	private void editSource(){
+		int idx = sourceList.getSelectedIndex();
+		if(idx == -1) return;
+
+		FLEFRecord citation = sourceCitations.get(idx);
+		String sourceId = citation.getValue();
+		if(sourceId == null || sourceId.isEmpty()){
+			JOptionPane.showMessageDialog(this, "No source ID found in this citation.", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		FLEFRecord source = model.getRecordById(sourceId);
+		if(source == null){
+			JOptionPane.showMessageDialog(this, "Source record not found: " + sourceId, "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+
+		SourceDialog dialog = new SourceDialog(getParentFrame(), model, source);
+		dialog.setVisible(true);
+
+		// After editing, update the display name of the citation (the source name might have changed)
+		sourceListModel.set(idx, getSourceCitationDisplay(citation));
 	}
 
 	private void editSourceCitation(){
@@ -456,10 +551,6 @@ public class NoteDialog extends BaseRecordDialog{
 
 		// ---- Complex fields: manual load ----
 
-		// VALUE (required) – manual because it's a JTextArea
-		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
-		valueArea.setText(value != null? value: "");
-
 		// TRANSLATION
 		translationEntries.clear();
 		translationModel.clear();
@@ -468,6 +559,7 @@ public class NoteDialog extends BaseRecordDialog{
 				String translationLocale = FLEFRecordUtils.getChildValue(child, "LOCALE");
 				String translationValue = FLEFRecordUtils.getChildValue(child, "VALUE");
 				if(translationValue == null){
+					// Try to get from child (in case of nested structure)
 					translationValue = FLEFRecordUtils.getChildValue(child, "VALUE");
 				}
 				if(translationValue != null && !translationValue.isEmpty()){
@@ -482,7 +574,7 @@ public class NoteDialog extends BaseRecordDialog{
 		sourceCitations.clear();
 		sourceListModel.clear();
 		for(FLEFRecord child : record.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			if("SOURCE".equals(child.getTag())){
 				sourceCitations.add(child);
 				sourceListModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -499,7 +591,8 @@ public class NoteDialog extends BaseRecordDialog{
 	// ==================== Validation ====================
 	@Override
 	protected boolean validateData(){
-		// VALUE is required
+		// VALUE is required – the binding manager has already loaded it,
+		// but we need to check if it's empty.
 		if(valueArea.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Note VALUE is required.",
@@ -535,34 +628,25 @@ public class NoteDialog extends BaseRecordDialog{
 
 		// ---- Complex fields: manual save ----
 
-		// VALUE (required)
-		String value = valueArea.getText().trim();
-		if(!value.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "VALUE", value);
-		}
-
 		// TRANSLATION
 		FLEFRecordUtils.removeChildren(record, "TRANSLATION");
 		for(TranslationEntry entry : translationEntries){
 			FLEFRecord translation = FLEFRecord.createChild(1, "TRANSLATION");
-
-			if(entry.locale != null && !entry.locale.isEmpty()){
-				FLEFRecord localeChild = FLEFRecord.createChildWithValue(2, "LOCALE", entry.locale);
-				translation.addChild(localeChild);
-			}
-
 			if(entry.value != null && !entry.value.isEmpty()){
 				FLEFRecord valueChild = FLEFRecord.createChildWithValue(2, "VALUE", entry.value);
 				translation.addChild(valueChild);
 			}
-
+			if(entry.locale != null && !entry.locale.isEmpty()){
+				FLEFRecord localeChild = FLEFRecord.createChildWithValue(2, "LOCALE", entry.locale);
+				translation.addChild(localeChild);
+			}
 			record.addChild(translation);
 		}
 
-		// SOURCE_CITATION
+		// SOURCE
 		for(FLEFRecord citation : sourceCitations){
 			citation.setLevel(1);
-			citation.setTag("SOURCE_CITATION");
+			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 
@@ -583,7 +667,9 @@ public class NoteDialog extends BaseRecordDialog{
 			model.addRecord(record);
 		}
 
-		dispose();
+//TODO to be removed
+FLEFFile.print(model);
+//		dispose();
 	}
 
 	// ==================== Overrides ====================
@@ -597,6 +683,7 @@ public class NoteDialog extends BaseRecordDialog{
 		return FLEFRecordUtils.generateNewId(model, NoteHandler.TYPE, NoteHandler.ID_PREFIX);
 	}
 
+
 	// ==================== Main test ====================
 	public static void main(String[] args){
 		try{
@@ -608,21 +695,8 @@ public class NoteDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Test Note Dialog");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setLayout(new FlowLayout());
-			frame.setSize(400, 150);
-			frame.setLocationRelativeTo(null);
-
-			JButton btn = new JButton("New Note");
-			btn.addActionListener(e -> {
-				NoteDialog dialog = NoteDialog.createNew(frame, model);
-				dialog.setVisible(true);
-				System.out.println("Note saved.");
-			});
-
-			frame.add(btn);
-			frame.setVisible(true);
+			NoteDialog dialog = NoteDialog.createNew(null, model);
+			dialog.setVisible(true);
 		});
 	}
 

@@ -1008,7 +1008,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 		FLEFRecord citationRecord;
 		if(preSelectedSourceId != null && !preSelectedSourceId.isEmpty()){
-			citationRecord = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", preSelectedSourceId);
+			citationRecord = FLEFRecord.createChildWithValue(1, "SOURCE", preSelectedSourceId);
 		}
 		else{
 			citationRecord = null;
@@ -1021,7 +1021,7 @@ public class GroupDialog extends BaseRecordDialog{
 			FLEFRecord citation = dialog.getCitationRecord();
 			if(citation != null){
 				citation.setLevel(1);
-				citation.setTag("SOURCE_CITATION");
+				citation.setTag("SOURCE");
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 				return true;
@@ -1167,7 +1167,7 @@ public class GroupDialog extends BaseRecordDialog{
 				noteDisplayMap.put(id, display);
 				noteListModel.addElement(display);
 			}
-			else if("SOURCE_CITATION".equals(tag)){
+			else if("SOURCE".equals(tag)){
 				sourceCitationRecords.add(child);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -1267,7 +1267,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 		for(FLEFRecord citation : sourceCitationRecords){
 			citation.setLevel(1);
-			citation.setTag("SOURCE_CITATION");
+			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 

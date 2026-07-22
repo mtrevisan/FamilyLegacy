@@ -612,7 +612,7 @@ public class PlaceDialog extends BaseRecordDialog{
 					else if("NOTE".equals(sub.getTag()) && sub.getValue() != null){
 						noteIds.add(sub.getValue());
 					}
-					else if("SOURCE_CITATION".equals(sub.getTag())){
+					else if("SOURCE".equals(sub.getTag())){
 						sourceCitations.add(sub);
 					}
 				}
@@ -745,7 +745,7 @@ public class PlaceDialog extends BaseRecordDialog{
 			}
 			for(FLEFRecord citation : entry.sourceCitations){
 				citation.setLevel(2);
-				citation.setTag("SOURCE_CITATION");
+				citation.setTag("SOURCE");
 				addrNode.addChild(citation);
 			}
 		}

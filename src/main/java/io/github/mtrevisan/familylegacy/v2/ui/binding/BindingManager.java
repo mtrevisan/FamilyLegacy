@@ -58,7 +58,8 @@ public class BindingManager{
 				continue;
 
 			final String value = comp.getValue();
-			FLEFFile.setValueByPath(record, path, (value));
+			if(value != null && !value.isEmpty())
+				FLEFFile.setValueByPath(record, path, value);
 		}
 	}
 

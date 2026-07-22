@@ -433,7 +433,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 			FLEFRecord citation = dialog.getCitationRecord();
 			if(citation != null){
 				citation.setLevel(1);
-				citation.setTag("SOURCE_CITATION");
+				citation.setTag("SOURCE");
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 			}
@@ -522,7 +522,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		sourceCitationRecords.clear();
 		sourceCitationListModel.clear();
 		for(FLEFRecord child : record.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			if("SOURCE".equals(child.getTag())){
 				sourceCitationRecords.add(child);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -585,7 +585,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		// SOURCE CITATIONS (0:M)
 		for(FLEFRecord citation : sourceCitationRecords){
 			citation.setLevel(1);
-			citation.setTag("SOURCE_CITATION");
+			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 

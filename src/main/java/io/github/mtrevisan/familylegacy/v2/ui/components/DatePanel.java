@@ -151,7 +151,7 @@ public class DatePanel extends JPanel{
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			(Frame)SwingUtilities.getWindowAncestor(this), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE_CITATION", selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
 				sourceCitations.add(citation);
 				sourceListModel.addElement(getSourceCitationDisplay(citation));
 			}
@@ -220,7 +220,7 @@ public class DatePanel extends JPanel{
 		sourceCitations.clear();
 		sourceListModel.clear();
 		for(FLEFRecord child : dateStructure.getChildren()){
-			if("SOURCE_CITATION".equals(child.getTag())){
+			if("SOURCE".equals(child.getTag())){
 				sourceCitations.add(child);
 				sourceListModel.addElement(getSourceCitationDisplay(child));
 			}
@@ -299,7 +299,7 @@ public class DatePanel extends JPanel{
 		for(FLEFRecord citation : sourceCitations){
 			FLEFRecord copy = FLEFRecordUtils.copyRecordWithLevel(citation, 2);
 
-			copy.setTag("SOURCE_CITATION");
+			copy.setTag("SOURCE");
 
 			record.addChild(copy);
 		}
