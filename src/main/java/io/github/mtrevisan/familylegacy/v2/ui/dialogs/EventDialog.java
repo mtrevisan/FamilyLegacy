@@ -1,54 +1,17 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.ItemEvent;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -66,10 +29,11 @@ public class EventDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -9191829528682252778L;
 
+	private final BindingManager bindingManager = new BindingManager();
 
 	// ========== Basic tab components ==========
 	private final JTextField idField = new JTextField(10);
-	private final JComboBox<String> typeCombo = new JComboBox<>();
+	private final BoundComboBox typeCombo;
 	private final JTextField familyField = new JTextField(15);
 	private final JTextField twinField = new JTextField(30);
 	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
@@ -109,6 +73,10 @@ public class EventDialog extends BaseRecordDialog{
 	public EventDialog(Frame parent, FLEFModel model, FLEFRecord record){
 		super(parent, "Edit Event", model, record);
 
+		// Initialize bound components before using them
+		typeCombo = new BoundComboBox("TYPE", new String[]{});
+		initTypeCombo();
+
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(700, 600));
@@ -122,6 +90,10 @@ public class EventDialog extends BaseRecordDialog{
 	public EventDialog(Frame parent, FLEFModel model){
 		super(parent, "New Event", model, null);
 
+		// Initialize bound components before using them
+		typeCombo = new BoundComboBox("TYPE", new String[]{});
+		initTypeCombo();
+
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(700, 600));
@@ -133,8 +105,8 @@ public class EventDialog extends BaseRecordDialog{
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
-		// Initialize the type combo with all possible event types
-		initTypeCombo();
+		// Register bound components
+		bindingManager.bind(typeCombo);
 
 		// Create tabbed pane
 		JTabbedPane tabbedPane = new JTabbedPane();
@@ -142,7 +114,7 @@ public class EventDialog extends BaseRecordDialog{
 		// --- Basic tab ---
 		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
 		idField.setEditable(false);
-		idField.setText(record.getId());
+		idField.setText(record != null? record.getId(): "");
 		basicPanel.add(new JLabel("ID:"), "align label");
 		basicPanel.add(idField, "growx,wrap");
 		basicPanel.add(new JLabel("Type:"), "align label");
@@ -251,9 +223,9 @@ public class EventDialog extends BaseRecordDialog{
 		java.util.Arrays.sort(otherTypes);
 		Collections.addAll(types, otherTypes);
 
-		for(String t : types){
-			typeCombo.addItem(t);
-		}
+		// Add all types to the combo model
+		DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>(types.toArray(new String[0]));
+		typeCombo.setModel(model);
 		typeCombo.setEditable(true);
 	}
 
@@ -280,9 +252,13 @@ public class EventDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		String type = getChildValue("TYPE");
-		if(type != null) typeCombo.setSelectedItem(type);
+		// ---- Simple fields: load via binding manager ----
+		bindingManager.loadFromRecord(record);
 
+		// ---- Complex fields: manual load ----
+		// Note: FAMILY, TWIN, PARENT1_RELATIONSHIP, PARENT2_RELATIONSHIP are not part of the
+		// standard EVENT_RECORD protocol. They are kept here for backward compatibility
+		// but should be migrated to RELATIONSHIP_RECORD or EVENT_PARTICIPATION_RECORD.
 		familyField.setText(getChildValue("FAMILY"));
 		twinField.setText(getChildValuesAsString("TWIN"));
 		relationshipParent1Combo.setSelectedItem(getChildValue("PARENT1_RELATIONSHIP"));
@@ -331,20 +307,11 @@ public class EventDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveRecord(){
-		String type = (String)typeCombo.getSelectedItem();
-		if(type == null || type.isEmpty()){
-			showError("Validation Error", "Type is required.");
-			return;
-		}
+		// ---- Save simple fields via binding manager (must be after all other children) ----
+		bindingManager.saveToRecord(record);
 
-		if("ADOPTION".equals(type) && familyField.getText().trim().isEmpty()){
-			showError("Validation Error", "Family is mandatory for ADOPTION.");
-			return;
-		}
-
-		record.getChildren().clear();
-
-		addChild("TYPE", 1, type);
+		// ---- Complex fields: manual save ----
+		// Note: FAMILY, TWIN, PARENT1_RELATIONSHIP, PARENT2_RELATIONSHIP are kept for backward compatibility
 		addChild("FAMILY", 1, familyField.getText().trim());
 		addChildrenFromString("TWIN", twinField.getText().trim());
 		addChild("PARENT1_RELATIONSHIP", 1, (String)relationshipParent1Combo.getSelectedItem());

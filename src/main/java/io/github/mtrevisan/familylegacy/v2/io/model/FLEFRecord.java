@@ -193,6 +193,30 @@ public class FLEFRecord{
 		return child != null? child.getValue(): null;
 	}
 
+	/**
+	 * Checks whether this record's value is a reference to another record
+	 * (i.e. wrapped in @...@, but not the special @VOID@ constant).
+	 */
+	public boolean isReference(){
+		return (value != null && value.startsWith("@") && value.endsWith("@")
+			 && !"@VOID@".equals(value));
+	}
+
+	/**
+	 * Checks whether this record's value is the special @VOID@ constant.
+	 */
+	public boolean isVoid(){
+		return "@VOID@".equals(value);
+	}
+
+	/**
+	 * If this record's value is a reference, returns the referenced ID
+	 * (without the surrounding @ symbols). Otherwise returns {@code null}.
+	 */
+	public String getReferenceId(){
+		return (isReference()? value.substring(1, value.length() - 1): null);
+	}
+
 	@Override
 	public String toString(){
 		if(id != null)

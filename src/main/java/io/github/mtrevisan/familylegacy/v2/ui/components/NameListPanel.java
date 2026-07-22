@@ -23,18 +23,11 @@ import java.util.Set;
 /**
  * Panel for editing a list of {@code NAME_STRUCTURE} according to FLEF 0.1.0.
  * <p>
- * Structure:
+ * The actual record structure uses the following tags:
  * <pre>
- * NAME_STRUCTURE :=
  * n NAME    {1:1}
- *   +1 <<TEXT_VALUE>>    {1:1}
+ *   +1 VALUE <TEXT>    {1:1}
  *   +1 TYPE <NAME_TYPE>    {0:1}
- * </pre>
- * <p>
- * TEXT_VALUE is defined as:
- * <pre>
- * TEXT_VALUE :=
- * n VALUE <TEXT>    {1:1}
  *   +1 LOCALE <LOCALE_CODE>    {0:1}
  *   +1 VALID_FROM    {0:1}
  *     +2 <<DATE_STRUCTURE>>    {1:1}
@@ -44,6 +37,7 @@ import java.util.Set;
  *   +1 NOTE @<XREF:NOTE>@    {0:M}
  *   +1 <<SOURCE_CITATION>>    {0:M}
  * </pre>
+ * Note: the TEXT_VALUE_VARIANT nodes are represented as PHONETIC or TRANSCRIPTION.
  */
 public class NameListPanel extends JPanel{
 
@@ -58,7 +52,7 @@ public class NameListPanel extends JPanel{
 	private final List<NameEntry> nameEntries = new ArrayList<>();
 
 	/**
-	 * Represents a TEXT_VALUE_VARIANT.
+	 * Represents a TEXT_VALUE_VARIANT (PHONETIC or TRANSCRIPTION).
 	 */
 	private static class VariantEntry{
 		private final String type;       // "PHONETIC" or "TRANSCRIPTION"
@@ -91,7 +85,18 @@ public class NameListPanel extends JPanel{
 	}
 
 	/**
-	 * Internal representation of a NAME_STRUCTURE with full TEXT_VALUE support.
+	 * Internal representation of a NAME with full TEXT_VALUE support.
+	 * <p>
+	 * This corresponds to:
+	 * NAME
+	 * +1 VALUE (the text value)
+	 * +1 TYPE (optional)
+	 * +1 LOCALE (optional)
+	 * +1 VALID_FROM (optional DATE_STRUCTURE)
+	 * +1 VALID_TO (optional DATE_STRUCTURE)
+	 * +1 PHONETIC / TRANSCRIPTION (variants)
+	 * +1 NOTE
+	 * +1 SOURCE_CITATION
 	 */
 	private static class NameEntry{
 		private final String value;
@@ -150,24 +155,21 @@ public class NameListPanel extends JPanel{
 		}
 
 		/**
-		 * Extracts a human-readable date string from a DATE_STRUCTURE or any node
-		 * that is part of a date structure.
-		 *
-		 * @param record the FLEFRecord representing a date node
-		 * @return a human-readable date string, or empty string if not extractable
+		 * Extracts a human-readable date string from a DATE_STRUCTURE record.
 		 */
 		private static String extractDateValue(final FLEFRecord record){
 			if(record == null){
 				return "";
 			}
 
-			if(!"DATE".equals(record.getTag())){
+			// The record is a DATE_STRUCTURE, which contains a DATE node.
+			FLEFRecord dateNode = FLEFRecordUtils.findChild(record, "DATE");
+			if(dateNode == null){
 				return "";
 			}
 
-			FLEFRecord dateValue =
-				FLEFRecordUtils.findChild(record, "DATE_VALUE");
-
+			// DATE has a DATE_VALUE child.
+			FLEFRecord dateValue = FLEFRecordUtils.findChild(dateNode, "DATE_VALUE");
 			if(dateValue == null){
 				return "";
 			}
@@ -176,18 +178,20 @@ public class NameListPanel extends JPanel{
 		}
 
 		private static String extractDateValueNode(final FLEFRecord dateValue){
-			FLEFRecord value = FLEFRecordUtils.findChild(dateValue, "VALUE");
-
-			if(value != null){
-				FLEFRecord qualified = FLEFRecordUtils.findChild(value, "QUALIFIED_DATE");
+			// Try VALUE -> QUALIFIED_DATE -> SINGLE_DATE -> ISO
+			FLEFRecord valueNode = FLEFRecordUtils.findChild(dateValue, "VALUE");
+			if(valueNode != null){
+				FLEFRecord qualified = FLEFRecordUtils.findChild(valueNode, "QUALIFIED_DATE");
 				return formatQualifiedDate(qualified);
 			}
 
+			// Try BOUNDED
 			FLEFRecord bounded = FLEFRecordUtils.findChild(dateValue, "BOUNDED");
 			if(bounded != null){
 				return formatBounded(bounded);
 			}
 
+			// Try SPANNING
 			FLEFRecord spanning = FLEFRecordUtils.findChild(dateValue, "SPANNING");
 			if(spanning != null){
 				return formatSpanning(spanning);
@@ -241,7 +245,7 @@ public class NameListPanel extends JPanel{
 			}
 
 			StringBuilder result = new StringBuilder(ordinal)
-				.append("th century");
+											  .append("th century");
 
 			String part = FLEFRecordUtils.getChildValue(century, "PART");
 			if(part != null && !part.isBlank()){
@@ -256,8 +260,8 @@ public class NameListPanel extends JPanel{
 		private static String formatDecade(final FLEFRecord decade){
 			String value = decade.getValue();
 			return (value != null
-				? value + "s"
-				: "");
+						  ? value + "s"
+						  : "");
 		}
 
 		private static String formatBounded(final FLEFRecord bounded){
@@ -312,9 +316,11 @@ public class NameListPanel extends JPanel{
 
 	}
 
+
 	public NameListPanel(FLEFModel model, Dialog parent){
 		this.model = model;
 		this.parentDialog = parent;
+
 		initComponents();
 	}
 
@@ -354,33 +360,36 @@ public class NameListPanel extends JPanel{
 		nameEntries.clear();
 		nameListModel.clear();
 
-		List<FLEFRecord> nameStructs = record.findChildren("NAME_STRUCTURE");
-		for(FLEFRecord nameStruct : nameStructs){
-			FLEFRecord textValue = FLEFRecordUtils.findChild(nameStruct, "TEXT_VALUE");
-			if(textValue == null) continue;
+		// Find all direct children with tag "NAME"
+		List<FLEFRecord> nameNodes = record.findChildren("NAME");
+		for(FLEFRecord nameNode : nameNodes){
+			// The name value is stored in a child with tag "VALUE"
+			String value = FLEFRecordUtils.getChildValue(nameNode, "VALUE");
+			if(value == null || value.isEmpty()){
+				continue;
+			}
 
-			String value = FLEFRecordUtils.getChildValue(textValue, "VALUE");
-			if(value == null || value.isEmpty()) continue;
+			// Optional fields
+			String type = FLEFRecordUtils.getChildValue(nameNode, "TYPE");
+			String locale = FLEFRecordUtils.getChildValue(nameNode, "LOCALE");
 
-			String locale = FLEFRecordUtils.getChildValue(textValue, "LOCALE");
-
-			// VALID_FROM
+			// VALID_FROM (DATE_STRUCTURE)
 			FLEFRecord validFrom = null;
-			FLEFRecord validFromStruct = FLEFRecordUtils.findChild(textValue, "VALID_FROM");
+			FLEFRecord validFromStruct = FLEFRecordUtils.findChild(nameNode, "VALID_FROM");
 			if(validFromStruct != null){
 				validFrom = FLEFRecordUtils.findChild(validFromStruct, "DATE_STRUCTURE");
 			}
 
-			// VALID_TO
+			// VALID_TO (DATE_STRUCTURE)
 			FLEFRecord validTo = null;
-			FLEFRecord validToStruct = FLEFRecordUtils.findChild(textValue, "VALID_TO");
+			FLEFRecord validToStruct = FLEFRecordUtils.findChild(nameNode, "VALID_TO");
 			if(validToStruct != null){
 				validTo = FLEFRecordUtils.findChild(validToStruct, "DATE_STRUCTURE");
 			}
 
-			// TEXT_VALUE_VARIANT
+			// TEXT_VALUE_VARIANT: PHONETIC and TRANSCRIPTION
 			List<VariantEntry> variants = new ArrayList<>();
-			for(FLEFRecord child : textValue.getChildren()){
+			for(FLEFRecord child : nameNode.getChildren()){
 				String tag = child.getTag();
 				if("PHONETIC".equals(tag)){
 					String system = child.getValue();
@@ -399,21 +408,21 @@ public class NameListPanel extends JPanel{
 				}
 			}
 
+			// NOTE references
 			List<String> noteIds = new ArrayList<>();
-			for(FLEFRecord child : textValue.getChildren()){
+			for(FLEFRecord child : nameNode.getChildren()){
 				if("NOTE".equals(child.getTag()) && child.getValue() != null){
 					noteIds.add(child.getValue());
 				}
 			}
 
+			// SOURCE_CITATION
 			List<FLEFRecord> sourceCitations = new ArrayList<>();
-			for(FLEFRecord child : textValue.getChildren()){
+			for(FLEFRecord child : nameNode.getChildren()){
 				if("SOURCE_CITATION".equals(child.getTag())){
 					sourceCitations.add(child);
 				}
 			}
-
-			String type = FLEFRecordUtils.getChildValue(nameStruct, "TYPE");
 
 			nameEntries.add(new NameEntry(value, type, locale,
 				validFrom, validTo,
@@ -425,83 +434,79 @@ public class NameListPanel extends JPanel{
 	// ==================== Data Saving ====================
 
 	public void saveToRecord(FLEFRecord record){
-		List<FLEFRecord> toRemove = record.findChildren("NAME_STRUCTURE");
+		// Remove all existing NAME children
+		List<FLEFRecord> toRemove = record.findChildren("NAME");
 		for(FLEFRecord child : toRemove){
 			record.removeChild(child);
 		}
 
 		int baseLevel = 1;
 		for(NameEntry entry : nameEntries){
-			FLEFRecord nameStruct = FLEFRecord.createChild(baseLevel, "NAME_STRUCTURE");
-
-			FLEFRecord textValue = FLEFRecord.createChild(baseLevel + 1, "TEXT_VALUE");
+			FLEFRecord nameNode = FLEFRecord.createChild(baseLevel, "NAME");
 
 			// VALUE (required)
-			FLEFRecord value = FLEFRecord.createChildWithValue(baseLevel + 2, "VALUE", entry.value);
-			textValue.addChild(value);
+			FLEFRecord valueNode = FLEFRecord.createChildWithValue(baseLevel + 1, "VALUE", entry.value);
+			nameNode.addChild(valueNode);
+
+			// TYPE (optional)
+			if(entry.type != null && !entry.type.isEmpty()){
+				FLEFRecord typeNode = FLEFRecord.createChildWithValue(baseLevel + 1, "TYPE", entry.type);
+				nameNode.addChild(typeNode);
+			}
 
 			// LOCALE (optional)
 			if(entry.locale != null && !entry.locale.isEmpty()){
-				FLEFRecord locale = FLEFRecord.createChildWithValue(baseLevel + 2, "LOCALE", entry.locale);
-				textValue.addChild(locale);
+				FLEFRecord localeNode = FLEFRecord.createChildWithValue(baseLevel + 1, "LOCALE", entry.locale);
+				nameNode.addChild(localeNode);
 			}
 
-			// VALID_FROM (optional)
+			// VALID_FROM (optional DATE_STRUCTURE)
 			if(entry.validFrom != null && !entry.validFrom.getChildren().isEmpty()){
-				FLEFRecord validFromStruct = FLEFRecord.createChild(baseLevel + 2, "VALID_FROM");
-				// The DATE_STRUCTURE is already built; we just need to copy it with correct levels
-				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validFrom, baseLevel + 3);
+				FLEFRecord validFromStruct = FLEFRecord.createChild(baseLevel + 1, "VALID_FROM");
+				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validFrom, baseLevel + 2);
 				validFromStruct.addChild(dateStructCopy);
-				textValue.addChild(validFromStruct);
+				nameNode.addChild(validFromStruct);
 			}
 
-			// VALID_TO (optional)
+			// VALID_TO (optional DATE_STRUCTURE)
 			if(entry.validTo != null && !entry.validTo.getChildren().isEmpty()){
-				FLEFRecord validToStruct = FLEFRecord.createChild(baseLevel + 2, "VALID_TO");
-				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validTo, baseLevel + 3);
+				FLEFRecord validToStruct = FLEFRecord.createChild(baseLevel + 1, "VALID_TO");
+				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validTo, baseLevel + 2);
 				validToStruct.addChild(dateStructCopy);
-				textValue.addChild(validToStruct);
+				nameNode.addChild(validToStruct);
 			}
 
-			// TEXT_VALUE_VARIANT
+			// TEXT_VALUE_VARIANT: PHONETIC / TRANSCRIPTION
 			for(VariantEntry variant : entry.variants){
-				FLEFRecord variantStruct = FLEFRecord.createChildWithValue(
-					baseLevel + 2, variant.type, variant.system);
+				FLEFRecord variantNode = FLEFRecord.createChildWithValue(
+					baseLevel + 1, variant.type, variant.system);
 				if("TRANSCRIPTION".equals(variant.type) && variant.transcriptionType != null && !variant.transcriptionType.isEmpty()){
-					FLEFRecord transType = FLEFRecord.createChildWithValue(
-						baseLevel + 3, "TYPE", variant.transcriptionType);
-					variantStruct.addChild(transType);
+					FLEFRecord transTypeNode = FLEFRecord.createChildWithValue(
+						baseLevel + 2, "TYPE", variant.transcriptionType);
+					variantNode.addChild(transTypeNode);
 				}
-				FLEFRecord variantValue = FLEFRecord.createChildWithValue(
-					baseLevel + 3, "VALUE", variant.value);
-				variantStruct.addChild(variantValue);
-				textValue.addChild(variantStruct);
+				FLEFRecord variantValueNode = FLEFRecord.createChildWithValue(
+					baseLevel + 2, "VALUE", variant.value);
+				variantNode.addChild(variantValueNode);
+				nameNode.addChild(variantNode);
 			}
 
-			// NOTE (optional)
+			// NOTE references
 			for(String noteId : entry.noteIds){
 				if(noteId != null && !noteId.isEmpty()){
-					FLEFRecord note = FLEFRecord.createChildWithValue(baseLevel + 2, "NOTE", noteId);
-					textValue.addChild(note);
+					FLEFRecord noteNode = FLEFRecord.createChildWithValue(baseLevel + 1, "NOTE", noteId);
+					nameNode.addChild(noteNode);
 				}
 			}
 
-			// SOURCE_CITATION (optional)
+			// SOURCE_CITATION
 			for(FLEFRecord citation : entry.sourceCitations){
-				citation.setLevel(baseLevel + 2);
+				citation.setLevel(baseLevel + 1);
 				citation.setTag("SOURCE_CITATION");
-				textValue.addChild(citation);
+				nameNode.addChild(citation);
 			}
 
-			nameStruct.addChild(textValue);
-
-			// TYPE (from NAME_STRUCTURE, optional)
-			if(entry.type != null && !entry.type.isEmpty()){
-				FLEFRecord type = FLEFRecord.createChildWithValue(baseLevel + 1, "TYPE", entry.type);
-				nameStruct.addChild(type);
-			}
-
-			record.addChild(nameStruct);
+			record.addChild(nameNode);
 		}
 	}
 

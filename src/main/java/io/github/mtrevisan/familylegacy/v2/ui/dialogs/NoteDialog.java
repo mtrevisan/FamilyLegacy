@@ -26,6 +26,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -40,9 +44,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -68,22 +70,24 @@ public class NoteDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -4670126000119212975L;
 
+	private final BindingManager bindingManager = new BindingManager();
+
 	// Handlers
 	private final SourceHandler sourceHandler = new SourceHandler();
 
-	// UI components
-	private final JTextField titleField = new JTextField(30);
-	private final JTextArea valueArea = new JTextArea(10, 30);
+	// UI components – now bound
+	private final BoundTextField titleField = new BoundTextField("TITLE", 30);;
+	private final BoundTextArea valueArea = new BoundTextArea("VALUE", 10, 30);
 	private final JScrollPane valueScrollPane = new JScrollPane(valueArea);
-	private final JComboBox<String> mimeCombo = new JComboBox<>(new String[]{"", "text/plain", "text/html", "text/markdown"});
-	private final JComboBox<String> localeCombo = new JComboBox<>(new String[]{"", "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+	private final BoundComboBox<String> mimeCombo = new BoundComboBox<>("MIME", new String[]{"", "text/plain", "text/html", "text/markdown"});
+	private final BoundComboBox<String> localeCombo = new BoundComboBox<>("LOCALE", new String[]{"", "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 
-	// Translations (0:M)
+	// Translations (0:M) – manual
 	private final DefaultListModel<TranslationEntry> translationModel = new DefaultListModel<>();
 	private final JList<TranslationEntry> translationList = new JList<>(translationModel);
 	private final List<TranslationEntry> translationEntries = new ArrayList<>();
 
-	// Source Citations (0:M)
+	// Source Citations (0:M) – manual
 	private final DefaultListModel<String> sourceListModel = new DefaultListModel<>();
 	private final JList<String> sourceList = new JList<>(sourceListModel);
 	private final List<FLEFRecord> sourceCitations = new ArrayList<>();
@@ -153,14 +157,25 @@ public class NoteDialog extends BaseRecordDialog{
 	// ----- Initialisation -----
 	@Override
 	protected void initComponents(){
+		// Register bound components
+		bindingManager.bind(titleField);
+		bindingManager.bind(mimeCombo);
+		bindingManager.bind(localeCombo);
+
 		restrictionPanel = new RestrictionPanel(this);
 		modificationPanel = new ModificationPanel(model, this);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+
+		JPanel restrictionContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
+		restrictionContainer.add(restrictionPanel, "grow");
+		tabbedPane.addTab("Restriction", restrictionContainer);
+
+		JPanel modificationContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
+		modificationContainer.add(modificationPanel, "grow");
+		tabbedPane.addTab("Modification", modificationContainer);
 
 		setLayout(new MigLayout("fillx"));
 		add(tabbedPane, "growx,push");
@@ -176,29 +191,27 @@ public class NoteDialog extends BaseRecordDialog{
 
 	// ==================== Main Panel ====================
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]5[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// TITLE (optional)
+		// TITLE (optional) – bound field
 		panel.add(new JLabel("Title:"), "align label");
 		panel.add(titleField, "growx,wrap");
 
-		// VALUE (required) - multi-line
+		// VALUE (required) – multi-line (manual because it's a JTextArea)
 		panel.add(new JLabel("Value:"), "align label,top");
 		valueArea.setLineWrap(true);
 		valueArea.setWrapStyleWord(true);
 		valueScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		valueArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
-		panel.add(valueScrollPane, "growx,wrap");
+		panel.add(valueScrollPane, "growx, growy, wrap");
 
-		// MIME (optional)
+		// MIME (optional) – bound combo
 		panel.add(new JLabel("MIME:"), "align label");
-		mimeCombo.setEditable(true);
 		panel.add(mimeCombo, "growx,wrap");
 
-		// LOCALE (optional)
+		// LOCALE (optional) – bound combo
 		panel.add(new JLabel("Locale:"), "align label");
-		localeCombo.setEditable(true);
 		panel.add(localeCombo, "growx,wrap");
 
 		return panel;
@@ -206,7 +219,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 	// ==================== References Panel ====================
 	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, top, wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(createTranslationsPanel(), "growx");
@@ -313,7 +326,7 @@ public class NoteDialog extends BaseRecordDialog{
 		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]10[]"));
 
 		// LOCALE
-		JComboBox<String> localeCombo = new JComboBox<>(new String[]{"", "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		BoundComboBox<String> localeCombo = new BoundComboBox<>("LOCALE", new String[]{"", "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
 		if(initial != null && !initial.locale.isEmpty()){
 			localeCombo.setSelectedItem(initial.locale);
@@ -323,7 +336,7 @@ public class NoteDialog extends BaseRecordDialog{
 		dialog.add(localeCombo, "growx,wrap");
 
 		// VALUE (multi-line)
-		JTextArea valueArea = new JTextArea(5, 25);
+		BoundTextArea valueArea = new BoundTextArea("VALUE", 5, 25);
 		valueArea.setLineWrap(true);
 		valueArea.setWrapStyleWord(true);
 		if(initial != null){
@@ -438,21 +451,14 @@ public class NoteDialog extends BaseRecordDialog{
 	protected void loadData(){
 		setTitle(buildTitle(model, record));
 
-		// TITLE (optional)
-		String title = FLEFRecordUtils.getChildValue(record, "TITLE");
-		titleField.setText(title != null? title: "");
+		// ---- Simple fields: load via binding manager ----
+		bindingManager.loadFromRecord(record);
 
-		// VALUE (required)
+		// ---- Complex fields: manual load ----
+
+		// VALUE (required) – manual because it's a JTextArea
 		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
 		valueArea.setText(value != null? value: "");
-
-		// MIME (optional)
-		String mime = FLEFRecordUtils.getChildValue(record, "MIME");
-		mimeCombo.setSelectedItem(mime != null? mime: "");
-
-		// LOCALE (optional)
-		String locale = FLEFRecordUtils.getChildValue(record, "LOCALE");
-		localeCombo.setSelectedItem(locale != null? locale: "");
 
 		// TRANSLATION
 		translationEntries.clear();
@@ -461,10 +467,7 @@ public class NoteDialog extends BaseRecordDialog{
 			if("TRANSLATION".equals(child.getTag())){
 				String translationLocale = FLEFRecordUtils.getChildValue(child, "LOCALE");
 				String translationValue = FLEFRecordUtils.getChildValue(child, "VALUE");
-				// Note: The structure has VALUE directly under TRANSLATION (not nested)
-				// But we need to handle both possibilities
 				if(translationValue == null){
-					// Try to get from child
 					translationValue = FLEFRecordUtils.getChildValue(child, "VALUE");
 				}
 				if(translationValue != null && !translationValue.isEmpty()){
@@ -527,34 +530,15 @@ public class NoteDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		record.getChildren().clear();
 
-		// TITLE (optional)
-		String title = titleField.getText().trim();
-		if(!title.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "TITLE", title);
-		}
+		// ---- Save simple fields via binding manager ----
+		bindingManager.saveToRecord(record);
+
+		// ---- Complex fields: manual save ----
 
 		// VALUE (required)
 		String value = valueArea.getText().trim();
 		if(!value.isEmpty()){
 			FLEFRecordUtils.updateChildValue(record, "VALUE", value);
-		}
-
-		// MIME (optional)
-		String mime = (String)mimeCombo.getSelectedItem();
-		if(mime != null && !mime.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "MIME", mime);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "MIME");
-		}
-
-		// LOCALE (optional)
-		String locale = (String)localeCombo.getSelectedItem();
-		if(locale != null && !locale.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "LOCALE", locale);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "LOCALE");
 		}
 
 		// TRANSLATION

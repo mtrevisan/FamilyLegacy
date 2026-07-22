@@ -112,7 +112,7 @@ public class ConclusionPanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
+		setLayout(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// CONTEXT (required)
@@ -151,7 +151,7 @@ public class ConclusionPanel extends JPanel{
 	// ==================== Resolves Panel ====================
 
 	private JPanel createResolvesPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
+		JPanel panel = new JPanel(new MigLayout("fillx, top"));
 		panel.setBorder(new TitledBorder("Resolves (Conflicting Events/Associations)"));
 		resolvesList.setVisibleRowCount(3);
 		resolvesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -219,7 +219,7 @@ public class ConclusionPanel extends JPanel{
 	// ==================== Preferred Panel ====================
 
 	private JPanel createPreferredPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx", "[right]rel[grow]", ""));
+		JPanel panel = new JPanel(new MigLayout("fillx, top", "[right]rel[grow]", ""));
 		panel.setBorder(new TitledBorder("Preferred Record"));
 
 		preferredDisplayField.setEditable(false);
@@ -262,7 +262,7 @@ public class ConclusionPanel extends JPanel{
 	// ==================== Research Panel ====================
 
 	private JPanel createResearchPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
+		JPanel panel = new JPanel(new MigLayout("fillx, top"));
 		panel.setBorder(new TitledBorder("Research References"));
 		researchList.setVisibleRowCount(3);
 		researchList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -344,7 +344,7 @@ public class ConclusionPanel extends JPanel{
 	// ==================== Source Citations Panel ====================
 
 	private JPanel createSourcePanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
+		JPanel panel = new JPanel(new MigLayout("fillx, top"));
 		panel.setBorder(new TitledBorder("Source Citations"));
 		sourceList.setVisibleRowCount(3);
 		sourceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

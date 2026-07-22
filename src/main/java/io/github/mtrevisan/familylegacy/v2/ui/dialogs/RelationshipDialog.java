@@ -1,31 +1,10 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -35,26 +14,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -85,6 +47,11 @@ import java.util.Set;
  *   +1 RESTRICTION <confidential>    {0:1}
  *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
+ * <p>
+ * This dialog currently handles:
+ * - SUBJECT, OBJECT (with browse/edit/clear)
+ * - TYPE, ROLE, CREDIBILITY (simple fields via binding)
+ * - NOTE (list of references)
  */
 public class RelationshipDialog extends JDialog{
 
@@ -104,7 +71,9 @@ public class RelationshipDialog extends JDialog{
 	private final String prefilledObjectId;
 	private boolean saved = false;
 
-	// ========== SUBJECT & OBJECT fields ==========
+	private final BindingManager bindingManager = new BindingManager();
+
+	// ========== SUBJECT & OBJECT fields (manual) ==========
 	private final JTextField subjectDisplayField = new JTextField(20);
 	private final JButton browseSubjectBtn = new JButton("Browse...");
 	private final JButton editSubjectBtn = new JButton("Edit");
@@ -117,20 +86,16 @@ public class RelationshipDialog extends JDialog{
 	private final JButton clearObjectBtn = new JButton("Clear");
 	private String selectedObjectId;
 
-	// ========== TYPE (1:1) ==========
-	private final JTextField typeField = new JTextField(15);
+	// ========== Simple fields (bound) ==========
+	private final BoundTextField typeField;
+	private final BoundTextField roleField;
+	private final BoundComboBox credibilityCombo;
 
-	// ========== ROLE (0:1) ==========
-	private final JTextField roleField = new JTextField(15);
-
-	// ========== NOTE (0:M) ==========
+	// ========== NOTE (0:M) manual ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
-
-	// ========== CREDIBILITY (0:1) ==========
-	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{"", "0", "1", "2", "3"});
 
 	// ========== Handlers ==========
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
@@ -156,7 +121,7 @@ public class RelationshipDialog extends JDialog{
 	 * @param prefilledObjectId  an object ID to pre-fill (may be null)
 	 */
 	public RelationshipDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation,
-			String prefilledSubjectId, String prefilledObjectId){
+		String prefilledSubjectId, String prefilledObjectId){
 		super(parent, (existingCitation == null? "Add Relationship": "Edit Relationship"), true);
 
 		this.model = model;
@@ -164,6 +129,12 @@ public class RelationshipDialog extends JDialog{
 		this.existingCitation = existingCitation;
 		this.prefilledSubjectId = prefilledSubjectId;
 		this.prefilledObjectId = prefilledObjectId;
+
+		// Initialize bound components before using them
+		typeField = new BoundTextField("TYPE", 15);
+		roleField = new BoundTextField("ROLE", 15);
+		credibilityCombo = new BoundComboBox("CREDIBILITY",
+			new String[]{"", "0", "1", "2", "3"});
 
 		initComponents();
 		if(existingCitation != null){
@@ -173,7 +144,6 @@ public class RelationshipDialog extends JDialog{
 			// Apply pre-filled IDs if provided
 			if(prefilledSubjectId != null){
 				selectSubject(prefilledSubjectId);
-				// Disable editing for subject if pre-filled
 				browseSubjectBtn.setEnabled(false);
 				clearSubjectBtn.setEnabled(false);
 				subjectDisplayField.setEditable(false);
@@ -181,7 +151,6 @@ public class RelationshipDialog extends JDialog{
 			}
 			if(prefilledObjectId != null){
 				selectObject(prefilledObjectId);
-				// Disable editing for object if pre-filled
 				browseObjectBtn.setEnabled(false);
 				clearObjectBtn.setEnabled(false);
 				objectDisplayField.setEditable(false);
@@ -195,6 +164,11 @@ public class RelationshipDialog extends JDialog{
 
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
+
+		// Register bound components
+		bindingManager.bind(typeField);
+		bindingManager.bind(roleField);
+		bindingManager.bind(credibilityCombo);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -246,15 +220,15 @@ public class RelationshipDialog extends JDialog{
 		});
 		editObjectBtn.setEnabled(false);
 
-		// TYPE (1:1)
+		// TYPE (1:1) – bound field
 		basicPanel.add(new JLabel("Type:"), "align label");
 		basicPanel.add(typeField, "growx,wrap");
 
-		// ROLE (0:1)
+		// ROLE (0:1) – bound field
 		basicPanel.add(new JLabel("Role:"), "align label");
 		basicPanel.add(roleField, "growx,wrap");
 
-		// CREDIBILITY (0:1)
+		// CREDIBILITY (0:1) – bound combo
 		basicPanel.add(new JLabel("Credibility:"), "align label");
 		basicPanel.add(credibilityCombo, "growx,wrap");
 
@@ -334,13 +308,7 @@ public class RelationshipDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "No handler for Subject!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		// Use GroupHandler if the subject is expected to be a group; otherwise IndividualHandler.
-		// For now, we assume GroupHandler because we're editing a relationship with a group as subject.
-		// But we could allow both. For simplicity, we'll use the same handler as for the group field.
-		// Actually, we'll use a generic selection dialog that can handle both.
-		// We'll use a composite: first ask the user what type of entity, then open the appropriate handler.
-		// For now, we'll use a dialog that selects from all records? That's not ideal.
-		// We'll assume the subject is a group for now.
+		// For now, we assume the subject is a group (common use case).
 		if(groupHandler == null){
 			JOptionPane.showMessageDialog(this, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
 			return;
@@ -355,7 +323,6 @@ public class RelationshipDialog extends JDialog{
 	}
 
 	private void editSubject(){
-		// Edit is only enabled when a subject is already selected
 		if(selectedSubjectId == null || selectedSubjectId.isEmpty()){
 			JOptionPane.showMessageDialog(this, "No subject selected to edit.", "Info", JOptionPane.INFORMATION_MESSAGE);
 			return;
@@ -508,7 +475,6 @@ public class RelationshipDialog extends JDialog{
 		if(subjectId != null && !subjectId.isEmpty()){
 			selectSubject(subjectId);
 			if(prefilledSubjectId != null && prefilledSubjectId.equals(subjectId)){
-				// Disable editing if it was pre-filled
 				browseSubjectBtn.setEnabled(false);
 				clearSubjectBtn.setEnabled(false);
 			}
@@ -534,19 +500,10 @@ public class RelationshipDialog extends JDialog{
 			clearObjectBtn.setEnabled(false);
 		}
 
-		// TYPE (1:1)
-		String type = FLEFRecordUtils.getChildValue(existingCitation, "TYPE");
-		typeField.setText(type != null? type: "");
+		// ---- Load simple fields via binding manager ----
+		bindingManager.loadFromRecord(existingCitation);
 
-		// ROLE (0:1)
-		String role = FLEFRecordUtils.getChildValue(existingCitation, "ROLE");
-		roleField.setText(role != null? role: "");
-
-		// CREDIBILITY (0:1)
-		String credibility = FLEFRecordUtils.getChildValue(existingCitation, "CREDIBILITY");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: "");
-
-		// NOTE (0:M)
+		// NOTE (0:M) – manual
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
@@ -564,21 +521,20 @@ public class RelationshipDialog extends JDialog{
 	// ==================== Validation ====================
 
 	private boolean validateFields(){
-		// SUBJECT (1:1) is required
 		if(selectedSubjectId == null || selectedSubjectId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Subject is required.\nPlease select a subject.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		// OBJECT (1:1) is required
 		if(selectedObjectId == null || selectedObjectId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Object is required.\nPlease select an object.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		// TYPE (1:1) is required
+		// TYPE is required – we rely on the bound field; but we must check the value from the field.
+		// However, the bound field's value might be trimmed. We'll check the actual text.
 		if(typeField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Type is required.\nPlease enter a relationship type.",
@@ -607,36 +563,21 @@ public class RelationshipDialog extends JDialog{
 			record.setTag("RELATIONSHIP");
 		}
 
-		// SUBJECT (1:1) – child
+		// ---- Manual fields: SUBJECT, OBJECT, NOTES ----
+		// SUBJECT (1:1)
 		FLEFRecordUtils.updateChildValue(record, "SUBJECT", selectedSubjectId);
-		// OBJECT (1:1) – child
+		// OBJECT (1:1)
 		FLEFRecordUtils.updateChildValue(record, "OBJECT", selectedObjectId);
-		// TYPE (1:1) – child
-		FLEFRecordUtils.updateChildValue(record, "TYPE", typeField.getText().trim());
 
-		// ROLE (0:1) – child
-		String role = roleField.getText().trim();
-		if(!role.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "ROLE", role);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "ROLE");
-		}
-
-		// CREDIBILITY (0:1) – child
-		String credibility = (String)credibilityCombo.getSelectedItem();
-		if(credibility != null && !credibility.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "CREDIBILITY");
-		}
-
-		// NOTE (0:M) – children
+		// NOTE (0:M) – remove all and re-add
 		FLEFRecordUtils.removeChildren(record, "NOTE");
 		for(String noteId : noteIds){
 			FLEFRecordUtils.addChild(record, "NOTE", 2, noteId);
 		}
+
+		// ---- Simple fields via binding manager (TYPE, ROLE, CREDIBILITY) ----
+		// This will create/update the children with correct levels
+		bindingManager.saveToRecord(record);
 
 		return record;
 	}
@@ -644,7 +585,6 @@ public class RelationshipDialog extends JDialog{
 	public boolean isSaved(){
 		return saved;
 	}
-
 
 	public static void main(String[] args){
 		try{
@@ -654,7 +594,6 @@ public class RelationshipDialog extends JDialog{
 		}
 
 		FLEFModel model = new FLEFModel();
-		// Register all handlers (done via static blocks)
 
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Test Relationship Dialog");

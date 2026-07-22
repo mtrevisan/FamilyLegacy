@@ -27,14 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationPanel;
+import net.miginfocom.swing.MigLayout;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
+import javax.swing.*;
+import java.awt.*;
 import java.io.Serial;
 
 
@@ -46,7 +42,6 @@ public class SourceCitationDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = -7024588390352183760L;
-
 
 	private final FLEFRecord citationRecord;
 	private boolean saved = false;
@@ -69,7 +64,11 @@ public class SourceCitationDialog extends JDialog{
 
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
-		add(panel, BorderLayout.CENTER);
+
+		// Wrap the panel in a container with top alignment to ensure content is at the top
+		JPanel wrapper = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
+		wrapper.add(panel, "grow");
+		add(wrapper, BorderLayout.CENTER);
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JButton saveBtn = new JButton("Save");

@@ -1,31 +1,9 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PersonalNamePanel;
@@ -83,15 +61,17 @@ public class IndividualDialog extends BaseRecordDialog{
 	private final NoteHandler noteHandler = new NoteHandler();
 	private final SourceHandler sourceHandler = new SourceHandler();
 
+	private final BindingManager bindingManager = new BindingManager();
+
 	// Preferred Image
 	private String preferredImageId;
 	private String preferredImageCrop;
 	private final JButton preferredImageButton = new JButton();
 
-	// UI components
-	private final JComboBox<String> sexCombo = new JComboBox<>(new String[]{"", "MALE", "FEMALE", "UNKNOWN"});
+	// UI components (simple fields are now bound)
+	private final BoundComboBox sexCombo;
 
-	// Panels
+	// Panels (complex, handled manually)
 	private PersonalNamePanel namePanel;
 	private RestrictionPanel restrictionPanel;
 	private ConclusionPanel conclusionPanel;
@@ -132,6 +112,10 @@ public class IndividualDialog extends BaseRecordDialog{
 	private IndividualDialog(Frame parent, FLEFModel model, FLEFRecord record){
 		super(parent, buildTitle(model, record), model, record);
 
+		// Initialize bound components before using them
+		sexCombo = new BoundComboBox("SEX",
+			new String[]{"", "MALE", "FEMALE", "UNKNOWN"});
+
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(550, 600));
@@ -152,6 +136,9 @@ public class IndividualDialog extends BaseRecordDialog{
 		restrictionPanel = new RestrictionPanel(this);
 		conclusionPanel = new ConclusionPanel(model, this);
 		modificationPanel = new ModificationPanel(model, this);
+
+		// Register bound components
+		bindingManager.bind(sexCombo);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
@@ -204,7 +191,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		// Names (PersonalNamePanel)
 		panel.add(namePanel, "growx");
 
-		// Sex
+		// Sex – now using the bound combo box
 		JPanel sexPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
 		sexPanel.add(new JLabel("Sex:"), "align label");
 		sexPanel.add(sexCombo, "growx");
@@ -618,12 +605,11 @@ public class IndividualDialog extends BaseRecordDialog{
 	protected void loadData(){
 		setTitle(buildTitle(model, record));
 
-		// PERSONAL_NAME_STRUCTURE list
-		namePanel.loadFromRecord(record);
+		// ---- Simple fields: load via binding manager ----
+		bindingManager.loadFromRecord(record);
 
-		// SEX
-		String sex = FLEFRecordUtils.getChildValue(record, "SEX");
-		sexCombo.setSelectedItem(sex != null? sex: "");
+		// ---- Complex panels: manual load ----
+		namePanel.loadFromRecord(record);
 
 		// CULTURAL_NORM
 		culturalNormIds.clear();
@@ -717,17 +703,8 @@ public class IndividualDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		record.getChildren().clear();
 
-		// PERSONAL_NAME_STRUCTURE list
+		// ---- Save complex panels first ----
 		namePanel.saveToRecord(record);
-
-		// SEX
-		String sex = (String)sexCombo.getSelectedItem();
-		if(sex != null && !sex.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "SEX", sex);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "SEX");
-		}
 
 		// CULTURAL_NORM
 		for(String id : culturalNormIds){
@@ -781,6 +758,9 @@ public class IndividualDialog extends BaseRecordDialog{
 
 		// MODIFICATION_STRUCTURE
 		modificationPanel.saveToRecord(record);
+
+		// ---- Save simple fields via binding manager (must be after adding all other children) ----
+		bindingManager.saveToRecord(record);
 
 		if(isNew){
 			model.addRecord(record);

@@ -42,6 +42,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -49,11 +50,19 @@ import java.util.List;
  * <p>
  * This class provides both plain loading (without validation) and
  * integrated loading with validation against a grammar file.
+ * <p>
+ * In addition, it offers static path‑based navigation methods that let you
+ * access or modify any node inside a record using a dot‑separated syntax
+ * with optional zero‑based indices (e.g. {@code "NAME[1].VALUE"}).
  */
 public final class FLEFFile{
 
 	private FLEFFile(){}
 
+
+	// ------------------------------------------------
+	// LOADING & VALIDATION
+	// ------------------------------------------------
 
 	/**
 	 * Loads a FLEF data file and validates it against a grammar file.
@@ -61,40 +70,40 @@ public final class FLEFFile{
 	 * @param flefPath path to the .flef data file
 	 * @param gedgPath path to the .gedg protocol file
 	 * @return validated FLEFModel
-	 * @throws IOException	If files cannot be read
-	 * @throws ValidationException	If validation fails
+	 * @throws IOException         if files cannot be read
+	 * @throws ValidationException if validation fails
 	 */
-	public static FLEFModel loadAndValidate(final Path flefPath, final Path gedgPath) throws IOException,
-			ValidationException{
+	public static FLEFModel loadAndValidate(final Path flefPath, final Path gedgPath)
+			throws IOException, ValidationException{
 		final FLEFGrammar grammar = FLEFGrammar.createFromPath(gedgPath);
 		return loadWithGrammar(flefPath, grammar);
 	}
 
 	/**
-	 * Loads a FLEF data file and validates it against a pre-loaded grammar.
+	 * Loads a FLEF data file and validates it against a pre‑loaded grammar.
 	 *
-	 * @param flefFilePath	Path to the .flef data file
-	 * @param grammar	The grammar to validate against
-	 * @return	Validated FLEFModel
-	 * @throws IOException	If the file cannot be read
-	 * @throws ValidationException	If validation fails
+	 * @param flefFilePath path to the .flef data file
+	 * @param grammar      the grammar to validate against
+	 * @return validated FLEFModel
+	 * @throws IOException         if the file cannot be read
+	 * @throws ValidationException if validation fails
 	 */
-	public static FLEFModel loadWithGrammar(final String flefFilePath, final FLEFGrammar grammar) throws IOException,
-			ValidationException{
+	public static FLEFModel loadWithGrammar(final String flefFilePath, final FLEFGrammar grammar)
+			throws IOException, ValidationException{
 		return loadWithGrammar(Path.of(flefFilePath), grammar);
 	}
 
 	/**
-	 * Loads a FLEF data file and validates it against a pre-loaded grammar.
+	 * Loads a FLEF data file and validates it against a pre‑loaded grammar.
 	 *
-	 * @param flefPath	Path to the .flef data file
-	 * @param grammar	The grammar to validate against
-	 * @return	Validated FLEFModel
-	 * @throws IOException	If the file cannot be read
-	 * @throws ValidationException	If validation fails
+	 * @param flefPath path to the .flef data file
+	 * @param grammar  the grammar to validate against
+	 * @return validated FLEFModel
+	 * @throws IOException         if the file cannot be read
+	 * @throws ValidationException if validation fails
 	 */
-	public static FLEFModel loadWithGrammar(final Path flefPath, final FLEFGrammar grammar) throws IOException,
-			ValidationException{
+	public static FLEFModel loadWithGrammar(final Path flefPath, final FLEFGrammar grammar)
+		throws IOException, ValidationException{
 		final FLEFModel model = load(flefPath);
 
 		final FLEFValidator validator = FLEFValidator.create(grammar);
@@ -130,7 +139,7 @@ public final class FLEFFile{
 				index += record.getLineCount();
 			}
 			else if(isEndOfFileLine(line))
-				// EOF marker
+				// EOF marker – stop reading
 				break;
 			else
 				index ++;
@@ -139,29 +148,31 @@ public final class FLEFFile{
 		return model;
 	}
 
+	// ------------------------------------------------
+	// SAVING
+	// ------------------------------------------------
+
 	/**
 	 * Saves a FLEF model to a file.
 	 *
-	 * @param model    The model to save
-	 * @param filePath The file path
+	 * @param model    the model to save
+	 * @param filePath the file path
 	 * @throws IOException if the file cannot be written
 	 */
 	public static void save(final FLEFModel model, final String filePath) throws IOException{
 		final StringBuilder sb = convertToString(model);
-
 		try(final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))){
 			writer.write(sb.toString());
 		}
 	}
 
 	/**
-	 * Print a FLEF model to standard output.
+	 * Prints a FLEF model to standard output.
 	 *
-	 * @param model    The model to save
+	 * @param model the model to print
 	 */
 	public static void print(final FLEFModel model){
 		final StringBuilder sb = convertToString(model);
-
 		System.out.println(sb);
 	}
 
@@ -181,45 +192,35 @@ public final class FLEFFile{
 		return sb;
 	}
 
-	/**
-	 * Read all lines of a file.
-	 */
+	// ------------------------------------------------
+	// LOW‑LEVEL PARSING & SERIALIZATION
+	// ------------------------------------------------
+
 	private static List<String> readLines(final Path filePath) throws IOException{
 		final List<String> lines = new ArrayList<>();
 		try(final BufferedReader reader = new BufferedReader(new FileReader(filePath.toString()))){
 			String line;
 			while((line = reader.readLine()) != null){
-				if(!line.trim().isEmpty())
-					lines.add(line.trim());
+				final String trimmed = line.trim();
+				if(!trimmed.isEmpty())
+					lines.add(trimmed);
 			}
 		}
 		return lines;
 	}
 
-	/**
-	 * Checks whether a line is the start of the header.
-	 */
 	private static boolean isHeaderLine(final String line){
 		return line.startsWith("0 HEADER");
 	}
 
-	/**
-	 * Checks whether a line is the start of a record (e.g. 0 @I1@ INDIVIDUAL).
-	 */
 	private static boolean isRecordLine(final String line){
 		return line.matches("0 @[^@]+@ [A-Z_]+");
 	}
 
-	/**
-	 * Checks if a line is the EOF marker.
-	 */
 	private static boolean isEndOfFileLine(final String line){
 		return line.equals("0 EOF");
 	}
 
-	/**
-	 * Header parser.
-	 */
 	private static FLEFRecord parseHeader(final List<String> lines, final int startIndex){
 		final FLEFRecord record = new FLEFRecord();
 		record.setType("HEADER");
@@ -228,34 +229,23 @@ public final class FLEFFile{
 		while(index < lines.size()){
 			final String line = lines.get(index);
 			if(line.startsWith("0 "))
-				// Start of a new record or EOF
+				// start of a new record or EOF
 				break;
 
-			// Parsing a header line (e.g., "1 PROTOCOL", "2 NAME FLEF")
 			final FLEFRecord child = parseChildLine(line);
 			record.addChild(child);
-
-			// If the child has children, we add them
-			if(child.hasChildren()){
-				// The child's children have already been added during parsing.
-			}
-
 			index ++;
 		}
 
-		// Save the number of parsed lines
 		record.setLineCount(index - startIndex);
 		return record;
 	}
 
-	/**
-	 * Parser of a generic record (individual, family, place, etc.).
-	 */
 	private static FLEFRecord parseRecord(final List<String> lines, final int startIndex){
 		final String firstLine = lines.get(startIndex);
-		// Example: "0 @I1@ INDIVIDUAL"
+		// e.g. "0 @I1@ INDIVIDUAL"
 		final String[] parts = firstLine.split(" ", 3);
-		final String id = parts[1].substring(1, parts[1].length() - 1); // rimuove @
+		final String id = parts[1].substring(1, parts[1].length() - 1); // remove @
 		final String type = parts[2];
 
 		final FLEFRecord record = FLEFRecord.createMainRecord(id, type);
@@ -264,7 +254,7 @@ public final class FLEFFile{
 		while(index < lines.size()){
 			final String line = lines.get(index);
 			if(line.startsWith("0 "))
-				// Start of a new record
+				// start of a new record
 				break;
 
 			final FLEFRecord child = parseChildLine(line);
@@ -276,10 +266,6 @@ public final class FLEFFile{
 		return record;
 	}
 
-	/**
-	 * Parser a child line (level > 0).
-	 * Example: "2 INDIVIDUAL_NAME Mario"
-	 */
 	private static FLEFRecord parseChildLine(final String line){
 		final String[] parts = line.split(" ", 3);
 		final int level = Integer.parseInt(parts[0]);
@@ -288,55 +274,175 @@ public final class FLEFFile{
 
 		final FLEFRecord child = FLEFRecord.createChildWithValue(level, tag, value);
 
-		// We don't handle children of children recursively for simplicity.
-		// In a real implementation, we would parse recursively.
-		// For now, let's assume children are only the next level up.
-
+		// Note: this simple parser does not recursively parse children of children.
+		// For a full implementation you would need a more sophisticated recursive descent.
 		return child;
 	}
 
-	/**
-	 * Serializes a record in FLEF format.
-	 */
 	private static String serializeRecord(final FLEFRecord record, final int level){
 		final StringBuilder sb = new StringBuilder();
 
-		// The main line of the record
 		if(record.getLevel() == 0){
-			if(record.getId() != null)
+			// main record line
+			if(record.getId() != null){
 				sb.append("0 @")
 					.append(record.getId())
 					.append("@ ")
 					.append(record.getType())
 					.append("\n");
-			else
+			}
+			else{
 				sb.append("0 ")
 					.append(record.getType())
 					.append("\n");
+			}
 		}
 		else{
-			final String line = record.getLevel() + " " + record.getTag() +
-				(record.getValue() != null? " " + record.getValue(): "");
-			sb.append(line)
-				.append("\n");
+			final String line = record.getLevel() + " " + record.getTag()
+				+ (record.getValue() != null? " " + record.getValue(): "");
+			sb.append(line).append("\n");
 		}
 
-		// Children
-		for(final FLEFRecord child : record.getChildren())
+		// children
+		for(final FLEFRecord child : record.getChildren()){
 			sb.append(serializeRecord(child, child.getLevel()));
+		}
 
 		return sb.toString();
 	}
 
-	// ==================== Helper Methods for Resource Loading ====================
+	// ------------------------------------------------
+	// PATH‑BASED NAVIGATION (static utilities)
+	// ------------------------------------------------
 
 	/**
-	 * Finds a resource in the classpath and returns its file system path.
-	 *
-	 * @param resourceName the resource name (e.g., "/grammar.gedg")
-	 * @return the file system path as a String
-	 * @throws IOException if the resource cannot be found or accessed
+	 * Represents a parsed path segment (tag + optional zero‑based index).
 	 */
+	private static final class PathSegment{
+		final String tag;
+		final int index; // -1 means "first occurrence" (index 0)
+
+		PathSegment(final String tag, final int index){
+			this.tag = tag;
+			this.index = index;
+		}
+	}
+
+	/**
+	 * Parses a dot‑separated path with optional indices into a list of segments.
+	 *
+	 * @param path the path string (e.g. "NAME[1].VALUE")
+	 * @return a list of path segments
+	 * @throws IllegalArgumentException if the path is malformed
+	 */
+	private static List<PathSegment> parsePath(final String path){
+		final List<PathSegment> segments = new ArrayList<>();
+		for(String part : path.split("\\.")){
+			int idx = -1;
+			final int bracketStart = part.indexOf('[');
+			if(bracketStart != -1){
+				final int bracketEnd = part.indexOf(']', bracketStart);
+				if(bracketEnd == -1)
+					throw new IllegalArgumentException("Missing closing ']' in path: " + path);
+
+				final String indexStr = part.substring(bracketStart + 1, bracketEnd);
+				idx = Integer.parseInt(indexStr);
+				part = part.substring(0, bracketStart);
+			}
+			segments.add(new PathSegment(part, idx));
+		}
+		return segments;
+	}
+
+	/**
+	 * Retrieves the {@link FLEFRecord} at the given dot‑separated path.
+	 * Each segment may have an optional zero‑based index in square brackets.
+	 * If no index is given, the first child with that tag is used.
+	 *
+	 * @param root the starting record
+	 * @param path the path (e.g. "NAME[1].VALUE")
+	 * @return an {@code Optional} containing the found record, or empty if not found
+	 * @throws IllegalArgumentException if the path is malformed
+	 */
+	public static Optional<FLEFRecord> getRecordByPath(final FLEFRecord root, final String path){
+		if(root == null || path == null || path.isEmpty())
+			return Optional.empty();
+
+		final List<PathSegment> segments = parsePath(path);
+		FLEFRecord current = root;
+		for(final PathSegment seg : segments){
+			if(current == null)
+				break;
+
+			final List<FLEFRecord> children = current.findChildren(seg.tag);
+			int idx = (seg.index < 0? 0: seg.index); // <- normalize -1 to 0
+			if(idx >= children.size()){
+				current = null;
+
+				break;
+			}
+			current = children.get(idx);
+		}
+		return Optional.ofNullable(current);
+	}
+
+	/**
+	 * Retrieves the value ({@code String}) of the node identified by the path.
+	 *
+	 * @param root the starting record
+	 * @param path the dot‑separated path
+	 * @return the value, or {@code null} if not found or the node has no value
+	 */
+	public static String getValueByPath(final FLEFRecord root, final String path){
+		return getRecordByPath(root, path)
+			 .map(FLEFRecord::getValue)
+			 .orElse(null);
+	}
+
+	/**
+	 * Sets the value at the given path. If necessary, missing nodes are created.
+	 * For indexed segments, if the index equals the current child count, a new child is appended.
+	 * If the index is greater than the count, an exception is thrown.
+	 *
+	 * @param root	The record to modify.
+	 * @param path	The dot‑separated path with optional indices.
+	 * @param value	The new value.
+	 * @throws IllegalArgumentException	If the path is malformed or the index is out of range.
+	 */
+	public static void setValueByPath(final FLEFRecord root, final String path, final String value){
+		if(root == null || path == null)
+			return;
+
+		final List<PathSegment> segments = parsePath(path);
+		FLEFRecord current = root;
+
+		for(int i = 0; i < segments.size(); i ++){
+			final PathSegment seg = segments.get(i);
+			final List<FLEFRecord> children = current.findChildren(seg.tag);
+			int idx = (seg.index < 0? 0: seg.index); // <- normalize -1 to 0
+
+			if(idx < children.size())
+				current = children.get(idx);
+			else if(idx == children.size()){
+				// append a new child
+				final FLEFRecord newChild = FLEFRecord.createChild(current.getLevel() + 1, seg.tag);
+				current.addChild(newChild);
+				current = newChild;
+			}
+			else
+				throw new IllegalArgumentException(
+					"Index " + seg.index + " out of range for tag " + seg.tag +
+						" (size " + children.size() + ")");
+
+			if(i == segments.size() - 1)
+				current.setValue(value);
+		}
+	}
+
+	// ------------------------------------------------
+	// RESOURCE LOADING HELPERS
+	// ------------------------------------------------
+
 	private static Path getResourcePath(final String resourceName) throws IOException{
 		final URL resource = FLEFFile.class.getResource(resourceName);
 		if(resource == null)
@@ -350,76 +456,65 @@ public final class FLEFFile{
 		}
 	}
 
-	/**
-	 * Finds a grammar resource in the classpath, trying both .gedg and .gedg.txt extensions.
-	 *
-	 * @param baseName the base name without extension (e.g., "/gedcom_5.5.1")
-	 * @return the file system path as a String
-	 * @throws IOException if the resource cannot be found
-	 */
 	private static Path findGrammarResource(final String baseName) throws IOException{
-		// Try with .gedg extension first
+		// try .gedg first, then .gedg.txt
 		final String[] extensions = {".gedg", ".gedg.txt"};
 		for(final String ext : extensions){
 			try{
 				return getResourcePath(baseName + ext);
 			}
-			catch(final IOException ignored){}
+			catch(final IOException ignored){
+				// continue
+			}
 		}
-
-		throw new IOException("Grammar resource not found: " + baseName + " with .gedg or .gedg.txt extension");
+		throw new IOException("Grammar resource not found: " + baseName + " with .gedg or .gedg.txt");
 	}
 
-	/**
-	 * Finds a data resource in the classpath.
-	 *
-	 * @param baseName  the base name without extension (e.g., "/test")
-	 * @param extension the extension (e.g., ".ged", ".flef")
-	 * @return the file system path as a String
-	 * @throws IOException if the resource cannot be found
-	 */
 	private static Path findDataResource(final String baseName, final String extension) throws IOException{
 		return getResourcePath(baseName + extension);
 	}
 
 
-	/**
-	 * Example usage: loads a data file and validates it against a grammar file.
-	 * Both files are loaded from the classpath.
-	 */
-	public static void main(String[] args){
+	// ------------------------------------------------
+	// MAIN – EXAMPLE USAGE
+	// ------------------------------------------------
+
+	public static void main(final String[] args){
 		try{
-			// Find the grammar file in the classpath (try both extensions)
-			Path grammarPath = findGrammarResource("/gedcom_5.5.1");
+			final Path grammarPath = findGrammarResource("/gedcom_5.5.1");
 			System.out.println("Grammar: " + grammarPath);
-			// Find the data file in the classpath
-			Path dataPath = findDataResource("/test", ".ged");
+
+			final Path dataPath = findDataResource("/test", ".ged");
 			System.out.println("Data: " + dataPath);
 
-			// Load and validate in one call
-			FLEFModel model = loadAndValidate(dataPath, grammarPath);
-
+			final FLEFModel model = loadAndValidate(dataPath, grammarPath);
 			System.out.println("✅ Valid file! " + model.getRecordCount() + " record(s) loaded.");
 			System.out.println("Record types: " + model.getRecordTypes());
+
+			// Example: access a value via path
+			final FLEFRecord firstIndividual = model.getRecordsByType("INDIVIDUAL").get(0);
+			final String name = FLEFFile.getValueByPath(firstIndividual, "NAME.VALUE");
+			System.out.println("First individual's name: " + name);
+
 		}
-		catch(ValidationException e){
-			System.err.println("❌ Errori di validazione (" + e.getErrors().size() + "):");
-			for(ValidationError err : e.getErrors()){
+		catch(final ValidationException e){
+			System.err.println("❌ Validation errors (" + e.getErrors().size() + "):");
+			for(final ValidationError err : e.getErrors()){
 				System.err.println("  - " + err);
 			}
 		}
-		catch(IOException e){
-			System.err.println("❌ Errore di I/O: " + e.getMessage());
+		catch(final IOException e){
+			System.err.println("❌ I/O error: " + e.getMessage());
 			e.printStackTrace();
 		}
-		catch(Exception e){
-			System.err.println("❌ Errore inaspettato: " + e.getMessage());
+		catch(final Exception e){
+			System.err.println("❌ Unexpected error: " + e.getMessage());
 			e.printStackTrace();
 		}
 	}
 
 	/**
-	 * Test method that creates a sample file and reads it back.
+	 * Alternative test that creates a sample file and reads it back.
 	 */
 	public static void main2(final String[] args){
 		try{
@@ -431,11 +526,17 @@ public final class FLEFFile{
 			model.addRecord(individual);
 			final FLEFRecord place = createTestPlace();
 			model.addRecord(place);
+
 			save(model, testFilePath);
-			System.out.println("✅ File di test creato: " + testFilePath);
+			System.out.println("✅ Test file created: " + testFilePath);
 
 			final FLEFModel loaded = load(Path.of(testFilePath));
-			System.out.println("✅ File caricato: " + loaded.getRecordCount() + " record(s)");
+			System.out.println("✅ File loaded: " + loaded.getRecordCount() + " record(s)");
+
+			// test path navigation
+			final FLEFRecord loadedInd = loaded.getRecordsByType("INDIVIDUAL").get(0);
+			final String name = FLEFFile.getValueByPath(loadedInd, "NAME.VALUE");
+			System.out.println("Loaded individual name: " + name);
 
 		}
 		catch(final IOException e){
@@ -470,11 +571,8 @@ public final class FLEFFile{
 		name.setTag("NAME");
 		individual.addChild(name);
 
-		final FLEFRecord givenName = FLEFRecord.createChildWithValue(2, "INDIVIDUAL_NAME", "Mario");
+		final FLEFRecord givenName = FLEFRecord.createChildWithValue(2, "VALUE", "Mario");
 		name.addChild(givenName);
-
-		final FLEFRecord familyName = FLEFRecord.createChildWithValue(2, "FAMILY_NAME", "Rossi");
-		name.addChild(familyName);
 
 		final FLEFRecord sex = FLEFRecord.createChildWithValue(1, "SEX", "MALE");
 		individual.addChild(sex);
@@ -487,9 +585,6 @@ public final class FLEFFile{
 
 		final FLEFRecord name = FLEFRecord.createChildWithValue(1, "NAME", "Rome");
 		place.addChild(name);
-
-		final FLEFRecord address = FLEFRecord.createChildWithValue(1, "ADDRESS", "Piazza Venezia");
-		place.addChild(address);
 
 		final FLEFRecord map = new FLEFRecord();
 		map.setLevel(1);

@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -40,6 +41,45 @@ public final class FLEFRecordUtils{
 
 	private FLEFRecordUtils(){}
 
+	/**
+	 * Retrieves the node ({@link FLEFRecord}) identified by a dot‑separated tag path.
+	 * The path follows the child hierarchy; if multiple children share the same tag,
+	 * the first one encountered is returned.
+	 *
+	 * @param root	The root record from which to start.
+	 * @param path	The dot‑separated path, e.g. "NAME.VALUE" or "PREFERRED_IMAGE.CROP".
+	 * @return	An {@code Optional} containing the found record, or empty if not found.
+	 */
+	public static Optional<FLEFRecord> getRecordByPath(final FLEFRecord root, final String path){
+		if(root == null || path == null || path.isEmpty()){
+			return Optional.empty();
+		}
+
+		final String[] segments = path.split("\\.");
+		FLEFRecord current = root;
+		for(final String segment : segments){
+			if(current == null)
+				break;
+
+			// find the first child with that tag
+			current = current.findChild(segment);
+		}
+		return Optional.ofNullable(current);
+	}
+
+	/**
+	 * Retrieves the value ({@code String}) of the node identified by the path.
+	 * If the last node has a value, it is returned; otherwise {@code null}.
+	 *
+	 * @param root	The root record.
+	 * @param path	The dot‑separated path.
+	 * @return	The value as a {@code String}, or {@code null} if not found or no value.
+	 */
+	public static String getValueByPath(final FLEFRecord root, final String path){
+		return getRecordByPath(root, path)
+			 .map(FLEFRecord::getValue)
+			 .orElse(null);
+	}
 
 	/**
 	 * Finds the value of the first child with the given tag.

@@ -1,31 +1,10 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
@@ -72,28 +51,6 @@ import java.util.Set;
  *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
  *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
- * <p>
- * NAME_STRUCTURE is defined as:
- * <pre>
- * NAME_STRUCTURE :=
- * n NAME    {1:1}
- *   +1 <<TEXT_VALUE>>    {1:1}
- *   +1 TYPE <NAME_TYPE>    {0:1}
- * </pre>
- * <p>
- * TEXT_VALUE is defined as:
- * <pre>
- * TEXT_VALUE :=
- * n VALUE <TEXT>    {1:1}
- *   +1 LOCALE <LOCALE_CODE>    {0:1}
- *   +1 VALID_FROM    {0:1}
- *     +2 <<DATE_STRUCTURE>>    {1:1}
- *   +1 VALID_TO    {0:1}
- *     +2 <<DATE_STRUCTURE>>    {1:1}
- *   +1 <<TEXT_VALUE_VARIANT>>    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- * </pre>
  */
 public class GroupDialog extends BaseRecordDialog{
 
@@ -108,15 +65,19 @@ public class GroupDialog extends BaseRecordDialog{
 	private final SourceHandler sourceHandler = new SourceHandler();
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
+	private final BindingManager bindingManager = new BindingManager();
+
 	// Preferred Image
 	private String preferredImageId;
 	private String preferredImageCrop;
 	private final JButton preferredImageButton = new JButton();
 
-	// UI components
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "family", "household", "neighbourhood", "fraternity", "club", "research group", "literary society", "association", "organisation", "tribe"});
+	// UI components (simple fields are now bound)
+	private final BoundComboBox typeCombo = new BoundComboBox("TYPE",
+		new String[]{"", "family", "household", "neighbourhood", "fraternity", "club", "research group",
+			"literary society", "association", "organisation", "tribe"});
 
-	// Panels
+	// Panels (complex, handled manually)
 	private NameListPanel namePanel;
 	private RestrictionPanel restrictionPanel;
 	private ConclusionPanel conclusionPanel;
@@ -192,6 +153,9 @@ public class GroupDialog extends BaseRecordDialog{
 		conclusionPanel = new ConclusionPanel(model, this);
 		modificationPanel = new ModificationPanel(model, this);
 
+		// Register bound components
+		bindingManager.bind(typeCombo);
+
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
@@ -243,7 +207,6 @@ public class GroupDialog extends BaseRecordDialog{
 		// Type
 		JPanel typePanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
 		typePanel.add(new JLabel("Type:"), "align label");
-		typeCombo.setEditable(true);
 		typePanel.add(typeCombo, "growx");
 		panel.add(typePanel, "growx");
 
@@ -1149,14 +1112,12 @@ public class GroupDialog extends BaseRecordDialog{
 	protected void loadData(){
 		setTitle(buildTitle(model, record));
 
-		// NAME_STRUCTURE list
+		// ---- Simple fields: load via binding manager ----
+		bindingManager.loadFromRecord(record);
+
+		// ---- Complex panels: manual load ----
 		namePanel.loadFromRecord(record);
 
-		// TYPE
-		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
-		typeCombo.setSelectedItem(type != null? type: "");
-
-		// RESTRICTION_STRUCTURE
 		FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
 		restrictionPanel.loadFromRecord(restrictionStruct);
 
@@ -1235,9 +1196,10 @@ public class GroupDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validateData(){
 		// Validate names
-		if(!namePanel.validateRequiredFields()){
-			return false;
-		}
+		//NOTE: no need to validate, all fields are optional
+//		if(!namePanel.validateRequiredFields()){
+//			return false;
+//		}
 
 		if(!modificationPanel.hasData()){
 			JOptionPane.showMessageDialog(this,
@@ -1262,16 +1224,10 @@ public class GroupDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		record.getChildren().clear();
 
-		// NAME_STRUCTURE list
+		// ---- Save complex panels first ----
 		namePanel.saveToRecord(record);
 
-		// TYPE
-		String type = (String)typeCombo.getSelectedItem();
-		if(type != null && !type.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "TYPE", type);
-		}
-
-		// RESTRICTION_STRUCTURE
+		// Restriction
 		if(restrictionPanel.hasData()){
 			FLEFRecord restriction = restrictionPanel.saveToRecord(null);
 			if(restriction != null){
@@ -1281,7 +1237,7 @@ public class GroupDialog extends BaseRecordDialog{
 			}
 		}
 
-		// --- Relationships (including members) ---
+		// Relationships (including members)
 		for(FLEFRecord rel : otherRelationshipRecords){
 			rel.setLevel(1);
 			rel.setTag("RELATIONSHIP");
@@ -1296,7 +1252,7 @@ public class GroupDialog extends BaseRecordDialog{
 			}
 		}
 
-		// --- Other elements ---
+		// Other elements (events, cultural norms, notes, source citations)
 		for(String id : eventIds){
 			FLEFRecordUtils.addChild(record, "EVENT", 1, id);
 		}
@@ -1338,10 +1294,15 @@ public class GroupDialog extends BaseRecordDialog{
 		// Modification
 		modificationPanel.saveToRecord(record);
 
+		// ---- Save simple fields via binding manager (must be after clearing children) ----
+		bindingManager.saveToRecord(record);
+
 		if(isNew){
 			model.addRecord(record);
 		}
 
+//TODO to be removed
+FLEFFile.print(model);
 		dispose();
 	}
 

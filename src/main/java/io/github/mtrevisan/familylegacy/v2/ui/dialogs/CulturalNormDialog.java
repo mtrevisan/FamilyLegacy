@@ -1,31 +1,9 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -38,27 +16,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -91,7 +51,6 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 950729006569948384L;
 
-
 	static{
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());
@@ -99,24 +58,26 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
+	private final BindingManager bindingManager = new BindingManager();
+
 	// ========== Basic fields ==========
 	private final JTextField idField = new JTextField(10);
-	private final JTextField titleField = new JTextField(30);
+	private final BoundTextField titleField;
 
-	// ========== PLACE (0:1) ==========
+	// ========== PLACE (0:1) manual ==========
 	private final JTextField placeDisplayField = new JTextField(20);
 	private final JButton placeBrowseBtn = new JButton("Browse...");
 	private final JButton placeClearBtn = new JButton("Clear");
 	private String selectedPlaceId;
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
 
-	// ========== NOTE (0:M) ==========
+	// ========== NOTE (0:M) manual ==========
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== SOURCE_CITATION (0:M) ==========
+	// ========== SOURCE_CITATION (0:M) manual ==========
 	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
@@ -137,6 +98,9 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	public CulturalNormDialog(Frame parent, FLEFModel model, FLEFRecord record){
 		super(parent, "Edit Cultural Norm", model, record);
 
+		// Initialize bound components before using them
+		titleField = new BoundTextField("TITLE", 30);
+
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		loadData();
@@ -147,6 +111,9 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	public CulturalNormDialog(Frame parent, FLEFModel model){
 		super(parent, "New Cultural Norm", model, null);
+
+		// Initialize bound components before using them
+		titleField = new BoundTextField("TITLE", 30);
 
 		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
@@ -160,6 +127,9 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
+
+		// Register bound components
+		bindingManager.bind(titleField);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -195,11 +165,11 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 		// ID (read-only)
 		idField.setEditable(false);
-		idField.setText(record.getId());
+		idField.setText(record != null? record.getId(): "");
 		panel.add(new JLabel("ID:"), "align label");
 		panel.add(idField, "growx,wrap");
 
-		// TITLE (0:1)
+		// TITLE (0:1) – bound field
 		panel.add(new JLabel("Title:"), "align label");
 		panel.add(titleField, "growx,wrap");
 
@@ -386,8 +356,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private void editNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
-			return;
+		if(idx == -1) return;
 		String id = noteIds.get(idx);
 		if(noteHandler == null){
 			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
@@ -408,10 +377,8 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private void deleteNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		if(!showConfirm("Confirm", "Remove this note reference?"))
-			return;
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this note reference?")) return;
 		String removedId = noteIds.remove(idx);
 		noteDisplayMap.remove(removedId);
 		noteListModel.remove(idx);
@@ -455,8 +422,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private void editSourceCitation(){
 		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1)
-			return;
+		if(idx == -1) return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
 		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
 		dialog.setVisible(true);
@@ -471,10 +437,8 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private void deleteSourceCitation(){
 		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		if(!showConfirm("Confirm", "Remove this source citation?"))
-			return;
+		if(idx == -1) return;
+		if(!showConfirm("Confirm", "Remove this source citation?")) return;
 		sourceCitationRecords.remove(idx);
 		sourceCitationListModel.remove(idx);
 	}
@@ -504,10 +468,12 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		idField.setText(record.getId());
+		idField.setText(record != null? record.getId(): "");
 
-		// TITLE (0:1)
-		titleField.setText(FLEFRecordUtils.getChildValue(record, "TITLE"));
+		// ---- Simple fields: load via binding manager ----
+		bindingManager.loadFromRecord(record);
+
+		// ---- Complex fields: manual load ----
 
 		// PLACE (0:1) with CERTAINTY and CREDIBILITY
 		FLEFRecord place = FLEFRecordUtils.findChild(record, "PLACE");
@@ -566,11 +532,10 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		// Validation is already done by save() before calling this method
 		record.getChildren().clear();
 
-		// TITLE (0:1)
-		String title = titleField.getText().trim();
-		if(!title.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "TITLE", title);
-		}
+		// ---- Save simple fields via binding manager ----
+		bindingManager.saveToRecord(record);
+
+		// ---- Complex fields: manual save ----
 
 		// PLACE (0:1) with CERTAINTY and CREDIBILITY
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
