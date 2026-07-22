@@ -67,14 +67,7 @@ public final class FLEFFile{
 	public static FLEFModel loadAndValidate(final Path flefPath, final Path gedgPath) throws IOException,
 			ValidationException{
 		final FLEFGrammar grammar = FLEFGrammar.createFromPath(gedgPath);
-		final FLEFModel model = load(flefPath);
-
-		final FLEFValidator validator = FLEFValidator.create(grammar);
-		final List<ValidationError> errors = validator.validate(model);
-		if(!errors.isEmpty())
-			throw ValidationException.create(errors);
-
-		return model;
+		return loadWithGrammar(flefPath, grammar);
 	}
 
 	/**
@@ -154,6 +147,25 @@ public final class FLEFFile{
 	 * @throws IOException if the file cannot be written
 	 */
 	public static void save(final FLEFModel model, final String filePath) throws IOException{
+		final StringBuilder sb = convertToString(model);
+
+		try(final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))){
+			writer.write(sb.toString());
+		}
+	}
+
+	/**
+	 * Print a FLEF model to standard output.
+	 *
+	 * @param model    The model to save
+	 */
+	public static void print(final FLEFModel model){
+		final StringBuilder sb = convertToString(model);
+
+		System.out.println(sb);
+	}
+
+	private static StringBuilder convertToString(final FLEFModel model){
 		final StringBuilder sb = new StringBuilder();
 
 		// Header
@@ -166,10 +178,7 @@ public final class FLEFFile{
 
 		// EOF
 		sb.append("0 EOF\n");
-
-		try(final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))){
-			writer.write(sb.toString());
-		}
+		return sb;
 	}
 
 	/**
