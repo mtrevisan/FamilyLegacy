@@ -385,7 +385,7 @@ public class PersonalNamePanel extends JPanel{
 
 	private PersonalNameEntry showNameDialog(PersonalNameEntry initial){
 		JDialog dialog = new JDialog(parentDialog, initial == null? "Add Personal Name": "Edit Personal Name", true);
-		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5"));
+		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]"));
 
 		// NAME TYPE
 		JComboBox<String> typeCombo = new JComboBox<>(new String[]{

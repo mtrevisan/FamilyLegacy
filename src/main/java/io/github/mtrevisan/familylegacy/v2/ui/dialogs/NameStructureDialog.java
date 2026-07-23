@@ -1,10 +1,12 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -32,12 +34,12 @@ import java.util.Set;
  * n NAME    {1:1}
  *   +1 <<TEXT_VALUE>>    {1:1}
  *     +2 VALUE <TEXT>    {1:1}
+ *       +3 <<TEXT_VALUE_VARIANT>>    {0:M}
  *       +3 LOCALE <LOCALE_CODE>    {0:1}
  *       +3 VALID_FROM    {0:1}
  *         +4 <<DATE_STRUCTURE>>    {1:1}
  *       +3 VALID_TO    {0:1}
  *         +4 <<DATE_STRUCTURE>>    {1:1}
- *       +3 <<TEXT_VALUE_VARIANT>>    {0:M}
  *       +3 NOTE @<XREF:NOTE>@    {0:M}
  *       +3 <<SOURCE_CITATION>>    {0:M}
  *   +1 TYPE <NAME_TYPE>    {0:1}
@@ -48,13 +50,10 @@ public class NameStructureDialog extends JDialog{
 	@Serial
 	private static final long serialVersionUID = 7526263144620538539L;
 
-
-	// Handlers
 	static{
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
 	}
-
 
 	private final FLEFModel model;
 	private final FLEFRecord nameRecord;
@@ -69,9 +68,15 @@ public class NameStructureDialog extends JDialog{
 		"LOCALE", new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"}
 	);
 
-	// Dates ({0:1} under VALUE)
-	private final BoundTextField validFromField = new BoundTextField("VALID_FROM", 15);
-	private final BoundTextField validToField = new BoundTextField("VALID_TO", 15);
+	// Validity Dates using DatePanel
+	private DatePanel validFromDatePanel;
+	private DatePanel validToDatePanel;
+	private JTabbedPane validityTabbedPane;
+
+	// Variants {0:M} (under VALUE)
+	private final DefaultListModel<String> variantListModel = new DefaultListModel<>();
+	private final JList<String> variantList = new JList<>(variantListModel);
+	private final List<FLEFRecord> variantRecords = new ArrayList<>();
 
 	// Notes {0:M} (under VALUE)
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
@@ -87,11 +92,10 @@ public class NameStructureDialog extends JDialog{
 	private final JButton okButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
-
 	public NameStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord existingRecord){
-		super(parent, existingRecord == null ? "Add Name" : "Edit Name", ModalityType.APPLICATION_MODAL);
+		super(parent, existingRecord == null? "Add Name": "Edit Name", ModalityType.APPLICATION_MODAL);
 		this.model = model;
-		this.nameRecord = (existingRecord != null ? copyRecord(existingRecord) : FLEFRecord.createChild(1, "NAME"));
+		this.nameRecord = (existingRecord != null? copyRecord(existingRecord): FLEFRecord.createChild(1, "NAME"));
 
 		initComponents();
 		loadData();
@@ -109,6 +113,7 @@ public class NameStructureDialog extends JDialog{
 
 	private void initComponents(){
 		tabbedPane.addTab("General", createGeneralPanel());
+		tabbedPane.addTab("Variants", createVariantsPanel());
 		tabbedPane.addTab("Validity & Notes", createValidityAndNotesPanel());
 		tabbedPane.addTab("Sources", createSourcesPanel());
 
@@ -144,20 +149,45 @@ public class NameStructureDialog extends JDialog{
 		return panel;
 	}
 
+	private JPanel createVariantsPanel(){
+		final JPanel panel = new JPanel(new MigLayout("ins 10, fillx, top"));
+		panel.setBorder(new TitledBorder("Text Value Variants"));
+
+		variantList.setVisibleRowCount(4);
+		GUIHelper.installBehavior(variantList,
+			() -> variantList.getSelectedIndex() >= 0,
+			this::editVariant,
+			this::addVariant,
+			this::removeVariant,
+			builder -> {
+				builder.item("Add Variant...", this::addVariant);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editVariant);
+				builder.selectionSensitiveItem("Remove", this::removeVariant);
+			});
+
+		panel.add(GUIHelper.createScrollPane(variantList), "growx");
+		return panel;
+	}
+
 	private JPanel createValidityAndNotesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10, fillx, top", "[grow]", "[]10[]"));
 
-		// Validity Dates Panel
-		final JPanel datePanel = new JPanel(new MigLayout("fillx, top", "[right]rel[grow]rel[right]rel[grow]"));
-		datePanel.setBorder(new TitledBorder("Validity Dates"));
-		datePanel.add(new JLabel("Valid From:"), "align label");
-		datePanel.add(validFromField, "growx");
-		datePanel.add(new JLabel("Valid To:"), "align label");
-		datePanel.add(validToField, "growx");
+		// --- Tabs for Valid From / Valid To using DatePanel ---
+		validityTabbedPane = new JTabbedPane();
 
-		panel.add(datePanel, "growx, wrap");
+		validFromDatePanel = new DatePanel(model, this);
+		validToDatePanel = new DatePanel(model, this);
 
-		// Notes Panel
+		JPanel fromWrapper = wrapDatePanel(validFromDatePanel, "Valid From");
+		JPanel toWrapper = wrapDatePanel(validToDatePanel, "Valid To");
+
+		validityTabbedPane.addTab("Valid From", fromWrapper);
+		validityTabbedPane.addTab("Valid To", toWrapper);
+
+		panel.add(validityTabbedPane, "growx, wrap");
+
+		// --- Notes Panel ---
 		final JPanel notesPanel = new JPanel(new MigLayout("fillx, top"));
 		notesPanel.setBorder(new TitledBorder("Notes"));
 
@@ -178,6 +208,22 @@ public class NameStructureDialog extends JDialog{
 		panel.add(notesPanel, "growx");
 
 		return panel;
+	}
+
+	/**
+	 * Wraps a DatePanel in a container with consistent margins and TitledBorder
+	 * to match the layout of Bounded and Spanning tabs inside DatePanel.
+	 */
+	private JPanel wrapDatePanel(DatePanel datePanel, String title){
+		JPanel outer = new JPanel(new MigLayout("ins 0, fillx"));
+		outer.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+
+		JPanel wrapper = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		wrapper.setBorder(BorderFactory.createTitledBorder(title));
+		wrapper.add(datePanel, "growx");
+
+		outer.add(wrapper, "growx");
+		return outer;
 	}
 
 	private JPanel createSourcesPanel(){
@@ -204,6 +250,58 @@ public class NameStructureDialog extends JDialog{
 		return panel;
 	}
 
+	// --- Variant Management ---
+
+	private void addVariant(){
+		final TextValueVariantDialog dialog = new TextValueVariantDialog(this, null);
+		dialog.setVisible(true);
+		if(dialog.isSaved()){
+			final FLEFRecord record = dialog.getVariantRecord();
+			if(record != null){
+				variantRecords.add(record);
+				variantListModel.addElement(getVariantDisplay(record));
+			}
+		}
+	}
+
+	private void editVariant(){
+		final int idx = variantList.getSelectedIndex();
+		if(idx == -1) return;
+
+		final FLEFRecord existing = variantRecords.get(idx);
+		final TextValueVariantDialog dialog = new TextValueVariantDialog(this, existing);
+		dialog.setVisible(true);
+
+		if(dialog.isSaved()){
+			final FLEFRecord updated = dialog.getVariantRecord();
+			if(updated != null){
+				variantRecords.set(idx, updated);
+				variantListModel.set(idx, getVariantDisplay(updated));
+			}
+		}
+	}
+
+	private void removeVariant(){
+		final int idx = variantList.getSelectedIndex();
+		if(idx >= 0){
+			variantRecords.remove(idx);
+			variantListModel.remove(idx);
+		}
+	}
+
+	private String getVariantDisplay(final FLEFRecord record){
+		if("PHONETIC".equals(record.getTag())){
+			final String val = FLEFRecordUtils.getChildValue(record, "VALUE");
+			return "[Phonetic - " + record.getValue() + "]: " + (val != null? val: "");
+		}
+		else if("TRANSCRIPTION".equals(record.getTag())){
+			final String type = FLEFRecordUtils.getChildValue(record, "TYPE");
+			final String val = FLEFRecordUtils.getChildValue(record, "VALUE");
+			return "[Transcription - " + record.getValue() + (StringUtils.isNotBlank(type)? " (" + type + ")": "") + "]: " + (val != null? val: "");
+		}
+		return record.getTag();
+	}
+
 	// --- Note Management ---
 
 	private void addNote(){
@@ -220,9 +318,7 @@ public class NameStructureDialog extends JDialog{
 
 	private void editNote(){
 		final int idx = noteList.getSelectedIndex();
-		if(idx == -1){
-			return;
-		}
+		if(idx == -1) return;
 
 		final String noteId = noteIds.get(idx);
 		final FLEFRecord noteRec = model.getRecordById(noteId);
@@ -246,7 +342,7 @@ public class NameStructureDialog extends JDialog{
 		final FLEFRecord rec = model.getRecordById(noteId);
 		if(rec != null){
 			final String title = FLEFRecordUtils.getChildValue(rec, "TITLE");
-			return StringUtils.isNotBlank(title) ? title + " (" + noteId + ")" : noteId;
+			return StringUtils.isNotBlank(title)? title + " (" + noteId + ")": noteId;
 		}
 		return noteId;
 	}
@@ -303,25 +399,9 @@ public class NameStructureDialog extends JDialog{
 		}
 	}
 
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		Window w = SwingUtilities.getWindowAncestor(parent);
-		if(w instanceof Frame){
-			return (Frame)w;
-		}
-		return null;
-//		Container parent = getParent();
-//		while(parent != null && !(parent instanceof Frame)){
-//			parent = parent.getParent();
-//		}
-//		return (Frame)parent;
-	}
-
 	private void editSource(){
 		final int idx = sourceList.getSelectedIndex();
-		if(idx == -1){
-			return;
-		}
+		if(idx == -1) return;
 
 		final FLEFRecord citation = sourceCitations.get(idx);
 		final String rawId = FLEFRecordUtils.extractXRef(citation.getValue());
@@ -336,9 +416,7 @@ public class NameStructureDialog extends JDialog{
 
 	private void editSourceCitation(){
 		final int idx = sourceList.getSelectedIndex();
-		if(idx == -1){
-			return;
-		}
+		if(idx == -1) return;
 
 		final FLEFRecord existing = sourceCitations.get(idx);
 		final SourceCitationDialog dialog = new SourceCitationDialog((Frame)SwingUtilities.getWindowAncestor(this), model, existing);
@@ -366,7 +444,7 @@ public class NameStructureDialog extends JDialog{
 		if(rawSourceId != null){
 			final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 			final FLEFRecord rec = model.getRecordById(rawSourceId);
-			return (rec != null && sourceHandler != null ? sourceHandler.getDisplayName(rec) : rawSourceId);
+			return (rec != null && sourceHandler != null? sourceHandler.getDisplayName(rec): rawSourceId);
 		}
 		return "[empty]";
 	}
@@ -392,15 +470,37 @@ public class NameStructureDialog extends JDialog{
 			}
 
 			// 2 VALUE -> 3 VALID_FROM
-			final FLEFRecord validFromRec = FLEFRecordUtils.findChild(valueRec, "VALID_FROM");
-			if(validFromRec != null){
-				validFromField.setText(FLEFRecordUtils.getChildValue(validFromRec, "DATE"));
+			final FLEFRecord validFrom = FLEFRecordUtils.findChild(valueRec, "VALID_FROM");
+			if(validFrom != null){
+				final FLEFRecord dateRec = FLEFRecordUtils.findChild(validFrom, "DATE");
+				if(dateRec != null){
+					validFromDatePanel.loadFromRecord(dateRec);
+				}
+			}
+			else{
+				validFromDatePanel.clear();
 			}
 
 			// 2 VALUE -> 3 VALID_TO
-			final FLEFRecord validToRec = FLEFRecordUtils.findChild(valueRec, "VALID_TO");
-			if(validToRec != null){
-				validToField.setText(FLEFRecordUtils.getChildValue(validToRec, "DATE"));
+			final FLEFRecord validTo = FLEFRecordUtils.findChild(valueRec, "VALID_TO");
+			if(validTo != null){
+				final FLEFRecord dateRec = FLEFRecordUtils.findChild(validTo, "DATE");
+				if(dateRec != null){
+					validToDatePanel.loadFromRecord(dateRec);
+				}
+			}
+			else{
+				validToDatePanel.clear();
+			}
+
+			// 2 VALUE -> 3 TEXT_VALUE_VARIANT (PHONETIC / TRANSCRIPTION)
+			variantRecords.clear();
+			variantListModel.clear();
+			for(final FLEFRecord child : valueRec.getChildren()){
+				if("PHONETIC".equals(child.getTag()) || "TRANSCRIPTION".equals(child.getTag())){
+					variantRecords.add(child);
+					variantListModel.addElement(getVariantDisplay(child));
+				}
 			}
 
 			// 2 VALUE -> 3 NOTE
@@ -447,16 +547,32 @@ public class NameStructureDialog extends JDialog{
 			valueRec.addChild(FLEFRecord.createChildWithValue(3, "LOCALE", locale.trim()));
 		}
 
-		// 3 VALID_FROM / VALID_TO
-		if(StringUtils.isNotBlank(validFromField.getText())){
-			final FLEFRecord validFrom = FLEFRecord.createChild(3, "VALID_FROM");
-			validFrom.addChild(FLEFRecord.createChildWithValue(4, "DATE", validFromField.getText().trim()));
-			valueRec.addChild(validFrom);
+		// 3 VALID_FROM
+		if(validFromDatePanel.hasData()){
+			final FLEFRecord dateRecord = validFromDatePanel.saveToRecord(null);
+			if(dateRecord != null){
+				final FLEFRecord validFrom = FLEFRecord.createChild(3, "VALID_FROM");
+				final FLEFRecord dateCopy = FLEFRecordUtils.copyRecordWithLevel(dateRecord, 4);
+				validFrom.addChild(dateCopy);
+				valueRec.addChild(validFrom);
+			}
 		}
-		if(StringUtils.isNotBlank(validToField.getText())){
-			final FLEFRecord validTo = FLEFRecord.createChild(3, "VALID_TO");
-			validTo.addChild(FLEFRecord.createChildWithValue(4, "DATE", validToField.getText().trim()));
-			valueRec.addChild(validTo);
+
+		// 3 VALID_TO
+		if(validToDatePanel.hasData()){
+			final FLEFRecord dateRecord = validToDatePanel.saveToRecord(null);
+			if(dateRecord != null){
+				final FLEFRecord validTo = FLEFRecord.createChild(3, "VALID_TO");
+				final FLEFRecord dateCopy = FLEFRecordUtils.copyRecordWithLevel(dateRecord, 4);
+				validTo.addChild(dateCopy);
+				valueRec.addChild(validTo);
+			}
+		}
+
+		// 3 <<TEXT_VALUE_VARIANT>>
+		for(final FLEFRecord variant : variantRecords){
+			variant.setLevel(3);
+			valueRec.addChild(variant);
 		}
 
 		// 3 NOTE @<XREF:NOTE>@
@@ -480,7 +596,10 @@ public class NameStructureDialog extends JDialog{
 		}
 
 		saved = true;
-		dispose();
+
+//FIXME
+FLEFFile.print(model);
+//		dispose(); // commented for debugging
 	}
 
 	public boolean isSaved(){
@@ -489,6 +608,136 @@ public class NameStructureDialog extends JDialog{
 
 	public FLEFRecord getNameRecord(){
 		return nameRecord;
+	}
+
+	// --- Sub-Dialog for TEXT_VALUE_VARIANT ---
+
+	private static class TextValueVariantDialog extends JDialog{
+
+		@Serial
+		private static final long serialVersionUID = 1L;
+
+		private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
+		private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");
+
+		private final JTextField systemField = new JTextField(15); // System (IPA, romaji, etc.)
+		private final JTextField typeField = new JTextField(15);   // Type (romanized, etc.)
+		private final JTextField valueField = new JTextField(20);  // Piece/Text value
+
+		private final JLabel systemLabel = new JLabel("System*:");
+		private final JLabel typeLabel = new JLabel("Type:");
+		private final JLabel valueLabel = new JLabel("Value*:");
+
+		private FLEFRecord variantRecord;
+		private boolean saved;
+
+		TextValueVariantDialog(final Window parent, final FLEFRecord existing){
+			super(parent, existing == null? "Add Text Value Variant": "Edit Text Value Variant", ModalityType.APPLICATION_MODAL);
+			this.variantRecord = existing;
+			initComponents();
+			loadData();
+			pack();
+			setLocationRelativeTo(parent);
+		}
+
+		private void initComponents(){
+			final ButtonGroup group = new ButtonGroup();
+			group.add(phoneticRadio);
+			group.add(transcriptionRadio);
+
+			final JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			radioPanel.add(phoneticRadio);
+			radioPanel.add(transcriptionRadio);
+
+			final JPanel panel = new JPanel(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5[]"));
+			panel.add(new JLabel("Variant Kind:"), "align label");
+			panel.add(radioPanel, "growx, wrap");
+
+			panel.add(systemLabel, "align label");
+			panel.add(systemField, "growx, wrap");
+
+			panel.add(typeLabel, "align label");
+			panel.add(typeField, "growx, wrap");
+
+			panel.add(valueLabel, "align label");
+			panel.add(valueField, "growx, wrap");
+
+			phoneticRadio.addActionListener(e -> updateFieldsState());
+			transcriptionRadio.addActionListener(e -> updateFieldsState());
+
+			final JButton okBtn = new JButton("OK");
+			final JButton cancelBtn = new JButton("Cancel");
+			okBtn.addActionListener(e -> save());
+			cancelBtn.addActionListener(e -> dispose());
+
+			final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+			buttonPanel.add(okBtn);
+			buttonPanel.add(cancelBtn);
+
+			setLayout(new BorderLayout());
+			add(panel, BorderLayout.CENTER);
+			add(buttonPanel, BorderLayout.SOUTH);
+
+			updateFieldsState();
+		}
+
+		private void updateFieldsState(){
+			final boolean isTranscription = transcriptionRadio.isSelected();
+			typeLabel.setEnabled(isTranscription);
+			typeField.setEnabled(isTranscription);
+			systemLabel.setText(isTranscription? "System*:": "System*:");
+		}
+
+		private void loadData(){
+			if(variantRecord == null) return;
+
+			if("TRANSCRIPTION".equals(variantRecord.getTag())){
+				transcriptionRadio.setSelected(true);
+				systemField.setText(variantRecord.getValue());
+				typeField.setText(FLEFRecordUtils.getChildValue(variantRecord, "TYPE"));
+				valueField.setText(FLEFRecordUtils.getChildValue(variantRecord, "VALUE"));
+			}
+			else{
+				phoneticRadio.setSelected(true);
+				systemField.setText(variantRecord.getValue());
+				valueField.setText(FLEFRecordUtils.getChildValue(variantRecord, "VALUE"));
+			}
+			updateFieldsState();
+		}
+
+		private void save(){
+			final String system = systemField.getText().trim();
+			final String value = valueField.getText().trim();
+
+			if(system.isEmpty() || value.isEmpty()){
+				JOptionPane.showMessageDialog(this, "System and Value fields are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			if(phoneticRadio.isSelected()){
+				variantRecord = FLEFRecord.createChildWithValue(3, "PHONETIC", system);
+				variantRecord.addChild(FLEFRecord.createChildWithValue(4, "VALUE", value));
+			}
+			else{
+				variantRecord = FLEFRecord.createChildWithValue(3, "TRANSCRIPTION", system);
+				final String type = typeField.getText().trim();
+				if(!type.isEmpty()){
+					variantRecord.addChild(FLEFRecord.createChildWithValue(4, "TYPE", type));
+				}
+				variantRecord.addChild(FLEFRecord.createChildWithValue(4, "VALUE", value));
+			}
+
+			saved = true;
+			dispose();
+		}
+
+		public boolean isSaved(){
+			return saved;
+		}
+
+		public FLEFRecord getVariantRecord(){
+			return variantRecord;
+		}
 	}
 
 }

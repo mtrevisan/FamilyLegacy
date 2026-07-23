@@ -17,6 +17,7 @@ import java.awt.CardLayout;
  * Panel for a single date (ISO, CENTURY, or DECADE) with approximate support.
  */
 public class SingleDatePanel extends JPanel{
+
 	private final JComboBox<String> dateTypeCombo = new JComboBox<>(new String[]{"ISO", "CENTURY", "DECADE"});
 
 	// ISO
@@ -38,28 +39,30 @@ public class SingleDatePanel extends JPanel{
 	private final CardLayout cardLayout = new CardLayout();
 	private final JPanel cardPanel = new JPanel(cardLayout);
 
+
 	SingleDatePanel(){
 		initComponents();
 	}
 
+
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0, fillx", "[right]rel[grow]", "[]5[]5"));
+		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		// Date type combo
-		JPanel typePanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel typePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		typePanel.add(new JLabel("Type:"), "align label");
 		typePanel.add(dateTypeCombo, "growx");
 		add(typePanel, "growx,wrap");
 
 		// Card panel for ISO, CENTURY, DECADE
 		// ISO
-		JPanel isoPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel isoPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		isoPanel.add(new JLabel("Date:"), "align label");
 		isoPanel.add(isoField, "growx");
 
 		// CENTURY
-		JPanel centuryPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow][right]rel[grow]"));
+		JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow][right]rel[grow]"));
 		centuryPanel.add(new JLabel("Century:"), "align label");
 		centuryPanel.add(centuryField, "growx");
 		centuryPanel.add(new JLabel("Part:"), "align label");
@@ -67,7 +70,7 @@ public class SingleDatePanel extends JPanel{
 		centuryField.setToolTipText("e.g., 15 for 15th century");
 
 		// DECADE
-		JPanel decadePanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel decadePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		decadePanel.add(new JLabel("Decade:"), "align label");
 		decadePanel.add(decadeField, "growx");
 		decadeField.setToolTipText("e.g., 1490 for the 1490s");
@@ -78,7 +81,7 @@ public class SingleDatePanel extends JPanel{
 		add(cardPanel, "growx,wrap");
 
 		// Calendar
-		JPanel calendarPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel calendarPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		calendarPanel.add(new JLabel("Calendar:"), "align label");
 		calendarCombo.setEditable(true);
 		calendarPanel.add(calendarCombo, "growx");
@@ -93,7 +96,6 @@ public class SingleDatePanel extends JPanel{
 		});
 	}
 
-	// ==================== Load / Save ====================
 
 	public void loadFromQualifiedDate(FLEFRecord qualifiedDate){
 		if(qualifiedDate == null){
@@ -146,10 +148,6 @@ public class SingleDatePanel extends JPanel{
 		}
 
 		FLEFRecord record = target != null? target: new FLEFRecord();
-		if(target == null){
-			record.setTag("QUALIFIED_DATE");
-		}
-
 		if(target == null){
 			record.setTag("QUALIFIED_DATE");
 		}
@@ -227,9 +225,7 @@ public class SingleDatePanel extends JPanel{
 	public boolean validateRequiredFields(){
 		String dateType = (String)dateTypeCombo.getSelectedItem();
 
-		if("ISO".equals(dateType)
-			&& isoField.getText().trim().isEmpty()){
-
+		if("ISO".equals(dateType) && isoField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(
 				this,
 				"Date is required for ISO type.",
@@ -239,9 +235,7 @@ public class SingleDatePanel extends JPanel{
 			return false;
 		}
 
-		if("CENTURY".equals(dateType)
-			&& centuryField.getText().trim().isEmpty()){
-
+		if("CENTURY".equals(dateType) && centuryField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(
 				this,
 				"Century is required for CENTURY type.",
@@ -251,9 +245,7 @@ public class SingleDatePanel extends JPanel{
 			return false;
 		}
 
-		if("DECADE".equals(dateType)
-			&& decadeField.getText().trim().isEmpty()){
-
+		if("DECADE".equals(dateType) && decadeField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(
 				this,
 				"Decade is required for DECADE type.",
@@ -264,7 +256,6 @@ public class SingleDatePanel extends JPanel{
 		}
 
 		String calendar = (String)calendarCombo.getSelectedItem();
-
 		if(calendar == null || calendar.trim().isEmpty()){
 			JOptionPane.showMessageDialog(
 				this,

@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -46,13 +45,10 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -94,9 +90,6 @@ public class SourceCitationPanel extends JPanel{
 	private final Component parent;
 
 	// ========== SOURCE (1:1) – manual ==========
-	private final JTextField sourceDisplayField = new JTextField(20);
-	private final JButton browseSourceBtn = new JButton("Browse...");
-	private final JButton clearSourceBtn = new JButton("Clear");
 	private String selectedSourceId;
 
 	// ========== Simple fields – bound ==========
@@ -158,24 +151,6 @@ public class SourceCitationPanel extends JPanel{
 		bindingManager.bind(credibilityCombo);
 
 		noteList.setVisibleRowCount(4);
-
-		// ===== SOURCE (1:1) – manual =====
-		add(new JLabel("Source:"), "align label");
-		sourceDisplayField.setEditable(false);
-		sourceDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel sourcePanel = new JPanel(new BorderLayout(5, 5));
-		sourcePanel.add(sourceDisplayField, BorderLayout.CENTER);
-		JPanel sourceBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-		sourceBtnPanel.add(browseSourceBtn);
-		sourceBtnPanel.add(clearSourceBtn);
-		sourcePanel.add(sourceBtnPanel, BorderLayout.EAST);
-		add(sourcePanel, "growx,wrap");
-
-		browseSourceBtn.addActionListener(e -> browseSource());
-		clearSourceBtn.addActionListener(e -> {
-			selectedSourceId = null;
-			sourceDisplayField.setText("");
-		});
 
 		// ===== SEARCH_OUTCOME (0:1) – bound =====
 		add(new JLabel("Search Outcome:"), "align label");
@@ -324,27 +299,6 @@ public class SourceCitationPanel extends JPanel{
 		}
 	}
 
-	// ==================== Source methods ====================
-
-	private void browseSource(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
-			model, sourceHandler, selectedId -> {
-			if(selectedId != null){
-				selectedSourceId = selectedId;
-				FLEFRecord rec = model.getRecordById(selectedId);
-				if(rec != null){
-					sourceDisplayField.setText(sourceHandler.getDisplayName(rec));
-				}
-				else{
-					sourceDisplayField.setText(selectedId);
-				}
-			}
-		}
-		);
-		dialog.setVisible(true);
-	}
-
 	// ==================== Public API ====================
 
 	/**
@@ -355,7 +309,6 @@ public class SourceCitationPanel extends JPanel{
 	public void loadFromRecord(FLEFRecord citationRecord){
 		// Clear all manual fields
 		selectedSourceId = null;
-		sourceDisplayField.setText("");
 		searchDatePanel.clear();
 		noteModel.clear();
 		noteIds.clear();
@@ -374,13 +327,6 @@ public class SourceCitationPanel extends JPanel{
 		String sourceId = citationRecord.getValue();
 		if(sourceId != null && !sourceId.isEmpty()){
 			selectedSourceId = sourceId;
-			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null){
-				sourceDisplayField.setText(sourceHandler.getDisplayName(rec));
-			}
-			else{
-				sourceDisplayField.setText(sourceId);
-			}
 		}
 
 		// SEARCH_DATE (0:1)
@@ -462,14 +408,6 @@ public class SourceCitationPanel extends JPanel{
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		if(cropField.getText().trim().isEmpty()){
-			JOptionPane.showMessageDialog(parent,
-				"CROP is required for a citation.\n" +
-					"Please enter crop coordinates.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			cropField.requestFocusInWindow();
-			return false;
-		}
 		return true;
 	}
 
@@ -495,7 +433,6 @@ public class SourceCitationPanel extends JPanel{
 	 */
 	public void clear(){
 		selectedSourceId = null;
-		sourceDisplayField.setText("");
 		outcomeCombo.setSelectedItem("");
 		scopeField.setText("");
 		searchDatePanel.clear();

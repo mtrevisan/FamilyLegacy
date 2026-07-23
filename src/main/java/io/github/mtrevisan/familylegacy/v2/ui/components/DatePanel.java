@@ -8,6 +8,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -61,11 +62,17 @@ public class DatePanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0, fillx, wrap 1", "[grow]", "[]5[]5[]5"));
+		setLayout(new MigLayout("ins 0, fillx, wrap 1", "[grow]", "[]5[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
 		// Tabbed pane for date types
-		tabbedPane.addTab("Value", valueDatePanel);
+		JPanel valueOuter = new JPanel(new MigLayout("ins 0, fillx"));
+		valueOuter.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+		JPanel valueWrapper = new JPanel(new MigLayout("ins 7, fillx", "[right]rel[grow]"));
+		valueWrapper.setBorder(BorderFactory.createTitledBorder("Value Date"));
+		valueWrapper.add(valueDatePanel, "growx");
+		valueOuter.add(valueWrapper, "growx");
+		tabbedPane.addTab("Value", valueOuter);
 		tabbedPane.addTab("Bounded", boundedDatePanel);
 		tabbedPane.addTab("Spanning", spanningDatePanel);
 		tabbedPane.addChangeListener(e -> {

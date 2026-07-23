@@ -14,23 +14,26 @@ import javax.swing.border.TitledBorder;
  * Panel for BOUNDED date (uncertainty interval).
  */
 public class BoundedDatePanel extends JPanel{
+
 	private final SingleDatePanel notBeforePanel = new SingleDatePanel();
 	private final SingleDatePanel notAfterPanel = new SingleDatePanel();
+
 
 	BoundedDatePanel(){
 		initComponents();
 	}
 
+
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0, fillx, top", "[grow, fill][grow, fill]", "[]"));
+		setLayout(new MigLayout("ins 0,fillx,top", "[grow,fill][grow,fill]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		final JPanel beforePanel = new JPanel(new MigLayout("ins 5, fillx", "[right]rel[grow]"));
+		final JPanel beforePanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		beforePanel.setBorder(new TitledBorder("Not Before"));
 		beforePanel.add(notBeforePanel, "growx");
-		add(beforePanel, "growx"); // Niente wrap: il prossimo pannello va a destra
+		add(beforePanel, "growx");
 
-		final JPanel afterPanel = new JPanel(new MigLayout("ins 5, fillx", "[right]rel[grow]"));
+		final JPanel afterPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		afterPanel.setBorder(new TitledBorder("Not After"));
 		afterPanel.add(notAfterPanel, "growx");
 		add(afterPanel, "growx");
@@ -81,7 +84,7 @@ public class BoundedDatePanel extends JPanel{
 			}
 		}
 
-		return record.hasChildren()? record: null;
+		return (record.hasChildren()? record: null);
 	}
 
 	public void clear(){
@@ -90,7 +93,7 @@ public class BoundedDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		return notBeforePanel.hasData() || notAfterPanel.hasData();
+		return (notBeforePanel.hasData() || notAfterPanel.hasData());
 	}
 
 	public boolean validateRequiredFields(){

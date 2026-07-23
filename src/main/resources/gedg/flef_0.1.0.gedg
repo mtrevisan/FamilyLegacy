@@ -195,12 +195,12 @@ n NAME    {1:1}
 
 TEXT_VALUE :=	/* A textual value representing a name, address, title, label, or other historically relevant text associated with an entity. Multiple TEXT_VALUE structures may be recorded when the same entity is known by different historical, linguistic, official, or customary names. */
 n VALUE <TEXT>    {1:1}	/* The primary textual value. */
+  +1 <<TEXT_VALUE_VARIANT>>    {0:M}	/* Alternative phonetic, transliterated, or transcribed representations. */
   +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for this text (as defined by IETF BCP 47: https://tools.ietf.org/html/bcp47). */
   +1 VALID_FROM    {0:1}	/* The date from which this name was known to be in use. */
     +2 <<DATE_STRUCTURE>>    {1:1}
   +1 VALID_TO    {0:1}	/* The date until which this name was known to be in use. */
     +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 <<TEXT_VALUE_VARIANT>>    {0:M}	/* Alternative phonetic, transliterated, or transcribed representations. */
   +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<SOURCE_CITATION>>    {0:M}
 

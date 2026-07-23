@@ -22,16 +22,15 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	private void initComponents(){
-		// 2 colonne con larghezza equivalente distribuita (50% / 50%)
 		setLayout(new MigLayout("ins 0, fillx, top", "[grow, fill][grow, fill]", "[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		final JPanel fromPanelBorder = new JPanel(new MigLayout("ins 5, fillx", "[right]rel[grow]"));
+		final JPanel fromPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		fromPanelBorder.setBorder(new TitledBorder("From"));
 		fromPanelBorder.add(fromPanel, "growx");
-		add(fromPanelBorder, "growx"); // Niente wrap: il prossimo pannello va a destra
+		add(fromPanelBorder, "growx");
 
-		final JPanel toPanelBorder = new JPanel(new MigLayout("ins 5, fillx", "[right]rel[grow]"));
+		final JPanel toPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		toPanelBorder.setBorder(new TitledBorder("To"));
 		toPanelBorder.add(toPanel, "growx");
 		add(toPanelBorder, "growx");
@@ -61,7 +60,7 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	public FLEFRecord saveToRecord(final FLEFRecord target){
-		final FLEFRecord record = target != null ? target : new FLEFRecord();
+		final FLEFRecord record = (target != null ? target : new FLEFRecord());
 
 		if(fromPanel.hasData()){
 			final FLEFRecord from = FLEFRecord.createChild(1, "FROM");
@@ -90,7 +89,7 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		return fromPanel.hasData() || toPanel.hasData();
+		return (fromPanel.hasData() || toPanel.hasData());
 	}
 
 	public boolean validateRequiredFields(){
