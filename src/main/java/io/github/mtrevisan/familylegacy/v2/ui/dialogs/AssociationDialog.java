@@ -32,7 +32,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -259,8 +260,7 @@ public class AssociationDialog extends JDialog{
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 		panel.setBorder(new TitledBorder(title));
 
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -320,11 +320,9 @@ public class AssociationDialog extends JDialog{
 		}
 
 		String display = targetId;
-		if(handler != null){
-			FLEFRecord target = model.getRecordById(targetId);
-			if(target != null){
-				display = handler.getDisplayName(target);
-			}
+		FLEFRecord target = model.getRecordById(targetId);
+		if(target != null){
+			display = handler.getDisplayName(target);
 		}
 		targetDisplayField.setText(display);
 	}
@@ -357,11 +355,9 @@ public class AssociationDialog extends JDialog{
 	// ==================== Notes methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -382,10 +378,6 @@ public class AssociationDialog extends JDialog{
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -404,10 +396,6 @@ public class AssociationDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -436,11 +424,6 @@ public class AssociationDialog extends JDialog{
 	 * Creates a new note and automatically adds it to the list.
 	 */
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		// Store current note IDs to detect the newly created one
 		Set<String> beforeIds = new HashSet<>(noteIds);
 
@@ -463,11 +446,9 @@ public class AssociationDialog extends JDialog{
 	// ==================== Source methods ====================
 
 	private String getSourceDisplayName(String id){
-		if(sourceHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return sourceHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -488,10 +469,6 @@ public class AssociationDialog extends JDialog{
 	}
 
 	private void addSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, sourceHandler, selectedId -> {
 			if(selectedId != null && !sourceIds.contains(selectedId)){
@@ -510,10 +487,6 @@ public class AssociationDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String id = sourceIds.get(idx);
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Source not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -542,11 +515,6 @@ public class AssociationDialog extends JDialog{
 	 * Creates a new source and automatically adds it to the list.
 	 */
 	private void createNewSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		// Store current source IDs to detect the newly created one
 		Set<String> beforeIds = new HashSet<>(sourceIds);
 
@@ -570,8 +538,8 @@ public class AssociationDialog extends JDialog{
 
 	private void loadData(){
 		String value = existingAssociation.getValue();
-		boolean isVoidAssociation = "@VOID@".equals(value) ||
-			existingAssociation.getId() != null && "VOID".equals(existingAssociation.getId());
+		boolean isVoidAssociation = FLEFRecordUtils.isVoidReference(value) ||
+			existingAssociation.getId() != null && FLEFRecordUtils.isVoidReference(existingAssociation.getId());
 
 		if(isVoidAssociation){
 			voidRecordRadio.setSelected(true);
@@ -623,13 +591,13 @@ public class AssociationDialog extends JDialog{
 		// NOTE references
 		FLEFRecordUtils.removeChildren(record, "NOTE");
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", 2, id);
+			FLEFRecordUtils.addChild(record, "NOTE", id);
 		}
 
 		// SOURCE_CITATION references
 		FLEFRecordUtils.removeChildren(record, "SOURCE");
 		for(String id : sourceIds){
-			FLEFRecordUtils.addChild(record, "SOURCE", 2, id);
+			FLEFRecordUtils.addChild(record, "SOURCE", id);
 		}
 
 		return record;

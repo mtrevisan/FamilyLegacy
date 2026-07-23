@@ -32,8 +32,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -140,6 +141,7 @@ public class SourceCitationPanel extends JPanel{
 			new String[]{"", "0", "1", "2", "3"});
 
 		this.searchDatePanel = new DatePanel(model, parent);
+
 		initComponents();
 	}
 
@@ -214,8 +216,7 @@ public class SourceCitationPanel extends JPanel{
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 
-		JScrollPane scrollPane = createScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 60));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -253,30 +254,17 @@ public class SourceCitationPanel extends JPanel{
 		return panel;
 	}
 
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
-	}
-
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, noteHandler, selectedId -> {
@@ -296,11 +284,6 @@ public class SourceCitationPanel extends JPanel{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -326,10 +309,6 @@ public class SourceCitationPanel extends JPanel{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog((parent instanceof Frame? (Frame)parent: null), model);
 		dialog.setVisible(true);
@@ -348,10 +327,6 @@ public class SourceCitationPanel extends JPanel{
 	// ==================== Source methods ====================
 
 	private void browseSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(parent, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, sourceHandler, selectedId -> {
@@ -387,8 +362,6 @@ public class SourceCitationPanel extends JPanel{
 		noteDisplayMap.clear();
 
 		if(citationRecord == null){
-			// Still load bound fields (they will be empty since record is null)
-			bindingManager.loadFromRecord(null);
 			return;
 		}
 
@@ -402,7 +375,7 @@ public class SourceCitationPanel extends JPanel{
 		if(sourceId != null && !sourceId.isEmpty()){
 			selectedSourceId = sourceId;
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				sourceDisplayField.setText(sourceHandler.getDisplayName(rec));
 			}
 			else{
@@ -439,6 +412,9 @@ public class SourceCitationPanel extends JPanel{
 			return null;
 		}
 
+		// ---- Save bound simple fields ----
+		bindingManager.saveToRecord(citationRecord);
+
 		if(citationRecord == null){
 			citationRecord = new FLEFRecord();
 			citationRecord.setLevel(1);
@@ -446,7 +422,7 @@ public class SourceCitationPanel extends JPanel{
 		}
 
 		// Clear existing children
-		citationRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(citationRecord);
 
 		// ---- Save manual fields ----
 
@@ -467,11 +443,8 @@ public class SourceCitationPanel extends JPanel{
 
 		// NOTE (0:M) – manual
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(citationRecord, "NOTE", 2, id);
+			FLEFRecordUtils.addChild(citationRecord, "NOTE", id);
 		}
-
-		// ---- Save bound simple fields ----
-		bindingManager.saveToRecord(citationRecord);
 
 		return citationRecord;
 	}

@@ -29,8 +29,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -192,8 +193,7 @@ public class DocumentStructurePanel extends JPanel{
 
 		// EXTRACT text area
 		panel.add(new JLabel("Extract Text:"), "align label,top");
-		JScrollPane scrollPane = new JScrollPane(extractArea);
-		scrollPane.setPreferredSize(new Dimension(200, 80));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(extractArea);
 		panel.add(scrollPane, "growx,wrap");
 
 		// EXTRACT -> TYPE (0:1)
@@ -207,21 +207,13 @@ public class DocumentStructurePanel extends JPanel{
 		return panel;
 	}
 
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
-	}
-
 	// ==================== Notes Tab ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.setBorder(new TitledBorder("Note References"));
 
-		JScrollPane scrollPane = createScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -262,11 +254,9 @@ public class DocumentStructurePanel extends JPanel{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -280,11 +270,6 @@ public class DocumentStructurePanel extends JPanel{
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, noteHandler, selectedId -> {
@@ -304,11 +289,6 @@ public class DocumentStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -338,11 +318,6 @@ public class DocumentStructurePanel extends JPanel{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
 			(parent instanceof Frame? (Frame)parent: null),
@@ -438,7 +413,7 @@ public class DocumentStructurePanel extends JPanel{
 		}
 
 		// Clear existing children
-		documentRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(documentRecord);
 
 		// FILE (1:1) - required
 		String file = fileField.getText().trim();
@@ -453,15 +428,11 @@ public class DocumentStructurePanel extends JPanel{
 
 		// MAPPING (0:1)
 		String mapping = (String)mappingCombo.getSelectedItem();
-		if(mapping != null && !mapping.isEmpty()){
-			FLEFRecordUtils.updateChildValue(documentRecord, "MAPPING", mapping);
-		}
+		FLEFRecordUtils.updateChildValue(documentRecord, "MAPPING", mapping);
 
 		// DESCRIPTION (0:1)
 		String description = descriptionField.getText().trim();
-		if(!description.isEmpty()){
-			FLEFRecordUtils.updateChildValue(documentRecord, "DESCRIPTION", description);
-		}
+		FLEFRecordUtils.updateChildValue(documentRecord, "DESCRIPTION", description);
 
 		// EXTRACT (0:1) with its children
 		String extractText = extractArea.getText().trim();
@@ -473,24 +444,18 @@ public class DocumentStructurePanel extends JPanel{
 			documentRecord.addChild(extract);
 
 			String extractType = (String)extractTypeCombo.getSelectedItem();
-			if(extractType != null && !extractType.isEmpty()){
-				FLEFRecordUtils.updateChildValue(extract, "TYPE", extractType);
-			}
+			FLEFRecordUtils.updateChildValue(extract, "TYPE", extractType);
 			String extractLocale = extractLocaleField.getText().trim();
-			if(!extractLocale.isEmpty()){
-				FLEFRecordUtils.updateChildValue(extract, "LOCALE", extractLocale);
-			}
+			FLEFRecordUtils.updateChildValue(extract, "LOCALE", extractLocale);
 		}
 
 		// RESTRICTION (0:1)
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		if(restriction != null){
-			FLEFRecordUtils.updateChildValue(documentRecord, "RESTRICTION", restriction);
-		}
+		FLEFRecordUtils.updateChildValue(documentRecord, "RESTRICTION", restriction);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(documentRecord, "NOTE", 1, id);
+			FLEFRecordUtils.addChild(documentRecord, "NOTE", id);
 		}
 
 		return documentRecord;

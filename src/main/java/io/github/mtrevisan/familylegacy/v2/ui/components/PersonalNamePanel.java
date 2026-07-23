@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -200,7 +200,7 @@ public class PersonalNamePanel extends JPanel{
 		nameList.setVisibleRowCount(4);
 		nameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(nameList,
+		GUIHelper.installBehavior(nameList,
 			() -> nameList.getSelectedIndex() >= 0,
 			this::editName,
 			this::createNewName,
@@ -212,9 +212,7 @@ public class PersonalNamePanel extends JPanel{
 				builder.selectionSensitiveItem("Delete", this::deleteName);
 			});
 
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(nameList,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(nameList.getPreferredScrollableViewportSize());
+		JScrollPane scrollPane = GUIHelper.createScrollPane(nameList);
 		add(scrollPane, "growx,wrap");
 	}
 
@@ -410,10 +408,9 @@ public class PersonalNamePanel extends JPanel{
 			partModel.addElement(p);
 		}
 
-		JScrollPane partScroll = new JScrollPane(partList);
-		partScroll.setPreferredSize(new Dimension(200, 80));
+		JScrollPane partScroll = GUIHelper.createScrollPane(partList);
 
-		GUIHelper.installBehaviour(partList,
+		GUIHelper.installBehavior(partList,
 			() -> partList.getSelectedIndex() >= 0,
 			() -> {
 				int idx = partList.getSelectedIndex();
@@ -486,10 +483,9 @@ public class PersonalNamePanel extends JPanel{
 			normModel.addElement(getCulturalNormDisplayName(id));
 		}
 
-		JScrollPane normScroll = new JScrollPane(normList);
-		normScroll.setPreferredSize(new Dimension(200, 40));
+		JScrollPane normScroll = GUIHelper.createScrollPane(normList);
 
-		GUIHelper.installBehaviour(normList,
+		GUIHelper.installBehavior(normList,
 			() -> normList.getSelectedIndex() >= 0,
 			null,
 			() -> addCulturalNorm(dialog, currentNormIds, normModel),
@@ -513,10 +509,9 @@ public class PersonalNamePanel extends JPanel{
 			noteModel.addElement(getNoteDisplayName(id));
 		}
 
-		JScrollPane noteScroll = new JScrollPane(noteList);
-		noteScroll.setPreferredSize(new Dimension(200, 40));
+		JScrollPane noteScroll = GUIHelper.createScrollPane(noteList);
 
-		GUIHelper.installBehaviour(noteList,
+		GUIHelper.installBehavior(noteList,
 			() -> noteList.getSelectedIndex() >= 0,
 			() -> editNoteInList(dialog, noteList, currentNoteIds, noteModel),
 			() -> addNoteInList(dialog, currentNoteIds, noteModel),
@@ -542,10 +537,9 @@ public class PersonalNamePanel extends JPanel{
 			sourceModel.addElement(getSourceCitationDisplay(citation));
 		}
 
-		JScrollPane sourceScroll = new JScrollPane(sourceList);
-		sourceScroll.setPreferredSize(new Dimension(200, 40));
+		JScrollPane sourceScroll = GUIHelper.createScrollPane(sourceList);
 
-		GUIHelper.installBehaviour(sourceList,
+		GUIHelper.installBehavior(sourceList,
 			() -> sourceList.getSelectedIndex() >= 0,
 			() -> editSourceInList(dialog, sourceList, currentSources, sourceModel),
 			() -> addSourceInList(dialog, currentSources, sourceModel),
@@ -597,13 +591,13 @@ public class PersonalNamePanel extends JPanel{
 
 	/**
 	 * Shows a dialog to create or edit a name part.
-	 * Variants are managed as a list with popup behaviour.
+	 * Variants are managed as a list with popup behavior.
 	 */
 	private PartEntry showPartDialog(Dialog parent, PartEntry initial){
 		JDialog dialog = new JDialog(parent, initial == null? "Add Part": "Edit Part", true);
 		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]"));
 
-		// PART TYPE (required)
+		// PART TYPE
 		JComboBox<String> typeCombo = new JComboBox<>(new String[]{
 			"", "given", "family", "patronymic", "matronymic",
 			"clan", "lineage", "tribal", "title", "nickname",
@@ -615,7 +609,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.add(new JLabel("Part Type:"), "align label");
 		dialog.add(typeCombo, "growx,wrap");
 
-		// PART VALUE (required)
+		// PART VALUE
 		JTextField valueField = new JTextField(25);
 		if(initial != null){
 			valueField.setText(initial.value);
@@ -633,10 +627,9 @@ public class PersonalNamePanel extends JPanel{
 			variantModel.addElement(v);
 		}
 
-		JScrollPane variantScroll = new JScrollPane(variantList);
-		variantScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane variantScroll = GUIHelper.createScrollPane(variantList);
 
-		GUIHelper.installBehaviour(variantList,
+		GUIHelper.installBehavior(variantList,
 			() -> variantList.getSelectedIndex() >= 0,
 			() -> { // double-click → edit
 				int idx = variantList.getSelectedIndex();
@@ -813,10 +806,6 @@ public class PersonalNamePanel extends JPanel{
 	// ==================== Cultural Norm helpers ====================
 
 	private void addCulturalNorm(Dialog parent, List<String> currentNormIds, DefaultListModel<String> listModel){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(parent, "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(parent), model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !currentNormIds.contains(selectedId)){
@@ -840,10 +829,6 @@ public class PersonalNamePanel extends JPanel{
 	// ==================== Note helpers ====================
 
 	private void addNoteInList(Dialog parent, List<String> currentNoteIds, DefaultListModel<String> listModel){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(parent), model, noteHandler, selectedId -> {
 			if(selectedId != null && !currentNoteIds.contains(selectedId)){
@@ -855,10 +840,6 @@ public class PersonalNamePanel extends JPanel{
 	}
 
 	private void createNewNoteInList(Dialog parent, List<String> currentNoteIds, DefaultListModel<String> listModel){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(currentNoteIds);
 		JDialog newNoteDialog = noteHandler.createNewDialog(getParentFrame(parent), model);
 		newNoteDialog.setVisible(true);
@@ -876,7 +857,6 @@ public class PersonalNamePanel extends JPanel{
 		int idx = list.getSelectedIndex();
 		if(idx == -1) return;
 		String id = currentNoteIds.get(idx);
-		if(noteHandler == null) return;
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 		JDialog editDialog = noteHandler.createEditDialog(getParentFrame(parent), model, rec);
@@ -898,10 +878,6 @@ public class PersonalNamePanel extends JPanel{
 	// ==================== Source helpers ====================
 
 	private void addSourceInList(Dialog parent, List<FLEFRecord> currentSources, DefaultListModel<String> listModel){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(parent, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(parent), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
@@ -949,18 +925,14 @@ public class PersonalNamePanel extends JPanel{
 	}
 
 	private String getCulturalNormDisplayName(String id){
-		if(culturalNormHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null) return culturalNormHandler.getDisplayName(rec);
-		}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null) return culturalNormHandler.getDisplayName(rec);
 		return id;
 	}
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null) return noteHandler.getDisplayName(rec);
-		}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null) return noteHandler.getDisplayName(rec);
 		return id;
 	}
 
@@ -968,7 +940,7 @@ public class PersonalNamePanel extends JPanel{
 		String sourceId = citation.getValue();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;

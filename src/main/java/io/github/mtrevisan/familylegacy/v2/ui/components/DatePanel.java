@@ -5,7 +5,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -120,8 +121,7 @@ public class DatePanel extends JPanel{
 		editBtn.addActionListener(e -> editSourceCitation());
 		removeBtn.addActionListener(e -> removeSourceCitation());
 
-		JScrollPane scrollPane = new JScrollPane(sourceList);
-		scrollPane.setPreferredSize(new Dimension(0, 60));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(sourceList);
 		panel.add(scrollPane, "growx,wrap");
 		panel.add(btnPanel, "growx");
 		return panel;
@@ -143,11 +143,6 @@ public class DatePanel extends JPanel{
 	// ==================== Source Citation Methods ====================
 
 	private void addSourceCitation(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			(Frame)SwingUtilities.getWindowAncestor(this), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
@@ -192,7 +187,7 @@ public class DatePanel extends JPanel{
 		String sourceId = citation.getValue();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;
@@ -269,7 +264,7 @@ public class DatePanel extends JPanel{
 		}
 
 		FLEFRecord record = target != null? target: new FLEFRecord();
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 		record.setTag("DATE");
 
 		// DATE_VALUE
@@ -309,12 +304,8 @@ public class DatePanel extends JPanel{
 		String credibility = (String)credibilityCombo.getSelectedItem();
 		if((certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty())){
 			FLEFRecord evidence = FLEFRecord.createChild(2, "EVIDENCE_QUALIFIERS");
-			if(certainty != null && !certainty.isEmpty()){
-				FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
-			}
-			if(credibility != null && !credibility.isEmpty()){
-				FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", credibility);
-			}
+			FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
+			FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", credibility);
 			record.addChild(evidence);
 		}
 

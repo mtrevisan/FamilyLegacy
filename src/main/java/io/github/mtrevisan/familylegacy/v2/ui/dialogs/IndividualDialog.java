@@ -11,7 +11,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.imageio.ImageIO;
@@ -135,7 +135,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		namePanel = new PersonalNamePanel(model, this);
 		restrictionPanel = new RestrictionPanel(this);
 		conclusionPanel = new ConclusionPanel(model, this);
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this);
 
 		// Register bound components
 		bindingManager.bind(sexCombo);
@@ -232,7 +232,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installStandardBehaviour(list,
+		GUIHelper.installStandardBehavior(list,
 			() -> list.getSelectedIndex() >= 0,
 			() -> createNewItemForList(list, model),
 			addAction,
@@ -240,9 +240,7 @@ public class IndividualDialog extends BaseRecordDialog{
 			deleteAction,
 			null);
 
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
@@ -273,11 +271,6 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	private void selectAndCropImage(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		final String[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, sourceHandler, selectedId -> result[0] = selectedId);
@@ -344,11 +337,6 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	// ==================== Cultural Norm methods ====================
 	private void addCulturalNorm(){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
@@ -366,8 +354,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		String id = culturalNormIds.get(idx);
-		if(culturalNormHandler == null) return;
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
@@ -391,11 +377,6 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	private void createNewCulturalNorm(){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>(culturalNormIds);
 		JDialog dialog = culturalNormHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
@@ -413,28 +394,19 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	private String getCulturalNormDisplayName(String id){
-		if(culturalNormHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null) return culturalNormHandler.getDisplayName(rec);
-		}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null) return culturalNormHandler.getDisplayName(rec);
 		return id;
 	}
 
 	// ==================== Note helper methods ====================
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null) return noteHandler.getDisplayName(rec);
-		}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null) return noteHandler.getDisplayName(rec);
 		return id;
 	}
 
 	private void addNoteToList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !ids.contains(selectedId)){
@@ -453,8 +425,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		String id = ids.get(idx);
-		if(noteHandler == null) return;
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
@@ -479,11 +449,6 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	private void createNewNoteForList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>(ids);
 		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
@@ -519,11 +484,6 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	// ==================== Source Citation methods ====================
 	private void addSourceCitation(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
@@ -563,11 +523,6 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	private void createNewSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>();
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
 			String id = rec.getId();
@@ -592,7 +547,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		String sourceId = citation.getValue();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;
@@ -680,17 +635,6 @@ public class IndividualDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!modificationPanel.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Modification is required for an individual.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
-		if(!modificationPanel.validateRequiredFields()){
-			return false;
-		}
-
 		if(restrictionPanel.hasData() && !restrictionPanel.validateRequiredFields()){
 			return false;
 		}
@@ -701,23 +645,19 @@ public class IndividualDialog extends BaseRecordDialog{
 	// ==================== Save ====================
 	@Override
 	protected void saveRecord(){
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
 		// ---- Save complex panels first ----
 		namePanel.saveToRecord(record);
 
 		// CULTURAL_NORM
 		for(String id : culturalNormIds){
-			if(id != null && !id.isEmpty()){
-				FLEFRecordUtils.addChild(record, "CULTURAL_NORM", 1, id);
-			}
+			FLEFRecordUtils.addChild(record, "CULTURAL_NORM", id);
 		}
 
 		// NOTE (top-level)
 		for(String id : noteIds){
-			if(id != null && !id.isEmpty()){
-				FLEFRecordUtils.addChild(record, "NOTE", 1, id);
-			}
+			FLEFRecordUtils.addChild(record, "NOTE", id);
 		}
 
 		// SOURCE_CITATION
@@ -731,20 +671,12 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(preferredImageId != null && !preferredImageId.isEmpty()){
 			FLEFRecord pref = FLEFRecord.createChildWithValue(1, "PREFERRED_IMAGE", preferredImageId);
 			record.addChild(pref);
-			if(preferredImageCrop != null && !preferredImageCrop.isEmpty()){
-				FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
-			}
+			FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
 		}
 
 		// RESTRICTION_STRUCTURE
-		if(restrictionPanel.hasData()){
-			FLEFRecord restriction = restrictionPanel.saveToRecord(null);
-			if(restriction != null){
-				restriction.setLevel(1);
-				restriction.setTag("RESTRICTION");
-				record.addChild(restriction);
-			}
-		}
+		if(restrictionPanel.hasData())
+			restrictionPanel.saveToRecord(record);
 
 		// CONCLUSION_STRUCTURE
 		if(conclusionPanel.hasData()){

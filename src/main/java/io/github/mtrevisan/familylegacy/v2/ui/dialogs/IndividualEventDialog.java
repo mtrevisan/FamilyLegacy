@@ -38,7 +38,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -58,7 +59,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -268,8 +268,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		// TWIN (0:M) for BIRTH
 		panel.add(new JLabel("Twins:"), "align label,top");
 		JPanel twinPanel = new JPanel(new BorderLayout(3, 3));
-		JScrollPane twinScroll = new JScrollPane(twinList);
-		twinScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane twinScroll = GUIHelper.createScrollPane(twinList);
 		twinPanel.add(twinScroll, BorderLayout.CENTER);
 		JPanel twinBtnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
 		JButton addTwinBtn = new JButton("Add");
@@ -303,10 +302,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	// ==================== Family browsing ====================
 
 	private void browseFamily(){
-		if(familyHandler == null){
-			JOptionPane.showMessageDialog(this, "Family handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, familyHandler, selectedId -> {
 			if(selectedId != null){
@@ -327,11 +322,9 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	// ==================== Twin methods ====================
 
 	private String getIndividualDisplayName(String id){
-		if(individualHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return individualHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return individualHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -349,10 +342,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	}
 
 	private void addTwin(){
-		if(individualHandler == null){
-			JOptionPane.showMessageDialog(this, "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, individualHandler, selectedId -> {
 			if(selectedId != null && !twinIds.contains(selectedId)){
@@ -391,7 +380,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		if(familyId != null && !familyId.isEmpty()){
 			selectedFamilyId = familyId;
 			FLEFRecord rec = model.getRecordById(familyId);
-			if(rec != null && familyHandler != null){
+			if(rec != null){
 				familyDisplayField.setText(familyHandler.getDisplayName(rec));
 			}
 			else{
@@ -448,36 +437,27 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveRecord(){
-		// Validation is already done by save() before calling this method
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
 		// TYPE (1:1)
 		String type = (String)typeCombo.getSelectedItem();
-		if(type != null && !type.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "TYPE", type);
-		}
+		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
 
 		// FAMILY (0:1 / 1:1)
-		if(selectedFamilyId != null && !selectedFamilyId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "FAMILY", selectedFamilyId);
-		}
+		FLEFRecordUtils.updateChildValue(record, "FAMILY", selectedFamilyId);
 
 		// TWIN (0:M)
 		for(String id : twinIds){
-			FLEFRecordUtils.addChild(record, "TWIN", 1, id);
+			FLEFRecordUtils.addChild(record, "TWIN", id);
 		}
 
 		// PARENT1_RELATIONSHIP (0:1)
 		String p1 = (String)relationshipParent1Combo.getSelectedItem();
-		if(p1 != null && !p1.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PARENT1_RELATIONSHIP", p1);
-		}
+		FLEFRecordUtils.updateChildValue(record, "PARENT1_RELATIONSHIP", p1);
 
 		// PARENT2_RELATIONSHIP (0:1)
 		String p2 = (String)relationshipParent2Combo.getSelectedItem();
-		if(p2 != null && !p2.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PARENT2_RELATIONSHIP", p2);
-		}
+		FLEFRecordUtils.updateChildValue(record, "PARENT2_RELATIONSHIP", p2);
 
 		// EVENT_STRUCTURE (0:1)
 		if(eventStructurePanel.hasData()){

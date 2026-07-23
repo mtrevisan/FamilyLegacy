@@ -30,7 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -97,7 +98,7 @@ public class TranslationDialog extends JDialog{
 		super(parent, transRecord == null? "Add Translation": "Edit Translation", true);
 
 		this.transRecord = transRecord != null? transRecord: new FLEFRecord();
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		if(transRecord != null){
 			loadData();
@@ -130,8 +131,7 @@ public class TranslationDialog extends JDialog{
 		basicPanel.add(localeField, "growx,wrap");
 
 		basicPanel.add(new JLabel("Value:"), "align label,top");
-		JScrollPane scroll = new JScrollPane(valueArea);
-		scroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane scroll = GUIHelper.createScrollPane(valueArea);
 		basicPanel.add(scroll, "growx,wrap");
 
 		tabbedPane.addTab("Basic", basicPanel);
@@ -175,18 +175,11 @@ public class TranslationDialog extends JDialog{
 			return false;
 		}
 
-		// MODIFICATION_STRUCTURE (1:1) - required
-		if(!modificationPanel.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Modification is required.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		return modificationPanel.validateRequiredFields();
+		return true;
 	}
 
 	private void saveData(){
-		transRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(transRecord);
 
 		// Main fields
 		FLEFRecordUtils.updateChildValue(transRecord, "LOCALE", localeField.getText().trim());

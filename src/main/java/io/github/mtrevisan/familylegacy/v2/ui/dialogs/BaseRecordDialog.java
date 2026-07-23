@@ -24,10 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JDialog;
@@ -147,20 +146,12 @@ public abstract class BaseRecordDialog extends JDialog{
 		FLEFRecordUtils.updateChildValue(parent, tag, value);
 	}
 
-	protected void addChild(final String tag, final int level, final String value){
-		FLEFRecordUtils.addChild(record, tag, level, value);
+	protected void addChild(final String tag, final String value){
+		FLEFRecordUtils.addChild(record, tag, value);
 	}
 
-	protected void addChild(final FLEFRecord parent, final String tag, final int level, final String value){
-		FLEFRecordUtils.addChild(parent, tag, level, value);
-	}
-
-	protected void addChildrenFromString(final String tag, final String values){
-		FLEFRecordUtils.addChildrenFromString(record, tag, values);
-	}
-
-	protected void addChildrenFromString(final FLEFRecord parent, final String tag, final String values){
-		FLEFRecordUtils.addChildrenFromString(parent, tag, values);
+	protected void addChild(final FLEFRecord parent, final String tag, final String value){
+		FLEFRecordUtils.addChild(parent, tag, value);
 	}
 
 

@@ -31,8 +31,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -170,8 +171,9 @@ public class EventStructurePanel extends JPanel{
 		this.model = model;
 		this.parent = parent;
 		this.datePanel = new DatePanel(model, parent);
-		this.modificationPanel = new ModificationPanel(model, parent);
+		this.modificationPanel = new ModificationPanel(parent);
 		this.conclusionPanel = new ConclusionPanel(model, parent);
+
 		initComponents();
 	}
 
@@ -209,8 +211,7 @@ public class EventStructurePanel extends JPanel{
 
 		// DESCRIPTION (0:1)
 		panel.add(new JLabel("Description:"), "align label,top");
-		JScrollPane descScroll = new JScrollPane(descriptionArea);
-		descScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane descScroll = GUIHelper.createScrollPane(descriptionArea);
 		panel.add(descScroll, "growx,wrap");
 
 		// DATE_STRUCTURE (0:1)
@@ -260,13 +261,6 @@ public class EventStructurePanel extends JPanel{
 		return panel;
 	}
 
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
-	}
-
 	// ==================== Notes & Sources Tab ====================
 
 	private JPanel createNotesSourcesPanel(){
@@ -307,8 +301,7 @@ public class EventStructurePanel extends JPanel{
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 		panel.setBorder(new TitledBorder(title));
 
-		JScrollPane scrollPane = createScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -361,8 +354,7 @@ public class EventStructurePanel extends JPanel{
 				}
 			}
 		});
-		JScrollPane scrollPane = createScrollPane(sourceList);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(sourceList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -394,7 +386,7 @@ public class EventStructurePanel extends JPanel{
 
 	private String getSourceCitationDisplay(FLEFRecord sourceCitation){
 		String sourceId = sourceCitation.getValue();
-		if(sourceHandler != null && sourceId != null){
+		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
@@ -460,12 +452,6 @@ public class EventStructurePanel extends JPanel{
 	}
 
 	private void createNewSource(){
-		// Create a new source record first
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(parent, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		JDialog dialog = sourceHandler.createNewDialog(
 			(parent instanceof Frame? (Frame)parent: null),
 			model
@@ -479,11 +465,6 @@ public class EventStructurePanel extends JPanel{
 	 * Opens a dialog to browse and select an existing place.
 	 */
 	private void browsePlace(){
-		if(placeHandler == null){
-			JOptionPane.showMessageDialog(parent, "Place handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, placeHandler, selectedId -> {
@@ -506,11 +487,6 @@ public class EventStructurePanel extends JPanel{
 	 * Creates a new place and automatically selects it.
 	 */
 	private void createNewPlace(){
-		if(placeHandler == null){
-			JOptionPane.showMessageDialog(parent, "Place handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		// Store current place IDs to detect newly created one
 		Set<String> before = new HashSet<>();
 		for(FLEFRecord rec : model.getRecordsByType("PLACE")){
@@ -541,7 +517,7 @@ public class EventStructurePanel extends JPanel{
 		if(newPlaceId != null && !newPlaceId.isEmpty()){
 			selectedPlaceId = newPlaceId;
 			FLEFRecord rec = model.getRecordById(newPlaceId);
-			if(rec != null && placeHandler != null){
+			if(rec != null){
 				placeDisplayField.setText(placeHandler.getDisplayName(rec));
 			}
 			else{
@@ -553,21 +529,14 @@ public class EventStructurePanel extends JPanel{
 	// ==================== Cultural Norm methods ====================
 
 	private String getCulturalNormDisplayName(String id){
-		if(culturalNormHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return culturalNormHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return culturalNormHandler.getDisplayName(rec);
 		}
 		return id;
 	}
 
 	private void addCulturalNorm(){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(parent, "Cultural norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, culturalNormHandler, selectedId -> {
@@ -587,11 +556,6 @@ public class EventStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		String id = culturalNormIds.get(idx);
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(parent, "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parent, "Cultural norm not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -621,11 +585,6 @@ public class EventStructurePanel extends JPanel{
 	}
 
 	private void createNewCulturalNorm(){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(parent, "Cultural norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>(culturalNormIds);
 		JDialog dialog = culturalNormHandler.createNewDialog(
 			(parent instanceof Frame? (Frame)parent: null),
@@ -647,21 +606,14 @@ public class EventStructurePanel extends JPanel{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, noteHandler, selectedId -> {
@@ -681,11 +633,6 @@ public class EventStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -715,11 +662,6 @@ public class EventStructurePanel extends JPanel{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
 			(parent instanceof Frame? (Frame)parent: null),
@@ -766,7 +708,7 @@ public class EventStructurePanel extends JPanel{
 			if(placeId != null && !placeId.isEmpty()){
 				selectedPlaceId = placeId;
 				FLEFRecord rec = model.getRecordById(placeId);
-				if(rec != null && placeHandler != null){
+				if(rec != null){
 					placeDisplayField.setText(placeHandler.getDisplayName(rec));
 				}
 				else{
@@ -859,13 +801,11 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// Clear existing children
-		eventStructure.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(eventStructure);
 
 		// DESCRIPTION (0:1)
 		String description = descriptionArea.getText().trim();
-		if(!description.isEmpty()){
-			FLEFRecordUtils.updateChildValue(eventStructure, "DESCRIPTION", description);
-		}
+		FLEFRecordUtils.updateChildValue(eventStructure, "DESCRIPTION", description);
 
 		// DATE_STRUCTURE (0:1)
 		if(datePanel.hasData()){
@@ -885,20 +825,14 @@ public class EventStructurePanel extends JPanel{
 			place.setValue(selectedPlaceId);
 			eventStructure.addChild(place);
 			String placeCert = placeQualifiers.getCertainty();
-			if(placeCert != null && !placeCert.isEmpty()){
-				FLEFRecordUtils.updateChildValue(place, "CERTAINTY", placeCert);
-			}
+			FLEFRecordUtils.updateChildValue(place, "CERTAINTY", placeCert);
 			String placeCred = placeQualifiers.getCredibility();
-			if(placeCred != null && !placeCred.isEmpty()){
-				FLEFRecordUtils.updateChildValue(place, "CREDIBILITY", placeCred);
-			}
+			FLEFRecordUtils.updateChildValue(place, "CREDIBILITY", placeCred);
 		}
 
 		// AGENCY (0:1)
 		String agency = agencyField.getText().trim();
-		if(!agency.isEmpty()){
-			FLEFRecordUtils.updateChildValue(eventStructure, "AGENCY", agency);
-		}
+		FLEFRecordUtils.updateChildValue(eventStructure, "AGENCY", agency);
 
 		// CAUSE (0:1) with its children
 		String causeVal = causeField.getText().trim();
@@ -909,23 +843,19 @@ public class EventStructurePanel extends JPanel{
 			cause.setValue(causeVal);
 			eventStructure.addChild(cause);
 			String causeCert = causeQualifiers.getCertainty();
-			if(causeCert != null && !causeCert.isEmpty()){
-				FLEFRecordUtils.updateChildValue(cause, "CERTAINTY", causeCert);
-			}
+			FLEFRecordUtils.updateChildValue(cause, "CERTAINTY", causeCert);
 			String causeCred = causeQualifiers.getCredibility();
-			if(causeCred != null && !causeCred.isEmpty()){
-				FLEFRecordUtils.updateChildValue(cause, "CREDIBILITY", causeCred);
-			}
+			FLEFRecordUtils.updateChildValue(cause, "CREDIBILITY", causeCred);
 		}
 
 		// CULTURAL_NORM (0:M)
 		for(String id : culturalNormIds){
-			FLEFRecordUtils.addChild(eventStructure, "CULTURAL_NORM", 1, id);
+			FLEFRecordUtils.addChild(eventStructure, "CULTURAL_NORM", id);
 		}
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(eventStructure, "NOTE", 1, id);
+			FLEFRecordUtils.addChild(eventStructure, "NOTE", id);
 		}
 
 		// SOURCE_CITATION (0:M)
@@ -938,19 +868,13 @@ public class EventStructurePanel extends JPanel{
 
 		// EVENT QUALIFIERS (CERTAINTY + CREDIBILITY for the event itself)
 		String eventCert = eventQualifiers.getCertainty();
-		if(eventCert != null && !eventCert.isEmpty()){
-			FLEFRecordUtils.updateChildValue(eventStructure, "CERTAINTY", eventCert);
-		}
+		FLEFRecordUtils.updateChildValue(eventStructure, "CERTAINTY", eventCert);
 		String eventCred = eventQualifiers.getCredibility();
-		if(eventCred != null && !eventCred.isEmpty()){
-			FLEFRecordUtils.updateChildValue(eventStructure, "CREDIBILITY", eventCred);
-		}
+		FLEFRecordUtils.updateChildValue(eventStructure, "CREDIBILITY", eventCred);
 
 		// RESTRICTION (0:1)
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		if(restriction != null){
-			FLEFRecordUtils.updateChildValue(eventStructure, "RESTRICTION", restriction);
-		}
+		FLEFRecordUtils.updateChildValue(eventStructure, "RESTRICTION", restriction);
 
 		// MODIFICATION_STRUCTURE (1:1)
 		modificationPanel.saveToRecord(eventStructure);
@@ -980,11 +904,6 @@ public class EventStructurePanel extends JPanel{
 			return true;
 		}
 
-		// MODIFICATION_STRUCTURE (1:1) - required
-		if(!modificationPanel.validateRequiredFields()){
-			return false;
-		}
-
 		// CONCLUSION (0:1) - validate if present
 		if(conclusionPanel.hasData()){
 			return conclusionPanel.validateRequiredFields();
@@ -1011,7 +930,6 @@ public class EventStructurePanel extends JPanel{
 			causeQualifiers.hasData() ||
 			eventQualifiers.hasData() ||
 			restrictionCheckBox.isSelected() ||
-			modificationPanel.hasData() ||
 			conclusionPanel.hasData();
 	}
 

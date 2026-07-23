@@ -29,8 +29,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,7 +49,6 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -160,7 +160,7 @@ public class GroupCitationPanel extends JPanel{
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 
-		JScrollPane scrollPane = createScrollPane(noteList);
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -198,21 +198,9 @@ public class GroupCitationPanel extends JPanel{
 		return panel;
 	}
 
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
-	}
-
 	// ==================== Group methods ====================
 
 	private void browseGroup(){
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(parent, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, groupHandler, selectedId -> {
@@ -234,21 +222,14 @@ public class GroupCitationPanel extends JPanel{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, noteHandler, selectedId -> {
@@ -268,11 +249,6 @@ public class GroupCitationPanel extends JPanel{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -302,11 +278,6 @@ public class GroupCitationPanel extends JPanel{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
 			(parent instanceof Frame? (Frame)parent: null),
@@ -351,7 +322,7 @@ public class GroupCitationPanel extends JPanel{
 		if(groupId != null && !groupId.isEmpty()){
 			selectedGroupId = groupId;
 			FLEFRecord rec = model.getRecordById(groupId);
-			if(rec != null && groupHandler != null){
+			if(rec != null){
 				groupDisplayField.setText(groupHandler.getDisplayName(rec));
 			}
 			else{
@@ -398,7 +369,7 @@ public class GroupCitationPanel extends JPanel{
 		}
 
 		// Clear existing children
-		citationRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(citationRecord);
 
 		// GROUP (1:1) - required
 		if(selectedGroupId != null && !selectedGroupId.isEmpty()){
@@ -407,20 +378,16 @@ public class GroupCitationPanel extends JPanel{
 
 		// ROLE (0:1)
 		String role = roleField.getText().trim();
-		if(!role.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "ROLE", role);
-		}
+		FLEFRecordUtils.updateChildValue(citationRecord, "ROLE", role);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(citationRecord, "NOTE", 1, id);
+			FLEFRecordUtils.addChild(citationRecord, "NOTE", id);
 		}
 
 		// CREDIBILITY (0:1)
 		String credibility = (String)credibilityCombo.getSelectedItem();
-		if(credibility != null && !credibility.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "CREDIBILITY", credibility);
-		}
+		FLEFRecordUtils.updateChildValue(citationRecord, "CREDIBILITY", credibility);
 
 		return citationRecord;
 	}

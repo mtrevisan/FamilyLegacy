@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -229,8 +230,7 @@ public class AliasDialog extends JDialog{
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.setBorder(new TitledBorder("Note References"));
 
-		JScrollPane scrollPane = new JScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -271,10 +271,6 @@ public class AliasDialog extends JDialog{
 	// ==================== Alias browsing ====================
 
 	private void browseAlias(){
-		if(individualHandler == null){
-			JOptionPane.showMessageDialog(this, "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, individualHandler, selectedId -> {
 			if(selectedId != null){
@@ -295,11 +291,9 @@ public class AliasDialog extends JDialog{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -319,10 +313,6 @@ public class AliasDialog extends JDialog{
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -341,11 +331,6 @@ public class AliasDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParent(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -371,10 +356,6 @@ public class AliasDialog extends JDialog{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
@@ -397,7 +378,7 @@ public class AliasDialog extends JDialog{
 		if(existingEntry.aliasId != null && !existingEntry.aliasId.isEmpty()){
 			selectedAliasId = existingEntry.aliasId;
 			FLEFRecord rec = model.getRecordById(existingEntry.aliasId);
-			if(rec != null && individualHandler != null){
+			if(rec != null){
 				aliasDisplayField.setText(individualHandler.getDisplayName(rec));
 			}
 			else{

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -129,7 +130,7 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 
 		// ---- List panel ----
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JScrollPane scrollPane = new JScrollPane(list);
+		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		scrollPane.setBorder(BorderFactory.createTitledBorder(handler.getLabel() + " List"));
 		add(scrollPane, BorderLayout.CENTER);
 

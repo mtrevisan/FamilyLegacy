@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -172,7 +172,7 @@ public class TranscribedTextPanel extends JPanel{
 		}
 
 		// Clear existing children
-		transRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(transRecord);
 
 		// ===== PHONETIC (0:1) =====
 		String phoneticSys = phoneticSystemField.getText().trim();

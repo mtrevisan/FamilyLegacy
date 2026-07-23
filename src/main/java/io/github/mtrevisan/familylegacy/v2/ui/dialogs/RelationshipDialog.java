@@ -10,7 +10,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -262,8 +263,7 @@ public class RelationshipDialog extends JDialog{
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 		panel.setBorder(new TitledBorder("Note References"));
 
-		JScrollPane scrollPane = new JScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -304,15 +304,7 @@ public class RelationshipDialog extends JDialog{
 	// ==================== Subject methods ====================
 
 	private void browseSubject(){
-		if(groupHandler == null && individualHandler == null){
-			JOptionPane.showMessageDialog(this, "No handler for Subject!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		// For now, we assume the subject is a group (common use case).
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(this, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, groupHandler, selectedId -> {
 			if(selectedId != null){
@@ -335,10 +327,10 @@ public class RelationshipDialog extends JDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
 			String displayName = null;
-			if(groupHandler != null && "GROUP".equals(rec.getType())){
+			if("GROUP".equals(rec.getType())){
 				displayName = groupHandler.getDisplayName(rec);
 			}
-			else if(individualHandler != null && "INDIVIDUAL".equals(rec.getType())){
+			else if("INDIVIDUAL".equals(rec.getType())){
 				displayName = individualHandler.getDisplayName(rec);
 			}
 			subjectDisplayField.setText(displayName != null? displayName: id);
@@ -353,10 +345,6 @@ public class RelationshipDialog extends JDialog{
 	// ==================== Object methods ====================
 
 	private void browseObject(){
-		if(individualHandler == null){
-			JOptionPane.showMessageDialog(this, "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, individualHandler, selectedId -> {
 			if(selectedId != null){
@@ -377,7 +365,7 @@ public class RelationshipDialog extends JDialog{
 	private void selectObject(String id){
 		selectedObjectId = id;
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null && individualHandler != null){
+		if(rec != null){
 			objectDisplayField.setText(individualHandler.getDisplayName(rec));
 		}
 		else{
@@ -390,20 +378,14 @@ public class RelationshipDialog extends JDialog{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String noteId){
-		if(noteHandler != null){
-			FLEFRecord note = model.getRecordById(noteId);
-			if(note != null){
-				return noteHandler.getDisplayName(note);
-			}
+		FLEFRecord note = model.getRecordById(noteId);
+		if(note != null){
+			return noteHandler.getDisplayName(note);
 		}
 		return noteId;
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -420,10 +402,6 @@ public class RelationshipDialog extends JDialog{
 		int idx = noteList.getSelectedIndex();
 		if(idx == -1) return;
 		String noteId = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord note = model.getRecordById(noteId);
 		if(note == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + noteId, "Error", JOptionPane.ERROR_MESSAGE);
@@ -448,10 +426,6 @@ public class RelationshipDialog extends JDialog{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new java.util.HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
@@ -572,7 +546,7 @@ public class RelationshipDialog extends JDialog{
 		// NOTE (0:M) – remove all and re-add
 		FLEFRecordUtils.removeChildren(record, "NOTE");
 		for(String noteId : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", 2, noteId);
+			FLEFRecordUtils.addChild(record, "NOTE", noteId);
 		}
 
 		// ---- Simple fields via binding manager (TYPE, ROLE, CREDIBILITY) ----

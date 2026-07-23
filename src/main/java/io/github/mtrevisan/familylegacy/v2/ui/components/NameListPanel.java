@@ -8,7 +8,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -331,7 +331,7 @@ public class NameListPanel extends JPanel{
 		nameList.setVisibleRowCount(3);
 		nameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(nameList,
+		GUIHelper.installBehavior(nameList,
 			() -> nameList.getSelectedIndex() >= 0,
 			this::editName,
 			this::createNewName,
@@ -343,15 +343,8 @@ public class NameListPanel extends JPanel{
 				builder.selectionSensitiveItem("Delete", this::deleteName);
 			});
 
-		JScrollPane scrollPane = createScrollPane(nameList);
+		JScrollPane scrollPane = GUIHelper.createScrollPane(nameList);
 		add(scrollPane, "growx,wrap");
-	}
-
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
 	}
 
 	// ==================== Data Loading ====================
@@ -444,23 +437,23 @@ public class NameListPanel extends JPanel{
 		for(NameEntry entry : nameEntries){
 			FLEFRecord nameNode = FLEFRecord.createChild(baseLevel, "NAME");
 
-			// VALUE (required)
+			// VALUE
 			FLEFRecord valueNode = FLEFRecord.createChildWithValue(baseLevel + 1, "VALUE", entry.value);
 			nameNode.addChild(valueNode);
 
-			// TYPE (optional)
+			// TYPE
 			if(entry.type != null && !entry.type.isEmpty()){
 				FLEFRecord typeNode = FLEFRecord.createChildWithValue(baseLevel + 1, "TYPE", entry.type);
 				nameNode.addChild(typeNode);
 			}
 
-			// LOCALE (optional)
+			// LOCALE
 			if(entry.locale != null && !entry.locale.isEmpty()){
 				FLEFRecord localeNode = FLEFRecord.createChildWithValue(baseLevel + 1, "LOCALE", entry.locale);
 				nameNode.addChild(localeNode);
 			}
 
-			// VALID_FROM (optional DATE_STRUCTURE)
+			// VALID_FROM
 			if(entry.validFrom != null && !entry.validFrom.getChildren().isEmpty()){
 				FLEFRecord validFromStruct = FLEFRecord.createChild(baseLevel + 1, "VALID_FROM");
 				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validFrom, baseLevel + 2);
@@ -468,7 +461,7 @@ public class NameListPanel extends JPanel{
 				nameNode.addChild(validFromStruct);
 			}
 
-			// VALID_TO (optional DATE_STRUCTURE)
+			// VALID_TO
 			if(entry.validTo != null && !entry.validTo.getChildren().isEmpty()){
 				FLEFRecord validToStruct = FLEFRecord.createChild(baseLevel + 1, "VALID_TO");
 				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validTo, baseLevel + 2);
@@ -571,9 +564,7 @@ public class NameListPanel extends JPanel{
 		valueArea.setWrapStyleWord(true);
 		if(initial != null) valueArea.setText(initial.value);
 
-		JScrollPane valueScrollPane = new JScrollPane(valueArea);
-		valueScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		valueScrollPane.setPreferredSize(new Dimension(300, 60));
+		JScrollPane valueScrollPane = GUIHelper.createScrollPane(valueArea);
 
 		dialog.add(new JLabel("Name Value:"), "align label,top");
 		dialog.add(valueScrollPane, "growx,wrap");
@@ -616,10 +607,9 @@ public class NameListPanel extends JPanel{
 			variantModel.addElement(v.toString());
 		}
 
-		JScrollPane variantScroll = createScrollPane(variantList);
-		variantScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane variantScroll = GUIHelper.createScrollPane(variantList);
 
-		GUIHelper.installBehaviour(variantList,
+		GUIHelper.installBehavior(variantList,
 			() -> variantList.getSelectedIndex() >= 0,
 			() -> {
 				int idx = variantList.getSelectedIndex();
@@ -692,10 +682,9 @@ public class NameListPanel extends JPanel{
 			noteModel.addElement(getNoteDisplayName(id));
 		}
 
-		JScrollPane noteScroll = createScrollPane(noteList);
-		noteScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane noteScroll = GUIHelper.createScrollPane(noteList);
 
-		GUIHelper.installBehaviour(noteList,
+		GUIHelper.installBehavior(noteList,
 			() -> noteList.getSelectedIndex() >= 0,
 			() -> {
 				int idx = noteList.getSelectedIndex();
@@ -747,10 +736,9 @@ public class NameListPanel extends JPanel{
 			sourceModel.addElement(getSourceCitationDisplay(citation));
 		}
 
-		JScrollPane sourceScroll = createScrollPane(sourceList);
-		sourceScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane sourceScroll = GUIHelper.createScrollPane(sourceList);
 
-		GUIHelper.installBehaviour(sourceList,
+		GUIHelper.installBehavior(sourceList,
 			() -> sourceList.getSelectedIndex() >= 0,
 			() -> {
 				int idx = sourceList.getSelectedIndex();
@@ -924,10 +912,6 @@ public class NameListPanel extends JPanel{
 	// ==================== Note helper methods ====================
 
 	private void addExistingNote(Dialog dialog, List<String> currentNoteIds, DefaultListModel<String> noteModel){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(dialog, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(dialog), model, noteHandler, selectedId -> {
 			if(selectedId != null && !currentNoteIds.contains(selectedId)){
@@ -939,10 +923,6 @@ public class NameListPanel extends JPanel{
 	}
 
 	private void createNewNote(Dialog dialog, List<String> currentNoteIds, DefaultListModel<String> noteModel){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(dialog, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(currentNoteIds);
 		JDialog newNoteDialog = noteHandler.createNewDialog(getParentFrame(dialog), model);
 		newNoteDialog.setVisible(true);
@@ -957,10 +937,6 @@ public class NameListPanel extends JPanel{
 	}
 
 	private void editNote(Dialog dialog, List<String> currentNoteIds, DefaultListModel<String> noteModel, int idx){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(dialog, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		String noteId = currentNoteIds.get(idx);
 		FLEFRecord rec = model.getRecordById(noteId);
 		if(rec == null){
@@ -975,10 +951,6 @@ public class NameListPanel extends JPanel{
 	// ==================== Source helper methods ====================
 
 	private void addExistingSource(Dialog dialog, List<FLEFRecord> currentSources, DefaultListModel<String> sourceModel){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(dialog, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(dialog), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
@@ -991,10 +963,6 @@ public class NameListPanel extends JPanel{
 	}
 
 	private void editSource(Dialog dialog, List<FLEFRecord> currentSources, DefaultListModel<String> sourceModel, int idx){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(dialog, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord citation = currentSources.get(idx);
 		if(citation == null) return;
 		SourceCitationDialog editDialog = new SourceCitationDialog(getParentFrame(dialog), model, citation);
@@ -1019,10 +987,8 @@ public class NameListPanel extends JPanel{
 	}
 
 	private String getNoteDisplayName(String noteId){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(noteId);
-			if(rec != null) return noteHandler.getDisplayName(rec);
-		}
+		FLEFRecord rec = model.getRecordById(noteId);
+		if(rec != null) return noteHandler.getDisplayName(rec);
 		return noteId;
 	}
 
@@ -1030,7 +996,7 @@ public class NameListPanel extends JPanel{
 		String sourceId = citation.getValue();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;

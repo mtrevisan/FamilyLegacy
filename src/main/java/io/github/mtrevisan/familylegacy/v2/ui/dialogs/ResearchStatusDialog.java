@@ -39,7 +39,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -162,7 +163,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	public ResearchStatusDialog(Frame parent, FLEFModel model, FLEFRecord record){
 		super(parent, "Edit Research Status", model, record);
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 750));
@@ -173,7 +174,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	public ResearchStatusDialog(Frame parent, FLEFModel model){
 		super(parent, "New Research Status", model, null);
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 750));
@@ -238,14 +239,12 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 		// DESCRIPTION (0:1)
 		panel.add(new JLabel("Description:"), "align label,top");
-		JScrollPane descScroll = new JScrollPane(descriptionArea);
-		descScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane descScroll = GUIHelper.createScrollPane(descriptionArea);
 		panel.add(descScroll, "growx,wrap");
 
 		// RESOLUTION (0:1)
 		panel.add(new JLabel("Resolution:"), "align label,top");
-		JScrollPane resScroll = new JScrollPane(resolutionArea);
-		resScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane resScroll = GUIHelper.createScrollPane(resolutionArea);
 		panel.add(resScroll, "growx");
 
 		return panel;
@@ -264,8 +263,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(associationList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(associationList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -305,8 +303,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(blockedByList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(blockedByList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -345,7 +342,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(dialog.isSaved()){
 			FLEFRecord assocRecord = dialog.getAssociationRecord();
 			String value = assocRecord.getValue();
-			boolean isVoid = "@VOID@".equals(value) || "VOID".equals(assocRecord.getId());
+			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(assocRecord.getId());
 
 			AssociationEntry entry;
 			if(isVoid){
@@ -407,7 +404,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getAssociationRecord();
 			String value = updated.getValue();
-			boolean isVoid = "@VOID@".equals(value) || "VOID".equals(updated.getId());
+			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(updated.getId());
 
 			AssociationEntry entry;
 			if(isVoid){
@@ -444,11 +441,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	// ==================== Blocked By methods ====================
 
 	private void addBlockedBy(){
-		if(researchHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Research handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, researchHandler, selectedId -> {
 			if(selectedId != null && !blockedByIds.contains(selectedId)){
@@ -465,11 +457,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		String id = blockedByIds.get(idx);
-		if(researchHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Research handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null)
 			return;
@@ -489,11 +476,9 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	}
 
 	private String getResearchDisplayName(String id){
-		if(researchHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return researchHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return researchHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -527,7 +512,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		for(FLEFRecord child : record.getChildren()){
 			if("ASSOCIATION".equals(child.getTag())){
 				String value = child.getValue();
-				boolean isVoid = "@VOID@".equals(value) || "VOID".equals(child.getId());
+				boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(child.getId());
 
 				AssociationEntry entry;
 				if(isVoid){
@@ -578,52 +563,34 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		// MODIFICATION_STRUCTURE (1:1) - required
-		if(!modificationPanel.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Modification is required.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		return modificationPanel.validateRequiredFields();
+		return true;
 	}
 
 	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
-		// Validation is already done by save() before calling this method
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
 		// STATUS (0:1)
 		String status = (String)statusCombo.getSelectedItem();
-		if(status != null && !status.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "STATUS", status);
-		}
+		FLEFRecordUtils.updateChildValue(record, "STATUS", status);
 
 		// QUESTION (1:1)
 		String question = questionField.getText().trim();
-		if(!question.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "QUESTION", question);
-		}
+		FLEFRecordUtils.updateChildValue(record, "QUESTION", question);
 
 		// PRIORITY (0:1)
 		String priority = (String)priorityCombo.getSelectedItem();
-		if(priority != null && !priority.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PRIORITY", priority);
-		}
+		FLEFRecordUtils.updateChildValue(record, "PRIORITY", priority);
 
 		// DESCRIPTION (0:1)
 		String description = descriptionArea.getText().trim();
-		if(!description.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "DESCRIPTION", description);
-		}
+		FLEFRecordUtils.updateChildValue(record, "DESCRIPTION", description);
 
 		// RESOLUTION (0:1)
 		String resolution = resolutionArea.getText().trim();
-		if(!resolution.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "RESOLUTION", resolution);
-		}
+		FLEFRecordUtils.updateChildValue(record, "RESOLUTION", resolution);
 
 		// ASSOCIATION (0:M)
 		for(AssociationEntry entry : associationEntries){
@@ -658,7 +625,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 		// BLOCKED_BY (0:M)
 		for(String id : blockedByIds){
-			FLEFRecordUtils.addChild(record, "BLOCKED_BY", 1, id);
+			FLEFRecordUtils.addChild(record, "BLOCKED_BY", id);
 		}
 
 		// MODIFICATION

@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.ValidationError;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.ValidationException;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -285,9 +286,9 @@ public final class FLEFFile{
 		if(record.getLevel() == 0){
 			// main record line
 			if(record.getId() != null){
-				sb.append("0 @")
-					.append(record.getId())
-					.append("@ ")
+				sb.append("0 ")
+					.append(FLEFRecordUtils.formatXRef(record.getId()))
+					.append(StringUtils.SPACE)
 					.append(record.getType())
 					.append("\n");
 			}

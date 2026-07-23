@@ -25,7 +25,12 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -54,56 +59,55 @@ public class RestrictionPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -8538135290834556765L;
 
+
+	private final BindingManager bindingManager = new BindingManager();
+
 	// UI components
-	private final JComboBox<String> levelCombo = new JComboBox<>(new String[]{"", "public", "restricted", "confidential"});
+	private final BoundComboBox<String> levelCombo;
+	private final BoundTextArea rationaleArea;
+	private final BoundTextField expiresField;
 
-	// RATIONALE - multi-line text area with scroll
-	private final JTextArea rationaleArea = new JTextArea(3, 30);
-	private final JScrollPane rationaleScrollPane = new JScrollPane(rationaleArea);
-
-	private final JTextField expiresField = new JTextField(15);
-
-	// Parent dialog for showing error messages
 	private final Dialog parentDialog;
+
 
 	/**
 	 * Constructs a new RestrictionPanel.
 	 *
 	 * @param parent the parent dialog (used for showing message dialogs)
 	 */
-	public RestrictionPanel(Dialog parent){
+	public RestrictionPanel(final Dialog parent){
 		this.parentDialog = parent;
-		initComponents();
-	}
 
-	/**
-	 * Constructs a new RestrictionPanel without a parent dialog.
-	 */
-	public RestrictionPanel(){
-		this.parentDialog = null;
+		// Initialize bound components
+		levelCombo = new BoundComboBox<>("RESTRICTION.LEVEL", new String[]{"", "public", "restricted", "confidential"});
+		rationaleArea = new BoundTextArea("RESTRICTION.RATIONALE", 3, 30);
+		expiresField = new BoundTextField("RESTRICTION.EXPIRES", 15);
+
 		initComponents();
 	}
 
 	private void initComponents(){
 		setLayout(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]10[]10[]"));
-		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// LEVEL (required)
-		add(new JLabel("Level:"), "align label");
+		// Register bound components
+		bindingManager.bind(levelCombo);
+		bindingManager.bind(rationaleArea);
+		bindingManager.bind(expiresField);
+
+		// LEVEL
+		add(new JLabel("Level*:"), "align label");
 		add(levelCombo, "growx,wrap");
 
-		// RATIONALE (optional) - multi-line text area
+		// RATIONALE
 		add(new JLabel("Rationale:"), "align label,top");
 		rationaleArea.setLineWrap(true);
 		rationaleArea.setWrapStyleWord(true);
 		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
-		rationaleScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		rationaleScrollPane.setPreferredSize(new Dimension(300, 60));
+		final JScrollPane rationaleScrollPane = GUIHelper.createScrollPane(rationaleArea);
 		add(rationaleScrollPane, "growx,wrap");
 
-		// EXPIRES (optional)
+		// EXPIRES
 		add(new JLabel("Expires:"), "align label");
-		expiresField.setToolTipText("ISO 8601 date (e.g., 2030-12-31)");
 		add(expiresField, "growx");
 	}
 
@@ -112,21 +116,25 @@ public class RestrictionPanel extends JPanel{
 	/**
 	 * Loads data from a RESTRICTION record into the panel.
 	 *
-	 * @param restrictionRecord the RESTRICTION record, or {@code null}
+	 * @param record the RESTRICTION record, or {@code null}
 	 */
-	public void loadFromRecord(FLEFRecord restrictionRecord){
-		if(restrictionRecord == null){
+	public void loadFromRecord(final FLEFRecord record){
+		if(record == null){
 			clear();
+
 			return;
 		}
 
-		String level = FLEFRecordUtils.getChildValue(restrictionRecord, "LEVEL");
+		// ---- Load bound simple fields ----
+		bindingManager.loadFromRecord(record);
+
+		final String level = FLEFRecordUtils.getChildValue(record, "LEVEL");
 		levelCombo.setSelectedItem(level != null? level: "");
 
-		String rationale = FLEFRecordUtils.getChildValue(restrictionRecord, "RATIONALE");
+		final String rationale = FLEFRecordUtils.getChildValue(record, "RATIONALE");
 		rationaleArea.setText(rationale != null? rationale: "");
 
-		String expires = FLEFRecordUtils.getChildValue(restrictionRecord, "EXPIRES");
+		final String expires = FLEFRecordUtils.getChildValue(record, "EXPIRES");
 		expiresField.setText(expires != null? expires: "");
 	}
 
@@ -134,48 +142,18 @@ public class RestrictionPanel extends JPanel{
 
 	/**
 	 * Saves the panel data into a RESTRICTION record.
-	 * <p>
-	 * If the panel has no data (i.e., LEVEL is empty), returns {@code null}.
 	 *
 	 * @param targetRecord an existing RESTRICTION record to update, or {@code null} to create a new one
-	 * @return the updated or new RESTRICTION record, or {@code null} if no data
 	 */
-	public FLEFRecord saveToRecord(FLEFRecord targetRecord){
-		if(!hasData()){
-			return null;
-		}
+	public void saveToRecord(final FLEFRecord targetRecord){
+		if(!hasData())
+			return;
 
-		FLEFRecord record = targetRecord != null? targetRecord: new FLEFRecord();
-		// Level and tag will be set by the caller (e.g., GroupDialog)
+		// Remove existing child
+		FLEFRecordUtils.removeChild(targetRecord, "RESTRICTION");
 
-		// LEVEL (required)
-		String level = (String)levelCombo.getSelectedItem();
-		if(level != null && !level.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "LEVEL", level);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "LEVEL");
-		}
-
-		// RATIONALE (optional)
-		String rationale = rationaleArea.getText().trim();
-		if(!rationale.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "RATIONALE", rationale);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "RATIONALE");
-		}
-
-		// EXPIRES (optional)
-		String expires = expiresField.getText().trim();
-		if(!expires.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "EXPIRES", expires);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "EXPIRES");
-		}
-
-		return record;
+		// ---- Save bound simple fields ----
+		bindingManager.saveToRecord(targetRecord);
 	}
 
 	// ==================== Validation ====================
@@ -186,8 +164,8 @@ public class RestrictionPanel extends JPanel{
 	 * @return {@code true} if LEVEL is selected, otherwise {@code false}
 	 */
 	public boolean hasData(){
-		String level = (String)levelCombo.getSelectedItem();
-		return level != null && !level.isEmpty();
+		final String level = (String)levelCombo.getSelectedItem();
+		return (level != null && !level.isEmpty());
 	}
 
 	/**
@@ -197,20 +175,20 @@ public class RestrictionPanel extends JPanel{
 	 * otherwise {@code false}
 	 */
 	public boolean validateRequiredFields(){
-		String level = (String)levelCombo.getSelectedItem();
+		final String level = (String)levelCombo.getSelectedItem();
 		if(level == null || level.isEmpty()){
 			showError("Restriction LEVEL is required.");
+
 			return false;
 		}
 
 		// Validate EXPIRES format if present
-		String expires = expiresField.getText().trim();
-		if(!expires.isEmpty()){
-			// Simple ISO 8601 date validation (YYYY-MM-DD)
-			if(!expires.matches("\\d{4}-\\d{2}-\\d{2}")){
-				showError("EXPIRES must be in ISO 8601 date format (YYYY-MM-DD).");
-				return false;
-			}
+		final String expires = expiresField.getText().trim();
+		// Simple ISO 8601 date validation (YYYY-MM-DD)
+		if(!expires.isEmpty() && !expires.matches("\\d{4}-\\d{2}-\\d{2}")){
+			showError("EXPIRES must be in ISO 8601 date format (YYYY-MM-DD).");
+
+			return false;
 		}
 
 		return true;
@@ -227,16 +205,6 @@ public class RestrictionPanel extends JPanel{
 		expiresField.setText("");
 	}
 
-	/**
-	 * Returns the selected restriction level.
-	 *
-	 * @return the selected level, or {@code null} if none selected
-	 */
-	public String getSelectedLevel(){
-		String level = (String)levelCombo.getSelectedItem();
-		return (level != null && !level.isEmpty())? level: null;
-	}
-
 	// ==================== Private helpers ====================
 
 	/**
@@ -244,13 +212,11 @@ public class RestrictionPanel extends JPanel{
 	 *
 	 * @param message the error message
 	 */
-	private void showError(String message){
-		if(parentDialog != null){
+	private void showError(final String message){
+		if(parentDialog != null)
 			JOptionPane.showMessageDialog(parentDialog, message, "Validation Error", JOptionPane.ERROR_MESSAGE);
-		}
-		else{
+		else
 			System.err.println("Validation Error: " + message);
-		}
 	}
 
 }

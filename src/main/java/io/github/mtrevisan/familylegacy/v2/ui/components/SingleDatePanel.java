@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -57,7 +57,6 @@ public class SingleDatePanel extends JPanel{
 		JPanel isoPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
 		isoPanel.add(new JLabel("Date:"), "align label");
 		isoPanel.add(isoField, "growx");
-		isoField.setToolTipText("ISO 8601 date (e.g., 2024-01-01)");
 
 		// CENTURY
 		JPanel centuryPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow][right]rel[grow]"));
@@ -155,7 +154,7 @@ public class SingleDatePanel extends JPanel{
 			record.setTag("QUALIFIED_DATE");
 		}
 
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
 		// APPROXIMATE
 		approxPanel.saveToRecord(record);
@@ -170,9 +169,7 @@ public class SingleDatePanel extends JPanel{
 			String isoDate = isoField.getText().trim();
 			if(!isoDate.isEmpty()){
 				FLEFRecord iso = FLEFRecord.createChildWithValue(2, "ISO", isoDate);
-				if(calendar != null && !calendar.isEmpty()){
-					FLEFRecordUtils.updateChildValue(iso, "CALENDAR", calendar);
-				}
+				FLEFRecordUtils.updateChildValue(iso, "CALENDAR", calendar);
 				singleDate.addChild(iso);
 			}
 		}
@@ -181,12 +178,8 @@ public class SingleDatePanel extends JPanel{
 			if(!century.isEmpty()){
 				FLEFRecord centuryRec = FLEFRecord.createChildWithValue(2, "CENTURY", century);
 				String part = (String)centuryPartCombo.getSelectedItem();
-				if(part != null && !part.isEmpty()){
-					FLEFRecordUtils.updateChildValue(centuryRec, "PART", part);
-				}
-				if(calendar != null && !calendar.isEmpty()){
-					FLEFRecordUtils.updateChildValue(centuryRec, "CALENDAR", calendar);
-				}
+				FLEFRecordUtils.updateChildValue(centuryRec, "PART", part);
+				FLEFRecordUtils.updateChildValue(centuryRec, "CALENDAR", calendar);
 				singleDate.addChild(centuryRec);
 			}
 		}
@@ -194,9 +187,7 @@ public class SingleDatePanel extends JPanel{
 			String decade = decadeField.getText().trim();
 			if(!decade.isEmpty()){
 				FLEFRecord decadeRec = FLEFRecord.createChildWithValue(2, "DECADE", decade);
-				if(calendar != null && !calendar.isEmpty()){
-					FLEFRecordUtils.updateChildValue(decadeRec, "CALENDAR", calendar);
-				}
+				FLEFRecordUtils.updateChildValue(decadeRec, "CALENDAR", calendar);
 				singleDate.addChild(decadeRec);
 			}
 		}

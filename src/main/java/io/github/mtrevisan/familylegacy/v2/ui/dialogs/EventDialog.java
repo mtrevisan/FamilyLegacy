@@ -5,7 +5,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -132,8 +133,7 @@ public class EventDialog extends BaseRecordDialog{
 		// --- Details tab (EVENT_STRUCTURE) ---
 		JPanel detailsPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
 		detailsPanel.add(new JLabel("Description:"), "align label,top");
-		JScrollPane descScroll = new JScrollPane(descriptionArea);
-		descScroll.setPreferredSize(new Dimension(200, 80));
+		JScrollPane descScroll = GUIHelper.createScrollPane(descriptionArea);
 		detailsPanel.add(descScroll, "growx,wrap");
 
 		detailsPanel.add(new JLabel("Date:"), "align label");
@@ -173,13 +173,13 @@ public class EventDialog extends BaseRecordDialog{
 		// --- Modification tab ---
 		JPanel modificationPanel = new JPanel(new BorderLayout());
 		modificationPanel.setBorder(new TitledBorder("Modification History"));
-		modificationPanel.add(new JScrollPane(modificationArea), BorderLayout.CENTER);
+		modificationPanel.add(GUIHelper.createScrollPane(modificationArea), BorderLayout.CENTER);
 		tabbedPane.addTab("Modification", modificationPanel);
 
 		// --- Conclusion tab ---
 		JPanel conclusionPanel = new JPanel(new BorderLayout());
 		conclusionPanel.setBorder(new TitledBorder("Conclusion"));
-		conclusionPanel.add(new JScrollPane(conclusionArea), BorderLayout.CENTER);
+		conclusionPanel.add(GUIHelper.createScrollPane(conclusionArea), BorderLayout.CENTER);
 		tabbedPane.addTab("Conclusion", conclusionPanel);
 
 		add(tabbedPane, BorderLayout.CENTER);
@@ -312,13 +312,13 @@ public class EventDialog extends BaseRecordDialog{
 
 		// ---- Complex fields: manual save ----
 		// Note: FAMILY, TWIN, PARENT1_RELATIONSHIP, PARENT2_RELATIONSHIP are kept for backward compatibility
-		addChild("FAMILY", 1, familyField.getText().trim());
-		addChildrenFromString("TWIN", twinField.getText().trim());
-		addChild("PARENT1_RELATIONSHIP", 1, (String)relationshipParent1Combo.getSelectedItem());
-		addChild("PARENT2_RELATIONSHIP", 1, (String)relationshipParent2Combo.getSelectedItem());
+		addChild("FAMILY", familyField.getText().trim());
+		addChild("TWIN", twinField.getText().trim());
+		addChild("PARENT1_RELATIONSHIP", (String)relationshipParent1Combo.getSelectedItem());
+		addChild("PARENT2_RELATIONSHIP", (String)relationshipParent2Combo.getSelectedItem());
 
-		addChild("DESCRIPTION", 1, descriptionArea.getText().trim());
-		addChild("DATE", 1, dateField.getText().trim());
+		addChild("DESCRIPTION", descriptionArea.getText().trim());
+		addChild("DATE", dateField.getText().trim());
 
 		String placeVal = placeField.getText().trim();
 		if(!placeVal.isEmpty()){
@@ -330,15 +330,15 @@ public class EventDialog extends BaseRecordDialog{
 
 			String pCert = placeQualifiers.getCertainty();
 			if(pCert != null && !pCert.isEmpty()){
-				addChild(place, "CERTAINTY", 2, pCert);
+				addChild(place, "CERTAINTY", pCert);
 			}
 			String pCred = placeQualifiers.getCredibility();
 			if(pCred != null && !pCred.isEmpty()){
-				addChild(place, "CREDIBILITY", 2, pCred);
+				addChild(place, "CREDIBILITY", pCred);
 			}
 		}
 
-		addChild("AGENCY", 1, agencyField.getText().trim());
+		addChild("AGENCY", agencyField.getText().trim());
 
 		String causeVal = causeField.getText().trim();
 		if(!causeVal.isEmpty()){
@@ -350,31 +350,31 @@ public class EventDialog extends BaseRecordDialog{
 
 			String cCert = causeQualifiers.getCertainty();
 			if(cCert != null && !cCert.isEmpty()){
-				addChild(cause, "CERTAINTY", 2, cCert);
+				addChild(cause, "CERTAINTY", cCert);
 			}
 			String cCred = causeQualifiers.getCredibility();
 			if(cCred != null && !cCred.isEmpty()){
-				addChild(cause, "CREDIBILITY", 2, cCred);
+				addChild(cause, "CREDIBILITY", cCred);
 			}
 		}
 
 		String eCert = eventQualifiers.getCertainty();
 		if(eCert != null && !eCert.isEmpty()){
-			addChild("CERTAINTY", 1, eCert);
+			addChild("CERTAINTY", eCert);
 		}
 		String eCred = eventQualifiers.getCredibility();
 		if(eCred != null && !eCred.isEmpty()){
-			addChild("CREDIBILITY", 1, eCred);
+			addChild("CREDIBILITY", eCred);
 		}
 
-		addChild("RESTRICTION", 1, restrictionCheckBox.isSelected()? "confidential": null);
+		addChild("RESTRICTION", restrictionCheckBox.isSelected()? "confidential": null);
 
-		addChildrenFromString("CULTURAL_NORM", culturalNormsField.getText().trim());
-		addChildrenFromString("NOTE", notesField.getText().trim());
-		addChildrenFromString("SOURCE", sourcesField.getText().trim());
+		addChild("CULTURAL_NORM", culturalNormsField.getText().trim());
+		addChild("NOTE", notesField.getText().trim());
+		addChild("SOURCE", sourcesField.getText().trim());
 
-		addChild("CONCLUSION", 1, conclusionArea.getText().trim());
-		addChild("MODIFICATION", 1, modificationArea.getText().trim());
+		addChild("CONCLUSION", conclusionArea.getText().trim());
+		addChild("MODIFICATION", modificationArea.getText().trim());
 
 		if(isNew){
 			model.addRecord(record);

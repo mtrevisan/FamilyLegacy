@@ -30,7 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ContactStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -226,14 +227,12 @@ public class HeaderDialog extends JDialog{
 
 		// --- COPYRIGHT (0:1) ---
 		panel.add(new JLabel("Copyright:"), "align label,top");
-		JScrollPane copyScroll = new JScrollPane(copyrightArea);
-		copyScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane copyScroll = GUIHelper.createScrollPane(copyrightArea);
 		panel.add(copyScroll, "growx,wrap");
 
 		// --- HEADER NOTE (0:1) ---
 		panel.add(new JLabel("Content Description:"), "align label,top");
-		JScrollPane noteScroll = new JScrollPane(headerNoteArea);
-		noteScroll.setPreferredSize(new Dimension(200, 60));
+		JScrollPane noteScroll = GUIHelper.createScrollPane(headerNoteArea);
 		panel.add(noteScroll, "growx");
 
 		return panel;
@@ -261,8 +260,7 @@ public class HeaderDialog extends JDialog{
 		panel.add(submitterLongitudeField, "growx,wrap");
 
 		panel.add(new JLabel("  Place Note:"), "align label,top");
-		JScrollPane placeNoteScroll = new JScrollPane(submitterPlaceNoteArea);
-		placeNoteScroll.setPreferredSize(new Dimension(200, 50));
+		JScrollPane placeNoteScroll = GUIHelper.createScrollPane(submitterPlaceNoteArea);
 		panel.add(placeNoteScroll, "growx,wrap");
 
 		// --- CONTACT_STRUCTURE (0:M) ---
@@ -290,8 +288,7 @@ public class HeaderDialog extends JDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(contactList);
-		scrollPane.setPreferredSize(new Dimension(200, 80));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(contactList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -330,8 +327,7 @@ public class HeaderDialog extends JDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(submitterNoteList);
-		scrollPane.setPreferredSize(new Dimension(200, 80));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(submitterNoteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -498,11 +494,9 @@ public class HeaderDialog extends JDialog{
 	// ==================== Submitter Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -526,10 +520,6 @@ public class HeaderDialog extends JDialog{
 	}
 
 	private void addSubmitterNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !submitterNoteIds.contains(selectedId)){
@@ -548,10 +538,6 @@ public class HeaderDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String id = submitterNoteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -576,10 +562,6 @@ public class HeaderDialog extends JDialog{
 	}
 
 	private void createNewSubmitterNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(submitterNoteIds);
 		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
@@ -732,7 +714,7 @@ public class HeaderDialog extends JDialog{
 		}
 
 		// Clear existing children
-		headerRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(headerRecord);
 
 		// --- PROTOCOL (1:1) ---
 		FLEFRecord protocol = new FLEFRecord();
@@ -757,15 +739,11 @@ public class HeaderDialog extends JDialog{
 
 		// --- COPYRIGHT (0:1) ---
 		String copyright = copyrightArea.getText().trim();
-		if(!copyright.isEmpty()){
-			FLEFRecordUtils.updateChildValue(headerRecord, "COPYRIGHT", copyright);
-		}
+		FLEFRecordUtils.updateChildValue(headerRecord, "COPYRIGHT", copyright);
 
 		// --- HEADER NOTE (0:1) ---
 		String headerNote = headerNoteArea.getText().trim();
-		if(!headerNote.isEmpty()){
-			FLEFRecordUtils.updateChildValue(headerRecord, "NOTE", headerNote);
-		}
+		FLEFRecordUtils.updateChildValue(headerRecord, "NOTE", headerNote);
 
 		// --- SUBMITTER (1:1) ---
 		FLEFRecord submitter = new FLEFRecord();
@@ -789,12 +767,8 @@ public class HeaderDialog extends JDialog{
 			place.setTag("PLACE");
 			submitter.addChild(place);
 
-			if(!address.isEmpty()){
-				FLEFRecordUtils.updateChildValue(place, "ADDRESS", address);
-			}
-			if(!hierarchy.isEmpty()){
-				FLEFRecordUtils.updateChildValue(place, "HIERARCHY", hierarchy);
-			}
+			FLEFRecordUtils.updateChildValue(place, "ADDRESS", address);
+			FLEFRecordUtils.updateChildValue(place, "HIERARCHY", hierarchy);
 			if(!lat.isEmpty() && !lon.isEmpty()){
 				FLEFRecord map = new FLEFRecord();
 				map.setLevel(3);
@@ -821,7 +795,7 @@ public class HeaderDialog extends JDialog{
 
 		// SUBMITTER NOTE (0:M)
 		for(String id : submitterNoteIds){
-			FLEFRecordUtils.addChild(submitter, "NOTE", 2, id);
+			FLEFRecordUtils.addChild(submitter, "NOTE", id);
 		}
 
 		saved = true;

@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
@@ -92,7 +92,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	// VALUE - multi-line text area with scroll
 	private final JTextArea valueArea = new JTextArea(3, 30);
-	private final JScrollPane valueScrollPane = new JScrollPane(valueArea);
+	private final JScrollPane valueScrollPane = GUIHelper.createScrollPane(valueArea);
 
 	// DATE_STRUCTURE (simplified to a single text field for now)
 	private final JTextField dateField = new JTextField(15);
@@ -157,7 +157,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	// ----- Initialisation -----
 	@Override
 	protected void initComponents(){
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this);
 		conclusionPanel = new ConclusionPanel(model, this);
 		restrictionPanel = new RestrictionPanel(this);
 
@@ -185,7 +185,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[right]rel[grow]", "[]5[]5[]10[]5[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// GROUP (required)
+		// GROUP
 		JPanel groupPanel = new JPanel(new BorderLayout(5, 5));
 		groupDisplayField.setEditable(false);
 		groupDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -206,35 +206,30 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		editGroupBtn.setEnabled(false);
 		clearGroupBtn.setEnabled(false);
 
-		// TYPE (required)
+		// TYPE
 		panel.add(new JLabel("Type:"), "align label");
 		typeCombo.setEditable(true);
 		panel.add(typeCombo, "growx,wrap");
 
-		// VALUE (optional)
+		// VALUE
 		panel.add(new JLabel("Value:"), "align label,top");
 		valueArea.setLineWrap(true);
 		valueArea.setWrapStyleWord(true);
-		valueScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		valueScrollPane.setPreferredSize(new Dimension(300, 80));
 		panel.add(valueScrollPane, "growx,wrap");
 
-		// DATE_STRUCTURE (optional)
+		// DATE_STRUCTURE
 		panel.add(new JLabel("Date:"), "align label");
-		dateField.setToolTipText("ISO 8601 date or date range (e.g., 2024-01-01)");
 		panel.add(dateField, "growx,wrap");
 
-		// VALID_FROM (optional)
+		// VALID_FROM
 		panel.add(new JLabel("Valid From:"), "align label");
-		validFromField.setToolTipText("ISO 8601 date (e.g., 2024-01-01)");
 		panel.add(validFromField, "growx,wrap");
 
-		// VALID_TO (optional)
+		// VALID_TO
 		panel.add(new JLabel("Valid To:"), "align label");
-		validToField.setToolTipText("ISO 8601 date (e.g., 2024-12-31)");
 		panel.add(validToField, "growx,wrap");
 
-		// PLACE_STRUCTURE (optional)
+		// PLACE_STRUCTURE
 		JPanel placePanel = new JPanel(new BorderLayout(5, 5));
 		placeField.setEditable(false);
 		placeField.setBackground(UIManager.getColor("TextField.background"));
@@ -275,7 +270,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		sourceCitationList.setVisibleRowCount(4);
 		sourceCitationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installStandardBehaviour(sourceCitationList,
+		GUIHelper.installStandardBehavior(sourceCitationList,
 			() -> sourceCitationList.getSelectedIndex() >= 0,
 			this::createNewSource,
 			this::addSourceCitation,
@@ -283,9 +278,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			this::deleteSourceCitation,
 			null);
 
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(sourceCitationList,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(sourceCitationList.getPreferredScrollableViewportSize());
+		JScrollPane scrollPane = GUIHelper.createScrollPane(sourceCitationList);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
@@ -308,11 +301,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	// ==================== Group methods ====================
 
 	private void browseGroup(){
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(this, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, groupHandler, selectedId -> {
 			if(selectedId != null){
@@ -357,7 +345,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private void updateGroupDisplay(String groupId){
 		FLEFRecord group = model.getRecordById(groupId);
-		if(group != null && groupHandler != null){
+		if(group != null){
 			groupDisplayField.setText(groupHandler.getDisplayName(group));
 		}
 		else{
@@ -390,11 +378,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	// ==================== Source Citation methods ====================
 
 	private void addSourceCitation(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
@@ -434,11 +417,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	}
 
 	private void createNewSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		Set<String> before = new HashSet<>();
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
 			String id = rec.getId();
@@ -463,7 +441,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		String sourceId = citation.getValue();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;
@@ -617,17 +595,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!modificationPanel.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Modification is required for a group attribute.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
-		if(!modificationPanel.validateRequiredFields()){
-			return false;
-		}
-
 		if(restrictionPanel.hasData() && !restrictionPanel.validateRequiredFields()){
 			return false;
 		}
@@ -638,27 +605,18 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	// ==================== Save ====================
 	@Override
 	protected void saveRecord(){
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
-		// GROUP (required)
-		if(selectedGroupId != null && !selectedGroupId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "GROUP", selectedGroupId);
-		}
+		// GROUP
+		FLEFRecordUtils.updateChildValue(record, "GROUP", selectedGroupId);
 
-		// TYPE (required)
+		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
-		if(type != null && !type.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "TYPE", type);
-		}
+		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
 
-		// VALUE (optional)
+		// VALUE
 		String value = valueArea.getText().trim();
-		if(!value.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "VALUE", value);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "VALUE");
-		}
+		FLEFRecordUtils.updateChildValue(record, "VALUE", value);
 
 		// DATE_STRUCTURE (simplified)
 		String date = dateField.getText().trim();
@@ -727,26 +685,16 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if((certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty())){
 			FLEFRecord evidence = FLEFRecord.createChild(1, "EVIDENCE_QUALIFIERS");
 
-			if(certainty != null && !certainty.isEmpty()){
-				FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
-			}
+			FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
 
-			if(credibility != null && !credibility.isEmpty()){
-				FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", credibility);
-			}
+			FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", credibility);
 
 			record.addChild(evidence);
 		}
 
 		// RESTRICTION_STRUCTURE
-		if(restrictionPanel.hasData()){
-			FLEFRecord restriction = restrictionPanel.saveToRecord(null);
-			if(restriction != null){
-				restriction.setLevel(1);
-				restriction.setTag("RESTRICTION");
-				record.addChild(restriction);
-			}
-		}
+		if(restrictionPanel.hasData())
+			restrictionPanel.saveToRecord(record);
 
 		// CONCLUSION_STRUCTURE
 		if(conclusionPanel.hasData()){

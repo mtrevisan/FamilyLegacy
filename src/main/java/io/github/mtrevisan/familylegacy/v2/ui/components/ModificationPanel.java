@@ -24,17 +24,21 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.io.Serial;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -57,12 +61,16 @@ public class ModificationPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -8538135290834556766L;
 
-	private final FLEFModel model;
-	private final Dialog parentDialog;
 
+	private final BindingManager bindingManager = new BindingManager();
+
+	// UI components
 	// Creation fields
 	private String creationDate;
-	private final JTextArea creationCommentArea = new JTextArea(2, 30);
+	private final BoundTextArea creationCommentArea;
+
+	private final Dialog parentDialog;
+
 
 	// Update entries
 	private final DefaultListModel<UpdateEntry> updateModel = new DefaultListModel<>();
@@ -84,55 +92,56 @@ public class ModificationPanel extends JPanel{
 		@Override
 		public String toString(){
 			StringBuilder sb = new StringBuilder(date);
-			if(!comment.isEmpty()){
+			if(!comment.isEmpty())
 				sb.append(": ").append(comment);
-			}
-			if(sb.length() > 60){
+			if(sb.length() > 60)
 				return sb.substring(0, 57) + "...";
-			}
 			return sb.toString();
 		}
 	}
 
+
 	/**
 	 * Constructs a new ModificationPanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent dialog (used for showing message dialogs)
 	 */
-	public ModificationPanel(FLEFModel model, Dialog parent){
-		this.model = model;
+	public ModificationPanel(final Dialog parent){
 		this.parentDialog = parent;
+
+		// Initialize bound components
+		creationCommentArea = new BoundTextArea("CREATION.COMMENT", 2, 30);
+
 		initComponents();
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10, fillx, wrap 2", "[right]rel[grow]", "[]10[]10[]"));
-		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		setLayout(new MigLayout("fillx,wrap 2", "[right]rel[grow]", "[]10[]10[]"));
+
+		// Register bound components
+		bindingManager.bind(creationCommentArea);
 
 		// CREATION section
-		JPanel creationPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]", "[]5[]"));
+		final JPanel creationPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]", "[]5[]"));
 		creationPanel.setBorder(new TitledBorder("Creation"));
 
 		creationPanel.add(new JLabel("Comment:"), "align label,top");
 		creationCommentArea.setLineWrap(true);
 		creationCommentArea.setWrapStyleWord(true);
-		JScrollPane commentScroll = new JScrollPane(creationCommentArea);
-		commentScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		commentScroll.setPreferredSize(new Dimension(300, 40));
+		final JScrollPane commentScroll = GUIHelper.createScrollPane(creationCommentArea);
 		creationPanel.add(commentScroll, "growx,wrap");
 
 		add(creationPanel, "span 2,growx");
 
 		// UPDATES section
-		JPanel updatePanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]", ""));
+		final JPanel updatePanel = new JPanel(new MigLayout("fillx", "[grow]", ""));
 		updatePanel.setBorder(new TitledBorder("Updates"));
 
 		updateList.setVisibleRowCount(3);
 		updateList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		// Install popup behaviour (no buttons!)
-		GUIHelper.installBehaviour(updateList,
+		// Install popup behavior (no buttons!)
+		GUIHelper.installBehavior(updateList,
 			() -> updateList.getSelectedIndex() >= 0,
 			this::editUpdate,                    // double‑click → edit
 			this::addUpdate,                     // INSERT key → add
@@ -144,9 +153,7 @@ public class ModificationPanel extends JPanel{
 				builder.selectionSensitiveItem("Remove", this::removeUpdate);
 			});
 
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(updateList,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(updateList.getPreferredScrollableViewportSize());
+		final JScrollPane scrollPane = GUIHelper.createScrollPane(updateList);
 		updatePanel.add(scrollPane, "growx,wrap");
 
 		add(updatePanel, "span 2,growx");
@@ -155,7 +162,7 @@ public class ModificationPanel extends JPanel{
 	// ==================== Update Management ====================
 
 	private void addUpdate(){
-		UpdateEntry newEntry = showUpdateDialog(null);
+		final UpdateEntry newEntry = showUpdateDialog(null);
 		if(newEntry != null){
 			updateEntries.add(newEntry);
 			updateModel.addElement(newEntry);
@@ -163,11 +170,12 @@ public class ModificationPanel extends JPanel{
 	}
 
 	private void editUpdate(){
-		int idx = updateList.getSelectedIndex();
-		if(idx == -1) return;
+		final int idx = updateList.getSelectedIndex();
+		if(idx == -1)
+			return;
 
-		UpdateEntry current = updateEntries.get(idx);
-		UpdateEntry updated = showUpdateDialog(current);
+		final UpdateEntry current = updateEntries.get(idx);
+		final UpdateEntry updated = showUpdateDialog(current);
 		if(updated != null){
 			updateEntries.set(idx, updated);
 			updateModel.set(idx, updated);
@@ -175,10 +183,11 @@ public class ModificationPanel extends JPanel{
 	}
 
 	private void removeUpdate(){
-		int idx = updateList.getSelectedIndex();
-		if(idx == -1) return;
+		final int idx = updateList.getSelectedIndex();
+		if(idx == -1)
+			return;
 
-		int confirm = JOptionPane.showConfirmDialog(parentDialog,
+		final int confirm = JOptionPane.showConfirmDialog(parentDialog,
 			"Remove this update?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			updateEntries.remove(idx);
@@ -192,55 +201,33 @@ public class ModificationPanel extends JPanel{
 	 * @param initial the existing entry, or {@code null} for a new one
 	 * @return the updated entry, or {@code null} if cancelled
 	 */
-	private UpdateEntry showUpdateDialog(UpdateEntry initial){
-		JDialog dialog = new JDialog(parentDialog, initial == null? "Add Update": "Edit Update", true);
+	private UpdateEntry showUpdateDialog(final UpdateEntry initial){
+		final JDialog dialog = new JDialog(parentDialog, initial == null? "Add Update": "Edit Update", true);
 		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]10[]"));
 
-		// DATE (required)
-		JTextField dateField = new JTextField(15);
-		if(initial != null){
-			dateField.setText(initial.date);
-		}
-		dateField.setToolTipText("ISO 8601 date (e.g., 2026-07-18)");
-
-		dialog.add(new JLabel("Date:"), "align label");
-		dialog.add(dateField, "growx,wrap");
-
-		// COMMENT (optional) - multi-line text area
-		JTextArea commentArea = new JTextArea(3, 25);
+		// COMMENT
+		final BoundTextArea commentArea = new BoundTextArea("UPDATE.COMMENT", 3, 25);
 		commentArea.setLineWrap(true);
 		commentArea.setWrapStyleWord(true);
-		if(initial != null){
+		if(initial != null)
 			commentArea.setText(initial.comment);
-		}
-		JScrollPane commentScroll = new JScrollPane(commentArea);
-		commentScroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		commentScroll.setPreferredSize(new Dimension(300, 60));
+		final JScrollPane commentScroll = GUIHelper.createScrollPane(commentArea);
 
 		dialog.add(new JLabel("Comment:"), "align label,top");
 		dialog.add(commentScroll, "growx,wrap");
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okBtn = new JButton("OK");
-		JButton cancelBtn = new JButton("Cancel");
+		final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final JButton okBtn = new JButton("OK");
+		final JButton cancelBtn = new JButton("Cancel");
 		btnPanel.add(okBtn);
 		btnPanel.add(cancelBtn);
 		dialog.add(btnPanel, "span 2,growx");
 
 		final UpdateEntry[] result = {null};
 		okBtn.addActionListener(e -> {
-			String date = dateField.getText().trim();
-			if(date.isEmpty()){
-				JOptionPane.showMessageDialog(dialog, "Date cannot be empty.",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			if(!date.matches("\\d{4}-\\d{2}-\\d{2}")){
-				JOptionPane.showMessageDialog(dialog, "Date must be in ISO 8601 format (YYYY-MM-DD).",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			String comment = commentArea.getText().trim();
+			final String date = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+			final String comment = commentArea.getText()
+				.trim();
 			result[0] = new UpdateEntry(date, comment);
 			dialog.dispose();
 		});
@@ -259,71 +246,65 @@ public class ModificationPanel extends JPanel{
 	 *
 	 * @param record the record containing the MODIFICATION_STRUCTURE
 	 */
-	public void loadFromRecord(FLEFRecord record){
+	public void loadFromRecord(final FLEFRecord record){
 		clear();
 
+		// ---- Load bound simple fields ----
+		bindingManager.loadFromRecord(record);
+
 		// Find CREATION
-		FLEFRecord creation = FLEFRecordUtils.findChild(record, "CREATION");
+		final FLEFRecord creation = FLEFRecordUtils.findChild(record, "CREATION");
 		if(creation != null){
 			creationDate = FLEFRecordUtils.getChildValue(creation, "DATE");
 
 			// Load creation comment if present (non-standard, but we keep it)
-			String comment = FLEFRecordUtils.getChildValue(creation, "COMMENT");
+			final String comment = FLEFRecordUtils.getChildValue(creation, "COMMENT");
 			creationCommentArea.setText(comment != null? comment: "");
 		}
 
 		// Find UPDATE entries
 		updateEntries.clear();
 		updateModel.clear();
-		for(FLEFRecord child : record.getChildren()){
+		for(final FLEFRecord child : record.getChildren())
 			if("UPDATE".equals(child.getTag())){
-				String date = FLEFRecordUtils.getChildValue(child, "DATE");
-				String comment = FLEFRecordUtils.getChildValue(child, "COMMENT");
-				UpdateEntry entry = new UpdateEntry(date, comment);
+				final String date = FLEFRecordUtils.getChildValue(child, "DATE");
+				final String comment = FLEFRecordUtils.getChildValue(child, "COMMENT");
+				final UpdateEntry entry = new UpdateEntry(date, comment);
 				updateEntries.add(entry);
 				updateModel.addElement(entry);
 			}
-		}
 	}
 
 	/**
-	 * Saves the panel data into a record's MODIFICATION_STRUCTURE.
+	 * Saves the panel data into the parent's record.
 	 *
-	 * @param record the record to save into
+	 * @param targetRecord the record to save into
 	 */
-	public void saveToRecord(FLEFRecord record){
-		// Remove existing CREATION and UPDATE children
+	public void saveToRecord(final FLEFRecord targetRecord){
+		final FLEFRecord record = (targetRecord != null? targetRecord: new FLEFRecord());
+
+		// Remove existing children
 		FLEFRecordUtils.removeChildren(record, "CREATION");
 		FLEFRecordUtils.removeChildren(record, "UPDATE");
 
-		// CREATION (required)
+		// CREATION
 		if(creationDate == null || creationDate.isEmpty())
-			//FIXME use now()
-			creationDate = "2000-01-01";
-		FLEFRecord creation = FLEFRecord.createChild(1, "CREATION");
-		creation.addChild(FLEFRecord.createChildWithValue(2, "DATE", creationDate));
+			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+		FLEFRecordUtils.addChild(record, "CREATION.DATE", creationDate);
+
+		// ---- Save bound simple fields ----
+		bindingManager.saveToRecord(record);
 
 		// Save creation comment if present
-		String creationComment = creationCommentArea.getText().trim();
-		if(!creationComment.isEmpty()){
-			FLEFRecord comment = FLEFRecord.createChildWithValue(2, "COMMENT", creationComment);
-			creation.addChild(comment);
-		}
-
-		record.addChild(creation);
+		final String creationComment = creationCommentArea.getText()
+			.trim();
+		FLEFRecordUtils.addChild(record, "CREATION.COMMENT", creationComment);
 
 		// UPDATE entries
-		for(UpdateEntry entry : updateEntries){
-			FLEFRecord update = FLEFRecord.createChild(1, "UPDATE");
-			if(entry.date != null && !entry.date.isEmpty()){
-				FLEFRecord date = FLEFRecord.createChildWithValue(2, "DATE", entry.date);
-				update.addChild(date);
-			}
-			if(entry.comment != null && !entry.comment.isEmpty()){
-				FLEFRecord comment = FLEFRecord.createChildWithValue(2, "COMMENT", entry.comment);
-				update.addChild(comment);
-			}
-			record.addChild(update);
+		for(int i = 0, length = updateEntries.size(); i < length; i ++){
+			final UpdateEntry entry = updateEntries.get(i);
+			FLEFRecordUtils.addChild(record, "UPDATE[" + i + "].DATE", entry.date);
+			FLEFRecordUtils.addChild(record, "UPDATE[" + i + "].COMMENT", entry.comment);
 		}
 	}
 
@@ -331,34 +312,6 @@ public class ModificationPanel extends JPanel{
 		creationCommentArea.setText("");
 		updateEntries.clear();
 		updateModel.clear();
-	}
-
-	/**
-	 * Checks whether the panel has any data.
-	 *
-	 * @return {@code true} if CREATION date is present, otherwise {@code false}
-	 */
-	public boolean hasData(){
-		return true;
-	}
-
-	/**
-	 * Validates required fields.
-	 *
-	 * @return {@code true} if CREATION date is present and valid, otherwise {@code false}
-	 */
-	public boolean validateRequiredFields(){
-		// Validate each update date if present
-		for(UpdateEntry entry : updateEntries){
-			if(!entry.date.matches("\\d{4}-\\d{2}-\\d{2}")){
-				JOptionPane.showMessageDialog(parentDialog,
-					"Update date must be in ISO 8601 format (YYYY-MM-DD).",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
-				return false;
-			}
-		}
-
-		return true;
 	}
 
 }

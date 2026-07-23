@@ -39,7 +39,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,7 +61,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -210,8 +210,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(groupList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(groupList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -244,11 +243,9 @@ public class GroupEventDialog extends BaseRecordDialog{
 	// ==================== Group methods ====================
 
 	private String getGroupDisplayName(String id){
-		if(groupHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return groupHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return groupHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -266,10 +263,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 	}
 
 	private void addGroup(){
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(this, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, groupHandler, selectedId -> {
 			if(selectedId != null && !groupIds.contains(selectedId)){
@@ -286,11 +279,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		String id = groupIds.get(idx);
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Group not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -312,11 +300,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 	}
 
 	private void createNewGroup(){
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(this, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		JDialog dialog = groupHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
 	}
@@ -332,7 +315,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		if(typeId != null && !typeId.isEmpty()){
 			selectedEventTypeId = typeId;
 			FLEFRecord rec = model.getRecordById(typeId);
-			if(rec != null && eventHandler != null){
+			if(rec != null){
 				typeField.setText(eventHandler.getDisplayName(rec));
 			}
 			else{
@@ -368,13 +351,10 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveRecord(){
-		// Validation is already done by save() before calling this method
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
 		// TYPE (1:1)
-		if(selectedEventTypeId != null && !selectedEventTypeId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "TYPE", selectedEventTypeId);
-		}
+		FLEFRecordUtils.updateChildValue(record, "TYPE", selectedEventTypeId);
 
 		// EVENT_STRUCTURE (0:1)
 		if(eventStructurePanel.hasData()){
@@ -388,7 +368,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 		// GROUP (0:M)
 		for(String id : groupIds){
-			FLEFRecordUtils.addChild(record, "GROUP", 1, id);
+			FLEFRecordUtils.addChild(record, "GROUP", id);
 		}
 
 		if(isNew){

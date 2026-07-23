@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import javax.swing.*;
+import javax.swing.text.JTextComponent;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -12,9 +13,9 @@ import java.util.function.Supplier;
 
 
 /**
- * Utilities for installing UI behaviours (popup menus, double‑click, keyboard shortcuts).
+ * Utilities for installing UI behaviors (popup menus, double‑click, keyboard shortcuts).
  * <p>
- * The main entry point is {@link #installBehaviour(JComponent, Supplier, Runnable, Runnable, Runnable, Consumer)},
+ * The main entry point is {@link #installBehavior(JComponent, Supplier, Runnable, Runnable, Runnable, Consumer)},
  * which lets you define the popup menu structure exactly via a {@link MenuBuilder}.
  * You can specify any number of items, separators, and custom enable conditions.
  * <p>
@@ -24,6 +25,24 @@ import java.util.function.Supplier;
 public final class GUIHelper{
 
 	private GUIHelper(){}
+
+
+	public static JScrollPane createScrollPane(final JList<?> list){
+		final JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
+		return scrollPane;
+	}
+
+	public static JScrollPane createScrollPane(final JTextComponent area){
+		return new JScrollPane(new ScrollableContainerHost(area,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+	}
+
+	public static JScrollPane createScrollPane(final JComponent area){
+		return new JScrollPane(new ScrollableContainerHost(area,
+			ScrollableContainerHost.ScrollType.VERTICAL));
+	}
 
 
 	/**
@@ -40,7 +59,7 @@ public final class GUIHelper{
 	 * @param keyDeleteAction	Action invoked by the DELETE key (may be {@code null}).
 	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
-	public static void installBehaviour(final JComponent component, final Supplier<Boolean> hasSelection,
+	public static void installBehavior(final JComponent component, final Supplier<Boolean> hasSelection,
 			final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
 			final Consumer<MenuBuilder> menuBuilder){
 		// Collect the menu entries from the builder
@@ -111,10 +130,10 @@ public final class GUIHelper{
 	 * are selection‑sensitive). This is just a convenience wrapper around
 	 * the builder version.
 	 */
-	public static void installStandardBehaviour(final JComponent component, final Supplier<Boolean> hasSelection,
+	public static void installStandardBehavior(final JComponent component, final Supplier<Boolean> hasSelection,
 			final Runnable newAction, final Runnable addAction, final Runnable editAction, final Runnable clearAction,
 			final Runnable notesAction){
-		installBehaviour(component, hasSelection, editAction, newAction, clearAction,
+		installBehavior(component, hasSelection, editAction, newAction, clearAction,
 			builder -> {
 				if(newAction != null)
 					builder.item("Create New...", newAction);

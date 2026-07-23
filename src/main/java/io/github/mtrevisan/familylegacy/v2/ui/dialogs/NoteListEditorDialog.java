@@ -117,7 +117,7 @@ public class NoteListEditorDialog extends JDialog{
 		noteList.setVisibleRowCount(4);
 		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installStandardBehaviour(noteList,
+		GUIHelper.installStandardBehavior(noteList,
 			() -> noteList.getSelectedIndex() >= 0,
 			this::createNewNote,
 			this::addExistingNote,
@@ -125,11 +125,7 @@ public class NoteListEditorDialog extends JDialog{
 			this::deleteNote,
 			null);
 
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(noteList,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		FontMetrics fm = noteList.getFontMetrics(noteList.getFont());
-		int rowHeight = fm.getHeight() + 2;
-		scrollPane.setPreferredSize(new Dimension(0, 4 * rowHeight + 10));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
@@ -153,7 +149,7 @@ public class NoteListEditorDialog extends JDialog{
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null && noteHandler != null){
+		if(rec != null){
 			return noteHandler.getDisplayName(rec);
 		}
 		return id;
@@ -162,10 +158,6 @@ public class NoteListEditorDialog extends JDialog{
 	// ----- Actions -----
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
@@ -182,10 +174,6 @@ public class NoteListEditorDialog extends JDialog{
 	}
 
 	private void addExistingNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -204,10 +192,6 @@ public class NoteListEditorDialog extends JDialog{
 		String id = noteIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);

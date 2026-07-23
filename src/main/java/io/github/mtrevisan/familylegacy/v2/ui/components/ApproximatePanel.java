@@ -3,7 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -91,10 +91,6 @@ public class ApproximatePanel extends JPanel{
 	}
 
 	private void browseCulturalNorm(){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(this, "Cultural Norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(Frame)SwingUtilities.getWindowAncestor(this), null, culturalNormHandler, selectedId -> {
 			if(selectedId != null){
@@ -123,7 +119,7 @@ public class ApproximatePanel extends JPanel{
 		String normId = FLEFRecordUtils.getChildValue(approxRecord, "CULTURAL_NORM");
 		if(normId != null){
 			culturalNormId = normId;
-			culturalNormField.setText(culturalNormHandler != null? culturalNormHandler.getDisplayName(null): normId);
+			culturalNormField.setText(culturalNormHandler.getDisplayName(null));
 			clearCulturalNormBtn.setEnabled(true);
 		}
 		String margin = FLEFRecordUtils.getChildValue(approxRecord, "MARGIN");
@@ -132,15 +128,13 @@ public class ApproximatePanel extends JPanel{
 	}
 
 	public void saveToRecord(FLEFRecord target){
-		if(!approximateCheck.isSelected()) return;
+		if(!approximateCheck.isSelected())
+			return;
+
 		FLEFRecordUtils.updateChildValue(target, "BASIS", (String)basisCombo.getSelectedItem());
-		if(culturalNormId != null && !culturalNormId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(target, "CULTURAL_NORM", culturalNormId);
-		}
+		FLEFRecordUtils.updateChildValue(target, "CULTURAL_NORM", culturalNormId);
 		String margin = marginField.getText().trim();
-		if(!margin.isEmpty()){
-			FLEFRecordUtils.updateChildValue(target, "MARGIN", margin);
-		}
+		FLEFRecordUtils.updateChildValue(target, "MARGIN", margin);
 	}
 
 	public void clear(){

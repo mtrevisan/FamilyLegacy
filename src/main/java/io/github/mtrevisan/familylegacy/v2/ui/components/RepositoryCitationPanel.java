@@ -29,8 +29,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -151,8 +152,7 @@ public class RepositoryCitationPanel extends JPanel{
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 
-		JScrollPane scrollPane = createScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 60));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -190,20 +190,9 @@ public class RepositoryCitationPanel extends JPanel{
 		return panel;
 	}
 
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
-	}
-
 	// ==================== Repository methods ====================
 
 	private void browseRepository(){
-		if(repositoryHandler == null){
-			JOptionPane.showMessageDialog(parent, "Repository handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, repositoryHandler, selectedId -> {
@@ -225,20 +214,14 @@ public class RepositoryCitationPanel extends JPanel{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, noteHandler, selectedId -> {
@@ -258,11 +241,6 @@ public class RepositoryCitationPanel extends JPanel{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -292,10 +270,6 @@ public class RepositoryCitationPanel extends JPanel{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
 			(parent instanceof Frame? (Frame)parent: null),
@@ -339,7 +313,7 @@ public class RepositoryCitationPanel extends JPanel{
 		if(repoId != null && !repoId.isEmpty()){
 			selectedRepositoryId = repoId;
 			FLEFRecord rec = model.getRecordById(repoId);
-			if(rec != null && repositoryHandler != null){
+			if(rec != null){
 				repositoryDisplayField.setText(repositoryHandler.getDisplayName(rec));
 			}
 			else{
@@ -382,7 +356,7 @@ public class RepositoryCitationPanel extends JPanel{
 		}
 
 		// Clear existing children
-		citationRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(citationRecord);
 
 		// REPOSITORY (1:1) - required
 		if(selectedRepositoryId != null && !selectedRepositoryId.isEmpty()){
@@ -391,13 +365,11 @@ public class RepositoryCitationPanel extends JPanel{
 
 		// LOCATION (0:1)
 		String location = locationField.getText().trim();
-		if(!location.isEmpty()){
-			FLEFRecordUtils.updateChildValue(citationRecord, "LOCATION", location);
-		}
+		FLEFRecordUtils.updateChildValue(citationRecord, "LOCATION", location);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(citationRecord, "NOTE", 1, id);
+			FLEFRecordUtils.addChild(citationRecord, "NOTE", id);
 		}
 
 		return citationRecord;

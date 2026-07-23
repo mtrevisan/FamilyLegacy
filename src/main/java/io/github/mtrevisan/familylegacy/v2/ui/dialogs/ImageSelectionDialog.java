@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.ImageItem;
 import io.github.mtrevisan.familylegacy.v2.ui.utils.SelectedImage;
 
@@ -54,7 +55,7 @@ public class ImageSelectionDialog extends JDialog{
 		previewLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		previewLabel.setVerticalAlignment(SwingConstants.CENTER);
 
-		JScrollPane previewScrollPane = new JScrollPane(previewLabel);
+		JScrollPane previewScrollPane = GUIHelper.createScrollPane(previewLabel);
 
 		// Split pane: image list on the left, preview on the right
 		JSplitPane splitPane = new JSplitPane(

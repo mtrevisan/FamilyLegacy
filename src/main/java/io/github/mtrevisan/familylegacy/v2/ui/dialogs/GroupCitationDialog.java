@@ -30,7 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -206,8 +207,7 @@ public class GroupCitationDialog extends JDialog{
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 		panel.setBorder(new TitledBorder("Note References"));
 
-		JScrollPane scrollPane = new JScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -248,10 +248,6 @@ public class GroupCitationDialog extends JDialog{
 	// ==================== Group methods ====================
 
 	private void browseGroup(){
-		if(groupHandler == null){
-			JOptionPane.showMessageDialog(this, "Group handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, groupHandler, selectedId -> {
 			if(selectedId != null){
@@ -274,7 +270,7 @@ public class GroupCitationDialog extends JDialog{
 	private void selectGroup(String groupId){
 		selectedGroupId = groupId;
 		FLEFRecord rec = model.getRecordById(groupId);
-		if(rec != null && groupHandler != null){
+		if(rec != null){
 			groupDisplayField.setText(groupHandler.getDisplayName(rec));
 		}
 		else{
@@ -287,20 +283,14 @@ public class GroupCitationDialog extends JDialog{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String noteId){
-		if(noteHandler != null){
-			FLEFRecord note = model.getRecordById(noteId);
-			if(note != null){
-				return noteHandler.getDisplayName(note);
-			}
+		FLEFRecord note = model.getRecordById(noteId);
+		if(note != null){
+			return noteHandler.getDisplayName(note);
 		}
 		return noteId;
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -318,10 +308,6 @@ public class GroupCitationDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String noteId = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord note = model.getRecordById(noteId);
 		if(note == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + noteId, "Error", JOptionPane.ERROR_MESSAGE);
@@ -347,10 +333,6 @@ public class GroupCitationDialog extends JDialog{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new java.util.HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
 		dialog.setVisible(true);
@@ -429,20 +411,16 @@ public class GroupCitationDialog extends JDialog{
 
 		// ROLE (0:1)
 		String role = roleField.getText().trim();
-		if(!role.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "ROLE", role);
-		}
+		FLEFRecordUtils.updateChildValue(record, "ROLE", role);
 
 		// CREDIBILITY (0:1)
 		String credibility = (String)credibilityCombo.getSelectedItem();
-		if(credibility != null && !credibility.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
-		}
+		FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
 
 		// NOTE (0:M)
 		FLEFRecordUtils.removeChildren(record, "NOTE");
 		for(String noteId : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", 2, noteId);
+			FLEFRecordUtils.addChild(record, "NOTE", noteId);
 		}
 
 		return record;

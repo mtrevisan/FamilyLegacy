@@ -39,7 +39,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,7 +61,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -186,7 +186,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	public PlaceDialog(Frame parent, FLEFModel model, FLEFRecord record){
 		super(parent, "Edit Place", model, record);
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(950, 800));
@@ -197,7 +197,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	public PlaceDialog(Frame parent, FLEFModel model){
 		super(parent, "New Place", model, null);
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(950, 800));
@@ -278,8 +278,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		JList<String> list = new JList<>(model);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		list.setVisibleRowCount(3);
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -395,8 +394,7 @@ public class PlaceDialog extends BaseRecordDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(addressList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(addressList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -552,10 +550,6 @@ public class PlaceDialog extends BaseRecordDialog{
 	}
 
 	private void browseSubordinate(){
-		if(placeHandler == null){
-			JOptionPane.showMessageDialog(this, "Place handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, placeHandler, selectedId -> {
 			if(selectedId != null){
@@ -637,7 +631,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		if(subId != null && !subId.isEmpty()){
 			selectedSubordinateId = subId;
 			FLEFRecord rec = model.getRecordById(subId);
-			if(rec != null && placeHandler != null){
+			if(rec != null){
 				subordinateDisplayField.setText(placeHandler.getDisplayName(rec));
 			}
 			else{
@@ -669,17 +663,6 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validateData(){
-		// MODIFICATION_STRUCTURE (1:1) - required
-		if(!modificationPanel.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Modification is required.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		if(!modificationPanel.validateRequiredFields()){
-			return false;
-		}
-
 		// Check that if MAP is present, LATITUDE and LONGITUDE are filled
 		boolean hasLat = !latitudeField.getText().trim().isEmpty();
 		boolean hasLon = !longitudeField.getText().trim().isEmpty();
@@ -697,8 +680,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveRecord(){
-		// Validation is already done by save() before calling this method
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
 		// NAME (0:1) with transcriptions
 		String name = nameField.getText().trim();
@@ -738,10 +720,10 @@ public class PlaceDialog extends BaseRecordDialog{
 			}
 
 			for(String id : entry.culturalNormIds){
-				FLEFRecordUtils.addChild(addrNode, "CULTURAL_NORM", 2, id);
+				FLEFRecordUtils.addChild(addrNode, "CULTURAL_NORM", id);
 			}
 			for(String id : entry.noteIds){
-				FLEFRecordUtils.addChild(addrNode, "NOTE", 2, id);
+				FLEFRecordUtils.addChild(addrNode, "NOTE", id);
 			}
 			for(FLEFRecord citation : entry.sourceCitations){
 				citation.setLevel(2);
@@ -772,19 +754,13 @@ public class PlaceDialog extends BaseRecordDialog{
 			mapNode.addChild(lonNode);
 
 			String cert = mapQualifiers.getCertainty();
-			if(cert != null && !cert.isEmpty()){
-				FLEFRecordUtils.updateChildValue(mapNode, "CERTAINTY", cert);
-			}
+			FLEFRecordUtils.updateChildValue(mapNode, "CERTAINTY", cert);
 			String cred = mapQualifiers.getCredibility();
-			if(cred != null && !cred.isEmpty()){
-				FLEFRecordUtils.updateChildValue(mapNode, "CREDIBILITY", cred);
-			}
+			FLEFRecordUtils.updateChildValue(mapNode, "CREDIBILITY", cred);
 		}
 
 		// SUBORDINATE (0:1)
-		if(selectedSubordinateId != null && !selectedSubordinateId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "SUBORDINATE", selectedSubordinateId);
-		}
+		FLEFRecordUtils.updateChildValue(record, "SUBORDINATE", selectedSubordinateId);
 
 		// MODIFICATION (1:1)
 		modificationPanel.saveToRecord(record);

@@ -31,7 +31,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -300,8 +301,7 @@ public class NameDialog extends JDialog{
 		else if(label.startsWith("Family Name")) familyList = list;
 		else if(label.startsWith("Family Nickname")) familyNicknameList = list;
 
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(200, 90));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		transPanel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -350,8 +350,7 @@ public class NameDialog extends JDialog{
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
 		panel.setBorder(new TitledBorder(title));
 
-		JScrollPane scrollPane = new JScrollPane(list);
-		scrollPane.setPreferredSize(new Dimension(200, 80));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -392,11 +391,9 @@ public class NameDialog extends JDialog{
 	// ==================== Cultural Norms methods ====================
 
 	private String getCulturalNormDisplayName(String id){
-		if(culturalNormHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return culturalNormHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return culturalNormHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -417,10 +414,6 @@ public class NameDialog extends JDialog{
 	}
 
 	private void addCulturalNorm(){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(this, "Cultural norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
@@ -439,10 +432,6 @@ public class NameDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String id = culturalNormIds.get(idx);
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(this, "Cultural norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Cultural norm not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -471,10 +460,6 @@ public class NameDialog extends JDialog{
 	 * Creates a new cultural norm record and automatically adds it to the list.
 	 */
 	private void createNewCulturalNorm(){
-		if(culturalNormHandler == null){
-			JOptionPane.showMessageDialog(this, "Cultural norm handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		// Remember the current IDs to detect the new one
 		Set<String> beforeIds = new HashSet<>(culturalNormIds);
 
@@ -498,11 +483,9 @@ public class NameDialog extends JDialog{
 	// ==================== Notes methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -523,10 +506,6 @@ public class NameDialog extends JDialog{
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -545,10 +524,6 @@ public class NameDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -577,10 +552,6 @@ public class NameDialog extends JDialog{
 	 * Creates a new note record and automatically adds it to the list.
 	 */
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		// Remember the current IDs to detect the new one
 		Set<String> beforeIds = new HashSet<>(noteIds);
 
@@ -604,11 +575,9 @@ public class NameDialog extends JDialog{
 	// ==================== Sources methods ====================
 
 	private String getSourceDisplayName(String id){
-		if(sourceHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return sourceHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -629,10 +598,6 @@ public class NameDialog extends JDialog{
 	}
 
 	private void addSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentFrame, model, sourceHandler, selectedId -> {
 			if(selectedId != null && !sourceIds.contains(selectedId)){
@@ -651,10 +616,6 @@ public class NameDialog extends JDialog{
 		if(idx == -1)
 			return;
 		String id = sourceIds.get(idx);
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Source not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -683,10 +644,6 @@ public class NameDialog extends JDialog{
 	 * Creates a new source record and automatically adds it to the list.
 	 */
 	private void createNewSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		// Remember the current IDs to detect the new one
 		Set<String> beforeIds = new HashSet<>(sourceIds);
 
@@ -910,7 +867,7 @@ public class NameDialog extends JDialog{
 	}
 
 	private void saveData(){
-		nameRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(nameRecord);
 
 		FLEFRecordUtils.updateChildValue(nameRecord, "TYPE", (String)typeCombo.getSelectedItem());
 		FLEFRecordUtils.updateChildValue(nameRecord, "TITLE", titleField.getText().trim());
@@ -943,13 +900,13 @@ public class NameDialog extends JDialog{
 		FLEFRecordUtils.removeChildren(nameRecord, "NOTE");
 		FLEFRecordUtils.removeChildren(nameRecord, "SOURCE");
 		for(String id : culturalNormIds){
-			FLEFRecordUtils.addChild(nameRecord, "CULTURAL_NORM", 1, id);
+			FLEFRecordUtils.addChild(nameRecord, "CULTURAL_NORM", id);
 		}
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(nameRecord, "NOTE", 1, id);
+			FLEFRecordUtils.addChild(nameRecord, "NOTE", id);
 		}
 		for(String id : sourceIds){
-			FLEFRecordUtils.addChild(nameRecord, "SOURCE", 1, id);
+			FLEFRecordUtils.addChild(nameRecord, "SOURCE", id);
 		}
 	}
 

@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,9 +57,7 @@ public class FLEFRecord{
 	}
 
 	public static FLEFRecord createChildWithValue(final int level, final String tag, final String value){
-		final FLEFRecord record = new FLEFRecord();
-		record.setLevel(level);
-		record.setTag(tag);
+		final FLEFRecord record = createChild(level, tag);
 		record.setValue(value);
 		return record;
 	}
@@ -198,15 +198,14 @@ public class FLEFRecord{
 	 * (i.e. wrapped in @...@, but not the special @VOID@ constant).
 	 */
 	public boolean isReference(){
-		return (value != null && value.startsWith("@") && value.endsWith("@")
-			 && !"@VOID@".equals(value));
+		return FLEFRecordUtils.isReference(value);
 	}
 
 	/**
 	 * Checks whether this record's value is the special @VOID@ constant.
 	 */
 	public boolean isVoid(){
-		return "@VOID@".equals(value);
+		return FLEFRecordUtils.isVoidReference(value);
 	}
 
 	/**
@@ -214,7 +213,7 @@ public class FLEFRecord{
 	 * (without the surrounding @ symbols). Otherwise returns {@code null}.
 	 */
 	public String getReferenceId(){
-		return (isReference()? value.substring(1, value.length() - 1): null);
+		return FLEFRecordUtils.extractXRef(value);
 	}
 
 	@Override

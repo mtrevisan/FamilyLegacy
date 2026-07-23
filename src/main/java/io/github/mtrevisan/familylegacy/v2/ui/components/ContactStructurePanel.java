@@ -30,8 +30,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TranscribedTextDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -130,7 +131,8 @@ public class ContactStructurePanel extends JPanel{
 	public ContactStructurePanel(FLEFModel model, Component parent){
 		this.model = model;
 		this.parent = parent;
-		this.modificationPanel = new ModificationPanel(model, (Dialog)parent);
+		this.modificationPanel = new ModificationPanel((Dialog)parent);
+
 		initComponents();
 	}
 
@@ -190,8 +192,7 @@ public class ContactStructurePanel extends JPanel{
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.setBorder(new TitledBorder("Caller ID Transcriptions"));
 
-		JScrollPane scrollPane = createScrollPane(transcriptionList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(transcriptionList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -226,21 +227,13 @@ public class ContactStructurePanel extends JPanel{
 		return panel;
 	}
 
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
-	}
-
 	// ==================== Notes Tab ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
 		panel.setBorder(new TitledBorder("Note References"));
 
-		JScrollPane scrollPane = createScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 70));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -376,11 +369,9 @@ public class ContactStructurePanel extends JPanel{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -394,10 +385,6 @@ public class ContactStructurePanel extends JPanel{
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Frame? (Frame)parent: null),
 			model, noteHandler, selectedId -> {
@@ -417,11 +404,6 @@ public class ContactStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -451,10 +433,6 @@ public class ContactStructurePanel extends JPanel{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(parent, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
 			(parent instanceof Frame? (Frame)parent: null),
@@ -552,7 +530,7 @@ public class ContactStructurePanel extends JPanel{
 		}
 
 		// Clear existing children
-		contactRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(contactRecord);
 
 		// CONTACT (1:1) - required
 		String contact = contactField.getText().trim();
@@ -562,9 +540,7 @@ public class ContactStructurePanel extends JPanel{
 
 		// TYPE (0:1)
 		String type = (String)typeCombo.getSelectedItem();
-		if(type != null && !type.isEmpty()){
-			FLEFRecordUtils.updateChildValue(contactRecord, "TYPE", type);
-		}
+		FLEFRecordUtils.updateChildValue(contactRecord, "TYPE", type);
 
 		// CALLER_ID (0:1) with its TRANSCRIBED_TEXT children
 		String callerId = callerIdField.getText().trim();
@@ -582,14 +558,12 @@ public class ContactStructurePanel extends JPanel{
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(contactRecord, "NOTE", 1, id);
+			FLEFRecordUtils.addChild(contactRecord, "NOTE", id);
 		}
 
 		// RESTRICTION (0:1)
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		if(restriction != null){
-			FLEFRecordUtils.updateChildValue(contactRecord, "RESTRICTION", restriction);
-		}
+		FLEFRecordUtils.updateChildValue(contactRecord, "RESTRICTION", restriction);
 
 		// MODIFICATION_STRUCTURE (1:1)
 		modificationPanel.saveToRecord(contactRecord);
@@ -618,8 +592,7 @@ public class ContactStructurePanel extends JPanel{
 			return false;
 		}
 
-		// MODIFICATION_STRUCTURE (1:1) - required if contact has data
-		return modificationPanel.validateRequiredFields();
+		return true;
 	}
 
 	/**
@@ -634,8 +607,7 @@ public class ContactStructurePanel extends JPanel{
 			!callerIdField.getText().trim().isEmpty() ||
 			!transcriptionModel.isEmpty() ||
 			!noteModel.isEmpty() ||
-			restrictionCheckBox.isSelected() ||
-			modificationPanel.hasData();
+			restrictionCheckBox.isSelected();
 	}
 
 	/**

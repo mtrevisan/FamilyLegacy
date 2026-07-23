@@ -24,30 +24,27 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ContactStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -60,12 +57,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -76,18 +70,19 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a REPOSITORY_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
  * REPOSITORY_RECORD :=
- *   n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
- *     +1 NAME <NAME_OF_REPOSITORY>    {1:1}
- *     +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {0:1}
- *     +1 PLACE @<XREF:PLACE>@    {0:1}
- *     +1 <<CONTACT_STRUCTURE>>    {0:M}
- *     +1 NOTE @<XREF:NOTE>@    {0:M}
- *     +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
+ *   +1 <<NAME_STRUCTURE>>    {1:M}
+ *   +1 CUSTODIAN @<XREF:INDIVIDUAL>@    {0:1}
+ *   +1 <<PLACE_STRUCTURE>>    {0:1}
+ *   +1 <<CONTACT_STRUCTURE>>    {0:M}
+ *   +1 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
 public class RepositoryDialog extends BaseRecordDialog{
@@ -95,104 +90,96 @@ public class RepositoryDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 3053114409506763765L;
 
-
+	// Handlers
 	static{
 		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new RepositoryHandler());
-		HandlerRegistry.register(new CalendarHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new EventHandler());
 	}
 
-	// ========== Basic fields ==========
-	private final JTextField idField = new JTextField(10);
-	private final JTextField nameField = new JTextField(30);
+	// UI components: Names {1:M}
+	private final DefaultListModel<String> nameListModel = new DefaultListModel<>();
+	private final JList<String> nameList = new JList<>(nameListModel);
+	private final List<FLEFRecord> nameRecords = new ArrayList<>();
 
-	// ========== INDIVIDUAL (0:1) ==========
-	private final JTextField individualDisplayField = new JTextField(20);
-	private final JButton individualBrowseBtn = new JButton("Browse...");
-	private final JButton individualClearBtn = new JButton("Clear");
-	private String selectedIndividualId;
+	// UI components: Custodian & Place
+	private final JTextField custodianDisplayField = new JTextField(20);
+	private final JButton custodianBrowseBtn = new JButton("Browse...");
+	private final JButton custodianEditBtn = new JButton("Edit...");
+	private final JButton custodianClearBtn = new JButton("Clear");
+	private String selectedCustodianId;
 
-	// ========== PLACE (0:1) ==========
 	private final JTextField placeDisplayField = new JTextField(20);
 	private final JButton placeBrowseBtn = new JButton("Browse...");
+	private final JButton placeEditBtn = new JButton("Edit...");
 	private final JButton placeClearBtn = new JButton("Clear");
-	private String selectedPlaceId;
+	private FLEFRecord placeStructureRecord;
 
-	// ========== CONTACT_STRUCTURE (0:M) ==========
+	// Contacts
 	private final DefaultListModel<String> contactListModel = new DefaultListModel<>();
 	private final JList<String> contactList = new JList<>(contactListModel);
 	private final List<FLEFRecord> contactRecords = new ArrayList<>();
 
-	// ========== NOTE (0:M) ==========
+	// Notes
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== MODIFICATION (1:1) ==========
+	// Panels
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 	private final ModificationPanel modificationPanel;
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
-	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
-	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
-	// ==================== Constructors ====================
-	public RepositoryDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Repository", model, record);
+	public static RepositoryDialog createNew(final Frame parent, final FLEFModel model){
+		return new RepositoryDialog(parent, model, null);
+	}
 
-		this.modificationPanel = new ModificationPanel(model, this);
+	public static RepositoryDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+
+		return new RepositoryDialog(parent, model, record);
+	}
+
+
+	private RepositoryDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, buildTitle(model, record), model, record);
+
+		modificationPanel = new ModificationPanel(this);
+
 		initComponents();
+
 		loadData();
-		setMinimumSize(new Dimension(900, 750));
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
-	public RepositoryDialog(Frame parent, FLEFModel model){
-		super(parent, "New Repository", model, null);
-
-		this.modificationPanel = new ModificationPanel(model, this);
-		initComponents();
-		loadData();
-		setMinimumSize(new Dimension(900, 750));
-		pack();
-		setLocationRelativeTo(parent);
+	private static String buildTitle(final FLEFModel model, final FLEFRecord record){
+		return (record == null
+			? "New Repository"
+			: "Edit Repository - " + record.getId());
 	}
 
-	// ==================== UI Initialization ====================
 	@Override
 	protected void initComponents(){
-		setLayout(new BorderLayout(10, 10));
+		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("References", createReferencesPanel());
 
-		JTabbedPane tabbedPane = new JTabbedPane();
+		final JPanel modificationContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
+		modificationContainer.add(modificationPanel, "grow");
+		tabbedPane.addTab("Modification", modificationContainer);
 
-		// --- Basic tab ---
-		tabbedPane.addTab("Basic", createBasicPanel());
+		setLayout(new MigLayout("fillx,top"));
+		add(tabbedPane, "growx");
 
-		// --- Contacts tab ---
-		tabbedPane.addTab("Contacts", createContactsPanel());
-
-		// --- Notes tab ---
-		tabbedPane.addTab("Notes", createNotesPanel());
-
-		// --- Modification tab ---
-		tabbedPane.addTab("Modification", modificationPanel);
-
-		add(tabbedPane, BorderLayout.CENTER);
-
-		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
 		buttonPanel.add(cancelButton);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -201,198 +188,366 @@ public class RepositoryDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
+	private JPanel createMainPanel(){
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		// NAME_STRUCTURE {1:M}
+		mainPanel.add(createNamesPanel(), "span 2,growx,wrap");
 
-		// ID (read-only)
-		idField.setEditable(false);
-		idField.setText(record.getId());
-		panel.add(new JLabel("ID:"), "align label");
-		panel.add(idField, "growx,wrap");
-
-		// NAME (1:1) - marked with an asterisk
-		panel.add(new JLabel("Name*:"), "align label");
-		panel.add(nameField, "growx,wrap");
-
-		// INDIVIDUAL (0:1)
-		panel.add(new JLabel("Individual:"), "align label");
-		individualDisplayField.setEditable(false);
-		individualDisplayField.setBackground(UIManager.getColor("TextField.background"));
+		// CUSTODIAN
+		mainPanel.add(new JLabel("Custodian:"), "align label");
+		custodianDisplayField.setEditable(false);
+		custodianDisplayField.setBackground(UIManager.getColor("TextField.background"));
 		JPanel indPanel = new JPanel(new BorderLayout(5, 5));
-		indPanel.add(individualDisplayField, BorderLayout.CENTER);
+		indPanel.add(custodianDisplayField, BorderLayout.CENTER);
 		JPanel indBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-		indBtnPanel.add(individualBrowseBtn);
-		indBtnPanel.add(individualClearBtn);
+		indBtnPanel.add(custodianBrowseBtn);
+		indBtnPanel.add(custodianEditBtn);
+		indBtnPanel.add(custodianClearBtn);
 		indPanel.add(indBtnPanel, BorderLayout.EAST);
-		panel.add(indPanel, "growx,wrap");
+		mainPanel.add(indPanel, "growx,wrap");
 
-		// PLACE (0:1)
-		panel.add(new JLabel("Place:"), "align label");
+		// PLACE
+		mainPanel.add(new JLabel("Place:"), "align label");
 		placeDisplayField.setEditable(false);
 		placeDisplayField.setBackground(UIManager.getColor("TextField.background"));
 		JPanel placePanel = new JPanel(new BorderLayout(5, 5));
 		placePanel.add(placeDisplayField, BorderLayout.CENTER);
 		JPanel placeBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 		placeBtnPanel.add(placeBrowseBtn);
+		placeBtnPanel.add(placeEditBtn);
 		placeBtnPanel.add(placeClearBtn);
 		placePanel.add(placeBtnPanel, BorderLayout.EAST);
-		panel.add(placePanel, "growx");
+		mainPanel.add(placePanel, "growx");
 
 		// Listeners
-		individualBrowseBtn.addActionListener(e -> browseIndividual());
-		individualClearBtn.addActionListener(e -> {
-			selectedIndividualId = null;
-			individualDisplayField.setText("");
+		custodianBrowseBtn.addActionListener(e -> browseIndividual());
+		custodianEditBtn.addActionListener(e -> editIndividual());
+		custodianClearBtn.addActionListener(e -> {
+			selectedCustodianId = null;
+			custodianDisplayField.setText(StringUtils.EMPTY);
 		});
 		placeBrowseBtn.addActionListener(e -> browsePlace());
+		placeEditBtn.addActionListener(e -> editPlace());
 		placeClearBtn.addActionListener(e -> {
-			selectedPlaceId = null;
-			placeDisplayField.setText("");
+			placeStructureRecord = null;
+			placeDisplayField.setText(StringUtils.EMPTY);
 		});
+
+		return mainPanel;
+	}
+
+
+	private JPanel createNamesPanel(){
+		final JPanel panel = new JPanel(new MigLayout("fillx,top"));
+		panel.setBorder(new TitledBorder("Names*"));
+
+		nameList.setVisibleRowCount(3);
+		nameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+		GUIHelper.installBehavior(nameList,
+			() -> nameList.getSelectedIndex() >= 0,
+			this::editName,
+			this::addName,
+			this::removeName,
+			builder -> {
+				builder.item("Add Name...", this::addName);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editName);
+				builder.selectionSensitiveItem("Remove", this::removeName);
+			});
+
+		final JScrollPane scrollPane = GUIHelper.createScrollPane(nameList);
+		panel.add(scrollPane, "growx,wrap");
+
+		return panel;
+	}
+
+	private String getNameDisplay(FLEFRecord nameRecord){
+		if(nameRecord == null){
+			return "[empty]";
+		}
+
+		FLEFRecord valueRecord = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		String val = (valueRecord != null && valueRecord.getValue() != null) ? valueRecord.getValue() : "[no text]";
+
+		FLEFRecord typeRecord = FLEFRecordUtils.findChild(nameRecord, "TYPE");
+		String type = (typeRecord != null) ? typeRecord.getValue() : null;
+
+		FLEFRecord localeRecord = (valueRecord != null) ? FLEFRecordUtils.findChild(valueRecord, "LOCALE") : null;
+		String locale = (localeRecord != null) ? localeRecord.getValue() : null;
+
+		StringBuilder sb = new StringBuilder(val);
+		if(StringUtils.isNotBlank(type) || StringUtils.isNotBlank(locale)){
+			sb.append(" (");
+			if(StringUtils.isNotBlank(type)){
+				sb.append("type: ").append(type);
+			}
+			if(StringUtils.isNotBlank(locale)){
+				if(StringUtils.isNotBlank(type)){
+					sb.append(", ");
+				}
+				sb.append("locale: ").append(locale);
+			}
+			sb.append(")");
+		}
+		return sb.toString();
+	}
+
+	private void addName(){
+		showNameEditDialog(null, -1);
+	}
+
+	private void editName(){
+		int idx = nameList.getSelectedIndex();
+		if(idx == -1){
+			return;
+		}
+		showNameEditDialog(nameRecords.get(idx), idx);
+	}
+
+	private void removeName(){
+		int idx = nameList.getSelectedIndex();
+		if(idx == -1){
+			return;
+		}
+		if(!showConfirm("Confirm", "Remove this name?")){
+			return;
+		}
+		nameRecords.remove(idx);
+		nameListModel.remove(idx);
+	}
+
+	private void showNameEditDialog(FLEFRecord existing, int index){
+		JDialog dialog = new JDialog(this, existing == null ? "Add Name" : "Edit Name", true);
+		dialog.setLayout(new BorderLayout(10, 10));
+
+		JPanel formPanel = new JPanel(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]5[]5[]"));
+
+		JTextField textValField = new JTextField(20);
+		JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "official", "colonial", "indigenous"});
+		typeCombo.setEditable(true);
+		JTextField localeField = new JTextField(10);
+
+		if(existing != null){
+			FLEFRecord valRec = FLEFRecordUtils.findChild(existing, "VALUE");
+			if(valRec != null){
+				textValField.setText(valRec.getValue());
+				FLEFRecord locRec = FLEFRecordUtils.findChild(valRec, "LOCALE");
+				if(locRec != null){
+					localeField.setText(locRec.getValue());
+				}
+			}
+			FLEFRecord typeRec = FLEFRecordUtils.findChild(existing, "TYPE");
+			if(typeRec != null){
+				typeCombo.setSelectedItem(typeRec.getValue());
+			}
+		}
+
+		formPanel.add(new JLabel("Name Value*:"), "align label");
+		formPanel.add(textValField, "growx, wrap");
+
+		formPanel.add(new JLabel("Type:"), "align label");
+		formPanel.add(typeCombo, "growx, wrap");
+
+		formPanel.add(new JLabel("Locale (BCP 47):"), "align label");
+		formPanel.add(localeField, "growx, wrap");
+
+		dialog.add(formPanel, BorderLayout.CENTER);
+
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		JButton okBtn = new JButton("OK");
+		JButton cancelBtn = new JButton("Cancel");
+		btnPanel.add(okBtn);
+		btnPanel.add(cancelBtn);
+		dialog.add(btnPanel, BorderLayout.SOUTH);
+
+		okBtn.addActionListener(e -> {
+			String nameVal = textValField.getText().trim();
+			if(nameVal.isEmpty()){
+				JOptionPane.showMessageDialog(dialog, "Name Value is required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+				return;
+			}
+
+			FLEFRecord nameRec = (existing != null) ? existing : new FLEFRecord();
+			FLEFRecordUtils.removeAllChildren(nameRec);
+
+			nameRec.setLevel(1);
+			nameRec.setTag("NAME");
+
+			// VALUE
+			FLEFRecord valRec = new FLEFRecord();
+			valRec.setLevel(2);
+			valRec.setTag("VALUE");
+			valRec.setValue(nameVal);
+
+			String locVal = localeField.getText().trim();
+			if(!locVal.isEmpty()){
+				FLEFRecord locRec = new FLEFRecord();
+				locRec.setLevel(3);
+				locRec.setTag("LOCALE");
+				locRec.setValue(locVal);
+				valRec.addChild(locRec);
+			}
+			nameRec.addChild(valRec);
+
+			// TYPE
+			String typeVal = ((String)typeCombo.getSelectedItem()).trim();
+			if(!typeVal.isEmpty()){
+				FLEFRecord typeRec = new FLEFRecord();
+				typeRec.setLevel(2);
+				typeRec.setTag("TYPE");
+				typeRec.setValue(typeVal);
+				nameRec.addChild(typeRec);
+			}
+
+			if(existing == null){
+				nameRecords.add(nameRec);
+				nameListModel.addElement(getNameDisplay(nameRec));
+			}
+			else{
+				nameRecords.set(index, nameRec);
+				nameListModel.set(index, getNameDisplay(nameRec));
+			}
+
+			dialog.dispose();
+		});
+
+		cancelBtn.addActionListener(e -> dialog.dispose());
+
+		dialog.pack();
+		dialog.setMinimumSize(new Dimension(400, 200));
+		dialog.setLocationRelativeTo(this);
+		dialog.setVisible(true);
+	}
+
+	// --- REFERENCES PANEL ---
+
+	private JPanel createReferencesPanel(){
+		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		panel.add(createContactsPanel(), "growx");
+		panel.add(createNotesPanel(), "growx");
 
 		return panel;
 	}
 
 	private JPanel createContactsPanel(){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		final JPanel panel = new JPanel(new MigLayout("fillx,top"));
 		panel.setBorder(new TitledBorder("Contact"));
 
+		contactList.setVisibleRowCount(4);
 		contactList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		contactList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editContact();
-				}
-			}
-		});
-		JScrollPane scrollPane = new JScrollPane(contactList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
-		panel.add(scrollPane, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton newBtn = new JButton("New Contact");
-		JButton editBtn = new JButton("Edit");
-		JButton deleteBtn = new JButton("Delete");
-		btnPanel.add(addBtn);
-		btnPanel.add(newBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(deleteBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
+		GUIHelper.installBehavior(contactList,
+			() -> contactList.getSelectedIndex() >= 0,
+			this::editContact,
+			this::addContact,
+			this::removeContact,
+			builder -> {
+				builder.item("New...", this::newContact);
+				builder.item("Add Existing...", this::addContact);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editContact);
+				builder.selectionSensitiveItem("Remove", this::removeContact);
+			});
 
-		contactList.addListSelectionListener(e -> {
-			boolean selected = contactList.getSelectedIndex() != -1;
-			editBtn.setEnabled(selected);
-			deleteBtn.setEnabled(selected);
-		});
-		editBtn.setEnabled(false);
-		deleteBtn.setEnabled(false);
-
-		addBtn.addActionListener(e -> addContact());
-		newBtn.addActionListener(e -> createNewContact());
-		editBtn.addActionListener(e -> editContact());
-		deleteBtn.addActionListener(e -> deleteContact());
+		final JScrollPane scrollPane = GUIHelper.createScrollPane(contactList);
+		panel.add(scrollPane, "growx,wrap");
 
 		return panel;
 	}
 
 	private JPanel createNotesPanel(){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
+		final JPanel panel = new JPanel(new MigLayout("fillx,top"));
 		panel.setBorder(new TitledBorder("Note"));
 
+		noteList.setVisibleRowCount(4);
 		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		noteList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editNote();
-				}
-			}
-		});
-		JScrollPane scrollPane = new JScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 80));
-		panel.add(scrollPane, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton newBtn = new JButton("New");
-		JButton editBtn = new JButton("Edit");
-		JButton deleteBtn = new JButton("Delete");
-		btnPanel.add(addBtn);
-		btnPanel.add(newBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(deleteBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
+		GUIHelper.installBehavior(noteList,
+			() -> noteList.getSelectedIndex() >= 0,
+			this::editNote,
+			this::addNote,
+			this::removeNote,
+			builder -> {
+				builder.item("New...", this::newNote);
+				builder.item("Add Existing...", this::addNote);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editNote);
+				builder.selectionSensitiveItem("Remove", this::removeNote);
+			});
 
-		noteList.addListSelectionListener(e -> {
-			boolean selected = noteList.getSelectedIndex() != -1;
-			editBtn.setEnabled(selected);
-			deleteBtn.setEnabled(selected);
-		});
-		editBtn.setEnabled(false);
-		deleteBtn.setEnabled(false);
-
-		addBtn.addActionListener(e -> addNote());
-		newBtn.addActionListener(e -> createNewNote());
-		editBtn.addActionListener(e -> editNote());
-		deleteBtn.addActionListener(e -> deleteNote());
+		final JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
+		panel.add(scrollPane, "growx,wrap");
 
 		return panel;
 	}
 
-	// ==================== Individual methods ====================
+	// --- HANDLERS & BROWSE ---
 
 	private void browseIndividual(){
-		if(individualHandler == null){
-			JOptionPane.showMessageDialog(this, "Individual handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, individualHandler, selectedId -> {
 			if(selectedId != null){
-				selectedIndividualId = selectedId;
-				FLEFRecord rec = model.getRecordById(selectedId);
-				if(rec != null){
-					individualDisplayField.setText(individualHandler.getDisplayName(rec));
-				}
-				else{
-					individualDisplayField.setText(selectedId);
-				}
+				selectedCustodianId = selectedId;
+				updateIndividualDisplay();
 			}
-		}
-		);
+		});
 		dialog.setVisible(true);
 	}
 
-	// ==================== Place methods ====================
+	private void editIndividual(){
+		final IndividualDialog dialog = IndividualDialog.createEdit(getParentFrame(), model, placeStructureRecord);
+		dialog.setVisible(true);
+
+		updateIndividualDisplay();
+	}
+
+	private void updateIndividualDisplay(){
+		if(selectedCustodianId != null && !selectedCustodianId.isEmpty()){
+			final FLEFRecord rec = model.getRecordById(selectedCustodianId);
+			final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+			if(rec != null)
+				custodianDisplayField.setText(individualHandler.getDisplayName(rec));
+			else
+				custodianDisplayField.setText(selectedCustodianId);
+		}
+	}
 
 	private void browsePlace(){
-		if(placeHandler == null){
-			JOptionPane.showMessageDialog(this, "Place handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, placeHandler, selectedId -> {
 			if(selectedId != null){
-				selectedPlaceId = selectedId;
-				FLEFRecord rec = model.getRecordById(selectedId);
-				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayName(rec));
-				}
-				else{
-					placeDisplayField.setText(selectedId);
-				}
+				placeStructureRecord = model.getRecordById(selectedId);
+				updatePlaceDisplay();
 			}
-		}
-		);
+		});
 		dialog.setVisible(true);
 	}
 
-	// ==================== Contact methods ====================
+	private void editPlace(){
+		final PlaceStructureDialog dialog = new PlaceStructureDialog(this, model, placeStructureRecord);
+		dialog.setVisible(true);
+
+		if(dialog.isSaved())
+			updatePlaceDisplay();
+	}
+
+	private void updatePlaceDisplay(){
+		if(placeStructureRecord != null && placeStructureRecord.getValue() != null){
+			final String id = placeStructureRecord.getValue();
+			final FLEFRecord rec = model.getRecordById(id);
+			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+			if(rec != null)
+				placeDisplayField.setText(placeHandler.getDisplayName(rec));
+			else
+				placeDisplayField.setText(id);
+		}
+	}
 
 	private String getContactDisplay(FLEFRecord contact){
 		String address = contact.getValue();
@@ -403,19 +558,23 @@ public class RepositoryDialog extends BaseRecordDialog{
 			sb.append(address);
 		}
 		if(type != null && !type.isEmpty()){
-			if(!sb.isEmpty())
+			if(!sb.isEmpty()){
 				sb.append(" (");
+			}
 			sb.append(type);
-			if(!sb.isEmpty() && !sb.toString().endsWith("("))
+			if(!sb.isEmpty() && !sb.toString().endsWith("(")){
 				sb.append(")");
+			}
 		}
 		if(callerId != null && !callerId.isEmpty()){
-			if(!sb.isEmpty())
+			if(!sb.isEmpty()){
 				sb.append(" - ");
+			}
 			sb.append(callerId);
 		}
-		if(sb.isEmpty())
+		if(sb.isEmpty()){
 			sb.append("[empty]");
+		}
 		return sb.toString();
 	}
 
@@ -470,8 +629,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	private void editContact(){
 		int idx = contactList.getSelectedIndex();
-		if(idx == -1)
+		if(idx == -1){
 			return;
+		}
 		FLEFRecord existing = contactRecords.get(idx);
 
 		ContactStructurePanel panel = new ContactStructurePanel(model, this);
@@ -513,28 +673,27 @@ public class RepositoryDialog extends BaseRecordDialog{
 		}
 	}
 
-	private void deleteContact(){
+	private void removeContact(){
 		int idx = contactList.getSelectedIndex();
-		if(idx == -1)
+		if(idx == -1){
 			return;
-		if(!showConfirm("Confirm", "Remove this contact?"))
+		}
+		if(!showConfirm("Confirm", "Remove this contact?")){
 			return;
+		}
 		contactRecords.remove(idx);
 		contactListModel.remove(idx);
 	}
 
-	private void createNewContact(){
+	private void newContact(){
 		addContact();
 	}
 
-	// ==================== Note methods ====================
-
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -555,10 +714,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -567,49 +723,47 @@ public class RepositoryDialog extends BaseRecordDialog{
 				noteDisplayMap.put(selectedId, display);
 				noteListModel.addElement(display);
 			}
-		}
-		);
+		});
 		dialog.setVisible(true);
 	}
 
 	private void editNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
+		final int idx = noteList.getSelectedIndex();
+		if(idx == -1){
 			return;
 		}
 
-		FLEFRecord rec = model.getRecordById(id);
+		final String id = noteIds.get(idx);
+		final FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+
+		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+		final JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
 		dialog.setVisible(true);
-		String newDisplay = getNoteDisplayName(id);
+
+		final String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteListModel.set(idx, newDisplay);
 	}
 
-	private void deleteNote(){
+	private void removeNote(){
 		int idx = noteList.getSelectedIndex();
-		if(idx == -1)
+		if(idx == -1){
 			return;
-		if(!showConfirm("Confirm", "Remove this note reference?"))
+		}
+		if(!showConfirm("Confirm", "Remove this note reference?")){
 			return;
+		}
 		String removedId = noteIds.remove(idx);
 		noteDisplayMap.remove(removedId);
 		noteListModel.remove(idx);
 	}
 
-	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
+	private void newNote(){
+		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
@@ -625,131 +779,113 @@ public class RepositoryDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Load Data ====================
 
 	@Override
 	protected void loadData(){
-		idField.setText(record.getId());
+		// 1. NAME_STRUCTURE {1:M}
+		nameRecords.clear();
+		nameListModel.clear();
+		for(FLEFRecord child : record.getChildren()){
+			if("NAME".equals(child.getTag())){
+				nameRecords.add(child);
+				nameListModel.addElement(getNameDisplay(child));
+			}
+		}
 
-		// NAME (1:1)
-		nameField.setText(FLEFRecordUtils.getChildValue(record, "NAME"));
-
-		// INDIVIDUAL (0:1)
-		String indId = FLEFRecordUtils.getChildValue(record, "INDIVIDUAL");
+		// 2. CUSTODIAN
+		String indId = FLEFRecordUtils.getChildValue(record, "CUSTODIAN");
 		if(indId != null && !indId.isEmpty()){
-			selectedIndividualId = indId;
-			FLEFRecord rec = model.getRecordById(indId);
-			if(rec != null && individualHandler != null){
-				individualDisplayField.setText(individualHandler.getDisplayName(rec));
-			}
-			else{
-				individualDisplayField.setText(indId);
-			}
+			selectedCustodianId = indId;
+			updateIndividualDisplay();
 		}
 
-		// PLACE (0:1)
-		String placeId = FLEFRecordUtils.getChildValue(record, "PLACE");
-		if(placeId != null && !placeId.isEmpty()){
-			selectedPlaceId = placeId;
-			FLEFRecord rec = model.getRecordById(placeId);
-			if(rec != null && placeHandler != null){
-				placeDisplayField.setText(placeHandler.getDisplayName(rec));
-			}
-			else{
-				placeDisplayField.setText(placeId);
-			}
-		}
+		// 3. PLACE_STRUCTURE
+		placeStructureRecord = FLEFRecordUtils.findChild(record, "PLACE");
+		updatePlaceDisplay();
 
-		// CONTACT_STRUCTURE (0:M)
+		// 4. CONTACT_STRUCTURE
 		loadContacts();
 
-		// NOTE (0:M)
+		// 5. NOTE
 		loadNotes();
 
-		// MODIFICATION (1:1)
+		// 6. MODIFICATION
 		modificationPanel.loadFromRecord(record);
 	}
 
-	// ==================== Validation ====================
-
 	@Override
 	protected boolean validateData(){
-		// NAME (1:1) - required
-		if(nameField.getText().trim().isEmpty()){
+		if(nameRecords.isEmpty()){
 			JOptionPane.showMessageDialog(this,
-				"NAME is required.\nPlease enter a repository name.",
+				"At least one NAME structure is required ({1:M}).",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			nameField.requestFocusInWindow();
+
+			// Ensure the tab containing valueArea is visible
+			tabbedPane.setSelectedComponent(mainPanel);
+
 			return false;
 		}
 
-		// MODIFICATION_STRUCTURE (1:1) - required
-		if(!modificationPanel.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Modification is required.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		return modificationPanel.validateRequiredFields();
+		return true;
 	}
-
-	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
-		// Validation is already done by save() before calling this method
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
-		// NAME (1:1)
-		String name = nameField.getText().trim();
-		if(!name.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "NAME", name);
+		// 1. NAME
+		for(final FLEFRecord nameRec : nameRecords){
+			nameRec.setLevel(1);
+			nameRec.setTag("NAME");
+			record.addChild(nameRec);
 		}
 
-		// INDIVIDUAL (0:1)
-		if(selectedIndividualId != null && !selectedIndividualId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "INDIVIDUAL", selectedIndividualId);
+		// 2. CUSTODIAN
+		if(StringUtils.isNotBlank(selectedCustodianId))
+			FLEFRecordUtils.addChild(record, "CUSTODIAN", FLEFRecordUtils.formatXRef(selectedCustodianId));
+
+		// 3. PLACE
+		FLEFRecordUtils.removeChildren(record, "PLACE");
+		if(placeStructureRecord != null && placeStructureRecord.getValue() != null){
+			placeStructureRecord.setLevel(1);
+			placeStructureRecord.setTag("PLACE");
+			record.addChild(placeStructureRecord);
 		}
 
-		// PLACE (0:1)
-		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PLACE", selectedPlaceId);
-		}
-
-		// CONTACT_STRUCTURE (0:M)
-		for(FLEFRecord contact : contactRecords){
+		// 4. CONTACT
+		for(final FLEFRecord contact : contactRecords){
 			contact.setLevel(1);
 			contact.setTag("CONTACT");
 			record.addChild(contact);
 		}
 
-		// NOTE (0:M)
-		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", 1, id);
-		}
+		// 5. NOTE
+		for(final String id : noteIds)
+			FLEFRecordUtils.addChild(record, "NOTE", FLEFRecordUtils.formatXRef(id));
 
-		// MODIFICATION (1:1)
+		// 6. MODIFICATION
 		modificationPanel.saveToRecord(record);
 
 		if(isNew){
 			model.addRecord(record);
 		}
-		dispose();
+
+//TODO to be removed
+FLEFFile.print(model);
+//		dispose();
 	}
 
-	// ==================== Overrides ====================
 
 	@Override
 	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "REPOSITORY");
+		return FLEFRecord.createMainRecord(generateNewId(), RepositoryHandler.TYPE);
 	}
 
 	@Override
 	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "REPOSITORY", "R");
+		return FLEFRecordUtils.generateNewId(model, RepositoryHandler.TYPE, RepositoryHandler.ID_PREFIX);
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{
@@ -760,49 +896,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 		FLEFModel model = new FLEFModel();
 
-		// Aggiungi un individuo di esempio
-		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
-		name.setTag("NAME");
-		FLEFRecord given = new FLEFRecord();
-		given.setLevel(2);
-		given.setTag("INDIVIDUAL_NAME");
-		given.setValue("John");
-		name.addChild(given);
-		FLEFRecord family = new FLEFRecord();
-		family.setLevel(2);
-		family.setTag("FAMILY_NAME");
-		family.setValue("Doe");
-		name.addChild(family);
-		ind.addChild(name);
-		model.addRecord(ind);
-
-		// Aggiungi un place di esempio
-		FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-		FLEFRecord placeName = new FLEFRecord();
-		placeName.setLevel(1);
-		placeName.setTag("NAME");
-		placeName.setValue("Rome");
-		place.addChild(placeName);
-		model.addRecord(place);
-
 		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Test Repository Dialog");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setLayout(new FlowLayout());
-			frame.setSize(400, 150);
-			frame.setLocationRelativeTo(null);
-
-			JButton btn = new JButton("New Repository");
-			btn.addActionListener(e -> {
-				RepositoryDialog dialog = new RepositoryDialog(frame, model);
-				dialog.setVisible(true);
-				System.out.println("Repository saved.");
-			});
-
-			frame.add(btn);
-			frame.setVisible(true);
+			RepositoryDialog dialog = RepositoryDialog.createNew(null, model);
+			dialog.setVisible(true);
 		});
 	}
 

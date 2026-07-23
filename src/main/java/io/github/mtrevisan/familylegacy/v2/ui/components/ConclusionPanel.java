@@ -33,16 +33,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /**
@@ -70,7 +68,7 @@ public class ConclusionPanel extends JPanel{
 		"", "unresearched", "conflicting_evidence", "preponderance_of_evidence", "proven", "disproven"
 	});
 	private final JTextArea narrativeArea = new JTextArea(4, 30);
-	private final JScrollPane narrativeScrollPane = new JScrollPane(narrativeArea);
+	private final JScrollPane narrativeScrollPane = GUIHelper.createScrollPane(narrativeArea);
 	private final JTextField dateField = new JTextField(15);
 
 	// RESOLVES (0:M) - References to conflicting events or associations
@@ -115,30 +113,29 @@ public class ConclusionPanel extends JPanel{
 		setLayout(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// CONTEXT (required)
+		// CONTEXT
 		add(new JLabel("Context:"), "align label");
 		contextField.setToolTipText("e.g., 'birth_date', 'marriage_place', 'parentage', 'death_cause', 'relationship_type'");
 		add(contextField, "growx,wrap");
 
-		// PROOF_STATUS (required)
+		// PROOF_STATUS
 		add(new JLabel("Proof Status:"), "align label");
 		add(proofStatusCombo, "growx,wrap");
 
-		// NARRATIVE (optional)
+		// NARRATIVE
 		add(new JLabel("Narrative:"), "align label,top");
 		narrativeArea.setLineWrap(true);
 		narrativeArea.setWrapStyleWord(true);
 		add(narrativeScrollPane, "growx,wrap");
 
-		// DATE (optional)
+		// DATE
 		add(new JLabel("Date:"), "align label");
-		dateField.setToolTipText("ISO 8601 date (e.g., 2026-07-18)");
 		add(dateField, "growx,wrap");
 
-		// RESOLVES (0:M)
+		// RESOLVES
 		add(createResolvesPanel(), "span 2,growx,wrap");
 
-		// PREFERRED (0:1)
+		// PREFERRED
 		add(createPreferredPanel(), "span 2,growx,wrap");
 
 		// RESEARCH (0:M)
@@ -156,7 +153,7 @@ public class ConclusionPanel extends JPanel{
 		resolvesList.setVisibleRowCount(3);
 		resolvesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(resolvesList,
+		GUIHelper.installBehavior(resolvesList,
 			() -> resolvesList.getSelectedIndex() >= 0,
 			this::editResolves,                // double‑click → edit
 			this::addResolves,                 // INSERT key → add
@@ -168,7 +165,7 @@ public class ConclusionPanel extends JPanel{
 				builder.selectionSensitiveItem("Remove", this::removeResolves);
 			});
 
-		JScrollPane scrollPane = createScrollPane(resolvesList);
+		JScrollPane scrollPane = GUIHelper.createScrollPane(resolvesList);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
@@ -267,7 +264,7 @@ public class ConclusionPanel extends JPanel{
 		researchList.setVisibleRowCount(3);
 		researchList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(researchList,
+		GUIHelper.installBehavior(researchList,
 			() -> researchList.getSelectedIndex() >= 0,
 			this::editResearch,                // double‑click → edit
 			this::addResearch,                 // INSERT key → add
@@ -279,18 +276,12 @@ public class ConclusionPanel extends JPanel{
 				builder.selectionSensitiveItem("Remove", this::removeResearch);
 			});
 
-		JScrollPane scrollPane = createScrollPane(researchList);
+		JScrollPane scrollPane = GUIHelper.createScrollPane(researchList);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
 
 	private void addResearch(){
-		if(researchHandler == null){
-			JOptionPane.showMessageDialog(parentDialog, "Research Status handler not registered!",
-				"Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, researchHandler,
 			selectedId -> {
@@ -307,8 +298,6 @@ public class ConclusionPanel extends JPanel{
 		if(idx == -1) return;
 
 		String id = researchIds.get(idx);
-		if(researchHandler == null) return;
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(parentDialog, "Research record not found: " + id,
@@ -334,10 +323,8 @@ public class ConclusionPanel extends JPanel{
 	}
 
 	private String getResearchDisplayName(String id){
-		if(researchHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null) return researchHandler.getDisplayName(rec);
-		}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null) return researchHandler.getDisplayName(rec);
 		return id;
 	}
 
@@ -349,7 +336,7 @@ public class ConclusionPanel extends JPanel{
 		sourceList.setVisibleRowCount(3);
 		sourceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehaviour(sourceList,
+		GUIHelper.installBehavior(sourceList,
 			() -> sourceList.getSelectedIndex() >= 0,
 			this::editSource,                  // double‑click → edit
 			this::addSource,                   // INSERT key → add
@@ -361,25 +348,12 @@ public class ConclusionPanel extends JPanel{
 				builder.selectionSensitiveItem("Remove", this::removeSource);
 			});
 
-		JScrollPane scrollPane = createScrollPane(sourceList);
+		JScrollPane scrollPane = GUIHelper.createScrollPane(sourceList);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
 
-	private JScrollPane createScrollPane(final JList<?> list){
-		JScrollPane scrollPane = new JScrollPane(new ScrollableContainerHost(list,
-			ScrollableContainerHost.ScrollType.VERTICAL));
-		scrollPane.setPreferredSize(list.getPreferredScrollableViewportSize());
-		return scrollPane;
-	}
-
 	private void addSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(parentDialog, "Source handler not registered!",
-				"Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, sourceHandler,
 			selectedId -> {
@@ -424,7 +398,7 @@ public class ConclusionPanel extends JPanel{
 		String sourceId = citation.getValue();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;
@@ -504,64 +478,35 @@ public class ConclusionPanel extends JPanel{
 		FLEFRecord record = targetRecord != null? targetRecord: new FLEFRecord();
 		// Level and tag will be set by the caller
 
-		// CONTEXT (required)
+		// CONTEXT
 		String context = contextField.getText().trim();
-		if(!context.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "CONTEXT", context);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "CONTEXT");
-		}
+		FLEFRecordUtils.updateChildValue(record, "CONTEXT", context);
 
-		// PROOF_STATUS (required)
+		// PROOF_STATUS
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
-		if(proofStatus != null && !proofStatus.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PROOF_STATUS", proofStatus);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "PROOF_STATUS");
-		}
+		FLEFRecordUtils.updateChildValue(record, "PROOF_STATUS", proofStatus);
 
-		// NARRATIVE (optional)
+		// NARRATIVE
 		String narrative = narrativeArea.getText().trim();
-		if(!narrative.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "NARRATIVE", narrative);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "NARRATIVE");
-		}
+		FLEFRecordUtils.updateChildValue(record, "NARRATIVE", narrative);
 
-		// DATE (optional)
+		// DATE
 		String date = dateField.getText().trim();
-		if(!date.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "DATE", date);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "DATE");
-		}
+		FLEFRecordUtils.updateChildValue(record, "DATE", date);
 
 		// RESOLVES (0:M)
 		FLEFRecordUtils.removeChildren(record, "RESOLVES");
 		for(String id : resolvesIds){
-			if(id != null && !id.isEmpty()){
-				FLEFRecordUtils.addChild(record, "RESOLVES", 1, id);
-			}
+			FLEFRecordUtils.addChild(record, "RESOLVES", id);
 		}
 
 		// PREFERRED (0:1)
-		if(preferredId != null && !preferredId.isEmpty()){
-			FLEFRecordUtils.updateChildValue(record, "PREFERRED", preferredId);
-		}
-		else{
-			FLEFRecordUtils.removeChildren(record, "PREFERRED");
-		}
+		FLEFRecordUtils.updateChildValue(record, "PREFERRED", preferredId);
 
 		// RESEARCH (0:M)
 		FLEFRecordUtils.removeChildren(record, "RESEARCH");
 		for(String id : researchIds){
-			if(id != null && !id.isEmpty()){
-				FLEFRecordUtils.addChild(record, "RESEARCH", 1, id);
-			}
+			FLEFRecordUtils.addChild(record, "RESEARCH", id);
 		}
 
 		// SOURCE_CITATION (0:M)

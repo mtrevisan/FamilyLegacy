@@ -27,9 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
-import javax.swing.*;
 import java.awt.*;
 
 
@@ -136,9 +135,7 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 //				if(group != null){
 //					// Use the group's display name from its handler
 //					RecordTypeHandler<?> handler = HandlerRegistry.getHandler(GroupHandler.TYPE);
-//					if(handler != null){
-//						groupDisplay = handler.getDisplayName(group);
-//					}
+//					groupDisplay = handler.getDisplayName(group);
 //				}
 //			}
 //		}

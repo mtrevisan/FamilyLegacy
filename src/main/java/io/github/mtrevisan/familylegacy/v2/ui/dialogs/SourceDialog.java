@@ -40,7 +40,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.utils.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -138,7 +139,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 		this.datePanel = new DatePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(950, 800));
@@ -160,7 +161,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 		this.datePanel = new DatePanel(model, this);
 		this.documentPanel = new DocumentStructurePanel(model, this);
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(950, 800));
@@ -266,8 +267,7 @@ public class SourceDialog extends BaseRecordDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(repositoryList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(repositoryList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -310,8 +310,7 @@ public class SourceDialog extends BaseRecordDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(sourceCitationList);
-		scrollPane.setPreferredSize(new Dimension(200, 100));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(sourceCitationList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -354,8 +353,7 @@ public class SourceDialog extends BaseRecordDialog{
 				}
 			}
 		});
-		JScrollPane scrollPane = new JScrollPane(noteList);
-		scrollPane.setPreferredSize(new Dimension(200, 80));
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
@@ -388,10 +386,6 @@ public class SourceDialog extends BaseRecordDialog{
 	// ==================== Place methods ====================
 
 	private void browsePlace(){
-		if(placeHandler == null){
-			JOptionPane.showMessageDialog(this, "Place handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, placeHandler, selectedId -> {
 			if(selectedId != null){
@@ -413,7 +407,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	private String getRepositoryCitationDisplay(FLEFRecord citation){
 		String repoId = citation.getValue();
-		if(repoId != null && repositoryHandler != null){
+		if(repoId != null){
 			FLEFRecord rec = model.getRecordById(repoId);
 			if(rec != null){
 				String display = repositoryHandler.getDisplayName(rec);
@@ -439,10 +433,6 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private void addRepositoryCitation(){
-		if(repositoryHandler == null){
-			JOptionPane.showMessageDialog(this, "Repository handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, repositoryHandler, selectedId -> {
 			if(selectedId != null){
@@ -456,9 +446,7 @@ public class SourceDialog extends BaseRecordDialog{
 				citation.setLevel(1);
 				citation.setTag("REPOSITORY_CITATION");
 				citation.setValue(selectedId);
-				if(location != null && !location.trim().isEmpty()){
-					FLEFRecordUtils.updateChildValue(citation, "LOCATION", location.trim());
-				}
+				FLEFRecordUtils.updateChildValue(citation, "LOCATION", location.trim());
 				repositoryRecords.add(citation);
 				repositoryListModel.addElement(getRepositoryCitationDisplay(citation));
 			}
@@ -475,11 +463,6 @@ public class SourceDialog extends BaseRecordDialog{
 		String repoId = existing.getValue();
 		String location = FLEFRecordUtils.getChildValue(existing, "LOCATION");
 
-		if(repositoryHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Repository handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, repositoryHandler, selectedId -> {
 			if(selectedId != null){
@@ -493,16 +476,11 @@ public class SourceDialog extends BaseRecordDialog{
 					location != null? location: ""
 				);
 				existing.setValue(selectedId);
-				if(newLocation != null && !newLocation.trim().isEmpty()){
-					FLEFRecordUtils.updateChildValue(existing, "LOCATION", newLocation.trim());
-				}
-				else{
-					FLEFRecordUtils.removeChildren(existing, "LOCATION");
+				FLEFRecordUtils.updateChildValue(existing, "LOCATION", newLocation.trim());
 				}
 				repositoryRecords.set(idx, existing);
 				repositoryListModel.set(idx, getRepositoryCitationDisplay(existing));
 			}
-		}
 		);
 		dialog.setVisible(true);
 	}
@@ -518,10 +496,6 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private void createNewRepository(){
-		if(repositoryHandler == null){
-			JOptionPane.showMessageDialog(this, "Repository handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		JDialog dialog = repositoryHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
 	}
@@ -572,7 +546,7 @@ public class SourceDialog extends BaseRecordDialog{
 		String sourceId = citation.getValue();
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null && sourceHandler != null){
+			if(rec != null){
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;
@@ -581,10 +555,6 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private void createNewSource(){
-		if(sourceHandler == null){
-			JOptionPane.showMessageDialog(this, "Source handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
 	}
@@ -592,11 +562,9 @@ public class SourceDialog extends BaseRecordDialog{
 	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
-		if(noteHandler != null){
-			FLEFRecord rec = model.getRecordById(id);
-			if(rec != null){
-				return noteHandler.getDisplayName(rec);
-			}
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null){
+			return noteHandler.getDisplayName(rec);
 		}
 		return id;
 	}
@@ -617,10 +585,6 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private void addNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			getParentFrame(), model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -639,11 +603,6 @@ public class SourceDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		String id = noteIds.get(idx);
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(getParentFrame(), "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
@@ -668,10 +627,6 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private void createNewNote(){
-		if(noteHandler == null){
-			JOptionPane.showMessageDialog(this, "Note handler not registered!", "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
 		dialog.setVisible(true);
@@ -709,7 +664,7 @@ public class SourceDialog extends BaseRecordDialog{
 			if(placeId != null && !placeId.isEmpty()){
 				selectedPlaceId = placeId;
 				FLEFRecord rec = model.getRecordById(placeId);
-				if(rec != null && placeHandler != null){
+				if(rec != null){
 					placeDisplayField.setText(placeHandler.getDisplayName(rec));
 				}
 				else{
@@ -753,20 +708,14 @@ public class SourceDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validateData(){
-		if(!modificationPanel.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Modification is required.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-		return modificationPanel.validateRequiredFields();
+		return true;
 	}
 
 	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
-		record.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(record);
 
 		// ---- Save bound simple fields ----
 		bindingManager.saveToRecord(record);
@@ -785,13 +734,9 @@ public class SourceDialog extends BaseRecordDialog{
 			place.setValue(selectedPlaceId);
 			record.addChild(place);
 			String pCert = placeQualifiers.getCertainty();
-			if(pCert != null && !pCert.isEmpty()){
-				FLEFRecordUtils.updateChildValue(place, "CERTAINTY", pCert);
-			}
+			FLEFRecordUtils.updateChildValue(place, "CERTAINTY", pCert);
 			String pCred = placeQualifiers.getCredibility();
-			if(pCred != null && !pCred.isEmpty()){
-				FLEFRecordUtils.updateChildValue(place, "CREDIBILITY", pCred);
-			}
+			FLEFRecordUtils.updateChildValue(place, "CREDIBILITY", pCred);
 		}
 
 		// Date
@@ -830,7 +775,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 		// Notes
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", 1, id);
+			FLEFRecordUtils.addChild(record, "NOTE", id);
 		}
 
 		// Modification
