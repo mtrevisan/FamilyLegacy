@@ -90,6 +90,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 3053114409506763765L;
 
+
 	// Handlers
 	static{
 		HandlerRegistry.register(new IndividualHandler());
@@ -263,47 +264,50 @@ public class RepositoryDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	private String getNameDisplay(FLEFRecord nameRecord){
-		if(nameRecord == null){
-			return "[empty]";
-		}
-
-		FLEFRecord valueRecord = FLEFRecordUtils.findChild(nameRecord, "VALUE");
-		String val = (valueRecord != null && valueRecord.getValue() != null) ? valueRecord.getValue() : "[no text]";
-
-		FLEFRecord typeRecord = FLEFRecordUtils.findChild(nameRecord, "TYPE");
-		String type = (typeRecord != null) ? typeRecord.getValue() : null;
-
-		FLEFRecord localeRecord = (valueRecord != null) ? FLEFRecordUtils.findChild(valueRecord, "LOCALE") : null;
-		String locale = (localeRecord != null) ? localeRecord.getValue() : null;
-
-		StringBuilder sb = new StringBuilder(val);
-		if(StringUtils.isNotBlank(type) || StringUtils.isNotBlank(locale)){
-			sb.append(" (");
-			if(StringUtils.isNotBlank(type)){
-				sb.append("type: ").append(type);
-			}
-			if(StringUtils.isNotBlank(locale)){
-				if(StringUtils.isNotBlank(type)){
-					sb.append(", ");
-				}
-				sb.append("locale: ").append(locale);
-			}
-			sb.append(")");
-		}
-		return sb.toString();
-	}
-
 	private void addName(){
-		showNameEditDialog(null, -1);
+		final NameStructureDialog dialog = new NameStructureDialog(this, model, null);
+		dialog.setVisible(true);
+
+		if(dialog.isSaved()){
+			final FLEFRecord nameRecord = dialog.getNameRecord();
+			nameRecords.add(nameRecord);
+			nameListModel.addElement(getNameDisplay(nameRecord));
+		}
 	}
 
 	private void editName(){
-		int idx = nameList.getSelectedIndex();
-		if(idx == -1){
+		final int idx = nameList.getSelectedIndex();
+		if(idx == -1)
 			return;
+
+		final FLEFRecord existing = nameRecords.get(idx);
+		final NameStructureDialog dialog = new NameStructureDialog(this, model, existing);
+		dialog.setVisible(true);
+
+		if(dialog.isSaved()){
+			final FLEFRecord updated = dialog.getNameRecord();
+			nameRecords.set(idx, updated);
+			nameListModel.set(idx, getNameDisplay(updated));
 		}
-		showNameEditDialog(nameRecords.get(idx), idx);
+	}
+
+	private String getNameDisplay(final FLEFRecord nameRecord){
+		if(nameRecord == null)
+			return "[empty]";
+
+		final FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		final String text = valueRec != null ? valueRec.getValue() : null;
+		final String type = FLEFRecordUtils.getChildValue(nameRecord, "TYPE");
+
+		final StringBuilder sb = new StringBuilder();
+		if(StringUtils.isNotBlank(text))
+			sb.append(text);
+		else
+			sb.append("[unnamed]");
+
+		if(StringUtils.isNotBlank(type))
+			sb.append(" (").append(type).append(")");
+		return sb.toString();
 	}
 
 	private void removeName(){

@@ -356,8 +356,8 @@ n FILE <RESOURCE_URI>    {1:1}	/* Resource URI (following RFC 3986 specification
   +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:M}	/* A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source. */
     +2 TYPE <EXTRACT_TYPE>    {1:1}	/* Can be 'transcript' (indicates a complete, verbatim copy of the document), 'extract' (a verbatim copy of part of the document), or 'abstract' (a reworded summarization of the document content). */
     +2 LOCALE <EXTRACT_LOCALE_CODE>    {0:1}	/* The locale identifier for the source (as defined by IETF BCP 47: https://tools.ietf.org/html/bcp47). */
-  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 NOTE @<XREF:NOTE>@    {0:M}
+  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 
 
 DATE_STRUCTURE :=	/* Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should use the simpler DATE datatype instead. */

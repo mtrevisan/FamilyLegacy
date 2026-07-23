@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -22,47 +22,50 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0, fillx", "[grow]", "[]5[]"));
+		// 2 colonne con larghezza equivalente distribuita (50% / 50%)
+		setLayout(new MigLayout("ins 0, fillx, top", "[grow, fill][grow, fill]", "[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		JPanel fromPanelBorder = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		final JPanel fromPanelBorder = new JPanel(new MigLayout("ins 5, fillx", "[right]rel[grow]"));
 		fromPanelBorder.setBorder(new TitledBorder("From"));
-		fromPanelBorder.add(fromPanel, "growx,wrap");
-		add(fromPanelBorder, "growx,wrap");
+		fromPanelBorder.add(fromPanel, "growx");
+		add(fromPanelBorder, "growx"); // Niente wrap: il prossimo pannello va a destra
 
-		JPanel toPanelBorder = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		final JPanel toPanelBorder = new JPanel(new MigLayout("ins 5, fillx", "[right]rel[grow]"));
 		toPanelBorder.setBorder(new TitledBorder("To"));
-		toPanelBorder.add(toPanel, "growx,wrap");
-		add(toPanelBorder, "growx,wrap");
+		toPanelBorder.add(toPanel, "growx");
+		add(toPanelBorder, "growx");
 	}
 
-	public void loadFromRecord(FLEFRecord spanningRecord){
+	public void loadFromRecord(final FLEFRecord spanningRecord){
 		clear();
-		if(spanningRecord == null) return;
+		if(spanningRecord == null){
+			return;
+		}
 
-		FLEFRecord from = FLEFRecordUtils.findChild(spanningRecord, "FROM");
+		final FLEFRecord from = FLEFRecordUtils.findChild(spanningRecord, "FROM");
 		if(from != null){
-			FLEFRecord qualified = FLEFRecordUtils.findChild(from, "QUALIFIED_DATE");
+			final FLEFRecord qualified = FLEFRecordUtils.findChild(from, "QUALIFIED_DATE");
 			if(qualified != null){
 				fromPanel.loadFromQualifiedDate(qualified);
 			}
 		}
 
-		FLEFRecord to = FLEFRecordUtils.findChild(spanningRecord, "TO");
+		final FLEFRecord to = FLEFRecordUtils.findChild(spanningRecord, "TO");
 		if(to != null){
-			FLEFRecord qualified = FLEFRecordUtils.findChild(to, "QUALIFIED_DATE");
+			final FLEFRecord qualified = FLEFRecordUtils.findChild(to, "QUALIFIED_DATE");
 			if(qualified != null){
 				toPanel.loadFromQualifiedDate(qualified);
 			}
 		}
 	}
 
-	public FLEFRecord saveToRecord(FLEFRecord target){
-		FLEFRecord record = target != null? target: new FLEFRecord();
+	public FLEFRecord saveToRecord(final FLEFRecord target){
+		final FLEFRecord record = target != null ? target : new FLEFRecord();
 
 		if(fromPanel.hasData()){
-			FLEFRecord from = FLEFRecord.createChild(1, "FROM");
-			FLEFRecord qualified = fromPanel.saveToQualifiedDate(null);
+			final FLEFRecord from = FLEFRecord.createChild(1, "FROM");
+			final FLEFRecord qualified = fromPanel.saveToQualifiedDate(null);
 			if(qualified != null && !qualified.getChildren().isEmpty()){
 				from.addChild(qualified);
 				record.addChild(from);
@@ -70,15 +73,15 @@ public class SpanningDatePanel extends JPanel{
 		}
 
 		if(toPanel.hasData()){
-			FLEFRecord to = FLEFRecord.createChild(1, "TO");
-			FLEFRecord qualified = toPanel.saveToQualifiedDate(null);
+			final FLEFRecord to = FLEFRecord.createChild(1, "TO");
+			final FLEFRecord qualified = toPanel.saveToQualifiedDate(null);
 			if(qualified != null && !qualified.getChildren().isEmpty()){
 				to.addChild(qualified);
 				record.addChild(to);
 			}
 		}
 
-		return record.hasChildren()? record: null;
+		return record.hasChildren() ? record : null;
 	}
 
 	public void clear(){
@@ -91,7 +94,6 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	public boolean validateRequiredFields(){
-		// At least one of FROM or TO is required
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
 				"At least one of From or To is required for SPANNING date.",
@@ -101,9 +103,7 @@ public class SpanningDatePanel extends JPanel{
 		if(fromPanel.hasData() && !fromPanel.validateRequiredFields()){
 			return false;
 		}
-		if(toPanel.hasData() && !toPanel.validateRequiredFields()){
-			return false;
-		}
-		return true;
+		return !toPanel.hasData() || toPanel.validateRequiredFields();
 	}
+
 }
