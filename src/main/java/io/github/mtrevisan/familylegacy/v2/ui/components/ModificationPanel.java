@@ -61,7 +61,7 @@ public class ModificationPanel extends JPanel{
 	private final Dialog parentDialog;
 
 	// Creation fields
-	private final JTextField creationDateField = new JTextField(15);
+	private String creationDate;
 	private final JTextArea creationCommentArea = new JTextArea(2, 30);
 
 	// Update entries
@@ -113,9 +113,6 @@ public class ModificationPanel extends JPanel{
 		// CREATION section
 		JPanel creationPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]", "[]5[]"));
 		creationPanel.setBorder(new TitledBorder("Creation"));
-
-		creationPanel.add(new JLabel("Date:"), "align label");
-		creationPanel.add(creationDateField, "growx,wrap");
 
 		creationPanel.add(new JLabel("Comment:"), "align label,top");
 		creationCommentArea.setLineWrap(true);
@@ -268,8 +265,7 @@ public class ModificationPanel extends JPanel{
 		// Find CREATION
 		FLEFRecord creation = FLEFRecordUtils.findChild(record, "CREATION");
 		if(creation != null){
-			String date = FLEFRecordUtils.getChildValue(creation, "DATE");
-			creationDateField.setText(date != null? date: "");
+			creationDate = FLEFRecordUtils.getChildValue(creation, "DATE");
 
 			// Load creation comment if present (non-standard, but we keep it)
 			String comment = FLEFRecordUtils.getChildValue(creation, "COMMENT");
@@ -301,21 +297,20 @@ public class ModificationPanel extends JPanel{
 		FLEFRecordUtils.removeChildren(record, "UPDATE");
 
 		// CREATION (required)
-		String creationDate = creationDateField.getText().trim();
-		if(!creationDate.isEmpty()){
-			FLEFRecord creation = FLEFRecord.createChild(1, "CREATION");
-			FLEFRecord date = FLEFRecord.createChildWithValue(2, "DATE", creationDate);
-			creation.addChild(date);
+		if(creationDate == null || creationDate.isEmpty())
+			//FIXME use now()
+			creationDate = "2000-01-01";
+		FLEFRecord creation = FLEFRecord.createChild(1, "CREATION");
+		creation.addChild(FLEFRecord.createChildWithValue(2, "DATE", creationDate));
 
-			// Save creation comment if present
-			String creationComment = creationCommentArea.getText().trim();
-			if(!creationComment.isEmpty()){
-				FLEFRecord comment = FLEFRecord.createChildWithValue(2, "COMMENT", creationComment);
-				creation.addChild(comment);
-			}
-
-			record.addChild(creation);
+		// Save creation comment if present
+		String creationComment = creationCommentArea.getText().trim();
+		if(!creationComment.isEmpty()){
+			FLEFRecord comment = FLEFRecord.createChildWithValue(2, "COMMENT", creationComment);
+			creation.addChild(comment);
 		}
+
+		record.addChild(creation);
 
 		// UPDATE entries
 		for(UpdateEntry entry : updateEntries){
@@ -333,7 +328,6 @@ public class ModificationPanel extends JPanel{
 	}
 
 	public void clear(){
-		creationDateField.setText("");
 		creationCommentArea.setText("");
 		updateEntries.clear();
 		updateModel.clear();
@@ -345,7 +339,7 @@ public class ModificationPanel extends JPanel{
 	 * @return {@code true} if CREATION date is present, otherwise {@code false}
 	 */
 	public boolean hasData(){
-		return !creationDateField.getText().trim().isEmpty();
+		return true;
 	}
 
 	/**
@@ -354,21 +348,6 @@ public class ModificationPanel extends JPanel{
 	 * @return {@code true} if CREATION date is present and valid, otherwise {@code false}
 	 */
 	public boolean validateRequiredFields(){
-		String creationDate = creationDateField.getText().trim();
-		if(creationDate.isEmpty()){
-			JOptionPane.showMessageDialog(parentDialog,
-				"CREATION date is required.\nPlease add a CREATION date.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
-		if(!creationDate.matches("\\d{4}-\\d{2}-\\d{2}")){
-			JOptionPane.showMessageDialog(parentDialog,
-				"CREATION date must be in ISO 8601 format (YYYY-MM-DD).",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-			return false;
-		}
-
 		// Validate each update date if present
 		for(UpdateEntry entry : updateEntries){
 			if(!entry.date.matches("\\d{4}-\\d{2}-\\d{2}")){
