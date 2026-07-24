@@ -1,5 +1,5 @@
 PROTOCOL_VERSION=0.1.0
-PROTOCOL_DATE=2026-07-16
+PROTOCOL_DATE=2026-07-24
 PROTOCOL_SOURCE=localhost
 PROTOCOL_DESCRIPTION=Family LEgacy Format - DRAFT Release 0.1.0
 
@@ -103,7 +103,8 @@ n @<XREF:EVENT>@ EVENT    {1:1}
 
 EVENT_STRUCTURE :=	/* Shared descriptive structure containing the details associated with an EVENT record. */
 n DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or group, or the value of an attribute. */
-n <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date of the event. */
+n DATE    {0:1}	/* A DATE_STRUCTURE object giving the date of the event. */
+  +1 <<DATE_STRUCTURE>>    {1:1}
 n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the event. */
 n AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
 n CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
@@ -122,7 +123,8 @@ n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
   +1 INDIVIDUAL @<XREF:INDIVIDUAL>@    {1:1}	/* The individual to whom this attribute applies. */
   +1 TYPE [ CHARACTERISTIC | RESIDENCE | OCCUPATION | POSSESSION | MILITARY_RANK | CASTE | ETHNICITY | CITIZENSHIP | SSN | TITLE | CHILDREN_COUNT | MARRIAGES_COUNT | RELIGION | <ATTRIBUTE_TYPE> ]    {1:1}	/* The type of attribute. Custom types are permitted. */
   +1 VALUE <TEXT>    {0:1}	/* The value of the attribute (optional if the attribute type implies its own value, e.g., "BURIAL" implies the person was buried). */
-  +1 <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
+  +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
+    +2 <<DATE_STRUCTURE>>    {1:1}
   +1 VALID_FROM    {0:1}
     +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
   +1 VALID_TO    {0:1}
@@ -175,7 +177,8 @@ n @<XREF:GROUP_ATTRIBUTE>@ GROUP_ATTRIBUTE    {1:1}
   +1 GROUP @<XREF:GROUP>@    {1:1}	/* An xref ID of the group to which this attribute applies. */
   +1 TYPE [ RESIDENCE | CHILDREN_COUNT | SOCIAL_CLASS | <ATTRIBUTE_TYPE> ]    {1:1}	/* The classification of the attribute. Known values include RESIDENCE (place where the group is known to reside), CHILDREN_COUNT (reported number of children associated with the group), and SOCIAL_CLASS (economic or social classification of the group). Custom values are permitted. */
   +1 VALUE <TEXT>    {0:1}	/* The value assigned to the attribute. */
-  +1 <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
+  +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
+    +2 <<DATE_STRUCTURE>>    {1:1}
   +1 VALID_FROM    {0:1}
     +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
   +1 VALID_TO    {0:1}
@@ -222,7 +225,8 @@ n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
   +1 TYPE <RELATIONSHIP_TYPE>    {1:1}	/* The specific nature of the relationship of the subject toward the object. Known values include: 'biological_child' (Relationship exists through birth), 'adoptive_child' (Relationship created through legal adoption), 'foster_child' (Temporary foster-care relationship), 'guarded_child' (Court-appointed legal guardianship relationship), 'step_child' (Relationship created through marriage and not through descent), 'civil_spouse' (Marriage recognized by civil authority), 'religious_spouse', (Marriage recognized by religious authority), 'customary_spouse' (Marriage recognized by local custom or tradition), 'cohabiting_partner' (Non-marital domestic partnership), 'engaged_partner' (Promise or agreement to marry), 'group_member' (Membership in a group), 'associate' (General association), ... */
   +1 ROLE <RELATIONSHIP_ROLE>    {0:1}	/* Indicates the function, position, capacity or responsibility held by the subject within the relationship. For example 'president', 'member', 'resident' (in a neighborhood), 'head of household', 'tribal leader'. */
   +1 STATUS <RELATIONSHIP_STATUS>    {0:1}	/* Indicates the current status of the relationship. Known values include: 'active' (Relationship currently exists), 'ended' (Relationship no longer exists), 'disputed' (Relationship is challenged by conflicting evidence), 'proposed' (Relationship has been suggested but not sufficiently demonstrated), 'unknown' (Relationship status is not known) */
-  +1 <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date the relationship was established, recognized, or documented. */
+  +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date the relationship was established, recognized, or documented. */
+    +2 <<DATE_STRUCTURE>>    {1:1}
   +1 VALID_FROM    {0:1}	/* The date from which this relationship was known to be in effect. */
     +2 <<DATE_STRUCTURE>>    {1:1}
   +1 VALID_TO    {0:1}	/* The date until which this relationship was known to be in effect. */
@@ -328,8 +332,9 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}
   +1 TITLE    {1:M}	/* The title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part. */
     +2 <<TEXT_VALUE>>    {1:1}
   +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
+  +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date this source was created. */
+    +2 <<DATE_STRUCTURE>>    {1:1}
   +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the place this source was created. */
-  +1 <<DATE_STRUCTURE>>    {0:1}	/* A DATE_STRUCTURE object giving the date this source was created. */
   +1 PUBLISHER <SOURCE_PUBLISHER>    {0:1}	/* Name of the publisher of the publication. */
   +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
   +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
@@ -361,14 +366,13 @@ n FILE <RESOURCE_URI>    {1:1}	/* Resource URI (following RFC 3986 specification
 
 
 DATE_STRUCTURE :=	/* Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should use the simpler DATE datatype instead. */
-n DATE    {1:1}	/* A date object giving the date that this event happened (usually derived from the original input). */
-  +1 <<DATE_VALUE>>    {1:1}
-  +1 <<SOURCE_CITATION>>    {0:M}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+n <<DATE_VALUE>>    {1:1}
+n <<SOURCE_CITATION>>    {0:M}
+n <<EVIDENCE_QUALIFIERS>>    {0:1}
 
 DATE_VALUE :=	/* Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time. */
 [
-n VALUE    {1:1}	/* A single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence. */
+n POINT    {1:1}	/* A single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence. */
   +1 <<QUALIFIED_DATE>>    {1:1}
 |
 n BOUNDED    {1:1}	/* The exact date is unknown but is known to fall within the specified interval. The interval represents uncertainty about the date itself, not the duration of the fact. An omitted bound represents an open-ended limit. */
@@ -393,14 +397,14 @@ n APPROXIMATE    {0:1}	/* Present only when this specific point is itself an est
 
 SINGLE_DATE :=	/* A single point in time expressed at an explicitly declared level of precision. The granularity is determined by the selected representation and is not inferred from formatting conventions. */
 [
-n ISO <DATE>    {1:1}	/* A calendar date (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
+n FULL_DATE <DATE>    {1:1}	/* A calendar date (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
+  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
+|
+n DECADE <DECADE_START_YEAR>    {1:1}	/* A decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'. */
   +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
 |
 n CENTURY <ORDINAL>    {1:1}	/* A century designation, such as 15 for the 15th century. Optional qualifiers may indicate a subdivision of the century. */
   +1 PART <CENTURY_PART>    {0:1}	/* A subdivision of the century: 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter', 'first_half', 'second_half', 'early', 'mid', 'late'. */
-  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
-|
-n DECADE <DECADE_START_YEAR>    {1:1}	/* A decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'. */
   +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
 ]
 
@@ -408,7 +412,8 @@ n DECADE <DECADE_START_YEAR>    {1:1}	/* A decade identified by its starting yea
 HISTORIC_EVENT_RECORD :=	/* A significant historical event that may provide context for genealogical research. Historic events can explain migrations, mortality patterns, social changes, legal reforms, economic conditions, territorial changes, epidemics, wars, natural disasters, or scientific discoveries that affected individuals, families, groups, or places. Unlike EVENT records, a HISTORIC_EVENT is not normally tied to a specific individual or group. It exists primarily to provide historical, legal, social, environmental, or political context. */
 n @<XREF:HISTORIC_EVENT>@ HISTORIC_EVENT    {1:1}
   +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
-  +1 <<DATE_STRUCTURE>>    {0:1}	/* The date on which this historic event happened. */
+  +1 DATE    {0:1}	/* The date on which this historic event happened. */
+    +2 <<DATE_STRUCTURE>>    {1:1}
   +1 <<PLACE_STRUCTURE>>    {0:1}	/* The place in which this historic event happened. */
   +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<SOURCE_CITATION>>    {0:M}
@@ -454,6 +459,7 @@ n RESTRICTION    {1:1}
 MODIFICATION_STRUCTURE :=	/* Audit trail describing when the structure was created and subsequently modified. This information concerns the record itself, not the historical subject represented by the record. */
 n CREATION    {1:1}	/* An object giving the date of the creation of this structure. */
   +1 DATE <DATE>    {1:1}	/* A date object giving the date of the creation of this structure (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
+  +1 COMMENT <TEXT>    {0:1}
 n UPDATE    {0:M}	/* An object giving the date of the changing of this structure. */
   +1 DATE <DATE>    {1:1}	/* A date object giving the date of the changing of this structure (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
   +1 COMMENT <TEXT>    {0:1}

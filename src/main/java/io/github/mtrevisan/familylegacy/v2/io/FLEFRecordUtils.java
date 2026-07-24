@@ -232,24 +232,31 @@ public final class FLEFRecordUtils{
 		return null;
 	}
 
+	public static boolean removeChildren(final FLEFRecord parent, final String... paths){
+		boolean result = true;
+		for(final String path : paths)
+			result &= removeChildren(parent, path);
+		return result;
+	}
+
 	/**
 	 * Removes all children with the given tag.
 	 *
 	 * @param parent	The parent record.
 	 * @param path   The dot‑separated tag path to remove (e.g. "ROOT.RESTRICTION[2].CODE").
 	 */
-	public static void removeChildren(final FLEFRecord parent, final String path){
+	public static boolean removeChildren(final FLEFRecord parent, final String path){
 		if(parent == null || StringUtils.isEmpty(path))
-			return;
+			return false;
 
 		final String[] segments = path.split("\\.");
 		final Matcher matcher = PATH_SEGMENT.matcher(segments[segments.length - 1]);
 		if(!matcher.matches())
-			return;
+			return false;
 
 		if(matcher.group(2) != null){
 			removeChild(parent, path);
-			return;
+			return true;
 		}
 
 		final FLEFRecord targetParent = navigateToParent(parent, segments);
@@ -257,6 +264,7 @@ public final class FLEFRecordUtils{
 			final String tag = matcher.group(1);
 			targetParent.getChildren().removeIf(child -> tag.equals(child.getTag()));
 		}
+		return true;
 	}
 
 	/**

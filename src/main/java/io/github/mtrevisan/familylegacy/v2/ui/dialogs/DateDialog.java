@@ -32,7 +32,7 @@ public class DateDialog extends JDialog{
 	public DateDialog(Dialog parent, FLEFModel model, String title, FLEFRecord initialDate){
 		super(parent, title, true);
 
-		datePanel = new DatePanel(model, this);
+		datePanel = new DatePanel(this, model);
 		datePanel.loadFromRecord(initialDate);
 
 		initComponents();

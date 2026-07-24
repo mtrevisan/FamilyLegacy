@@ -1,30 +1,31 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 
 
 /**
- * Common approximate fields for a single date.
+ * Panel for editing the APPROXIMATE structure of a date.
+ * <p>
+ * Structure (real tags):
+ * APPROXIMATE
+ * +1 BASIS <APPROXIMATION_BASIS>
+ * +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@
+ * +1 MARGIN <DURATION>
  */
 public class ApproximatePanel extends JPanel{
+
+	private final FLEFModel model;
+
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
 	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{"", "stated", "calculated", "conventional", "unspecified"});
 	private final JTextField culturalNormField = new JTextField(15);
@@ -35,7 +36,8 @@ public class ApproximatePanel extends JPanel{
 
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
-	ApproximatePanel(){
+	public ApproximatePanel(FLEFModel model){
+		this.model = model;
 		initComponents();
 	}
 
@@ -91,11 +93,21 @@ public class ApproximatePanel extends JPanel{
 	}
 
 	private void browseCulturalNorm(){
+		if(model == null){
+			JOptionPane.showMessageDialog(this, "Model not available.", "Error", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(Frame)SwingUtilities.getWindowAncestor(this), null, culturalNormHandler, selectedId -> {
+			(Frame)SwingUtilities.getWindowAncestor(this), model, culturalNormHandler, selectedId -> {
 			if(selectedId != null){
 				culturalNormId = selectedId;
-				culturalNormField.setText(culturalNormHandler.getDisplayName(null));
+				FLEFRecord rec = model.getRecordById(selectedId);
+				if(rec != null){
+					culturalNormField.setText(culturalNormHandler.getDisplayName(rec));
+				}
+				else{
+					culturalNormField.setText(selectedId);
+				}
 				clearCulturalNormBtn.setEnabled(true);
 			}
 		});
@@ -108,33 +120,72 @@ public class ApproximatePanel extends JPanel{
 		clearCulturalNormBtn.setEnabled(false);
 	}
 
+	/**
+	 * Loads from an APPROXIMATE record.
+	 *
+	 * @param approxRecord the APPROXIMATE record, or null
+	 */
 	public void loadFromRecord(FLEFRecord approxRecord){
+		clear();
 		if(approxRecord == null){
-			clear();
 			return;
 		}
 		approximateCheck.setSelected(true);
+
 		String basis = FLEFRecordUtils.getChildValue(approxRecord, "BASIS");
 		basisCombo.setSelectedItem(basis != null? basis: "");
+
 		String normId = FLEFRecordUtils.getChildValue(approxRecord, "CULTURAL_NORM");
 		if(normId != null){
 			culturalNormId = normId;
-			culturalNormField.setText(culturalNormHandler.getDisplayName(null));
+			FLEFRecord rec = model != null? model.getRecordById(normId): null;
+			if(rec != null){
+				culturalNormField.setText(culturalNormHandler.getDisplayName(rec));
+			}
+			else{
+				culturalNormField.setText(normId);
+			}
 			clearCulturalNormBtn.setEnabled(true);
 		}
+
 		String margin = FLEFRecordUtils.getChildValue(approxRecord, "MARGIN");
 		marginField.setText(margin != null? margin: "");
+
 		updateEnabled();
 	}
 
-	public void saveToRecord(FLEFRecord target){
-		if(!approximateCheck.isSelected())
+	/**
+	 * Saves the approximate data into an APPROXIMATE child of the given parent record.
+	 * If the check box is not selected, does nothing.
+	 *
+	 * @param parent the parent record (e.g., VALUE, NOT_BEFORE, etc.)
+	 */
+	public void saveToRecord(FLEFRecord parent){
+		if(!approximateCheck.isSelected()){
 			return;
+		}
 
-		FLEFRecordUtils.updateChildValue(target, "BASIS", (String)basisCombo.getSelectedItem());
-		FLEFRecordUtils.updateChildValue(target, "CULTURAL_NORM", culturalNormId);
+		// Create an APPROXIMATE node as a child of parent
+		FLEFRecord approx = FLEFRecord.createChild(1, "APPROXIMATE");
+
+		String basis = (String)basisCombo.getSelectedItem();
+		if(basis != null && !basis.isEmpty()){
+			approx.addChild(FLEFRecord.createChildWithValue(2, "BASIS", basis));
+		}
+
+		if(culturalNormId != null && !culturalNormId.isEmpty()){
+			approx.addChild(FLEFRecord.createChildWithValue(2, "CULTURAL_NORM", culturalNormId));
+		}
+
 		String margin = marginField.getText().trim();
-		FLEFRecordUtils.updateChildValue(target, "MARGIN", margin);
+		if(!margin.isEmpty()){
+			approx.addChild(FLEFRecord.createChildWithValue(2, "MARGIN", margin));
+		}
+
+		// Only add if there is at least one child
+		if(approx.hasChildren()){
+			parent.addChild(approx);
+		}
 	}
 
 	public void clear(){
@@ -167,4 +218,5 @@ public class ApproximatePanel extends JPanel{
 		}
 		return true;
 	}
+
 }

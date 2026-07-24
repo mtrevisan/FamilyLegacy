@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import net.miginfocom.swing.MigLayout;
 
@@ -12,12 +13,25 @@ import javax.swing.border.TitledBorder;
 
 /**
  * Panel for SPANNING date (duration).
+ * <p>
+ * Structure (real tags):
+ * SPANNING
+ * +1 FROM
+ * (ISO | CENTURY | DECADE)
+ * APPROXIMATE (optional)
+ * +1 TO
+ * (ISO | CENTURY | DECADE)
+ * APPROXIMATE (optional)
+ * <p>
  */
 public class SpanningDatePanel extends JPanel{
-	private final SingleDatePanel fromPanel = new SingleDatePanel();
-	private final SingleDatePanel toPanel = new SingleDatePanel();
 
-	SpanningDatePanel(){
+	private final SingleDatePanel fromPanel;
+	private final SingleDatePanel toPanel;
+
+	public SpanningDatePanel(FLEFModel model){
+		this.fromPanel = new SingleDatePanel(model);
+		this.toPanel = new SingleDatePanel(model);
 		initComponents();
 	}
 
@@ -25,62 +39,60 @@ public class SpanningDatePanel extends JPanel{
 		setLayout(new MigLayout("ins 0, fillx, top", "[grow, fill][grow, fill]", "[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		final JPanel fromPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		JPanel fromPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		fromPanelBorder.setBorder(new TitledBorder("From"));
 		fromPanelBorder.add(fromPanel, "growx");
 		add(fromPanelBorder, "growx");
 
-		final JPanel toPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		JPanel toPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		toPanelBorder.setBorder(new TitledBorder("To"));
 		toPanelBorder.add(toPanel, "growx");
 		add(toPanelBorder, "growx");
 	}
 
-	public void loadFromRecord(final FLEFRecord spanningRecord){
+	public void loadFromRecord(FLEFRecord spanningRecord){
 		clear();
-		if(spanningRecord == null){
-			return;
-		}
+		if(spanningRecord == null) return;
 
-		final FLEFRecord from = FLEFRecordUtils.findChild(spanningRecord, "FROM");
+		FLEFRecord from = FLEFRecordUtils.findChild(spanningRecord, "FROM");
 		if(from != null){
-			final FLEFRecord qualified = FLEFRecordUtils.findChild(from, "QUALIFIED_DATE");
-			if(qualified != null){
-				fromPanel.loadFromQualifiedDate(qualified);
-			}
+			fromPanel.loadFromRecord(from);
 		}
 
-		final FLEFRecord to = FLEFRecordUtils.findChild(spanningRecord, "TO");
+		FLEFRecord to = FLEFRecordUtils.findChild(spanningRecord, "TO");
 		if(to != null){
-			final FLEFRecord qualified = FLEFRecordUtils.findChild(to, "QUALIFIED_DATE");
-			if(qualified != null){
-				toPanel.loadFromQualifiedDate(qualified);
-			}
+			toPanel.loadFromRecord(to);
 		}
 	}
 
-	public FLEFRecord saveToRecord(final FLEFRecord target){
-		final FLEFRecord record = (target != null ? target : new FLEFRecord());
+	public FLEFRecord saveToRecord(FLEFRecord target){
+		FLEFRecord record = target != null? target: new FLEFRecord();
 
 		if(fromPanel.hasData()){
-			final FLEFRecord from = FLEFRecord.createChild(1, "FROM");
-			final FLEFRecord qualified = fromPanel.saveToQualifiedDate(null);
-			if(qualified != null && !qualified.getChildren().isEmpty()){
-				from.addChild(qualified);
+			FLEFRecord from = FLEFRecord.createChild(1, "FROM");
+			FLEFRecord dateNode = fromPanel.saveToRecord(null);
+			if(dateNode != null && dateNode.hasChildren()){
+				for(FLEFRecord child : dateNode.getChildren()){
+					child.setLevel(2);
+					from.addChild(child);
+				}
 				record.addChild(from);
 			}
 		}
 
 		if(toPanel.hasData()){
-			final FLEFRecord to = FLEFRecord.createChild(1, "TO");
-			final FLEFRecord qualified = toPanel.saveToQualifiedDate(null);
-			if(qualified != null && !qualified.getChildren().isEmpty()){
-				to.addChild(qualified);
+			FLEFRecord to = FLEFRecord.createChild(1, "TO");
+			FLEFRecord dateNode = toPanel.saveToRecord(null);
+			if(dateNode != null && dateNode.hasChildren()){
+				for(FLEFRecord child : dateNode.getChildren()){
+					child.setLevel(2);
+					to.addChild(child);
+				}
 				record.addChild(to);
 			}
 		}
 
-		return record.hasChildren() ? record : null;
+		return record.hasChildren()? record: null;
 	}
 
 	public void clear(){
@@ -89,7 +101,7 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		return (fromPanel.hasData() || toPanel.hasData());
+		return fromPanel.hasData() || toPanel.hasData();
 	}
 
 	public boolean validateRequiredFields(){

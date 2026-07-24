@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
@@ -7,9 +8,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -26,18 +26,23 @@ import java.util.Set;
  * The actual record structure uses the following tags:
  * <pre>
  * n NAME    {1:1}
- *   +1 VALUE <TEXT>    {1:1}
+ *   +1 VALUE <TEXT>    {1:1}          (the name text)
  *   +1 TYPE <NAME_TYPE>    {0:1}
  *   +1 LOCALE <LOCALE_CODE>    {0:1}
  *   +1 VALID_FROM    {0:1}
- *     +2 <<DATE_STRUCTURE>>    {1:1}
+ *     +2 DATE    {1:1}               (wrapper for DATE_STRUCTURE)
+ *       +3 POINT_DATE | BOUNDED | SPANNING    {1:1}
  *   +1 VALID_TO    {0:1}
- *     +2 <<DATE_STRUCTURE>>    {1:1}
- *   +1 <<TEXT_VALUE_VARIANT>>    {0:M}
+ *     +2 DATE    {1:1}               (wrapper for DATE_STRUCTURE)
+ *       +3 POINT_DATE | BOUNDED | SPANNING    {1:1}
+ *   +1 PHONETIC    {0:M}
+ *   +1 TRANSCRIPTION    {0:M}
  *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<SOURCE_CITATION>>    {0:M}
+ *   +1 SOURCE @<XREF:SOURCE>@    {0:M}
  * </pre>
- * Note: the TEXT_VALUE_VARIANT nodes are represented as PHONETIC or TRANSCRIPTION.
+ * <p>
+ * Note: there are no intermediate {@code DATE_VALUE}, {@code QUALIFIED_DATE},
+ * or {@code SINGLE_DATE} tags in the actual file.
  */
 public class NameListPanel extends JPanel{
 
@@ -86,24 +91,13 @@ public class NameListPanel extends JPanel{
 
 	/**
 	 * Internal representation of a NAME with full TEXT_VALUE support.
-	 * <p>
-	 * This corresponds to:
-	 * NAME
-	 * +1 VALUE (the text value)
-	 * +1 TYPE (optional)
-	 * +1 LOCALE (optional)
-	 * +1 VALID_FROM (optional DATE_STRUCTURE)
-	 * +1 VALID_TO (optional DATE_STRUCTURE)
-	 * +1 PHONETIC / TRANSCRIPTION (variants)
-	 * +1 NOTE
-	 * +1 SOURCE_CITATION
 	 */
 	private static class NameEntry{
 		private final String value;
 		private final String type;
 		private final String locale;
-		private final FLEFRecord validFrom;   // DATE_STRUCTURE record
-		private final FLEFRecord validTo;     // DATE_STRUCTURE record
+		private final FLEFRecord validFrom;   // DATE wrapper (tag "DATE")
+		private final FLEFRecord validTo;     // DATE wrapper (tag "DATE")
 		private final List<VariantEntry> variants;
 		private final List<String> noteIds;
 		private final List<FLEFRecord> sourceCitations;
@@ -134,11 +128,11 @@ public class NameListPanel extends JPanel{
 			if(validFrom != null || validTo != null){
 				sb.append(" [");
 				if(validFrom != null){
-					sb.append("from ").append(extractDateValue(validFrom));
+					sb.append("from ").append(extractDateSummary(validFrom));
 				}
 				if(validTo != null){
 					if(validFrom != null) sb.append(" ");
-					sb.append("to ").append(extractDateValue(validTo));
+					sb.append("to ").append(extractDateSummary(validTo));
 				}
 				sb.append("]");
 			}
@@ -155,44 +149,26 @@ public class NameListPanel extends JPanel{
 		}
 
 		/**
-		 * Extracts a human-readable date string from a DATE_STRUCTURE record.
+		 * Extracts a human-readable summary from a DATE wrapper (tag "DATE").
+		 * The wrapper can contain POINT_DATE, BOUNDED, or SPANNING.
 		 */
-		private static String extractDateValue(final FLEFRecord record){
-			if(record == null){
-				return "";
+		private static String extractDateSummary(FLEFRecord dateWrapper){
+			if(dateWrapper == null) return "";
+
+			// Look for POINT_DATE (single date)
+			FLEFRecord pointDate = FLEFRecordUtils.findChild(dateWrapper, "POINT_DATE");
+			if(pointDate != null){
+				return formatPointDate(pointDate);
 			}
 
-			// The record is a DATE_STRUCTURE, which contains a DATE node.
-			FLEFRecord dateNode = FLEFRecordUtils.findChild(record, "DATE");
-			if(dateNode == null){
-				return "";
-			}
-
-			// DATE has a DATE_VALUE child.
-			FLEFRecord dateValue = FLEFRecordUtils.findChild(dateNode, "DATE_VALUE");
-			if(dateValue == null){
-				return "";
-			}
-
-			return extractDateValueNode(dateValue);
-		}
-
-		private static String extractDateValueNode(final FLEFRecord dateValue){
-			// Try VALUE -> QUALIFIED_DATE -> SINGLE_DATE -> ISO
-			FLEFRecord valueNode = FLEFRecordUtils.findChild(dateValue, "VALUE");
-			if(valueNode != null){
-				FLEFRecord qualified = FLEFRecordUtils.findChild(valueNode, "QUALIFIED_DATE");
-				return formatQualifiedDate(qualified);
-			}
-
-			// Try BOUNDED
-			FLEFRecord bounded = FLEFRecordUtils.findChild(dateValue, "BOUNDED");
+			// Look for BOUNDED
+			FLEFRecord bounded = FLEFRecordUtils.findChild(dateWrapper, "BOUNDED");
 			if(bounded != null){
 				return formatBounded(bounded);
 			}
 
-			// Try SPANNING
-			FLEFRecord spanning = FLEFRecordUtils.findChild(dateValue, "SPANNING");
+			// Look for SPANNING
+			FLEFRecord spanning = FLEFRecordUtils.findChild(dateWrapper, "SPANNING");
 			if(spanning != null){
 				return formatSpanning(spanning);
 			}
@@ -200,127 +176,120 @@ public class NameListPanel extends JPanel{
 			return "";
 		}
 
-		private static String formatQualifiedDate(final FLEFRecord qualifiedDate){
-			if(qualifiedDate == null){
-				return "";
-			}
+		private static String formatPointDate(FLEFRecord pointDate){
+			if(pointDate == null) return "";
 
-			FLEFRecord singleDate = FLEFRecordUtils.findChild(qualifiedDate, "SINGLE_DATE");
-			if(singleDate == null){
-				return "";
-			}
+			String dateStr = formatSingleDate(pointDate);
+			if(dateStr.isEmpty()) return "";
 
-			String value = formatSingleDate(singleDate);
-			FLEFRecord approximate = FLEFRecordUtils.findChild(qualifiedDate, "APPROXIMATE");
-			if(approximate != null){
-				value = "~" + value;
+			// Check for APPROXIMATE
+			FLEFRecord approx = FLEFRecordUtils.findChild(pointDate, "APPROXIMATE");
+			if(approx != null){
+				String basis = FLEFRecordUtils.getChildValue(approx, "BASIS");
+				String margin = FLEFRecordUtils.getChildValue(approx, "MARGIN");
+				if(basis != null || margin != null){
+					dateStr += " (approx";
+					if(basis != null) dateStr += " basis: " + basis;
+					if(margin != null) dateStr += " margin: " + margin;
+					dateStr += ")";
+				}
+				else{
+					dateStr += " (approx)";
+				}
 			}
-
-			return value;
+			return dateStr;
 		}
 
-		private static String formatSingleDate(final FLEFRecord singleDate){
-			FLEFRecord iso = FLEFRecordUtils.findChild(singleDate, "ISO");
-			if(iso != null){
-				return iso.getValue();
-			}
-
-			FLEFRecord century = FLEFRecordUtils.findChild(singleDate, "CENTURY");
-			if(century != null){
-				return formatCentury(century);
-			}
-
-			FLEFRecord decade = FLEFRecordUtils.findChild(singleDate, "DECADE");
-			if(decade != null){
-				return formatDecade(decade);
-			}
-
-			return "";
-		}
-
-		private static String formatCentury(final FLEFRecord century){
-			String ordinal = century.getValue();
-			if(ordinal == null || ordinal.isBlank()){
-				return "";
-			}
-
-			StringBuilder result = new StringBuilder(ordinal)
-											  .append("th century");
-
-			String part = FLEFRecordUtils.getChildValue(century, "PART");
-			if(part != null && !part.isBlank()){
-				result.append(" (")
-					.append(part)
-					.append(')');
-			}
-
-			return result.toString();
-		}
-
-		private static String formatDecade(final FLEFRecord decade){
-			String value = decade.getValue();
-			return (value != null
-						  ? value + "s"
-						  : "");
-		}
-
-		private static String formatBounded(final FLEFRecord bounded){
-			String before = "";
-			FLEFRecord notBefore = FLEFRecordUtils.findChild(bounded, "NOT_BEFORE");
-			if(notBefore != null){
-				before = formatQualifiedDate(FLEFRecordUtils.findChild(notBefore, "QUALIFIED_DATE"));
-			}
-
-			String after = "";
-			FLEFRecord notAfter = FLEFRecordUtils.findChild(bounded, "NOT_AFTER");
-			if(notAfter != null){
-				after = formatQualifiedDate(FLEFRecordUtils.findChild(notAfter, "QUALIFIED_DATE"));
-			}
-
+		private static String formatBounded(FLEFRecord bounded){
+			String before = extractEndpointDate(bounded, "NOT_BEFORE");
+			String after = extractEndpointDate(bounded, "NOT_AFTER");
 			if(!before.isEmpty() && !after.isEmpty()){
 				return "between " + before + " and " + after;
 			}
-			if(!before.isEmpty()){
+			else if(!before.isEmpty()){
 				return "after " + before;
 			}
-			if(!after.isEmpty()){
+			else if(!after.isEmpty()){
 				return "before " + after;
 			}
-			return "";
+			else{
+				return "[bounded]";
+			}
 		}
 
-		private static String formatSpanning(final FLEFRecord spanning){
-			String fromValue = "";
-			FLEFRecord from = FLEFRecordUtils.findChild(spanning, "FROM");
-			if(from != null){
-				fromValue = formatQualifiedDate(FLEFRecordUtils.findChild(from, "QUALIFIED_DATE"));
+		private static String formatSpanning(FLEFRecord spanning){
+			String from = extractEndpointDate(spanning, "FROM");
+			String to = extractEndpointDate(spanning, "TO");
+			if(!from.isEmpty() && !to.isEmpty()){
+				return "from " + from + " to " + to;
 			}
+			else if(!from.isEmpty()){
+				return "from " + from;
+			}
+			else if(!to.isEmpty()){
+				return "until " + to;
+			}
+			else{
+				return "[spanning]";
+			}
+		}
 
-			String toValue = "";
-			FLEFRecord to = FLEFRecordUtils.findChild(spanning, "TO");
-			if(to != null){
-				toValue = formatQualifiedDate(FLEFRecordUtils.findChild(to, "QUALIFIED_DATE"));
-			}
+		private static String extractEndpointDate(FLEFRecord parent, String childTag){
+			FLEFRecord endpoint = FLEFRecordUtils.findChild(parent, childTag);
+			if(endpoint == null) return "";
+			// The endpoint contains FULL_DATE/CENTURY/DECADE and optional APPROXIMATE
+			String dateStr = formatSingleDate(endpoint);
+			if(dateStr.isEmpty()) return "";
 
-			if(!fromValue.isEmpty() && !toValue.isEmpty()){
-				return "from " + fromValue + " to " + toValue;
+			FLEFRecord approx = FLEFRecordUtils.findChild(endpoint, "APPROXIMATE");
+			if(approx != null){
+				String basis = FLEFRecordUtils.getChildValue(approx, "BASIS");
+				String margin = FLEFRecordUtils.getChildValue(approx, "MARGIN");
+				if(basis != null || margin != null){
+					dateStr += " (approx";
+					if(basis != null) dateStr += " basis: " + basis;
+					if(margin != null) dateStr += " margin: " + margin;
+					dateStr += ")";
+				}
+				else{
+					dateStr += " (approx)";
+				}
 			}
-			if(!fromValue.isEmpty()){
-				return "from " + fromValue;
+			return dateStr;
+		}
+
+		private static String formatSingleDate(FLEFRecord parent){
+			// Look for FULL_DATE
+			FLEFRecord fullDate = FLEFRecordUtils.findChild(parent, "FULL_DATE");
+			if(fullDate != null && fullDate.getValue() != null){
+				String calendar = FLEFRecordUtils.getChildValue(fullDate, "CALENDAR");
+				return fullDate.getValue() + (calendar != null? " (" + calendar + ")": "");
 			}
-			if(!toValue.isEmpty()){
-				return "until " + toValue;
+			// Look for CENTURY
+			FLEFRecord century = FLEFRecordUtils.findChild(parent, "CENTURY");
+			if(century != null && century.getValue() != null){
+				String part = FLEFRecordUtils.getChildValue(century, "PART");
+				String calendar = FLEFRecordUtils.getChildValue(century, "CALENDAR");
+				String centuryStr = century.getValue() + "th century";
+				if(part != null) centuryStr += " (" + part + ")";
+				if(calendar != null) centuryStr += " (" + calendar + ")";
+				return centuryStr;
+			}
+			// Look for DECADE
+			FLEFRecord decade = FLEFRecordUtils.findChild(parent, "DECADE");
+			if(decade != null && decade.getValue() != null){
+				String calendar = FLEFRecordUtils.getChildValue(decade, "CALENDAR");
+				return decade.getValue() + "s" + (calendar != null? " (" + calendar + ")": "");
 			}
 			return "";
 		}
-
 	}
 
+	// ==================== Constructors ====================
 
 	public NameListPanel(FLEFModel model, Dialog parent){
 		this.model = model;
 		this.parentDialog = parent;
-
 		initComponents();
 	}
 
@@ -353,34 +322,31 @@ public class NameListPanel extends JPanel{
 		nameEntries.clear();
 		nameListModel.clear();
 
-		// Find all direct children with tag "NAME"
 		List<FLEFRecord> nameNodes = record.findChildren("NAME");
 		for(FLEFRecord nameNode : nameNodes){
-			// The name value is stored in a child with tag "VALUE"
 			String value = FLEFRecordUtils.getChildValue(nameNode, "VALUE");
 			if(value == null || value.isEmpty()){
 				continue;
 			}
 
-			// Optional fields
 			String type = FLEFRecordUtils.getChildValue(nameNode, "TYPE");
 			String locale = FLEFRecordUtils.getChildValue(nameNode, "LOCALE");
 
-			// VALID_FROM (DATE_STRUCTURE)
+			// VALID_FROM: contains a DATE wrapper
 			FLEFRecord validFrom = null;
 			FLEFRecord validFromStruct = FLEFRecordUtils.findChild(nameNode, "VALID_FROM");
 			if(validFromStruct != null){
-				validFrom = FLEFRecordUtils.findChild(validFromStruct, "DATE_STRUCTURE");
+				validFrom = FLEFRecordUtils.findChild(validFromStruct, "DATE");
 			}
 
-			// VALID_TO (DATE_STRUCTURE)
+			// VALID_TO
 			FLEFRecord validTo = null;
 			FLEFRecord validToStruct = FLEFRecordUtils.findChild(nameNode, "VALID_TO");
 			if(validToStruct != null){
-				validTo = FLEFRecordUtils.findChild(validToStruct, "DATE_STRUCTURE");
+				validTo = FLEFRecordUtils.findChild(validToStruct, "DATE");
 			}
 
-			// TEXT_VALUE_VARIANT: PHONETIC and TRANSCRIPTION
+			// Variants: PHONETIC and TRANSCRIPTION
 			List<VariantEntry> variants = new ArrayList<>();
 			for(FLEFRecord child : nameNode.getChildren()){
 				String tag = child.getTag();
@@ -409,7 +375,7 @@ public class NameListPanel extends JPanel{
 				}
 			}
 
-			// SOURCE_CITATION
+			// SOURCE citations
 			List<FLEFRecord> sourceCitations = new ArrayList<>();
 			for(FLEFRecord child : nameNode.getChildren()){
 				if("SOURCE".equals(child.getTag())){
@@ -420,7 +386,7 @@ public class NameListPanel extends JPanel{
 			nameEntries.add(new NameEntry(value, type, locale,
 				validFrom, validTo,
 				variants, noteIds, sourceCitations));
-			nameListModel.addElement(nameEntries.getLast().toString());
+			nameListModel.addElement(nameEntries.get(nameEntries.size() - 1).toString());
 		}
 	}
 
@@ -437,7 +403,7 @@ public class NameListPanel extends JPanel{
 		for(NameEntry entry : nameEntries){
 			FLEFRecord nameNode = FLEFRecord.createChild(baseLevel, "NAME");
 
-			// VALUE
+			// VALUE (name text)
 			FLEFRecord valueNode = FLEFRecord.createChildWithValue(baseLevel + 1, "VALUE", entry.value);
 			nameNode.addChild(valueNode);
 
@@ -454,22 +420,22 @@ public class NameListPanel extends JPanel{
 			}
 
 			// VALID_FROM
-			if(entry.validFrom != null && !entry.validFrom.getChildren().isEmpty()){
+			if(entry.validFrom != null && entry.validFrom.hasChildren()){
 				FLEFRecord validFromStruct = FLEFRecord.createChild(baseLevel + 1, "VALID_FROM");
-				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validFrom, baseLevel + 2);
-				validFromStruct.addChild(dateStructCopy);
+				FLEFRecord dateCopy = copyRecordWithLevel(entry.validFrom, baseLevel + 2);
+				validFromStruct.addChild(dateCopy);
 				nameNode.addChild(validFromStruct);
 			}
 
 			// VALID_TO
-			if(entry.validTo != null && !entry.validTo.getChildren().isEmpty()){
+			if(entry.validTo != null && entry.validTo.hasChildren()){
 				FLEFRecord validToStruct = FLEFRecord.createChild(baseLevel + 1, "VALID_TO");
-				FLEFRecord dateStructCopy = copyRecordWithLevel(entry.validTo, baseLevel + 2);
-				validToStruct.addChild(dateStructCopy);
+				FLEFRecord dateCopy = copyRecordWithLevel(entry.validTo, baseLevel + 2);
+				validToStruct.addChild(dateCopy);
 				nameNode.addChild(validToStruct);
 			}
 
-			// TEXT_VALUE_VARIANT: PHONETIC / TRANSCRIPTION
+			// PHONETIC / TRANSCRIPTION
 			for(VariantEntry variant : entry.variants){
 				FLEFRecord variantNode = FLEFRecord.createChildWithValue(
 					baseLevel + 1, variant.type, variant.system);
@@ -492,7 +458,7 @@ public class NameListPanel extends JPanel{
 				}
 			}
 
-			// SOURCE_CITATION
+			// SOURCE citations
 			for(FLEFRecord citation : entry.sourceCitations){
 				citation.setLevel(baseLevel + 1);
 				citation.setTag("SOURCE");
@@ -503,9 +469,6 @@ public class NameListPanel extends JPanel{
 		}
 	}
 
-	/**
-	 * Copies a record and all its children, adjusting the level offset.
-	 */
 	private FLEFRecord copyRecordWithLevel(FLEFRecord source, int newLevel){
 		if(source == null) return null;
 		FLEFRecord copy = new FLEFRecord();
@@ -558,14 +521,13 @@ public class NameListPanel extends JPanel{
 		JDialog dialog = new JDialog(parentDialog, initial == null? "Add Name": "Edit Name", true);
 		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 
-		// VALUE
+		// VALUE (name text)
 		JTextArea valueArea = new JTextArea(3, 25);
 		valueArea.setLineWrap(true);
 		valueArea.setWrapStyleWord(true);
 		if(initial != null) valueArea.setText(initial.value);
 
 		JScrollPane valueScrollPane = GUIHelper.createScrollPane(valueArea);
-
 		dialog.add(new JLabel("Name Value:"), "align label,top");
 		dialog.add(valueScrollPane, "growx,wrap");
 
@@ -574,7 +536,6 @@ public class NameListPanel extends JPanel{
 		if(initial != null && !initial.type.isEmpty()){
 			typeCombo.setSelectedItem(initial.type);
 		}
-
 		dialog.add(new JLabel("Type:"), "align label");
 		dialog.add(typeCombo, "growx,wrap");
 
@@ -583,11 +544,10 @@ public class NameListPanel extends JPanel{
 		if(initial != null && !initial.locale.isEmpty()){
 			localeCombo.setSelectedItem(initial.locale);
 		}
-
 		dialog.add(new JLabel("Locale:"), "align label");
 		dialog.add(localeCombo, "growx,wrap");
 
-		// ----- VALID FROM / VALID TO -----
+		// ----- VALID FROM / VALID TO (using DateFieldPanel) -----
 		DateFieldPanel validFromPanel = new DateFieldPanel(model, dialog, "Valid From");
 		validFromPanel.loadFromRecord(initial != null? initial.validFrom: null);
 
@@ -798,14 +758,12 @@ public class NameListPanel extends JPanel{
 
 			// Validate dates
 			if(!validFromPanel.validateRequiredFields() || !validToPanel.validateRequiredFields()){
-				// The panels show their own error messages
 				return;
 			}
 
 			String type = (String)typeCombo.getSelectedItem();
 			String locale = (String)localeCombo.getSelectedItem();
 
-			// Save date structures
 			FLEFRecord validFromRecord = validFromPanel.saveToRecord();
 			FLEFRecord validToRecord = validToPanel.saveToRecord();
 
@@ -884,13 +842,8 @@ public class NameListPanel extends JPanel{
 			String system = systemField.getText().trim();
 			String value = valueField.getText().trim();
 
-			if(system.isEmpty()){
-				JOptionPane.showMessageDialog(dialog, "System cannot be empty.",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			if(value.isEmpty()){
-				JOptionPane.showMessageDialog(dialog, "Value cannot be empty.",
+			if(system.isEmpty() || value.isEmpty()){
+				JOptionPane.showMessageDialog(dialog, "System and Value are required.",
 					"Validation Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
@@ -1003,6 +956,8 @@ public class NameListPanel extends JPanel{
 		}
 		return "[empty]";
 	}
+
+	// ==================== Public API ====================
 
 	public boolean hasData(){
 		return !nameEntries.isEmpty();

@@ -1,14 +1,13 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -20,17 +19,14 @@ import java.util.List;
 /**
  * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.0.
  * <p>
- * Structure:
+ * The actual structure (real tags):
  * <pre>
- * DATE_STRUCTURE :=
- * n DATE    {1:1}
- *   +1 <<DATE_VALUE>>    {1:1}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+ * DATE (wrapper)
+ *   +1 VALUE | BOUNDED | SPANNING
+ *   +1 SOURCE (SOURCE_CITATION)
+ *   +1 EVIDENCE_QUALIFIERS
  * </pre>
- * <p>
- * DATE_VALUE can be VALUE, BOUNDED, or SPANNING.
- * This panel uses a JTabbedPane to switch between the three modes.
+ * This panel uses a JTabbedPane to switch between VALUE, BOUNDED, and SPANNING.
  */
 public class DatePanel extends JPanel{
 
@@ -41,23 +37,28 @@ public class DatePanel extends JPanel{
 
 	// Tabs for date types
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final SingleDatePanel valueDatePanel = new SingleDatePanel();
-	private final BoundedDatePanel boundedDatePanel = new BoundedDatePanel();
-	private final SpanningDatePanel spanningDatePanel = new SpanningDatePanel();
+	private final SingleDatePanel pointDatePanel;
+	private final BoundedDatePanel boundedDatePanel;
+	private final SpanningDatePanel spanningDatePanel;
 
-	// Source Citations (0:M)
+	// Source Citations (0:M) - direct children of DATE
 	private final DefaultListModel<String> sourceListModel = new DefaultListModel<>();
 	private final JList<String> sourceList = new JList<>(sourceListModel);
 	private final List<FLEFRecord> sourceCitations = new ArrayList<>();
 
-	// Evidence Qualifiers
+	// Evidence Qualifiers - direct child of DATE
 	private final JComboBox<String> certaintyCombo = new JComboBox<>(new String[]{"", "challenged", "disproven", "proven"});
 	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{"", "0", "1", "2", "3"});
 
-
-	public DatePanel(FLEFModel model, Dialog parent){
+	public DatePanel(Dialog parent, FLEFModel model){
 		this.model = model;
 		this.parentDialog = parent;
+
+		// Initialize child panels with the model
+		this.pointDatePanel = new SingleDatePanel(model);
+		this.boundedDatePanel = new BoundedDatePanel(model);
+		this.spanningDatePanel = new SpanningDatePanel(model);
+
 		initComponents();
 	}
 
@@ -66,13 +67,13 @@ public class DatePanel extends JPanel{
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
 		// Tabbed pane for date types
-		JPanel valueOuter = new JPanel(new MigLayout("ins 0, fillx"));
-		valueOuter.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+		JPanel pointOuter = new JPanel(new MigLayout("ins 0, fillx"));
+		pointOuter.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 		JPanel valueWrapper = new JPanel(new MigLayout("ins 7, fillx", "[right]rel[grow]"));
 		valueWrapper.setBorder(BorderFactory.createTitledBorder("Value Date"));
-		valueWrapper.add(valueDatePanel, "growx");
-		valueOuter.add(valueWrapper, "growx");
-		tabbedPane.addTab("Value", valueOuter);
+		valueWrapper.add(pointDatePanel, "growx");
+		pointOuter.add(valueWrapper, "growx");
+		tabbedPane.addTab("Point", pointOuter);
 		tabbedPane.addTab("Bounded", boundedDatePanel);
 		tabbedPane.addTab("Spanning", spanningDatePanel);
 		tabbedPane.addChangeListener(e -> {
@@ -82,11 +83,11 @@ public class DatePanel extends JPanel{
 					spanningDatePanel.clear();
 				}
 				case 1 -> {
-					valueDatePanel.clear();
+					pointDatePanel.clear();
 					spanningDatePanel.clear();
 				}
 				case 2 -> {
-					valueDatePanel.clear();
+					pointDatePanel.clear();
 					boundedDatePanel.clear();
 				}
 			}
@@ -173,6 +174,8 @@ public class DatePanel extends JPanel{
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
 			if(updated != null){
+				updated.setLevel(1);
+				updated.setTag("SOURCE");
 				sourceCitations.set(idx, updated);
 				sourceListModel.set(idx, getSourceCitationDisplay(updated));
 			}
@@ -204,32 +207,53 @@ public class DatePanel extends JPanel{
 
 	// ==================== Load / Save ====================
 
-	public void loadFromRecord(FLEFRecord dateStructure){
+	/**
+	 * Loads data from a DATE wrapper record.
+	 *
+	 * @param dateWrapper the DATE record (wrapper), or null
+	 */
+	public void loadFromRecord(FLEFRecord dateWrapper){
 		clear();
 
-		if(dateStructure == null){
+		if(dateWrapper == null){
 			return;
 		}
 
-		// DATE_STRUCTURE è il nodo "DATE"
-		// I figli di DATE sono DATE_VALUE, SOURCE_CITATION, EVIDENCE_QUALIFIERS
-		FLEFRecord dateValue = FLEFRecordUtils.findChild(dateStructure, "DATE_VALUE");
-		if(dateValue != null){
-			loadDateValue(dateValue);
+		// The dateWrapper is the DATE node. Its direct children are:
+		// POINT, BOUNDED, SPANNING, SOURCE (citations), EVIDENCE_QUALIFIERS
+		// Load the date value: one of POINT, BOUNDED, SPANNING
+		FLEFRecord point = FLEFRecordUtils.findChild(dateWrapper, "POINT");
+		if(point != null){
+			tabbedPane.setSelectedIndex(0);
+			pointDatePanel.loadFromRecord(point);
+		}
+		else{
+			FLEFRecord bounded = FLEFRecordUtils.findChild(dateWrapper, "BOUNDED");
+			if(bounded != null){
+				tabbedPane.setSelectedIndex(1);
+				boundedDatePanel.loadFromRecord(bounded);
+			}
+			else{
+				FLEFRecord spanning = FLEFRecordUtils.findChild(dateWrapper, "SPANNING");
+				if(spanning != null){
+					tabbedPane.setSelectedIndex(2);
+					spanningDatePanel.loadFromRecord(spanning);
+				}
+			}
 		}
 
-		// SOURCE_CITATION
+		// Load SOURCE_CITATION (direct children with tag "SOURCE")
 		sourceCitations.clear();
 		sourceListModel.clear();
-		for(FLEFRecord child : dateStructure.getChildren()){
+		for(FLEFRecord child : dateWrapper.getChildren()){
 			if("SOURCE".equals(child.getTag())){
 				sourceCitations.add(child);
 				sourceListModel.addElement(getSourceCitationDisplay(child));
 			}
 		}
 
-		// EVIDENCE_QUALIFIERS
-		FLEFRecord evidence = FLEFRecordUtils.findChild(dateStructure, "EVIDENCE_QUALIFIERS");
+		// Load EVIDENCE_QUALIFIERS
+		FLEFRecord evidence = FLEFRecordUtils.findChild(dateWrapper, "EVIDENCE_QUALIFIERS");
 		if(evidence != null){
 			String certainty = FLEFRecordUtils.getChildValue(evidence, "CERTAINTY");
 			certaintyCombo.setSelectedItem(certainty != null? certainty: "");
@@ -238,33 +262,12 @@ public class DatePanel extends JPanel{
 		}
 	}
 
-	private void loadDateValue(final FLEFRecord dateValue){
-		FLEFRecord value = FLEFRecordUtils.findChild(dateValue, "VALUE");
-
-		if(value != null){
-			tabbedPane.setSelectedIndex(0);
-
-			FLEFRecord qualified = FLEFRecordUtils.findChild(value, "QUALIFIED_DATE");
-			if(qualified != null){
-				valueDatePanel.loadFromQualifiedDate(qualified);
-			}
-			return;
-		}
-
-		FLEFRecord bounded = FLEFRecordUtils.findChild(dateValue, "BOUNDED");
-		if(bounded != null){
-			tabbedPane.setSelectedIndex(1);
-			boundedDatePanel.loadFromRecord(bounded);
-			return;
-		}
-
-		FLEFRecord spanning = FLEFRecordUtils.findChild(dateValue, "SPANNING");
-		if(spanning != null){
-			tabbedPane.setSelectedIndex(2);
-			spanningDatePanel.loadFromRecord(spanning);
-		}
-	}
-
+	/**
+	 * Saves the current data into a DATE wrapper record.
+	 *
+	 * @param target an existing DATE record to update, or null to create a new one
+	 * @return the DATE record, or null if no data
+	 */
 	public FLEFRecord saveToRecord(FLEFRecord target){
 		if(!hasData()){
 			return null;
@@ -274,43 +277,26 @@ public class DatePanel extends JPanel{
 		FLEFRecordUtils.removeAllChildren(record);
 		record.setTag("DATE");
 
-		// DATE_VALUE
-		FLEFRecord dateValue = FLEFRecord.createChild(2, "DATE_VALUE");
+		// Save the date value: VALUE, BOUNDED, or SPANNING
 		switch(tabbedPane.getSelectedIndex()){
-			case 0:
-				saveValue(dateValue);
-				break;
-
-			case 1:
-				saveBounded(dateValue);
-				break;
-
-			case 2:
-				saveSpanning(dateValue);
-				break;
-
-			default:
-				break;
+			case 0 -> saveValue(record);
+			case 1 -> saveBounded(record);
+			case 2 -> saveSpanning(record);
+			default -> { /* do nothing */ }
 		}
 
-		if(!dateValue.getChildren().isEmpty()){
-			record.addChild(dateValue);
-		}
-
-		// SOURCE_CITATION (level 2)
+		// Save SOURCE_CITATION (level 1)
 		for(FLEFRecord citation : sourceCitations){
-			FLEFRecord copy = FLEFRecordUtils.copyRecordWithLevel(citation, 2);
-
+			FLEFRecord copy = FLEFRecordUtils.copyRecordWithLevel(citation, 1);
 			copy.setTag("SOURCE");
-
 			record.addChild(copy);
 		}
 
-		// EVIDENCE_QUALIFIERS (level 2)
+		// Save EVIDENCE_QUALIFIERS (level 1)
 		String certainty = (String)certaintyCombo.getSelectedItem();
 		String credibility = (String)credibilityCombo.getSelectedItem();
 		if((certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty())){
-			FLEFRecord evidence = FLEFRecord.createChild(2, "EVIDENCE_QUALIFIERS");
+			FLEFRecord evidence = FLEFRecord.createChild(1, "EVIDENCE_QUALIFIERS");
 			FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
 			FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", credibility);
 			record.addChild(evidence);
@@ -322,7 +308,7 @@ public class DatePanel extends JPanel{
 	}
 
 	public void clear(){
-		valueDatePanel.clear();
+		pointDatePanel.clear();
 		boundedDatePanel.clear();
 		spanningDatePanel.clear();
 		sourceCitations.clear();
@@ -333,7 +319,7 @@ public class DatePanel extends JPanel{
 
 	public boolean hasData(){
 		return switch(tabbedPane.getSelectedIndex()){
-			case 0 -> valueDatePanel.hasData();
+			case 0 -> pointDatePanel.hasData();
 			case 1 -> boundedDatePanel.hasData();
 			case 2 -> spanningDatePanel.hasData();
 			default -> false;
@@ -342,69 +328,87 @@ public class DatePanel extends JPanel{
 
 	public boolean validateRequiredFields(){
 		return switch(tabbedPane.getSelectedIndex()){
-			case 0 -> valueDatePanel.validateRequiredFields();
+			case 0 -> pointDatePanel.validateRequiredFields();
 			case 1 -> boundedDatePanel.validateRequiredFields();
 			case 2 -> spanningDatePanel.validateRequiredFields();
 			default -> true;
 		};
 	}
 
-	private void saveValue(final FLEFRecord dateValue){
-		if(!valueDatePanel.hasData()){
+	// ==================== Save helpers ====================
+
+	/**
+	 * Saves a VALUE date.
+	 * Creates a VALUE node with children ISO/CENTURY/DECADE and APPROXIMATE.
+	 */
+	private void saveValue(FLEFRecord parent){
+		if(!pointDatePanel.hasData()){
 			return;
 		}
 
-		FLEFRecord qualified = valueDatePanel.saveToQualifiedDate(null);
-		if(qualified == null){
-			return;
+		FLEFRecord valueNode = FLEFRecord.createChild(1, "POINT");
+		FLEFRecord dateNode = pointDatePanel.saveToRecord(null);
+		if(dateNode != null && dateNode.hasChildren()){
+			// The children of dateNode are the actual date tags (ISO, CENTURY, DECADE) and APPROXIMATE
+			for(FLEFRecord child : dateNode.getChildren()){
+				child.setLevel(2);
+				valueNode.addChild(child);
+			}
+			parent.addChild(valueNode);
 		}
-
-		FLEFRecord value = FLEFRecord.createChild(3, "VALUE");
-		value.addChild(
-			FLEFRecordUtils.copyRecordWithLevel(
-				qualified, 4));
-
-		dateValue.addChild(value);
 	}
 
-	private void saveBounded(final FLEFRecord dateValue){
+	/**
+	 * Saves a BOUNDED date.
+	 * The BoundedDatePanel returns a node with NOT_BEFORE and NOT_AFTER (each containing date tags).
+	 */
+	private void saveBounded(FLEFRecord parent){
 		if(!boundedDatePanel.hasData()){
 			return;
 		}
 
-		FLEFRecord boundedData = boundedDatePanel.saveToRecord(null);
-		if(boundedData == null){
-			return;
+		FLEFRecord boundedNode = boundedDatePanel.saveToRecord(null);
+		if(boundedNode != null && boundedNode.hasChildren()){
+			// boundedNode already contains NOT_BEFORE/NOT_AFTER with proper levels
+			for(FLEFRecord child : boundedNode.getChildren()){
+				child.setLevel(1);
+				parent.addChild(child);
+			}
 		}
-
-		FLEFRecord bounded = FLEFRecord.createChild(3, "BOUNDED");
-		for(FLEFRecord child : boundedData.getChildren()){
-			bounded.addChild(
-				FLEFRecordUtils.copyRecordWithLevel(
-					child, 4));
-		}
-
-		dateValue.addChild(bounded);
 	}
 
-	private void saveSpanning(final FLEFRecord dateValue){
+	/**
+	 * Saves a SPANNING date.
+	 * The SpanningDatePanel returns a node with FROM and TO (each containing date tags).
+	 */
+	private void saveSpanning(FLEFRecord parent){
 		if(!spanningDatePanel.hasData()){
 			return;
 		}
 
-		FLEFRecord spanningData = spanningDatePanel.saveToRecord(null);
-		if(spanningData == null){
-			return;
+		FLEFRecord spanningNode = spanningDatePanel.saveToRecord(null);
+		if(spanningNode != null && spanningNode.hasChildren()){
+			for(FLEFRecord child : spanningNode.getChildren()){
+				child.setLevel(1);
+				parent.addChild(child);
+			}
+		}
+	}
+
+
+	public static void main(String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(Exception ignored){
 		}
 
-		FLEFRecord spanning = FLEFRecord.createChild(3, "SPANNING");
-		for(FLEFRecord child : spanningData.getChildren()){
-			spanning.addChild(
-				FLEFRecordUtils.copyRecordWithLevel(
-					child, 4));
-		}
+		FLEFModel model = new FLEFModel();
 
-		dateValue.addChild(spanning);
+		SwingUtilities.invokeLater(() -> {
+			DatePanel dialog = new DatePanel(null, model);
+			dialog.setVisible(true);
+		});
 	}
 
 }

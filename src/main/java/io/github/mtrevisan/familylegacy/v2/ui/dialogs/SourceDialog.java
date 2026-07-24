@@ -137,7 +137,7 @@ public class SourceDialog extends BaseRecordDialog{
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
 
-		this.datePanel = new DatePanel(model, this);
+		this.datePanel = new DatePanel(this, model);
 		this.documentPanel = new DocumentStructurePanel(model, this);
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -159,7 +159,7 @@ public class SourceDialog extends BaseRecordDialog{
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
 
-		this.datePanel = new DatePanel(model, this);
+		this.datePanel = new DatePanel(this, model);
 		this.documentPanel = new DocumentStructurePanel(model, this);
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();

@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import net.miginfocom.swing.MigLayout;
 
@@ -12,79 +13,87 @@ import javax.swing.border.TitledBorder;
 
 /**
  * Panel for BOUNDED date (uncertainty interval).
+ * <p>
+ * Structure (real tags):
+ * BOUNDED
+ * +1 NOT_BEFORE
+ * (ISO | CENTURY | DECADE)
+ * APPROXIMATE (optional)
+ * +1 NOT_AFTER
+ * (ISO | CENTURY | DECADE)
+ * APPROXIMATE (optional)
+ * <p>
  */
 public class BoundedDatePanel extends JPanel{
 
-	private final SingleDatePanel notBeforePanel = new SingleDatePanel();
-	private final SingleDatePanel notAfterPanel = new SingleDatePanel();
+	private final SingleDatePanel notBeforePanel;
+	private final SingleDatePanel notAfterPanel;
 
-
-	BoundedDatePanel(){
+	public BoundedDatePanel(FLEFModel model){
+		this.notBeforePanel = new SingleDatePanel(model);
+		this.notAfterPanel = new SingleDatePanel(model);
 		initComponents();
 	}
-
 
 	private void initComponents(){
 		setLayout(new MigLayout("ins 0,fillx,top", "[grow,fill][grow,fill]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		final JPanel beforePanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		JPanel beforePanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		beforePanel.setBorder(new TitledBorder("Not Before"));
 		beforePanel.add(notBeforePanel, "growx");
 		add(beforePanel, "growx");
 
-		final JPanel afterPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		JPanel afterPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		afterPanel.setBorder(new TitledBorder("Not After"));
 		afterPanel.add(notAfterPanel, "growx");
 		add(afterPanel, "growx");
 	}
 
-	public void loadFromRecord(final FLEFRecord boundedRecord){
+	public void loadFromRecord(FLEFRecord boundedRecord){
 		clear();
+		if(boundedRecord == null) return;
 
-		if(boundedRecord == null){
-			return;
-		}
-
-		final FLEFRecord notBefore = FLEFRecordUtils.findChild(boundedRecord, "NOT_BEFORE");
+		FLEFRecord notBefore = FLEFRecordUtils.findChild(boundedRecord, "NOT_BEFORE");
 		if(notBefore != null){
-			final FLEFRecord qualified = FLEFRecordUtils.findChild(notBefore, "QUALIFIED_DATE");
-			if(qualified != null){
-				notBeforePanel.loadFromQualifiedDate(qualified);
-			}
+			notBeforePanel.loadFromRecord(notBefore);
 		}
 
-		final FLEFRecord notAfter = FLEFRecordUtils.findChild(boundedRecord, "NOT_AFTER");
+		FLEFRecord notAfter = FLEFRecordUtils.findChild(boundedRecord, "NOT_AFTER");
 		if(notAfter != null){
-			final FLEFRecord qualified = FLEFRecordUtils.findChild(notAfter, "QUALIFIED_DATE");
-			if(qualified != null){
-				notAfterPanel.loadFromQualifiedDate(qualified);
-			}
+			notAfterPanel.loadFromRecord(notAfter);
 		}
 	}
 
-	public FLEFRecord saveToRecord(final FLEFRecord target){
-		final FLEFRecord record = target != null ? target : new FLEFRecord();
+	public FLEFRecord saveToRecord(FLEFRecord target){
+		FLEFRecord record = target != null? target: new FLEFRecord();
 
 		if(notBeforePanel.hasData()){
-			final FLEFRecord notBefore = FLEFRecord.createChild(1, "NOT_BEFORE");
-			final FLEFRecord qualified = notBeforePanel.saveToQualifiedDate(null);
-			if(qualified != null && !qualified.getChildren().isEmpty()){
-				notBefore.addChild(qualified);
+			FLEFRecord notBefore = FLEFRecord.createChild(1, "NOT_BEFORE");
+			FLEFRecord dateNode = notBeforePanel.saveToRecord(null);
+			if(dateNode != null && dateNode.hasChildren()){
+				// copy children (the actual date tags) into notBefore
+				for(FLEFRecord child : dateNode.getChildren()){
+					child.setLevel(2);
+					notBefore.addChild(child);
+				}
 				record.addChild(notBefore);
 			}
 		}
 
 		if(notAfterPanel.hasData()){
-			final FLEFRecord notAfter = FLEFRecord.createChild(1, "NOT_AFTER");
-			final FLEFRecord qualified = notAfterPanel.saveToQualifiedDate(null);
-			if(qualified != null && !qualified.getChildren().isEmpty()){
-				notAfter.addChild(qualified);
+			FLEFRecord notAfter = FLEFRecord.createChild(1, "NOT_AFTER");
+			FLEFRecord dateNode = notAfterPanel.saveToRecord(null);
+			if(dateNode != null && dateNode.hasChildren()){
+				for(FLEFRecord child : dateNode.getChildren()){
+					child.setLevel(2);
+					notAfter.addChild(child);
+				}
 				record.addChild(notAfter);
 			}
 		}
 
-		return (record.hasChildren()? record: null);
+		return record.hasChildren()? record: null;
 	}
 
 	public void clear(){
@@ -93,11 +102,10 @@ public class BoundedDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		return (notBeforePanel.hasData() || notAfterPanel.hasData());
+		return notBeforePanel.hasData() || notAfterPanel.hasData();
 	}
 
 	public boolean validateRequiredFields(){
-		// At least one of NOT_BEFORE or NOT_AFTER is required
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
 				"At least one of Not Before or Not After is required for BOUNDED date.",

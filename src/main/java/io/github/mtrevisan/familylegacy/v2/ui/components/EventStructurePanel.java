@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -56,7 +55,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
@@ -170,7 +168,7 @@ public class EventStructurePanel extends JPanel{
 	public EventStructurePanel(FLEFModel model, Dialog parent){
 		this.model = model;
 		this.parent = parent;
-		this.datePanel = new DatePanel(model, parent);
+		this.datePanel = new DatePanel(parent, model);
 		this.modificationPanel = new ModificationPanel(parent);
 		this.conclusionPanel = new ConclusionPanel(model, parent);
 

@@ -133,7 +133,7 @@ public class SourceCitationPanel extends JPanel{
 		credibilityCombo = new BoundComboBox<>("CREDIBILITY",
 			new String[]{"", "0", "1", "2", "3"});
 
-		this.searchDatePanel = new DatePanel(model, parent);
+		this.searchDatePanel = new DatePanel(parent, model);
 
 		initComponents();
 	}

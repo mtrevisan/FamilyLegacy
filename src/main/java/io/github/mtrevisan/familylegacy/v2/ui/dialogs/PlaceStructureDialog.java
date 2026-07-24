@@ -303,7 +303,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		// Rebuild children
-		placeRecord.getChildren().clear();
+		FLEFRecordUtils.removeAllChildren(placeRecord);
 		for(final FLEFRecord citation : sourceCitations){
 			citation.setLevel(2);
 			citation.setTag("SOURCE");

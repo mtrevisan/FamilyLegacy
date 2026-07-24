@@ -478,7 +478,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 				if(qualified != null){
 					FLEFRecord single = FLEFRecordUtils.findChild(qualified, "SINGLE_DATE");
 					if(single != null){
-						FLEFRecord iso = FLEFRecordUtils.findChild(single, "ISO");
+						FLEFRecord iso = FLEFRecordUtils.findChild(single, "FULL_DATE");
 						if(iso != null){
 							dateField.setText(iso.getValue());
 						}
@@ -633,7 +633,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			FLEFRecord singleDate = FLEFRecord.createChild(5, "SINGLE_DATE");
 			qualifiedDate.addChild(singleDate);
 
-			FLEFRecord iso = FLEFRecord.createChildWithValue(6, "ISO", date);
+			FLEFRecord iso = FLEFRecord.createChildWithValue(6, "FULL_DATE", date);
 			singleDate.addChild(iso);
 
 			FLEFRecord calendar = FLEFRecord.createChildWithValue(7, "CALENDAR", "gregorian");
