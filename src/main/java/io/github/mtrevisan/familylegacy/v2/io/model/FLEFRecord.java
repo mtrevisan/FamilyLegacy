@@ -36,12 +36,11 @@ import java.util.List;
  */
 public class FLEFRecord{
 
-	// For main records (level 0)
+	// For main records
 	private String id;
 	private String type;
 
-	// For children (level > 0)
-	private int level;
+	// For children
 	private String tag;
 	private String value;
 
@@ -56,15 +55,14 @@ public class FLEFRecord{
 		return record;
 	}
 
-	public static FLEFRecord createChildWithValue(final int level, final String tag, final String value){
-		final FLEFRecord record = createChild(level, tag);
+	public static FLEFRecord createChildWithValue(final String tag, final String value){
+		final FLEFRecord record = createChild(tag);
 		record.setValue(value);
 		return record;
 	}
 
-	public static FLEFRecord createChild(final int level, final String tag){
+	public static FLEFRecord createChild(final String tag){
 		final FLEFRecord record = new FLEFRecord();
-		record.setLevel(level);
 		record.setTag(tag);
 		return record;
 	}
@@ -88,14 +86,6 @@ public class FLEFRecord{
 		this.type = type;
 	}
 
-	public int getLevel(){
-		return level;
-	}
-
-	public void setLevel(final int level){
-		this.level = level;
-	}
-
 	public String getTag(){
 		return tag;
 	}
@@ -116,8 +106,10 @@ public class FLEFRecord{
 		return children;
 	}
 
-	public void addChild(final FLEFRecord child){
+	public FLEFRecord addChild(final FLEFRecord child){
 		children.add(child);
+
+		return this;
 	}
 
 	/**
@@ -221,7 +213,7 @@ public class FLEFRecord{
 		if(id != null)
 			return type + " " + id;
 		else if(tag != null)
-			return level + " " + tag + (value != null? " " + value: "");
+			return tag + (value != null? " " + value: "");
 		else
 			return type != null? type: "Record";
 	}

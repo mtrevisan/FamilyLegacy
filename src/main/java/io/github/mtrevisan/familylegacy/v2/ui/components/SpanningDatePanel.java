@@ -29,9 +29,11 @@ public class SpanningDatePanel extends JPanel{
 	private final SingleDatePanel fromPanel;
 	private final SingleDatePanel toPanel;
 
-	public SpanningDatePanel(FLEFModel model){
+
+	public SpanningDatePanel(final FLEFModel model){
 		this.fromPanel = new SingleDatePanel(model);
 		this.toPanel = new SingleDatePanel(model);
+
 		initComponents();
 	}
 
@@ -39,60 +41,57 @@ public class SpanningDatePanel extends JPanel{
 		setLayout(new MigLayout("ins 0, fillx, top", "[grow, fill][grow, fill]", "[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		JPanel fromPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		final JPanel fromPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		fromPanelBorder.setBorder(new TitledBorder("From"));
 		fromPanelBorder.add(fromPanel, "growx");
 		add(fromPanelBorder, "growx");
 
-		JPanel toPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		final JPanel toPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		toPanelBorder.setBorder(new TitledBorder("To"));
 		toPanelBorder.add(toPanel, "growx");
 		add(toPanelBorder, "growx");
 	}
 
-	public void loadFromRecord(FLEFRecord spanningRecord){
+	public void loadFromRecord(final FLEFRecord spanningRecord){
 		clear();
-		if(spanningRecord == null) return;
 
-		FLEFRecord from = FLEFRecordUtils.findChild(spanningRecord, "FROM");
-		if(from != null){
+		if(spanningRecord == null)
+			return;
+
+		final FLEFRecord from = FLEFRecordUtils.findChild(spanningRecord, "FROM");
+		if(from != null)
 			fromPanel.loadFromRecord(from);
-		}
 
-		FLEFRecord to = FLEFRecordUtils.findChild(spanningRecord, "TO");
-		if(to != null){
+		final FLEFRecord to = FLEFRecordUtils.findChild(spanningRecord, "TO");
+		if(to != null)
 			toPanel.loadFromRecord(to);
-		}
 	}
 
-	public FLEFRecord saveToRecord(FLEFRecord target){
-		FLEFRecord record = target != null? target: new FLEFRecord();
+	public FLEFRecord saveToRecord(final FLEFRecord target){
+		final FLEFRecord parent = (target != null? target: new FLEFRecord());
 
+		final FLEFRecord record = FLEFRecord.createChild("SPANNING");
 		if(fromPanel.hasData()){
-			FLEFRecord from = FLEFRecord.createChild(1, "FROM");
-			FLEFRecord dateNode = fromPanel.saveToRecord(null);
+			final FLEFRecord from = FLEFRecord.createChild("FROM");
+			final FLEFRecord dateNode = fromPanel.saveToRecord(null);
 			if(dateNode != null && dateNode.hasChildren()){
-				for(FLEFRecord child : dateNode.getChildren()){
-					child.setLevel(2);
+				for(final FLEFRecord child : dateNode.getChildren())
 					from.addChild(child);
-				}
 				record.addChild(from);
 			}
 		}
 
 		if(toPanel.hasData()){
-			FLEFRecord to = FLEFRecord.createChild(1, "TO");
-			FLEFRecord dateNode = toPanel.saveToRecord(null);
+			final FLEFRecord to = FLEFRecord.createChild("TO");
+			final FLEFRecord dateNode = toPanel.saveToRecord(null);
 			if(dateNode != null && dateNode.hasChildren()){
-				for(FLEFRecord child : dateNode.getChildren()){
-					child.setLevel(2);
+				for(final FLEFRecord child : dateNode.getChildren())
 					to.addChild(child);
-				}
 				record.addChild(to);
 			}
 		}
 
-		return record.hasChildren()? record: null;
+		return (record.hasChildren()? parent.addChild(record): null);
 	}
 
 	public void clear(){
@@ -101,7 +100,7 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		return fromPanel.hasData() || toPanel.hasData();
+		return (fromPanel.hasData() || toPanel.hasData());
 	}
 
 	public boolean validateRequiredFields(){
@@ -109,12 +108,14 @@ public class SpanningDatePanel extends JPanel{
 			JOptionPane.showMessageDialog(this,
 				"At least one of From or To is required for SPANNING date.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
-		if(fromPanel.hasData() && !fromPanel.validateRequiredFields()){
+
+		if(fromPanel.hasData() && !fromPanel.validateRequiredFields())
 			return false;
-		}
-		return !toPanel.hasData() || toPanel.validateRequiredFields();
+
+		return (!toPanel.hasData() || toPanel.validateRequiredFields());
 	}
 
 }

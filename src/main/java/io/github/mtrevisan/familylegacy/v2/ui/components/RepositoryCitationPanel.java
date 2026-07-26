@@ -351,7 +351,6 @@ public class RepositoryCitationPanel extends JPanel{
 
 		if(citationRecord == null){
 			citationRecord = new FLEFRecord();
-			citationRecord.setLevel(1);
 			citationRecord.setTag("REPOSITORY_CITATION");
 		}
 

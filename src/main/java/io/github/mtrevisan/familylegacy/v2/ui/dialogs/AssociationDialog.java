@@ -562,7 +562,6 @@ public class AssociationDialog extends JDialog{
 		FLEFRecord record = existingAssociation != null? existingAssociation: new FLEFRecord();
 
 		if(existingAssociation == null){
-			record.setLevel(1);
 			record.setTag("ASSOCIATION");
 		}
 
@@ -575,7 +574,6 @@ public class AssociationDialog extends JDialog{
 			FLEFRecordUtils.removeChildren(record, "NAME");
 			if(!name.isEmpty()){
 				FLEFRecord nameChild = new FLEFRecord();
-				nameChild.setLevel(2);
 				nameChild.setTag("NAME");
 				nameChild.setValue(name);
 				record.addChild(nameChild);

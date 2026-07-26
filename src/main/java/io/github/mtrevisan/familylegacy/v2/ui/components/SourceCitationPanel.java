@@ -363,7 +363,6 @@ public class SourceCitationPanel extends JPanel{
 
 		if(citationRecord == null){
 			citationRecord = new FLEFRecord();
-			citationRecord.setLevel(1);
 			citationRecord.setTag("SOURCE");
 		}
 
@@ -381,7 +380,6 @@ public class SourceCitationPanel extends JPanel{
 		if(searchDatePanel.hasData()){
 			FLEFRecord dateRecord = searchDatePanel.saveToRecord(null);
 			if(dateRecord != null){
-				dateRecord.setLevel(2);
 				dateRecord.setTag("SEARCH_DATE");
 				citationRecord.addChild(dateRecord);
 			}

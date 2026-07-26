@@ -149,13 +149,11 @@ public class TranscribedTextDialog extends JDialog{
 		String phoneticVal = phoneticValueField.getText().trim();
 		if(!phoneticSys.isEmpty() || !phoneticVal.isEmpty()){
 			FLEFRecord phonetic = new FLEFRecord();
-			phonetic.setLevel(1);
 			phonetic.setTag("PHONETIC");
 			phonetic.setValue(phoneticSys);
 			transRecord.addChild(phonetic);
 			if(!phoneticVal.isEmpty()){
 				FLEFRecord value = new FLEFRecord();
-				value.setLevel(2);
 				value.setTag("VALUE");
 				value.setValue(phoneticVal);
 				phonetic.addChild(value);
@@ -168,20 +166,17 @@ public class TranscribedTextDialog extends JDialog{
 		String transVal = transcriptionValueField.getText().trim();
 		if(!transSys.isEmpty() || !transType.isEmpty() || !transVal.isEmpty()){
 			FLEFRecord transcription = new FLEFRecord();
-			transcription.setLevel(1);
 			transcription.setTag("TRANSCRIPTION");
 			transcription.setValue(transSys);
 			transRecord.addChild(transcription);
 			if(!transType.isEmpty()){
 				FLEFRecord type = new FLEFRecord();
-				type.setLevel(2);
 				type.setTag("TYPE");
 				type.setValue(transType);
 				transcription.addChild(type);
 			}
 			if(!transVal.isEmpty()){
 				FLEFRecord value = new FLEFRecord();
-				value.setLevel(2);
 				value.setTag("VALUE");
 				value.setValue(transVal);
 				transcription.addChild(value);

@@ -11,7 +11,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
@@ -364,7 +363,7 @@ public class GroupDialog extends BaseRecordDialog{
 	private void selectAndCropImage(){
 		final String[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, sourceHandler, selectedId -> result[0] = selectedId);
+			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> result[0] = selectedId);
 		dialog.setVisible(true);
 		String sourceId = result[0];
 		if(sourceId == null) return;
@@ -377,7 +376,7 @@ public class GroupDialog extends BaseRecordDialog{
 			return;
 		}
 
-		ImageCropDialog cropDialog = new ImageCropDialog(getParentFrame(), image);
+		ImageCropDialog cropDialog = new ImageCropDialog(GUIHelper.getParentFrame(this), image);
 		cropDialog.setVisible(true);
 
 		Rectangle cropRect = cropDialog.getCrop();
@@ -434,18 +433,17 @@ public class GroupDialog extends BaseRecordDialog{
 	private void addMember(){
 		final String[] selectedIndividualId = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, individualHandler, id -> selectedIndividualId[0] = id);
+			GUIHelper.getParentFrame(this), model, individualHandler, id -> selectedIndividualId[0] = id);
 		dialog.setVisible(true);
 		String individualId = selectedIndividualId[0];
 		if(individualId == null) return;
 
 		RelationshipDialog relDialog = new RelationshipDialog(
-			getParentFrame(), model, null, getGroupId(), individualId);
+			GUIHelper.getParentFrame(this), model, null, getGroupId(), individualId);
 		relDialog.setVisible(true);
 		if(relDialog.isSaved()){
 			FLEFRecord saved = relDialog.getCitationRecord();
 			if(saved != null){
-				saved.setLevel(1);
 				saved.setTag("RELATIONSHIP");
 				otherRelationshipRecords.add(saved);
 				relationshipListModel.addElement(getRelationshipDisplay(saved));
@@ -467,7 +465,7 @@ public class GroupDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = individualHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = individualHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		String newIndividualId = null;
@@ -481,12 +479,11 @@ public class GroupDialog extends BaseRecordDialog{
 
 		if(newIndividualId != null){
 			RelationshipDialog relDialog = new RelationshipDialog(
-				getParentFrame(), model, null, getGroupId(), newIndividualId);
+				GUIHelper.getParentFrame(this), model, null, getGroupId(), newIndividualId);
 			relDialog.setVisible(true);
 			if(relDialog.isSaved()){
 				FLEFRecord saved = relDialog.getCitationRecord();
 				if(saved != null){
-					saved.setLevel(1);
 					saved.setTag("RELATIONSHIP");
 					otherRelationshipRecords.add(saved);
 					relationshipListModel.addElement(getRelationshipDisplay(saved));
@@ -507,7 +504,7 @@ public class GroupDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = memberRelationshipRecords.get(idx);
-		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, existing);
+		RelationshipDialog dialog = relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -549,7 +546,7 @@ public class GroupDialog extends BaseRecordDialog{
 			return;
 		}
 
-		JDialog dialog = individualHandler.createEditDialog(getParentFrame(), model, individual);
+		JDialog dialog = individualHandler.createEditDialog(GUIHelper.getParentFrame(this), model, individual);
 		dialog.setVisible(true);
 
 		memberListModel.set(idx, getRelationshipDisplay(relationship));
@@ -583,7 +580,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private void addNoteToList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, noteHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
 			if(selectedId != null && !ids.contains(selectedId)){
 				ids.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -603,7 +600,7 @@ public class GroupDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
-		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 
 		String newDisplay = getNoteDisplayName(id);
@@ -625,7 +622,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private void createNewNoteForList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
 		Set<String> before = new HashSet<>(ids);
-		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
@@ -643,7 +640,7 @@ public class GroupDialog extends BaseRecordDialog{
 	// ==================== Event methods ====================
 	private void addEvent(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, eventHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, eventHandler, selectedId -> {
 			if(selectedId != null && !eventIds.contains(selectedId)){
 				eventIds.add(selectedId);
 				eventListModel.addElement(getEventDisplayName(selectedId));
@@ -660,7 +657,7 @@ public class GroupDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
-		JDialog dialog = eventHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = eventHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 		eventListModel.set(idx, getEventDisplayName(id));
 	}
@@ -688,7 +685,7 @@ public class GroupDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = eventHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = eventHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("EVENT")){
@@ -708,13 +705,12 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private boolean addRelationship(String preSelectedGroupId){
 		FLEFRecord record = null;
-		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, record);
+		RelationshipDialog dialog = relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
 			FLEFRecord saved = dialog.getCitationRecord();
 			if(saved != null){
-				saved.setLevel(1);
 				saved.setTag("RELATIONSHIP");
 				otherRelationshipRecords.add(saved);
 				relationshipListModel.addElement(getRelationshipDisplay(saved));
@@ -752,7 +748,7 @@ public class GroupDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = otherRelationshipRecords.get(idx);
-		RelationshipDialog dialog = relationshipHandler.createEditDialog(getParentFrame(), model, existing);
+		RelationshipDialog dialog = relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -803,13 +799,12 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	private void createNewRelationship(){
-		RelationshipDialog dialog = relationshipHandler.createNewDialog(getParentFrame(), model);
+		RelationshipDialog dialog = relationshipHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
 			FLEFRecord saved = dialog.getCitationRecord();
 			if(saved != null){
-				saved.setLevel(1);
 				saved.setTag("RELATIONSHIP");
 				otherRelationshipRecords.add(saved);
 				relationshipListModel.addElement(getRelationshipDisplay(saved));
@@ -839,7 +834,7 @@ public class GroupDialog extends BaseRecordDialog{
 	// ==================== Cultural Norm methods ====================
 	private void addCulturalNorm(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, culturalNormHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
 				culturalNormIds.add(selectedId);
 				culturalNormListModel.addElement(getCulturalNormDisplayName(selectedId));
@@ -856,7 +851,7 @@ public class GroupDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
-		JDialog dialog = culturalNormHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = culturalNormHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 		culturalNormListModel.set(idx, getCulturalNormDisplayName(id));
 	}
@@ -884,7 +879,7 @@ public class GroupDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = culturalNormHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = culturalNormHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
@@ -922,19 +917,18 @@ public class GroupDialog extends BaseRecordDialog{
 	private boolean addSourceCitation(String preSelectedSourceId){
 		FLEFRecord citationRecord;
 		if(preSelectedSourceId != null && !preSelectedSourceId.isEmpty()){
-			citationRecord = FLEFRecord.createChildWithValue(1, "SOURCE", preSelectedSourceId);
+			citationRecord = FLEFRecord.createChildWithValue("SOURCE", preSelectedSourceId);
 		}
 		else{
 			citationRecord = null;
 		}
 
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, citationRecord);
+		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, citationRecord);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
 			FLEFRecord citation = dialog.getCitationRecord();
 			if(citation != null){
-				citation.setLevel(1);
 				citation.setTag("SOURCE");
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
@@ -949,7 +943,7 @@ public class GroupDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -1004,7 +998,7 @@ public class GroupDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
@@ -1131,14 +1125,12 @@ public class GroupDialog extends BaseRecordDialog{
 
 		// Relationships (including members)
 		for(FLEFRecord rel : otherRelationshipRecords){
-			rel.setLevel(1);
 			rel.setTag("RELATIONSHIP");
 			record.addChild(rel);
 		}
 
 		for(FLEFRecord rel : memberRelationshipRecords){
 			if(!otherRelationshipRecords.contains(rel)){
-				rel.setLevel(1);
 				rel.setTag("RELATIONSHIP");
 				record.addChild(rel);
 			}
@@ -1158,14 +1150,13 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 
 		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setLevel(1);
 			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 
 		// Preferred Image
 		if(preferredImageId != null && !preferredImageId.isEmpty()){
-			FLEFRecord pref = FLEFRecord.createChildWithValue(1, "PREFERRED_IMAGE", preferredImageId);
+			FLEFRecord pref = FLEFRecord.createChildWithValue("PREFERRED_IMAGE", preferredImageId);
 			record.addChild(pref);
 
 			FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
@@ -1175,7 +1166,6 @@ public class GroupDialog extends BaseRecordDialog{
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
 			if(conclusion != null){
-				conclusion.setLevel(1);
 				conclusion.setTag("CONCLUSION");
 				record.addChild(conclusion);
 			}

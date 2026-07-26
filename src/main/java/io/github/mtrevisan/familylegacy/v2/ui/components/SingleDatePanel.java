@@ -52,8 +52,10 @@ public class SingleDatePanel extends JPanel{
 	// The target record that this panel edits (the date node, e.g., POINT, NOT_BEFORE, FROM)
 	private FLEFRecord dateNode;
 
-	public SingleDatePanel(FLEFModel model){
+
+	public SingleDatePanel(final FLEFModel model){
 		this.approxPanel = new ApproximatePanel(model);
+
 		initComponents();
 	}
 
@@ -69,23 +71,23 @@ public class SingleDatePanel extends JPanel{
 		bindingManager.bind(calendarCombo);
 
 		// Date type combo
-		JPanel typePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
+		final JPanel typePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		typePanel.add(new JLabel("Type:"), "align label");
 		typePanel.add(dateTypeCombo, "growx");
 		add(typePanel, "growx,wrap");
 
 		// Card panel for FULL_DATE, DECADE, CENTURY
-		JPanel fullDatePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
+		final JPanel fullDatePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		fullDatePanel.add(new JLabel("Full date:"), "align label");
 		fullDatePanel.add(fullDateField, "growx");
-		JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow][right]rel[grow]"));
+		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow][right]rel[grow]"));
 		centuryPanel.add(new JLabel("Century:"), "align label");
 		centuryPanel.add(centuryField, "growx");
 		centuryPanel.add(new JLabel("Part:"), "align label");
 		centuryPanel.add(centuryPartCombo, "growx");
 		centuryField.setToolTipText("e.g., 15 for 15th century");
 
-		JPanel decadePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
+		final JPanel decadePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		decadePanel.add(new JLabel("Decade:"), "align label");
 		decadePanel.add(decadeField, "growx");
 		decadeField.setToolTipText("e.g., 1490 for the 1490s");
@@ -96,7 +98,7 @@ public class SingleDatePanel extends JPanel{
 		add(cardPanel, "growx,wrap");
 
 		// Calendar
-		JPanel calendarPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
+		final JPanel calendarPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		calendarPanel.add(new JLabel("Calendar:"), "align label");
 		calendarCombo.setEditable(true);
 		calendarPanel.add(calendarCombo, "growx");
@@ -114,37 +116,40 @@ public class SingleDatePanel extends JPanel{
 	 *
 	 * @param dateNode the record containing the date (e.g., POINT, NOT_BEFORE, FROM)
 	 */
-	public void loadFromRecord(FLEFRecord dateNode){
+	public void loadFromRecord(final FLEFRecord dateNode){
 		clear();
-		if(dateNode == null){
+
+		if(dateNode == null)
 			return;
-		}
+
 		this.dateNode = dateNode;
 
+		final String baseType = extractBaseType();
+
 		// Load APPROXIMATE (direct child of dateNode)
-		FLEFRecord approx = FLEFRecordUtils.findChild(dateNode, "APPROXIMATE");
+		final FLEFRecord approx = FLEFRecordUtils.findChild(dateNode, "APPROXIMATE");
 		approxPanel.loadFromRecord(approx);
 
 		// Load bound fields using BindingManager
+		calendarCombo.setPath(baseType + ".CALENDAR");
 		bindingManager.loadFromRecord(dateNode);
 
 		// Ensure the correct card is shown based on the date type
-		String selectedType = (String)dateTypeCombo.getSelectedItem();
-		if(selectedType == null || selectedType.isEmpty()){
+		final String selectedType = (String)dateTypeCombo.getSelectedItem();
+		if(selectedType != null && !selectedType.isEmpty()){
 			// Auto-detect from children: FULL_DATE, CENTURY, DECADE
-			if(FLEFRecordUtils.findChild(dateNode, "FULL_DATE") != null){
+			if(FLEFRecordUtils.findChild(dateNode, "FULL_DATE") != null)
 				dateTypeCombo.setSelectedItem(DATE_TYPE_FULL_DATE);
-			}
-			else if(FLEFRecordUtils.findChild(dateNode, "DECADE") != null){
+			else if(FLEFRecordUtils.findChild(dateNode, "DECADE") != null)
 				dateTypeCombo.setSelectedItem(DATE_TYPE_DECADE);
-			}
-			else if(FLEFRecordUtils.findChild(dateNode, "CENTURY") != null){
+			else if(FLEFRecordUtils.findChild(dateNode, "CENTURY") != null)
 				dateTypeCombo.setSelectedItem(DATE_TYPE_CENTURY);
-			}
-			else{
+			else
 				dateTypeCombo.setSelectedIndex(0);
-			}
 		}
+		else
+			dateTypeCombo.setSelectedIndex(0);
+
 		cardLayout.show(cardPanel, (String)dateTypeCombo.getSelectedItem());
 	}
 
@@ -157,28 +162,17 @@ public class SingleDatePanel extends JPanel{
 	 * @return the target record (or null if no data)
 	 */
 	public FLEFRecord saveToRecord(FLEFRecord target){
-		if(!hasData()){
+		if(!hasData())
 			return null;
-		}
 
-		if(target == null){
+		if(target == null)
 			target = new FLEFRecord();
-		}
 		FLEFRecordUtils.removeAllChildren(target);
 
+		final String baseType = extractBaseType();
+
 		// Save bound fields (FULL_DATE, DECADE, CENTURY, PART, CALENDAR, etc.)
-		String dateType = null;
-		String selectedDateType = (String)dateTypeCombo.getSelectedItem();
-		if(DATE_TYPE_FULL_DATE.equals(selectedDateType)){
-			dateType = "FULL_DATE";
-		}
-		else if(DATE_TYPE_DECADE.equals(selectedDateType)){
-			dateType = "DECADE";
-		}
-		else if(DATE_TYPE_CENTURY.equals(selectedDateType)){
-			dateType = "CENTURY";
-		}
-		calendarCombo.setPath(dateType + ".CALENDAR");
+		calendarCombo.setPath(baseType + ".CALENDAR");
 		bindingManager.saveToRecord(target);
 
 		// Save APPROXIMATE (as a child of target)
@@ -188,6 +182,18 @@ public class SingleDatePanel extends JPanel{
 		// (e.g., if no data, but we already have data)
 
 		return target.hasChildren()? target: null;
+	}
+
+	private String extractBaseType(){
+		String baseType = null;
+		final String selectedDateType = (String)dateTypeCombo.getSelectedItem();
+		if(DATE_TYPE_FULL_DATE.equals(selectedDateType))
+			baseType = "FULL_DATE";
+		else if(DATE_TYPE_DECADE.equals(selectedDateType))
+			baseType = "DECADE";
+		else if(DATE_TYPE_CENTURY.equals(selectedDateType))
+			baseType = "CENTURY";
+		return baseType;
 	}
 
 	public void clear(){
@@ -203,38 +209,42 @@ public class SingleDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		String dateType = (String)dateTypeCombo.getSelectedItem();
-		if(DATE_TYPE_FULL_DATE.equals(dateType)){
+		final String dateType = (String)dateTypeCombo.getSelectedItem();
+		if(DATE_TYPE_FULL_DATE.equals(dateType))
 			return !fullDateField.getText().trim().isEmpty();
-		}
-		if(DATE_TYPE_DECADE.equals(dateType)){
+
+		if(DATE_TYPE_DECADE.equals(dateType))
 			return !decadeField.getText().trim().isEmpty();
-		}
-		if(DATE_TYPE_CENTURY.equals(dateType)){
+
+		if(DATE_TYPE_CENTURY.equals(dateType))
 			return !centuryField.getText().trim().isEmpty();
-		}
+
 		return false;
 	}
 
 	public boolean validateRequiredFields(){
-		String dateType = (String)dateTypeCombo.getSelectedItem();
+		final String dateType = (String)dateTypeCombo.getSelectedItem();
 
 		if(DATE_TYPE_FULL_DATE.equals(dateType) && fullDateField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this, "Date is required for FULL DATE type.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 		if(DATE_TYPE_DECADE.equals(dateType) && decadeField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this, "Decade is required for DECADE type.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 		if(DATE_TYPE_CENTURY.equals(dateType) && centuryField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this, "Century is required for CENTURY type.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 
-		String calendar = (String)calendarCombo.getSelectedItem();
+		final String calendar = (String)calendarCombo.getSelectedItem();
 		if(calendar == null || calendar.trim().isEmpty()){
 			JOptionPane.showMessageDialog(this, "Calendar is required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 

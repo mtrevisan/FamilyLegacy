@@ -264,7 +264,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 	private void addGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, groupHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, groupHandler, selectedId -> {
 			if(selectedId != null && !groupIds.contains(selectedId)){
 				groupIds.add(selectedId);
 				groupListModel.addElement(getGroupDisplayName(selectedId));
@@ -284,7 +284,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this, "Group not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = groupHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = groupHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 		groupListModel.set(idx, getGroupDisplayName(id));
 	}
@@ -300,7 +300,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 	}
 
 	private void createNewGroup(){
-		JDialog dialog = groupHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = groupHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 	}
 
@@ -360,7 +360,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		if(eventStructurePanel.hasData()){
 			FLEFRecord eventStruct = eventStructurePanel.saveToRecord(null);
 			if(eventStruct != null){
-				eventStruct.setLevel(1);
 				eventStruct.setTag("EVENT_STRUCTURE");
 				record.addChild(eventStruct);
 			}
@@ -404,7 +403,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		// Aggiungi un evento di esempio per il TYPE
 		FLEFRecord eventType = FLEFRecord.createMainRecord("E1", "EVENT");
 		FLEFRecord type = new FLEFRecord();
-		type.setLevel(1);
 		type.setTag("TYPE");
 		type.setValue("BIRTH");
 		eventType.addChild(type);
@@ -413,7 +411,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		// Aggiungi un gruppo di esempio
 		FLEFRecord group = FLEFRecord.createMainRecord("G1", "GROUP");
 		FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
 		name.setTag("NAME");
 		name.setValue("Sample Group");
 		group.addChild(name);

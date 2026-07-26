@@ -364,7 +364,6 @@ public class GroupCitationPanel extends JPanel{
 
 		if(citationRecord == null){
 			citationRecord = new FLEFRecord();
-			citationRecord.setLevel(1);
 			citationRecord.setTag("GROUP_CITATION");
 		}
 

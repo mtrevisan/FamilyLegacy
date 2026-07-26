@@ -408,7 +408,6 @@ public class DocumentStructurePanel extends JPanel{
 
 		if(documentRecord == null){
 			documentRecord = new FLEFRecord();
-			documentRecord.setLevel(1);
 			documentRecord.setTag("DOCUMENT_STRUCTURE");
 		}
 
@@ -438,7 +437,6 @@ public class DocumentStructurePanel extends JPanel{
 		String extractText = extractArea.getText().trim();
 		if(!extractText.isEmpty()){
 			FLEFRecord extract = new FLEFRecord();
-			extract.setLevel(1);
 			extract.setTag("EXTRACT");
 			extract.setValue(extractText);
 			documentRecord.addChild(extract);

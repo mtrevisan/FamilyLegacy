@@ -25,48 +25,28 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ContactStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
+import java.awt.*;
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -89,7 +69,6 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3053114409506763765L;
-
 
 	// Handlers
 	static{
@@ -121,11 +100,8 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private final JList<String> contactList = new JList<>(contactListModel);
 	private final List<FLEFRecord> contactRecords = new ArrayList<>();
 
-	// Notes
-	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
-	private final JList<String> noteList = new JList<>(noteListModel);
-	private final List<String> noteIds = new ArrayList<>();
-	private final Map<String, String> noteDisplayMap = new HashMap<>();
+	// Notes (using NoteListPanel)
+	private final NoteListPanel notePanel;
 
 	// Panels
 	private final JTabbedPane tabbedPane = new JTabbedPane();
@@ -135,38 +111,36 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
+	// ==================== Constructors ====================
 
 	public static RepositoryDialog createNew(final Frame parent, final FLEFModel model){
 		return new RepositoryDialog(parent, model, null);
 	}
 
 	public static RepositoryDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
+		if(record == null){
 			throw new IllegalArgumentException("Record cannot be null");
-
+		}
 		return new RepositoryDialog(parent, model, record);
 	}
-
 
 	private RepositoryDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, buildTitle(model, record), model, record);
 
 		modificationPanel = new ModificationPanel(this);
+		notePanel = new NoteListPanel(model, this);
 
 		initComponents();
-
 		loadData();
-
 		pack();
-
 		setLocationRelativeTo(parent);
 	}
 
 	private static String buildTitle(final FLEFModel model, final FLEFRecord record){
-		return (record == null
-			? "New Repository"
-			: "Edit Repository - " + record.getId());
+		return (record == null? "New Repository": "Edit Repository - " + record.getId());
 	}
+
+	// ==================== UI Initialization ====================
 
 	@Override
 	protected void initComponents(){
@@ -199,9 +173,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 		mainPanel.add(new JLabel("Custodian:"), "align label");
 		custodianDisplayField.setEditable(false);
 		custodianDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel indPanel = new JPanel(new BorderLayout(5, 5));
+		final JPanel indPanel = new JPanel(new BorderLayout(5, 5));
 		indPanel.add(custodianDisplayField, BorderLayout.CENTER);
-		JPanel indBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+		final JPanel indBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 		indBtnPanel.add(custodianBrowseBtn);
 		indBtnPanel.add(custodianEditBtn);
 		indBtnPanel.add(custodianClearBtn);
@@ -212,9 +186,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 		mainPanel.add(new JLabel("Place:"), "align label");
 		placeDisplayField.setEditable(false);
 		placeDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel placePanel = new JPanel(new BorderLayout(5, 5));
+		final JPanel placePanel = new JPanel(new BorderLayout(5, 5));
 		placePanel.add(placeDisplayField, BorderLayout.CENTER);
-		JPanel placeBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+		final JPanel placeBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
 		placeBtnPanel.add(placeBrowseBtn);
 		placeBtnPanel.add(placeEditBtn);
 		placeBtnPanel.add(placeClearBtn);
@@ -237,7 +211,6 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 		return mainPanel;
 	}
-
 
 	private JPanel createNamesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("fillx,top"));
@@ -264,175 +237,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	private void addName(){
-		final NameStructureDialog dialog = new NameStructureDialog(this, model, null);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved()){
-			final FLEFRecord nameRecord = dialog.getNameRecord();
-			nameRecords.add(nameRecord);
-			nameListModel.addElement(getNameDisplay(nameRecord));
-		}
-	}
-
-	private void editName(){
-		final int idx = nameList.getSelectedIndex();
-		if(idx == -1)
-			return;
-
-		final FLEFRecord existing = nameRecords.get(idx);
-		final NameStructureDialog dialog = new NameStructureDialog(this, model, existing);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved()){
-			final FLEFRecord updated = dialog.getNameRecord();
-			nameRecords.set(idx, updated);
-			nameListModel.set(idx, getNameDisplay(updated));
-		}
-	}
-
-	private String getNameDisplay(final FLEFRecord nameRecord){
-		if(nameRecord == null)
-			return "[empty]";
-
-		final FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
-		final String text = valueRec != null ? valueRec.getValue() : null;
-		final String type = FLEFRecordUtils.getChildValue(nameRecord, "TYPE");
-
-		final StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotBlank(text))
-			sb.append(text);
-		else
-			sb.append("[unnamed]");
-
-		if(StringUtils.isNotBlank(type))
-			sb.append(" (").append(type).append(")");
-		return sb.toString();
-	}
-
-	private void removeName(){
-		int idx = nameList.getSelectedIndex();
-		if(idx == -1){
-			return;
-		}
-		if(!showConfirm("Confirm", "Remove this name?")){
-			return;
-		}
-		nameRecords.remove(idx);
-		nameListModel.remove(idx);
-	}
-
-	private void showNameEditDialog(FLEFRecord existing, int index){
-		JDialog dialog = new JDialog(this, existing == null ? "Add Name" : "Edit Name", true);
-		dialog.setLayout(new BorderLayout(10, 10));
-
-		JPanel formPanel = new JPanel(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]5[]5[]"));
-
-		JTextField textValField = new JTextField(20);
-		JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "official", "colonial", "indigenous"});
-		typeCombo.setEditable(true);
-		JTextField localeField = new JTextField(10);
-
-		if(existing != null){
-			FLEFRecord valRec = FLEFRecordUtils.findChild(existing, "VALUE");
-			if(valRec != null){
-				textValField.setText(valRec.getValue());
-				FLEFRecord locRec = FLEFRecordUtils.findChild(valRec, "LOCALE");
-				if(locRec != null){
-					localeField.setText(locRec.getValue());
-				}
-			}
-			FLEFRecord typeRec = FLEFRecordUtils.findChild(existing, "TYPE");
-			if(typeRec != null){
-				typeCombo.setSelectedItem(typeRec.getValue());
-			}
-		}
-
-		formPanel.add(new JLabel("Name Value*:"), "align label");
-		formPanel.add(textValField, "growx, wrap");
-
-		formPanel.add(new JLabel("Type:"), "align label");
-		formPanel.add(typeCombo, "growx, wrap");
-
-		formPanel.add(new JLabel("Locale (BCP 47):"), "align label");
-		formPanel.add(localeField, "growx, wrap");
-
-		dialog.add(formPanel, BorderLayout.CENTER);
-
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okBtn = new JButton("OK");
-		JButton cancelBtn = new JButton("Cancel");
-		btnPanel.add(okBtn);
-		btnPanel.add(cancelBtn);
-		dialog.add(btnPanel, BorderLayout.SOUTH);
-
-		okBtn.addActionListener(e -> {
-			String nameVal = textValField.getText().trim();
-			if(nameVal.isEmpty()){
-				JOptionPane.showMessageDialog(dialog, "Name Value is required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-
-			FLEFRecord nameRec = (existing != null) ? existing : new FLEFRecord();
-			FLEFRecordUtils.removeAllChildren(nameRec);
-
-			nameRec.setLevel(1);
-			nameRec.setTag("NAME");
-
-			// VALUE
-			FLEFRecord valRec = new FLEFRecord();
-			valRec.setLevel(2);
-			valRec.setTag("VALUE");
-			valRec.setValue(nameVal);
-
-			String locVal = localeField.getText().trim();
-			if(!locVal.isEmpty()){
-				FLEFRecord locRec = new FLEFRecord();
-				locRec.setLevel(3);
-				locRec.setTag("LOCALE");
-				locRec.setValue(locVal);
-				valRec.addChild(locRec);
-			}
-			nameRec.addChild(valRec);
-
-			// TYPE
-			String typeVal = ((String)typeCombo.getSelectedItem()).trim();
-			if(!typeVal.isEmpty()){
-				FLEFRecord typeRec = new FLEFRecord();
-				typeRec.setLevel(2);
-				typeRec.setTag("TYPE");
-				typeRec.setValue(typeVal);
-				nameRec.addChild(typeRec);
-			}
-
-			if(existing == null){
-				nameRecords.add(nameRec);
-				nameListModel.addElement(getNameDisplay(nameRec));
-			}
-			else{
-				nameRecords.set(index, nameRec);
-				nameListModel.set(index, getNameDisplay(nameRec));
-			}
-
-			dialog.dispose();
-		});
-
-		cancelBtn.addActionListener(e -> dialog.dispose());
-
-		dialog.pack();
-		dialog.setMinimumSize(new Dimension(400, 200));
-		dialog.setLocationRelativeTo(this);
-		dialog.setVisible(true);
-	}
-
-	// --- REFERENCES PANEL ---
-
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(createContactsPanel(), "growx");
-		panel.add(createNotesPanel(), "growx");
+
+		// Notes (using NoteListPanel)
+		panel.add(notePanel, "growx");
 
 		return panel;
 	}
@@ -463,38 +275,77 @@ public class RepositoryDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	private JPanel createNotesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("fillx,top"));
-		panel.setBorder(new TitledBorder("Note"));
+	// ==================== Name Management ====================
 
-		noteList.setVisibleRowCount(4);
-		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+	private void addName(){
+		final NameStructureDialog dialog = new NameStructureDialog(this, model, null);
+		dialog.setVisible(true);
 
-		GUIHelper.installBehavior(noteList,
-			() -> noteList.getSelectedIndex() >= 0,
-			this::editNote,
-			this::addNote,
-			this::removeNote,
-			builder -> {
-				builder.item("New...", this::newNote);
-				builder.item("Add Existing...", this::addNote);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editNote);
-				builder.selectionSensitiveItem("Remove", this::removeNote);
-			});
-
-		final JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
-		panel.add(scrollPane, "growx,wrap");
-
-		return panel;
+		if(dialog.isSaved()){
+			final FLEFRecord nameRecord = dialog.getNameRecord();
+			nameRecords.add(nameRecord);
+			nameListModel.addElement(getNameDisplay(nameRecord));
+		}
 	}
 
-	// --- HANDLERS & BROWSE ---
+	private void editName(){
+		final int idx = nameList.getSelectedIndex();
+		if(idx == -1){
+			return;
+		}
+
+		final FLEFRecord existing = nameRecords.get(idx);
+		final NameStructureDialog dialog = new NameStructureDialog(this, model, existing);
+		dialog.setVisible(true);
+
+		if(dialog.isSaved()){
+			final FLEFRecord updated = dialog.getNameRecord();
+			nameRecords.set(idx, updated);
+			nameListModel.set(idx, getNameDisplay(updated));
+		}
+	}
+
+	private String getNameDisplay(final FLEFRecord nameRecord){
+		if(nameRecord == null){
+			return "[empty]";
+		}
+
+		final FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		final String text = valueRec != null? valueRec.getValue(): null;
+		final String type = FLEFRecordUtils.getChildValue(nameRecord, "TYPE");
+
+		final StringBuilder sb = new StringBuilder();
+		if(StringUtils.isNotBlank(text)){
+			sb.append(text);
+		}
+		else{
+			sb.append("[unnamed]");
+		}
+
+		if(StringUtils.isNotBlank(type)){
+			sb.append(" (").append(type).append(")");
+		}
+		return sb.toString();
+	}
+
+	private void removeName(){
+		final int idx = nameList.getSelectedIndex();
+		if(idx == -1){
+			return;
+		}
+		if(!showConfirm("Confirm", "Remove this name?")){
+			return;
+		}
+		nameRecords.remove(idx);
+		nameListModel.remove(idx);
+	}
+
+	// ==================== Custodian & Place ====================
 
 	private void browseIndividual(){
 		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, individualHandler, selectedId -> {
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			GUIHelper.getParentFrame(this), model, individualHandler, selectedId -> {
 			if(selectedId != null){
 				selectedCustodianId = selectedId;
 				updateIndividualDisplay();
@@ -504,9 +355,8 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	private void editIndividual(){
-		final IndividualDialog dialog = IndividualDialog.createEdit(getParentFrame(), model, placeStructureRecord);
+		final IndividualDialog dialog = IndividualDialog.createEdit(GUIHelper.getParentFrame(this), model, placeStructureRecord);
 		dialog.setVisible(true);
-
 		updateIndividualDisplay();
 	}
 
@@ -514,17 +364,19 @@ public class RepositoryDialog extends BaseRecordDialog{
 		if(selectedCustodianId != null && !selectedCustodianId.isEmpty()){
 			final FLEFRecord rec = model.getRecordById(selectedCustodianId);
 			final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-			if(rec != null)
+			if(rec != null){
 				custodianDisplayField.setText(individualHandler.getDisplayName(rec));
-			else
+			}
+			else{
 				custodianDisplayField.setText(selectedCustodianId);
+			}
 		}
 	}
 
 	private void browsePlace(){
 		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, placeHandler, selectedId -> {
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
 			if(selectedId != null){
 				placeStructureRecord = model.getRecordById(selectedId);
 				updatePlaceDisplay();
@@ -536,9 +388,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private void editPlace(){
 		final PlaceStructureDialog dialog = new PlaceStructureDialog(this, model, placeStructureRecord);
 		dialog.setVisible(true);
-
-		if(dialog.isSaved())
+		if(dialog.isSaved()){
 			updatePlaceDisplay();
+		}
 	}
 
 	private void updatePlaceDisplay(){
@@ -546,18 +398,22 @@ public class RepositoryDialog extends BaseRecordDialog{
 			final String id = placeStructureRecord.getValue();
 			final FLEFRecord rec = model.getRecordById(id);
 			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-			if(rec != null)
+			if(rec != null){
 				placeDisplayField.setText(placeHandler.getDisplayName(rec));
-			else
+			}
+			else{
 				placeDisplayField.setText(id);
+			}
 		}
 	}
 
-	private String getContactDisplay(FLEFRecord contact){
-		String address = contact.getValue();
-		String type = FLEFRecordUtils.getChildValue(contact, "TYPE");
-		String callerId = FLEFRecordUtils.getChildValue(contact, "CALLER_ID");
-		StringBuilder sb = new StringBuilder();
+	// ==================== Contact Management ====================
+
+	private String getContactDisplay(final FLEFRecord contact){
+		final String address = contact.getValue();
+		final String type = FLEFRecordUtils.getChildValue(contact, "TYPE");
+		final String callerId = FLEFRecordUtils.getChildValue(contact, "CALLER_ID");
+		final StringBuilder sb = new StringBuilder();
 		if(address != null && !address.isEmpty()){
 			sb.append(address);
 		}
@@ -585,7 +441,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private void loadContacts(){
 		contactListModel.clear();
 		contactRecords.clear();
-		for(FLEFRecord child : record.getChildren()){
+		for(final FLEFRecord child : record.getChildren()){
 			if("CONTACT".equals(child.getTag())){
 				contactRecords.add(child);
 				contactListModel.addElement(getContactDisplay(child));
@@ -594,14 +450,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	private void addContact(){
-		ContactStructurePanel panel = new ContactStructurePanel(model, this);
-		JDialog dialog = new JDialog(this, "Add Contact", true);
+		final ContactStructurePanel panel = new ContactStructurePanel(model, this);
+		final JDialog dialog = new JDialog(this, "Add Contact", true);
 		dialog.setLayout(new BorderLayout(10, 10));
 		dialog.add(panel, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okBtn = new JButton("OK");
-		JButton cancelBtn = new JButton("Cancel");
+		final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final JButton okBtn = new JButton("OK");
+		final JButton cancelBtn = new JButton("Cancel");
 		btnPanel.add(okBtn);
 		btnPanel.add(cancelBtn);
 		dialog.add(btnPanel, BorderLayout.SOUTH);
@@ -609,9 +465,8 @@ public class RepositoryDialog extends BaseRecordDialog{
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
 			if(panel.validateRequiredFields()){
-				FLEFRecord contact = panel.saveToRecord(null);
+				final FLEFRecord contact = panel.saveToRecord(null);
 				if(contact != null){
-					contact.setLevel(1);
 					contact.setTag("CONTACT");
 					result[0] = contact;
 					dialog.dispose();
@@ -632,22 +487,22 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	private void editContact(){
-		int idx = contactList.getSelectedIndex();
+		final int idx = contactList.getSelectedIndex();
 		if(idx == -1){
 			return;
 		}
-		FLEFRecord existing = contactRecords.get(idx);
+		final FLEFRecord existing = contactRecords.get(idx);
 
-		ContactStructurePanel panel = new ContactStructurePanel(model, this);
+		final ContactStructurePanel panel = new ContactStructurePanel(model, this);
 		panel.loadFromRecord(existing);
 
-		JDialog dialog = new JDialog(this, "Edit Contact", true);
+		final JDialog dialog = new JDialog(this, "Edit Contact", true);
 		dialog.setLayout(new BorderLayout(10, 10));
 		dialog.add(panel, BorderLayout.CENTER);
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okBtn = new JButton("OK");
-		JButton cancelBtn = new JButton("Cancel");
+		final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final JButton okBtn = new JButton("OK");
+		final JButton cancelBtn = new JButton("Cancel");
 		btnPanel.add(okBtn);
 		btnPanel.add(cancelBtn);
 		dialog.add(btnPanel, BorderLayout.SOUTH);
@@ -655,9 +510,8 @@ public class RepositoryDialog extends BaseRecordDialog{
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
 			if(panel.validateRequiredFields()){
-				FLEFRecord contact = panel.saveToRecord(existing);
+				final FLEFRecord contact = panel.saveToRecord(existing);
 				if(contact != null){
-					contact.setLevel(1);
 					contact.setTag("CONTACT");
 					result[0] = contact;
 					dialog.dispose();
@@ -678,7 +532,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	private void removeContact(){
-		int idx = contactList.getSelectedIndex();
+		final int idx = contactList.getSelectedIndex();
 		if(idx == -1){
 			return;
 		}
@@ -693,103 +547,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 		addContact();
 	}
 
-	private String getNoteDisplayName(String id){
-		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null){
-			return noteHandler.getDisplayName(rec);
-		}
-		return id;
-	}
-
-	private void loadNotes(){
-		noteListModel.clear();
-		noteIds.clear();
-		noteDisplayMap.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("NOTE".equals(child.getTag()) && child.getValue() != null){
-				String id = child.getValue();
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteListModel.addElement(display);
-			}
-		}
-	}
-
-	private void addNote(){
-		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, noteHandler, selectedId -> {
-			if(selectedId != null && !noteIds.contains(selectedId)){
-				noteIds.add(selectedId);
-				String display = getNoteDisplayName(selectedId);
-				noteDisplayMap.put(selectedId, display);
-				noteListModel.addElement(display);
-			}
-		});
-		dialog.setVisible(true);
-	}
-
-	private void editNote(){
-		final int idx = noteList.getSelectedIndex();
-		if(idx == -1){
-			return;
-		}
-
-		final String id = noteIds.get(idx);
-		final FLEFRecord rec = model.getRecordById(id);
-		if(rec == null){
-			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
-		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		final JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
-		dialog.setVisible(true);
-
-		final String newDisplay = getNoteDisplayName(id);
-		noteDisplayMap.put(id, newDisplay);
-		noteListModel.set(idx, newDisplay);
-	}
-
-	private void removeNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1){
-			return;
-		}
-		if(!showConfirm("Confirm", "Remove this note reference?")){
-			return;
-		}
-		String removedId = noteIds.remove(idx);
-		noteDisplayMap.remove(removedId);
-		noteListModel.remove(idx);
-	}
-
-	private void newNote(){
-		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
-		dialog.setVisible(true);
-		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !noteIds.contains(id)){
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteListModel.addElement(display);
-				break;
-			}
-		}
-	}
-
+	// ==================== Load / Save ====================
 
 	@Override
 	protected void loadData(){
 		// 1. NAME_STRUCTURE {1:M}
 		nameRecords.clear();
 		nameListModel.clear();
-		for(FLEFRecord child : record.getChildren()){
+		for(final FLEFRecord child : record.getChildren()){
 			if("NAME".equals(child.getTag())){
 				nameRecords.add(child);
 				nameListModel.addElement(getNameDisplay(child));
@@ -797,7 +562,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 		}
 
 		// 2. CUSTODIAN
-		String indId = FLEFRecordUtils.getChildValue(record, "CUSTODIAN");
+		final String indId = FLEFRecordUtils.getChildValue(record, "CUSTODIAN");
 		if(indId != null && !indId.isEmpty()){
 			selectedCustodianId = indId;
 			updateIndividualDisplay();
@@ -810,8 +575,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 		// 4. CONTACT_STRUCTURE
 		loadContacts();
 
-		// 5. NOTE
-		loadNotes();
+		// 5. NOTE (using NoteListPanel)
+		final List<String> noteIds = new ArrayList<>();
+		for(final FLEFRecord child : record.getChildren()){
+			if("NOTE".equals(child.getTag()) && child.getValue() != null){
+				noteIds.add(child.getValue());
+			}
+		}
+		notePanel.loadFromNoteIds(noteIds);
 
 		// 6. MODIFICATION
 		modificationPanel.loadFromRecord(record);
@@ -823,13 +594,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"At least one NAME structure is required ({1:M}).",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			// Ensure the tab containing valueArea is visible
 			tabbedPane.setSelectedComponent(mainPanel);
-
 			return false;
 		}
-
 		return true;
 	}
 
@@ -839,33 +606,32 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 		// 1. NAME
 		for(final FLEFRecord nameRec : nameRecords){
-			nameRec.setLevel(1);
 			nameRec.setTag("NAME");
 			record.addChild(nameRec);
 		}
 
 		// 2. CUSTODIAN
-		if(StringUtils.isNotBlank(selectedCustodianId))
+		if(StringUtils.isNotBlank(selectedCustodianId)){
 			FLEFRecordUtils.addChild(record, "CUSTODIAN", FLEFRecordUtils.formatXRef(selectedCustodianId));
+		}
 
 		// 3. PLACE
 		FLEFRecordUtils.removeChildren(record, "PLACE");
 		if(placeStructureRecord != null && placeStructureRecord.getValue() != null){
-			placeStructureRecord.setLevel(1);
 			placeStructureRecord.setTag("PLACE");
 			record.addChild(placeStructureRecord);
 		}
 
 		// 4. CONTACT
 		for(final FLEFRecord contact : contactRecords){
-			contact.setLevel(1);
 			contact.setTag("CONTACT");
 			record.addChild(contact);
 		}
 
 		// 5. NOTE
-		for(final String id : noteIds)
+		for(final String id : notePanel.getNoteIds()){
 			FLEFRecordUtils.addChild(record, "NOTE", FLEFRecordUtils.formatXRef(id));
+		}
 
 		// 6. MODIFICATION
 		modificationPanel.saveToRecord(record);
@@ -874,11 +640,10 @@ public class RepositoryDialog extends BaseRecordDialog{
 			model.addRecord(record);
 		}
 
-//TODO to be removed
-FLEFFile.print(model);
-//		dispose();
+		// TODO to be removed
+		FLEFFile.print(model);
+		// dispose();
 	}
-
 
 	@Override
 	protected FLEFRecord createNewRecord(){
@@ -890,18 +655,19 @@ FLEFFile.print(model);
 		return FLEFRecordUtils.generateNewId(model, RepositoryHandler.TYPE, RepositoryHandler.ID_PREFIX);
 	}
 
+	// ==================== Main for testing ====================
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
+		catch(final Exception ignored){
 		}
 
-		FLEFModel model = new FLEFModel();
+		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			RepositoryDialog dialog = RepositoryDialog.createNew(null, model);
+			final RepositoryDialog dialog = RepositoryDialog.createNew(null, model);
 			dialog.setVisible(true);
 		});
 	}

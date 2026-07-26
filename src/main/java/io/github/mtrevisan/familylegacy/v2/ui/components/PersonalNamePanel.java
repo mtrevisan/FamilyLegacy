@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
@@ -292,34 +291,34 @@ public class PersonalNamePanel extends JPanel{
 
 		int baseLevel = 1;
 		for(PersonalNameEntry entry : nameEntries){
-			FLEFRecord nameStruct = FLEFRecord.createChild(baseLevel, "NAME");
+			FLEFRecord nameStruct = FLEFRecord.createChild("NAME");
 
 			if(entry.type != null && !entry.type.isEmpty()){
-				FLEFRecord type = FLEFRecord.createChildWithValue(baseLevel + 1, "TYPE", entry.type);
+				FLEFRecord type = FLEFRecord.createChildWithValue("TYPE", entry.type);
 				nameStruct.addChild(type);
 			}
 
 			for(PartEntry part : entry.parts){
-				FLEFRecord partStruct = FLEFRecord.createChild(baseLevel + 1, "PART");
+				FLEFRecord partStruct = FLEFRecord.createChild("PART");
 
 				if(part.type != null && !part.type.isEmpty()){
-					FLEFRecord partType = FLEFRecord.createChildWithValue(baseLevel + 2, "TYPE", part.type);
+					FLEFRecord partType = FLEFRecord.createChildWithValue("TYPE", part.type);
 					partStruct.addChild(partType);
 				}
 
-				FLEFRecord partValue = FLEFRecord.createChildWithValue(baseLevel + 2, "VALUE", part.value);
+				FLEFRecord partValue = FLEFRecord.createChildWithValue("VALUE", part.value);
 				partStruct.addChild(partValue);
 
 				for(VariantEntry variant : part.variants){
 					FLEFRecord variantStruct = FLEFRecord.createChildWithValue(
-						baseLevel + 2, variant.type, variant.system);
+						variant.type, variant.system);
 					if("TRANSCRIPTION".equals(variant.type) && variant.transcriptionType != null && !variant.transcriptionType.isEmpty()){
 						FLEFRecord transType = FLEFRecord.createChildWithValue(
-							baseLevel + 3, "TYPE", variant.transcriptionType);
+							"TYPE", variant.transcriptionType);
 						variantStruct.addChild(transType);
 					}
 					FLEFRecord variantValue = FLEFRecord.createChildWithValue(
-						baseLevel + 3, "VALUE", variant.value);
+						"VALUE", variant.value);
 					variantStruct.addChild(variantValue);
 					partStruct.addChild(variantStruct);
 				}
@@ -329,20 +328,19 @@ public class PersonalNamePanel extends JPanel{
 
 			for(String id : entry.culturalNormIds){
 				if(id != null && !id.isEmpty()){
-					FLEFRecord norm = FLEFRecord.createChildWithValue(baseLevel + 1, "CULTURAL_NORM", id);
+					FLEFRecord norm = FLEFRecord.createChildWithValue("CULTURAL_NORM", id);
 					nameStruct.addChild(norm);
 				}
 			}
 
 			for(String id : entry.noteIds){
 				if(id != null && !id.isEmpty()){
-					FLEFRecord note = FLEFRecord.createChildWithValue(baseLevel + 1, "NOTE", id);
+					FLEFRecord note = FLEFRecord.createChildWithValue("NOTE", id);
 					nameStruct.addChild(note);
 				}
 			}
 
 			for(FLEFRecord citation : entry.sourceCitations){
-				citation.setLevel(baseLevel + 1);
 				citation.setTag("SOURCE");
 				nameStruct.addChild(citation);
 			}
@@ -881,7 +879,7 @@ public class PersonalNamePanel extends JPanel{
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			getParentFrame(parent), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 				currentSources.add(citation);
 				listModel.addElement(getSourceCitationDisplay(citation));
 			}

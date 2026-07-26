@@ -377,12 +377,12 @@ public class RelationshipDialog extends JDialog{
 
 	// ==================== Note methods ====================
 
-	private String getNoteDisplayName(String noteId){
-		FLEFRecord note = model.getRecordById(noteId);
+	private String getNoteDisplayName(String id){
+		FLEFRecord note = model.getRecordById(id);
 		if(note != null){
 			return noteHandler.getDisplayName(note);
 		}
-		return noteId;
+		return id;
 	}
 
 	private void addNote(){
@@ -533,7 +533,6 @@ public class RelationshipDialog extends JDialog{
 
 		FLEFRecord record = existingCitation != null? existingCitation: new FLEFRecord();
 		if(existingCitation == null){
-			record.setLevel(1);
 			record.setTag("RELATIONSHIP");
 		}
 

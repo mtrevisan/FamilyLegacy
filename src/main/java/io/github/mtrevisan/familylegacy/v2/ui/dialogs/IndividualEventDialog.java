@@ -303,7 +303,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	private void browseFamily(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, familyHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, familyHandler, selectedId -> {
 			if(selectedId != null){
 				selectedFamilyId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -343,7 +343,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	private void addTwin(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, individualHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, individualHandler, selectedId -> {
 			if(selectedId != null && !twinIds.contains(selectedId)){
 				twinIds.add(selectedId);
 				twinListModel.addElement(getIndividualDisplayName(selectedId));
@@ -463,7 +463,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		if(eventStructurePanel.hasData()){
 			FLEFRecord eventStruct = eventStructurePanel.saveToRecord(null);
 			if(eventStruct != null){
-				eventStruct.setLevel(1);
 				eventStruct.setTag("EVENT_STRUCTURE");
 				record.addChild(eventStruct);
 			}
@@ -505,15 +504,12 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		// Aggiungi un individuo di esempio per i gemelli
 		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
 		name.setTag("NAME");
 		FLEFRecord given = new FLEFRecord();
-		given.setLevel(2);
 		given.setTag("INDIVIDUAL_NAME");
 		given.setValue("John");
 		name.addChild(given);
 		FLEFRecord familyName = new FLEFRecord();
-		familyName.setLevel(2);
 		familyName.setTag("FAMILY_NAME");
 		familyName.setValue("Doe");
 		name.addChild(familyName);

@@ -121,16 +121,16 @@ public class TextValueVariantDialog extends JDialog{
 		}
 
 		if(phoneticRadio.isSelected()){
-			variantRecord = FLEFRecord.createChildWithValue(3, "PHONETIC", system);
-			variantRecord.addChild(FLEFRecord.createChildWithValue(4, "VALUE", value));
+			variantRecord = FLEFRecord.createChildWithValue("PHONETIC", system);
+			variantRecord.addChild(FLEFRecord.createChildWithValue("VALUE", value));
 		}
 		else{
-			variantRecord = FLEFRecord.createChildWithValue(3, "TRANSCRIPTION", system);
+			variantRecord = FLEFRecord.createChildWithValue("TRANSCRIPTION", system);
 			final String type = typeField.getText().trim();
 			if(!type.isEmpty()){
-				variantRecord.addChild(FLEFRecord.createChildWithValue(4, "TYPE", type));
+				variantRecord.addChild(FLEFRecord.createChildWithValue("TYPE", type));
 			}
-			variantRecord.addChild(FLEFRecord.createChildWithValue(4, "VALUE", value));
+			variantRecord.addChild(FLEFRecord.createChildWithValue("VALUE", value));
 		}
 
 		saved = true;

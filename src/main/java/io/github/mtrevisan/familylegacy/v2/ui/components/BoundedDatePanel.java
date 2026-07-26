@@ -29,9 +29,11 @@ public class BoundedDatePanel extends JPanel{
 	private final SingleDatePanel notBeforePanel;
 	private final SingleDatePanel notAfterPanel;
 
-	public BoundedDatePanel(FLEFModel model){
+
+	public BoundedDatePanel(final FLEFModel model){
 		this.notBeforePanel = new SingleDatePanel(model);
 		this.notAfterPanel = new SingleDatePanel(model);
+
 		initComponents();
 	}
 
@@ -39,61 +41,57 @@ public class BoundedDatePanel extends JPanel{
 		setLayout(new MigLayout("ins 0,fillx,top", "[grow,fill][grow,fill]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		JPanel beforePanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		final JPanel beforePanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		beforePanel.setBorder(new TitledBorder("Not Before"));
 		beforePanel.add(notBeforePanel, "growx");
 		add(beforePanel, "growx");
 
-		JPanel afterPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		final JPanel afterPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
 		afterPanel.setBorder(new TitledBorder("Not After"));
 		afterPanel.add(notAfterPanel, "growx");
 		add(afterPanel, "growx");
 	}
 
-	public void loadFromRecord(FLEFRecord boundedRecord){
+	public void loadFromRecord(final FLEFRecord boundedRecord){
 		clear();
-		if(boundedRecord == null) return;
 
-		FLEFRecord notBefore = FLEFRecordUtils.findChild(boundedRecord, "NOT_BEFORE");
-		if(notBefore != null){
+		if(boundedRecord == null)
+			return;
+
+		final FLEFRecord notBefore = FLEFRecordUtils.findChild(boundedRecord, "NOT_BEFORE");
+		if(notBefore != null)
 			notBeforePanel.loadFromRecord(notBefore);
-		}
 
-		FLEFRecord notAfter = FLEFRecordUtils.findChild(boundedRecord, "NOT_AFTER");
-		if(notAfter != null){
+		final FLEFRecord notAfter = FLEFRecordUtils.findChild(boundedRecord, "NOT_AFTER");
+		if(notAfter != null)
 			notAfterPanel.loadFromRecord(notAfter);
-		}
 	}
 
-	public FLEFRecord saveToRecord(FLEFRecord target){
-		FLEFRecord record = target != null? target: new FLEFRecord();
+	public FLEFRecord saveToRecord(final FLEFRecord target){
+		final FLEFRecord parent = (target != null? target: new FLEFRecord());
 
+		final FLEFRecord record = FLEFRecord.createChild("BOUNDED");
 		if(notBeforePanel.hasData()){
-			FLEFRecord notBefore = FLEFRecord.createChild(1, "NOT_BEFORE");
-			FLEFRecord dateNode = notBeforePanel.saveToRecord(null);
+			final FLEFRecord notBefore = FLEFRecord.createChild("NOT_BEFORE");
+			final FLEFRecord dateNode = notBeforePanel.saveToRecord(null);
 			if(dateNode != null && dateNode.hasChildren()){
-				// copy children (the actual date tags) into notBefore
-				for(FLEFRecord child : dateNode.getChildren()){
-					child.setLevel(2);
+				for(final FLEFRecord child : dateNode.getChildren())
 					notBefore.addChild(child);
-				}
 				record.addChild(notBefore);
 			}
 		}
 
 		if(notAfterPanel.hasData()){
-			FLEFRecord notAfter = FLEFRecord.createChild(1, "NOT_AFTER");
-			FLEFRecord dateNode = notAfterPanel.saveToRecord(null);
+			final FLEFRecord notAfter = FLEFRecord.createChild("NOT_AFTER");
+			final FLEFRecord dateNode = notAfterPanel.saveToRecord(null);
 			if(dateNode != null && dateNode.hasChildren()){
-				for(FLEFRecord child : dateNode.getChildren()){
-					child.setLevel(2);
+				for(final FLEFRecord child : dateNode.getChildren())
 					notAfter.addChild(child);
-				}
 				record.addChild(notAfter);
 			}
 		}
 
-		return record.hasChildren()? record: null;
+		return (record.hasChildren()? parent.addChild(record): null);
 	}
 
 	public void clear(){
@@ -102,7 +100,7 @@ public class BoundedDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		return notBeforePanel.hasData() || notAfterPanel.hasData();
+		return (notBeforePanel.hasData() || notAfterPanel.hasData());
 	}
 
 	public boolean validateRequiredFields(){
@@ -110,12 +108,14 @@ public class BoundedDatePanel extends JPanel{
 			JOptionPane.showMessageDialog(this,
 				"At least one of Not Before or Not After is required for BOUNDED date.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
-		if(notBeforePanel.hasData() && !notBeforePanel.validateRequiredFields()){
+
+		if(notBeforePanel.hasData() && !notBeforePanel.validateRequiredFields())
 			return false;
-		}
-		return !notAfterPanel.hasData() || notAfterPanel.validateRequiredFields();
+
+		return (!notAfterPanel.hasData() || notAfterPanel.validateRequiredFields());
 	}
 
 }

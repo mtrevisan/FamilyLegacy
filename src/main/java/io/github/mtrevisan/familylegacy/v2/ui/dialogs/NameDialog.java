@@ -673,12 +673,10 @@ public class NameDialog extends JDialog{
 		if(dialog.isSaved()){
 			FLEFRecord transRecord = dialog.getTranscribedTextRecord();
 			if(transRecord != null){
-				transRecord.setLevel(2);
 				transRecord.setTag("TRANSCRIBED_TEXT");
 				FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
 				if(parent == null){
 					parent = new FLEFRecord();
-					parent.setLevel(1);
 					parent.setTag(parentTag);
 					nameRecord.addChild(parent);
 				}
@@ -880,7 +878,6 @@ public class NameDialog extends JDialog{
 		FLEFRecord givenNode = FLEFRecordUtils.findChild(nameRecord, "INDIVIDUAL_NAME");
 		if(givenNode == null){
 			givenNode = new FLEFRecord();
-			givenNode.setLevel(1);
 			givenNode.setTag("INDIVIDUAL_NAME");
 			givenNode.setValue(givenNameField.getText().trim());
 			nameRecord.addChild(givenNode);
@@ -913,7 +910,6 @@ public class NameDialog extends JDialog{
 	private void ensureParentNode(String tag){
 		if(FLEFRecordUtils.findChild(nameRecord, tag) == null){
 			FLEFRecord parent = new FLEFRecord();
-			parent.setLevel(1);
 			parent.setTag(tag);
 			nameRecord.addChild(parent);
 		}

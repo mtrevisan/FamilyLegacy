@@ -159,7 +159,7 @@ public class NoteListEditorDialog extends JDialog{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -175,7 +175,7 @@ public class NoteListEditorDialog extends JDialog{
 
 	private void addExistingNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, noteHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -192,7 +192,7 @@ public class NoteListEditorDialog extends JDialog{
 		String id = noteIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
-		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -222,19 +222,10 @@ public class NoteListEditorDialog extends JDialog{
 		// Add the current note list as new children
 		for(String id : noteIds){
 			FLEFRecord noteChild = new FLEFRecord();
-			noteChild.setLevel(2);
 			noteChild.setTag("NOTE");
 			noteChild.setValue(id);
 			ownerRecord.addChild(noteChild);
 		}
-	}
-
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
 	}
 
 	/**

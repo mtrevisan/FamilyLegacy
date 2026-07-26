@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
@@ -358,7 +357,7 @@ public class ConclusionPanel extends JPanel{
 			(Frame)SwingUtilities.getWindowAncestor(parentDialog), model, sourceHandler,
 			selectedId -> {
 				if(selectedId != null){
-					FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
+					FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 					sourceCitations.add(citation);
 					sourceListModel.addElement(getSourceCitationDisplay(citation));
 				}
@@ -512,7 +511,6 @@ public class ConclusionPanel extends JPanel{
 		// SOURCE_CITATION (0:M)
 		FLEFRecordUtils.removeChildren(record, "SOURCE");
 		for(FLEFRecord citation : sourceCitations){
-			citation.setLevel(1);
 			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}

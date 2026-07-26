@@ -440,15 +440,12 @@ public class AliasDialog extends JDialog{
 		// Add a sample individual
 		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 		FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
 		name.setTag("NAME");
 		FLEFRecord given = new FLEFRecord();
-		given.setLevel(2);
 		given.setTag("INDIVIDUAL_NAME");
 		given.setValue("John");
 		name.addChild(given);
 		FLEFRecord family = new FLEFRecord();
-		family.setLevel(2);
 		family.setTag("FAMILY_NAME");
 		family.setValue("Doe");
 		name.addChild(family);

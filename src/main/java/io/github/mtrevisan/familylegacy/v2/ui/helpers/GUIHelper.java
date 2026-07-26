@@ -2,6 +2,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
@@ -241,6 +244,20 @@ public final class GUIHelper{
 		private List<MenuEntry> getEntries(){
 			return entries;
 		}
+	}
+
+
+
+	/**
+	 * Returns the parent frame of this panel.
+	 *
+	 * @return the parent frame, or {@code null} if not found
+	 */
+	public static Frame getParentFrame(final Dialog dialog){
+		Container parent = dialog.getParent();
+		while(parent != null && !(parent instanceof Frame))
+			parent = parent.getParent();
+		return (Frame)parent;
 	}
 
 

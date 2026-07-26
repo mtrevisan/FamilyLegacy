@@ -64,7 +64,7 @@ n @<XREF:INDIVIDUAL>@ INDIVIDUAL    {1:1}
   +1 SEX <SEX_VALUE>    {0:1}	/* Biological sex as recorded or inferred (MALE, FEMALE, or UNKNOWN). */
   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}	/* Cultural norms that apply to this individual (e.g., naming conventions, age of majority). */
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}	/* Free-text notes about this individual. */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* Source citations supporting facts about this individual. */
+..  +1 <<SOURCE_CITATION>>    {0:M}	/* Source citations supporting facts about this individual. */
   +1 PREFERRED_IMAGE <RESOURCE_URI>    {0:1}	/* Resource URI (following RFC 3986 specifications) pointing to a preferred image of this individual. */
     +2 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. Required when citing a specific part of an image-based source. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}	/* Privacy and distribution restrictions for this individual. */
@@ -81,7 +81,7 @@ n NAME    {1:1}
 ..    +2 <<TEXT_VALUE_VARIANT>>    {0:M}	/* Alternative phonetic, transliterated, or transcribed representations of this name component. */
   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
 
 NAME_STRUCTURE :=	/* A generic naming structure used for places, organizations, repositories, groups, and other non-person entities. Unlike PERSONAL_NAME_STRUCTURE, this structure does not decompose the name into culturally-specific components. */
 n NAME    {1:1}
@@ -128,7 +128,7 @@ n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
   +1 VALID_TO    {0:1}
     +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
   +1 <<PLACE_STRUCTURE>>    {0:1}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:1}	/* Specific conclusion that resolves the value or interpretation of this attribute. */
@@ -138,10 +138,10 @@ n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
 GROUP_RECORD :=	/* A group of genealogical entities. A group can be a family, a household, a neighborhood, a club, a research group, etc. Membership in a GROUP is determined exclusively through RELATIONSHIP_RECORD objects whose OBJECT references the GROUP record and whose TYPE identifies a group membership relationship (e.g., 'group_member'). GROUP_RECORD does not directly contain a member list. This design ensures that membership is treated as a relationship with its own properties (dates, evidence, conclusions). */
 n @<XREF:GROUP>@ GROUP    {1:1}
   +1 TYPE <GROUP_TYPE>    {0:1}	/* The type of the group. For example 'family', 'household', 'neighborhood', 'fraternity', 'club', 'literary society', 'association', 'organization', 'tribe', etc. Custom values are permitted. */
-  +1 <<NAME_STRUCTURE>>    {0:M}	/* Names associated with the group. For a family, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts. */
+..  +1 <<NAME_STRUCTURE>>    {0:M}	/* Names associated with the group. For a family, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts. */
   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 PREFERRED_IMAGE <RESOURCE_URI>    {0:1}	/* Resource URI (following RFC 3986 specifications). */
     +2 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. Required when citing a specific part of an image-based source. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -160,7 +160,7 @@ n @<XREF:GROUP_ATTRIBUTE>@ GROUP_ATTRIBUTE    {1:1}
   +1 VALID_TO    {0:1}
     +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
   +1 <<PLACE_STRUCTURE>>    {0:1}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:1}	/* Specific conclusion that resolves the value or interpretation of this attribute. */
@@ -182,7 +182,7 @@ n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
     +2 <<DATE_STRUCTURE>>    {1:1}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:1}	/* Specific conclusion that resolves the validity or interpretation of this relationship. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
@@ -198,7 +198,7 @@ n CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 n CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
 ..n NOTE @<XREF:NOTE>@    {0:M}
-n <<SOURCE_CITATION>>    {0:M}
+..n <<SOURCE_CITATION>>    {0:M}
 n <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for the event. */
 ..n <<RESTRICTION_STRUCTURE>>    {0:1}
 n <<CONCLUSION_STRUCTURE>>    {0:1}	/* Specific conclusion that resolves the value of this single event (e.g. "this date of birth is the proven one"). */
@@ -210,7 +210,7 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
   +1 EVENT @<XREF:EVENT>@    {1:1}	/* The event in which the entity participated. */
   +1 ENTITY @<XREF:ID>@    {1:1}	/* The entity that participated in the event. */
   +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* The role the entity played in the event. Known values are: CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. This field is optional because the role may be unknown or not applicable. */
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -219,13 +219,13 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
 
 PLACE_RECORD :=	/* A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP records in order to model changing jurisdictions and historical geography. */
 n @<XREF:PLACE>@ PLACE    {1:1}
-  +1 <<NAME_STRUCTURE>>    {1:M}	/* The name of the place formatted for display and address generation. */
+..  +1 <<NAME_STRUCTURE>>    {1:M}	/* The name of the place formatted for display and address generation. */
   +1 TYPE <PLACE_TYPE>    {0:1}	/* The classification of the place. Known values include: 'address', 'building', 'street', 'hamlet', 'village', 'town', 'municipality', 'city', 'metropolitan_area', 'county', 'province', 'department', 'district', 'region', 'macro_region', 'country', 'empire', 'parish', 'diocese', 'cemetery', 'archive', 'unknown'. Custom values are permitted. */
   +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
     +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name (as defined by ISO 6709: https://en.wikipedia.org/wiki/ISO_6709). */
     +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name (as defined by ISO 6709: https://en.wikipedia.org/wiki/ISO_6709). */
     +2 <<EVIDENCE_QUALIFIERS>>    {0:1}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this place. */
@@ -233,7 +233,7 @@ n @<XREF:PLACE>@ PLACE    {1:1}
 
 PLACE_STRUCTURE :=	/* Reference to a PLACE record together with location-specific citations and evidence qualifiers. */
 n PLACE @<XREF:PLACE>@    {1:1}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 
 PLACE_RELATIONSHIP_RECORD :=	/* A relationship connecting two place records. Place relationships are used to represent geographic, administrative, ecclesiastical, judicial, cadastral, postal, or historical associations between places. These relationships may change over time and can therefore be bounded by validity dates. */
@@ -246,12 +246,12 @@ n @<XREF:PLACE_RELATIONSHIP>@ PLACE_RELATIONSHIP    {1:1}
   +1 VALID_TO    {0:1}	/* The date until which this place relationship is known or believed to have been valid. */
     +2 <<DATE_STRUCTURE>>    {1:1}
   +1 NOTE <TEXT>    {0:M}	/* A note containing commentary, interpretation, or discussion related to this place relationship. */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects supporting the existence, interpretation, or dating of this place relationship. */
+..  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects supporting the existence, interpretation, or dating of this place relationship. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-NOTE_RECORD :=
-n @<XREF:NOTE>@ NOTE    {1:1}
+..NOTE_RECORD :=
+..n @<XREF:NOTE>@ NOTE    {1:1}
 ..  +1 TITLE <TEXT>    {0:1}	/* Note title. */
 ..  +1 VALUE <SUBMITTER_TEXT>    {1:1}	/* Comments or opinions from the submitter following markdown language. Reference to structures in this file can be written as `[text](@<XREF:ID>@)`, "confidential" data can be written as `[text](confidential)`. */
 ..  +1 MIME <MIME_TYPE>    {0:1}	/* e.g., text/html, text/markdown. */
@@ -259,7 +259,7 @@ n @<XREF:NOTE>@ NOTE    {1:1}
 ..  +1 TRANSLATION    {0:M}
 ..    +2 VALUE <TEXT>    {1:1}	/* A translated version of the note. */
 ..    +2 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for the translated note (as defined by IETF BCP 47: https://tools.ietf.org/html/bcp47). */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
+..  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
@@ -267,7 +267,7 @@ n @<XREF:NOTE>@ NOTE    {1:1}
 ONGOING
 REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
 n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
-  +1 <<NAME_STRUCTURE>>    {1:M}	/* The official name of the archive in which the stated source material is stored. */
+..  +1 <<NAME_STRUCTURE>>    {1:M}	/* The official name of the archive in which the stated source material is stored. */
 ..  +1 CUSTODIAN @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual acting as custodian of the repository or its source material. */
   +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the repository. */
   +1 <<CONTACT_STRUCTURE>>    {0:M}
@@ -299,7 +299,7 @@ n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
   +1 VALID_TO    {0:1}	/* The date until which this cultural norm was in effect. */
     +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
@@ -315,7 +315,7 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}
   +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
   +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
   +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to this context. */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
+..  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this source. */
@@ -343,7 +343,7 @@ n FILE <RESOURCE_URI>    {1:1}	/* Resource URI (following RFC 3986 specification
 
 DATE_STRUCTURE :=	/* Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should use the simpler DATE datatype instead. */
 n <<DATE_VALUE>>    {1:1}
-n <<SOURCE_CITATION>>    {0:M}
+..n <<SOURCE_CITATION>>    {0:M}
 n <<EVIDENCE_QUALIFIERS>>    {0:1}
 
 DATE_VALUE :=	/* Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time. */
@@ -352,15 +352,15 @@ n POINT    {1:1}	/* A single point in time. Unless marked as APPROXIMATE, the va
   +1 <<QUALIFIED_DATE>>    {1:1}
 |
 n BOUNDED    {1:1}	/* The exact date is unknown but is known to fall within the specified interval. The interval represents uncertainty about the date itself, not the duration of the fact. An omitted bound represents an open-ended limit. */
-  +1 NOT_BEFORE    {0:1}	/* At least one of NOT_BEFORE or NOT_AFTER is required. */
+..  +1 NOT_BEFORE    {0:1}	/* At least one of NOT_BEFORE or NOT_AFTER is required. */
     +2 <<QUALIFIED_DATE>>    {1:1}
-  +1 NOT_AFTER    {0:1}	/* At least one of NOT_BEFORE or NOT_AFTER is required. */
+..  +1 NOT_AFTER    {0:1}	/* At least one of NOT_BEFORE or NOT_AFTER is required. */
     +2 <<QUALIFIED_DATE>>    {1:1}
 |
 n SPANNING    {1:1}	/* The fact itself extends across the specified interval. Unlike BOUNDED, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition. */
-  +1 FROM    {0:1}	/* At least one of FROM or TO is required. */
+..  +1 FROM    {0:1}	/* At least one of FROM or TO is required. */
     +2 <<QUALIFIED_DATE>>    {1:1}
-  +1 TO    {0:1}	/* At least one of FROM or TO is required. */
+..  +1 TO    {0:1}	/* At least one of FROM or TO is required. */
     +2 <<QUALIFIED_DATE>>    {1:1}
 ]
 
@@ -392,7 +392,7 @@ n @<XREF:HISTORIC_EVENT>@ HISTORIC_EVENT    {1:1}
     +2 <<DATE_STRUCTURE>>    {1:1}
   +1 <<PLACE_STRUCTURE>>    {0:1}	/* The place in which this historic event happened. */
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
@@ -450,14 +450,14 @@ n CONCLUSION    {1:1}
   +1 NARRATIVE <TEXT>    {0:1}	/* A discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen. */
   +1 RESEARCH @<XREF:RESEARCH_STATUS>@   {0:M}	/* References to research questions that led to this conclusion. */
   +1 DATE <DATE>    {0:1}	/* The date the researcher made this conclusion (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* Any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict). */
+..  +1 <<SOURCE_CITATION>>    {0:M}	/* Any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict). */
 
 
 IDENTITY_HYPOTHESIS_RECORD :=	/* Represents a research hypothesis that two records may describe the same real-world entity. The hypothesis itself does not establish identity; it merely records the possibility pending evaluation. */
 n @<XREF:IDENTITY_HYPOTHESIS>@ IDENTITY_HYPOTHESIS    {1:1}
   +1 SUBJECT @<XREF:ID>@    {1:1}	/* The first record in the identity hypothesis. */
   +1 CANDIDATE @<XREF:ID>@    {1:1}	/* The second record in the identity hypothesis. */
-  +1 <<SOURCE_CITATION>>    {0:M}
+..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
   +1 COMMENT <TEXT>    {0:1}	/* A note explaining the basis for the possible duplicate hypothesis. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */

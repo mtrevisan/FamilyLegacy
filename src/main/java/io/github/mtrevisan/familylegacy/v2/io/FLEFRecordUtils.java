@@ -161,7 +161,7 @@ public final class FLEFRecordUtils{
 		if(existing != null)
 			existing.setValue(value);
 		else{
-			final FLEFRecord newChild = FLEFRecord.createChildWithValue(parent.getLevel() + 1, path, value);
+			final FLEFRecord newChild = FLEFRecord.createChildWithValue(path, value);
 			parent.addChild(newChild);
 		}
 	}
@@ -193,9 +193,8 @@ public final class FLEFRecordUtils{
 				.filter(c -> seg.tag().equals(c.getTag()))
 				.count();
 
-			final int level = targetParent.getLevel() + 1;
 			for(long i = existingCount; i <= seg.index(); i ++){
-				target = FLEFRecord.createChild(level, seg.tag());
+				target = FLEFRecord.createChild(seg.tag());
 				targetParent.addChild(target);
 			}
 		}
@@ -315,9 +314,8 @@ public final class FLEFRecordUtils{
 		}
 
 		if(found == null){
-			final int level = current.getLevel() + 1;
 			for(int i = occurrence; i <= segment.index; i ++){
-				found = FLEFRecord.createChild(level, segment.tag);
+				found = FLEFRecord.createChild(segment.tag);
 				current.addChild(found);
 			}
 		}
@@ -368,7 +366,6 @@ public final class FLEFRecordUtils{
 			return null;
 
 		final FLEFRecord copy = new FLEFRecord();
-		copy.setLevel(newLevel);
 		copy.setTag(source.getTag());
 		copy.setValue(source.getValue());
 		for(final FLEFRecord child : source.getChildren())
@@ -439,7 +436,7 @@ public final class FLEFRecordUtils{
 			return null;
 
 		final String formattedXRef = formatXRef(targetId);
-		final FLEFRecord child = FLEFRecord.createChildWithValue(parent.getLevel() + 1, tag, formattedXRef);
+		final FLEFRecord child = FLEFRecord.createChildWithValue(tag, formattedXRef);
 		parent.addChild(child);
 		return child;
 	}

@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
@@ -302,7 +301,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, groupHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, groupHandler, selectedId -> {
 			if(selectedId != null){
 				selectGroup(selectedId);
 			}
@@ -322,7 +321,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			return;
 		}
 
-		JDialog dialog = groupHandler.createEditDialog(getParentFrame(), model, group);
+		JDialog dialog = groupHandler.createEditDialog(GUIHelper.getParentFrame(this), model, group);
 		dialog.setVisible(true);
 
 		// Refresh display (name may have changed)
@@ -379,9 +378,9 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private void addSourceCitation(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, sourceHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 			}
@@ -394,7 +393,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -423,13 +422,13 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id)){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", id);
+				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", id);
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 				return;
@@ -621,22 +620,22 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		// DATE_STRUCTURE (simplified)
 		String date = dateField.getText().trim();
 		if(!date.isEmpty()){
-			FLEFRecord dateStruct = FLEFRecord.createChild(1, "DATE_STRUCTURE");
+			FLEFRecord dateStruct = FLEFRecord.createChild("DATE_STRUCTURE");
 
-			FLEFRecord dateValue = FLEFRecord.createChild(2, "DATE_VALUE");
-			FLEFRecord valueNode = FLEFRecord.createChild(3, "VALUE");
+			FLEFRecord dateValue = FLEFRecord.createChild("DATE_VALUE");
+			FLEFRecord valueNode = FLEFRecord.createChild("VALUE");
 			dateValue.addChild(valueNode);
 
-			FLEFRecord qualifiedDate = FLEFRecord.createChild(4, "QUALIFIED_DATE");
+			FLEFRecord qualifiedDate = FLEFRecord.createChild("QUALIFIED_DATE");
 			valueNode.addChild(qualifiedDate);
 
-			FLEFRecord singleDate = FLEFRecord.createChild(5, "SINGLE_DATE");
+			FLEFRecord singleDate = FLEFRecord.createChild("SINGLE_DATE");
 			qualifiedDate.addChild(singleDate);
 
-			FLEFRecord iso = FLEFRecord.createChildWithValue(6, "FULL_DATE", date);
+			FLEFRecord iso = FLEFRecord.createChildWithValue("FULL_DATE", date);
 			singleDate.addChild(iso);
 
-			FLEFRecord calendar = FLEFRecord.createChildWithValue(7, "CALENDAR", "gregorian");
+			FLEFRecord calendar = FLEFRecord.createChildWithValue("CALENDAR", "gregorian");
 			iso.addChild(calendar);
 
 			dateStruct.addChild(dateValue);
@@ -646,9 +645,9 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		// VALID_FROM (simplified)
 		String validFrom = validFromField.getText().trim();
 		if(!validFrom.isEmpty()){
-			FLEFRecord validFromStruct = FLEFRecord.createChild(1, "VALID_FROM");
-			FLEFRecord dateStruct = FLEFRecord.createChild(2, "DATE_STRUCTURE");
-			FLEFRecord dateNode = FLEFRecord.createChildWithValue(3, "DATE", validFrom);
+			FLEFRecord validFromStruct = FLEFRecord.createChild("VALID_FROM");
+			FLEFRecord dateStruct = FLEFRecord.createChild("DATE_STRUCTURE");
+			FLEFRecord dateNode = FLEFRecord.createChildWithValue("DATE", validFrom);
 			dateStruct.addChild(dateNode);
 			validFromStruct.addChild(dateStruct);
 			record.addChild(validFromStruct);
@@ -657,9 +656,9 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		// VALID_TO (simplified)
 		String validTo = validToField.getText().trim();
 		if(!validTo.isEmpty()){
-			FLEFRecord validToStruct = FLEFRecord.createChild(1, "VALID_TO");
-			FLEFRecord dateStruct = FLEFRecord.createChild(2, "DATE_STRUCTURE");
-			FLEFRecord dateNode = FLEFRecord.createChildWithValue(3, "DATE", validTo);
+			FLEFRecord validToStruct = FLEFRecord.createChild("VALID_TO");
+			FLEFRecord dateStruct = FLEFRecord.createChild("DATE_STRUCTURE");
+			FLEFRecord dateNode = FLEFRecord.createChildWithValue("DATE", validTo);
 			dateStruct.addChild(dateNode);
 			validToStruct.addChild(dateStruct);
 			record.addChild(validToStruct);
@@ -667,13 +666,12 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 		// PLACE_STRUCTURE (simplified)
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
-			FLEFRecord placeStruct = FLEFRecord.createChildWithValue(1, "PLACE_STRUCTURE", selectedPlaceId);
+			FLEFRecord placeStruct = FLEFRecord.createChildWithValue("PLACE_STRUCTURE", selectedPlaceId);
 			record.addChild(placeStruct);
 		}
 
 		// SOURCE_CITATION
 		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setLevel(1);
 			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
@@ -683,7 +681,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		String credibility = (String)credibilityCombo.getSelectedItem();
 
 		if((certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty())){
-			FLEFRecord evidence = FLEFRecord.createChild(1, "EVIDENCE_QUALIFIERS");
+			FLEFRecord evidence = FLEFRecord.createChild("EVIDENCE_QUALIFIERS");
 
 			FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
 
@@ -700,7 +698,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
 			if(conclusion != null){
-				conclusion.setLevel(1);
 				conclusion.setTag("CONCLUSION");
 				record.addChild(conclusion);
 			}

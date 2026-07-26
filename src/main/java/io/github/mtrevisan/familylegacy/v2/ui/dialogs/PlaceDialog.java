@@ -551,7 +551,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	private void browseSubordinate(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, placeHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
 			if(selectedId != null){
 				// Prevent self-reference
 				if(selectedId.equals(record.getId())){
@@ -686,12 +686,10 @@ public class PlaceDialog extends BaseRecordDialog{
 		String name = nameField.getText().trim();
 		if(!name.isEmpty()){
 			FLEFRecord nameNode = new FLEFRecord();
-			nameNode.setLevel(1);
 			nameNode.setTag("NAME");
 			nameNode.setValue(name);
 			record.addChild(nameNode);
 			for(FLEFRecord trans : nameTransRecords){
-				trans.setLevel(2);
 				trans.setTag("TRANSCRIBED_TEXT");
 				nameNode.addChild(trans);
 			}
@@ -700,21 +698,18 @@ public class PlaceDialog extends BaseRecordDialog{
 		// ADDRESS (0:M)
 		for(AddressEntry entry : addressEntries){
 			FLEFRecord addrNode = new FLEFRecord();
-			addrNode.setLevel(1);
 			addrNode.setTag("ADDRESS");
 			addrNode.setValue(entry.address);
 			record.addChild(addrNode);
 
 			if(entry.hierarchy != null && !entry.hierarchy.isEmpty()){
 				FLEFRecord hier = new FLEFRecord();
-				hier.setLevel(2);
 				hier.setTag("HIERARCHY");
 				hier.setValue(entry.hierarchy);
 				addrNode.addChild(hier);
 			}
 
 			for(FLEFRecord trans : entry.transcriptions){
-				trans.setLevel(2);
 				trans.setTag("TRANSCRIBED_TEXT");
 				addrNode.addChild(trans);
 			}
@@ -726,7 +721,6 @@ public class PlaceDialog extends BaseRecordDialog{
 				FLEFRecordUtils.addChild(addrNode, "NOTE", id);
 			}
 			for(FLEFRecord citation : entry.sourceCitations){
-				citation.setLevel(2);
 				citation.setTag("SOURCE");
 				addrNode.addChild(citation);
 			}
@@ -737,18 +731,15 @@ public class PlaceDialog extends BaseRecordDialog{
 		String lon = longitudeField.getText().trim();
 		if(!lat.isEmpty() && !lon.isEmpty()){
 			FLEFRecord mapNode = new FLEFRecord();
-			mapNode.setLevel(1);
 			mapNode.setTag("MAP");
 			record.addChild(mapNode);
 
 			FLEFRecord latNode = new FLEFRecord();
-			latNode.setLevel(2);
 			latNode.setTag("LATITUDE");
 			latNode.setValue(lat);
 			mapNode.addChild(latNode);
 
 			FLEFRecord lonNode = new FLEFRecord();
-			lonNode.setLevel(2);
 			lonNode.setTag("LONGITUDE");
 			lonNode.setValue(lon);
 			mapNode.addChild(lonNode);
@@ -797,7 +788,6 @@ public class PlaceDialog extends BaseRecordDialog{
 		// Aggiungi un place di esempio per subordinate
 		FLEFRecord parentPlace = FLEFRecord.createMainRecord("P1", "PLACE");
 		FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
 		name.setTag("NAME");
 		name.setValue("Italy");
 		parentPlace.addChild(name);

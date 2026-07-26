@@ -10,7 +10,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PersonalNamePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 
@@ -273,7 +272,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	private void selectAndCropImage(){
 		final String[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, sourceHandler, selectedId -> result[0] = selectedId);
+			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> result[0] = selectedId);
 		dialog.setVisible(true);
 		String sourceId = result[0];
 		if(sourceId == null) return;
@@ -286,7 +285,7 @@ public class IndividualDialog extends BaseRecordDialog{
 			return;
 		}
 
-		ImageCropDialog cropDialog = new ImageCropDialog(getParentFrame(), image);
+		ImageCropDialog cropDialog = new ImageCropDialog(GUIHelper.getParentFrame(this), image);
 		cropDialog.setVisible(true);
 
 		Rectangle cropRect = cropDialog.getCrop();
@@ -338,7 +337,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	// ==================== Cultural Norm methods ====================
 	private void addCulturalNorm(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, culturalNormHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
 				culturalNormIds.add(selectedId);
 				String display = getCulturalNormDisplayName(selectedId);
@@ -357,7 +356,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
-		JDialog dialog = culturalNormHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = culturalNormHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 
 		String newDisplay = getCulturalNormDisplayName(id);
@@ -378,7 +377,7 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private void createNewCulturalNorm(){
 		Set<String> before = new HashSet<>(culturalNormIds);
-		JDialog dialog = culturalNormHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = culturalNormHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
@@ -408,7 +407,7 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private void addNoteToList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, noteHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
 			if(selectedId != null && !ids.contains(selectedId)){
 				ids.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -428,7 +427,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
-		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 
 		String newDisplay = getNoteDisplayName(id);
@@ -450,7 +449,7 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private void createNewNoteForList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
 		Set<String> before = new HashSet<>(ids);
-		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
@@ -485,9 +484,9 @@ public class IndividualDialog extends BaseRecordDialog{
 	// ==================== Source Citation methods ====================
 	private void addSourceCitation(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, sourceHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 			}
@@ -500,7 +499,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -529,13 +528,13 @@ public class IndividualDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id)){
-				FLEFRecord citation = FLEFRecord.createChildWithValue(1, "SOURCE", id);
+				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", id);
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
 				return;
@@ -662,14 +661,13 @@ public class IndividualDialog extends BaseRecordDialog{
 
 		// SOURCE_CITATION
 		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setLevel(1);
 			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 
 		// Preferred Image
 		if(preferredImageId != null && !preferredImageId.isEmpty()){
-			FLEFRecord pref = FLEFRecord.createChildWithValue(1, "PREFERRED_IMAGE", preferredImageId);
+			FLEFRecord pref = FLEFRecord.createChildWithValue("PREFERRED_IMAGE", preferredImageId);
 			record.addChild(pref);
 			FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
 		}
@@ -682,7 +680,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
 			if(conclusion != null){
-				conclusion.setLevel(1);
 				conclusion.setTag("CONCLUSION");
 				record.addChild(conclusion);
 			}

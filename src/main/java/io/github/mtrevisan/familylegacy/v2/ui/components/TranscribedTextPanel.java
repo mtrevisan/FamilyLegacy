@@ -167,7 +167,6 @@ public class TranscribedTextPanel extends JPanel{
 
 		if(transRecord == null){
 			transRecord = new FLEFRecord();
-			transRecord.setLevel(1);
 			transRecord.setTag("TRANSCRIBED_TEXT");
 		}
 
@@ -180,7 +179,6 @@ public class TranscribedTextPanel extends JPanel{
 
 		if(!phoneticSys.isEmpty() || !phoneticVal.isEmpty()){
 			FLEFRecord phonetic = new FLEFRecord();
-			phonetic.setLevel(1);
 			phonetic.setTag("PHONETIC");
 			phonetic.setValue(phoneticSys);
 			transRecord.addChild(phonetic);
@@ -188,7 +186,6 @@ public class TranscribedTextPanel extends JPanel{
 			// VALUE (1:1) - required if PHONETIC exists
 			if(!phoneticVal.isEmpty()){
 				FLEFRecord value = new FLEFRecord();
-				value.setLevel(2);
 				value.setTag("VALUE");
 				value.setValue(phoneticVal);
 				phonetic.addChild(value);
@@ -202,7 +199,6 @@ public class TranscribedTextPanel extends JPanel{
 
 		if(!transSys.isEmpty() || !transVal.isEmpty()){
 			FLEFRecord transcription = new FLEFRecord();
-			transcription.setLevel(1);
 			transcription.setTag("TRANSCRIPTION");
 			transcription.setValue(transSys);
 			transRecord.addChild(transcription);
@@ -210,7 +206,6 @@ public class TranscribedTextPanel extends JPanel{
 			// TYPE (0:1)
 			if(transType != null && !transType.isEmpty()){
 				FLEFRecord type = new FLEFRecord();
-				type.setLevel(2);
 				type.setTag("TYPE");
 				type.setValue(transType);
 				transcription.addChild(type);
@@ -219,7 +214,6 @@ public class TranscribedTextPanel extends JPanel{
 			// VALUE (1:1) - required if TRANSCRIPTION exists
 			if(!transVal.isEmpty()){
 				FLEFRecord value = new FLEFRecord();
-				value.setLevel(2);
 				value.setTag("VALUE");
 				value.setValue(transVal);
 				transcription.addChild(value);

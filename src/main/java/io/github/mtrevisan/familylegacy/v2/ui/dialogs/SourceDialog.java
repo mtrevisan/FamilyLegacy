@@ -387,7 +387,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	private void browsePlace(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, placeHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
 			if(selectedId != null){
 				selectedPlaceId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -434,7 +434,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	private void addRepositoryCitation(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, repositoryHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, repositoryHandler, selectedId -> {
 			if(selectedId != null){
 				String location = JOptionPane.showInputDialog(
 					this,
@@ -443,7 +443,6 @@ public class SourceDialog extends BaseRecordDialog{
 					JOptionPane.PLAIN_MESSAGE
 				);
 				FLEFRecord citation = new FLEFRecord();
-				citation.setLevel(1);
 				citation.setTag("REPOSITORY_CITATION");
 				citation.setValue(selectedId);
 				FLEFRecordUtils.updateChildValue(citation, "LOCATION", location.trim());
@@ -464,7 +463,7 @@ public class SourceDialog extends BaseRecordDialog{
 		String location = FLEFRecordUtils.getChildValue(existing, "LOCATION");
 
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, repositoryHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, repositoryHandler, selectedId -> {
 			if(selectedId != null){
 				String newLocation = (String)JOptionPane.showInputDialog(
 					this,
@@ -496,19 +495,18 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private void createNewRepository(){
-		JDialog dialog = repositoryHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = repositoryHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 	}
 
 	// ==================== Source Citation methods ====================
 
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, null);
+		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, null);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord citation = dialog.getCitationRecord();
 			if(citation != null){
-				citation.setLevel(1);
 				citation.setTag("SOURCE");
 				sourceCitationRecords.add(citation);
 				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
@@ -521,7 +519,7 @@ public class SourceDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
@@ -555,7 +553,7 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private void createNewSource(){
-		JDialog dialog = sourceHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 	}
 
@@ -586,7 +584,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, noteHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -608,7 +606,7 @@ public class SourceDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -628,7 +626,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -729,7 +727,6 @@ public class SourceDialog extends BaseRecordDialog{
 		// Place
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
 			FLEFRecord place = new FLEFRecord();
-			place.setLevel(1);
 			place.setTag("PLACE");
 			place.setValue(selectedPlaceId);
 			record.addChild(place);
@@ -743,7 +740,6 @@ public class SourceDialog extends BaseRecordDialog{
 		if(datePanel.hasData()){
 			FLEFRecord dateRecord = datePanel.saveToRecord(null);
 			if(dateRecord != null){
-				dateRecord.setLevel(1);
 				dateRecord.setTag("DATE");
 				record.addChild(dateRecord);
 			}
@@ -751,7 +747,6 @@ public class SourceDialog extends BaseRecordDialog{
 
 		// Repository Citations
 		for(FLEFRecord citation : repositoryRecords){
-			citation.setLevel(1);
 			citation.setTag("REPOSITORY_CITATION");
 			record.addChild(citation);
 		}
@@ -760,7 +755,6 @@ public class SourceDialog extends BaseRecordDialog{
 		if(documentPanel.hasData()){
 			FLEFRecord doc = documentPanel.saveToRecord(null);
 			if(doc != null){
-				doc.setLevel(1);
 				doc.setTag("DOCUMENT_STRUCTURE");
 				record.addChild(doc);
 			}
@@ -768,7 +762,6 @@ public class SourceDialog extends BaseRecordDialog{
 
 		// Source Citations
 		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setLevel(1);
 			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
@@ -811,7 +804,6 @@ public class SourceDialog extends BaseRecordDialog{
 		// Aggiungi place di esempio
 		FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
 		FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
 		name.setTag("NAME");
 		name.setValue("Rome");
 		place.addChild(name);
@@ -820,7 +812,6 @@ public class SourceDialog extends BaseRecordDialog{
 		// Aggiungi repository di esempio
 		FLEFRecord repo = FLEFRecord.createMainRecord("R1", "REPOSITORY");
 		FLEFRecord repoName = new FLEFRecord();
-		repoName.setLevel(1);
 		repoName.setTag("NAME");
 		repoName.setValue("National Archives");
 		repo.addChild(repoName);

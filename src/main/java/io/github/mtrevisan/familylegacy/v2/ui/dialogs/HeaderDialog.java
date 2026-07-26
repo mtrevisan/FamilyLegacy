@@ -416,7 +416,6 @@ public class HeaderDialog extends JDialog{
 			if(panel.validateRequiredFields()){
 				FLEFRecord contact = panel.saveToRecord(null);
 				if(contact != null){
-					contact.setLevel(2);
 					contact.setTag("CONTACT");
 					result[0] = contact;
 					dialog.dispose();
@@ -461,7 +460,6 @@ public class HeaderDialog extends JDialog{
 			if(panel.validateRequiredFields()){
 				FLEFRecord contact = panel.saveToRecord(existing);
 				if(contact != null){
-					contact.setLevel(2);
 					contact.setTag("CONTACT");
 					result[0] = contact;
 					dialog.dispose();
@@ -521,7 +519,7 @@ public class HeaderDialog extends JDialog{
 
 	private void addSubmitterNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			getParentFrame(), model, noteHandler, selectedId -> {
+			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
 			if(selectedId != null && !submitterNoteIds.contains(selectedId)){
 				submitterNoteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -543,7 +541,7 @@ public class HeaderDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(getParentFrame(), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		submitterNoteDisplayMap.put(id, newDisplay);
@@ -563,7 +561,7 @@ public class HeaderDialog extends JDialog{
 
 	private void createNewSubmitterNote(){
 		Set<String> before = new HashSet<>(submitterNoteIds);
-		JDialog dialog = noteHandler.createNewDialog(getParentFrame(), model);
+		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -581,14 +579,6 @@ public class HeaderDialog extends JDialog{
 
 	private boolean showConfirm(String title, String message){
 		return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
-	}
-
-	private Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
 	}
 
 	// ==================== Load Data ====================
@@ -718,7 +708,6 @@ public class HeaderDialog extends JDialog{
 
 		// --- PROTOCOL (1:1) ---
 		FLEFRecord protocol = new FLEFRecord();
-		protocol.setLevel(1);
 		protocol.setTag("PROTOCOL");
 		headerRecord.addChild(protocol);
 		FLEFRecordUtils.updateChildValue(protocol, "NAME", protocolNameField.getText().trim());
@@ -726,7 +715,6 @@ public class HeaderDialog extends JDialog{
 
 		// --- SOURCE (1:1) ---
 		FLEFRecord source = new FLEFRecord();
-		source.setLevel(1);
 		source.setTag("SOURCE");
 		source.setValue(sourceIdField.getText().trim());
 		headerRecord.addChild(source);
@@ -747,7 +735,6 @@ public class HeaderDialog extends JDialog{
 
 		// --- SUBMITTER (1:1) ---
 		FLEFRecord submitter = new FLEFRecord();
-		submitter.setLevel(1);
 		submitter.setTag("SUBMITTER");
 		headerRecord.addChild(submitter);
 
@@ -763,7 +750,6 @@ public class HeaderDialog extends JDialog{
 
 		if(!address.isEmpty() || !hierarchy.isEmpty() || !lat.isEmpty() || !lon.isEmpty() || !placeNote.isEmpty()){
 			FLEFRecord place = new FLEFRecord();
-			place.setLevel(2);
 			place.setTag("PLACE");
 			submitter.addChild(place);
 
@@ -771,7 +757,6 @@ public class HeaderDialog extends JDialog{
 			FLEFRecordUtils.updateChildValue(place, "HIERARCHY", hierarchy);
 			if(!lat.isEmpty() && !lon.isEmpty()){
 				FLEFRecord map = new FLEFRecord();
-				map.setLevel(3);
 				map.setTag("MAP");
 				place.addChild(map);
 				FLEFRecordUtils.updateChildValue(map, "LATITUDE", lat);
@@ -779,7 +764,6 @@ public class HeaderDialog extends JDialog{
 			}
 			if(!placeNote.isEmpty()){
 				FLEFRecord note = new FLEFRecord();
-				note.setLevel(3);
 				note.setTag("NOTE");
 				note.setValue(placeNote);
 				place.addChild(note);
@@ -788,7 +772,6 @@ public class HeaderDialog extends JDialog{
 
 		// CONTACT_STRUCTURE (0:M)
 		for(FLEFRecord contact : contactRecords){
-			contact.setLevel(2);
 			contact.setTag("CONTACT");
 			submitter.addChild(contact);
 		}
@@ -827,14 +810,12 @@ public class HeaderDialog extends JDialog{
 		header.setType("HEADER");
 
 		FLEFRecord protocol = new FLEFRecord();
-		protocol.setLevel(1);
 		protocol.setTag("PROTOCOL");
 		header.addChild(protocol);
 		FLEFRecordUtils.updateChildValue(protocol, "NAME", "FLEF");
 		FLEFRecordUtils.updateChildValue(protocol, "VERSION", "0.0.9");
 
 		FLEFRecord source = new FLEFRecord();
-		source.setLevel(1);
 		source.setTag("SOURCE");
 		source.setValue("MyApp");
 		header.addChild(source);
@@ -844,7 +825,6 @@ public class HeaderDialog extends JDialog{
 		FLEFRecordUtils.updateChildValue(header, "DATE", "2026-07-11");
 
 		FLEFRecord submitter = new FLEFRecord();
-		submitter.setLevel(1);
 		submitter.setTag("SUBMITTER");
 		header.addChild(submitter);
 		FLEFRecordUtils.updateChildValue(submitter, "NAME", "Mauro Trevisan");

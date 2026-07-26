@@ -794,7 +794,6 @@ public class EventStructurePanel extends JPanel{
 
 		if(eventStructure == null){
 			eventStructure = new FLEFRecord();
-			eventStructure.setLevel(1);
 			eventStructure.setTag("EVENT_STRUCTURE");
 		}
 
@@ -809,7 +808,6 @@ public class EventStructurePanel extends JPanel{
 		if(datePanel.hasData()){
 			FLEFRecord dateRecord = datePanel.saveToRecord(null);
 			if(dateRecord != null){
-				dateRecord.setLevel(1);
 				dateRecord.setTag("DATE");
 				eventStructure.addChild(dateRecord);
 			}
@@ -818,7 +816,6 @@ public class EventStructurePanel extends JPanel{
 		// PLACE (0:1) with its children
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
 			FLEFRecord place = new FLEFRecord();
-			place.setLevel(1);
 			place.setTag("PLACE");
 			place.setValue(selectedPlaceId);
 			eventStructure.addChild(place);
@@ -836,7 +833,6 @@ public class EventStructurePanel extends JPanel{
 		String causeVal = causeField.getText().trim();
 		if(!causeVal.isEmpty()){
 			FLEFRecord cause = new FLEFRecord();
-			cause.setLevel(1);
 			cause.setTag("CAUSE");
 			cause.setValue(causeVal);
 			eventStructure.addChild(cause);
@@ -859,7 +855,6 @@ public class EventStructurePanel extends JPanel{
 		// SOURCE_CITATION (0:M)
 		for(FLEFRecord citation : sourceRecords){
 			// Ensure the citation has the correct level and tag
-			citation.setLevel(1);
 			citation.setTag("SOURCE");
 			eventStructure.addChild(citation);
 		}
@@ -881,7 +876,6 @@ public class EventStructurePanel extends JPanel{
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
 			if(conclusion != null){
-				conclusion.setLevel(1);
 				conclusion.setTag("CONCLUSION");
 				eventStructure.addChild(conclusion);
 			}

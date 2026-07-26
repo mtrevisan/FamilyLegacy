@@ -63,14 +63,6 @@ public abstract class BaseRecordDialog extends JDialog{
 		this.isNew = (record == null);
 	}
 
-	protected Frame getParentFrame(){
-		Container parent = getParent();
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
-	}
-
 	// ==================== Abstract methods ====================
 
 	protected abstract void initComponents();

@@ -6,7 +6,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.*;
 import java.awt.*;
@@ -166,20 +165,20 @@ public class ApproximatePanel extends JPanel{
 		}
 
 		// Create an APPROXIMATE node as a child of parent
-		FLEFRecord approx = FLEFRecord.createChild(1, "APPROXIMATE");
+		FLEFRecord approx = FLEFRecord.createChild("APPROXIMATE");
 
 		String basis = (String)basisCombo.getSelectedItem();
 		if(basis != null && !basis.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue(2, "BASIS", basis));
+			approx.addChild(FLEFRecord.createChildWithValue("BASIS", basis));
 		}
 
 		if(culturalNormId != null && !culturalNormId.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue(2, "CULTURAL_NORM", culturalNormId));
+			approx.addChild(FLEFRecord.createChildWithValue("CULTURAL_NORM", culturalNormId));
 		}
 
 		String margin = marginField.getText().trim();
 		if(!margin.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue(2, "MARGIN", margin));
+			approx.addChild(FLEFRecord.createChildWithValue("MARGIN", margin));
 		}
 
 		// Only add if there is at least one child

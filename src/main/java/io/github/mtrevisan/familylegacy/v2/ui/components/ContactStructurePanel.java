@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TranscribedTextDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +52,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -316,7 +314,7 @@ public class ContactStructurePanel extends JPanel{
 		// Find CALLER_ID under the parent (CONTACT)
 		FLEFRecord callerId = FLEFRecordUtils.findChild(parent, "CALLER_ID");
 		if(callerId == null){
-			callerId = FLEFRecord.createChildWithValue(2, "CALLER_ID", callerIdField.getText().trim());
+			callerId = FLEFRecord.createChildWithValue("CALLER_ID", callerIdField.getText().trim());
 			parent.addChild(callerId);
 		}
 		return callerId;
@@ -525,7 +523,6 @@ public class ContactStructurePanel extends JPanel{
 
 		if(contactRecord == null){
 			contactRecord = new FLEFRecord();
-			contactRecord.setLevel(1);
 			contactRecord.setTag("CONTACT");
 		}
 
@@ -545,12 +542,11 @@ public class ContactStructurePanel extends JPanel{
 		// CALLER_ID (0:1) with its TRANSCRIBED_TEXT children
 		String callerId = callerIdField.getText().trim();
 		if(!callerId.isEmpty() || !transcriptionRecords.isEmpty()){
-			FLEFRecord callerIdRecord = FLEFRecord.createChildWithValue(1, "CALLER_ID", callerId);
+			FLEFRecord callerIdRecord = FLEFRecord.createChildWithValue("CALLER_ID", callerId);
 			contactRecord.addChild(callerIdRecord);
 
 			for(FLEFRecord transRecord : transcriptionRecords){
 				// Ensure the transcription has the correct level
-				transRecord.setLevel(2);
 				transRecord.setTag("TRANSCRIBED_TEXT");
 				callerIdRecord.addChild(transRecord);
 			}

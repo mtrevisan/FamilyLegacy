@@ -323,7 +323,6 @@ public class EventDialog extends BaseRecordDialog{
 		String placeVal = placeField.getText().trim();
 		if(!placeVal.isEmpty()){
 			FLEFRecord place = new FLEFRecord();
-			place.setLevel(1);
 			place.setTag("PLACE");
 			place.setValue(placeVal);
 			record.addChild(place);
@@ -343,7 +342,6 @@ public class EventDialog extends BaseRecordDialog{
 		String causeVal = causeField.getText().trim();
 		if(!causeVal.isEmpty()){
 			FLEFRecord cause = new FLEFRecord();
-			cause.setLevel(1);
 			cause.setTag("CAUSE");
 			cause.setValue(causeVal);
 			record.addChild(cause);
@@ -398,17 +396,14 @@ public class EventDialog extends BaseRecordDialog{
 
 		FLEFRecord event = FLEFRecord.createMainRecord("E1", "EVENT");
 		FLEFRecord type = new FLEFRecord();
-		type.setLevel(1);
 		type.setTag("TYPE");
 		type.setValue("BIRTH");
 		event.addChild(type);
 		FLEFRecord family = new FLEFRecord();
-		family.setLevel(1);
 		family.setTag("FAMILY");
 		family.setValue("F1");
 		event.addChild(family);
 		FLEFRecord desc = new FLEFRecord();
-		desc.setLevel(1);
 		desc.setTag("DESCRIPTION");
 		desc.setValue("Born at home");
 		event.addChild(desc);

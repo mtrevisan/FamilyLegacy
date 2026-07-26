@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.ValidationError;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.ValidationException;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -44,6 +43,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -57,6 +59,17 @@ import java.util.Optional;
  * with optional zero‑based indices (e.g. {@code "NAME[1].VALUE"}).
  */
 public final class FLEFFile{
+
+	// Pattern for parsing a line: "level TAG value"
+	private static final Pattern LINE_PATTERN = Pattern.compile(
+		"^(\\d+)\\s+([A-Z_]+)(?:\\s+(.*))?$"
+	);
+
+	// Pattern for main record line: "0 @ID@ TYPE"
+	private static final Pattern RECORD_LINE_PATTERN = Pattern.compile(
+		"^0\\s+@([^@]+)@\\s+([A-Z_]+)$"
+	);
+
 
 	private FLEFFile(){}
 
@@ -104,7 +117,7 @@ public final class FLEFFile{
 	 * @throws ValidationException if validation fails
 	 */
 	public static FLEFModel loadWithGrammar(final Path flefPath, final FLEFGrammar grammar)
-		throws IOException, ValidationException{
+			throws IOException, ValidationException{
 		final FLEFModel model = load(flefPath);
 
 		final FLEFValidator validator = FLEFValidator.create(grammar);
@@ -132,18 +145,18 @@ public final class FLEFFile{
 			if(isHeaderLine(line)){
 				final FLEFRecord header = parseHeader(lines, index);
 				model.setHeader(header);
-				index += header.getLineCount();
+				index = header.getLineCount() + index;
 			}
 			else if(isRecordLine(line)){
 				final FLEFRecord record = parseRecord(lines, index);
 				model.addRecord(record);
-				index += record.getLineCount();
+				index = record.getLineCount() + index;
 			}
 			else if(isEndOfFileLine(line))
 				// EOF marker – stop reading
 				break;
 			else
-				index ++;
+				index++;
 		}
 
 		return model;
@@ -182,15 +195,58 @@ public final class FLEFFile{
 
 		// Header
 		if(model.getHeader() != null)
-			sb.append(serializeRecord(model.getHeader(), 0));
+			serializeRecord(model.getHeader(), 0, sb);
 
 		// Records
 		for(final FLEFRecord record : model.getRecords())
-			sb.append(serializeRecord(record, 0));
+			serializeRecord(record, 0, sb);
 
 		// EOF
 		sb.append("0 EOF\n");
 		return sb;
+	}
+
+	/**
+	 * Serializes a record with proper indentation levels.
+	 * The level is calculated from the depth of the tree.
+	 *
+	 * @param record the record to serialize
+	 * @param level  the current depth (0 for root)
+	 * @param sb     the string builder
+	 */
+	private static void serializeRecord(final FLEFRecord record, final int level, final StringBuilder sb){
+		if(level == 0){
+			// Main record line: "0 @ID@ TYPE"
+			if(record.getId() != null){
+				sb.append("0 ")
+					.append(FLEFRecordUtils.formatXRef(record.getId()))
+					.append(" ")
+					.append(record.getType())
+					.append("\n");
+			}
+			else{
+				// Header or other root-level record without ID
+				sb.append("0 ")
+					.append(record.getType())
+					.append("\n");
+			}
+		}
+		else{
+			// Child line: "level TAG value"
+			sb.append(level)
+				.append(" ")
+				.append(record.getTag());
+			if(record.getValue() != null){
+				sb.append(" ")
+					.append(record.getValue());
+			}
+			sb.append("\n");
+		}
+
+		// Recursively serialize children with incremented level
+		for(final FLEFRecord child : record.getChildren()){
+			serializeRecord(child, level + 1, sb);
+		}
 	}
 
 	// ------------------------------------------------
@@ -211,55 +267,100 @@ public final class FLEFFile{
 	}
 
 	private static boolean isHeaderLine(final String line){
-		return line.startsWith("0 HEADER");
+		return line.equals("0 HEADER");
 	}
 
 	private static boolean isRecordLine(final String line){
-		return line.matches("0 @[^@]+@ [A-Z_]+");
+		return RECORD_LINE_PATTERN.matcher(line).matches();
 	}
 
 	private static boolean isEndOfFileLine(final String line){
 		return line.equals("0 EOF");
 	}
 
+	/**
+	 * Parses the HEADER record.
+	 * The header is a special record with no ID, just "0 HEADER" followed by children.
+	 */
 	private static FLEFRecord parseHeader(final List<String> lines, final int startIndex){
-		final FLEFRecord record = new FLEFRecord();
-		record.setType("HEADER");
+		final FLEFRecord header = new FLEFRecord();
+		header.setType("HEADER");
+
+		// Start parsing from the next line with level 1
+		final Stack<FLEFRecord> stack = new Stack<>();
+		stack.push(header);
 
 		int index = startIndex + 1;
+
 		while(index < lines.size()){
 			final String line = lines.get(index);
-			if(line.startsWith("0 "))
-				// start of a new record or EOF
+
+			// Stop at next root-level record or EOF
+			if(isRecordLine(line) || isHeaderLine(line) || isEndOfFileLine(line))
 				break;
 
-			final FLEFRecord child = parseChildLine(line);
-			record.addChild(child);
-			index ++;
+			final FLEFRecord child = parseLine(line);
+			final int level = extractLevel(line);
+
+			// Navigate to the correct parent based on level
+			while(stack.size() > level)
+				stack.pop();
+
+			// Ensure the stack has enough levels
+			while(stack.size() < level)
+				stack.push(stack.peek());
+
+			stack.peek().addChild(child);
+			stack.push(child);
+
+			index++;
 		}
 
-		record.setLineCount(index - startIndex);
-		return record;
+		header.setLineCount(index - startIndex);
+		return header;
 	}
 
+	/**
+	 * Parses a main record (e.g., INDIVIDUAL, PLACE, etc.).
+	 */
 	private static FLEFRecord parseRecord(final List<String> lines, final int startIndex){
 		final String firstLine = lines.get(startIndex);
-		// e.g. "0 @I1@ INDIVIDUAL"
-		final String[] parts = firstLine.split(" ", 3);
-		final String id = parts[1].substring(1, parts[1].length() - 1); // remove @
-		final String type = parts[2];
+		final Matcher matcher = RECORD_LINE_PATTERN.matcher(firstLine);
+		if(!matcher.matches())
+			throw new IllegalArgumentException("Invalid record line: " + firstLine);
+
+		final String id = matcher.group(1);
+		final String type = matcher.group(2);
 
 		final FLEFRecord record = FLEFRecord.createMainRecord(id, type);
 
+		// Parse children using a stack to maintain hierarchy
+		final Stack<FLEFRecord> stack = new Stack<>();
+		stack.push(record);
+
 		int index = startIndex + 1;
 		while(index < lines.size()){
 			final String line = lines.get(index);
-			if(line.startsWith("0 "))
-				// start of a new record
+
+			// Stop at next root-level record or EOF
+			if(isRecordLine(line) || isHeaderLine(line) || isEndOfFileLine(line))
 				break;
 
-			final FLEFRecord child = parseChildLine(line);
-			record.addChild(child);
+			final int level = extractLevel(line);
+			final FLEFRecord child = parseLine(line);
+
+			// Navigate to the correct parent based on level
+			while(stack.size() > level)
+				stack.pop();
+
+			// Ensure we have enough levels in the stack
+			while(stack.size() < level)
+				// In case of malformed data, duplicate the current parent
+				stack.push(stack.peek());
+
+			stack.peek().addChild(child);
+			stack.push(child);
+
 			index ++;
 		}
 
@@ -267,49 +368,34 @@ public final class FLEFFile{
 		return record;
 	}
 
-	private static FLEFRecord parseChildLine(final String line){
-		final String[] parts = line.split(" ", 3);
-		final int level = Integer.parseInt(parts[0]);
-		final String tag = parts[1];
-		final String value = (parts.length > 2)? parts[2]: null;
+	/**
+	 * Parses a single line into a FLEFRecord (without parsing children).
+	 */
+	private static FLEFRecord parseLine(final String line){
+		final Matcher matcher = LINE_PATTERN.matcher(line);
+		if(!matcher.matches())
+			throw new IllegalArgumentException("Invalid line: " + line);
 
-		final FLEFRecord child = FLEFRecord.createChildWithValue(level, tag, value);
+		final String tag = matcher.group(2);
+		final String value = matcher.group(3);
 
-		// Note: this simple parser does not recursively parse children of children.
-		// For a full implementation you would need a more sophisticated recursive descent.
-		return child;
+		return FLEFRecord.createChildWithValue(tag, value);
 	}
 
-	private static String serializeRecord(final FLEFRecord record, final int level){
-		final StringBuilder sb = new StringBuilder();
+	/**
+	 * Extracts the level from a line.
+	 */
+	private static int extractLevel(final String line){
+		final int spaceIdx = line.indexOf(' ');
+		if(spaceIdx == -1)
+			throw new IllegalArgumentException("Invalid line: " + line);
 
-		if(record.getLevel() == 0){
-			// main record line
-			if(record.getId() != null){
-				sb.append("0 ")
-					.append(FLEFRecordUtils.formatXRef(record.getId()))
-					.append(StringUtils.SPACE)
-					.append(record.getType())
-					.append("\n");
-			}
-			else{
-				sb.append("0 ")
-					.append(record.getType())
-					.append("\n");
-			}
+		try{
+			return Integer.parseInt(line.substring(0, spaceIdx));
 		}
-		else{
-			final String line = record.getLevel() + " " + record.getTag()
-				+ (record.getValue() != null? " " + record.getValue(): "");
-			sb.append(line).append("\n");
+		catch(final NumberFormatException e){
+			throw new IllegalArgumentException("Invalid level in line: " + line, e);
 		}
-
-		// children
-		for(final FLEFRecord child : record.getChildren()){
-			sb.append(serializeRecord(child, child.getLevel()));
-		}
-
-		return sb.toString();
 	}
 
 	// ------------------------------------------------
@@ -405,10 +491,10 @@ public final class FLEFFile{
 	 * For indexed segments, if the index equals the current child count, a new child is appended.
 	 * If the index is greater than the count, an exception is thrown.
 	 *
-	 * @param root	The record to modify.
-	 * @param path	The dot‑separated path with optional indices.
-	 * @param value	The new value.
-	 * @throws IllegalArgumentException	If the path is malformed or the index is out of range.
+	 * @param root  The record to modify.
+	 * @param path  The dot‑separated path with optional indices.
+	 * @param value The new value.
+	 * @throws IllegalArgumentException If the path is malformed or the index is out of range.
 	 */
 	public static void setValueByPath(final FLEFRecord root, final String path, final String value){
 		if(root == null || path == null)
@@ -416,7 +502,7 @@ public final class FLEFFile{
 
 		final List<PathSegment> segments = parsePath(path);
 		FLEFRecord current = root;
-		for(int i = 0; i < segments.size(); i ++){
+		for(int i = 0; i < segments.size(); i++){
 			final PathSegment seg = segments.get(i);
 			final List<FLEFRecord> children = current.findChildren(seg.tag);
 			int idx = (seg.index < 0? 0: seg.index); // <- normalize -1 to 0
@@ -425,7 +511,7 @@ public final class FLEFFile{
 				current = children.get(idx);
 			else if(idx == children.size()){
 				// append a new child
-				final FLEFRecord newChild = FLEFRecord.createChild(current.getLevel() + 1, seg.tag);
+				final FLEFRecord newChild = FLEFRecord.createChild(seg.tag);
 				current.addChild(newChild);
 				current = newChild;
 			}
@@ -548,16 +634,16 @@ public final class FLEFFile{
 		final FLEFRecord header = new FLEFRecord();
 		header.setType("HEADER");
 
-		final FLEFRecord protocol = FLEFRecord.createChildWithValue(1, "PROTOCOL", "FLEF");
+		final FLEFRecord protocol = FLEFRecord.createChildWithValue("PROTOCOL", "FLEF");
 		header.addChild(protocol);
 
-		final FLEFRecord version = FLEFRecord.createChildWithValue(2, "VERSION", "0.1.0");
+		final FLEFRecord version = FLEFRecord.createChildWithValue("VERSION", "0.1.0");
 		protocol.addChild(version);
 
-		final FLEFRecord source = FLEFRecord.createChildWithValue(1, "SOURCE", "MyApp");
+		final FLEFRecord source = FLEFRecord.createChildWithValue("SOURCE", "MyApp");
 		header.addChild(source);
 
-		final FLEFRecord date = FLEFRecord.createChildWithValue(1, "DATE", "2026-07-10");
+		final FLEFRecord date = FLEFRecord.createChildWithValue("DATE", "2026-07-10");
 		header.addChild(date);
 
 		return header;
@@ -566,15 +652,13 @@ public final class FLEFFile{
 	private static FLEFRecord createTestIndividual(){
 		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
 
-		final FLEFRecord name = new FLEFRecord();
-		name.setLevel(1);
-		name.setTag("NAME");
+		final FLEFRecord name = FLEFRecord.createChild("NAME");
 		individual.addChild(name);
 
-		final FLEFRecord givenName = FLEFRecord.createChildWithValue(2, "VALUE", "Mario");
+		final FLEFRecord givenName = FLEFRecord.createChildWithValue("VALUE", "Mario");
 		name.addChild(givenName);
 
-		final FLEFRecord sex = FLEFRecord.createChildWithValue(1, "SEX", "MALE");
+		final FLEFRecord sex = FLEFRecord.createChildWithValue("SEX", "MALE");
 		individual.addChild(sex);
 
 		return individual;
@@ -583,18 +667,16 @@ public final class FLEFFile{
 	private static FLEFRecord createTestPlace(){
 		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
 
-		final FLEFRecord name = FLEFRecord.createChildWithValue(1, "NAME", "Rome");
+		final FLEFRecord name = FLEFRecord.createChildWithValue("NAME", "Rome");
 		place.addChild(name);
 
-		final FLEFRecord map = new FLEFRecord();
-		map.setLevel(1);
-		map.setTag("MAP");
+		final FLEFRecord map = FLEFRecord.createChild("MAP");
 		place.addChild(map);
 
-		final FLEFRecord latitude = FLEFRecord.createChildWithValue(2, "LATITUDE", "41.9028");
+		final FLEFRecord latitude = FLEFRecord.createChildWithValue("LATITUDE", "41.9028");
 		map.addChild(latitude);
 
-		final FLEFRecord longitude = FLEFRecord.createChildWithValue(2, "LONGITUDE", "12.4964");
+		final FLEFRecord longitude = FLEFRecord.createChildWithValue("LONGITUDE", "12.4964");
 		map.addChild(longitude);
 
 		return place;
