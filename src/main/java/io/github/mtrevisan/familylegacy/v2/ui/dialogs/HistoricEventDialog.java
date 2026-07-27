@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -34,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -97,18 +97,18 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	private String selectedPlaceId;
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
 
-	// ========== NOTE (0:M) ==========
+	// ========== NOTE ==========
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== SOURCE_CITATION (0:M) ==========
+	// ========== SOURCE_CITATION ==========
 	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
-	// ========== MODIFICATION (1:1) ==========
+	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
 	// ========== Buttons ==========
@@ -122,7 +122,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public HistoricEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Historic Event", model, record);
+		super(parent, "Edit Historic Event", model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -133,7 +133,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	}
 
 	public HistoricEventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Historic Event", model, null);
+		super(parent, "New Historic Event", model, null, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -205,7 +205,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		placeBrowseBtn.addActionListener(e -> browsePlace());
 		placeClearBtn.addActionListener(e -> {
 			selectedPlaceId = null;
-			placeDisplayField.setText("");
+			placeDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		// PLACE -> CERTAINTY + CREDIBILITY (grouped in EvidenceQualifiersPanel)
@@ -502,7 +502,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 			}
 		}
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.loadFromRecord(record);
 	}
 
@@ -547,25 +547,15 @@ public class HistoricEventDialog extends BaseRecordDialog{
 			record.addChild(citation);
 		}
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.saveToRecord(record);
 
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "HISTORIC_EVENT");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "HISTORIC_EVENT", "H");
 	}
 
 	// ==================== Main per test ====================

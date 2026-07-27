@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
@@ -31,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TranscribedTextDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -89,15 +89,15 @@ public class ContactStructurePanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== CONTACT (1:1) ==========
+	// ========== CONTACT ==========
 	private final JTextField contactField = new JTextField(30);
 
-	// ========== TYPE (0:1) ==========
+	// ========== TYPE ==========
 	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-		"", "work", "home", "blog", "personal", "social", "mobile", "fax"
+		StringUtils.EMPTY, "work", "home", "blog", "personal", "social", "mobile", "fax"
 	});
 
-	// ========== CALLER_ID (0:1) ==========
+	// ========== CALLER_ID ==========
 	private final JTextField callerIdField = new JTextField(20);
 
 	// ========== CALLER_ID -> TRANSCRIBED_TEXT (0:M) ==========
@@ -111,10 +111,10 @@ public class ContactStructurePanel extends JPanel{
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== RESTRICTION (0:1) ==========
+	// ========== RESTRICTION ==========
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// ========== MODIFICATION_STRUCTURE (1:1) ==========
+	// ========== MODIFICATION_STRUCTURE ==========
 	private final ModificationPanel modificationPanel;
 
 	// ========== Handlers ==========
@@ -166,19 +166,19 @@ public class ContactStructurePanel extends JPanel{
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		// CONTACT (1:1)
+		// CONTACT
 		panel.add(new JLabel("Contact:"), "align label");
 		panel.add(contactField, "growx,wrap");
 
-		// TYPE (0:1)
+		// TYPE
 		panel.add(new JLabel("Type:"), "align label");
 		panel.add(typeCombo, "growx,wrap");
 
-		// CALLER_ID (0:1)
+		// CALLER_ID
 		panel.add(new JLabel("Caller ID:"), "align label");
 		panel.add(callerIdField, "growx,wrap");
 
-		// RESTRICTION (0:1)
+		// RESTRICTION
 		panel.add(restrictionCheckBox, "span 2,wrap");
 
 		return panel;
@@ -463,19 +463,19 @@ public class ContactStructurePanel extends JPanel{
 			return;
 		}
 
-		// CONTACT (1:1)
+		// CONTACT
 		contactField.setText(contactRecord.getValue());
 
-		// TYPE (0:1)
+		// TYPE
 		String type = FLEFRecordUtils.getChildValue(contactRecord, "TYPE");
-		typeCombo.setSelectedItem(type != null? type: "");
+		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
 
-		// CALLER_ID (0:1)
+		// CALLER_ID
 		FLEFRecord callerIdRecord = FLEFRecordUtils.findChild(contactRecord, "CALLER_ID");
 		if(callerIdRecord != null){
 			callerIdField.setText(callerIdRecord.getValue());
 
-			// CALLER_ID -> TRANSCRIBED_TEXT (0:M)
+			// CALLER_ID -> TRANSCRIBED_TEXT
 			transcriptionModel.clear();
 			transcriptionRecords.clear();
 			for(FLEFRecord child : callerIdRecord.getChildren()){
@@ -500,11 +500,11 @@ public class ContactStructurePanel extends JPanel{
 			}
 		}
 
-		// RESTRICTION (0:1)
+		// RESTRICTION
 		String restriction = FLEFRecordUtils.getChildValue(contactRecord, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
-		// MODIFICATION_STRUCTURE (1:1)
+		// MODIFICATION_STRUCTURE
 		modificationPanel.loadFromRecord(contactRecord);
 	}
 
@@ -529,13 +529,13 @@ public class ContactStructurePanel extends JPanel{
 		// Clear existing children
 		FLEFRecordUtils.removeAllChildren(contactRecord);
 
-		// CONTACT (1:1) - required
+		// CONTACT
 		String contact = contactField.getText().trim();
 		if(!contact.isEmpty()){
 			contactRecord.setValue(contact);
 		}
 
-		// TYPE (0:1)
+		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(contactRecord, "TYPE", type);
 
@@ -557,11 +557,11 @@ public class ContactStructurePanel extends JPanel{
 			FLEFRecordUtils.addChild(contactRecord, "NOTE", id);
 		}
 
-		// RESTRICTION (0:1)
+		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
 		FLEFRecordUtils.updateChildValue(contactRecord, "RESTRICTION", restriction);
 
-		// MODIFICATION_STRUCTURE (1:1)
+		// MODIFICATION_STRUCTURE
 		modificationPanel.saveToRecord(contactRecord);
 
 		return contactRecord;
@@ -578,7 +578,7 @@ public class ContactStructurePanel extends JPanel{
 			return true;
 		}
 
-		// CONTACT (1:1) - required if contact has data
+		// CONTACT - required if contact has data
 		if(contactField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"CONTACT is required.\n" +
@@ -610,9 +610,9 @@ public class ContactStructurePanel extends JPanel{
 	 * Clears all fields in the panel.
 	 */
 	public void clear(){
-		contactField.setText("");
-		typeCombo.setSelectedItem("");
-		callerIdField.setText("");
+		contactField.setText(StringUtils.EMPTY);
+		typeCombo.setSelectedItem(StringUtils.EMPTY);
+		callerIdField.setText(StringUtils.EMPTY);
 		transcriptionModel.clear();
 		transcriptionRecords.clear();
 		noteModel.clear();

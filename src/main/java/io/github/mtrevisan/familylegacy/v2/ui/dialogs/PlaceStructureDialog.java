@@ -11,9 +11,21 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,7 +47,8 @@ import java.util.Set;
 public class PlaceStructureDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 6489523892351201199L;
+
 
 	private final FLEFModel model;
 	private final FLEFRecord placeRecord;
@@ -111,7 +124,7 @@ public class PlaceStructureDialog extends JDialog{
 		browsePlaceBtn.addActionListener(e -> selectPlace());
 		clearPlaceBtn.addActionListener(e -> {
 			placeRecord.setValue(null);
-			placeDisplayField.setText("");
+			placeDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		okButton.addActionListener(e -> save());
@@ -132,7 +145,7 @@ public class PlaceStructureDialog extends JDialog{
 			},
 			this::removeSourceCitation,
 			builder -> {
-				builder.item("New...", this::createNewSourceAndAddCitation);
+				builder.item("Create New...", this::createNewSourceAndAddCitation);
 				builder.item("Add Existing...", this::addSourceCitation);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editSource);
@@ -166,7 +179,7 @@ public class PlaceStructureDialog extends JDialog{
 			placeDisplayField.setText(rec != null? placeHandler.getDisplayName(rec) : rawId);
 		}
 		else{
-			placeDisplayField.setText("");
+			placeDisplayField.setText(StringUtils.EMPTY);
 		}
 	}
 

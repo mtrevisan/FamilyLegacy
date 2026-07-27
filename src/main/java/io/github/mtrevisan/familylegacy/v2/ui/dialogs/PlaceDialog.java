@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -39,7 +40,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -141,7 +141,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	private final JButton subordinateClearBtn = new JButton("Clear");
 	private String selectedSubordinateId;
 
-	// ========== MODIFICATION (1:1) ==========
+	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
 	// ========== Buttons ==========
@@ -184,7 +184,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public PlaceDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Place", model, record);
+		super(parent, "Edit Place", model, record, HandlerRegistry.getHandler(PlaceHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -195,7 +195,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	}
 
 	public PlaceDialog(Frame parent, FLEFModel model){
-		super(parent, "New Place", model, null);
+		super(parent, "New Place", model, null, HandlerRegistry.getHandler(PlaceHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -252,7 +252,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		panel.add(idField, "growx,wrap");
 
 		// NAME (0:1) with transcriptions
-		JPanel nameRow = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow][][]", ""));
+		JPanel nameRow = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow][][]"));
 		nameRow.add(new JLabel("Name:"), "align label");
 		nameRow.add(nameField, "growx");
 		nameTransBtn.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 11));
@@ -543,7 +543,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		subordinateBrowseBtn.addActionListener(e -> browseSubordinate());
 		subordinateClearBtn.addActionListener(e -> {
 			selectedSubordinateId = null;
-			subordinateDisplayField.setText("");
+			subordinateDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		return panel;
@@ -580,7 +580,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 		// NAME (0:1)
 		String name = FLEFRecordUtils.getChildValue(record, "NAME");
-		nameField.setText(name != null? name: "");
+		nameField.setText(name != null? name: StringUtils.EMPTY);
 		loadTranscriptionsForTag(record, "NAME", nameTransModel, nameTransRecords);
 
 		// ADDRESS (0:M)
@@ -639,7 +639,7 @@ public class PlaceDialog extends BaseRecordDialog{
 			}
 		}
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.loadFromRecord(record);
 	}
 
@@ -750,28 +750,18 @@ public class PlaceDialog extends BaseRecordDialog{
 			FLEFRecordUtils.updateChildValue(mapNode, "CREDIBILITY", cred);
 		}
 
-		// SUBORDINATE (0:1)
+		// SUBORDINATE
 		FLEFRecordUtils.updateChildValue(record, "SUBORDINATE", selectedSubordinateId);
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.saveToRecord(record);
 
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "PLACE");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "PLACE", "P");
 	}
 
 	// ==================== Main per test ====================

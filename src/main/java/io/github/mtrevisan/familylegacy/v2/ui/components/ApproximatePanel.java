@@ -6,10 +6,21 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 
 
 /**
@@ -26,7 +37,7 @@ public class ApproximatePanel extends JPanel{
 	private final FLEFModel model;
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
-	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{"", "stated", "calculated", "conventional", "unspecified"});
+	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "stated", "calculated", "conventional", "unspecified"});
 	private final JTextField culturalNormField = new JTextField(15);
 	private final JButton browseCulturalNormBtn = new JButton("Browse");
 	private final JButton clearCulturalNormBtn = new JButton("Clear");
@@ -115,7 +126,7 @@ public class ApproximatePanel extends JPanel{
 
 	private void clearCulturalNorm(){
 		culturalNormId = null;
-		culturalNormField.setText("");
+		culturalNormField.setText(StringUtils.EMPTY);
 		clearCulturalNormBtn.setEnabled(false);
 	}
 
@@ -132,7 +143,7 @@ public class ApproximatePanel extends JPanel{
 		approximateCheck.setSelected(true);
 
 		String basis = FLEFRecordUtils.getChildValue(approxRecord, "BASIS");
-		basisCombo.setSelectedItem(basis != null? basis: "");
+		basisCombo.setSelectedItem(basis != null? basis: StringUtils.EMPTY);
 
 		String normId = FLEFRecordUtils.getChildValue(approxRecord, "CULTURAL_NORM");
 		if(normId != null){
@@ -148,7 +159,7 @@ public class ApproximatePanel extends JPanel{
 		}
 
 		String margin = FLEFRecordUtils.getChildValue(approxRecord, "MARGIN");
-		marginField.setText(margin != null? margin: "");
+		marginField.setText(margin != null? margin: StringUtils.EMPTY);
 
 		updateEnabled();
 	}
@@ -191,9 +202,9 @@ public class ApproximatePanel extends JPanel{
 		approximateCheck.setSelected(false);
 		basisCombo.setSelectedIndex(0);
 		culturalNormId = null;
-		culturalNormField.setText("");
+		culturalNormField.setText(StringUtils.EMPTY);
 		clearCulturalNormBtn.setEnabled(false);
-		marginField.setText("");
+		marginField.setText(StringUtils.EMPTY);
 		updateEnabled();
 	}
 

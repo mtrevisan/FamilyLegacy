@@ -1,9 +1,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteDialog;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
 import java.awt.Frame;
 
@@ -22,6 +22,11 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 	@Override
 	public String getType(){
 		return TYPE	;
+	}
+
+	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
 	}
 
 	@Override

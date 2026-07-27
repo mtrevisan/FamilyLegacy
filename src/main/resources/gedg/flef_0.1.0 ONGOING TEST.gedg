@@ -83,19 +83,19 @@ n NAME    {1:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
 
-NAME_STRUCTURE :=	/* A generic naming structure used for places, organizations, repositories, groups, and other non-person entities. Unlike PERSONAL_NAME_STRUCTURE, this structure does not decompose the name into culturally-specific components. */
-n NAME    {1:1}
-  +1 <<TEXT_VALUE>>    {1:1}	/* The textual value of the name, with optional locale and validity dates. */
-  +1 TYPE <NAME_TYPE>    {0:1}	/* Geographical/Institutional: 'official', 'colonial', 'indigenous'. */
+..NAME_STRUCTURE :=	/* A generic naming structure used for places, organizations, repositories, groups, and other non-person entities. Unlike PERSONAL_NAME_STRUCTURE, this structure does not decompose the name into culturally-specific components. */
+..n NAME    {1:1}
+..  +1 <<TEXT_VALUE>>    {1:1}	/* The textual value of the name, with optional locale and validity dates. */
+..  +1 TYPE <NAME_TYPE>    {0:1}	/* Geographical/Institutional: 'official', 'colonial', 'indigenous'. */
 
-TEXT_VALUE :=	/* A textual value representing a name, address, title, label, or other historically relevant text associated with an entity. Multiple TEXT_VALUE structures may be recorded when the same entity is known by different historical, linguistic, official, or customary names. */
-n VALUE <TEXT>    {1:1}	/* The primary textual value. */
+..TEXT_VALUE :=	/* A textual value representing a name, address, title, label, or other historically relevant text associated with an entity. Multiple TEXT_VALUE structures may be recorded when the same entity is known by different historical, linguistic, official, or customary names. */
+..n VALUE <TEXT>    {1:1}	/* The primary textual value. */
 ..  +1 <<TEXT_VALUE_VARIANT>>    {0:M}	/* Alternative phonetic, transliterated, or transcribed representations. */
 ..  +1 LOCALE <LOCALE_CODE>    {0:1}	/* The locale identifier for this text (as defined by IETF BCP 47: https://tools.ietf.org/html/bcp47). */
-  +1 VALID_FROM    {0:1}	/* The date from which this name was known to be in use. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 VALID_TO    {0:1}	/* The date until which this name was known to be in use. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..  +1 VALID_FROM    {0:1}	/* The date from which this name was known to be in use. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
+..  +1 VALID_TO    {0:1}	/* The date until which this name was known to be in use. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
 
@@ -123,11 +123,11 @@ n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
   +1 VALUE <TEXT>    {0:1}	/* The value of the attribute (optional if the attribute type implies its own value, e.g., "BURIAL" implies the person was buried). */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
     +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 VALID_FROM    {0:1}
-    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
-  +1 VALID_TO    {0:1}
-    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
-  +1 <<PLACE_STRUCTURE>>    {0:1}
+..  +1 VALID_FROM    {0:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
+..  +1 VALID_TO    {0:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
+..  +1 <<PLACE_STRUCTURE>>    {0:1}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -155,11 +155,11 @@ n @<XREF:GROUP_ATTRIBUTE>@ GROUP_ATTRIBUTE    {1:1}
   +1 VALUE <TEXT>    {0:1}	/* The value assigned to the attribute. */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
     +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 VALID_FROM    {0:1}
-    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
-  +1 VALID_TO    {0:1}
-    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
-  +1 <<PLACE_STRUCTURE>>    {0:1}
+..  +1 VALID_FROM    {0:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
+..  +1 VALID_TO    {0:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
+..  +1 <<PLACE_STRUCTURE>>    {0:1}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -176,10 +176,10 @@ n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
   +1 STATUS <RELATIONSHIP_STATUS>    {0:1}	/* Indicates the current status of the relationship. Known values include: 'active' (Relationship currently exists), 'ended' (Relationship no longer exists), 'disputed' (Relationship is challenged by conflicting evidence), 'proposed' (Relationship has been suggested but not sufficiently demonstrated), 'unknown' (Relationship status is not known) */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date the relationship was established, recognized, or documented. */
     +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 VALID_FROM    {0:1}	/* The date from which this relationship was known to be in effect. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 VALID_TO    {0:1}	/* The date until which this relationship was known to be in effect. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..  +1 VALID_FROM    {0:1}	/* The date from which this relationship was known to be in effect. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
+..  +1 VALID_TO    {0:1}	/* The date until which this relationship was known to be in effect. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
@@ -192,7 +192,7 @@ EVENT_STRUCTURE :=	/* Shared descriptive structure containing the details associ
 n DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or group, or the value of an attribute. */
 n DATE    {0:1}	/* A DATE_STRUCTURE object giving the date of the event. */
   +1 <<DATE_STRUCTURE>>    {1:1}
-n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the event. */
+..n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the event. */
 n AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
 n CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
@@ -210,9 +210,9 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
   +1 EVENT @<XREF:EVENT>@    {1:1}	/* The event in which the entity participated. */
   +1 ENTITY @<XREF:ID>@    {1:1}	/* The entity that participated in the event. */
   +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* The role the entity played in the event. Known values are: CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. This field is optional because the role may be unknown or not applicable. */
+..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
-..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
@@ -241,10 +241,10 @@ n @<XREF:PLACE_RELATIONSHIP>@ PLACE_RELATIONSHIP    {1:1}
   +1 SUBJECT @<XREF:PLACE>@    {1:1}	/* The place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT. */
   +1 OBJECT @<XREF:PLACE>@    {1:1}	/* The place to which the subject is related. */
   +1 TYPE <PLACE_RELATIONSHIP_TYPE>    {1:1}	/* The specific nature of the relationship of the subject toward the object. Known values include: 'administrative_part_of' (subject is part of an administrative jurisdiction, e.g., Treviso → Veneto), 'geographic_part_of' (subject is geographically contained within another place), 'ecclesiastical_part_of' (subject belongs to an ecclesiastical jurisdiction such as a parish, diocese, or archdiocese), 'judicial_part_of' (subject belongs to a court, district, or judicial jurisdiction), 'cadastral_part_of' (subject belongs to a cadastral or land-records district). Custom values are permitted. */
-  +1 VALID_FROM    {0:1}	/* The date from which this place relationship is known or believed to have been valid. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 VALID_TO    {0:1}	/* The date until which this place relationship is known or believed to have been valid. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..  +1 VALID_FROM    {0:1}	/* The date from which this place relationship is known or believed to have been valid. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
+..  +1 VALID_TO    {0:1}	/* The date until which this place relationship is known or believed to have been valid. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
   +1 NOTE <TEXT>    {0:M}	/* A note containing commentary, interpretation, or discussion related to this place relationship. */
 ..  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects supporting the existence, interpretation, or dating of this place relationship. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
@@ -264,13 +264,12 @@ n @<XREF:PLACE_RELATIONSHIP>@ PLACE_RELATIONSHIP    {1:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-ONGOING
-REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
-n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
+..REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
+..n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
 ..  +1 <<NAME_STRUCTURE>>    {1:M}	/* The official name of the archive in which the stated source material is stored. */
 ..  +1 CUSTODIAN @<XREF:INDIVIDUAL>@    {0:1}	/* An xref ID of the individual acting as custodian of the repository or its source material. */
-  +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the repository. */
-  +1 <<CONTACT_STRUCTURE>>    {0:M}
+..  +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the repository. */
+..  +1 <<CONTACT_STRUCTURE>>    {0:M}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
@@ -290,18 +289,18 @@ n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address th
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 
 
-CULTURAL_NORM_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This affects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
-n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
-  +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
-  +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location in which this cultural norm was in effect. */
-  +1 VALID_FROM    {0:1}	/* The date from which this cultural norm was in effect. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 VALID_TO    {0:1}	/* The date until which this cultural norm was in effect. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..CULTURAL_NORM_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This affects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
+..n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
+..  +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
+..  +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location in which this cultural norm was in effect. */
+..  +1 VALID_FROM    {0:1}	/* The date from which this cultural norm was in effect. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
+..  +1 VALID_TO    {0:1}	/* The date until which this cultural norm was in effect. */
+..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
+  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
-
 
 SOURCE_RECORD :=	/* A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral testimony, database entry, image, audio recording, or any other evidence-bearing artifact. */
 n @<XREF:SOURCE>@ SOURCE    {1:1}
@@ -310,13 +309,13 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}
   +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date this source was created. */
     +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the place this source was created. */
+..  +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the place this source was created. */
   +1 PUBLISHER <SOURCE_PUBLISHER>    {0:1}	/* Name of the publisher of the publication. */
   +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
   +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
   +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to this context. */
-..  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+..  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this source. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
@@ -390,7 +389,7 @@ n @<XREF:HISTORIC_EVENT>@ HISTORIC_EVENT    {1:1}
   +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
   +1 DATE    {0:1}	/* The date on which this historic event happened. */
     +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 <<PLACE_STRUCTURE>>    {0:1}	/* The place in which this historic event happened. */
+..  +1 <<PLACE_STRUCTURE>>    {0:1}	/* The place in which this historic event happened. */
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */

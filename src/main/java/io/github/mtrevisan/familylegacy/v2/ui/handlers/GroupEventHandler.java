@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupEventDialog;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
 import java.awt.Frame;
 
@@ -37,7 +37,8 @@ import java.awt.Frame;
  */
 public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 
-	public static final String TYPE = "EVENT";
+	public static final String TYPE = "GROUP_EVENT";
+	public static final String ID_PREFIX = "GE";
 
 
 	@Override
@@ -48,6 +49,11 @@ public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 	@Override
 	public String getType(){
 		return TYPE;
+	}
+
+	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
 	}
 
 	@Override

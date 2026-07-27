@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
@@ -33,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -100,7 +100,7 @@ public class CalendarDialog extends BaseRecordDialog{
 	// ========== Basic fields ==========
 	private final JTextField idField = new JTextField(10);
 	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-		"", "gregorian", "julian", "islamic", "hebrew", "chinese",
+		StringUtils.EMPTY, "gregorian", "julian", "islamic", "hebrew", "chinese",
 		"indian", "buddhist", "french-republican", "coptic",
 		"soviet eternal", "ethiopian", "mayan"
 	});
@@ -136,7 +136,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 
 	public CalendarDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Calendar", model, record);
+		super(parent, "Edit Calendar", model, record, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -147,7 +147,7 @@ public class CalendarDialog extends BaseRecordDialog{
 	}
 
 	public CalendarDialog(Frame parent, FLEFModel model){
-		super(parent, "New Calendar", model, null);
+		super(parent, "New Calendar", model, null, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -202,7 +202,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		panel.add(new JLabel("ID:"), "align label");
 		panel.add(idField, "growx,wrap");
 
-		// TYPE (1:1) - marked with an asterisk
+		// TYPE
 		panel.add(new JLabel("Type*:"), "align label");
 		panel.add(typeCombo, "growx");
 
@@ -568,14 +568,14 @@ public class CalendarDialog extends BaseRecordDialog{
 	protected void loadData(){
 		idField.setText(record.getId());
 
-		// TYPE (1:1)
+		// TYPE
 		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
-		typeCombo.setSelectedItem(type != null? type: "");
+		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
 
-		// CULTURAL_NORM (0:M)
+		// CULTURAL_NORM
 		loadCulturalNorms();
 
-		// NOTE (0:M)
+		// NOTE
 		loadNotes();
 
 		// SOURCE_CITATION (0:M)
@@ -588,7 +588,7 @@ public class CalendarDialog extends BaseRecordDialog{
 			}
 		}
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.loadFromRecord(record);
 	}
 
@@ -596,7 +596,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validateData(){
-		// TYPE (1:1) - required
+		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		if(type == null || type.isEmpty()){
 			JOptionPane.showMessageDialog(this,
@@ -615,11 +615,11 @@ public class CalendarDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
 
-		// TYPE (1:1)
+		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
 
-		// CULTURAL_NORM (0:M)
+		// CULTURAL_NORM
 		for(String id : culturalNormIds){
 			FLEFRecordUtils.addChild(record, "CULTURAL_NORM", id);
 		}
@@ -635,25 +635,15 @@ public class CalendarDialog extends BaseRecordDialog{
 			record.addChild(citation);
 		}
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.saveToRecord(record);
 
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "CALENDAR");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "CALENDAR", "C");
 	}
 
 	// ==================== Main per test ====================

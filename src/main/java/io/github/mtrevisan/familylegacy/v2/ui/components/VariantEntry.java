@@ -1,8 +1,5 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import javax.swing.*;
-import java.awt.*;
-
 
 /**
  * Represents a TEXT_VALUE_VARIANT (PHONETIC or TRANSCRIPTION).

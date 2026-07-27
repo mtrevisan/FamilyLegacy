@@ -1,7 +1,18 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
-import javax.swing.*;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
+import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.Frame;
@@ -134,12 +145,12 @@ public final class GUIHelper{
 	 * the builder version.
 	 */
 	public static void installStandardBehavior(final JComponent component, final Supplier<Boolean> hasSelection,
-			final Runnable newAction, final Runnable addAction, final Runnable editAction, final Runnable clearAction,
-			final Runnable notesAction){
-		installBehavior(component, hasSelection, editAction, newAction, clearAction,
+			final Runnable createNewAction, final Runnable addAction, final Runnable editAction,
+			final Runnable clearAction, final Runnable notesAction){
+		installBehavior(component, hasSelection, editAction, createNewAction, clearAction,
 			builder -> {
-				if(newAction != null)
-					builder.item("Create New...", newAction);
+				if(createNewAction != null)
+					builder.item("Create New...", createNewAction);
 				if(addAction != null)
 					builder.item("Add Existing...", addAction);
 				if(editAction != null || clearAction != null || notesAction != null)
@@ -258,6 +269,18 @@ public final class GUIHelper{
 		while(parent != null && !(parent instanceof Frame))
 			parent = parent.getParent();
 		return (Frame)parent;
+	}
+
+
+	public static void showValidationErrorAndFocus(final Component parentComponent, final String message,
+		final JTabbedPane tabbedPane, final JPanel panel, final JComponent component){
+		JOptionPane.showMessageDialog(parentComponent,
+			message,
+			"Validation Error", JOptionPane.ERROR_MESSAGE);
+
+		if(tabbedPane != null && panel != null)
+			tabbedPane.setSelectedComponent(panel);
+		SwingUtilities.invokeLater(component::requestFocusInWindow);
 	}
 
 

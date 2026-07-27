@@ -24,17 +24,26 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
 import java.io.Serial;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -85,8 +94,8 @@ public class ModificationPanel extends JPanel{
 		private final String comment;
 
 		UpdateEntry(String date, String comment){
-			this.date = date != null? date: "";
-			this.comment = comment != null? comment: "";
+			this.date = date != null? date: StringUtils.EMPTY;
+			this.comment = comment != null? comment: StringUtils.EMPTY;
 		}
 
 		@Override
@@ -134,7 +143,7 @@ public class ModificationPanel extends JPanel{
 		add(creationPanel, "span 2,growx");
 
 		// UPDATES section
-		final JPanel updatePanel = new JPanel(new MigLayout("fillx", "[grow]", ""));
+		final JPanel updatePanel = new JPanel(new MigLayout("fillx", "[grow]"));
 		updatePanel.setBorder(new TitledBorder("Updates"));
 
 		updateList.setVisibleRowCount(3);
@@ -144,10 +153,10 @@ public class ModificationPanel extends JPanel{
 		GUIHelper.installBehavior(updateList,
 			() -> updateList.getSelectedIndex() >= 0,
 			this::editUpdate,                    // double‑click → edit
-			this::addUpdate,                     // INSERT key → add
+			this::createNewUpdate,                     // INSERT key → add
 			this::removeUpdate,                  // DELETE key → remove
 			builder -> {
-				builder.item("Add Update...", this::addUpdate);
+				builder.item("Create New...", this::createNewUpdate);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editUpdate);
 				builder.selectionSensitiveItem("Remove", this::removeUpdate);
@@ -161,7 +170,7 @@ public class ModificationPanel extends JPanel{
 
 	// ==================== Update Management ====================
 
-	private void addUpdate(){
+	private void createNewUpdate(){
 		final UpdateEntry newEntry = showUpdateDialog(null);
 		if(newEntry != null){
 			updateEntries.add(newEntry);
@@ -259,7 +268,7 @@ public class ModificationPanel extends JPanel{
 
 			// Load creation comment if present (non-standard, but we keep it)
 			final String comment = FLEFRecordUtils.getChildValue(creation, "COMMENT");
-			creationCommentArea.setText(comment != null? comment: "");
+			creationCommentArea.setText(comment != null? comment: StringUtils.EMPTY);
 		}
 
 		// Find UPDATE entries
@@ -309,7 +318,7 @@ public class ModificationPanel extends JPanel{
 	}
 
 	public void clear(){
-		creationCommentArea.setText("");
+		creationCommentArea.setText(StringUtils.EMPTY);
 		updateEntries.clear();
 		updateModel.clear();
 	}

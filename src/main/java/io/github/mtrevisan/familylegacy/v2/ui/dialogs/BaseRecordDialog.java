@@ -24,18 +24,25 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
-import java.awt.Container;
+import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.awt.event.ActionEvent;
 import java.io.Serial;
 import java.util.List;
 
@@ -50,22 +57,51 @@ public abstract class BaseRecordDialog extends JDialog{
 	private static final long serialVersionUID = 6460878052412992481L;
 
 
+	protected final JButton saveButton = new JButton("Save");
+	protected final JButton cancelButton = new JButton("Cancel");
+
+
 	protected final FLEFModel model;
 	protected final FLEFRecord record;
 	protected final boolean isNew;
+	protected boolean isSaved;
 
 
-	protected BaseRecordDialog(final Frame parent, final String title, final FLEFModel model, final FLEFRecord record){
+	protected BaseRecordDialog(final Frame parent, final String title, final FLEFModel model, final FLEFRecord record,
+			final RecordTypeHandler<?> handler){
 		super(parent, title, true);
 
 		this.model = model;
-		this.record = (record != null? record: createNewRecord());
+		this.record = (record != null? record: createNewRecord(handler));
 		this.isNew = (record == null);
 	}
 
 	// ==================== Abstract methods ====================
 
 	protected abstract void initComponents();
+
+	protected JPanel createButtonPanel(){
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		buttonPanel.add(saveButton);
+		buttonPanel.add(cancelButton);
+
+		saveButton.addActionListener(e -> save());
+
+		getRootPane().setDefaultButton(saveButton);
+
+		final Action escapeAction = new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				dispose();
+			}
+		};
+		cancelButton.addActionListener(escapeAction);
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+			KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
+		getRootPane().getActionMap().put("escape", escapeAction);
+
+		return buttonPanel;
+	}
 
 	protected abstract void loadData();
 
@@ -83,9 +119,13 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	protected abstract void saveRecord();
 
-	protected abstract FLEFRecord createNewRecord();
+	private FLEFRecord createNewRecord(final RecordTypeHandler<?> handler){
+		return FLEFRecord.createMainRecord(generateNewId(handler), handler.getType());
+	}
 
-	protected abstract String generateNewId();
+	private String generateNewId(final RecordTypeHandler<?> handler){
+		return FLEFRecordUtils.generateNewId(model, handler.getType(), handler.getIDPrefix());
+	}
 
 	/**
 	 * Public save method that performs validation and then saves.
@@ -177,6 +217,14 @@ public abstract class BaseRecordDialog extends JDialog{
 		final int selectedOption = JOptionPane.showConfirmDialog(this, message, title,
 			JOptionPane.YES_NO_OPTION);
 		return (selectedOption == JOptionPane.YES_OPTION);
+	}
+
+	protected boolean isSaved(){
+		return isSaved;
+	}
+
+	protected FLEFRecord getRecord(){
+		return record;
 	}
 
 }

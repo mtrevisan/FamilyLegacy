@@ -110,7 +110,7 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 
 		initComponents();
 		loadAllRecords();
-		filterRecords("");
+		filterRecords(StringUtils.EMPTY);
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -207,8 +207,8 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 		// ---- Search button and Clear button ----
 		searchButton.addActionListener(e -> filterRecords(searchField.getText().trim()));
 		clearButton.addActionListener(e -> {
-			searchField.setText("");
-			filterRecords("");
+			searchField.setText(StringUtils.EMPTY);
+			filterRecords(StringUtils.EMPTY);
 		});
 
 		// ---- Real-time search as user types ----

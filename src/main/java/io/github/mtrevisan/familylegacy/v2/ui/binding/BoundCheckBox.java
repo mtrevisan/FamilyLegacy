@@ -1,6 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
-import javax.swing.*;
+import javax.swing.JCheckBox;
 
 
 public class BoundCheckBox extends JCheckBox implements PathBound{

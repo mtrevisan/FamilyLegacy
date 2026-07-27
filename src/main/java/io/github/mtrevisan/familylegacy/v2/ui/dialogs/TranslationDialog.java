@@ -24,13 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -77,7 +77,7 @@ public class TranslationDialog extends JDialog{
 	private final JTextField localeField = new JTextField(10);
 	private final JTextArea valueArea = new JTextArea(3, 20);
 
-	// ========== MODIFICATION (1:1) ==========
+	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
 	// ========== Buttons ==========
@@ -161,12 +161,12 @@ public class TranslationDialog extends JDialog{
 		localeField.setText(FLEFRecordUtils.getChildValue(transRecord, "LOCALE"));
 		valueArea.setText(FLEFRecordUtils.getChildValue(transRecord, "VALUE"));
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.loadFromRecord(transRecord);
 	}
 
 	private boolean validateData(){
-		// VALUE (1:1) - required
+		// VALUE
 		if(valueArea.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"VALUE is required for a translation.",
@@ -185,7 +185,7 @@ public class TranslationDialog extends JDialog{
 		FLEFRecordUtils.updateChildValue(transRecord, "LOCALE", localeField.getText().trim());
 		FLEFRecordUtils.updateChildValue(transRecord, "VALUE", valueArea.getText().trim());
 
-		// MODIFICATION (1:1)
+		// MODIFICATION
 		modificationPanel.saveToRecord(transRecord);
 	}
 

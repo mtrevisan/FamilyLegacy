@@ -1,590 +1,445 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+
+import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import javax.swing.border.TitledBorder;
-import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.function.Supplier;
 
 
 /**
- * Dialog for editing a CULTURAL_NORM_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
  * CULTURAL_NORM_RECORD :=
- *   n @<XREF:RULE>@ CULTURAL_NORM    {1:1}
+ *   n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
  *     +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}
- *     +1 PLACE @<XREF:PLACE>@    {0:1}
- *       +2 CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}
- *       +2 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
+ *     +1 <<PLACE_STRUCTURE>>    {0:1}
+ *     +1 VALID_FROM    {0:1}
+ *       +2 <<DATE_STRUCTURE>>    {1:1}
+ *     +1 VALID_TO    {0:1}
+ *       +2 <<DATE_STRUCTURE>>    {1:1}
  *     +1 NOTE @<XREF:NOTE>@    {0:M}
+ *     +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
  *     +1 <<SOURCE_CITATION>>    {0:M}
  *     +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
-public class CulturalNormDialog extends BaseRecordDialog{
+public class CulturalNormDialog extends BaseRecordDialog {
 
 	@Serial
 	private static final long serialVersionUID = 950729006569948384L;
 
-	static{
+	// Handlers
+	static {
+		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	// ========== Basic fields ==========
-	private final JTextField idField = new JTextField(10);
-	private final BoundTextField titleField;
+	private final BoundTextField titleField = new BoundTextField("TITLE", 30);
 
-	// ========== PLACE (0:1) manual ==========
+	// PLACE
 	private final JTextField placeDisplayField = new JTextField(20);
-	private final JButton placeBrowseBtn = new JButton("Browse...");
-	private final JButton placeClearBtn = new JButton("Clear");
-	private String selectedPlaceId;
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
+	private FLEFRecord placeStructureRecord;
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Evidence");
+	private final EvidenceQualifiersPanel culturalNormQualifiers = new EvidenceQualifiersPanel("Evidence");
 
-	// ========== NOTE (0:M) manual ==========
-	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
-	private final JList<String> noteList = new JList<>(noteListModel);
-	private final List<String> noteIds = new ArrayList<>();
-	private final Map<String, String> noteDisplayMap = new HashMap<>();
+	// Validity Date Display Fields & Records
+	private final JTextField validFromDisplayField = new JTextField(20);
+	private final JTextField validToDisplayField = new JTextField(20);
+	private FLEFRecord validFromDateRecord;
+	private FLEFRecord validToDateRecord;
 
-	// ========== SOURCE_CITATION (0:M) manual ==========
-	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
-	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
-	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
-
-	// ========== MODIFICATION (1:1) ==========
+	// Panels
+	private final NoteListPanel notePanel;
+	private final SourceCitationListPanel sourceCitationPanel;
 	private final ModificationPanel modificationPanel;
 
-	// ========== Buttons ==========
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
 
-	// ========== Handlers ==========
-	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
+	public static CulturalNormDialog createNew(final Frame parent, final FLEFModel model) {
+		return new CulturalNormDialog(parent, model, null);
+	}
 
-	// ==================== Constructors ====================
-	public CulturalNormDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Cultural Norm", model, record);
+	public static CulturalNormDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record) {
+		if (record == null) {
+			throw new IllegalArgumentException("Record cannot be null");
+		}
+		return new CulturalNormDialog(parent, model, record);
+	}
 
-		// Initialize bound components before using them
-		titleField = new BoundTextField("TITLE", 30);
+	private CulturalNormDialog(final Frame parent, final FLEFModel model, final FLEFRecord record) {
+		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this);
+		modificationPanel = new ModificationPanel(this);
+		notePanel = new NoteListPanel(model, this);
+		sourceCitationPanel = new SourceCitationListPanel(model, this);
+
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 700));
 		pack();
 		setLocationRelativeTo(parent);
 	}
 
-	public CulturalNormDialog(Frame parent, FLEFModel model){
-		super(parent, "New Cultural Norm", model, null);
-
-		// Initialize bound components before using them
-		titleField = new BoundTextField("TITLE", 30);
-
-		this.modificationPanel = new ModificationPanel(this);
-		initComponents();
-		loadData();
-		setMinimumSize(new Dimension(850, 700));
-		pack();
-		setLocationRelativeTo(parent);
+	private static String buildTitle(final FLEFRecord record) {
+		return (record == null ? "New Cultural Norm" : "Edit Cultural Norm - " + record.getId());
 	}
 
-	// ==================== UI Initialization ====================
 	@Override
-	protected void initComponents(){
-		setLayout(new BorderLayout(10, 10));
-
-		// Register bound components
+	protected void initComponents() {
 		bindingManager.bind(titleField);
 
-		JTabbedPane tabbedPane = new JTabbedPane();
+		setupDateField(validFromDisplayField, () -> validFromDateRecord != null, this::editValidFrom, this::clearValidFrom);
+		setupDateField(validToDisplayField, () -> validToDateRecord != null, this::editValidTo, this::clearValidTo);
 
-		// --- Basic tab ---
-		tabbedPane.addTab("Basic", createBasicPanel());
+		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("References", createReferencesPanel());
 
-		// --- Notes tab ---
-		tabbedPane.addTab("Notes", createNotesPanel());
+		final JPanel modificationContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
+		modificationContainer.add(modificationPanel, "grow");
+		tabbedPane.addTab("Modification", modificationContainer);
 
-		// --- Source Citations tab ---
-		tabbedPane.addTab("Source Citations", createSourceCitationsPanel());
+		setLayout(new MigLayout("fillx,top"));
+		add(tabbedPane, "growx");
 
-		// --- Modification tab ---
-		tabbedPane.addTab("Modification", modificationPanel);
-
-		add(tabbedPane, BorderLayout.CENTER);
-
-		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
-		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
+		add(createButtonPanel(), BorderLayout.SOUTH);
 	}
 
-	// ==================== Panel factories ====================
+	private void setupDateField(JTextField field, Supplier<Boolean> hasSelection, Runnable editAction, Runnable clearAction) {
+		field.setEditable(false);
+		field.setBackground(UIManager.getColor("TextField.background"));
+		GUIHelper.installBehavior(field,
+			hasSelection,
+			editAction,
+			editAction,
+			clearAction,
+			builder -> {
+				builder.item("Set Date...", editAction);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", editAction);
+				builder.selectionSensitiveItem("Clear", clearAction);
+			});
+	}
 
-	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+	private JPanel createMainPanel() {
+		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// ID (read-only)
-		idField.setEditable(false);
-		idField.setText(record != null? record.getId(): "");
-		panel.add(new JLabel("ID:"), "align label");
-		panel.add(idField, "growx,wrap");
+		// TITLE
+		mainPanel.add(new JLabel("Title:"), "align label");
+		mainPanel.add(titleField, "growx,wrap");
 
-		// TITLE (0:1) – bound field
-		panel.add(new JLabel("Title:"), "align label");
-		panel.add(titleField, "growx,wrap");
+		// PLACE GROUP
+		final JPanel placePanel = new JPanel(new MigLayout("ins 5, fillx, top", "[right]rel[grow]", "[]5[]"));
+		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 
-		// PLACE (0:1)
-		panel.add(new JLabel("Place:"), "align label");
+		placePanel.add(new JLabel("Place:"), "align label");
 		placeDisplayField.setEditable(false);
 		placeDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		JPanel placePanel = new JPanel(new BorderLayout(5, 5));
-		placePanel.add(placeDisplayField, BorderLayout.CENTER);
-		JPanel placeBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-		placeBtnPanel.add(placeBrowseBtn);
-		placeBtnPanel.add(placeClearBtn);
-		placePanel.add(placeBtnPanel, BorderLayout.EAST);
-		panel.add(placePanel, "growx,wrap");
+		GUIHelper.installBehavior(placeDisplayField,
+			() -> placeStructureRecord != null,
+			this::editPlace,
+			this::createNewPlace,
+			this::clearPlace,
+			builder -> {
+				builder.item("Create New...", this::createNewPlace);
+				builder.item("Add Existing...", this::addPlace);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editPlace);
+				builder.selectionSensitiveItem("Clear", this::clearPlace);
+			});
+		placePanel.add(placeDisplayField, "growx,wrap");
 
-		placeBrowseBtn.addActionListener(e -> browsePlace());
-		placeClearBtn.addActionListener(e -> {
-			selectedPlaceId = null;
-			placeDisplayField.setText("");
-		});
+		// PLACE QUALIFIERS (Certainty / Credibility)
+		placePanel.add(placeQualifiers, "span 2,growx,wrap");
 
-		// PLACE -> CERTAINTY + CREDIBILITY (grouped in EvidenceQualifiersPanel)
-		panel.add(placeQualifiers, "span 2,growx,wrap");
+		mainPanel.add(placePanel, "span 2,growx,wrap");
 
-		return panel;
+		// Validity Range Panel
+		JPanel validityPanel = new JPanel(new MigLayout("ins 5, fillx, top", "[right]rel[grow]", "[]5[]"));
+		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
+
+		validityPanel.add(new JLabel("Valid From:"), "align label");
+		validityPanel.add(validFromDisplayField, "growx, wrap");
+
+		validityPanel.add(new JLabel("Valid To:"), "align label");
+		validityPanel.add(validToDisplayField, "growx, wrap");
+
+		mainPanel.add(validityPanel, "span 2, growx, wrap");
+
+		mainPanel.add(culturalNormQualifiers, "span 2,growx,wrap");
+
+		return mainPanel;
 	}
 
-	private JPanel createNotesPanel(){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
-		panel.setBorder(new TitledBorder("Note"));
+	// ==================== Date Handlers ====================
 
-		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		noteList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editNote();
-				}
-			}
-		});
-		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
-		panel.add(scrollPane, BorderLayout.CENTER);
-
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton newBtn = new JButton("New");
-		JButton editBtn = new JButton("Edit");
-		JButton deleteBtn = new JButton("Delete");
-		btnPanel.add(addBtn);
-		btnPanel.add(newBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(deleteBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
-
-		noteList.addListSelectionListener(e -> {
-			boolean selected = noteList.getSelectedIndex() != -1;
-			editBtn.setEnabled(selected);
-			deleteBtn.setEnabled(selected);
-		});
-		editBtn.setEnabled(false);
-		deleteBtn.setEnabled(false);
-
-		addBtn.addActionListener(e -> addNote());
-		newBtn.addActionListener(e -> createNewNote());
-		editBtn.addActionListener(e -> editNote());
-		deleteBtn.addActionListener(e -> deleteNote());
-
-		return panel;
-	}
-
-	private JPanel createSourceCitationsPanel(){
-		JPanel panel = new JPanel(new BorderLayout(5, 5));
-		panel.setBorder(new TitledBorder("Source Citation"));
-
-		sourceCitationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		sourceCitationList.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
-					editSourceCitation();
-				}
-			}
-		});
-		JScrollPane scrollPane = GUIHelper.createScrollPane(sourceCitationList);
-		panel.add(scrollPane, BorderLayout.CENTER);
-
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
-		JButton addBtn = new JButton("Add");
-		JButton newBtn = new JButton("New Source");
-		JButton editBtn = new JButton("Edit");
-		JButton deleteBtn = new JButton("Delete");
-		btnPanel.add(addBtn);
-		btnPanel.add(newBtn);
-		btnPanel.add(editBtn);
-		btnPanel.add(deleteBtn);
-		panel.add(btnPanel, BorderLayout.SOUTH);
-
-		sourceCitationList.addListSelectionListener(e -> {
-			boolean selected = sourceCitationList.getSelectedIndex() != -1;
-			editBtn.setEnabled(selected);
-			deleteBtn.setEnabled(selected);
-		});
-		editBtn.setEnabled(false);
-		deleteBtn.setEnabled(false);
-
-		addBtn.addActionListener(e -> addSourceCitation());
-		newBtn.addActionListener(e -> createNewSource());
-		editBtn.addActionListener(e -> editSourceCitation());
-		deleteBtn.addActionListener(e -> deleteSourceCitation());
-
-		return panel;
-	}
-
-	// ==================== Place methods ====================
-
-	private void browsePlace(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
-			if(selectedId != null){
-				selectedPlaceId = selectedId;
-				FLEFRecord rec = model.getRecordById(selectedId);
-				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayName(rec));
-				}
-				else{
-					placeDisplayField.setText(selectedId);
-				}
-			}
+	private void editValidFrom() {
+		FLEFRecord updated = showDateDialog("Valid From Date", validFromDateRecord);
+		if (updated != null) {
+			validFromDateRecord = updated;
+			updateDateDisplay(validFromDisplayField, validFromDateRecord);
 		}
-		);
+	}
+
+	private void clearValidFrom() {
+		validFromDateRecord = null;
+		validFromDisplayField.setText(StringUtils.EMPTY);
+	}
+
+	private void editValidTo() {
+		FLEFRecord updated = showDateDialog("Valid To Date", validToDateRecord);
+		if (updated != null) {
+			validToDateRecord = updated;
+			updateDateDisplay(validToDisplayField, validToDateRecord);
+		}
+	}
+
+	private void clearValidTo() {
+		validToDateRecord = null;
+		validToDisplayField.setText(StringUtils.EMPTY);
+	}
+
+	private FLEFRecord showDateDialog(String title, FLEFRecord existingRecord) {
+		DateDialog dialog = new DateDialog(this, model, title, existingRecord);
 		dialog.setVisible(true);
+		return dialog.isSaved() ? dialog.getDateRecord() : existingRecord;
 	}
 
-	// ==================== Note methods ====================
-
-	private String getNoteDisplayName(String id){
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null){
-			return noteHandler.getDisplayName(rec);
-		}
-		return id;
-	}
-
-	private void loadNotes(){
-		noteListModel.clear();
-		noteIds.clear();
-		noteDisplayMap.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("NOTE".equals(child.getTag()) && child.getValue() != null){
-				String id = child.getValue();
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteListModel.addElement(display);
-			}
-		}
-	}
-
-	private void addNote(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
-			if(selectedId != null && !noteIds.contains(selectedId)){
-				noteIds.add(selectedId);
-				String display = getNoteDisplayName(selectedId);
-				noteDisplayMap.put(selectedId, display);
-				noteListModel.addElement(display);
-			}
-		}
-		);
-		dialog.setVisible(true);
-	}
-
-	private void editNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
-		String id = noteIds.get(idx);
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null){
-			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
+	private void updateDateDisplay(JTextField field, FLEFRecord dateRecord) {
+		if (dateRecord == null) {
+			field.setText(StringUtils.EMPTY);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
-		dialog.setVisible(true);
-		String newDisplay = getNoteDisplayName(id);
-		noteDisplayMap.put(id, newDisplay);
-		noteListModel.set(idx, newDisplay);
+		field.setText(DatePanel.getDisplayText(dateRecord));
 	}
 
-	private void deleteNote(){
-		int idx = noteList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this note reference?")) return;
-		String removedId = noteIds.remove(idx);
-		noteDisplayMap.remove(removedId);
-		noteListModel.remove(idx);
+	private JPanel createReferencesPanel() {
+		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+		// Notes
+		panel.add(notePanel, "growx");
+
+		// Source Citations
+		panel.add(sourceCitationPanel, "growx");
+
+		return panel;
 	}
 
-	private void createNewNote(){
-		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+	private void createNewPlace() {
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final BaseRecordDialog dialog = (BaseRecordDialog) placeHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
-		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !noteIds.contains(id)){
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteListModel.addElement(display);
-				break;
-			}
+
+		if (dialog.isSaved() && dialog.getRecord() != null) {
+			placeStructureRecord = dialog.getRecord();
+			updatePlaceDisplay();
 		}
 	}
 
-	// ==================== Source Citation methods ====================
-
-	private void addSourceCitation(){
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, null);
-		dialog.setVisible(true);
-		if(dialog.isSaved()){
-			FLEFRecord citation = dialog.getCitationRecord();
-			if(citation != null){
-				citation.setTag("SOURCE");
-				sourceCitationRecords.add(citation);
-				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
+	private void addPlace() {
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
+			if (selectedId != null) {
+				placeStructureRecord = model.getRecordById(selectedId);
+				updatePlaceDisplay();
 			}
-		}
-	}
-
-	private void editSourceCitation(){
-		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1) return;
-		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
-		dialog.setVisible(true);
-		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getCitationRecord();
-			if(updated != null){
-				sourceCitationRecords.set(idx, updated);
-				sourceCitationListModel.set(idx, getSourceCitationDisplay(updated));
-			}
-		}
-	}
-
-	private void deleteSourceCitation(){
-		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1) return;
-		if(!showConfirm("Confirm", "Remove this source citation?")) return;
-		sourceCitationRecords.remove(idx);
-		sourceCitationListModel.remove(idx);
-	}
-
-	private String getSourceCitationDisplay(FLEFRecord citation){
-		String sourceId = citation.getValue();
-		if(sourceId != null){
-			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
-			}
-			return sourceId;
-		}
-		return "[empty]";
-	}
-
-	private void createNewSource(){
-		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		});
 		dialog.setVisible(true);
 	}
 
-	// ==================== Load Data ====================
+	private void editPlace() {
+		if (placeStructureRecord == null) {
+			return;
+		}
+
+		final PlaceStructureDialog dialog = new PlaceStructureDialog(this, model, placeStructureRecord);
+		dialog.setVisible(true);
+		if (dialog.isSaved()) {
+			updatePlaceDisplay();
+		}
+	}
+
+	private void clearPlace() {
+		placeStructureRecord = null;
+		placeDisplayField.setText(StringUtils.EMPTY);
+	}
+
+	private void updatePlaceDisplay() {
+		String displayText = StringUtils.EMPTY;
+		if (placeStructureRecord != null) {
+			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+			displayText = placeHandler.getDisplayName(placeStructureRecord);
+		}
+		placeDisplayField.setText(displayText);
+	}
+
+	// ==================== Load / Save ====================
 
 	@Override
-	protected void loadData(){
-		idField.setText(record != null? record.getId(): "");
-
-		// ---- Simple fields: load via binding manager ----
+	protected void loadData() {
 		bindingManager.loadFromRecord(record);
 
-		// ---- Complex fields: manual load ----
+		// PLACE_STRUCTURE
+		placeStructureRecord = FLEFRecordUtils.findChild(record, "PLACE");
+		if (placeStructureRecord != null) {
+			updatePlaceDisplay();
 
-		// PLACE (0:1) with CERTAINTY and CREDIBILITY
-		FLEFRecord place = FLEFRecordUtils.findChild(record, "PLACE");
-		if(place != null){
-			String placeId = place.getValue();
-			if(placeId != null && !placeId.isEmpty()){
-				selectedPlaceId = placeId;
-				FLEFRecord rec = model.getRecordById(placeId);
-				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayName(rec));
-				}
-				else{
-					placeDisplayField.setText(placeId);
-				}
-			}
-			String placeCert = FLEFRecordUtils.getChildValue(place, "CERTAINTY");
-			String placeCred = FLEFRecordUtils.getChildValue(place, "CREDIBILITY");
+			final String placeCert = FLEFRecordUtils.getChildValue(placeStructureRecord, "CERTAINTY");
+			final String placeCred = FLEFRecordUtils.getChildValue(placeStructureRecord, "CREDIBILITY");
 			placeQualifiers.load(placeCert, placeCred);
+		} else {
+			clearPlace();
 		}
 
-		// NOTES (0:M)
-		loadNotes();
+		// Load VALID_FROM
+		FLEFRecord validFrom = FLEFRecordUtils.findChild(record, "VALID_FROM");
+		if (validFrom != null) {
+			validFromDateRecord = FLEFRecordUtils.findChild(validFrom, "DATE");
+			updateDateDisplay(validFromDisplayField, validFromDateRecord);
+		} else {
+			clearValidFrom();
+		}
 
-		// SOURCE CITATIONS (0:M)
-		sourceCitationRecords.clear();
-		sourceCitationListModel.clear();
-		for(FLEFRecord child : record.getChildren()){
-			if("SOURCE".equals(child.getTag())){
-				sourceCitationRecords.add(child);
-				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
+		// Load VALID_TO
+		FLEFRecord validTo = FLEFRecordUtils.findChild(record, "VALID_TO");
+		if (validTo != null) {
+			validToDateRecord = FLEFRecordUtils.findChild(validTo, "DATE");
+			updateDateDisplay(validToDisplayField, validToDateRecord);
+		} else {
+			clearValidTo();
+		}
+
+		// NOTE
+		final List<String> noteIds = new ArrayList<>();
+		for (final FLEFRecord child : record.getChildren()) {
+			if ("NOTE".equals(child.getTag()) && child.getValue() != null) {
+				noteIds.add(child.getValue());
 			}
 		}
+		notePanel.loadFromNoteIds(noteIds);
 
-		// MODIFICATION (1:1)
+		// SOURCE_CITATION
+		final List<FLEFRecord> sources = new ArrayList<>();
+		for (final FLEFRecord child : record.getChildren()) {
+			if ("SOURCE".equals(child.getTag())) {
+				sources.add(child);
+			}
+		}
+		sourceCitationPanel.setItems(sources);
+
+		final String placeCert = FLEFRecordUtils.getChildValue(record, "CERTAINTY");
+		final String placeCred = FLEFRecordUtils.getChildValue(record, "CREDIBILITY");
+		culturalNormQualifiers.load(placeCert, placeCred);
+
+		// MODIFICATION
 		modificationPanel.loadFromRecord(record);
 	}
 
-	// ==================== Validation ====================
-
 	@Override
-	protected boolean validateData(){
+	protected boolean validateData() {
 		return true;
 	}
 
-	// ==================== Save ====================
-
 	@Override
-	protected void saveRecord(){
+	protected void saveRecord() {
 		FLEFRecordUtils.removeAllChildren(record);
 
-		// ---- Save simple fields via binding manager ----
 		bindingManager.saveToRecord(record);
 
-		// ---- Complex fields: manual save ----
-
-		// PLACE (0:1) with CERTAINTY and CREDIBILITY
-		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
-			FLEFRecord place = new FLEFRecord();
-			place.setTag("PLACE");
-			place.setValue(selectedPlaceId);
-			record.addChild(place);
-
-			String pCert = placeQualifiers.getCertainty();
-			FLEFRecordUtils.updateChildValue(place, "CERTAINTY", pCert);
-			String pCred = placeQualifiers.getCredibility();
-			FLEFRecordUtils.updateChildValue(place, "CREDIBILITY", pCred);
+		// PLACE
+		FLEFRecordUtils.removeChildren(record, "PLACE");
+		if (placeStructureRecord != null && placeStructureRecord.getValue() != null) {
+			placeStructureRecord.setTag("PLACE");
+			FLEFRecordUtils.updateChildValue(placeStructureRecord, "CERTAINTY", placeQualifiers.getCertainty());
+			FLEFRecordUtils.updateChildValue(placeStructureRecord, "CREDIBILITY", placeQualifiers.getCredibility());
+			record.addChild(placeStructureRecord);
 		}
 
-		// NOTES (0:M)
-		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", id);
+		// VALID_FROM
+		if (validFromDateRecord != null) {
+			FLEFRecord validFrom = FLEFRecord.createChild("VALID_FROM");
+			validFrom.addChild(validFromDateRecord);
+			record.addChild(validFrom);
 		}
 
-		// SOURCE CITATIONS (0:M)
-		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setTag("SOURCE");
-			record.addChild(citation);
+		// VALID_TO
+		if (validToDateRecord != null) {
+			FLEFRecord validTo = FLEFRecord.createChild("VALID_TO");
+			validTo.addChild(validToDateRecord);
+			record.addChild(validTo);
 		}
 
-		// MODIFICATION (1:1)
+		// NOTE
+		for (final String id : notePanel.getNoteIds()) {
+			FLEFRecordUtils.addChild(record, "NOTE", FLEFRecordUtils.formatXRef(id));
+		}
+
+		// SOURCE
+		for (final FLEFRecord source : sourceCitationPanel.getItems()) {
+			source.setTag("SOURCE");
+			record.addChild(source);
+		}
+
+		FLEFRecordUtils.updateChildValue(record, "CERTAINTY", culturalNormQualifiers.getCertainty());
+		FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", culturalNormQualifiers.getCredibility());
+
+		// MODIFICATION
 		modificationPanel.saveToRecord(record);
 
-		if(isNew){
+		if (isNew) {
 			model.addRecord(record);
 		}
-		dispose();
+		isSaved = true;
 	}
 
-	// ==================== Overrides ====================
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "CULTURAL_NORM");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "CULTURAL_NORM", "CN");
-	}
-
-	// ==================== Main per test ====================
-
-	public static void main(String[] args){
-		try{
+	public static void main(final String[] args) {
+		try {
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(Exception ignored){
+		} catch (final Exception ignored) {
 		}
 
-		FLEFModel model = new FLEFModel();
-
-		// Aggiungi un place di esempio
-		FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-		FLEFRecord name = new FLEFRecord();
-		name.setTag("NAME");
-		name.setValue("Rome");
-		place.addChild(name);
-		model.addRecord(place);
+		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			JFrame frame = new JFrame("Test Cultural Norm Dialog");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.setLayout(new FlowLayout());
-			frame.setSize(400, 150);
-			frame.setLocationRelativeTo(null);
-
-			JButton btn = new JButton("New Cultural Norm");
-			btn.addActionListener(e -> {
-				CulturalNormDialog dialog = new CulturalNormDialog(frame, model);
-				dialog.setVisible(true);
-				System.out.println("Cultural Norm saved.");
-			});
-
-			frame.add(btn);
-			frame.setVisible(true);
+			final CulturalNormDialog dialog = CulturalNormDialog.createNew(null, model);
+			dialog.setVisible(true);
 		});
 	}
-
 }

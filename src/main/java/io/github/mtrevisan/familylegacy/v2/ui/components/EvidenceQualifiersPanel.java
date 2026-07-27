@@ -1,14 +1,13 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JToolTip;
 import javax.swing.ToolTipManager;
-import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -22,8 +21,8 @@ import java.awt.event.MouseEvent;
  */
 public class EvidenceQualifiersPanel extends JPanel{
 
-	private static final String[] CERTAINTY_VALUES = {"", "challenged", "disproven", "proven"};
-	private static final String[] CREDIBILITY_VALUES = {"", "0", "1", "2", "3"};
+	private static final String[] CERTAINTY_VALUES = {StringUtils.EMPTY, "challenged", "disproven", "proven"};
+	private static final String[] CREDIBILITY_VALUES = {StringUtils.EMPTY, "0", "1", "2", "3"};
 
 	private final JComboBox<String> certaintyCombo;
 	private final JComboBox<String> credibilityCombo;
@@ -91,8 +90,8 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param credibility the credibility value (may be null)
 	 */
 	public void load(String certainty, String credibility){
-		certaintyCombo.setSelectedItem(certainty != null? certainty: "");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: "");
+		certaintyCombo.setSelectedItem(certainty != null? certainty: StringUtils.EMPTY);
+		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
 	}
 
 	/**
@@ -128,8 +127,8 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * Clears both combo selections to the empty string.
 	 */
 	public void clear(){
-		certaintyCombo.setSelectedItem("");
-		credibilityCombo.setSelectedItem("");
+		certaintyCombo.setSelectedItem(StringUtils.EMPTY);
+		credibilityCombo.setSelectedItem(StringUtils.EMPTY);
 	}
 
 	/**

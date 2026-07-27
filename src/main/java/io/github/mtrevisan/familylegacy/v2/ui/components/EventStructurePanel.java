@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
@@ -32,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -144,13 +144,13 @@ public class EventStructurePanel extends JPanel{
 	// ========== EVENT QUALIFIERS (0:1 each) ==========
 	private final EvidenceQualifiersPanel eventQualifiers = new EvidenceQualifiersPanel("Event Evidence");
 
-	// ========== RESTRICTION (0:1) ==========
+	// ========== RESTRICTION ==========
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// ========== MODIFICATION_STRUCTURE (1:1) ==========
+	// ========== MODIFICATION_STRUCTURE ==========
 	private final ModificationPanel modificationPanel;
 
-	// ========== CONCLUSION (0:1) ==========
+	// ========== CONCLUSION ==========
 	private final ConclusionPanel conclusionPanel;
 
 	// ========== Handlers ==========
@@ -233,7 +233,7 @@ public class EventStructurePanel extends JPanel{
 		placeBrowseBtn.addActionListener(e -> browsePlace());
 		placeClearBtn.addActionListener(e -> {
 			selectedPlaceId = null;
-			placeDisplayField.setText("");
+			placeDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		// Place Evidence Qualifiers (CERTAINTY + CREDIBILITY for PLACE)
@@ -767,14 +767,14 @@ public class EventStructurePanel extends JPanel{
 		String eventCred = FLEFRecordUtils.getChildValue(eventStructure, "CREDIBILITY");
 		eventQualifiers.load(eventCert, eventCred);
 
-		// RESTRICTION (0:1)
+		// RESTRICTION
 		String restriction = FLEFRecordUtils.getChildValue(eventStructure, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
-		// MODIFICATION_STRUCTURE (1:1)
+		// MODIFICATION_STRUCTURE
 		modificationPanel.loadFromRecord(eventStructure);
 
-		// CONCLUSION (0:1)
+		// CONCLUSION
 		FLEFRecord conclusion = FLEFRecordUtils.findChild(eventStructure, "CONCLUSION");
 		conclusionPanel.loadFromRecord(conclusion);
 	}
@@ -865,14 +865,14 @@ public class EventStructurePanel extends JPanel{
 		String eventCred = eventQualifiers.getCredibility();
 		FLEFRecordUtils.updateChildValue(eventStructure, "CREDIBILITY", eventCred);
 
-		// RESTRICTION (0:1)
+		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
 		FLEFRecordUtils.updateChildValue(eventStructure, "RESTRICTION", restriction);
 
-		// MODIFICATION_STRUCTURE (1:1)
+		// MODIFICATION_STRUCTURE
 		modificationPanel.saveToRecord(eventStructure);
 
-		// CONCLUSION (0:1)
+		// CONCLUSION
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
 			if(conclusion != null){
@@ -929,13 +929,13 @@ public class EventStructurePanel extends JPanel{
 	 * Clears all fields in the panel.
 	 */
 	public void clear(){
-		descriptionArea.setText("");
+		descriptionArea.setText(StringUtils.EMPTY);
 		datePanel.clear();
 		selectedPlaceId = null;
-		placeDisplayField.setText("");
+		placeDisplayField.setText(StringUtils.EMPTY);
 		placeQualifiers.clear();
-		agencyField.setText("");
-		causeField.setText("");
+		agencyField.setText(StringUtils.EMPTY);
+		causeField.setText(StringUtils.EMPTY);
 		causeQualifiers.clear();
 		culturalNormModel.clear();
 		culturalNormIds.clear();

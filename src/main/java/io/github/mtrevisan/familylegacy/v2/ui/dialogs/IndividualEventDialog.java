@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EventStructurePanel;
@@ -38,7 +39,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -112,8 +112,8 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	private final List<String> twinIds = new ArrayList<>();
 
 	// ========== ADOPTION fields ==========
-	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
-	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
 
 	// ========== EVENT_STRUCTURE (0:1) ==========
 	private final EventStructurePanel eventStructurePanel;
@@ -128,7 +128,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public IndividualEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Individual Event", model, record);
+		super(parent, "Edit Individual Event", model, record, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -139,7 +139,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	}
 
 	public IndividualEventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Individual Event", model, null);
+		super(parent, "New Individual Event", model, null, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -181,7 +181,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		familyBrowseBtn.addActionListener(e -> browseFamily());
 		familyClearBtn.addActionListener(e -> {
 			selectedFamilyId = null;
-			familyDisplayField.setText("");
+			familyDisplayField.setText(StringUtils.EMPTY);
 		});
 	}
 
@@ -249,11 +249,11 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		panel.add(new JLabel("ID:"), "align label");
 		panel.add(idField, "growx,wrap");
 
-		// TYPE (1:1) - marked with an asterisk
+		// TYPE
 		panel.add(new JLabel("Type*:"), "align label");
 		panel.add(typeCombo, "growx,wrap");
 
-		// FAMILY (0:1 for BIRTH, 1:1 for ADOPTION)
+		// FAMILY (optional for BIRTH, required for ADOPTION)
 		panel.add(new JLabel("Family:"), "align label");
 		familyDisplayField.setEditable(false);
 		familyDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -369,13 +369,13 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	protected void loadData(){
 		idField.setText(record.getId());
 
-		// TYPE (1:1)
+		// TYPE
 		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
 		if(type != null){
 			typeCombo.setSelectedItem(type);
 		}
 
-		// FAMILY (0:1 / 1:1)
+		// FAMILY
 		String familyId = FLEFRecordUtils.getChildValue(record, "FAMILY");
 		if(familyId != null && !familyId.isEmpty()){
 			selectedFamilyId = familyId;
@@ -393,11 +393,11 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 		// PARENT1_RELATIONSHIP (0:1)
 		String p1 = FLEFRecordUtils.getChildValue(record, "PARENT1_RELATIONSHIP");
-		relationshipParent1Combo.setSelectedItem(p1 != null? p1: "");
+		relationshipParent1Combo.setSelectedItem(p1 != null? p1: StringUtils.EMPTY);
 
 		// PARENT2_RELATIONSHIP (0:1)
 		String p2 = FLEFRecordUtils.getChildValue(record, "PARENT2_RELATIONSHIP");
-		relationshipParent2Combo.setSelectedItem(p2 != null? p2: "");
+		relationshipParent2Combo.setSelectedItem(p2 != null? p2: StringUtils.EMPTY);
 
 		// EVENT_STRUCTURE (0:1)
 		FLEFRecord eventStruct = FLEFRecordUtils.findChild(record, "EVENT_STRUCTURE");
@@ -411,7 +411,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validateData(){
-		// TYPE (1:1) - required
+		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		if(type == null || type.isEmpty()){
 			JOptionPane.showMessageDialog(this,
@@ -439,14 +439,14 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
 
-		// TYPE (1:1)
+		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
 
-		// FAMILY (0:1 / 1:1)
+		// FAMILY
 		FLEFRecordUtils.updateChildValue(record, "FAMILY", selectedFamilyId);
 
-		// TWIN (0:M)
+		// TWIN
 		for(String id : twinIds){
 			FLEFRecordUtils.addChild(record, "TWIN", id);
 		}
@@ -471,19 +471,9 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "EVENT");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "EVENT", "E");
 	}
 
 	// ==================== Main per test ====================

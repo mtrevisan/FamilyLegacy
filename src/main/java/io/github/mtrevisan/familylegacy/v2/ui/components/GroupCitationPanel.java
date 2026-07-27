@@ -24,14 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,13 +82,13 @@ public class GroupCitationPanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== GROUP (1:1) ==========
+	// ========== GROUP ==========
 	private final JTextField groupDisplayField = new JTextField(20);
 	private final JButton browseGroupBtn = new JButton("Browse...");
 	private final JButton clearGroupBtn = new JButton("Clear");
 	private String selectedGroupId;
 
-	// ========== ROLE (0:1) ==========
+	// ========== ROLE ==========
 	private final JTextField roleField = new JTextField(20);
 
 	// ========== NOTE (0:M) ==========
@@ -99,7 +98,7 @@ public class GroupCitationPanel extends JPanel{
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
 	// ========== CREDIBILITY (0:1) ==========
-	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{"", "0", "1", "2", "3"});
+	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 	// ========== Handlers ==========
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
@@ -123,7 +122,7 @@ public class GroupCitationPanel extends JPanel{
 
 		noteList.setVisibleRowCount(4);
 
-		// ===== GROUP (1:1) =====
+		// ===== GROUP =====
 		add(new JLabel("Group:"), "align label");
 		groupDisplayField.setEditable(false);
 		groupDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -138,7 +137,7 @@ public class GroupCitationPanel extends JPanel{
 		browseGroupBtn.addActionListener(e -> browseGroup());
 		clearGroupBtn.addActionListener(e -> {
 			selectedGroupId = null;
-			groupDisplayField.setText("");
+			groupDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		// ===== ROLE (0:1) =====
@@ -306,18 +305,18 @@ public class GroupCitationPanel extends JPanel{
 	public void loadFromRecord(FLEFRecord citationRecord){
 		// Clear all fields
 		selectedGroupId = null;
-		groupDisplayField.setText("");
-		roleField.setText("");
+		groupDisplayField.setText(StringUtils.EMPTY);
+		roleField.setText(StringUtils.EMPTY);
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
-		credibilityCombo.setSelectedItem("");
+		credibilityCombo.setSelectedItem(StringUtils.EMPTY);
 
 		if(citationRecord == null){
 			return;
 		}
 
-		// GROUP (1:1)
+		// GROUP
 		String groupId = citationRecord.getValue();
 		if(groupId != null && !groupId.isEmpty()){
 			selectedGroupId = groupId;
@@ -346,7 +345,7 @@ public class GroupCitationPanel extends JPanel{
 
 		// CREDIBILITY (0:1)
 		String credibility = FLEFRecordUtils.getChildValue(citationRecord, "CREDIBILITY");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: "");
+		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
 	}
 
 	/**
@@ -370,12 +369,12 @@ public class GroupCitationPanel extends JPanel{
 		// Clear existing children
 		FLEFRecordUtils.removeAllChildren(citationRecord);
 
-		// GROUP (1:1) - required
+		// GROUP
 		if(selectedGroupId != null && !selectedGroupId.isEmpty()){
 			citationRecord.setValue(selectedGroupId);
 		}
 
-		// ROLE (0:1)
+		// ROLE
 		String role = roleField.getText().trim();
 		FLEFRecordUtils.updateChildValue(citationRecord, "ROLE", role);
 
@@ -402,7 +401,7 @@ public class GroupCitationPanel extends JPanel{
 			return true;
 		}
 
-		// GROUP (1:1) - required if citation has data
+		// GROUP - required if citation has data
 		if(selectedGroupId == null || selectedGroupId.isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"GROUP is required for a group citation.\n" +
@@ -431,12 +430,12 @@ public class GroupCitationPanel extends JPanel{
 	 */
 	public void clear(){
 		selectedGroupId = null;
-		groupDisplayField.setText("");
-		roleField.setText("");
+		groupDisplayField.setText(StringUtils.EMPTY);
+		roleField.setText(StringUtils.EMPTY);
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
-		credibilityCombo.setSelectedItem("");
+		credibilityCombo.setSelectedItem(StringUtils.EMPTY);
 	}
 
 }

@@ -24,13 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -110,7 +110,7 @@ public class GroupCitationDialog extends JDialog{
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
 	// ========== CREDIBILITY (0:1) ==========
-	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{"", "0", "1", "2", "3"});
+	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 	// ========== Handlers ==========
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
@@ -145,7 +145,7 @@ public class GroupCitationDialog extends JDialog{
 		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
 		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// GROUP (1:1)
+		// GROUP
 		basicPanel.add(new JLabel("Group:"), "align label");
 		groupDisplayField.setEditable(false);
 		groupDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -162,7 +162,7 @@ public class GroupCitationDialog extends JDialog{
 		editBtn.addActionListener(e -> editGroup());
 		clearBtn.addActionListener(e -> {
 			selectedGroupId = null;
-			groupDisplayField.setText("");
+			groupDisplayField.setText(StringUtils.EMPTY);
 			editBtn.setEnabled(false);
 		});
 
@@ -351,19 +351,19 @@ public class GroupCitationDialog extends JDialog{
 	// ==================== Load Data ====================
 
 	private void loadData(){
-		// GROUP (1:1)
+		// GROUP
 		String groupId = existingCitation.getValue();
 		if(groupId != null && !groupId.isEmpty()){
 			selectGroup(groupId);
 		}
 
-		// ROLE (0:1)
+		// ROLE
 		String role = FLEFRecordUtils.getChildValue(existingCitation, "ROLE");
-		roleField.setText(role != null? role: "");
+		roleField.setText(role != null? role: StringUtils.EMPTY);
 
 		// CREDIBILITY (0:1)
 		String credibility = FLEFRecordUtils.getChildValue(existingCitation, "CREDIBILITY");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: "");
+		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
 
 		// NOTE (0:M)
 		noteModel.clear();
@@ -383,7 +383,7 @@ public class GroupCitationDialog extends JDialog{
 	// ==================== Validation ====================
 
 	private boolean validateFields(){
-		// GROUP (1:1) is required
+		// GROUP
 		if(selectedGroupId == null || selectedGroupId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Group is required.\nPlease select a group.",
@@ -405,14 +405,14 @@ public class GroupCitationDialog extends JDialog{
 			record.setTag("GROUP_CITATION");
 		}
 
-		// GROUP (1:1)
+		// GROUP
 		record.setValue(selectedGroupId);
 
-		// ROLE (0:1)
+		// ROLE
 		String role = roleField.getText().trim();
 		FLEFRecordUtils.updateChildValue(record, "ROLE", role);
 
-		// CREDIBILITY (0:1)
+		// CREDIBILITY
 		String credibility = (String)credibilityCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
 

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EventStructurePanel;
@@ -39,7 +40,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -125,7 +125,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public GroupEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Group Event", model, record);
+		super(parent, "Edit Group Event", model, record, HandlerRegistry.getHandler(GroupEventHandler.TYPE));
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -136,7 +136,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 	}
 
 	public GroupEventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Group Event", model, null);
+		super(parent, "New Group Event", model, null, HandlerRegistry.getHandler(GroupEventHandler.TYPE));
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -186,7 +186,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		panel.add(new JLabel("ID:"), "align label");
 		panel.add(idField, "growx,wrap");
 
-		// TYPE (1:1) - marked with an asterisk
+		// TYPE
 		panel.add(new JLabel("Type*:"), "align label");
 		typeField.setEditable(false);
 		typeField.setBackground(UIManager.getColor("TextField.background"));
@@ -310,7 +310,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 	protected void loadData(){
 		idField.setText(record.getId());
 
-		// TYPE (1:1)
+		// TYPE
 		String typeId = FLEFRecordUtils.getChildValue(record, "TYPE");
 		if(typeId != null && !typeId.isEmpty()){
 			selectedEventTypeId = typeId;
@@ -335,7 +335,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validateData(){
-		// TYPE (1:1) - required
+		// TYPE
 		if(selectedEventTypeId == null || selectedEventTypeId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"TYPE is required.\nPlease select an event type.",
@@ -353,10 +353,10 @@ public class GroupEventDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
 
-		// TYPE (1:1)
+		// TYPE
 		FLEFRecordUtils.updateChildValue(record, "TYPE", selectedEventTypeId);
 
-		// EVENT_STRUCTURE (0:1)
+		// EVENT_STRUCTURE
 		if(eventStructurePanel.hasData()){
 			FLEFRecord eventStruct = eventStructurePanel.saveToRecord(null);
 			if(eventStruct != null){
@@ -373,20 +373,9 @@ public class GroupEventDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		FLEFRecord newRecord = FLEFRecord.createMainRecord(generateNewId(), "EVENT");
-		return newRecord;
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "EVENT", "E");
 	}
 
 	// ==================== Main per test ====================

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
@@ -32,12 +33,29 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +82,7 @@ public class ConclusionPanel extends JPanel{
 	// UI components
 	private final JTextField contextField = new JTextField(30);
 	private final JComboBox<String> proofStatusCombo = new JComboBox<>(new String[]{
-		"", "unresearched", "conflicting_evidence", "preponderance_of_evidence", "proven", "disproven"
+		StringUtils.EMPTY, "unresearched", "conflicting_evidence", "preponderance_of_evidence", "proven", "disproven"
 	});
 	private final JTextArea narrativeArea = new JTextArea(4, 30);
 	private final JScrollPane narrativeScrollPane = GUIHelper.createScrollPane(narrativeArea);
@@ -215,7 +233,7 @@ public class ConclusionPanel extends JPanel{
 	// ==================== Preferred Panel ====================
 
 	private JPanel createPreferredPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx, top", "[right]rel[grow]", ""));
+		JPanel panel = new JPanel(new MigLayout("fillx, top", "[right]rel[grow]"));
 		panel.setBorder(new TitledBorder("Preferred Record"));
 
 		preferredDisplayField.setEditable(false);
@@ -251,7 +269,7 @@ public class ConclusionPanel extends JPanel{
 
 	private void clearPreferred(){
 		preferredId = null;
-		preferredDisplayField.setText("");
+		preferredDisplayField.setText(StringUtils.EMPTY);
 		clearPreferredBtn.setEnabled(false);
 	}
 
@@ -416,19 +434,19 @@ public class ConclusionPanel extends JPanel{
 
 		// CONTEXT
 		String context = FLEFRecordUtils.getChildValue(conclusionRecord, "CONTEXT");
-		contextField.setText(context != null? context: "");
+		contextField.setText(context != null? context: StringUtils.EMPTY);
 
 		// PROOF_STATUS
 		String proofStatus = FLEFRecordUtils.getChildValue(conclusionRecord, "PROOF_STATUS");
-		proofStatusCombo.setSelectedItem(proofStatus != null? proofStatus: "");
+		proofStatusCombo.setSelectedItem(proofStatus != null? proofStatus: StringUtils.EMPTY);
 
 		// NARRATIVE
 		String narrative = FLEFRecordUtils.getChildValue(conclusionRecord, "NARRATIVE");
-		narrativeArea.setText(narrative != null? narrative: "");
+		narrativeArea.setText(narrative != null? narrative: StringUtils.EMPTY);
 
 		// DATE
 		String date = FLEFRecordUtils.getChildValue(conclusionRecord, "DATE");
-		dateField.setText(date != null? date: "");
+		dateField.setText(date != null? date: StringUtils.EMPTY);
 
 		// RESOLVES
 		resolvesIds.clear();
@@ -519,14 +537,14 @@ public class ConclusionPanel extends JPanel{
 	}
 
 	public void clear(){
-		contextField.setText("");
+		contextField.setText(StringUtils.EMPTY);
 		proofStatusCombo.setSelectedIndex(0);
-		narrativeArea.setText("");
-		dateField.setText("");
+		narrativeArea.setText(StringUtils.EMPTY);
+		dateField.setText(StringUtils.EMPTY);
 		resolvesIds.clear();
 		resolvesListModel.clear();
 		preferredId = null;
-		preferredDisplayField.setText("");
+		preferredDisplayField.setText(StringUtils.EMPTY);
 		clearPreferredBtn.setEnabled(false);
 		researchIds.clear();
 		researchListModel.clear();

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
@@ -32,12 +33,25 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.Container;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -116,8 +130,8 @@ public class PersonalNamePanel extends JPanel{
 		private final List<VariantEntry> variants;
 
 		PartEntry(String type, String value, List<VariantEntry> variants){
-			this.type = type != null? type: "";
-			this.value = value != null? value: "";
+			this.type = type != null? type: StringUtils.EMPTY;
+			this.value = value != null? value: StringUtils.EMPTY;
 			this.variants = variants != null? variants: new ArrayList<>();
 		}
 
@@ -148,7 +162,7 @@ public class PersonalNamePanel extends JPanel{
 		PersonalNameEntry(String type, List<PartEntry> parts,
 			List<String> culturalNormIds, List<String> noteIds,
 			List<FLEFRecord> sourceCitations){
-			this.type = type != null? type: "";
+			this.type = type != null? type: StringUtils.EMPTY;
 			this.parts = parts != null? parts: new ArrayList<>();
 			this.culturalNormIds = culturalNormIds != null? culturalNormIds: new ArrayList<>();
 			this.noteIds = noteIds != null? noteIds: new ArrayList<>();
@@ -387,7 +401,7 @@ public class PersonalNamePanel extends JPanel{
 
 		// NAME TYPE
 		JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-			"", "official", "religious", "aka", "nickname",
+			StringUtils.EMPTY, "official", "religious", "aka", "nickname",
 			"immigrant", "legal", "married", "adoption", "fostering"
 		});
 		if(initial != null && !initial.type.isEmpty()){
@@ -397,7 +411,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.add(typeCombo, "growx,wrap");
 
 		// PARTS
-		JPanel partsPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]", ""));
+		JPanel partsPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]"));
 		partsPanel.setBorder(new TitledBorder("Parts"));
 		DefaultListModel<PartEntry> partModel = new DefaultListModel<>();
 		JList<PartEntry> partList = new JList<>(partModel);
@@ -472,7 +486,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.add(partsPanel, "span 2,growx,wrap");
 
 		// CULTURAL NORMS (popup)
-		JPanel normPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]", ""));
+		JPanel normPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]"));
 		normPanel.setBorder(new TitledBorder("Cultural Norms"));
 		DefaultListModel<String> normModel = new DefaultListModel<>();
 		JList<String> normList = new JList<>(normModel);
@@ -498,7 +512,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.add(normPanel, "span 2,growx,wrap");
 
 		// NOTES (popup)
-		JPanel notesPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]", ""));
+		JPanel notesPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]"));
 		notesPanel.setBorder(new TitledBorder("Notes"));
 		DefaultListModel<String> noteModel = new DefaultListModel<>();
 		JList<String> noteList = new JList<>(noteModel);
@@ -526,7 +540,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.add(notesPanel, "span 2,growx,wrap");
 
 		// SOURCE CITATIONS (popup)
-		JPanel sourcePanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]", ""));
+		JPanel sourcePanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]"));
 		sourcePanel.setBorder(new TitledBorder("Source Citations"));
 		DefaultListModel<String> sourceModel = new DefaultListModel<>();
 		JList<String> sourceList = new JList<>(sourceModel);
@@ -543,7 +557,7 @@ public class PersonalNamePanel extends JPanel{
 			() -> addSourceInList(dialog, currentSources, sourceModel),
 			() -> removeSourceFromList(dialog, sourceList, currentSources, sourceModel),
 			builder -> {
-				builder.item("Add Source...", () -> addSourceInList(dialog, currentSources, sourceModel));
+				builder.item("Add Existing...", () -> addSourceInList(dialog, currentSources, sourceModel));
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", () -> editSourceInList(dialog, sourceList, currentSources, sourceModel));
 				builder.selectionSensitiveItem("Remove", () -> removeSourceFromList(dialog, sourceList, currentSources, sourceModel));
@@ -597,7 +611,7 @@ public class PersonalNamePanel extends JPanel{
 
 		// PART TYPE
 		JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-			"", "given", "family", "patronymic", "matronymic",
+			StringUtils.EMPTY, "given", "family", "patronymic", "matronymic",
 			"clan", "lineage", "tribal", "title", "nickname",
 			"family nickname", "generation", "suffix", "prefix"
 		});
@@ -616,7 +630,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.add(valueField, "growx,wrap");
 
 		// VARIANTS (list with popup)
-		JPanel variantsPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]", ""));
+		JPanel variantsPanel = new JPanel(new MigLayout("ins 0, fillx", "[grow]"));
 		variantsPanel.setBorder(new TitledBorder("Variants"));
 		DefaultListModel<VariantEntry> variantModel = new DefaultListModel<>();
 		JList<VariantEntry> variantList = new JList<>(variantModel);
@@ -741,7 +755,7 @@ public class PersonalNamePanel extends JPanel{
 		}
 		systemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
 
-		JComboBox<String> transTypeCombo = new JComboBox<>(new String[]{"", "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
+		JComboBox<String> transTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
 		if(initial != null && "TRANSCRIPTION".equals(initial.type) && initial.transcriptionType != null){
 			transTypeCombo.setSelectedItem(initial.transcriptionType);
 		}

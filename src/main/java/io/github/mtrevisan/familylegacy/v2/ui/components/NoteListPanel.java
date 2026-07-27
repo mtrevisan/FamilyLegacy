@@ -8,7 +8,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
@@ -32,9 +33,14 @@ import java.util.Set;
 public class NoteListPanel extends AbstractListPanel<String>{
 
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -5638163012098890098L;
 
-	private final NoteHandler noteHandler = new NoteHandler();
+
+	// Handlers
+	static{
+		HandlerRegistry.register(new NoteHandler());
+	}
+
 
 	/**
 	 * Constructs a NoteListPanel with a titled border.
@@ -61,6 +67,7 @@ public class NoteListPanel extends AbstractListPanel<String>{
 	protected String getDisplay(String noteId){
 		FLEFRecord rec = model.getRecordById(noteId);
 		if(rec != null){
+			final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 			return noteHandler.getDisplayName(rec);
 		}
 		return noteId;

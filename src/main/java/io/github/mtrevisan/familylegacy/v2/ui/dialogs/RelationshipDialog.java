@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -10,14 +11,29 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -135,7 +151,7 @@ public class RelationshipDialog extends JDialog{
 		typeField = new BoundTextField("TYPE", 15);
 		roleField = new BoundTextField("ROLE", 15);
 		credibilityCombo = new BoundComboBox("CREDIBILITY",
-			new String[]{"", "0", "1", "2", "3"});
+			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 		initComponents();
 		if(existingCitation != null){
@@ -177,7 +193,7 @@ public class RelationshipDialog extends JDialog{
 		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// SUBJECT (1:1)
+		// SUBJECT
 		basicPanel.add(new JLabel("Subject:"), "align label");
 		subjectDisplayField.setEditable(false);
 		subjectDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -194,12 +210,12 @@ public class RelationshipDialog extends JDialog{
 		editSubjectBtn.addActionListener(e -> editSubject());
 		clearSubjectBtn.addActionListener(e -> {
 			selectedSubjectId = null;
-			subjectDisplayField.setText("");
+			subjectDisplayField.setText(StringUtils.EMPTY);
 			editSubjectBtn.setEnabled(false);
 		});
 		editSubjectBtn.setEnabled(false);
 
-		// OBJECT (1:1)
+		// OBJECT
 		basicPanel.add(new JLabel("Object:"), "align label");
 		objectDisplayField.setEditable(false);
 		objectDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -216,20 +232,20 @@ public class RelationshipDialog extends JDialog{
 		editObjectBtn.addActionListener(e -> editObject());
 		clearObjectBtn.addActionListener(e -> {
 			selectedObjectId = null;
-			objectDisplayField.setText("");
+			objectDisplayField.setText(StringUtils.EMPTY);
 			editObjectBtn.setEnabled(false);
 		});
 		editObjectBtn.setEnabled(false);
 
-		// TYPE (1:1) – bound field
+		// TYPE – bound field
 		basicPanel.add(new JLabel("Type:"), "align label");
 		basicPanel.add(typeField, "growx,wrap");
 
-		// ROLE (0:1) – bound field
+		// ROLE – bound field
 		basicPanel.add(new JLabel("Role:"), "align label");
 		basicPanel.add(roleField, "growx,wrap");
 
-		// CREDIBILITY (0:1) – bound combo
+		// CREDIBILITY – bound combo
 		basicPanel.add(new JLabel("Credibility:"), "align label");
 		basicPanel.add(credibilityCombo, "growx,wrap");
 
@@ -444,7 +460,7 @@ public class RelationshipDialog extends JDialog{
 	// ==================== Load Data ====================
 
 	private void loadData(){
-		// SUBJECT (1:1)
+		// SUBJECT
 		String subjectId = FLEFRecordUtils.getChildValue(existingCitation, "SUBJECT");
 		if(subjectId != null && !subjectId.isEmpty()){
 			selectSubject(subjectId);
@@ -459,7 +475,7 @@ public class RelationshipDialog extends JDialog{
 			clearSubjectBtn.setEnabled(false);
 		}
 
-		// OBJECT (1:1)
+		// OBJECT
 		String objectId = FLEFRecordUtils.getChildValue(existingCitation, "OBJECT");
 		if(objectId != null && !objectId.isEmpty()){
 			selectObject(objectId);
@@ -509,7 +525,7 @@ public class RelationshipDialog extends JDialog{
 		}
 		// TYPE is required – we rely on the bound field; but we must check the value from the field.
 		// However, the bound field's value might be trimmed. We'll check the actual text.
-		if(typeField.getText().trim().isEmpty()){
+		if(typeField.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Type is required.\nPlease enter a relationship type.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -537,12 +553,12 @@ public class RelationshipDialog extends JDialog{
 		}
 
 		// ---- Manual fields: SUBJECT, OBJECT, NOTES ----
-		// SUBJECT (1:1)
+		// SUBJECT
 		FLEFRecordUtils.updateChildValue(record, "SUBJECT", selectedSubjectId);
-		// OBJECT (1:1)
+		// OBJECT
 		FLEFRecordUtils.updateChildValue(record, "OBJECT", selectedObjectId);
 
-		// NOTE (0:M) – remove all and re-add
+		// NOTE – remove all and re-add
 		FLEFRecordUtils.removeChildren(record, "NOTE");
 		for(String noteId : noteIds){
 			FLEFRecordUtils.addChild(record, "NOTE", noteId);

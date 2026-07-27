@@ -24,6 +24,11 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	}
 
 	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
+	}
+
+	@Override
 	public String getDisplayName(FLEFRecord record){
 		// Try to get name from NAME structure
 		String given = null, family = null, id = record.getId();

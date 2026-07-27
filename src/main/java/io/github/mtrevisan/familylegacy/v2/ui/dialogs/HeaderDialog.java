@@ -24,13 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ContactStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -52,7 +52,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
@@ -107,26 +106,26 @@ public class HeaderDialog extends JDialog{
 	private final FLEFRecord headerRecord;
 	private boolean saved = false;
 
-	// ========== PROTOCOL (1:1) ==========
+	// ========== PROTOCOL ==========
 	private final JTextField protocolNameField = new JTextField(15);
 	private final JTextField protocolVersionField = new JTextField(15);
 
-	// ========== SOURCE (1:1) ==========
+	// ========== SOURCE ==========
 	private final JTextField sourceIdField = new JTextField(20);
 	private final JTextField sourceNameField = new JTextField(20);
 	private final JTextField sourceVersionField = new JTextField(15);
 	private final JTextField sourceCorporateField = new JTextField(20);
 
-	// ========== DATE (1:1) ==========
+	// ========== DATE ==========
 	private final JTextField dateField = new JTextField(20);
 
-	// ========== COPYRIGHT (0:1) ==========
+	// ========== COPYRIGHT ==========
 	private final JTextArea copyrightArea = new JTextArea(3, 30);
 
-	// ========== SUBMITTER (1:1) ==========
+	// ========== SUBMITTER ==========
 	private final JTextField submitterNameField = new JTextField(30);
 
-	// ========== SUBMITTER -> PLACE (0:1) ==========
+	// ========== SUBMITTER -> PLACE ==========
 	private final JTextField submitterAddressField = new JTextField(30);
 	private final JTextField submitterHierarchyField = new JTextField(30);
 	private final JTextField submitterLatitudeField = new JTextField(15);
@@ -201,14 +200,14 @@ public class HeaderDialog extends JDialog{
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// --- PROTOCOL (1:1) ---
+		// --- PROTOCOL ---
 		panel.add(new JLabel("Protocol Name*:"), "align label");
 		panel.add(protocolNameField, "growx,wrap");
 
 		panel.add(new JLabel("Protocol Version*:"), "align label");
 		panel.add(protocolVersionField, "growx,wrap");
 
-		// --- SOURCE (1:1) ---
+		// --- SOURCE ---
 		panel.add(new JLabel("Source ID*:"), "align label");
 		panel.add(sourceIdField, "growx,wrap");
 
@@ -221,16 +220,16 @@ public class HeaderDialog extends JDialog{
 		panel.add(new JLabel("Source Corporate:"), "align label");
 		panel.add(sourceCorporateField, "growx,wrap");
 
-		// --- DATE (1:1) ---
+		// --- DATE ---
 		panel.add(new JLabel("Date*:"), "align label");
 		panel.add(dateField, "growx,wrap");
 
-		// --- COPYRIGHT (0:1) ---
+		// --- COPYRIGHT ---
 		panel.add(new JLabel("Copyright:"), "align label,top");
 		JScrollPane copyScroll = GUIHelper.createScrollPane(copyrightArea);
 		panel.add(copyScroll, "growx,wrap");
 
-		// --- HEADER NOTE (0:1) ---
+		// --- HEADER NOTE ---
 		panel.add(new JLabel("Content Description:"), "align label,top");
 		JScrollPane noteScroll = GUIHelper.createScrollPane(headerNoteArea);
 		panel.add(noteScroll, "growx");
@@ -242,11 +241,11 @@ public class HeaderDialog extends JDialog{
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// --- SUBMITTER NAME (1:1) ---
+		// --- SUBMITTER NAME ---
 		panel.add(new JLabel("Submitter Name*:"), "align label");
 		panel.add(submitterNameField, "growx,wrap");
 
-		// --- SUBMITTER PLACE (0:1) ---
+		// --- SUBMITTER PLACE ---
 		panel.add(new JLabel("Place Address:"), "align label");
 		panel.add(submitterAddressField, "growx,wrap");
 
@@ -584,14 +583,14 @@ public class HeaderDialog extends JDialog{
 	// ==================== Load Data ====================
 
 	private void loadData(){
-		// --- PROTOCOL (1:1) ---
+		// --- PROTOCOL ---
 		FLEFRecord protocol = FLEFRecordUtils.findChild(headerRecord, "PROTOCOL");
 		if(protocol != null){
 			protocolNameField.setText(FLEFRecordUtils.getChildValue(protocol, "NAME"));
 			protocolVersionField.setText(FLEFRecordUtils.getChildValue(protocol, "VERSION"));
 		}
 
-		// --- SOURCE (1:1) ---
+		// --- SOURCE ---
 		FLEFRecord source = FLEFRecordUtils.findChild(headerRecord, "SOURCE");
 		if(source != null){
 			sourceIdField.setText(source.getValue());
@@ -600,22 +599,22 @@ public class HeaderDialog extends JDialog{
 			sourceCorporateField.setText(FLEFRecordUtils.getChildValue(source, "CORPORATE"));
 		}
 
-		// --- DATE (1:1) ---
+		// --- DATE ---
 		dateField.setText(FLEFRecordUtils.getChildValue(headerRecord, "DATE"));
 
-		// --- COPYRIGHT (0:1) ---
+		// --- COPYRIGHT ---
 		copyrightArea.setText(FLEFRecordUtils.getChildValue(headerRecord, "COPYRIGHT"));
 
-		// --- HEADER NOTE (0:1) ---
+		// --- HEADER NOTE ---
 		headerNoteArea.setText(FLEFRecordUtils.getChildValue(headerRecord, "NOTE"));
 
-		// --- SUBMITTER (1:1) ---
+		// --- SUBMITTER ---
 		FLEFRecord submitter = FLEFRecordUtils.findChild(headerRecord, "SUBMITTER");
 		if(submitter != null){
-			// SUBMITTER NAME (1:1)
+			// SUBMITTER NAME
 			submitterNameField.setText(FLEFRecordUtils.getChildValue(submitter, "NAME"));
 
-			// SUBMITTER PLACE (0:1)
+			// SUBMITTER PLACE
 			FLEFRecord place = FLEFRecordUtils.findChild(submitter, "PLACE");
 			if(place != null){
 				submitterAddressField.setText(FLEFRecordUtils.getChildValue(place, "ADDRESS"));
@@ -648,7 +647,7 @@ public class HeaderDialog extends JDialog{
 	// ==================== Validation ====================
 
 	private boolean validateData(){
-		// PROTOCOL NAME (1:1)
+		// PROTOCOL NAME
 		if(protocolNameField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Protocol Name is required.",
@@ -657,7 +656,7 @@ public class HeaderDialog extends JDialog{
 			return false;
 		}
 
-		// PROTOCOL VERSION (1:1)
+		// PROTOCOL VERSION
 		if(protocolVersionField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Protocol Version is required.",
@@ -666,7 +665,7 @@ public class HeaderDialog extends JDialog{
 			return false;
 		}
 
-		// SOURCE ID (1:1)
+		// SOURCE ID
 		if(sourceIdField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Source ID is required.",
@@ -675,7 +674,7 @@ public class HeaderDialog extends JDialog{
 			return false;
 		}
 
-		// DATE (1:1)
+		// DATE
 		if(dateField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Date is required.",
@@ -684,7 +683,7 @@ public class HeaderDialog extends JDialog{
 			return false;
 		}
 
-		// SUBMITTER NAME (1:1)
+		// SUBMITTER NAME
 		if(submitterNameField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Submitter Name is required.",
@@ -706,14 +705,14 @@ public class HeaderDialog extends JDialog{
 		// Clear existing children
 		FLEFRecordUtils.removeAllChildren(headerRecord);
 
-		// --- PROTOCOL (1:1) ---
+		// --- PROTOCOL ---
 		FLEFRecord protocol = new FLEFRecord();
 		protocol.setTag("PROTOCOL");
 		headerRecord.addChild(protocol);
 		FLEFRecordUtils.updateChildValue(protocol, "NAME", protocolNameField.getText().trim());
 		FLEFRecordUtils.updateChildValue(protocol, "VERSION", protocolVersionField.getText().trim());
 
-		// --- SOURCE (1:1) ---
+		// --- SOURCE ---
 		FLEFRecord source = new FLEFRecord();
 		source.setTag("SOURCE");
 		source.setValue(sourceIdField.getText().trim());
@@ -722,26 +721,26 @@ public class HeaderDialog extends JDialog{
 		FLEFRecordUtils.updateChildValue(source, "VERSION", sourceVersionField.getText().trim());
 		FLEFRecordUtils.updateChildValue(source, "CORPORATE", sourceCorporateField.getText().trim());
 
-		// --- DATE (1:1) ---
+		// --- DATE ---
 		FLEFRecordUtils.updateChildValue(headerRecord, "DATE", dateField.getText().trim());
 
-		// --- COPYRIGHT (0:1) ---
+		// --- COPYRIGHT ---
 		String copyright = copyrightArea.getText().trim();
 		FLEFRecordUtils.updateChildValue(headerRecord, "COPYRIGHT", copyright);
 
-		// --- HEADER NOTE (0:1) ---
+		// --- HEADER NOTE ---
 		String headerNote = headerNoteArea.getText().trim();
 		FLEFRecordUtils.updateChildValue(headerRecord, "NOTE", headerNote);
 
-		// --- SUBMITTER (1:1) ---
+		// --- SUBMITTER ---
 		FLEFRecord submitter = new FLEFRecord();
 		submitter.setTag("SUBMITTER");
 		headerRecord.addChild(submitter);
 
-		// SUBMITTER NAME (1:1)
+		// SUBMITTER NAME
 		FLEFRecordUtils.updateChildValue(submitter, "NAME", submitterNameField.getText().trim());
 
-		// SUBMITTER PLACE (0:1)
+		// SUBMITTER PLACE
 		String address = submitterAddressField.getText().trim();
 		String hierarchy = submitterHierarchyField.getText().trim();
 		String lat = submitterLatitudeField.getText().trim();

@@ -2,7 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.JTextArea;
 
 
 public class BoundTextArea extends JTextArea implements PathBound{
@@ -34,6 +34,11 @@ public class BoundTextArea extends JTextArea implements PathBound{
 	@Override
 	public void setValue(final String value){
 		setText(value != null? value: StringUtils.EMPTY);
+	}
+
+	public boolean isEmpty(){
+		final String value = getValue();
+		return (value == null || value.trim().isEmpty());
 	}
 
 }

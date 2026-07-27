@@ -10,6 +10,7 @@ import java.awt.Frame;
 public class EventHandler implements RecordTypeHandler<EventDialog>{
 
 	public static final String TYPE = "EVENT";
+	public static final String ID_PREFIX = "E";
 
 
 	@Override
@@ -20,6 +21,11 @@ public class EventHandler implements RecordTypeHandler<EventDialog>{
 	@Override
 	public String getType(){
 		return TYPE;
+	}
+
+	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
 	}
 
 	@Override

@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceDialog;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
 import java.awt.Frame;
 
@@ -38,6 +38,7 @@ import java.awt.Frame;
 public class SourceHandler implements RecordTypeHandler<SourceDialog>{
 
 	public static final String TYPE = "SOURCE";
+	public static final String ID_PREFIX = "S";
 
 
 	@Override
@@ -48,6 +49,11 @@ public class SourceHandler implements RecordTypeHandler<SourceDialog>{
 	@Override
 	public String getType(){
 		return TYPE;
+	}
+
+	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
 	}
 
 	@Override

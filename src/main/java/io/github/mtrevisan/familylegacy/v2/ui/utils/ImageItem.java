@@ -9,6 +9,7 @@ public final class ImageItem{
 	private final String resourceUri;
 	private final BufferedImage image;
 
+
 	public ImageItem(
 		final String displayName,
 		final String resourceUri,
@@ -18,6 +19,7 @@ public final class ImageItem{
 		this.resourceUri = resourceUri;
 		this.image = image;
 	}
+
 
 	public String getDisplayName(){
 		return displayName;

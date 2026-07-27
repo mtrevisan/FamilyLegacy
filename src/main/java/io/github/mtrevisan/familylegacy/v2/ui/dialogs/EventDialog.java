@@ -5,14 +5,31 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.ItemEvent;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -37,8 +54,8 @@ public class EventDialog extends BaseRecordDialog{
 	private final BoundComboBox typeCombo;
 	private final JTextField familyField = new JTextField(15);
 	private final JTextField twinField = new JTextField(30);
-	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
-	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{"", "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
+	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
 
 	// ========== Details tab components (EVENT_STRUCTURE) ==========
 	private final JTextArea descriptionArea = new JTextArea(3, 30);
@@ -72,7 +89,7 @@ public class EventDialog extends BaseRecordDialog{
 	 * Creates a dialog to edit an existing event record.
 	 */
 	public EventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Event", model, record);
+		super(parent, "Edit Event", model, record, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		// Initialize bound components before using them
 		typeCombo = new BoundComboBox("TYPE", new String[]{});
@@ -89,7 +106,7 @@ public class EventDialog extends BaseRecordDialog{
 	 * Creates a dialog to create a new event record.
 	 */
 	public EventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Event", model, null);
+		super(parent, "New Event", model, null, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		// Initialize bound components before using them
 		typeCombo = new BoundComboBox("TYPE", new String[]{});
@@ -115,7 +132,7 @@ public class EventDialog extends BaseRecordDialog{
 		// --- Basic tab ---
 		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
 		idField.setEditable(false);
-		idField.setText(record != null? record.getId(): "");
+		idField.setText(record != null? record.getId(): StringUtils.EMPTY);
 		basicPanel.add(new JLabel("ID:"), "align label");
 		basicPanel.add(idField, "growx,wrap");
 		basicPanel.add(new JLabel("Type:"), "align label");
@@ -377,17 +394,9 @@ public class EventDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "EVENT");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "EVENT", "E");
 	}
 
 

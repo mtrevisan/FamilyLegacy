@@ -9,7 +9,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
-import javax.swing.*;
+import javax.swing.JDialog;
 import java.awt.Dialog;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseListener;
@@ -33,9 +33,14 @@ import java.util.Set;
 public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -764509672344287269L;
 
-	private final SourceHandler sourceHandler = new SourceHandler();
+
+	// Handlers
+	static{
+		HandlerRegistry.register(new SourceHandler());
+	}
+
 
 	/**
 	 * Constructs a SourceCitationListPanel with a titled border.
@@ -64,6 +69,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
+				final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 				return sourceHandler.getDisplayName(rec);
 			}
 			return sourceId;
@@ -191,7 +197,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			this::addItem,
 			this::removeItem,
 			builder -> {
-				builder.item("New...", this::createNewSourceAndAddCitation);
+				builder.item("Create New...", this::createNewSourceAndAddCitation);
 				builder.item("Add Existing...", this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);

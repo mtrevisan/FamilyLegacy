@@ -24,14 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,7 +51,6 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -92,15 +90,15 @@ public class DocumentStructurePanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== FILE (1:1) ==========
+	// ========== FILE  ==========
 	private final JTextField fileField = new JTextField(30);
 
-	// ========== SPHERICAL (0:1) ==========
+	// ========== SPHERICAL ==========
 	private final JCheckBox sphericalCheckBox = new JCheckBox("Spherical");
 
-	// ========== MAPPING (0:1) ==========
+	// ========== MAPPING ==========
 	private final JComboBox<String> mappingCombo = new JComboBox<>(new String[]{
-		"", "spherical_UV", "cylindrical_equirectangular_horizontal",
+		StringUtils.EMPTY, "spherical_UV", "cylindrical_equirectangular_horizontal",
 		"cylindrical_equirectangular_vertical"
 	});
 
@@ -109,7 +107,7 @@ public class DocumentStructurePanel extends JPanel{
 
 	// ========== EXTRACT (0:1) ==========
 	private final JTextArea extractArea = new JTextArea(3, 20);
-	private final JComboBox<String> extractTypeCombo = new JComboBox<>(new String[]{"", "transcript", "extract", "abstract"});
+	private final JComboBox<String> extractTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "transcript", "extract", "abstract"});
 	private final JTextField extractLocaleField = new JTextField(10);
 
 	// ========== RESTRICTION (0:1) ==========
@@ -164,14 +162,14 @@ public class DocumentStructurePanel extends JPanel{
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		// FILE (1:1)
+		// FILE
 		panel.add(new JLabel("File:"), "align label");
 		panel.add(fileField, "growx,wrap");
 
-		// SPHERICAL (0:1)
+		// SPHERICAL
 		panel.add(sphericalCheckBox, "span 2,wrap");
 
-		// MAPPING (0:1)
+		// MAPPING
 		panel.add(new JLabel("Mapping:"), "align label");
 		panel.add(mappingCombo, "growx,wrap");
 
@@ -350,16 +348,16 @@ public class DocumentStructurePanel extends JPanel{
 			return;
 		}
 
-		// FILE (1:1)
+		// FILE
 		fileField.setText(documentRecord.getValue());
 
-		// SPHERICAL (0:1)
+		// SPHERICAL
 		String spherical = FLEFRecordUtils.getChildValue(documentRecord, "SPHERICAL");
 		sphericalCheckBox.setSelected("Y".equals(spherical));
 
-		// MAPPING (0:1)
+		// MAPPING
 		String mapping = FLEFRecordUtils.getChildValue(documentRecord, "MAPPING");
-		mappingCombo.setSelectedItem(mapping != null? mapping: "");
+		mappingCombo.setSelectedItem(mapping != null? mapping: StringUtils.EMPTY);
 
 		// DESCRIPTION (0:1)
 		descriptionField.setText(FLEFRecordUtils.getChildValue(documentRecord, "DESCRIPTION"));
@@ -369,9 +367,9 @@ public class DocumentStructurePanel extends JPanel{
 		if(extract != null){
 			extractArea.setText(extract.getValue());
 			String extractType = FLEFRecordUtils.getChildValue(extract, "TYPE");
-			extractTypeCombo.setSelectedItem(extractType != null? extractType: "");
+			extractTypeCombo.setSelectedItem(extractType != null? extractType: StringUtils.EMPTY);
 			String extractLocale = FLEFRecordUtils.getChildValue(extract, "LOCALE");
-			extractLocaleField.setText(extractLocale != null? extractLocale: "");
+			extractLocaleField.setText(extractLocale != null? extractLocale: StringUtils.EMPTY);
 		}
 
 		// RESTRICTION (0:1)
@@ -414,13 +412,13 @@ public class DocumentStructurePanel extends JPanel{
 		// Clear existing children
 		FLEFRecordUtils.removeAllChildren(documentRecord);
 
-		// FILE (1:1) - required
+		// FILE
 		String file = fileField.getText().trim();
 		if(!file.isEmpty()){
 			documentRecord.setValue(file);
 		}
 
-		// SPHERICAL (0:1)
+		// SPHERICAL
 		if(sphericalCheckBox.isSelected()){
 			FLEFRecordUtils.updateChildValue(documentRecord, "SPHERICAL", "Y");
 		}
@@ -470,7 +468,7 @@ public class DocumentStructurePanel extends JPanel{
 			return true;
 		}
 
-		// FILE (1:1) - required if document has data
+		// FILE - required if document has data
 		if(fileField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"FILE is required for a DOCUMENT_STRUCTURE.\n" +
@@ -502,13 +500,13 @@ public class DocumentStructurePanel extends JPanel{
 	 * Clears all fields in the panel.
 	 */
 	public void clear(){
-		fileField.setText("");
+		fileField.setText(StringUtils.EMPTY);
 		sphericalCheckBox.setSelected(false);
-		mappingCombo.setSelectedItem("");
-		descriptionField.setText("");
-		extractArea.setText("");
-		extractTypeCombo.setSelectedItem("");
-		extractLocaleField.setText("");
+		mappingCombo.setSelectedItem(StringUtils.EMPTY);
+		descriptionField.setText(StringUtils.EMPTY);
+		extractArea.setText(StringUtils.EMPTY);
+		extractTypeCombo.setSelectedItem(StringUtils.EMPTY);
+		extractLocaleField.setText(StringUtils.EMPTY);
 		restrictionCheckBox.setSelected(false);
 		noteModel.clear();
 		noteIds.clear();

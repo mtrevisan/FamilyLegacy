@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CulturalNormDialog;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
 import java.awt.Frame;
 
@@ -38,6 +38,7 @@ import java.awt.Frame;
 public class CulturalNormHandler implements RecordTypeHandler<CulturalNormDialog>{
 
 	public static final String TYPE = "CULTURAL_NORM";
+	public static final String ID_PREFIX = "CN";
 
 
 	@Override
@@ -48,6 +49,11 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormDialog
 	@Override
 	public String getType(){
 		return TYPE;
+	}
+
+	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
 	}
 
 	@Override
@@ -62,12 +68,12 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormDialog
 
 	@Override
 	public CulturalNormDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		return new CulturalNormDialog(parent, model, record);
+		return CulturalNormDialog.createEdit(parent, model, record);
 	}
 
 	@Override
 	public CulturalNormDialog createNewDialog(Frame parent, FLEFModel model){
-		return new CulturalNormDialog(parent, model);
+		return CulturalNormDialog.createNew(parent, model);
 	}
 
 }

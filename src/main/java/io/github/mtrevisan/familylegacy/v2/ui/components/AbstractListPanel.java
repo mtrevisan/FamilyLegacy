@@ -4,9 +4,13 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.Dialog;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,10 +68,9 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 
 	void initComponents(){
-		setLayout(new MigLayout("fillx, wrap 1", "[grow]", "[]"));
-		if(title != null){
+		setLayout(new MigLayout("fillx,wrap 1", "[grow]", "[]"));
+		if(title != null)
 			setBorder(new TitledBorder(title));
-		}
 
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

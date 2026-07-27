@@ -24,10 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.HistoricEventDialog;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
 import java.awt.Frame;
 
@@ -38,6 +38,7 @@ import java.awt.Frame;
 public class HistoricEventHandler implements RecordTypeHandler<HistoricEventDialog>{
 
 	public static final String TYPE = "HISTORIC_EVENT";
+	public static final String ID_PREFIX = "HE";
 
 
 	@Override
@@ -48,6 +49,11 @@ public class HistoricEventHandler implements RecordTypeHandler<HistoricEventDial
 	@Override
 	public String getType(){
 		return TYPE;
+	}
+
+	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
 	}
 
 	@Override

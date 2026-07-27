@@ -21,7 +21,8 @@ import java.io.Serial;
 public class TextValueVariantDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -4887775439277994973L;
+
 
 	private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
 	private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");

@@ -24,14 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ScrollableContainerHost;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,7 +47,6 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
@@ -82,13 +80,13 @@ public class RepositoryCitationPanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== REPOSITORY (1:1) ==========
+	// ========== REPOSITORY ==========
 	private final JTextField repositoryDisplayField = new JTextField(20);
 	private final JButton browseRepoBtn = new JButton("Browse...");
 	private final JButton clearRepoBtn = new JButton("Clear");
 	private String selectedRepositoryId;
 
-	// ========== LOCATION (0:1) ==========
+	// ========== LOCATION ==========
 	private final JTextField locationField = new JTextField(30);
 
 	// ========== NOTE (0:M) ==========
@@ -119,7 +117,7 @@ public class RepositoryCitationPanel extends JPanel{
 
 		noteList.setVisibleRowCount(4);
 
-		// ===== REPOSITORY (1:1) =====
+		// ===== REPOSITORY =====
 		add(new JLabel("Repository:"), "align label");
 		repositoryDisplayField.setEditable(false);
 		repositoryDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -134,7 +132,7 @@ public class RepositoryCitationPanel extends JPanel{
 		browseRepoBtn.addActionListener(e -> browseRepository());
 		clearRepoBtn.addActionListener(e -> {
 			selectedRepositoryId = null;
-			repositoryDisplayField.setText("");
+			repositoryDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		// ===== LOCATION (0:1) =====
@@ -298,8 +296,8 @@ public class RepositoryCitationPanel extends JPanel{
 	public void loadFromRecord(FLEFRecord citationRecord){
 		// Clear all fields
 		selectedRepositoryId = null;
-		repositoryDisplayField.setText("");
-		locationField.setText("");
+		repositoryDisplayField.setText(StringUtils.EMPTY);
+		locationField.setText(StringUtils.EMPTY);
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
@@ -308,7 +306,7 @@ public class RepositoryCitationPanel extends JPanel{
 			return;
 		}
 
-		// REPOSITORY (1:1)
+		// REPOSITORY
 		String repoId = citationRecord.getValue();
 		if(repoId != null && !repoId.isEmpty()){
 			selectedRepositoryId = repoId;
@@ -357,7 +355,7 @@ public class RepositoryCitationPanel extends JPanel{
 		// Clear existing children
 		FLEFRecordUtils.removeAllChildren(citationRecord);
 
-		// REPOSITORY (1:1) - required
+		// REPOSITORY - required
 		if(selectedRepositoryId != null && !selectedRepositoryId.isEmpty()){
 			citationRecord.setValue(selectedRepositoryId);
 		}
@@ -385,7 +383,7 @@ public class RepositoryCitationPanel extends JPanel{
 			return true;
 		}
 
-		// REPOSITORY (1:1) - required if citation has data
+		// REPOSITORY - required if citation has data
 		if(selectedRepositoryId == null || selectedRepositoryId.isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"REPOSITORY is required for a repository citation.\n" +
@@ -412,8 +410,8 @@ public class RepositoryCitationPanel extends JPanel{
 	 */
 	public void clear(){
 		selectedRepositoryId = null;
-		repositoryDisplayField.setText("");
-		locationField.setText("");
+		repositoryDisplayField.setText(StringUtils.EMPTY);
+		locationField.setText(StringUtils.EMPTY);
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();

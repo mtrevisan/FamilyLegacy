@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -8,15 +9,43 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PersonalNamePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -109,11 +138,11 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	// ----- Constructor -----
 	private IndividualDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, buildTitle(model, record), model, record);
+		super(parent, buildTitle(model, record), model, record, HandlerRegistry.getHandler(IndividualHandler.TYPE));
 
 		// Initialize bound components before using them
 		sexCombo = new BoundComboBox("SEX",
-			new String[]{"", "MALE", "FEMALE", "UNKNOWN"});
+			new String[]{StringUtils.EMPTY, "MALE", "FEMALE", "UNKNOWN"});
 
 		initComponents();
 		loadData();
@@ -694,19 +723,9 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
 
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), IndividualHandler.TYPE);
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, IndividualHandler.TYPE, IndividualHandler.ID_PREFIX);
 	}
 
 	// ==================== Main test ====================

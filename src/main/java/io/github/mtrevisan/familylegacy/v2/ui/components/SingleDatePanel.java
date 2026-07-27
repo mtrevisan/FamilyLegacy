@@ -7,9 +7,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import java.awt.CardLayout;
 
 
 /**
@@ -38,7 +43,7 @@ public class SingleDatePanel extends JPanel{
 
 	// CENTURY
 	private final BoundTextField centuryField = new BoundTextField("CENTURY", 5);
-	private final BoundComboBox<String> centuryPartCombo = new BoundComboBox<>("PART", new String[]{"", "first_quarter", "second_quarter", "third_quarter", "fourth_quarter", "first_half", "second_half", "early", "mid", "late"});
+	private final BoundComboBox<String> centuryPartCombo = new BoundComboBox<>("PART", new String[]{StringUtils.EMPTY, "first_quarter", "second_quarter", "third_quarter", "fourth_quarter", "first_half", "second_half", "early", "mid", "late"});
 
 	// CALENDAR (common to all)
 	private final BoundComboBox<String> calendarCombo = new BoundComboBox<>("CALENDAR", new String[]{"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
@@ -198,9 +203,9 @@ public class SingleDatePanel extends JPanel{
 
 	public void clear(){
 		dateTypeCombo.setSelectedIndex(0);
-		fullDateField.setText("");
-		decadeField.setText("");
-		centuryField.setText("");
+		fullDateField.setText(StringUtils.EMPTY);
+		decadeField.setText(StringUtils.EMPTY);
+		centuryField.setText(StringUtils.EMPTY);
 		centuryPartCombo.setSelectedIndex(0);
 		calendarCombo.setSelectedItem("gregorian");
 		approxPanel.clear();
@@ -211,13 +216,13 @@ public class SingleDatePanel extends JPanel{
 	public boolean hasData(){
 		final String dateType = (String)dateTypeCombo.getSelectedItem();
 		if(DATE_TYPE_FULL_DATE.equals(dateType))
-			return !fullDateField.getText().trim().isEmpty();
+			return !fullDateField.isEmpty();
 
 		if(DATE_TYPE_DECADE.equals(dateType))
-			return !decadeField.getText().trim().isEmpty();
+			return !decadeField.isEmpty();
 
 		if(DATE_TYPE_CENTURY.equals(dateType))
-			return !centuryField.getText().trim().isEmpty();
+			return !centuryField.isEmpty();
 
 		return false;
 	}
@@ -225,17 +230,17 @@ public class SingleDatePanel extends JPanel{
 	public boolean validateRequiredFields(){
 		final String dateType = (String)dateTypeCombo.getSelectedItem();
 
-		if(DATE_TYPE_FULL_DATE.equals(dateType) && fullDateField.getText().trim().isEmpty()){
+		if(DATE_TYPE_FULL_DATE.equals(dateType) && fullDateField.isEmpty()){
 			JOptionPane.showMessageDialog(this, "Date is required for FULL DATE type.", "Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}
-		if(DATE_TYPE_DECADE.equals(dateType) && decadeField.getText().trim().isEmpty()){
+		if(DATE_TYPE_DECADE.equals(dateType) && decadeField.isEmpty()){
 			JOptionPane.showMessageDialog(this, "Decade is required for DECADE type.", "Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}
-		if(DATE_TYPE_CENTURY.equals(dateType) && centuryField.getText().trim().isEmpty()){
+		if(DATE_TYPE_CENTURY.equals(dateType) && centuryField.isEmpty()){
 			JOptionPane.showMessageDialog(this, "Century is required for CENTURY type.", "Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
@@ -39,7 +40,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -97,9 +97,9 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 	// ========== Basic fields ==========
 	private final JTextField idField = new JTextField(10);
-	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{"", "active", "paused", "completed", "blocked"});
+	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "active", "paused", "completed", "blocked"});
 	private final JTextField questionField = new JTextField(30);
-	private final JComboBox<String> priorityCombo = new JComboBox<>(new String[]{"", "high", "medium", "low"});
+	private final JComboBox<String> priorityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "high", "medium", "low"});
 
 	// ========== ASSOCIATION (0:M) ==========
 	private final DefaultListModel<String> associationListModel = new DefaultListModel<>();
@@ -114,10 +114,10 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	// ========== DESCRIPTION (0:1) ==========
 	private final JTextArea descriptionArea = new JTextArea(3, 30);
 
-	// ========== RESOLUTION (0:1) ==========
+	// ========== RESOLUTION ==========
 	private final JTextArea resolutionArea = new JTextArea(3, 30);
 
-	// ========== MODIFICATION (1:1) ==========
+	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
 	// ========== Buttons ==========
@@ -161,7 +161,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public ResearchStatusDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Research Status", model, record);
+		super(parent, "Edit Research Status", model, record, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -172,7 +172,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	}
 
 	public ResearchStatusDialog(Frame parent, FLEFModel model){
-		super(parent, "New Research Status", model, null);
+		super(parent, "New Research Status", model, null, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -225,19 +225,19 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		panel.add(new JLabel("ID:"), "align label");
 		panel.add(idField, "growx,wrap");
 
-		// STATUS (0:1)
+		// STATUS
 		panel.add(new JLabel("Status:"), "align label");
 		panel.add(statusCombo, "growx,wrap");
 
-		// QUESTION (1:1) - marked with an asterisk
+		// QUESTION
 		panel.add(new JLabel("Question*:"), "align label");
 		panel.add(questionField, "growx,wrap");
 
-		// PRIORITY (0:1)
+		// PRIORITY
 		panel.add(new JLabel("Priority:"), "align label");
 		panel.add(priorityCombo, "growx,wrap");
 
-		// DESCRIPTION (0:1)
+		// DESCRIPTION
 		panel.add(new JLabel("Description:"), "align label,top");
 		JScrollPane descScroll = GUIHelper.createScrollPane(descriptionArea);
 		panel.add(descScroll, "growx,wrap");
@@ -486,18 +486,18 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	protected void loadData(){
 		idField.setText(record.getId());
 
-		// STATUS (0:1)
+		// STATUS
 		String status = FLEFRecordUtils.getChildValue(record, "STATUS");
-		statusCombo.setSelectedItem(status != null? status: "");
+		statusCombo.setSelectedItem(status != null? status: StringUtils.EMPTY);
 
-		// QUESTION (1:1)
+		// QUESTION
 		questionField.setText(FLEFRecordUtils.getChildValue(record, "QUESTION"));
 
-		// PRIORITY (0:1)
+		// PRIORITY
 		String priority = FLEFRecordUtils.getChildValue(record, "PRIORITY");
-		priorityCombo.setSelectedItem(priority != null? priority: "");
+		priorityCombo.setSelectedItem(priority != null? priority: StringUtils.EMPTY);
 
-		// DESCRIPTION (0:1)
+		// DESCRIPTION
 		descriptionArea.setText(FLEFRecordUtils.getChildValue(record, "DESCRIPTION"));
 
 		// RESOLUTION (0:1)
@@ -551,7 +551,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validateData(){
-		// QUESTION (1:1) - required
+		// QUESTION
 		if(questionField.getText().trim().isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"QUESTION is required.\nPlease enter a research question.",
@@ -569,19 +569,19 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
 
-		// STATUS (0:1)
+		// STATUS
 		String status = (String)statusCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(record, "STATUS", status);
 
-		// QUESTION (1:1)
+		// QUESTION
 		String question = questionField.getText().trim();
 		FLEFRecordUtils.updateChildValue(record, "QUESTION", question);
 
-		// PRIORITY (0:1)
+		// PRIORITY
 		String priority = (String)priorityCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(record, "PRIORITY", priority);
 
-		// DESCRIPTION (0:1)
+		// DESCRIPTION
 		String description = descriptionArea.getText().trim();
 		FLEFRecordUtils.updateChildValue(record, "DESCRIPTION", description);
 
@@ -628,19 +628,9 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "RESEARCH_STATUS");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "RESEARCH_STATUS", "R");
 	}
 
 	// ==================== Main per test ====================

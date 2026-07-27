@@ -50,6 +50,11 @@ public interface RecordTypeHandler<T extends JDialog>{
 	String getType();
 
 	/**
+	 * Returns the record ID prefix (e.g., "I", "F").
+	 */
+	String getIDPrefix();
+
+	/**
 	 * Returns a human-readable display name for the given record.
 	 * Used for list rendering.
 	 *

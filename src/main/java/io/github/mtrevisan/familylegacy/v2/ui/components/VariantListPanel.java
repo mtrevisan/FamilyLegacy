@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -29,7 +30,8 @@ import java.util.List;
 public class VariantListPanel extends AbstractListPanel<VariantEntry>{
 
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -298718064629353117L;
+
 
 	public VariantListPanel(FLEFModel model, Dialog parentDialog){
 		super(model, parentDialog, "Variants");
@@ -76,7 +78,7 @@ public class VariantListPanel extends AbstractListPanel<VariantEntry>{
 		}
 		systemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
 
-		JComboBox<String> transTypeCombo = new JComboBox<>(new String[]{"", "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
+		JComboBox<String> transTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
 		if(initial != null && "TRANSCRIPTION".equals(initial.getType()) && initial.getTranscriptionType() != null){
 			transTypeCombo.setSelectedItem(initial.getTranscriptionType());
 		}

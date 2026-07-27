@@ -10,6 +10,7 @@ public final class SelectedImage{
 	private final BufferedImage image;
 	private final Rectangle crop;
 
+
 	public SelectedImage(
 		final String resourceUri,
 		final BufferedImage image,
@@ -19,6 +20,7 @@ public final class SelectedImage{
 		this.image = image;
 		this.crop = crop;
 	}
+
 
 	public String getResourceUri(){
 		return resourceUri;

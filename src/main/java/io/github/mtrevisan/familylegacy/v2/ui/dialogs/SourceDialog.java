@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -40,14 +41,31 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -126,14 +144,14 @@ public class SourceDialog extends BaseRecordDialog{
 
 	// ==================== Constructors ====================
 	public SourceDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Source", model, record);
+		super(parent, "Edit Source", model, record, HandlerRegistry.getHandler(SourceHandler.TYPE));
 
 		// Initialize bound components
 		titleField = new BoundTextField("TITLE.VALUE", 30);
 		authorField = new BoundTextField("AUTHOR", 30);
 		publisherField = new BoundTextField("PUBLISHER", 30);
 		mediaTypeCombo = new BoundComboBox<>("MEDIA_TYPE",
-			new String[]{"", "audio", "book", "card", "electronic", "fiche", "film",
+			new String[]{StringUtils.EMPTY, "audio", "book", "card", "electronic", "fiche", "film",
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
 
@@ -148,14 +166,14 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	public SourceDialog(Frame parent, FLEFModel model){
-		super(parent, "New Source", model, null);
+		super(parent, "New Source", model, null, HandlerRegistry.getHandler(SourceHandler.TYPE));
 
 		// Initialize bound components
 		titleField = new BoundTextField("TITLE.VALUE", 30);
 		authorField = new BoundTextField("AUTHOR", 30);
 		publisherField = new BoundTextField("PUBLISHER", 30);
 		mediaTypeCombo = new BoundComboBox<>("MEDIA_TYPE",
-			new String[]{"", "audio", "book", "card", "electronic", "fiche", "film",
+			new String[]{StringUtils.EMPTY, "audio", "book", "card", "electronic", "fiche", "film",
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
 
@@ -207,7 +225,7 @@ public class SourceDialog extends BaseRecordDialog{
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		idField.setEditable(false);
-		idField.setText(record != null? record.getId(): "");
+		idField.setText(record != null? record.getId(): StringUtils.EMPTY);
 		panel.add(new JLabel("ID:"), "align label");
 		panel.add(idField, "growx,wrap");
 
@@ -242,7 +260,7 @@ public class SourceDialog extends BaseRecordDialog{
 		placeBrowseBtn.addActionListener(e -> browsePlace());
 		placeClearBtn.addActionListener(e -> {
 			selectedPlaceId = null;
-			placeDisplayField.setText("");
+			placeDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		// Place Evidence Qualifiers (CERTAINTY + CREDIBILITY)
@@ -472,7 +490,7 @@ public class SourceDialog extends BaseRecordDialog{
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					null,
-					location != null? location: ""
+					location != null? location: StringUtils.EMPTY
 				);
 				existing.setValue(selectedId);
 				FLEFRecordUtils.updateChildValue(existing, "LOCATION", newLocation.trim());
@@ -644,7 +662,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		idField.setText(record != null? record.getId(): "");
+		idField.setText(record != null? record.getId(): StringUtils.EMPTY);
 
 		// ---- Load bound simple fields ----
 		bindingManager.loadFromRecord(record);
@@ -777,17 +795,9 @@ public class SourceDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
+
 		dispose();
-	}
-
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), "SOURCE");
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, "SOURCE", "S");
 	}
 
 	// ==================== Main per test ====================

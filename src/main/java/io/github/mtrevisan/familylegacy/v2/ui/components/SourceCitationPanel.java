@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -33,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -84,12 +84,14 @@ public class SourceCitationPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -8036724779224867360L;
 
+
 	private final BindingManager bindingManager = new BindingManager();
+
 
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== SOURCE (1:1) – manual ==========
+	// ========== SOURCE ==========
 	private String selectedSourceId;
 
 	// ========== Simple fields – bound ==========
@@ -114,6 +116,7 @@ public class SourceCitationPanel extends JPanel{
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
 	/**
+	 *
 	 * Creates a new SourceCitationPanel.
 	 *
 	 * @param model  the FLEF model
@@ -125,13 +128,13 @@ public class SourceCitationPanel extends JPanel{
 
 		// Initialize bound components
 		outcomeCombo = new BoundComboBox<>("SEARCH_OUTCOME",
-			new String[]{"", "found", "not_found", "partially_found", "unreadable", "destroyed"});
+			new String[]{StringUtils.EMPTY, "found", "not_found", "partially_found", "unreadable", "destroyed"});
 		scopeField = new BoundTextField("SEARCH_SCOPE", 20);
 		locationField = new BoundTextField("LOCATION", 20);
 		roleField = new BoundTextField("ROLE", 15);
 		cropField = new BoundTextField("CROP", 20);
 		credibilityCombo = new BoundComboBox<>("CREDIBILITY",
-			new String[]{"", "0", "1", "2", "3"});
+			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 		this.searchDatePanel = new DatePanel(parent, model);
 
@@ -168,15 +171,15 @@ public class SourceCitationPanel extends JPanel{
 		add(new JLabel("Location:"), "align label");
 		add(locationField, "growx,wrap");
 
-		// ===== ROLE (0:1) – bound =====
+		// ===== ROLE – bound =====
 		add(new JLabel("Role:"), "align label");
 		add(roleField, "growx,wrap");
 
-		// ===== CROP (1:1) – bound =====
+		// ===== CROP – bound =====
 		add(new JLabel("Crop:"), "align label");
 		add(cropField, "growx,wrap");
 
-		// ===== NOTE (0:M) – manual =====
+		// ===== NOTE – manual =====
 		add(new JLabel("Notes:"), "align label,top");
 		JPanel notePanel = createNotePanel();
 		add(notePanel, "growx,wrap");
@@ -323,13 +326,13 @@ public class SourceCitationPanel extends JPanel{
 
 		// ---- Load manual fields ----
 
-		// SOURCE (1:1)
+		// SOURCE
 		String sourceId = citationRecord.getValue();
 		if(sourceId != null && !sourceId.isEmpty()){
 			selectedSourceId = sourceId;
 		}
 
-		// SEARCH_DATE (0:1)
+		// SEARCH_DATE
 		FLEFRecord dateRecord = FLEFRecordUtils.findChild(citationRecord, "SEARCH_DATE");
 		searchDatePanel.loadFromRecord(dateRecord);
 
@@ -371,12 +374,12 @@ public class SourceCitationPanel extends JPanel{
 
 		// ---- Save manual fields ----
 
-		// SOURCE (1:1) – required
+		// SOURCE
 		if(selectedSourceId != null && !selectedSourceId.isEmpty()){
 			citationRecord.setValue(selectedSourceId);
 		}
 
-		// SEARCH_DATE (0:1) – manual
+		// SEARCH_DATE – manual
 		if(searchDatePanel.hasData()){
 			FLEFRecord dateRecord = searchDatePanel.saveToRecord(null);
 			if(dateRecord != null){
@@ -417,11 +420,11 @@ public class SourceCitationPanel extends JPanel{
 	public boolean hasData(){
 		return (selectedSourceId != null && !selectedSourceId.isEmpty()) ||
 					 outcomeCombo.getSelectedIndex() >= 0 ||
-					 !scopeField.getText().trim().isEmpty() ||
+					 !scopeField.isEmpty() ||
 					 searchDatePanel.hasData() ||
-					 !locationField.getText().trim().isEmpty() ||
-					 !roleField.getText().trim().isEmpty() ||
-					 !cropField.getText().trim().isEmpty() ||
+					 !locationField.isEmpty() ||
+					 !roleField.isEmpty() ||
+					 !cropField.isEmpty() ||
 					 !noteModel.isEmpty() ||
 					 credibilityCombo.getSelectedIndex() >= 0;
 	}
@@ -431,16 +434,16 @@ public class SourceCitationPanel extends JPanel{
 	 */
 	public void clear(){
 		selectedSourceId = null;
-		outcomeCombo.setSelectedItem("");
-		scopeField.setText("");
+		outcomeCombo.setSelectedItem(StringUtils.EMPTY);
+		scopeField.setText(StringUtils.EMPTY);
 		searchDatePanel.clear();
-		locationField.setText("");
-		roleField.setText("");
-		cropField.setText("");
+		locationField.setText(StringUtils.EMPTY);
+		roleField.setText(StringUtils.EMPTY);
+		cropField.setText(StringUtils.EMPTY);
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
-		credibilityCombo.setSelectedItem("");
+		credibilityCombo.setSelectedItem(StringUtils.EMPTY);
 	}
 
 }

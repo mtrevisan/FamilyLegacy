@@ -87,13 +87,13 @@ public class AliasDialog extends JDialog{
 	private final AliasEntry existingEntry;
 	private boolean saved = false;
 
-	// ========== ALIAS ID (1:1) ==========
+	// ========== ALIAS ID ==========
 	private final JTextField aliasDisplayField = new JTextField(20);
 	private final JButton browseAliasBtn = new JButton("Browse...");
 	private final JButton clearAliasBtn = new JButton("Clear");
 	private String selectedAliasId;
 
-	// ========== CERTAINTY + CREDIBILITY (0:1 each) ==========
+	// ========== CERTAINTY + CREDIBILITY ==========
 	private final EvidenceQualifiersPanel qualifiersPanel = new EvidenceQualifiersPanel("Evidence Qualifiers");
 
 	// ========== NOTE (0:M) ==========
@@ -128,7 +128,7 @@ public class AliasDialog extends JDialog{
 
 		@Override
 		public String toString(){
-			return aliasId + (certainty != null && !certainty.isEmpty()? " (" + certainty + ")": "");
+			return aliasId + (certainty != null && !certainty.isEmpty()? " (" + certainty + ")": StringUtils.EMPTY);
 		}
 	}
 
@@ -161,7 +161,7 @@ public class AliasDialog extends JDialog{
 
 		this.model = model;
 		this.parentFrame = parent;
-		this.existingEntry = existingEntry != null? existingEntry: new AliasEntry("", null, null, new ArrayList<>());
+		this.existingEntry = existingEntry != null? existingEntry: new AliasEntry(StringUtils.EMPTY, null, null, new ArrayList<>());
 		initComponents();
 		if(existingEntry != null){
 			loadData();
@@ -180,7 +180,7 @@ public class AliasDialog extends JDialog{
 		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]"));
 		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-		// ALIAS ID (1:1)
+		// ALIAS ID
 		basicPanel.add(new JLabel("Alias (Individual):"), "align label");
 		aliasDisplayField.setEditable(false);
 		aliasDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -195,7 +195,7 @@ public class AliasDialog extends JDialog{
 		browseAliasBtn.addActionListener(e -> browseAlias());
 		clearAliasBtn.addActionListener(e -> {
 			selectedAliasId = null;
-			aliasDisplayField.setText("");
+			aliasDisplayField.setText(StringUtils.EMPTY);
 		});
 
 		// CERTAINTY + CREDIBILITY (0:1 each) - grouped in EvidenceQualifiersPanel
@@ -394,7 +394,7 @@ public class AliasDialog extends JDialog{
 	}
 
 	private boolean validateRequiredFields(){
-		// ALIAS ID (1:1)
+		// ALIAS ID
 		if(selectedAliasId == null || selectedAliasId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Alias (Individual) is required.",

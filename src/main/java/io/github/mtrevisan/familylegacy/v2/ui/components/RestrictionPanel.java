@@ -24,17 +24,21 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import java.awt.Dialog;
 import java.io.Serial;
 
 
@@ -79,7 +83,7 @@ public class RestrictionPanel extends JPanel{
 		this.parentDialog = parent;
 
 		// Initialize bound components
-		levelCombo = new BoundComboBox<>("RESTRICTION.LEVEL", new String[]{"", "public", "restricted", "confidential"});
+		levelCombo = new BoundComboBox<>("RESTRICTION.LEVEL", new String[]{StringUtils.EMPTY, "public", "restricted", "confidential"});
 		rationaleArea = new BoundTextArea("RESTRICTION.RATIONALE", 3, 30);
 		expiresField = new BoundTextField("RESTRICTION.EXPIRES", 15);
 
@@ -129,13 +133,13 @@ public class RestrictionPanel extends JPanel{
 		bindingManager.loadFromRecord(record);
 
 		final String level = FLEFRecordUtils.getChildValue(record, "LEVEL");
-		levelCombo.setSelectedItem(level != null? level: "");
+		levelCombo.setSelectedItem(level != null? level: StringUtils.EMPTY);
 
 		final String rationale = FLEFRecordUtils.getChildValue(record, "RATIONALE");
-		rationaleArea.setText(rationale != null? rationale: "");
+		rationaleArea.setText(rationale != null? rationale: StringUtils.EMPTY);
 
 		final String expires = FLEFRecordUtils.getChildValue(record, "EXPIRES");
-		expiresField.setText(expires != null? expires: "");
+		expiresField.setText(expires != null? expires: StringUtils.EMPTY);
 	}
 
 	// ==================== Data Saving ====================
@@ -201,8 +205,8 @@ public class RestrictionPanel extends JPanel{
 	 */
 	public void clear(){
 		levelCombo.setSelectedIndex(0);
-		rationaleArea.setText("");
-		expiresField.setText("");
+		rationaleArea.setText(StringUtils.EMPTY);
+		expiresField.setText(StringUtils.EMPTY);
 	}
 
 	// ==================== Private helpers ====================

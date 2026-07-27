@@ -1,6 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
-import javax.swing.*;
+import javax.swing.JComponent;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 

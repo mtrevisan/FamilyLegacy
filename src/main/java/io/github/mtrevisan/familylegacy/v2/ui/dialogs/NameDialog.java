@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -31,9 +32,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -89,7 +90,7 @@ public class NameDialog extends JDialog{
 
 	// Main fields
 	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-		"", "birth", "aka", "nickname", "immigrant", "legal",
+		StringUtils.EMPTY, "birth", "aka", "nickname", "immigrant", "legal",
 		"married", "adoption", "fostering", "religious"
 	});
 	private final JTextField titleField = new JTextField(20);
@@ -800,7 +801,7 @@ public class NameDialog extends JDialog{
 		familyNicknameField.setText(FLEFRecordUtils.getChildValue(nameRecord, "FAMILY_NICKNAME"));
 
 		FLEFRecord givenNode = FLEFRecordUtils.findChild(nameRecord, "INDIVIDUAL_NAME");
-		suffixField.setText(givenNode != null? FLEFRecordUtils.getChildValue(givenNode, "SUFFIX"): "");
+		suffixField.setText(givenNode != null? FLEFRecordUtils.getChildValue(givenNode, "SUFFIX"): StringUtils.EMPTY);
 
 		// Load transcriptions
 		loadTranscriptions("TITLE", titleTransModel, titleTransRecords);

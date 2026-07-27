@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -68,7 +68,7 @@ public class TranscribedTextPanel extends JPanel{
 	// ========== TRANSCRIPTION (0:1) ==========
 	private final JTextField transcriptionSystemField = new JTextField(15);
 	private final JComboBox<String> transcriptionTypeCombo = new JComboBox<>(new String[]{
-		"", "romanized", "anglicized", "cyrillized", "francized",
+		StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized",
 		"gairaigized", "latinized"
 	});
 	private final JTextField transcriptionValueField = new JTextField(20);
@@ -117,11 +117,11 @@ public class TranscribedTextPanel extends JPanel{
 	 */
 	public void loadFromRecord(FLEFRecord transRecord){
 		// Clear all fields
-		phoneticSystemField.setText("");
-		phoneticValueField.setText("");
-		transcriptionSystemField.setText("");
-		transcriptionTypeCombo.setSelectedItem("");
-		transcriptionValueField.setText("");
+		phoneticSystemField.setText(StringUtils.EMPTY);
+		phoneticValueField.setText(StringUtils.EMPTY);
+		transcriptionSystemField.setText(StringUtils.EMPTY);
+		transcriptionTypeCombo.setSelectedItem(StringUtils.EMPTY);
+		transcriptionValueField.setText(StringUtils.EMPTY);
 
 		if(transRecord == null){
 			return;
@@ -183,7 +183,7 @@ public class TranscribedTextPanel extends JPanel{
 			phonetic.setValue(phoneticSys);
 			transRecord.addChild(phonetic);
 
-			// VALUE (1:1) - required if PHONETIC exists
+			// VALUE - required if PHONETIC exists
 			if(!phoneticVal.isEmpty()){
 				FLEFRecord value = new FLEFRecord();
 				value.setTag("VALUE");
@@ -211,7 +211,7 @@ public class TranscribedTextPanel extends JPanel{
 				transcription.addChild(type);
 			}
 
-			// VALUE (1:1) - required if TRANSCRIPTION exists
+			// VALUE - required if TRANSCRIPTION exists
 			if(!transVal.isEmpty()){
 				FLEFRecord value = new FLEFRecord();
 				value.setTag("VALUE");
@@ -278,11 +278,11 @@ public class TranscribedTextPanel extends JPanel{
 	 * Clears all fields in the panel.
 	 */
 	public void clear(){
-		phoneticSystemField.setText("");
-		phoneticValueField.setText("");
-		transcriptionSystemField.setText("");
-		transcriptionTypeCombo.setSelectedItem("");
-		transcriptionValueField.setText("");
+		phoneticSystemField.setText(StringUtils.EMPTY);
+		phoneticValueField.setText(StringUtils.EMPTY);
+		transcriptionSystemField.setText(StringUtils.EMPTY);
+		transcriptionTypeCombo.setSelectedItem(StringUtils.EMPTY);
+		transcriptionValueField.setText(StringUtils.EMPTY);
 	}
 
 	// ==================== Getters for individual fields ====================

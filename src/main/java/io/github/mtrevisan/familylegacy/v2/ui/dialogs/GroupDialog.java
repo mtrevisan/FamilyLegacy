@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -9,15 +10,45 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -73,7 +104,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// UI components (simple fields are now bound)
 	private final BoundComboBox typeCombo = new BoundComboBox("TYPE",
-		new String[]{"", "family", "household", "neighbourhood", "fraternity", "club", "research group",
+		new String[]{StringUtils.EMPTY, "family", "household", "neighbourhood", "fraternity", "club", "research group",
 			"literary society", "association", "organisation", "tribe"});
 
 	// Panels (complex, handled manually)
@@ -129,7 +160,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// ----- Constructor -----
 	private GroupDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, buildTitle(model, record), model, record);
+		super(parent, buildTitle(model, record), model, record, HandlerRegistry.getHandler(GroupHandler.TYPE));
 
 		initComponents();
 		loadData();
@@ -232,7 +263,7 @@ public class GroupDialog extends BaseRecordDialog{
 			this::createNewMember,                              // INSERT key → create new member
 			this::deleteMember,                                 // DELETE key → delete member
 			builder -> {
-				builder.item("New...", this::createNewMember);
+				builder.item("Create New...", this::createNewMember);
 				builder.item("Add Existing...", this::addMember);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editMemberIndividual);
@@ -1019,7 +1050,13 @@ public class GroupDialog extends BaseRecordDialog{
 		bindingManager.loadFromRecord(record);
 
 		// ---- Complex panels: manual load ----
-		namePanel.loadFromRecord(record);
+		List<FLEFRecord> names = new ArrayList<>();
+		for(final FLEFRecord child : record.getChildren()){
+			if("NAME".equals(child.getTag())){
+				names.add(child);
+			}
+		}
+		namePanel.setItems(names);
 
 		FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
 		restrictionPanel.loadFromRecord(restrictionStruct);
@@ -1117,7 +1154,10 @@ public class GroupDialog extends BaseRecordDialog{
 		FLEFRecordUtils.removeAllChildren(record);
 
 		// ---- Save complex panels first ----
-		namePanel.saveToRecord(record);
+		for(final FLEFRecord nameRec : namePanel.getItems()){
+			nameRec.setTag("NAME");
+			record.addChild(nameRec);
+		}
 
 		// Restriction
 		if(restrictionPanel.hasData())
@@ -1180,6 +1220,7 @@ public class GroupDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
 
 //TODO to be removed
 FLEFFile.print(model);
@@ -1190,17 +1231,6 @@ FLEFFile.print(model);
 
 	private String getGroupId(){
 		return record != null? record.getId(): null;
-	}
-
-	// ==================== Overrides ====================
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), GroupHandler.TYPE);
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, GroupHandler.TYPE, GroupHandler.ID_PREFIX);
 	}
 
 

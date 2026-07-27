@@ -152,9 +152,9 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
   +1 EVENT @<XREF:EVENT>@    {1:1}	/* The event in which the entity participated. */
   +1 ENTITY @<XREF:ID>@    {1:1}	/* The entity that participated in the event. */
   +1 ROLE <ROLE_IN_EVENT>    {0:1}	/* The role the entity played in the event. Known values are: CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, etc. This field is optional because the role may be unknown or not applicable. */
+  +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<SOURCE_CITATION>>    {0:M}
   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
-  +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
@@ -321,6 +321,7 @@ n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
     +2 <<DATE_STRUCTURE>>    {1:1}
   +1 NOTE @<XREF:NOTE>@    {0:M}
   +1 <<SOURCE_CITATION>>    {0:M}
+  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 /* Example: For Latin names, you must use the nominative (which generally ends in -us for men and -a for women) */
 /* Example: men: 23 years minor, 29 years major (31 JAN 1807 - 19 FEB 1811) (25, respectful act however until 30, https://it.wikisource.org/wiki/Codice_di_Napoleone_il_grande/Libro_I/Titolo_V). */
@@ -339,8 +340,8 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}
   +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
   +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}	/* The medium of the source. Known values include "audio", "book", "card", "electronic", "fiche", "film", "magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video". */
   +1 <<DOCUMENT_STRUCTURE>>    {0:M}	/* A document reference to the auxiliary data to be linked to this context. */
-  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
   +1 NOTE @<XREF:NOTE>@    {0:M}	/* An xref ID of a note record. May contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film ID, roll number, ...), etc. */
+  +1 <<SOURCE_CITATION>>    {0:M}	/* A list of SOURCE_CITATION objects referenced by this source. */
   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this source. */
   +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */

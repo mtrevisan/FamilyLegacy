@@ -1,7 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
-import javax.swing.*;
-import java.util.Objects;
+import javax.swing.JComboBox;
 
 
 public class BoundComboBox<E> extends JComboBox<E> implements PathBound{

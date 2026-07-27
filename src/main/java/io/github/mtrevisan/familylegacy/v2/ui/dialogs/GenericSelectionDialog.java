@@ -78,7 +78,6 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	private final JTextField searchField = new JTextField(15);
 	private final JButton searchButton = new JButton("Search");
 	private final JButton clearButton = new JButton("Clear");
-	private final JButton newButton = new JButton("New");
 	private final JButton selectButton = new JButton("Select");
 	private final JButton cancelButton = new JButton("Cancel");
 
@@ -94,7 +93,8 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	 * @param handler     the handler for the record type
 	 * @param onSelection callback invoked with the selected record ID, or null if cancelled
 	 */
-	public GenericSelectionDialog(Frame parent, FLEFModel model, RecordTypeHandler<T> handler, Consumer<String> onSelection){
+	public GenericSelectionDialog(final Frame parent, final FLEFModel model, final RecordTypeHandler<T> handler,
+			final Consumer<String> onSelection){
 		super(parent, "Select " + handler.getLabel(), true);
 
 		this.model = model;
@@ -102,9 +102,13 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		this.onSelection = onSelection;
 
 		initComponents();
+
 		loadAllRecords();
-		filterRecords("");
+
+		filterRecords(StringUtils.EMPTY);
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -114,7 +118,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		// Search panel
-		JPanel searchPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow][][][]"));
+		final JPanel searchPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow][][][]"));
 		searchPanel.add(new JLabel("Search:"), "align label");
 		searchPanel.add(searchField, "growx");
 		searchPanel.add(searchButton);
@@ -123,13 +127,12 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
 		// List panel
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
+		final JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		scrollPane.setBorder(BorderFactory.createTitledBorder(handler.getLabel() + " List"));
 		add(scrollPane, BorderLayout.CENTER);
 
 		// Button panel
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(newButton);
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(selectButton);
 		buttonPanel.add(cancelButton);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -137,40 +140,39 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		// Event listeners
 		searchButton.addActionListener(e -> filterRecords(searchField.getText().trim()));
 		clearButton.addActionListener(e -> {
-			searchField.setText("");
-			filterRecords("");
+			searchField.setText(StringUtils.EMPTY);
+			filterRecords(StringUtils.EMPTY);
 		});
 		cancelButton.addActionListener(e -> {
 			onSelection.accept(null);
+
 			dispose();
 		});
-		newButton.addActionListener(e -> createNewRecord());
 		selectButton.addActionListener(e -> selectAndClose());
 
 		// Double-click on list selects and closes
 		list.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2){
+				if(e.getClickCount() == 2)
 					selectAndClose();
-				}
 			}
 		});
 
 		// Real-time search as user types (with debounce)
 		searchField.getDocument().addDocumentListener(new DocumentListener(){
 			@Override
-			public void insertUpdate(DocumentEvent e){
+			public void insertUpdate(final DocumentEvent e){
 				filterRecords(searchField.getText().trim());
 			}
 
 			@Override
-			public void removeUpdate(DocumentEvent e){
+			public void removeUpdate(final DocumentEvent e){
 				filterRecords(searchField.getText().trim());
 			}
 
 			@Override
-			public void changedUpdate(DocumentEvent e){
+			public void changedUpdate(final DocumentEvent e){
 				filterRecords(searchField.getText().trim());
 			}
 		});
@@ -179,33 +181,35 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
 	private void loadAllRecords(){
 		allRecords = model.getRecordsByType(handler.getType());
-		if(allRecords == null){
+		if(allRecords == null)
 			allRecords = new ArrayList<>();
-		}
 	}
 
 
-	private void filterRecords(String searchText){
+	private void filterRecords(final String searchText){
 		filteredRecords.clear();
-		String lowerSearch = searchText.toLowerCase();
-		for(FLEFRecord record : allRecords){
-			String display = handler.getDisplayName(record);
-			if(display.toLowerCase().contains(lowerSearch)){
+
+		final String lowerSearch = searchText.toLowerCase();
+		for(final FLEFRecord record : allRecords){
+			final String display = handler.getDisplayName(record);
+			if(display.toLowerCase().contains(lowerSearch))
 				filteredRecords.add(record);
-			}
 		}
+
 		// Order by display name
 		filteredRecords.sort((a, b) -> {
-			String nameA = handler.getDisplayName(a);
-			String nameB = handler.getDisplayName(b);
+			final String nameA = handler.getDisplayName(a);
+			final String nameB = handler.getDisplayName(b);
 			return nameA.compareToIgnoreCase(nameB);
 		});
+
 		updateList();
 	}
 
 
 	private void updateList(){
 		listModel.clear();
+
 		if(filteredRecords.isEmpty()){
 			listModel.addElement("[No matching records]");
 			list.setEnabled(false);
@@ -214,64 +218,22 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		else{
 			list.setEnabled(true);
 			selectButton.setEnabled(true);
-			for(FLEFRecord record : filteredRecords){
+			for(final FLEFRecord record : filteredRecords)
 				listModel.addElement(handler.getDisplayName(record));
-			}
 		}
 	}
 
 
 	private void selectAndClose(){
-		int idx = list.getSelectedIndex();
+		final int idx = list.getSelectedIndex();
 		if(idx >= 0 && idx < filteredRecords.size()){
-			String selectedId = filteredRecords.get(idx).getId();
+			final String selectedId = filteredRecords.get(idx).getId();
 			onSelection.accept(selectedId);
 			dispose();
 		}
-		else{
+		else
 			// If nothing selected, show a message
 			JOptionPane.showMessageDialog(this, "Please select a record first.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
-		}
-	}
-
-
-	/**
-	 * Creates a new record of the handled type, then automatically selects it and closes the dialog.
-	 */
-	private void createNewRecord(){
-		// Remember existing IDs to detect the newly created one
-		Set<String> before = new HashSet<>();
-		for(FLEFRecord rec : allRecords){
-			String id = rec.getId();
-			if(id != null){
-				before.add(id);
-			}
-		}
-
-		// Open the creation dialog
-		JDialog newDialog = handler.createNewDialog((Frame)getParent(), model);
-		newDialog.setVisible(true);
-
-		// Reload all records and reapply the search filter
-		loadAllRecords();
-		filterRecords(searchField.getText().trim());
-
-		// Find the newly created record
-		String newId = null;
-		for(FLEFRecord rec : allRecords){
-			String id = rec.getId();
-			if(id != null && !before.contains(id)){
-				newId = id;
-				break;
-			}
-		}
-
-		if(newId != null){
-			// Automatically select the new record and close the dialog
-			onSelection.accept(newId);
-			dispose();
-		}
-		// If no new record was created (e.g., user cancelled), the dialog remains open.
 	}
 
 }

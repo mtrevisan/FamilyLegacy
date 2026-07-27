@@ -1,13 +1,21 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
+import java.awt.Dialog;
+import java.awt.Font;
 
 
 /**
@@ -161,7 +169,7 @@ public class DateFieldPanel extends JPanel{
 		FLEFRecord iso = FLEFRecordUtils.findChild(parent, "FULL_DATE");
 		if(iso != null && iso.getValue() != null){
 			String calendar = FLEFRecordUtils.getChildValue(iso, "CALENDAR");
-			return iso.getValue() + (calendar != null? " (" + calendar + ")": "");
+			return iso.getValue() + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
 		}
 		FLEFRecord century = FLEFRecordUtils.findChild(parent, "CENTURY");
 		if(century != null && century.getValue() != null){
@@ -175,9 +183,9 @@ public class DateFieldPanel extends JPanel{
 		FLEFRecord decade = FLEFRecordUtils.findChild(parent, "DECADE");
 		if(decade != null && decade.getValue() != null){
 			String calendar = FLEFRecordUtils.getChildValue(decade, "CALENDAR");
-			return decade.getValue() + "s" + (calendar != null? " (" + calendar + ")": "");
+			return decade.getValue() + "s" + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
 		}
-		return "";
+		return StringUtils.EMPTY;
 	}
 
 	private String extractBoundedSummary(FLEFRecord boundedNode){
@@ -220,7 +228,7 @@ public class DateFieldPanel extends JPanel{
 	 */
 	private String extractBoundEndpoint(FLEFRecord parent, String childTag){
 		FLEFRecord child = FLEFRecordUtils.findChild(parent, childTag);
-		if(child == null) return "";
+		if(child == null) return StringUtils.EMPTY;
 		return extractSingleDate(child);
 	}
 

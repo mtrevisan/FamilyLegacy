@@ -24,19 +24,44 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -87,7 +112,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	private final JButton clearGroupBtn = new JButton("Clear");
 	private String selectedGroupId;
 
-	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{"", "RESIDENCE", "CHILDREN_COUNT", "SOCIAL_CLASS"});
+	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "RESIDENCE", "CHILDREN_COUNT", "SOCIAL_CLASS"});
 
 	// VALUE - multi-line text area with scroll
 	private final JTextArea valueArea = new JTextArea(3, 30);
@@ -119,8 +144,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
 	// Evidence Qualifiers (simplified to a combo)
-	private final JComboBox<String> certaintyCombo = new JComboBox<>(new String[]{"", "challenged", "disproven", "proven"});
-	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{"", "0", "1", "2", "3"});
+	private final JComboBox<String> certaintyCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "challenged", "disproven", "proven"});
+	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -138,7 +163,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	// ----- Constructor -----
 	private GroupAttributeDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, buildTitle(model, record), model, record);
+		super(parent, buildTitle(model, record), model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
 
 		initComponents();
 		loadData();
@@ -330,7 +355,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private void clearGroup(){
 		selectedGroupId = null;
-		groupDisplayField.setText("");
+		groupDisplayField.setText(StringUtils.EMPTY);
 		editGroupBtn.setEnabled(false);
 		clearGroupBtn.setEnabled(false);
 	}
@@ -370,7 +395,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private void clearPlace(){
 		selectedPlaceId = null;
-		placeField.setText("");
+		placeField.setText(StringUtils.EMPTY);
 		clearPlaceBtn.setEnabled(false);
 	}
 
@@ -461,11 +486,11 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 		// TYPE
 		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
-		typeCombo.setSelectedItem(type != null? type: "");
+		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
 
 		// VALUE
 		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
-		valueArea.setText(value != null? value: "");
+		valueArea.setText(value != null? value: StringUtils.EMPTY);
 
 		// DATE_STRUCTURE (simplified)
 		FLEFRecord dateStruct = FLEFRecordUtils.findChild(record, "DATE_STRUCTURE");
@@ -492,7 +517,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			FLEFRecord dateStructFrom = FLEFRecordUtils.findChild(validFrom, "DATE_STRUCTURE");
 			if(dateStructFrom != null){
 				String fromDate = FLEFRecordUtils.getChildValue(dateStructFrom, "DATE");
-				validFromField.setText(fromDate != null? fromDate: "");
+				validFromField.setText(fromDate != null? fromDate: StringUtils.EMPTY);
 			}
 		}
 
@@ -502,7 +527,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			FLEFRecord dateStructTo = FLEFRecordUtils.findChild(validTo, "DATE_STRUCTURE");
 			if(dateStructTo != null){
 				String toDate = FLEFRecordUtils.getChildValue(dateStructTo, "DATE");
-				validToField.setText(toDate != null? toDate: "");
+				validToField.setText(toDate != null? toDate: StringUtils.EMPTY);
 			}
 		}
 
@@ -510,7 +535,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		FLEFRecord placeStruct = FLEFRecordUtils.findChild(record, "PLACE_STRUCTURE");
 		if(placeStruct != null){
 			selectedPlaceId = placeStruct.getValue();
-			placeField.setText(selectedPlaceId != null? selectedPlaceId: "");
+			placeField.setText(selectedPlaceId != null? selectedPlaceId: StringUtils.EMPTY);
 			clearPlaceBtn.setEnabled(selectedPlaceId != null);
 		}
 
@@ -528,10 +553,10 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		FLEFRecord evidence = FLEFRecordUtils.findChild(record, "EVIDENCE_QUALIFIERS");
 		if(evidence != null){
 			String certainty = FLEFRecordUtils.getChildValue(evidence, "CERTAINTY");
-			certaintyCombo.setSelectedItem(certainty != null? certainty: "");
+			certaintyCombo.setSelectedItem(certainty != null? certainty: StringUtils.EMPTY);
 
 			String credibility = FLEFRecordUtils.getChildValue(evidence, "CREDIBILITY");
-			credibilityCombo.setSelectedItem(credibility != null? credibility: "");
+			credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
 		}
 
 		// RESTRICTION_STRUCTURE
@@ -709,19 +734,9 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if(isNew){
 			model.addRecord(record);
 		}
+		isSaved = true;
 
 		dispose();
-	}
-
-	// ==================== Overrides ====================
-	@Override
-	protected FLEFRecord createNewRecord(){
-		return FLEFRecord.createMainRecord(generateNewId(), GroupAttributeHandler.TYPE);
-	}
-
-	@Override
-	protected String generateNewId(){
-		return FLEFRecordUtils.generateNewId(model, GroupAttributeHandler.TYPE, GroupAttributeHandler.ID_PREFIX);
 	}
 
 	// ==================== Main test ====================
