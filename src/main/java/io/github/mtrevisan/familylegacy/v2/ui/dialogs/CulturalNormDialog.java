@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -55,77 +56,81 @@ import java.util.function.Supplier;
  *     +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
-public class CulturalNormDialog extends BaseRecordDialog {
+public class CulturalNormDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = 950729006569948384L;
 
+
 	// Handlers
-	static {
+	static{
 		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
 	}
 
+
 	private final BindingManager bindingManager = new BindingManager();
 
+	private final Frame parent;
 	private final BoundTextField titleField = new BoundTextField("TITLE", 30);
-
-	// PLACE
 	private final JTextField placeDisplayField = new JTextField(20);
 	private FLEFRecord placeStructureRecord;
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Evidence");
 	private final EvidenceQualifiersPanel culturalNormQualifiers = new EvidenceQualifiersPanel("Evidence");
-
-	// Validity Date Display Fields & Records
 	private final JTextField validFromDisplayField = new JTextField(20);
 	private final JTextField validToDisplayField = new JTextField(20);
 	private FLEFRecord validFromDateRecord;
 	private FLEFRecord validToDateRecord;
-
-	// Panels
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
 	private final NoteListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final ModificationPanel modificationPanel;
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
 
-	public static CulturalNormDialog createNew(final Frame parent, final FLEFModel model) {
+	public static CulturalNormDialog createNew(final Frame parent, final FLEFModel model){
 		return new CulturalNormDialog(parent, model, null);
 	}
 
-	public static CulturalNormDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record) {
-		if (record == null) {
+	public static CulturalNormDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record){
+		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
-		}
+
 		return new CulturalNormDialog(parent, model, record);
 	}
 
-	private CulturalNormDialog(final Frame parent, final FLEFModel model, final FLEFRecord record) {
+	private CulturalNormDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
+
+		this.parent = parent;
 
 		modificationPanel = new ModificationPanel(this);
 		notePanel = new NoteListPanel(model, this);
 		sourceCitationPanel = new SourceCitationListPanel(model, this);
 
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
-	private static String buildTitle(final FLEFRecord record) {
-		return (record == null ? "New Cultural Norm" : "Edit Cultural Norm - " + record.getId());
+	private static String buildTitle(final FLEFRecord record){
+		return (record == null? "New Cultural Norm": "Edit Cultural Norm - " + record.getId());
 	}
 
 	@Override
-	protected void initComponents() {
+	protected void initComponents(){
 		bindingManager.bind(titleField);
 
-		setupDateField(validFromDisplayField, () -> validFromDateRecord != null, this::editValidFrom, this::clearValidFrom);
-		setupDateField(validToDisplayField, () -> validToDateRecord != null, this::editValidTo, this::clearValidTo);
+		setupDateField(validFromDisplayField, () -> validFromDateRecord != null, this::newValidFrom,
+			this::editValidFrom, this::clearValidFrom);
+		setupDateField(validToDisplayField, () -> validToDateRecord != null, this::newValidTo,
+			this::editValidTo, this::clearValidTo);
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
@@ -140,23 +145,24 @@ public class CulturalNormDialog extends BaseRecordDialog {
 		add(createButtonPanel(), BorderLayout.SOUTH);
 	}
 
-	private void setupDateField(JTextField field, Supplier<Boolean> hasSelection, Runnable editAction, Runnable clearAction) {
+	private void setupDateField(final JTextField field, final Supplier<Boolean> hasSelection, final Runnable newAction,
+			final Runnable editAction, final Runnable clearAction){
 		field.setEditable(false);
 		field.setBackground(UIManager.getColor("TextField.background"));
 		GUIHelper.installBehavior(field,
 			hasSelection,
 			editAction,
-			editAction,
+			newAction,
 			clearAction,
 			builder -> {
-				builder.item("Set Date...", editAction);
+				builder.item("Set Date...", newAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", editAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
 			});
 	}
 
-	private JPanel createMainPanel() {
+	private JPanel createMainPanel(){
 		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// TITLE
@@ -190,7 +196,7 @@ public class CulturalNormDialog extends BaseRecordDialog {
 		mainPanel.add(placePanel, "span 2,growx,wrap");
 
 		// Validity Range Panel
-		JPanel validityPanel = new JPanel(new MigLayout("ins 5, fillx, top", "[right]rel[grow]", "[]5[]"));
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5, fillx, top", "[right]rel[grow]", "[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 
 		validityPanel.add(new JLabel("Valid From:"), "align label");
@@ -206,49 +212,69 @@ public class CulturalNormDialog extends BaseRecordDialog {
 		return mainPanel;
 	}
 
-	// ==================== Date Handlers ====================
-
-	private void editValidFrom() {
-		FLEFRecord updated = showDateDialog("Valid From Date", validFromDateRecord);
-		if (updated != null) {
+	private void newValidFrom(){
+		final FLEFRecord updated = showNewDateDialog("Valid From Date");
+		if(updated != null){
 			validFromDateRecord = updated;
 			updateDateDisplay(validFromDisplayField, validFromDateRecord);
 		}
 	}
 
-	private void clearValidFrom() {
+	private void editValidFrom(){
+		final FLEFRecord updated = showEditDateDialog("Valid From Date", validFromDateRecord);
+		if(updated != null){
+			validFromDateRecord = updated;
+			updateDateDisplay(validFromDisplayField, validFromDateRecord);
+		}
+	}
+
+	private void clearValidFrom(){
 		validFromDateRecord = null;
 		validFromDisplayField.setText(StringUtils.EMPTY);
 	}
 
-	private void editValidTo() {
-		FLEFRecord updated = showDateDialog("Valid To Date", validToDateRecord);
-		if (updated != null) {
+	private void newValidTo(){
+		final FLEFRecord updated = showNewDateDialog("Valid To Date");
+		if(updated != null){
 			validToDateRecord = updated;
 			updateDateDisplay(validToDisplayField, validToDateRecord);
 		}
 	}
 
-	private void clearValidTo() {
+	private void editValidTo(){
+		final FLEFRecord updated = showEditDateDialog("Valid To Date", validToDateRecord);
+		if(updated != null){
+			validToDateRecord = updated;
+			updateDateDisplay(validToDisplayField, validToDateRecord);
+		}
+	}
+
+	private void clearValidTo(){
 		validToDateRecord = null;
 		validToDisplayField.setText(StringUtils.EMPTY);
 	}
 
-	private FLEFRecord showDateDialog(String title, FLEFRecord existingRecord) {
-		DateDialog dialog = new DateDialog(this, model, title, existingRecord);
+	private FLEFRecord showNewDateDialog(final String title){
+		final DateDialog dialog = DateDialog.createNew(this, model, title);
 		dialog.setVisible(true);
-		return dialog.isSaved() ? dialog.getDateRecord() : existingRecord;
+		return (dialog.isSaved()? dialog.getDateRecord(): null);
 	}
 
-	private void updateDateDisplay(JTextField field, FLEFRecord dateRecord) {
-		if (dateRecord == null) {
+	private FLEFRecord showEditDateDialog(final String title, final FLEFRecord dateRecord){
+		final DateDialog dialog = DateDialog.createEdit(this, model, title, dateRecord);
+		dialog.setVisible(true);
+		return (dialog.isSaved()? dialog.getDateRecord(): dateRecord);
+	}
+
+	private void updateDateDisplay(final JTextField field, final FLEFRecord dateRecord){
+		if(dateRecord == null){
 			field.setText(StringUtils.EMPTY);
 			return;
 		}
 		field.setText(DatePanel.getDisplayText(dateRecord));
 	}
 
-	private JPanel createReferencesPanel() {
+	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
@@ -261,22 +287,22 @@ public class CulturalNormDialog extends BaseRecordDialog {
 		return panel;
 	}
 
-	private void createNewPlace() {
+	private void createNewPlace(){
 		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-		final BaseRecordDialog dialog = (BaseRecordDialog) placeHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		final BaseRecordDialog dialog = (BaseRecordDialog)placeHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
-		if (dialog.isSaved() && dialog.getRecord() != null) {
+		if(dialog.isSaved() && dialog.getRecord() != null){
 			placeStructureRecord = dialog.getRecord();
 			updatePlaceDisplay();
 		}
 	}
 
-	private void addPlace() {
+	private void addPlace(){
 		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
-			if (selectedId != null) {
+			parent, model, placeHandler, selectedId -> {
+			if(selectedId != null){
 				placeStructureRecord = model.getRecordById(selectedId);
 				updatePlaceDisplay();
 			}
@@ -284,26 +310,24 @@ public class CulturalNormDialog extends BaseRecordDialog {
 		dialog.setVisible(true);
 	}
 
-	private void editPlace() {
-		if (placeStructureRecord == null) {
+	private void editPlace(){
+		if(placeStructureRecord == null)
 			return;
-		}
 
 		final PlaceStructureDialog dialog = new PlaceStructureDialog(this, model, placeStructureRecord);
 		dialog.setVisible(true);
-		if (dialog.isSaved()) {
+		if(dialog.isSaved())
 			updatePlaceDisplay();
-		}
 	}
 
-	private void clearPlace() {
+	private void clearPlace(){
 		placeStructureRecord = null;
 		placeDisplayField.setText(StringUtils.EMPTY);
 	}
 
-	private void updatePlaceDisplay() {
+	private void updatePlaceDisplay(){
 		String displayText = StringUtils.EMPTY;
-		if (placeStructureRecord != null) {
+		if(placeStructureRecord != null){
 			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 			displayText = placeHandler.getDisplayName(placeStructureRecord);
 		}
@@ -313,55 +337,51 @@ public class CulturalNormDialog extends BaseRecordDialog {
 	// ==================== Load / Save ====================
 
 	@Override
-	protected void loadData() {
+	protected void loadData(){
 		bindingManager.loadFromRecord(record);
 
 		// PLACE_STRUCTURE
 		placeStructureRecord = FLEFRecordUtils.findChild(record, "PLACE");
-		if (placeStructureRecord != null) {
+		if(placeStructureRecord != null){
 			updatePlaceDisplay();
 
 			final String placeCert = FLEFRecordUtils.getChildValue(placeStructureRecord, "CERTAINTY");
 			final String placeCred = FLEFRecordUtils.getChildValue(placeStructureRecord, "CREDIBILITY");
 			placeQualifiers.load(placeCert, placeCred);
-		} else {
-			clearPlace();
 		}
+		else
+			clearPlace();
 
 		// Load VALID_FROM
-		FLEFRecord validFrom = FLEFRecordUtils.findChild(record, "VALID_FROM");
-		if (validFrom != null) {
+		final FLEFRecord validFrom = FLEFRecordUtils.findChild(record, "VALID_FROM");
+		if(validFrom != null){
 			validFromDateRecord = FLEFRecordUtils.findChild(validFrom, "DATE");
 			updateDateDisplay(validFromDisplayField, validFromDateRecord);
-		} else {
-			clearValidFrom();
 		}
+		else
+			clearValidFrom();
 
 		// Load VALID_TO
-		FLEFRecord validTo = FLEFRecordUtils.findChild(record, "VALID_TO");
-		if (validTo != null) {
+		final FLEFRecord validTo = FLEFRecordUtils.findChild(record, "VALID_TO");
+		if(validTo != null){
 			validToDateRecord = FLEFRecordUtils.findChild(validTo, "DATE");
 			updateDateDisplay(validToDisplayField, validToDateRecord);
-		} else {
-			clearValidTo();
 		}
+		else
+			clearValidTo();
 
 		// NOTE
 		final List<String> noteIds = new ArrayList<>();
-		for (final FLEFRecord child : record.getChildren()) {
-			if ("NOTE".equals(child.getTag()) && child.getValue() != null) {
+		for(final FLEFRecord child : record.getChildren())
+			if("NOTE".equals(child.getTag()) && child.getValue() != null)
 				noteIds.add(child.getValue());
-			}
-		}
 		notePanel.loadFromNoteIds(noteIds);
 
 		// SOURCE_CITATION
 		final List<FLEFRecord> sources = new ArrayList<>();
-		for (final FLEFRecord child : record.getChildren()) {
-			if ("SOURCE".equals(child.getTag())) {
+		for(final FLEFRecord child : record.getChildren())
+			if("SOURCE".equals(child.getTag()))
 				sources.add(child);
-			}
-		}
 		sourceCitationPanel.setItems(sources);
 
 		final String placeCert = FLEFRecordUtils.getChildValue(record, "CERTAINTY");
@@ -373,19 +393,19 @@ public class CulturalNormDialog extends BaseRecordDialog {
 	}
 
 	@Override
-	protected boolean validateData() {
+	protected boolean validateData(){
 		return true;
 	}
 
 	@Override
-	protected void saveRecord() {
+	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
 
 		bindingManager.saveToRecord(record);
 
 		// PLACE
 		FLEFRecordUtils.removeChildren(record, "PLACE");
-		if (placeStructureRecord != null && placeStructureRecord.getValue() != null) {
+		if(placeStructureRecord != null && placeStructureRecord.getValue() != null){
 			placeStructureRecord.setTag("PLACE");
 			FLEFRecordUtils.updateChildValue(placeStructureRecord, "CERTAINTY", placeQualifiers.getCertainty());
 			FLEFRecordUtils.updateChildValue(placeStructureRecord, "CREDIBILITY", placeQualifiers.getCredibility());
@@ -393,26 +413,26 @@ public class CulturalNormDialog extends BaseRecordDialog {
 		}
 
 		// VALID_FROM
-		if (validFromDateRecord != null) {
-			FLEFRecord validFrom = FLEFRecord.createChild("VALID_FROM");
+		if(validFromDateRecord != null){
+			final FLEFRecord validFrom = FLEFRecord.createChild("VALID_FROM");
 			validFrom.addChild(validFromDateRecord);
 			record.addChild(validFrom);
 		}
 
 		// VALID_TO
-		if (validToDateRecord != null) {
-			FLEFRecord validTo = FLEFRecord.createChild("VALID_TO");
+		if(validToDateRecord != null){
+			final FLEFRecord validTo = FLEFRecord.createChild("VALID_TO");
 			validTo.addChild(validToDateRecord);
 			record.addChild(validTo);
 		}
 
 		// NOTE
-		for (final String id : notePanel.getNoteIds()) {
+		for(final String id : notePanel.getNoteIds()){
 			FLEFRecordUtils.addChild(record, "NOTE", FLEFRecordUtils.formatXRef(id));
 		}
 
 		// SOURCE
-		for (final FLEFRecord source : sourceCitationPanel.getItems()) {
+		for(final FLEFRecord source : sourceCitationPanel.getItems()){
 			source.setTag("SOURCE");
 			record.addChild(source);
 		}
@@ -423,17 +443,21 @@ public class CulturalNormDialog extends BaseRecordDialog {
 		// MODIFICATION
 		modificationPanel.saveToRecord(record);
 
-		if (isNew) {
+		if(isNew)
 			model.addRecord(record);
-		}
 		isSaved = true;
+
+// TODO to be removed
+FLEFFile.print(model);
+//		dispose();
 	}
 
-	public static void main(final String[] args) {
-		try {
+
+	public static void main(final String[] args){
+		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		} catch (final Exception ignored) {
 		}
+		catch(final Exception ignored){}
 
 		final FLEFModel model = new FLEFModel();
 
@@ -442,4 +466,5 @@ public class CulturalNormDialog extends BaseRecordDialog {
 			dialog.setVisible(true);
 		});
 	}
+
 }

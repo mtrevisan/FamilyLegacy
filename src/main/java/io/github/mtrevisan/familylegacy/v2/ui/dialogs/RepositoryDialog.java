@@ -43,9 +43,7 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
@@ -89,6 +87,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 
+	private final Frame parent;
 	private final NameListPanel namePanel;
 	private final JTextField custodianDisplayField = new JTextField(20);
 	private String selectedCustodianId;
@@ -116,6 +115,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private RepositoryDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
+		this.parent = parent;
 		modificationPanel = new ModificationPanel(this);
 		notePanel = new NoteListPanel(model, this);
 		namePanel = new NameListPanel(model, this);
@@ -209,7 +209,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	private void createNewIndividual(){
 		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-		final BaseRecordDialog dialog = (BaseRecordDialog)individualHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		final BaseRecordDialog dialog = (BaseRecordDialog)individualHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved() && dialog.getRecord() != null){
@@ -221,7 +221,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private void addIndividual(){
 		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, individualHandler, selectedId -> {
+			parent, model, individualHandler, selectedId -> {
 			if(selectedId != null){
 				selectedCustodianId = selectedId;
 				updateIndividualDisplay();
@@ -236,7 +236,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 		final FLEFRecord record = model.getRecordById(selectedCustodianId);
 		if(record != null){
-			final IndividualDialog dialog = IndividualDialog.createEdit(GUIHelper.getParentFrame(this), model, record);
+			final IndividualDialog dialog = IndividualDialog.createEdit(parent, model, record);
 			dialog.setVisible(true);
 			updateIndividualDisplay();
 		}
@@ -263,7 +263,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	private void createNewPlace(){
 		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-		final BaseRecordDialog dialog = (BaseRecordDialog)placeHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		final BaseRecordDialog dialog = (BaseRecordDialog)placeHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved() && dialog.getRecord() != null){
@@ -275,7 +275,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private void addPlace(){
 		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
+			parent, model, placeHandler, selectedId -> {
 			if(selectedId != null){
 				placeStructureRecord = model.getRecordById(selectedId);
 				updatePlaceDisplay();
@@ -320,9 +320,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 		namePanel.setItems(names);
 
 		// CUSTODIAN
-		final String indId = FLEFRecordUtils.getChildValue(record, "CUSTODIAN");
-		if(indId != null && !indId.isEmpty()){
-			selectedCustodianId = indId;
+		final String custodianId = FLEFRecordUtils.getChildValue(record, "CUSTODIAN");
+		if(custodianId != null && !custodianId.isEmpty()){
+			selectedCustodianId = custodianId;
 			updateIndividualDisplay();
 		}
 
@@ -398,8 +398,8 @@ public class RepositoryDialog extends BaseRecordDialog{
 		isSaved = true;
 
 // TODO to be removed
-		FLEFFile.print(model);
-// dispose();
+FLEFFile.print(model);
+//		dispose();
 	}
 
 

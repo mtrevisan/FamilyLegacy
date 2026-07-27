@@ -122,14 +122,14 @@ n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
   +1 TYPE [ CHARACTERISTIC | RESIDENCE | OCCUPATION | POSSESSION | MILITARY_RANK | CASTE | ETHNICITY | CITIZENSHIP | SSN | TITLE | CHILDREN_COUNT | MARRIAGES_COUNT | RELIGION | <ATTRIBUTE_TYPE> ]    {1:1}	/* The type of attribute. Custom types are permitted. */
   +1 VALUE <TEXT>    {0:1}	/* The value of the attribute (optional if the attribute type implies its own value, e.g., "BURIAL" implies the person was buried). */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 VALID_FROM    {0:1}
 ..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
 ..  +1 VALID_TO    {0:1}
 ..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
 ..  +1 <<PLACE_STRUCTURE>>    {0:1}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:1}	/* Specific conclusion that resolves the value or interpretation of this attribute. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
@@ -154,14 +154,14 @@ n @<XREF:GROUP_ATTRIBUTE>@ GROUP_ATTRIBUTE    {1:1}
   +1 TYPE [ RESIDENCE | CHILDREN_COUNT | SOCIAL_CLASS | <ATTRIBUTE_TYPE> ]    {1:1}	/* The classification of the attribute. Known values include RESIDENCE (place where the group is known to reside), CHILDREN_COUNT (reported number of children associated with the group), and SOCIAL_CLASS (economic or social classification of the group). Custom values are permitted. */
   +1 VALUE <TEXT>    {0:1}	/* The value assigned to the attribute. */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date on which the attribute was observed, recorded, reported, or otherwise documented. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 VALID_FROM    {0:1}
 ..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date from which this attribute is known or believed to have been valid. */
 ..  +1 VALID_TO    {0:1}
 ..    +2 <<DATE_STRUCTURE>>    {1:1}	/* The date until which this attribute is known or believed to have been valid. */
 ..  +1 <<PLACE_STRUCTURE>>    {0:1}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for this attribute. */
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:1}	/* Specific conclusion that resolves the value or interpretation of this attribute. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
@@ -175,12 +175,12 @@ n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
   +1 ROLE <RELATIONSHIP_ROLE>    {0:1}	/* Indicates the function, position, capacity or responsibility held by the subject within the relationship. For example 'president', 'member', 'resident' (in a neighborhood), 'head of household', 'tribal leader'. */
   +1 STATUS <RELATIONSHIP_STATUS>    {0:1}	/* Indicates the current status of the relationship. Known values include: 'active' (Relationship currently exists), 'ended' (Relationship no longer exists), 'disputed' (Relationship is challenged by conflicting evidence), 'proposed' (Relationship has been suggested but not sufficiently demonstrated), 'unknown' (Relationship status is not known) */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date the relationship was established, recognized, or documented. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 VALID_FROM    {0:1}	/* The date from which this relationship was known to be in effect. */
 ..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 VALID_TO    {0:1}	/* The date until which this relationship was known to be in effect. */
 ..    +2 <<DATE_STRUCTURE>>    {1:1}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
@@ -191,15 +191,15 @@ n @<XREF:RELATIONSHIP>@ RELATIONSHIP    {1:1}
 EVENT_STRUCTURE :=	/* Shared descriptive structure containing the details associated with an EVENT record. */
 n DESCRIPTION <EVENT_DESCRIPTION_OR_ATTRIBUTE_VALUE>    {0:1}	/* Text describing a particular event pertaining to the individual or group, or the value of an attribute. */
 n DATE    {0:1}	/* A DATE_STRUCTURE object giving the date of the event. */
-  +1 <<DATE_STRUCTURE>>    {1:1}
+..  +1 <<DATE_STRUCTURE>>    {1:1}
 ..n <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the location of the event. */
 n AGENCY <RESPONSIBLE_AGENCY>    {0:1}	/* The organization, institution, corporation, person, or other entity that has responsibility for the associated context. For example, an employer of a person of an associated occupation, or a church that administered rites or events, or an organization responsible for creating and/or archiving records. */
 n CAUSE <CAUSE_OF_EVENT>    {0:1}	/* Used in special cases to record the reasons which precipitated an event. Normally this will be used subordinate to a death event to show cause of death, such as might be listed on a death certificate. */
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 n CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
 ..n NOTE @<XREF:NOTE>@    {0:M}
 ..n <<SOURCE_CITATION>>    {0:M}
-n <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for the event. */
+..n <<EVIDENCE_QUALIFIERS>>    {0:1}	/* Evidence qualifiers for the event. */
 ..n <<RESTRICTION_STRUCTURE>>    {0:1}
 n <<CONCLUSION_STRUCTURE>>    {0:1}	/* Specific conclusion that resolves the value of this single event (e.g. "this date of birth is the proven one"). */
 ..n <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
@@ -220,21 +220,21 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
 PLACE_RECORD :=	/* A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP records in order to model changing jurisdictions and historical geography. */
 n @<XREF:PLACE>@ PLACE    {1:1}
 ..  +1 <<NAME_STRUCTURE>>    {1:M}	/* The name of the place formatted for display and address generation. */
-  +1 TYPE <PLACE_TYPE>    {0:1}	/* The classification of the place. Known values include: 'address', 'building', 'street', 'hamlet', 'village', 'town', 'municipality', 'city', 'metropolitan_area', 'county', 'province', 'department', 'district', 'region', 'macro_region', 'country', 'empire', 'parish', 'diocese', 'cemetery', 'archive', 'unknown'. Custom values are permitted. */
-  +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
-    +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name (as defined by ISO 6709: https://en.wikipedia.org/wiki/ISO_6709). */
-    +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name (as defined by ISO 6709: https://en.wikipedia.org/wiki/ISO_6709). */
-    +2 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 TYPE <PLACE_TYPE>    {0:1}	/* The classification of the place. Known values include: 'address', 'building', 'street', 'hamlet', 'village', 'town', 'municipality', 'city', 'metropolitan_area', 'county', 'province', 'department', 'district', 'region', 'macro_region', 'country', 'empire', 'parish', 'diocese', 'cemetery', 'archive', 'unknown'. Custom values are permitted. */
+..  +1 MAP    {0:1}	/* Contains the location of a place in a Global Positioning System. */
+..    +2 LATITUDE <PLACE_LATITUDE>    {1:1}	/* The value specifying the latitudinal coordinate of the place name (as defined by ISO 6709: https://en.wikipedia.org/wiki/ISO_6709). */
+..    +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}	/* The value specifying the longitudinal coordinate of the place name (as defined by ISO 6709: https://en.wikipedia.org/wiki/ISO_6709). */
+..    +2 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
   +1 <<CONCLUSION_STRUCTURE>>    {0:M}	/* One or more formal conclusions regarding this place. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
-PLACE_STRUCTURE :=	/* Reference to a PLACE record together with location-specific citations and evidence qualifiers. */
-n PLACE @<XREF:PLACE>@    {1:1}
+..PLACE_STRUCTURE :=	/* Reference to a PLACE record together with location-specific citations and evidence qualifiers. */
+..n PLACE @<XREF:PLACE>@    {1:1}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 
 PLACE_RELATIONSHIP_RECORD :=	/* A relationship connecting two place records. Place relationships are used to represent geographic, administrative, ecclesiastical, judicial, cadastral, postal, or historical associations between places. These relationships may change over time and can therefore be bounded by validity dates. */
 n @<XREF:PLACE_RELATIONSHIP>@ PLACE_RELATIONSHIP    {1:1}
@@ -299,7 +299,7 @@ n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address th
 ..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 SOURCE_RECORD :=	/* A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral testimony, database entry, image, audio recording, or any other evidence-bearing artifact. */
@@ -308,7 +308,7 @@ n @<XREF:SOURCE>@ SOURCE    {1:1}
     +2 <<TEXT_VALUE>>    {1:1}
   +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}	/* The person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc. */
   +1 DATE    {0:1}	/* A DATE_STRUCTURE object giving the date this source was created. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 <<PLACE_STRUCTURE>>    {0:1}	/* A PLACE object giving the place this source was created. */
   +1 PUBLISHER <SOURCE_PUBLISHER>    {0:1}	/* Name of the publisher of the publication. */
   +1 <<REPOSITORY_CITATION>>    {0:M}	/* A list of xref ID of repository records who owns this source. */
@@ -325,7 +325,7 @@ n SOURCE @<XREF:SOURCE>@    {1:1}
   +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}	/* Specific location within the information referenced. The data in this field should be in the form of a label and value pair (e.g., 'Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17'). */
   +1 CROP <CROP_COORDINATES>    {0:1}	/* Top-left and bottom-right coordinates of the enclosing box inside an image. */
   +1 NOTE <TEXT>    {0:M}	/* Free-text note. */
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
 
 
 DOCUMENT_STRUCTURE :=	/* A digital or physical representation associated with a source, such as an image, PDF, scan, transcription, audio recording, video, or other media resource. */
@@ -340,47 +340,47 @@ n FILE <RESOURCE_URI>    {1:1}	/* Resource URI (following RFC 3986 specification
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 
 
-DATE_STRUCTURE :=	/* Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should use the simpler DATE datatype instead. */
-n <<DATE_VALUE>>    {1:1}
+..DATE_STRUCTURE :=	/* Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should use the simpler DATE datatype instead. */
+..n <<DATE_VALUE>>    {1:1}
 ..n <<SOURCE_CITATION>>    {0:M}
-n <<EVIDENCE_QUALIFIERS>>    {0:1}
+..n <<EVIDENCE_QUALIFIERS>>    {0:1}
 
-DATE_VALUE :=	/* Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time. */
+..DATE_VALUE :=	/* Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time. */
 [
-n POINT    {1:1}	/* A single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence. */
-  +1 <<QUALIFIED_DATE>>    {1:1}
+..n POINT    {1:1}	/* A single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence. */
+..  +1 <<QUALIFIED_DATE>>    {1:1}
 |
-n BOUNDED    {1:1}	/* The exact date is unknown but is known to fall within the specified interval. The interval represents uncertainty about the date itself, not the duration of the fact. An omitted bound represents an open-ended limit. */
+..n BOUNDED    {1:1}	/* The exact date is unknown but is known to fall within the specified interval. The interval represents uncertainty about the date itself, not the duration of the fact. An omitted bound represents an open-ended limit. */
 ..  +1 NOT_BEFORE    {0:1}	/* At least one of NOT_BEFORE or NOT_AFTER is required. */
-    +2 <<QUALIFIED_DATE>>    {1:1}
+..    +2 <<QUALIFIED_DATE>>    {1:1}
 ..  +1 NOT_AFTER    {0:1}	/* At least one of NOT_BEFORE or NOT_AFTER is required. */
-    +2 <<QUALIFIED_DATE>>    {1:1}
+..    +2 <<QUALIFIED_DATE>>    {1:1}
 |
-n SPANNING    {1:1}	/* The fact itself extends across the specified interval. Unlike BOUNDED, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition. */
+..n SPANNING    {1:1}	/* The fact itself extends across the specified interval. Unlike BOUNDED, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition. */
 ..  +1 FROM    {0:1}	/* At least one of FROM or TO is required. */
-    +2 <<QUALIFIED_DATE>>    {1:1}
+..    +2 <<QUALIFIED_DATE>>    {1:1}
 ..  +1 TO    {0:1}	/* At least one of FROM or TO is required. */
-    +2 <<QUALIFIED_DATE>>    {1:1}
+..    +2 <<QUALIFIED_DATE>>    {1:1}
 ]
 
-QUALIFIED_DATE :=	/* A single point in time, optionally marked as an estimate rather than a value accepted as recorded/derived. This is the sole point of recursion in the grammar: it lets an interval's endpoint (or a standalone date) carry its own approximation, without allowing intervals to nest inside intervals. */
-n <<SINGLE_DATE>>    {1:1}
+..QUALIFIED_DATE :=	/* A single point in time, optionally marked as an estimate rather than a value accepted as recorded/derived. This is the sole point of recursion in the grammar: it lets an interval's endpoint (or a standalone date) carry its own approximation, without allowing intervals to nest inside intervals. */
+..n <<SINGLE_DATE>>    {1:1}
 ..n APPROXIMATE    {0:1}	/* Present only when this specific point is itself an estimate. The exact date is unknown, but this value is considered a reasonable approximation. */
 ..  +1 BASIS <APPROXIMATION_BASIS>    {0:1}	/* 'stated' (the source itself says "about"/"around"), 'calculated' (arithmetically derived from another known date, e.g., age at death), 'conventional' (deduced by applying a cultural norm typical of the period/place), 'unspecified'. */
   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:1}	/* mandatory in practice when BASIS = 'conventional': it is the record that justifies the estimate. */
 ..  +1 MARGIN <DURATION>    {0:1}	/* e.g., 'P2Y' = plus/minus 2 years, when the margin is quantifiable (as defined by ISO 8601 Durations: https://en.wikipedia.org/wiki/ISO_8601#Durations). */
 
-SINGLE_DATE :=	/* A single point in time expressed at an explicitly declared level of precision. The granularity is determined by the selected representation and is not inferred from formatting conventions. */
+..SINGLE_DATE :=	/* A single point in time expressed at an explicitly declared level of precision. The granularity is determined by the selected representation and is not inferred from formatting conventions. */
 [
 ..n FULL_DATE <DATE>    {1:1}	/* A calendar date (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
 ..  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
 |
-n CENTURY <ORDINAL>    {1:1}	/* A century designation, such as 15 for the 15th century. Optional qualifiers may indicate a subdivision of the century. */
-  +1 PART <CENTURY_PART>    {0:1}	/* A subdivision of the century: 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter', 'first_half', 'second_half', 'early', 'mid', 'late'. */
-  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
+..n CENTURY <ORDINAL>    {1:1}	/* A century designation, such as 15 for the 15th century. Optional qualifiers may indicate a subdivision of the century. */
+..  +1 PART <CENTURY_PART>    {0:1}	/* A subdivision of the century: 'first_quarter', 'second_quarter', 'third_quarter', 'fourth_quarter', 'first_half', 'second_half', 'early', 'mid', 'late'. */
+..  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
 |
-n DECADE <DECADE_START_YEAR>    {1:1}	/* A decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'. */
-  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
+..n DECADE <DECADE_START_YEAR>    {1:1}	/* A decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'. */
+..  +1 CALENDAR <CALENDAR_TYPE>    {1:1}	/* A calendar type. Known values: 'gregorian', 'julian', 'islamic', 'hebrew', 'chinese', 'indian', 'buddhist', 'french-republican', 'coptic', 'soviet eternal', 'ethiopian', 'mayan', ... */
 ]
 
 
@@ -388,7 +388,7 @@ HISTORIC_EVENT_RECORD :=	/* A significant historical event that may provide cont
 n @<XREF:HISTORIC_EVENT>@ HISTORIC_EVENT    {1:1}
   +1 TITLE <HISTORIC_EVENT_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */
   +1 DATE    {0:1}	/* The date on which this historic event happened. */
-    +2 <<DATE_STRUCTURE>>    {1:1}
+..    +2 <<DATE_STRUCTURE>>    {1:1}
 ..  +1 <<PLACE_STRUCTURE>>    {0:1}	/* The place in which this historic event happened. */
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
@@ -457,13 +457,13 @@ n @<XREF:IDENTITY_HYPOTHESIS>@ IDENTITY_HYPOTHESIS    {1:1}
   +1 SUBJECT @<XREF:ID>@    {1:1}	/* The first record in the identity hypothesis. */
   +1 CANDIDATE @<XREF:ID>@    {1:1}	/* The second record in the identity hypothesis. */
 ..  +1 <<SOURCE_CITATION>>    {0:M}
-  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+..  +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
   +1 COMMENT <TEXT>    {0:1}	/* A note explaining the basis for the possible duplicate hypothesis. */
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-EVIDENCE_QUALIFIERS :=	/* Qualifiers describing the confidence assigned to an assertion and the quality of evidence supporting that assertion. */
-n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* Measures confidence in the assertion itself. An assessment of whether the asserted fact, event, relationship, attribute, or association is believed to be correct. This reflects the researcher's confidence in the assertion itself, after evaluating the available evidence. Known values: proven: supported by sufficient evidence and accepted as correct; challenged: questioned by conflicting, incomplete, or uncertain evidence; disproven: demonstrated to be incorrect based on available evidence.
+..EVIDENCE_QUALIFIERS :=	/* Qualifiers describing the confidence assigned to an assertion and the quality of evidence supporting that assertion. */
+..n CERTAINTY <CERTAINTY_ASSESSMENT>    {0:1}	/* Measures confidence in the assertion itself. An assessment of whether the asserted fact, event, relationship, attribute, or association is believed to be correct. This reflects the researcher's confidence in the assertion itself, after evaluating the available evidence. Known values: proven: supported by sufficient evidence and accepted as correct; challenged: questioned by conflicting, incomplete, or uncertain evidence; disproven: demonstrated to be incorrect based on available evidence.
 */
-n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* Measures confidence in the supporting evidence. An assessment of the strength and reliability of the evidence supporting this assertion. Unlike CERTAINTY, which evaluates whether the assertion is believed to be correct, CREDIBILITY evaluates the quality of the evidence available. Values: 0: speculative, estimated, or unsupported; 1: weak evidence, limited support, or evidence of questionable reliability; 2: moderate evidence, reasonably reliable but incomplete or indirect; 3: strong evidence, multiple reliable sources, or evidence considered highly convincing.
+..n CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}	/* Measures confidence in the supporting evidence. An assessment of the strength and reliability of the evidence supporting this assertion. Unlike CERTAINTY, which evaluates whether the assertion is believed to be correct, CREDIBILITY evaluates the quality of the evidence available. Values: 0: speculative, estimated, or unsupported; 1: weak evidence, limited support, or evidence of questionable reliability; 2: moderate evidence, reasonably reliable but incomplete or indirect; 3: strong evidence, multiple reliable sources, or evidence considered highly convincing.
 */

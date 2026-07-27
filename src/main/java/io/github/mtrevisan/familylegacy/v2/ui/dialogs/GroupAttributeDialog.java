@@ -70,7 +70,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.1.0.
+ * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>

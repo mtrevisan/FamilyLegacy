@@ -273,7 +273,7 @@ public final class GUIHelper{
 
 
 	public static void showValidationErrorAndFocus(final Component parentComponent, final String message,
-		final JTabbedPane tabbedPane, final JPanel panel, final JComponent component){
+			final JTabbedPane tabbedPane, final JPanel panel, final JComponent component){
 		JOptionPane.showMessageDialog(parentComponent,
 			message,
 			"Validation Error", JOptionPane.ERROR_MESSAGE);

@@ -34,7 +34,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a {@code PLACE_STRUCTURE} according to FLEF 0.1.0.
+ * Dialog for editing a {@code PLACE_STRUCTURE} according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>

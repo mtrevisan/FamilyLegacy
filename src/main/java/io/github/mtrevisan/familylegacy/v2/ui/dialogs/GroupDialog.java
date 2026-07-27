@@ -1,3 +1,27 @@
+/*
+ * Copyright (c) 2026 Mauro Trevisan
+ *
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
@@ -6,49 +30,16 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.components.*;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-import java.awt.Frame;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.Rectangle;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
@@ -56,10 +47,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 
@@ -87,125 +76,106 @@ public class GroupDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -4670126000119212972L;
 
-	// Handlers
-	private final IndividualHandler individualHandler = new IndividualHandler();
-	private final RelationshipHandler relationshipHandler = new RelationshipHandler();
-	private final EventHandler eventHandler = new EventHandler();
-	private final NoteHandler noteHandler = new NoteHandler();
-	private final SourceHandler sourceHandler = new SourceHandler();
-	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
+	static{
+		HandlerRegistry.register(new IndividualHandler());
+		HandlerRegistry.register(new RelationshipHandler());
+		HandlerRegistry.register(new EventHandler());
+		HandlerRegistry.register(new NoteHandler());
+		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new GroupHandler());
+	}
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	// Preferred Image
-	private String preferredImageId;
-	private String preferredImageCrop;
-	private final JButton preferredImageButton = new JButton();
-
-	// UI components (simple fields are now bound)
-	private final BoundComboBox typeCombo = new BoundComboBox("TYPE",
+	// ---- UI components ----
+	private final BoundComboBox<String> typeCombo = new BoundComboBox<>("TYPE",
 		new String[]{StringUtils.EMPTY, "family", "household", "neighbourhood", "fraternity", "club", "research group",
 			"literary society", "association", "organisation", "tribe"});
 
-	// Panels (complex, handled manually)
-	private NameListPanel namePanel;
-	private RestrictionPanel restrictionPanel;
-	private ConclusionPanel conclusionPanel;
-	private ModificationPanel modificationPanel;
+	private final NameListPanel namePanel;
+	private final RestrictionPanel restrictionPanel;
+	private final ConclusionPanel conclusionPanel;
+	private final ModificationPanel modificationPanel;
 
-	// Members (relationships that link the group to individuals)
+	// ---- Lists using AbstractListPanel ----
+	private final EventListPanel eventPanel;
+	private final CulturalNormListPanel culturalNormPanel;
+	private final NoteListPanel notePanel;
+	private final SourceCitationListPanel sourcePanel;
+
+	// ---- Members (special handling for RELATIONSHIP) ----
 	private final DefaultListModel<String> memberListModel = new DefaultListModel<>();
 	private final JList<String> memberList = new JList<>(memberListModel);
 	private final List<FLEFRecord> memberRelationshipRecords = new ArrayList<>();
 
-	// Events
-	private final DefaultListModel<String> eventListModel = new DefaultListModel<>();
-	private final JList<String> eventList = new JList<>(eventListModel);
-	private final List<String> eventIds = new ArrayList<>();
-
-	// All other relationships (non‑member)
+	// ---- All other relationships ----
 	private final DefaultListModel<String> relationshipListModel = new DefaultListModel<>();
 	private final JList<String> relationshipList = new JList<>(relationshipListModel);
 	private final List<FLEFRecord> otherRelationshipRecords = new ArrayList<>();
 
-	// Cultural Norms
-	private final DefaultListModel<String> culturalNormListModel = new DefaultListModel<>();
-	private final JList<String> culturalNormList = new JList<>(culturalNormListModel);
-	private final List<String> culturalNormIds = new ArrayList<>();
+	// ---- Preferred Image ----
+	private String preferredImageId;
+	private String preferredImageCrop;
+	private final JButton preferredImageButton = new JButton();
 
-	// Notes (top-level)
-	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
-	private final JList<String> noteList = new JList<>(noteListModel);
-	private final List<String> noteIds = new ArrayList<>();
-	private final Map<String, String> noteDisplayMap = new HashMap<>();
+	// ---- Tabs ----
+	private final JTabbedPane tabbedPane = new JTabbedPane();
 
-	// Source Citations
-	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
-	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
-	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
-
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
-	// ----- Factory methods -----
+	// ---- Factory methods ----
 	public static GroupDialog createNew(Frame parent, FLEFModel model){
 		return new GroupDialog(parent, model, null);
 	}
 
 	public static GroupDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
-		if(record == null)
+		if(record == null){
 			throw new IllegalArgumentException("Record cannot be null");
+		}
 		return new GroupDialog(parent, model, record);
 	}
 
-	// ----- Constructor -----
+	// ---- Constructor ----
 	private GroupDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, buildTitle(model, record), model, record, HandlerRegistry.getHandler(GroupHandler.TYPE));
+		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(GroupHandler.TYPE));
+
+		// Initialize panels
+		this.namePanel = new NameListPanel(model, this);
+		this.restrictionPanel = new RestrictionPanel(this);
+		this.conclusionPanel = new ConclusionPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this);
+		this.eventPanel = new EventListPanel(model, this);
+		this.culturalNormPanel = new CulturalNormListPanel(model, this);
+		this.notePanel = new NoteListPanel(model, this);
+		this.sourcePanel = new SourceCitationListPanel(model, this);
 
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(500, 550));
+		setMinimumSize(new Dimension(550, 600));
 		pack();
 		setLocationRelativeTo(parent);
 	}
 
-	private static String buildTitle(FLEFModel model, FLEFRecord record){
-		return (record == null
-			? "New Group - " + FLEFRecordUtils.generateNewId(model, GroupHandler.TYPE, GroupHandler.ID_PREFIX) + "*"
-			: "Edit Group - " + record.getId());
+	private static String buildTitle(FLEFRecord record){
+		return (record == null)? "New Group": "Edit Group - " + record.getId();
 	}
 
-	// ----- Initialisation -----
+	// ---- Initialisation ----
 	@Override
 	protected void initComponents(){
-		namePanel = new NameListPanel(model, this);
-		restrictionPanel = new RestrictionPanel(this);
-		conclusionPanel = new ConclusionPanel(model, this);
-		modificationPanel = new ModificationPanel(this);
-
-		// Register bound components
 		bindingManager.bind(typeCombo);
 
-		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Conclusion", conclusionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
 
-		setLayout(new MigLayout("fillx"));
-		add(tabbedPane, "growx,push");
-
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
-		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
+		setLayout(new MigLayout("fillx, top"));
+		add(tabbedPane, "growx");
+		add(createButtonPanel(), BorderLayout.SOUTH);
 	}
 
-	// ==================== Main Panel ====================
+	// ---- Main Panel ----
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[grow]", "[]5[]5[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -224,12 +194,16 @@ public class GroupDialog extends BaseRecordDialog{
 		preferredImageButton.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(MouseEvent e){
-				if(e.isPopupTrigger()) imagePopup.show(preferredImageButton, e.getX(), e.getY());
+				if(e.isPopupTrigger()){
+					imagePopup.show(preferredImageButton, e.getX(), e.getY());
+				}
 			}
 
 			@Override
 			public void mouseReleased(MouseEvent e){
-				if(e.isPopupTrigger()) imagePopup.show(preferredImageButton, e.getX(), e.getY());
+				if(e.isPopupTrigger()){
+					imagePopup.show(preferredImageButton, e.getX(), e.getY());
+				}
 			}
 		});
 		panel.add(preferredImageButton, "growx, align center");
@@ -240,17 +214,16 @@ public class GroupDialog extends BaseRecordDialog{
 		typePanel.add(typeCombo, "growx");
 		panel.add(typePanel, "growx");
 
-		// Names (list)
+		// Names
 		panel.add(namePanel, "growx");
 
-		// Members (list)
-		JPanel membersPanel = createMembersPanel();
-		panel.add(membersPanel, "growx");
+		// Members
+		panel.add(createMembersPanel(), "growx");
 
 		return panel;
 	}
 
-	// ----- Members panel (relationships that link the group to individuals) -----
+	// ---- Members panel ----
 	private JPanel createMembersPanel(){
 		JPanel panel = new JPanel(new MigLayout("fillx"));
 		panel.setBorder(new TitledBorder("Members"));
@@ -259,9 +232,9 @@ public class GroupDialog extends BaseRecordDialog{
 
 		GUIHelper.installBehavior(memberList,
 			() -> memberList.getSelectedIndex() >= 0,
-			this::editMemberRelationship,                       // double‑click → edit relationship
-			this::createNewMember,                              // INSERT key → create new member
-			this::deleteMember,                                 // DELETE key → delete member
+			this::editMemberRelationship,
+			this::createNewMember,
+			this::deleteMember,
 			builder -> {
 				builder.item("Create New...", this::createNewMember);
 				builder.item("Add Existing...", this::addMember);
@@ -284,61 +257,30 @@ public class GroupDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	/**
-	 * Shows a dialog to manage notes attached to a relationship record.
-	 */
-	private void showRelationshipNotesDialog(FLEFRecord relationship){
-		if(relationship == null) return;
-		NoteListEditorDialog dialog = new NoteListEditorDialog(this, model, relationship);
-		dialog.setVisible(true);
-		if(dialog.isSaved()){
-			// Refresh the display in the members list
-			int idx = memberRelationshipRecords.indexOf(relationship);
-			if(idx != -1){
-				memberListModel.set(idx, getRelationshipDisplay(relationship));
-			}
-			// Also update the relationship list in the References tab
-			int otherIdx = otherRelationshipRecords.indexOf(relationship);
-			if(otherIdx != -1){
-				relationshipListModel.set(otherIdx, getRelationshipDisplay(relationship));
-			}
-		}
-	}
-
-	// ==================== References Panel ====================
+	// ---- References Panel ----
 	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]5[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, top, wrap 1", "[grow]", "[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-		panel.add(createListPanel("Events",
-				eventList, eventListModel,
-				this::addEvent, this::editEvent, this::deleteEvent),
-			"growx");
-
-		panel.add(createListPanel("Relationships (all)",
-				relationshipList, relationshipListModel,
-				this::addRelationship, this::editRelationship, this::deleteRelationship),
-			"growx");
-
-		panel.add(createListPanel("Cultural Norms",
-				culturalNormList, culturalNormListModel,
-				this::addCulturalNorm, this::editCulturalNorm, this::deleteCulturalNorm),
-			"growx");
-
-		panel.add(createListPanel("Notes",
-				noteList, noteListModel,
-				this::addNote, this::editNote, this::deleteNote),
-			"growx");
-
-		panel.add(createListPanel("Source Citations",
-				sourceCitationList, sourceCitationListModel,
-				this::addSourceCitation, this::editSourceCitation, this::deleteSourceCitation),
-			"growx");
+		panel.add(eventPanel, "growx");
+		panel.add(createListPanel("Relationships (all)", relationshipList, relationshipListModel,
+			this::addRelationship, this::editRelationship, this::deleteRelationship), "growx");
+		panel.add(culturalNormPanel, "growx");
+		panel.add(notePanel, "growx");
+		panel.add(sourcePanel, "growx");
 
 		return panel;
 	}
 
-	// ----- Generic list panel builder -----
+	// Helper to wrap a panel that already has its own border
+	private JPanel createListPanel(String title, JPanel contentPanel){
+		JPanel panel = new JPanel(new MigLayout("fillx"));
+		panel.setBorder(new TitledBorder(title));
+		panel.add(contentPanel, "growx");
+		return panel;
+	}
+
+	// Helper for lists that are not yet abstract (relationships)
 	private JPanel createListPanel(String title, JList<String> list, DefaultListModel<String> model,
 		Runnable addAction, Runnable editAction, Runnable deleteAction){
 		JPanel panel = new JPanel(new MigLayout("fillx"));
@@ -347,39 +289,41 @@ public class GroupDialog extends BaseRecordDialog{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installStandardBehavior(list,
+		GUIHelper.installBehavior(list,
 			() -> list.getSelectedIndex() >= 0,
-			() -> createNewItemForList(list, model),
-			addAction,
 			editAction,
+			addAction,
 			deleteAction,
-			null);
+			builder -> {
+				builder.item("Add...", addAction);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", editAction);
+				builder.selectionSensitiveItem("Remove", deleteAction);
+			});
 
 		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		panel.add(scrollPane, "growx,wrap");
 		return panel;
 	}
 
-	// ----- Helper to create new item from list context -----
-	private void createNewItemForList(JList<String> list, DefaultListModel<String> model){
-		if(list == eventList){
-			createNewEvent();
-		}
-		else if(list == relationshipList){
-			createNewRelationship();
-		}
-		else if(list == culturalNormList){
-			createNewCulturalNorm();
-		}
-		else if(list == noteList){
-			createNewNote();
-		}
-		else if(list == sourceCitationList){
-			createNewSource();
+	// ---- Relationship Notes Dialog ----
+	private void showRelationshipNotesDialog(FLEFRecord relationship){
+		if(relationship == null) return;
+		NoteListEditorDialog dialog = new NoteListEditorDialog(this, model, relationship);
+		dialog.setVisible(true);
+		if(dialog.isSaved()){
+			int idx = memberRelationshipRecords.indexOf(relationship);
+			if(idx != -1){
+				memberListModel.set(idx, getRelationshipDisplay(relationship));
+			}
+			int otherIdx = otherRelationshipRecords.indexOf(relationship);
+			if(otherIdx != -1){
+				relationshipListModel.set(otherIdx, getRelationshipDisplay(relationship));
+			}
 		}
 	}
 
-	// ==================== Preferred Image ====================
+	// ---- Preferred Image ----
 	private Icon createPlaceholderIcon(){
 		BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2 = img.createGraphics();
@@ -392,6 +336,7 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	private void selectAndCropImage(){
+		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 		final String[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> result[0] = selectedId);
@@ -456,12 +401,9 @@ public class GroupDialog extends BaseRecordDialog{
 		preferredImageButton.setIcon(createPlaceholderIcon());
 	}
 
-	// ==================== Member methods (relationships) ====================
-
-	/**
-	 * Adds an existing relationship record to the members list.
-	 */
+	// ---- Member methods ----
 	private void addMember(){
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 		final String[] selectedIndividualId = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			GUIHelper.getParentFrame(this), model, individualHandler, id -> selectedIndividualId[0] = id);
@@ -486,9 +428,6 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	/**
-	 * Creates a new individual and then a new relationship linking that individual to this group.
-	 */
 	private void createNewMember(){
 		Set<String> before = new HashSet<>();
 		for(FLEFRecord rec : model.getRecordsByType("INDIVIDUAL")){
@@ -496,6 +435,7 @@ public class GroupDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 		JDialog dialog = individualHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
@@ -527,15 +467,13 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	/**
-	 * Edits the selected member relationship.
-	 */
 	private void editMemberRelationship(){
 		int idx = memberList.getSelectedIndex();
 		if(idx == -1) return;
 
 		FLEFRecord existing = memberRelationshipRecords.get(idx);
-		RelationshipDialog dialog = relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, existing);
+		final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
+		RelationshipDialog dialog = (RelationshipDialog)relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -552,9 +490,6 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	/**
-	 * Opens the edit dialog for the individual associated with the selected member relationship.
-	 */
 	private void editMemberIndividual(){
 		int idx = memberList.getSelectedIndex();
 		if(idx == -1) return;
@@ -577,6 +512,7 @@ public class GroupDialog extends BaseRecordDialog{
 			return;
 		}
 
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 		JDialog dialog = individualHandler.createEditDialog(GUIHelper.getParentFrame(this), model, individual);
 		dialog.setVisible(true);
 
@@ -587,9 +523,6 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	/**
-	 * Deletes the selected member relationship.
-	 */
 	private void deleteMember(){
 		int idx = memberList.getSelectedIndex();
 		if(idx == -1) return;
@@ -602,141 +535,10 @@ public class GroupDialog extends BaseRecordDialog{
 		relationshipListModel.removeElement(getRelationshipDisplay(removed));
 	}
 
-	// ==================== Note helper methods (shared) ====================
-	private String getNoteDisplayName(String id){
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return noteHandler.getDisplayName(rec);
-		return id;
-	}
-
-	private void addNoteToList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
-			if(selectedId != null && !ids.contains(selectedId)){
-				ids.add(selectedId);
-				String display = getNoteDisplayName(selectedId);
-				displayMap.put(selectedId, display);
-				listModel.addElement(display);
-			}
-		});
-		dialog.setVisible(true);
-	}
-
-	private void editNoteFromList(JList<String> list, DefaultListModel<String> listModel,
-		List<String> ids, Map<String, String> displayMap){
-		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
-
-		String id = ids.get(idx);
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return;
-
-		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
-		dialog.setVisible(true);
-
-		String newDisplay = getNoteDisplayName(id);
-		displayMap.put(id, newDisplay);
-		listModel.set(idx, newDisplay);
-	}
-
-	private void deleteNoteFromList(JList<String> list, DefaultListModel<String> listModel,
-		List<String> ids, Map<String, String> displayMap){
-		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
-
-		if(!showConfirm("Confirm", "Remove this note?")) return;
-
-		String removedId = ids.remove(idx);
-		displayMap.remove(removedId);
-		listModel.remove(idx);
-	}
-
-	private void createNewNoteForList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
-		Set<String> before = new HashSet<>(ids);
-		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
-		dialog.setVisible(true);
-
-		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !ids.contains(id)){
-				ids.add(id);
-				String display = getNoteDisplayName(id);
-				displayMap.put(id, display);
-				listModel.addElement(display);
-				break;
-			}
-		}
-	}
-
-	// ==================== Event methods ====================
-	private void addEvent(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, eventHandler, selectedId -> {
-			if(selectedId != null && !eventIds.contains(selectedId)){
-				eventIds.add(selectedId);
-				eventListModel.addElement(getEventDisplayName(selectedId));
-			}
-		});
-		dialog.setVisible(true);
-	}
-
-	private void editEvent(){
-		int idx = eventList.getSelectedIndex();
-		if(idx == -1) return;
-
-		String id = eventIds.get(idx);
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return;
-
-		JDialog dialog = eventHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
-		dialog.setVisible(true);
-		eventListModel.set(idx, getEventDisplayName(id));
-	}
-
-	private void deleteEvent(){
-		int idx = eventList.getSelectedIndex();
-		if(idx == -1) return;
-
-		if(!showConfirm("Confirm", "Remove this event?")) return;
-
-		eventIds.remove(idx);
-		eventListModel.remove(idx);
-	}
-
-	private String getEventDisplayName(String id){
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return eventHandler.getDisplayName(rec);
-		return id;
-	}
-
-	private void createNewEvent(){
-		Set<String> before = new HashSet<>();
-		for(FLEFRecord rec : model.getRecordsByType("EVENT")){
-			String id = rec.getId();
-			if(id != null) before.add(id);
-		}
-
-		JDialog dialog = eventHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
-		dialog.setVisible(true);
-
-		for(FLEFRecord rec : model.getRecordsByType("EVENT")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id)){
-				eventIds.add(id);
-				eventListModel.addElement(getEventDisplayName(id));
-				return;
-			}
-		}
-	}
-
-	// ==================== Relationship methods (for the References tab) ====================
+	// ---- Relationship methods (for References tab) ----
 	private void addRelationship(){
-		addRelationship(null);
-	}
-
-	private boolean addRelationship(String preSelectedGroupId){
-		FLEFRecord record = null;
-		RelationshipDialog dialog = relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, record);
+		final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
+		RelationshipDialog dialog = (RelationshipDialog)relationshipHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -749,37 +551,17 @@ public class GroupDialog extends BaseRecordDialog{
 					memberRelationshipRecords.add(saved);
 					memberListModel.addElement(getRelationshipDisplay(saved));
 				}
-				return true;
 			}
 		}
-		return false;
-	}
-
-	private boolean isMemberRelationship(FLEFRecord relationship){
-		String subjectId = FLEFRecordUtils.getChildValue(relationship, "SUBJECT");
-		String objectId = FLEFRecordUtils.getChildValue(relationship, "OBJECT");
-		String groupId = getGroupId();
-
-		if(groupId == null) return false;
-
-		boolean groupIsSubject = groupId.equals(subjectId);
-		boolean groupIsObject = groupId.equals(objectId);
-
-		if(!groupIsSubject && !groupIsObject) return false;
-
-		String otherId = groupIsSubject? objectId: subjectId;
-		if(otherId == null) return false;
-
-		FLEFRecord other = model.getRecordById(otherId);
-		return other != null && "INDIVIDUAL".equals(other.getType());
 	}
 
 	private void editRelationship(){
 		int idx = relationshipList.getSelectedIndex();
 		if(idx == -1) return;
 
+		final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
 		FLEFRecord existing = otherRelationshipRecords.get(idx);
-		RelationshipDialog dialog = relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, existing);
+		RelationshipDialog dialog = (RelationshipDialog)relationshipHandler.createEditDialog(GUIHelper.getParentFrame(this), model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -812,6 +594,7 @@ public class GroupDialog extends BaseRecordDialog{
 		if(objectId != null){
 			FLEFRecord obj = model.getRecordById(objectId);
 			if(obj != null){
+				final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 				display.append(individualHandler.getDisplayName(obj));
 			}
 			else{
@@ -829,27 +612,25 @@ public class GroupDialog extends BaseRecordDialog{
 		return display.toString();
 	}
 
-	private void createNewRelationship(){
-		RelationshipDialog dialog = relationshipHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
-		dialog.setVisible(true);
+	private boolean isMemberRelationship(FLEFRecord relationship){
+		String subjectId = FLEFRecordUtils.getChildValue(relationship, "SUBJECT");
+		String objectId = FLEFRecordUtils.getChildValue(relationship, "OBJECT");
+		String groupId = getGroupId();
 
-		if(dialog.isSaved()){
-			FLEFRecord saved = dialog.getCitationRecord();
-			if(saved != null){
-				saved.setTag("RELATIONSHIP");
-				otherRelationshipRecords.add(saved);
-				relationshipListModel.addElement(getRelationshipDisplay(saved));
-				if(isMemberRelationship(saved)){
-					memberRelationshipRecords.add(saved);
-					memberListModel.addElement(getRelationshipDisplay(saved));
-				}
-			}
-		}
+		if(groupId == null) return false;
+
+		boolean groupIsSubject = groupId.equals(subjectId);
+		boolean groupIsObject = groupId.equals(objectId);
+
+		if(!groupIsSubject && !groupIsObject) return false;
+
+		String otherId = groupIsSubject? objectId: subjectId;
+		if(otherId == null) return false;
+
+		FLEFRecord other = model.getRecordById(otherId);
+		return other != null && "INDIVIDUAL".equals(other.getType());
 	}
 
-	/**
-	 * Refreshes the members list by scanning all relationships again.
-	 */
 	private void refreshMemberList(){
 		memberRelationshipRecords.clear();
 		memberListModel.clear();
@@ -862,223 +643,42 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Cultural Norm methods ====================
-	private void addCulturalNorm(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, culturalNormHandler, selectedId -> {
-			if(selectedId != null && !culturalNormIds.contains(selectedId)){
-				culturalNormIds.add(selectedId);
-				culturalNormListModel.addElement(getCulturalNormDisplayName(selectedId));
-			}
-		});
-		dialog.setVisible(true);
-	}
-
-	private void editCulturalNorm(){
-		int idx = culturalNormList.getSelectedIndex();
-		if(idx == -1) return;
-
-		String id = culturalNormIds.get(idx);
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec == null) return;
-
-		JDialog dialog = culturalNormHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
-		dialog.setVisible(true);
-		culturalNormListModel.set(idx, getCulturalNormDisplayName(id));
-	}
-
-	private void deleteCulturalNorm(){
-		int idx = culturalNormList.getSelectedIndex();
-		if(idx == -1) return;
-
-		if(!showConfirm("Confirm", "Remove this cultural norm?")) return;
-
-		culturalNormIds.remove(idx);
-		culturalNormListModel.remove(idx);
-	}
-
-	private String getCulturalNormDisplayName(String id){
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return culturalNormHandler.getDisplayName(rec);
-		return id;
-	}
-
-	private void createNewCulturalNorm(){
-		Set<String> before = new HashSet<>();
-		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
-			String id = rec.getId();
-			if(id != null) before.add(id);
-		}
-
-		JDialog dialog = culturalNormHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
-		dialog.setVisible(true);
-
-		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id)){
-				culturalNormIds.add(id);
-				culturalNormListModel.addElement(getCulturalNormDisplayName(id));
-				return;
-			}
-		}
-	}
-
-	// ==================== Note methods (top-level) ====================
-	private void addNote(){
-		addNoteToList(noteListModel, noteIds, noteDisplayMap);
-	}
-
-	private void editNote(){
-		editNoteFromList(noteList, noteListModel, noteIds, noteDisplayMap);
-	}
-
-	private void deleteNote(){
-		deleteNoteFromList(noteList, noteListModel, noteIds, noteDisplayMap);
-	}
-
-	private void createNewNote(){
-		createNewNoteForList(noteListModel, noteIds, noteDisplayMap);
-	}
-
-	// ==================== Source Citation methods ====================
-	private void addSourceCitation(){
-		addSourceCitation(null);
-	}
-
-	private boolean addSourceCitation(String preSelectedSourceId){
-		FLEFRecord citationRecord;
-		if(preSelectedSourceId != null && !preSelectedSourceId.isEmpty()){
-			citationRecord = FLEFRecord.createChildWithValue("SOURCE", preSelectedSourceId);
-		}
-		else{
-			citationRecord = null;
-		}
-
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, citationRecord);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved()){
-			FLEFRecord citation = dialog.getCitationRecord();
-			if(citation != null){
-				citation.setTag("SOURCE");
-				sourceCitationRecords.add(citation);
-				sourceCitationListModel.addElement(getSourceCitationDisplay(citation));
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private void editSourceCitation(){
-		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1) return;
-
-		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getCitationRecord();
-			if(updated != null){
-				sourceCitationRecords.set(idx, updated);
-				sourceCitationListModel.set(idx, getSourceCitationDisplay(updated));
-			}
-		}
-	}
-
-	private void deleteSourceCitation(){
-		int idx = sourceCitationList.getSelectedIndex();
-		if(idx == -1) return;
-
-		if(!showConfirm("Confirm", "Remove this source citation?")) return;
-
-		sourceCitationRecords.remove(idx);
-		sourceCitationListModel.remove(idx);
-	}
-
-	private String getSourceCitationDisplay(FLEFRecord citation){
-		String sourceId = citation.getValue();
-		String role = FLEFRecordUtils.getChildValue(citation, "ROLE");
-
-		StringBuilder display = new StringBuilder();
-
-		if(sourceId != null){
-			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null){
-				display.append(sourceHandler.getDisplayName(rec));
-			}
-			else{
-				display.append(sourceId);
-			}
-		}
-		else{
-			display.append("[empty]");
-		}
-
-		if(role != null && !role.isEmpty()){
-			display.append(" [").append(role).append("]");
-		}
-
-		return display.toString();
-	}
-
-	private void createNewSource(){
-		Set<String> before = new HashSet<>();
-		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
-			String id = rec.getId();
-			if(id != null) before.add(id);
-		}
-
-		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
-		dialog.setVisible(true);
-
-		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id)){
-				addSourceCitation(id);
-				return;
-			}
-		}
-	}
-
-	// ==================== Load Data ====================
+	// ---- Load Data ----
 	@Override
 	protected void loadData(){
-		setTitle(buildTitle(model, record));
+		setTitle(buildTitle(record));
 
-		// ---- Simple fields: load via binding manager ----
 		bindingManager.loadFromRecord(record);
 
-		// ---- Complex panels: manual load ----
+		// NAME_STRUCTURE
 		List<FLEFRecord> names = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren()){
+		for(FLEFRecord child : record.getChildren()){
 			if("NAME".equals(child.getTag())){
 				names.add(child);
 			}
 		}
 		namePanel.setItems(names);
 
+		// Restriction
 		FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
 		restrictionPanel.loadFromRecord(restrictionStruct);
 
-		// Clear members
+		// Conclusion
+		FLEFRecord conclusion = FLEFRecordUtils.findChild(record, "CONCLUSION");
+		conclusionPanel.loadFromRecord(conclusion);
+
+		// Clear all lists
 		memberRelationshipRecords.clear();
 		memberListModel.clear();
-
-		// Reset other lists
-		eventIds.clear();
-		eventListModel.clear();
 		otherRelationshipRecords.clear();
 		relationshipListModel.clear();
-		culturalNormIds.clear();
-		culturalNormListModel.clear();
-		noteIds.clear();
-		noteListModel.clear();
-		noteDisplayMap.clear();
-		sourceCitationRecords.clear();
-		sourceCitationListModel.clear();
 
-		// Process all children
+		// Process children for lists
+		List<String> eventIds = new ArrayList<>();
+		List<String> culturalNormIds = new ArrayList<>();
+		List<String> noteIds = new ArrayList<>();
+		List<FLEFRecord> sourceCitations = new ArrayList<>();
+
 		for(FLEFRecord child : record.getChildren()){
 			String tag = child.getTag();
 
@@ -1091,27 +691,23 @@ public class GroupDialog extends BaseRecordDialog{
 				}
 			}
 			else if("EVENT".equals(tag) && child.getValue() != null){
-				String id = child.getValue();
-				eventIds.add(id);
-				eventListModel.addElement(getEventDisplayName(id));
+				eventIds.add(child.getValue());
 			}
 			else if("CULTURAL_NORM".equals(tag) && child.getValue() != null){
-				String id = child.getValue();
-				culturalNormIds.add(id);
-				culturalNormListModel.addElement(getCulturalNormDisplayName(id));
+				culturalNormIds.add(child.getValue());
 			}
 			else if("NOTE".equals(tag) && child.getValue() != null){
-				String id = child.getValue();
-				noteIds.add(id);
-				String display = getNoteDisplayName(id);
-				noteDisplayMap.put(id, display);
-				noteListModel.addElement(display);
+				noteIds.add(child.getValue());
 			}
 			else if("SOURCE".equals(tag)){
-				sourceCitationRecords.add(child);
-				sourceCitationListModel.addElement(getSourceCitationDisplay(child));
+				sourceCitations.add(child);
 			}
 		}
+
+		eventPanel.setItems(eventIds);
+		culturalNormPanel.setItems(culturalNormIds);
+		notePanel.setItems(noteIds);
+		sourcePanel.setItems(sourceCitations);
 
 		// Preferred Image
 		FLEFRecord pref = FLEFRecordUtils.findChild(record, "PREFERRED_IMAGE");
@@ -1126,83 +722,65 @@ public class GroupDialog extends BaseRecordDialog{
 
 		// Modification
 		modificationPanel.loadFromRecord(record);
-
-		// Conclusion
-		FLEFRecord conclusion = FLEFRecordUtils.findChild(record, "CONCLUSION");
-		conclusionPanel.loadFromRecord(conclusion);
 	}
 
-	// ==================== Validation ====================
+	// ---- Validation ----
 	@Override
 	protected boolean validateData(){
-		// Validate names
-		//NOTE: no need to validate, all fields are optional
-//		if(!namePanel.validateRequiredFields()){
-//			return false;
-//		}
-
 		if(restrictionPanel.hasData() && !restrictionPanel.validateRequiredFields()){
 			return false;
 		}
-
-		return !conclusionPanel.hasData() || conclusionPanel.validateRequiredFields();
+		if(conclusionPanel.hasData() && !conclusionPanel.validateRequiredFields()){
+			return false;
+		}
+		return true;
 	}
 
-	// ==================== Save ====================
+	// ---- Save ----
 	@Override
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
 
-		// ---- Save complex panels first ----
-		for(final FLEFRecord nameRec : namePanel.getItems()){
+		// TYPE is saved by binding manager
+		bindingManager.saveToRecord(record);
+
+		// NAME_STRUCTURE
+		for(FLEFRecord nameRec : namePanel.getItems()){
 			nameRec.setTag("NAME");
 			record.addChild(nameRec);
 		}
 
-		// Restriction
-		if(restrictionPanel.hasData())
-			restrictionPanel.saveToRecord(record);
-
-		// Relationships (including members)
-		for(FLEFRecord rel : otherRelationshipRecords){
-			rel.setTag("RELATIONSHIP");
-			record.addChild(rel);
-		}
-
-		for(FLEFRecord rel : memberRelationshipRecords){
-			if(!otherRelationshipRecords.contains(rel)){
-				rel.setTag("RELATIONSHIP");
-				record.addChild(rel);
-			}
-		}
-
-		// Other elements (events, cultural norms, notes, source citations)
-		for(String id : eventIds){
-			FLEFRecordUtils.addChild(record, "EVENT", id);
-		}
-
-		for(String id : culturalNormIds){
+		// CULTURAL_NORM
+		for(String id : culturalNormPanel.getItems()){
 			FLEFRecordUtils.addChild(record, "CULTURAL_NORM", id);
 		}
 
-		for(String id : noteIds){
+		// NOTE
+		for(String id : notePanel.getItems()){
 			FLEFRecordUtils.addChild(record, "NOTE", id);
 		}
 
-		for(FLEFRecord citation : sourceCitationRecords){
+		// SOURCE_CITATION
+		for(FLEFRecord citation : sourcePanel.getItems()){
 			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
 
-		// Preferred Image
+		// PREFERRED_IMAGE
 		if(preferredImageId != null && !preferredImageId.isEmpty()){
 			FLEFRecord pref = FLEFRecord.createChildWithValue("PREFERRED_IMAGE", preferredImageId);
 			record.addChild(pref);
-
-			FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
+			if(preferredImageCrop != null && !preferredImageCrop.isEmpty()){
+				FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
+			}
 		}
 
-		// Conclusion
+		// RESTRICTION
+		if(restrictionPanel.hasData()){
+			restrictionPanel.saveToRecord(record);
+		}
+
+		// CONCLUSION
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
 			if(conclusion != null){
@@ -1211,35 +789,43 @@ public class GroupDialog extends BaseRecordDialog{
 			}
 		}
 
-		// Modification
-		modificationPanel.saveToRecord(record);
+		// RELATIONSHIP (including members)
+		for(FLEFRecord rel : otherRelationshipRecords){
+			rel.setTag("RELATIONSHIP");
+			record.addChild(rel);
+		}
+		// Ensure member relationships that might not be in otherRelationshipRecords are also saved
+		for(FLEFRecord rel : memberRelationshipRecords){
+			if(!otherRelationshipRecords.contains(rel)){
+				rel.setTag("RELATIONSHIP");
+				record.addChild(rel);
+			}
+		}
 
-		// ---- Save simple fields via binding manager (must be after clearing children) ----
-		bindingManager.saveToRecord(record);
+		// MODIFICATION
+		modificationPanel.saveToRecord(record);
 
 		if(isNew){
 			model.addRecord(record);
 		}
 		isSaved = true;
 
-//TODO to be removed
+// TODO to be removed
 FLEFFile.print(model);
-		dispose();
+//		dispose();
 	}
-
-	// ==================== Utility methods ====================
 
 	private String getGroupId(){
 		return record != null? record.getId(): null;
 	}
 
 
-	// ==================== Main test ====================
 	public static void main(String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){}
+		catch(Exception ignored){
+		}
 
 		FLEFModel model = new FLEFModel();
 

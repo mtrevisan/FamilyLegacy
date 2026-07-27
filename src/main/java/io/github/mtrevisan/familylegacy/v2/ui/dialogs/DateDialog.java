@@ -24,6 +24,14 @@ import java.awt.event.ActionEvent;
  * <p>
  * This dialog opens a {@link DatePanel} for editing a date structure.
  * It is invoked from other panels when a date needs to be edited.
+ * <p>
+ * Structure:
+ * <pre>
+ * DATE_STRUCTURE :=
+ * n <<DATE_VALUE>>    {1:1}
+ * n <<SOURCE_CITATION>>    {0:M}
+ * n <<EVIDENCE_QUALIFIERS>>    {0:1}
+ * </pre>
  */
 public class DateDialog extends JDialog{
 
@@ -31,39 +39,61 @@ public class DateDialog extends JDialog{
 	private FLEFRecord result;
 	private boolean saved = false;
 
+
 	/**
 	 * Creates a new DateDialog.
 	 *
 	 * @param parent      the parent dialog
 	 * @param model       the FLEF model
 	 * @param title       the dialog title
-	 * @param initialDate the initial DATE_STRUCTURE record (can be null)
 	 */
-	public DateDialog(Dialog parent, FLEFModel model, String title, FLEFRecord initialDate){
+	public static DateDialog createNew(final Dialog parent, final FLEFModel model, final String title){
+		return new DateDialog(parent, model, title, null);
+	}
+
+	/**
+	 * Creates a new DateDialog.
+	 *
+	 * @param parent      the parent dialog
+	 * @param model       the FLEF model
+	 * @param title       the dialog title
+	 * @param existingEntry the initial DATE_STRUCTURE record (can be null)
+	 */
+	public static DateDialog createEdit(final Dialog parent, final FLEFModel model, final String title,
+			final FLEFRecord existingEntry){
+		if(existingEntry == null)
+			throw new IllegalArgumentException("existingEntry cannot be null");
+
+		return new DateDialog(parent, model, title, existingEntry);
+	}
+
+	private DateDialog(final Dialog parent, final FLEFModel model, final String title, final FLEFRecord initialDate){
 		super(parent, title, true);
 
 		datePanel = new DatePanel(this, model);
 		datePanel.loadFromRecord(initialDate);
 
 		initComponents();
+
 		pack();
-		setMinimumSize(new Dimension(600, 450));
+
 		setLocationRelativeTo(parent);
 	}
+
 
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
 		// Date panel
-		JPanel panel = new JPanel(new BorderLayout(10, 10));
+		final JPanel panel = new JPanel(new BorderLayout(10, 10));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		panel.add(datePanel, BorderLayout.CENTER);
 		add(panel, BorderLayout.CENTER);
 
 		// Buttons
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okButton = new JButton("OK");
-		JButton cancelButton = new JButton("Cancel");
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		final JButton okButton = new JButton("OK");
+		final JButton cancelButton = new JButton("Cancel");
 		buttonPanel.add(okButton);
 		buttonPanel.add(cancelButton);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -86,7 +116,7 @@ public class DateDialog extends JDialog{
 		getRootPane().setDefaultButton(okButton);
 
 		// Escape key triggers Cancel
-		Action escapeAction = new AbstractAction(){
+		final Action escapeAction = new AbstractAction(){
 			@Override
 			public void actionPerformed(ActionEvent e){
 				saved = false;
@@ -126,8 +156,9 @@ public class DateDialog extends JDialog{
 	 * @param initialDate the initial DATE_STRUCTURE record (can be null)
 	 * @return the saved DATE_STRUCTURE record, or null
 	 */
-	public static FLEFRecord showDateDialog(Dialog parent, FLEFModel model, String title, FLEFRecord initialDate){
-		DateDialog dialog = new DateDialog(parent, model, title, initialDate);
+	public static FLEFRecord showDateDialog(final Dialog parent, final FLEFModel model, final String title,
+			final FLEFRecord initialDate){
+		final DateDialog dialog = createEdit(parent, model, title, initialDate);
 		dialog.setVisible(true);
 		return dialog.getDateRecord();
 	}

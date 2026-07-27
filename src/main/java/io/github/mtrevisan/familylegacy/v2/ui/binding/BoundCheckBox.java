@@ -14,6 +14,7 @@ public class BoundCheckBox extends JCheckBox implements PathBound{
 		this.path = path;
 	}
 
+
 	@Override
 	public String getPath(){
 		return path;

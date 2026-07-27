@@ -201,7 +201,7 @@ public class NameStructureDialog extends JDialog {
 	}
 
 	private FLEFRecord showDateDialog(String title, FLEFRecord existingRecord) {
-		DateDialog dialog = new DateDialog(this, model, title, existingRecord);
+		DateDialog dialog = DateDialog.createEdit(this, model, title, existingRecord);
 		dialog.setVisible(true);
 		return dialog.isSaved() ? dialog.getDateRecord() : existingRecord;
 	}

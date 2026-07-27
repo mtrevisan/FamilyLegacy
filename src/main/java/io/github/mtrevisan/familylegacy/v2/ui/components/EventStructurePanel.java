@@ -495,7 +495,7 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// Open the PlaceDialog in new mode
-		PlaceDialog dialog = new PlaceDialog(
+		PlaceDialog dialog = PlaceDialog.createNew(
 			(parent instanceof Frame? (Frame)parent: null),
 			model
 		);

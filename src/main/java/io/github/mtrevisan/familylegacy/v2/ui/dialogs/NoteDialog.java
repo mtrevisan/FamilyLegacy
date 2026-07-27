@@ -19,9 +19,7 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -66,6 +64,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
+	private final Frame parent;
 	private final BoundTextField titleField = new BoundTextField("TITLE", 30);
 	private final BoundTextArea valueArea = new BoundTextArea("VALUE", 10, 30);
 	private final BoundComboBox<String> mimeCombo = new BoundComboBox<>("MIME", new String[]{StringUtils.EMPTY, "text/plain", "text/html", "text/markdown"});
@@ -92,6 +91,8 @@ public class NoteDialog extends BaseRecordDialog{
 
 	private NoteDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
+
+		this.parent = parent;
 
 		translationPanel = new TranslationListPanel(model, this);
 		restrictionPanel = new RestrictionPanel(this);
@@ -178,9 +179,6 @@ public class NoteDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		setTitle(buildTitle(record));
-
-		// ---- Simple fields: load via binding manager ----
 		bindingManager.loadFromRecord(record);
 
 		// Translations

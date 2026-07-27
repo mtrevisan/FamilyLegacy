@@ -68,12 +68,12 @@ public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
 
 	@Override
 	public PlaceDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		return new PlaceDialog(parent, model, record);
+		return PlaceDialog.createEdit(parent, model, record);
 	}
 
 	@Override
 	public PlaceDialog createNewDialog(Frame parent, FLEFModel model){
-		return new PlaceDialog(parent, model);
+		return PlaceDialog.createNew(parent, model);
 	}
 
 }

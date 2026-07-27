@@ -30,6 +30,7 @@ public abstract class AbstractBoundComponent<C extends JComponent> implements Pa
 		this.toComponent = toComponent;
 	}
 
+
 	@Override
 	public String getPath(){
 		return path;

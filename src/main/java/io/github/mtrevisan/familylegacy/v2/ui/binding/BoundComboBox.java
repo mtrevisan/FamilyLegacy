@@ -14,6 +14,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		this.path = path;
 	}
 
+
 	@Override
 	public String getPath(){
 		return path;

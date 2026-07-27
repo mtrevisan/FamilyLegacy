@@ -15,6 +15,7 @@ public class BoundTextField extends JTextField implements PathBound{
 		this.path = path;
 	}
 
+
 	@Override
 	public String getPath(){
 		return path;
