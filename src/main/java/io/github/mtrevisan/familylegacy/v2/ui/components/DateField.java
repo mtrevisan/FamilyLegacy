@@ -13,10 +13,12 @@ import java.awt.Dialog;
 import java.util.function.Supplier;
 
 
+/* DONE */
 public class DateField extends JTextField{
 
 	private final Dialog parentDialog;
 	private final String dialogTitle;
+
 	private final FLEFModel model;
 	private final String wrapperTag;
 
@@ -46,9 +48,13 @@ public class DateField extends JTextField{
 		setEditable(false);
 		setBackground(UIManager.getColor("TextField.background"));
 
+		initComponents();
+	}
+
+	private void initComponents(){
 		setupField(
 			this,
-			() -> record != null,
+			() -> (record != null),
 			this::createNew,
 			this::edit,
 			this::clear
@@ -92,8 +98,12 @@ public class DateField extends JTextField{
 		final FLEFRecord wrapper = (wrapperTag != null
 			? FLEFRecordUtils.findChild(parentRecord, wrapperTag)
 			: parentRecord);
-		if(wrapper != null)
-			setRecord(FLEFRecordUtils.findChild(wrapper, "DATE"));
+		if(wrapper != null){
+			final FLEFRecord dateRecord = FLEFRecordUtils.findChild(wrapper, "DATE");
+			setText(dateRecord != null
+			  ? DatePanel.getDisplayText(dateRecord)
+			  : StringUtils.EMPTY);
+		}
 		else
 			clear();
 	}

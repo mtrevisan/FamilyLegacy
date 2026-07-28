@@ -111,12 +111,12 @@ public class EventStructurePanel extends JPanel{
 	private final JButton placeNewBtn = new JButton("New");
 	private final JButton placeClearBtn = new JButton("Clear");
 	private String selectedPlaceId;
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Place Evidence");
 
 	private final JTextField agencyField = new JTextField(20);
 
 	private final JTextField causeField = new JTextField(20);
-	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel("Cause Evidence");
+	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel("CAUSE", "Cause Evidence");
 
 	private final DefaultListModel<String> culturalNormModel = new DefaultListModel<>();
 	private final JList<String> culturalNormList = new JList<>(culturalNormModel);
@@ -132,7 +132,7 @@ public class EventStructurePanel extends JPanel{
 	private final JList<String> sourceList = new JList<>(sourceModel);
 	private final List<FLEFRecord> sourceRecords = new ArrayList<>();
 
-	private final EvidenceQualifiersPanel eventQualifiers = new EvidenceQualifiersPanel("Event Evidence");
+	private final EvidenceQualifiersPanel eventQualifiers = new EvidenceQualifiersPanel(null, "Event Evidence");
 
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
@@ -671,7 +671,7 @@ public class EventStructurePanel extends JPanel{
 
 		// DATE_STRUCTURE (0:1)
 		FLEFRecord dateRecord = FLEFRecordUtils.findChild(eventStructure, "DATE");
-		datePanel.loadFromRecord(dateRecord);
+		datePanel.load(dateRecord);
 
 		// PLACE (0:1)
 		FLEFRecord place = FLEFRecordUtils.findChild(eventStructure, "PLACE");
@@ -761,8 +761,7 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		if(eventStructure == null){
-			eventStructure = new FLEFRecord();
-			eventStructure.setTag("EVENT_STRUCTURE");
+			eventStructure = FLEFRecord.createChild("EVENT_STRUCTURE");
 		}
 
 		// Clear existing children
@@ -774,7 +773,7 @@ public class EventStructurePanel extends JPanel{
 
 		// DATE_STRUCTURE (0:1)
 		if(datePanel.hasData()){
-			FLEFRecord dateRecord = datePanel.saveToRecord(null);
+			FLEFRecord dateRecord = datePanel.save(null);
 			if(dateRecord != null){
 				dateRecord.setTag("DATE");
 				eventStructure.addChild(dateRecord);
@@ -783,9 +782,7 @@ public class EventStructurePanel extends JPanel{
 
 		// PLACE (0:1) with its children
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
-			FLEFRecord place = new FLEFRecord();
-			place.setTag("PLACE");
-			place.setValue(selectedPlaceId);
+			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", FLEFRecordUtils.formatXRef(selectedPlaceId));
 			eventStructure.addChild(place);
 			String placeCert = placeQualifiers.getCertainty();
 			FLEFRecordUtils.updateChildValue(place, "CERTAINTY", placeCert);
@@ -800,9 +797,7 @@ public class EventStructurePanel extends JPanel{
 		// CAUSE (0:1) with its children
 		String causeVal = causeField.getText().trim();
 		if(!causeVal.isEmpty()){
-			FLEFRecord cause = new FLEFRecord();
-			cause.setTag("CAUSE");
-			cause.setValue(causeVal);
+			FLEFRecord cause = FLEFRecord.createChildWithValue("CAUSE", causeVal);
 			eventStructure.addChild(cause);
 			String causeCert = causeQualifiers.getCertainty();
 			FLEFRecordUtils.updateChildValue(cause, "CERTAINTY", causeCert);

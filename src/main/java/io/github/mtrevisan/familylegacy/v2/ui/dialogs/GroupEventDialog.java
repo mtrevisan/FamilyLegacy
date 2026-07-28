@@ -114,9 +114,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 	private final JList<String> groupList = new JList<>(groupListModel);
 	private final List<String> groupIds = new ArrayList<>();
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
 	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler("EVENT");
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
 
@@ -165,13 +162,8 @@ public class GroupEventDialog extends BaseRecordDialog{
 		add(tabbedPane, BorderLayout.CENTER);
 
 		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 
@@ -385,17 +377,13 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 		// Aggiungi un evento di esempio per il TYPE
 		FLEFRecord eventType = FLEFRecord.createMainRecord("E1", "EVENT");
-		FLEFRecord type = new FLEFRecord();
-		type.setTag("TYPE");
-		type.setValue("BIRTH");
+		FLEFRecord type = FLEFRecord.createChildWithValue("TYPE", "BIRTH");
 		eventType.addChild(type);
 		model.addRecord(eventType);
 
 		// Aggiungi un gruppo di esempio
 		FLEFRecord group = FLEFRecord.createMainRecord("G1", "GROUP");
-		FLEFRecord name = new FLEFRecord();
-		name.setTag("NAME");
-		name.setValue("Sample Group");
+		FLEFRecord name = FLEFRecord.createChildWithValue("NAME", "Sample Group");
 		group.addChild(name);
 		model.addRecord(group);
 

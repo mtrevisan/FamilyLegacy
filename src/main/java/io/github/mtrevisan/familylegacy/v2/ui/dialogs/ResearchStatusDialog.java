@@ -114,9 +114,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 	private final ModificationPanel modificationPanel;
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
 	private final RecordTypeHandler<?> researchHandler = HandlerRegistry.getHandler("RESEARCH_STATUS");
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
@@ -194,13 +191,8 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		add(tabbedPane, BorderLayout.CENTER);
 
 		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 
@@ -330,7 +322,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(dialog.isSaved()){
 			FLEFRecord assocRecord = dialog.getAssociationRecord();
 			String value = assocRecord.getValue();
-			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(assocRecord.getId());
+			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(assocRecord.getFormattedId());
 
 			AssociationEntry entry;
 			if(isVoid){
@@ -361,22 +353,17 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		AssociationEntry existing = associationEntries.get(idx);
 
 		// Convert to FLEFRecord for the AssociationDialog
-		FLEFRecord assocRecord = new FLEFRecord();
-		assocRecord.setTag("ASSOCIATION");
+		FLEFRecord assocRecord = FLEFRecord.createChild("ASSOCIATION");
 		if(existing.isVoid){
 			assocRecord.setId("VOID");
-			FLEFRecord nameChild = new FLEFRecord();
-			nameChild.setTag("NAME");
-			nameChild.setValue(existing.name);
+			FLEFRecord nameChild = FLEFRecord.createChildWithValue("NAME", existing.name);
 			assocRecord.addChild(nameChild);
 		}
 		else{
 			assocRecord.setValue(existing.targetId);
 		}
 		for(String noteId : existing.noteIds){
-			FLEFRecord noteChild = new FLEFRecord();
-			noteChild.setTag("NOTE");
-			noteChild.setValue(noteId);
+			FLEFRecord noteChild = FLEFRecord.createChildWithValue("NOTE", noteId);
 			assocRecord.addChild(noteChild);
 		}
 
@@ -389,7 +376,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getAssociationRecord();
 			String value = updated.getValue();
-			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(updated.getId());
+			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(updated.getFormattedId());
 
 			AssociationEntry entry;
 			if(isVoid){
@@ -494,7 +481,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		for(FLEFRecord child : record.getChildren()){
 			if("ASSOCIATION".equals(child.getTag())){
 				String value = child.getValue();
-				boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(child.getId());
+				boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(child.getFormattedId());
 
 				AssociationEntry entry;
 				if(isVoid){
@@ -574,15 +561,12 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 		// ASSOCIATION (0:M)
 		for(AssociationEntry entry : associationEntries){
-			FLEFRecord assoc = new FLEFRecord();
-			assoc.setTag("ASSOCIATION");
+			FLEFRecord assoc = FLEFRecord.createChild("ASSOCIATION");
 
 			if(entry.isVoid){
 				assoc.setId("VOID");
 				if(entry.name != null && !entry.name.isEmpty()){
-					FLEFRecord nameChild = new FLEFRecord();
-					nameChild.setTag("NAME");
-					nameChild.setValue(entry.name);
+					FLEFRecord nameChild = FLEFRecord.createChildWithValue("NAME", entry.name);
 					assoc.addChild(nameChild);
 				}
 			}
@@ -591,9 +575,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 			}
 
 			for(String noteId : entry.noteIds){
-				FLEFRecord noteChild = new FLEFRecord();
-				noteChild.setTag("NOTE");
-				noteChild.setValue(noteId);
+				FLEFRecord noteChild = FLEFRecord.createChildWithValue("NOTE", noteId);
 				assoc.addChild(noteChild);
 			}
 
@@ -628,24 +610,16 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 		// Aggiungi un individuo di esempio per le associazioni
 		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		FLEFRecord name = new FLEFRecord();
-		name.setTag("NAME");
-		FLEFRecord given = new FLEFRecord();
-		given.setTag("INDIVIDUAL_NAME");
-		given.setValue("John");
+		FLEFRecord name = FLEFRecord.createChild("NAME");
+		FLEFRecord given = FLEFRecord.createChildWithValue("INDIVIDUAL_NAME", "John");
 		name.addChild(given);
-		FLEFRecord family = new FLEFRecord();
-		family.setTag("FAMILY_NAME");
-		family.setValue("Doe");
+		FLEFRecord family = FLEFRecord.createChildWithValue("FAMILY_NAME", "Doe");
 		name.addChild(family);
 		ind.addChild(name);
 		model.addRecord(ind);
 
-		// Aggiungi un research status di esempio
 		FLEFRecord research = FLEFRecord.createMainRecord("R1", "RESEARCH_STATUS");
-		FLEFRecord question = new FLEFRecord();
-		question.setTag("QUESTION");
-		question.setValue("Who was the father of John Doe?");
+		FLEFRecord question = FLEFRecord.createChildWithValue("QUESTION", "Who was the father of John Doe?");
 		research.addChild(question);
 		model.addRecord(research);
 

@@ -147,7 +147,8 @@ public class NoteDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
-		add(createButtonPanel(), BorderLayout.SOUTH);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
 	private JPanel createMainPanel(){

@@ -282,7 +282,7 @@ public class ModificationPanel extends JPanel{
 	 * @param targetRecord the record to save into
 	 */
 	public void save(final FLEFRecord targetRecord){
-		final FLEFRecord record = (targetRecord != null? targetRecord: new FLEFRecord());
+		final FLEFRecord record = (targetRecord != null? targetRecord: FLEFRecord.createEmpty());
 
 		// Remove existing children
 		FLEFRecordUtils.removeChildren(record, "CREATION");

@@ -241,16 +241,15 @@ public class ConclusionPanel extends JPanel{
 		if(!hasData())
 			return null;
 
-		FLEFRecord record = target != null? target: new FLEFRecord();
+		FLEFRecord record = target != null? target: FLEFRecord.createChild("CONCLUSION");
 		FLEFRecordUtils.removeAllChildren(record);
-		record.setTag("CONCLUSION");
 
 		// Save bound fields
 		bindingManager.saveToRecord(record);
 
 		// Save RESOLVES
 		for(String id : resolvesPanel.getItems()){
-			record.addChild(FLEFRecord.createChildWithValue("RESOLVES", id));
+			record.addChild(FLEFRecord.createChildWithValue("RESOLVES", FLEFRecordUtils.formatXRef(id)));
 		}
 
 		// Save PREFERRED
@@ -260,7 +259,7 @@ public class ConclusionPanel extends JPanel{
 
 		// Save RESEARCH
 		for(String id : researchPanel.getItems()){
-			record.addChild(FLEFRecord.createChildWithValue("RESEARCH", id));
+			record.addChild(FLEFRecord.createChildWithValue("RESEARCH", FLEFRecordUtils.formatXRef(id)));
 		}
 
 		// Save SOURCE_CITATION

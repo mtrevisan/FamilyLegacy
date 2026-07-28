@@ -64,7 +64,7 @@ public class FLEFModel{
 		recordsByType.computeIfAbsent(type, k -> new ArrayList<>()).add(record);
 		// Indexing by ID
 		if(record.getId() != null)
-			recordsById.put(FLEFRecordUtils.extractXRef(record.getId()), record);
+			recordsById.put(record.getId(), record);
 	}
 
 	public List<FLEFRecord> getRecordsByType(final String type){

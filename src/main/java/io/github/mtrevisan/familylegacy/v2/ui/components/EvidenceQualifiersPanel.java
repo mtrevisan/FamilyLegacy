@@ -26,6 +26,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 	private static final String[] CERTAINTY_VALUES = {StringUtils.EMPTY, "challenged", "disproven", "proven"};
 	private static final String[] CREDIBILITY_VALUES = {StringUtils.EMPTY, "0", "1", "2", "3"};
 
+
+	private String path;
+
 	private final JComboBox<String> certaintyCombo;
 	private final JComboBox<String> credibilityCombo;
 
@@ -35,8 +38,8 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 *
 	 * @param title the title to display in the TitledBorder
 	 */
-	public EvidenceQualifiersPanel(final String title){
-		this(title, CERTAINTY_VALUES, CREDIBILITY_VALUES);
+	public EvidenceQualifiersPanel(final String path, final String title){
+		this(path, title, CERTAINTY_VALUES, CREDIBILITY_VALUES);
 	}
 
 	/**
@@ -46,7 +49,10 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param certaintyValues	The values for the certainty combo (may not be {@code null}).
 	 * @param credibilityValues	The values for the credibility combo (may not be {@code null}).
 	 */
-	public EvidenceQualifiersPanel(final String title, final String[] certaintyValues, final String[] credibilityValues){
+	public EvidenceQualifiersPanel(final String path, final String title, final String[] certaintyValues, final String[] credibilityValues){
+		this.path = (path != null && !path.isEmpty()? path + ".": StringUtils.EMPTY);
+
+
 		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]"));
 		setBorder(BorderFactory.createTitledBorder(title));
 
@@ -92,19 +98,19 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record the record to read from
 	 */
 	public void load(final FLEFRecord record){
-		final String certainty = FLEFRecordUtils.getChildValue(record, "CERTAINTY");
+		final String certainty = FLEFRecordUtils.getChildValue(record, path + "CERTAINTY");
 		certaintyCombo.setSelectedItem(certainty != null? certainty: StringUtils.EMPTY);
 
-		final String credibility = FLEFRecordUtils.getChildValue(record, "CREDIBILITY");
+		final String credibility = FLEFRecordUtils.getChildValue(record, path + "CREDIBILITY");
 		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
 	}
 
 	public void save(final FLEFRecord record){
 		final String certainty = getCertainty();
-		FLEFRecordUtils.updateChildValue(record, "CERTAINTY", certainty);
+		FLEFRecordUtils.updateChildValue(record, path + "CERTAINTY", certainty);
 
 		final String credibility = getCredibility();
-		FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
+		FLEFRecordUtils.updateChildValue(record, path + "CREDIBILITY", credibility);
 	}
 
 	/**

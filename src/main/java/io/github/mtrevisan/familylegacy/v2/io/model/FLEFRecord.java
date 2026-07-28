@@ -49,7 +49,7 @@ public class FLEFRecord{
 
 
 	public static FLEFRecord createMainRecord(final String id, final String type){
-		final FLEFRecord record = new FLEFRecord();
+		final FLEFRecord record = createEmpty();
 		record.setId(id);
 		record.setTag(type);
 		return record;
@@ -62,20 +62,30 @@ public class FLEFRecord{
 	}
 
 	public static FLEFRecord createChild(final String tag){
-		final FLEFRecord record = new FLEFRecord();
+		final FLEFRecord record = createEmpty();
 		record.setTag(tag);
 		return record;
 	}
 
-	//FIXME restore private constructor
-//	private FLEFRecord(){}
+
+	public static FLEFRecord createEmpty(){
+		return new FLEFRecord();
+	}
+
+
+	private FLEFRecord(){}
+
 
 	public String getId(){
+		return FLEFRecordUtils.extractXRef(id);
+	}
+
+	public String getFormattedId(){
 		return id;
 	}
 
 	public void setId(final String id){
-		this.id = id;
+		this.id = FLEFRecordUtils.formatXRef(id);
 	}
 
 	public String getTag(){

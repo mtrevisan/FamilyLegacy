@@ -82,8 +82,9 @@ public class AliasDialog extends JDialog{
 	private static final long serialVersionUID = 4427478554848969493L;
 
 
-	private final FLEFModel model;
 	private final Frame parentFrame;
+
+	private final FLEFModel model;
 	private final AliasEntry existingEntry;
 	private boolean saved = false;
 
@@ -92,7 +93,7 @@ public class AliasDialog extends JDialog{
 	private final JButton clearAliasBtn = new JButton("Clear");
 	private String selectedAliasId;
 
-	private final EvidenceQualifiersPanel qualifiersPanel = new EvidenceQualifiersPanel("Evidence Qualifiers");
+	private final EvidenceQualifiersPanel qualifiersPanel = new EvidenceQualifiersPanel(null, "Evidence Qualifiers");
 
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
@@ -427,15 +428,10 @@ public class AliasDialog extends JDialog{
 
 		// Add a sample individual
 		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		FLEFRecord name = new FLEFRecord();
-		name.setTag("NAME");
-		FLEFRecord given = new FLEFRecord();
-		given.setTag("INDIVIDUAL_NAME");
-		given.setValue("John");
+		FLEFRecord name = FLEFRecord.createChild("NAME");
+		FLEFRecord given = FLEFRecord.createChildWithValue("INDIVIDUAL_NAME", "John");
 		name.addChild(given);
-		FLEFRecord family = new FLEFRecord();
-		family.setTag("FAMILY_NAME");
-		family.setValue("Doe");
+		FLEFRecord family = FLEFRecord.createChildWithValue("FAMILY_NAME", "Doe");
 		name.addChild(family);
 		ind.addChild(name);
 		model.addRecord(ind);

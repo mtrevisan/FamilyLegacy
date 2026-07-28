@@ -81,8 +81,9 @@ public class RelationshipDialog extends JDialog{
 		HandlerRegistry.register(new NoteHandler());
 	}
 
-	private final FLEFModel model;
 	private final Dialog parentDialog;
+
+	private final FLEFModel model;
 	private final FLEFRecord existingCitation; // may be null for new
 	private final String prefilledSubjectId;
 	private final String prefilledObjectId;
@@ -534,10 +535,7 @@ public class RelationshipDialog extends JDialog{
 			return null;
 		}
 
-		FLEFRecord record = existingCitation != null? existingCitation: new FLEFRecord();
-		if(existingCitation == null){
-			record.setTag("RELATIONSHIP");
-		}
+		FLEFRecord record = existingCitation != null? existingCitation: FLEFRecord.createChild("RELATIONSHIP");
 
 		// ---- Manual fields: SUBJECT, OBJECT, NOTES ----
 		// SUBJECT

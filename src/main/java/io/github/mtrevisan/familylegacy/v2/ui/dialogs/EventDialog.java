@@ -59,12 +59,12 @@ public class EventDialog extends BaseRecordDialog{
 	private final JTextArea descriptionArea = new JTextArea(3, 30);
 	private final JTextField dateField = new JTextField(20);
 	private final JTextField placeField = new JTextField(15);
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Place Evidence");
 	private final JTextField agencyField = new JTextField(20);
 	private final JTextField causeField = new JTextField(20);
-	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel("Cause Evidence");
+	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel("CAUSE", "Cause Evidence");
 
-	private final EvidenceQualifiersPanel eventQualifiers = new EvidenceQualifiersPanel("Event Evidence");
+	private final EvidenceQualifiersPanel eventQualifiers = new EvidenceQualifiersPanel(null, "Event Evidence");
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
 	private final JTextField culturalNormsField = new JTextField(30);
@@ -75,8 +75,6 @@ public class EventDialog extends BaseRecordDialog{
 
 	private final JTextArea modificationArea = new JTextArea(5, 30);
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
 
 	/**
 	 * Creates a dialog to edit an existing event record.
@@ -194,15 +192,11 @@ public class EventDialog extends BaseRecordDialog{
 		add(tabbedPane, BorderLayout.CENTER);
 
 		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
 
 		// --- Event listeners ---
 		typeCombo.addItemListener(this::onTypeChanged);
-		saveButton.addActionListener(e -> saveRecord());
-		cancelButton.addActionListener(e -> dispose());
 
 		// Initially apply type-specific visibility
 		onTypeChanged(null);
@@ -325,9 +319,7 @@ public class EventDialog extends BaseRecordDialog{
 
 		String placeVal = placeField.getText().trim();
 		if(!placeVal.isEmpty()){
-			FLEFRecord place = new FLEFRecord();
-			place.setTag("PLACE");
-			place.setValue(placeVal);
+			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", placeVal);
 			record.addChild(place);
 
 			String pCert = placeQualifiers.getCertainty();
@@ -344,9 +336,7 @@ public class EventDialog extends BaseRecordDialog{
 
 		String causeVal = causeField.getText().trim();
 		if(!causeVal.isEmpty()){
-			FLEFRecord cause = new FLEFRecord();
-			cause.setTag("CAUSE");
-			cause.setValue(causeVal);
+			FLEFRecord cause = FLEFRecord.createChildWithValue("CAUSE", causeVal);
 			record.addChild(cause);
 
 			String cCert = causeQualifiers.getCertainty();
@@ -390,17 +380,11 @@ public class EventDialog extends BaseRecordDialog{
 		FLEFModel model = new FLEFModel();
 
 		FLEFRecord event = FLEFRecord.createMainRecord("E1", "EVENT");
-		FLEFRecord type = new FLEFRecord();
-		type.setTag("TYPE");
-		type.setValue("BIRTH");
+		FLEFRecord type = FLEFRecord.createChildWithValue("TYPE", "BIRTH");
 		event.addChild(type);
-		FLEFRecord family = new FLEFRecord();
-		family.setTag("FAMILY");
-		family.setValue("F1");
+		FLEFRecord family = FLEFRecord.createChildWithValue("FAMILY", "@F1@");
 		event.addChild(family);
-		FLEFRecord desc = new FLEFRecord();
-		desc.setTag("DESCRIPTION");
-		desc.setValue("Born at home");
+		FLEFRecord desc = FLEFRecord.createChildWithValue("DESCRIPTION", "Born at home");
 		event.addChild(desc);
 		model.addRecord(event);
 

@@ -54,10 +54,6 @@ public abstract class BaseRecordDialog extends JDialog{
 	private static final long serialVersionUID = 6460878052412992481L;
 
 
-	protected final JButton saveButton = new JButton("Save");
-	protected final JButton cancelButton = new JButton("Cancel");
-
-
 	protected final FLEFModel model;
 	protected final FLEFRecord record;
 	protected final boolean isNew;
@@ -80,29 +76,6 @@ public abstract class BaseRecordDialog extends JDialog{
 
 
 	protected abstract void initComponents();
-
-	protected JPanel createButtonPanel(){
-		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
-
-		saveButton.addActionListener(e -> save());
-
-		getRootPane().setDefaultButton(saveButton);
-
-		final Action escapeAction = new AbstractAction(){
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				dispose();
-			}
-		};
-		cancelButton.addActionListener(escapeAction);
-		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-			KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
-		getRootPane().getActionMap().put("escape", escapeAction);
-
-		return buttonPanel;
-	}
 
 	protected abstract void loadData();
 

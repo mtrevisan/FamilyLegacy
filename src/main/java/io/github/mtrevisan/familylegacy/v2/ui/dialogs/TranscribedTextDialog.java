@@ -73,7 +73,7 @@ public class TranscribedTextDialog extends JDialog{
 	public TranscribedTextDialog(JDialog parent, FLEFRecord existing){
 		super(parent, "Edit Transcribed Text", true);
 
-		this.transRecord = existing != null? existing: new FLEFRecord();
+		this.transRecord = existing != null? existing: FLEFRecord.createEmpty();
 		initComponents();
 		if(existing != null) loadData();
 		pack();
@@ -148,14 +148,10 @@ public class TranscribedTextDialog extends JDialog{
 		String phoneticSys = phoneticSystemField.getText().trim();
 		String phoneticVal = phoneticValueField.getText().trim();
 		if(!phoneticSys.isEmpty() || !phoneticVal.isEmpty()){
-			FLEFRecord phonetic = new FLEFRecord();
-			phonetic.setTag("PHONETIC");
-			phonetic.setValue(phoneticSys);
+			FLEFRecord phonetic = FLEFRecord.createChildWithValue("PHONETIC", phoneticSys);
 			transRecord.addChild(phonetic);
 			if(!phoneticVal.isEmpty()){
-				FLEFRecord value = new FLEFRecord();
-				value.setTag("VALUE");
-				value.setValue(phoneticVal);
+				FLEFRecord value = FLEFRecord.createChildWithValue("VALUE", phoneticVal);
 				phonetic.addChild(value);
 			}
 		}
@@ -165,19 +161,14 @@ public class TranscribedTextDialog extends JDialog{
 		String transType = transcriptionTypeField.getText().trim();
 		String transVal = transcriptionValueField.getText().trim();
 		if(!transSys.isEmpty() || !transType.isEmpty() || !transVal.isEmpty()){
-			FLEFRecord transcription = new FLEFRecord();
-			transcription.setTag("TRANSCRIPTION");
-			transcription.setValue(transSys);
+			FLEFRecord transcription = FLEFRecord.createChildWithValue("TRANSCRIPTION", transSys);
 			transRecord.addChild(transcription);
 			if(!transType.isEmpty()){
-				FLEFRecord type = new FLEFRecord();
-				type.setTag("TYPE");
-				type.setValue(transType);
+				FLEFRecord type = FLEFRecord.createChildWithValue("TYPE", transType);
 				transcription.addChild(type);
 			}
 			if(!transVal.isEmpty()){
-				FLEFRecord value = new FLEFRecord();
-				value.setTag("VALUE");
+				FLEFRecord value = FLEFRecord.createChild("VALUE");
 				value.setValue(transVal);
 				transcription.addChild(value);
 			}

@@ -57,7 +57,7 @@ public class RepositoryCitationDialog extends JDialog{
 	public RepositoryCitationDialog(Frame parent, FLEFModel model, FLEFRecord citationRecord){
 		super(parent, citationRecord == null? "Add Repository Citation": "Edit Repository Citation", true);
 
-		this.citationRecord = citationRecord != null? citationRecord: new FLEFRecord();
+		this.citationRecord = citationRecord != null? citationRecord: FLEFRecord.createEmpty();
 		this.panel = new RepositoryCitationPanel(model, this);
 		initComponents();
 		if(citationRecord != null){

@@ -389,8 +389,7 @@ public class DocumentStructurePanel extends JPanel{
 		}
 
 		if(documentRecord == null){
-			documentRecord = new FLEFRecord();
-			documentRecord.setTag("DOCUMENT_STRUCTURE");
+			documentRecord = FLEFRecord.createChild("DOCUMENT_STRUCTURE");
 		}
 
 		// Clear existing children
@@ -418,9 +417,7 @@ public class DocumentStructurePanel extends JPanel{
 		// EXTRACT (0:1) with its children
 		String extractText = extractArea.getText().trim();
 		if(!extractText.isEmpty()){
-			FLEFRecord extract = new FLEFRecord();
-			extract.setTag("EXTRACT");
-			extract.setValue(extractText);
+			FLEFRecord extract = FLEFRecord.createChildWithValue("EXTRACT", extractText);
 			documentRecord.addChild(extract);
 
 			String extractType = (String)extractTypeCombo.getSelectedItem();

@@ -165,12 +165,10 @@ public class SingleDatePanel extends JPanel{
 	 * @param target the record to save into (e.g., POINT, NOT_BEFORE, FROM)
 	 * @return the target record (or null if no data)
 	 */
-	public FLEFRecord saveToRecord(FLEFRecord target){
+	public FLEFRecord saveToRecord(final FLEFRecord target){
 		if(!hasData())
 			return null;
 
-		if(target == null)
-			target = new FLEFRecord();
 		FLEFRecordUtils.removeAllChildren(target);
 
 		final String baseType = extractBaseType();

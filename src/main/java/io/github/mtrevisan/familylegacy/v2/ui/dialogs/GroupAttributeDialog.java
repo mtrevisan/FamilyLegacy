@@ -147,9 +147,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	private final JComboBox<String> certaintyCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "challenged", "disproven", "proven"});
 	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
 	// ----- Factory methods -----
 	public static GroupAttributeDialog createNew(Dialog parent, FLEFModel model){
 		return new GroupAttributeDialog(parent, model, null);
@@ -189,13 +186,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		setLayout(new MigLayout("fillx"));
 		add(tabbedPane, "growx,push");
 
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 	private JPanel createMainPanel(){

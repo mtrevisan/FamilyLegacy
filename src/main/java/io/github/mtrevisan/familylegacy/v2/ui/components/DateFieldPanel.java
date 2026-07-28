@@ -272,7 +272,7 @@ public class DateFieldPanel extends JPanel{
 		}
 		// Delegate full validation to DatePanel (which knows the structure)
 		DatePanel tempPanel = new DatePanel(parentDialog, model);
-		tempPanel.loadFromRecord(dateRecord);
+		tempPanel.load(dateRecord);
 		return tempPanel.validateRequiredFields();
 	}
 

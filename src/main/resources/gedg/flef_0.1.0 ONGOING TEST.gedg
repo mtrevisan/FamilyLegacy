@@ -217,6 +217,7 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
+/* ONGOING */
 PLACE_RECORD :=	/* A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP records in order to model changing jurisdictions and historical geography. */
 n @<XREF:PLACE>@ PLACE    {1:1}
 ..  +1 <<NAME_STRUCTURE>>    {1:M}	/* The name of the place formatted for display and address generation. */
@@ -289,6 +290,7 @@ n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address th
 ..  +1 <<RESTRICTION_STRUCTURE>>    {0:1}
 
 
+/* DONE */
 ..CULTURAL_NORM_RECORD :=	/* Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their culture. This affects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child of 12 years old. */
 ..n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
 ..  +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}	/* The title of the rule. */

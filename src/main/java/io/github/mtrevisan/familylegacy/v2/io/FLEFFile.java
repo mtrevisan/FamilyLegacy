@@ -283,8 +283,7 @@ public final class FLEFFile{
 	 * The header is a special record with no ID, just "0 HEADER" followed by children.
 	 */
 	private static FLEFRecord parseHeader(final List<String> lines, final int startIndex){
-		final FLEFRecord header = new FLEFRecord();
-		header.setTag("HEADER");
+		final FLEFRecord header = FLEFRecord.createChild("HEADER");
 
 		// Start parsing from the next line with level 1
 		final Stack<FLEFRecord> stack = new Stack<>();
@@ -313,7 +312,7 @@ public final class FLEFFile{
 			stack.peek().addChild(child);
 			stack.push(child);
 
-			index++;
+			index ++;
 		}
 
 		header.setLineCount(index - startIndex);
@@ -631,8 +630,7 @@ public final class FLEFFile{
 	}
 
 	private static FLEFRecord createTestHeader(){
-		final FLEFRecord header = new FLEFRecord();
-		header.setTag("HEADER");
+		final FLEFRecord header = FLEFRecord.createChild("HEADER");
 
 		final FLEFRecord protocol = FLEFRecord.createChildWithValue("PROTOCOL", "FLEF");
 		header.addChild(protocol);

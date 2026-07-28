@@ -124,7 +124,7 @@ public class SourceDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> mediaTypeCombo;
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 	private final PlaceField placeField;
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Place Evidence");
 	private final DateField dateField;
 	private final DefaultListModel<String> repositoryListModel = new DefaultListModel<>();
 	private final JList<String> repositoryList = new JList<>(repositoryListModel);
@@ -195,7 +195,8 @@ public class SourceDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
-		add(createButtonPanel(), BorderLayout.SOUTH);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
 
@@ -363,9 +364,7 @@ public class SourceDialog extends BaseRecordDialog{
 					"Location",
 					JOptionPane.PLAIN_MESSAGE
 				);
-				FLEFRecord citation = new FLEFRecord();
-				citation.setTag("REPOSITORY_CITATION");
-				citation.setValue(selectedId);
+				FLEFRecord citation = FLEFRecord.createChildWithValue("REPOSITORY_CITATION", selectedId);
 				FLEFRecordUtils.updateChildValue(citation, "LOCATION", location.trim());
 				repositoryRecords.add(citation);
 				repositoryListModel.addElement(getRepositoryCitationDisplay(citation));

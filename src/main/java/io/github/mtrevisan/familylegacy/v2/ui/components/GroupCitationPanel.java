@@ -349,8 +349,7 @@ public class GroupCitationPanel extends JPanel{
 		}
 
 		if(citationRecord == null){
-			citationRecord = new FLEFRecord();
-			citationRecord.setTag("GROUP_CITATION");
+			citationRecord = FLEFRecord.createChild("GROUP_CITATION");
 		}
 
 		// Clear existing children

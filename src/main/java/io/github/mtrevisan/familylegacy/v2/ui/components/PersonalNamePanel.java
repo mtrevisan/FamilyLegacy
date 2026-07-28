@@ -338,14 +338,14 @@ public class PersonalNamePanel extends JPanel{
 
 			for(String id : entry.culturalNormIds){
 				if(id != null && !id.isEmpty()){
-					FLEFRecord norm = FLEFRecord.createChildWithValue("CULTURAL_NORM", id);
+					FLEFRecord norm = FLEFRecord.createChildWithValue("CULTURAL_NORM", FLEFRecordUtils.formatXRef(id));
 					nameStruct.addChild(norm);
 				}
 			}
 
 			for(String id : entry.noteIds){
 				if(id != null && !id.isEmpty()){
-					FLEFRecord note = FLEFRecord.createChildWithValue("NOTE", id);
+					FLEFRecord note = FLEFRecord.createChildWithValue("NOTE", FLEFRecordUtils.formatXRef(id));
 					nameStruct.addChild(note);
 				}
 			}

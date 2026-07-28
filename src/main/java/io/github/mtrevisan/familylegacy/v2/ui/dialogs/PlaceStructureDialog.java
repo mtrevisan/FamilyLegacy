@@ -55,7 +55,7 @@ public class PlaceStructureDialog extends JDialog{
 	private final JList<String> sourceList = new JList<>(sourceListModel);
 	private final List<FLEFRecord> sourceCitations = new ArrayList<>();
 
-	private final EvidenceQualifiersPanel qualifiers = new EvidenceQualifiersPanel("Evidence");
+	private final EvidenceQualifiersPanel qualifiers = new EvidenceQualifiersPanel("MAP", "Evidence");
 
 	private final JButton okButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
@@ -242,12 +242,7 @@ public class PlaceStructureDialog extends JDialog{
 			}
 		}
 
-		final FLEFRecord map = FLEFRecordUtils.findChild(placeRecord, "MAP");
-		if(map != null){
-			qualifiers.load(map);
-		}
-		else
-			qualifiers.clear();
+		qualifiers.load(placeRecord);
 	}
 
 	private void save(){

@@ -120,9 +120,6 @@ public class CalendarDialog extends BaseRecordDialog{
 
 	private final ModificationPanel modificationPanel;
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
 	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler("CULTURAL_NORM");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
@@ -174,13 +171,8 @@ public class CalendarDialog extends BaseRecordDialog{
 		add(tabbedPane, BorderLayout.CENTER);
 
 		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 
@@ -644,17 +636,13 @@ public class CalendarDialog extends BaseRecordDialog{
 
 		// Aggiungi una cultural norm di esempio
 		FLEFRecord norm = FLEFRecord.createMainRecord("CN1", "CULTURAL_NORM");
-		FLEFRecord title = new FLEFRecord();
-		title.setTag("TITLE");
-		title.setValue("Napoleonic Code");
+		FLEFRecord title = FLEFRecord.createChildWithValue("TITLE", "Napoleonic Code");
 		norm.addChild(title);
 		model.addRecord(norm);
 
 		// Aggiungi una nota di esempio
 		FLEFRecord note = FLEFRecord.createMainRecord("N1", "NOTE");
-		FLEFRecord value = new FLEFRecord();
-		value.setTag("VALUE");
-		value.setValue("This is a sample note about calendars.");
+		FLEFRecord value = FLEFRecord.createChildWithValue("VALUE", "This is a sample note about calendars.");
 		note.addChild(value);
 		model.addRecord(note);
 

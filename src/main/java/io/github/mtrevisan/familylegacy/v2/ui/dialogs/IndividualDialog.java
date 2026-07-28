@@ -124,9 +124,6 @@ public class IndividualDialog extends BaseRecordDialog{
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
 	// ----- Factory methods -----
 	public static IndividualDialog createNew(Dialog parent, FLEFModel model){
 		return new IndividualDialog(parent, model, null);
@@ -175,13 +172,8 @@ public class IndividualDialog extends BaseRecordDialog{
 		setLayout(new MigLayout("fillx"));
 		add(tabbedPane, "growx,push");
 
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 	private JPanel createMainPanel(){

@@ -337,8 +337,7 @@ public class RepositoryCitationPanel extends JPanel{
 		}
 
 		if(citationRecord == null){
-			citationRecord = new FLEFRecord();
-			citationRecord.setTag("REPOSITORY_CITATION");
+			citationRecord = FLEFRecord.createChild("REPOSITORY_CITATION");
 		}
 
 		// Clear existing children

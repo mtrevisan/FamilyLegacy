@@ -39,7 +39,7 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0, fillx, top", "[grow, fill][grow, fill]", "[]"));
+		setLayout(new MigLayout("ins 0,fillx,top", "[grow, fill][grow, fill]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		final JPanel fromPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
@@ -69,7 +69,7 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	public FLEFRecord saveToRecord(final FLEFRecord target){
-		final FLEFRecord parent = (target != null? target: new FLEFRecord());
+		final FLEFRecord parent = (target != null? target: FLEFRecord.createEmpty());
 
 		final FLEFRecord record = FLEFRecord.createChild("SPANNING");
 		if(fromPanel.hasData()){

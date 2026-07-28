@@ -160,10 +160,8 @@ public final class FLEFRecordUtils{
 		final FLEFRecord existing = findChild(parent, path);
 		if(existing != null)
 			existing.setValue(value);
-		else{
-			final FLEFRecord newChild = FLEFRecord.createChildWithValue(path, value);
-			parent.addChild(newChild);
-		}
+		else
+			addChild(parent, path, value);
 	}
 
 	/**
@@ -366,9 +364,7 @@ public final class FLEFRecordUtils{
 		if(source == null)
 			return null;
 
-		final FLEFRecord copy = new FLEFRecord();
-		copy.setTag(source.getTag());
-		copy.setValue(source.getValue());
+		final FLEFRecord copy = FLEFRecord.createChildWithValue(source.getTag(), source.getValue());
 		for(final FLEFRecord child : source.getChildren())
 			copy.addChild(copyRecordWithLevel(child, newLevel + 1));
 		return copy;
@@ -436,8 +432,7 @@ public final class FLEFRecordUtils{
 		if(parent == null || tag == null || targetId == null)
 			return null;
 
-		final String formattedXRef = formatXRef(targetId);
-		final FLEFRecord child = FLEFRecord.createChildWithValue(tag, formattedXRef);
+		final FLEFRecord child = FLEFRecord.createChildWithValue(tag, formatXRef(targetId));
 		parent.addChild(child);
 		return child;
 	}
@@ -469,7 +464,7 @@ public final class FLEFRecordUtils{
 			.max()
 			.orElse(0);
 
-		return FLEFRecordUtils.formatXRef(prefix + (max + 1));
+		return prefix + (max + 1);
 	}
 
 }

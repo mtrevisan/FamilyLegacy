@@ -225,8 +225,10 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	private void selectAndClose(){
 		final int idx = list.getSelectedIndex();
 		if(idx >= 0 && idx < filteredRecords.size()){
-			final String selectedId = filteredRecords.get(idx).getId();
+			final String selectedId = filteredRecords.get(idx)
+				.getId();
 			onSelection.accept(selectedId);
+
 			dispose();
 		}
 		else

@@ -335,8 +335,7 @@ public class SourceCitationPanel extends JPanel{
 		bindingManager.saveToRecord(citationRecord);
 
 		if(citationRecord == null){
-			citationRecord = new FLEFRecord();
-			citationRecord.setTag("SOURCE");
+			citationRecord = FLEFRecord.createChild("SOURCE");
 		}
 
 		// Clear existing children

@@ -101,8 +101,8 @@ public class PlaceDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 	private final BoundTextField latitudeField = new BoundTextField("MAP.LATITUDE", 15);
 	private final BoundTextField longitudeField = new BoundTextField("MAP.LONGITUDE", 15);
-	private final EvidenceQualifiersPanel mapQualifiers = new EvidenceQualifiersPanel("Map Evidence");
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
+	private final EvidenceQualifiersPanel mapQualifiers = new EvidenceQualifiersPanel("MAP", "Map Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel(null, "Place Evidence");
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]10[]5[]"));
 
@@ -157,7 +157,9 @@ public class PlaceDialog extends BaseRecordDialog{
 
 		setLayout(new MigLayout("fillx,top"));
 		add(tabbedPane, "growx");
-		add(createButtonPanel(), BorderLayout.SOUTH);
+
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
 	private JPanel createMainPanel(){
@@ -199,13 +201,8 @@ public class PlaceDialog extends BaseRecordDialog{
 		// ---- NAME_STRUCTURE ----
 		namePanel.loadFromRecord(record);
 
-		// ---- MAP qualifiers (manual, since they are not bound) ----
-		final FLEFRecord map = FLEFRecordUtils.findChild(record, "MAP");
-		if(map != null){
-			mapQualifiers.load(map);
-		}
-		else
-			mapQualifiers.clear();
+		// ---- MAP qualifiers ----
+		mapQualifiers.load(record);
 
 		placeQualifiers.load(record);
 
@@ -264,35 +261,34 @@ public class PlaceDialog extends BaseRecordDialog{
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
 
-		// ---- Simple fields via BindingManager ----
-		bindingManager.saveToRecord(record);
-
 		// ---- NAME_STRUCTURE ----
 		namePanel.saveToRecord(record);
 
-		// ---- MAP (0:1) ----
-		// The BindingManager already wrote LATITUDE and LONGITUDE under MAP.
-		// Now we need to add the MAP node and its qualifiers.
-		// First, check if latitude or longitude were set.
-		String lat = latitudeField.getText().trim();
-		String lon = longitudeField.getText().trim();
-		if(!lat.isEmpty() && !lon.isEmpty()){
-			// Ensure MAP node exists (binding might have created it, but we'll create/overwrite)
-			FLEFRecordUtils.removeChildren(record, "MAP");
-			FLEFRecord map = FLEFRecord.createChild("MAP");
+		// ---- Simple fields via BindingManager ----
+		bindingManager.saveToRecord(record);
 
-			// Add latitude and longitude (already set by binding, but we'll add them again to be safe)
-			map.addChild(FLEFRecord.createChildWithValue("LATITUDE", lat));
-			map.addChild(FLEFRecord.createChildWithValue("LONGITUDE", lon));
-
+//		// ---- MAP (0:1) ----
+//		// The BindingManager already wrote LATITUDE and LONGITUDE under MAP.
+//		// Now we need to add the MAP node and its qualifiers.
+//		// First, check if latitude or longitude were set.
+//		String lat = latitudeField.getText().trim();
+//		String lon = longitudeField.getText().trim();
+//		if(!lat.isEmpty() && !lon.isEmpty()){
+//			// Ensure MAP node exists (binding might have created it, but we'll create/overwrite)
+//			FLEFRecordUtils.removeChildren(record, "MAP");
+//
+//			// Add latitude and longitude (already set by binding, but we'll add them again to be safe)
+//			FLEFRecord map = FLEFRecord.createChild("MAP");
+//			map.addChild(FLEFRecord.createChildWithValue("LATITUDE", lat));
+//			map.addChild(FLEFRecord.createChildWithValue("LONGITUDE", lon));
+//			record.addChild(map);
+//
 			// Add qualifiers
-			mapQualifiers.save(map);
-
-			record.addChild(map);
-		}
-		else
-			// Remove any stale MAP node if no data
-			FLEFRecordUtils.removeChildren(record, "MAP");
+			mapQualifiers.save(record);
+//		}
+//		else
+//			// Remove any stale MAP node if no data
+//			FLEFRecordUtils.removeChildren(record, "MAP");
 
 		// ---- EVIDENCE_QUALIFIERS for place ----
 		placeQualifiers.save(record);

@@ -139,9 +139,6 @@ public class HeaderDialog extends JDialog{
 
 	private final JTextArea headerNoteArea = new JTextArea(3, 30);
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
 
@@ -151,7 +148,7 @@ public class HeaderDialog extends JDialog{
 		this.parent = parent;
 
 		this.model = model;
-		this.headerRecord = headerRecord != null? headerRecord: new FLEFRecord();
+		this.headerRecord = headerRecord != null? headerRecord: FLEFRecord.createEmpty();
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 800));
@@ -177,13 +174,8 @@ public class HeaderDialog extends JDialog{
 		add(tabbedPane, BorderLayout.CENTER);
 
 		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 
@@ -691,16 +683,13 @@ public class HeaderDialog extends JDialog{
 		FLEFRecordUtils.removeAllChildren(headerRecord);
 
 		// --- PROTOCOL ---
-		FLEFRecord protocol = new FLEFRecord();
-		protocol.setTag("PROTOCOL");
+		FLEFRecord protocol = FLEFRecord.createChild("PROTOCOL");
 		headerRecord.addChild(protocol);
 		FLEFRecordUtils.updateChildValue(protocol, "NAME", protocolNameField.getText().trim());
 		FLEFRecordUtils.updateChildValue(protocol, "VERSION", protocolVersionField.getText().trim());
 
 		// --- SOURCE ---
-		FLEFRecord source = new FLEFRecord();
-		source.setTag("SOURCE");
-		source.setValue(sourceIdField.getText().trim());
+		FLEFRecord source = FLEFRecord.createChildWithValue("SOURCE", sourceIdField.getText().trim());
 		headerRecord.addChild(source);
 		FLEFRecordUtils.updateChildValue(source, "NAME", sourceNameField.getText().trim());
 		FLEFRecordUtils.updateChildValue(source, "VERSION", sourceVersionField.getText().trim());
@@ -718,8 +707,7 @@ public class HeaderDialog extends JDialog{
 		FLEFRecordUtils.updateChildValue(headerRecord, "NOTE", headerNote);
 
 		// --- SUBMITTER ---
-		FLEFRecord submitter = new FLEFRecord();
-		submitter.setTag("SUBMITTER");
+		FLEFRecord submitter = FLEFRecord.createChild("SUBMITTER");
 		headerRecord.addChild(submitter);
 
 		// SUBMITTER NAME
@@ -733,23 +721,19 @@ public class HeaderDialog extends JDialog{
 		String placeNote = submitterPlaceNoteArea.getText().trim();
 
 		if(!address.isEmpty() || !hierarchy.isEmpty() || !lat.isEmpty() || !lon.isEmpty() || !placeNote.isEmpty()){
-			FLEFRecord place = new FLEFRecord();
-			place.setTag("PLACE");
+			FLEFRecord place = FLEFRecord.createChild("PLACE");
 			submitter.addChild(place);
 
 			FLEFRecordUtils.updateChildValue(place, "ADDRESS", address);
 			FLEFRecordUtils.updateChildValue(place, "HIERARCHY", hierarchy);
 			if(!lat.isEmpty() && !lon.isEmpty()){
-				FLEFRecord map = new FLEFRecord();
-				map.setTag("MAP");
+				FLEFRecord map = FLEFRecord.createChild("MAP");
 				place.addChild(map);
 				FLEFRecordUtils.updateChildValue(map, "LATITUDE", lat);
 				FLEFRecordUtils.updateChildValue(map, "LONGITUDE", lon);
 			}
 			if(!placeNote.isEmpty()){
-				FLEFRecord note = new FLEFRecord();
-				note.setTag("NOTE");
-				note.setValue(placeNote);
+				FLEFRecord note = FLEFRecord.createChildWithValue("NOTE", placeNote);
 				place.addChild(note);
 			}
 		}
@@ -789,26 +773,21 @@ public class HeaderDialog extends JDialog{
 		HandlerRegistry.register(new NoteHandler());
 
 		// Crea un header di esempio
-		FLEFRecord header = new FLEFRecord();
-		header.setTag("HEADER");
+		FLEFRecord header = FLEFRecord.createChild("HEADER");
 
-		FLEFRecord protocol = new FLEFRecord();
-		protocol.setTag("PROTOCOL");
+		FLEFRecord protocol = FLEFRecord.createChild("PROTOCOL");
 		header.addChild(protocol);
 		FLEFRecordUtils.updateChildValue(protocol, "NAME", "FLEF");
 		FLEFRecordUtils.updateChildValue(protocol, "VERSION", "0.0.9");
 
-		FLEFRecord source = new FLEFRecord();
-		source.setTag("SOURCE");
-		source.setValue("MyApp");
+		FLEFRecord source = FLEFRecord.createChildWithValue("SOURCE", "MyApp");
 		header.addChild(source);
 		FLEFRecordUtils.updateChildValue(source, "NAME", "My Application");
 		FLEFRecordUtils.updateChildValue(source, "VERSION", "1.0");
 
 		FLEFRecordUtils.updateChildValue(header, "DATE", "2026-07-11");
 
-		FLEFRecord submitter = new FLEFRecord();
-		submitter.setTag("SUBMITTER");
+		FLEFRecord submitter = FLEFRecord.createChild("SUBMITTER");
 		header.addChild(submitter);
 		FLEFRecordUtils.updateChildValue(submitter, "NAME", "Mauro Trevisan");
 

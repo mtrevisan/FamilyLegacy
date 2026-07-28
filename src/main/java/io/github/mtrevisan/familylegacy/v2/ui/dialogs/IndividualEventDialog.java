@@ -114,9 +114,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	private final EventStructurePanel eventStructurePanel;
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
-
 	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 
@@ -161,13 +158,8 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		add(tabbedPane, BorderLayout.CENTER);
 
 		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 
 		// --- Listeners ---
 		typeCombo.addItemListener(this::onTypeChanged);
@@ -479,15 +471,10 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 		// Aggiungi un individuo di esempio per i gemelli
 		FLEFRecord ind = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		FLEFRecord name = new FLEFRecord();
-		name.setTag("NAME");
-		FLEFRecord given = new FLEFRecord();
-		given.setTag("INDIVIDUAL_NAME");
-		given.setValue("John");
+		FLEFRecord name = FLEFRecord.createChild("NAME");
+		FLEFRecord given = FLEFRecord.createChildWithValue("INDIVIDUAL_NAME", "John");
 		name.addChild(given);
-		FLEFRecord familyName = new FLEFRecord();
-		familyName.setTag("FAMILY_NAME");
-		familyName.setValue("Doe");
+		FLEFRecord familyName = FLEFRecord.createChildWithValue("FAMILY_NAME", "Doe");
 		name.addChild(familyName);
 		ind.addChild(name);
 		model.addRecord(ind);

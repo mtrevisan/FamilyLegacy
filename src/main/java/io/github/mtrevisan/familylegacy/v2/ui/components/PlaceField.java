@@ -18,41 +18,43 @@ import java.awt.Dialog;
 import java.util.function.Supplier;
 
 
+/* DONE */
 public class PlaceField extends JTextField{
 
 	private final Dialog parentDialog;
 	private final String dialogTitle;
+
 	private final FLEFModel model;
-	private final String wrapperTag;
 
 	private FLEFRecord record;
 
 
 	public static PlaceField create(final Dialog parent, final String dialogTitle, final FLEFModel model){
-		return new PlaceField(parent, dialogTitle, model, null);
+		return new PlaceField(parent, dialogTitle, model);
 	}
 
-	public static PlaceField createWithWrapperTag(final Dialog parent, final String dialogTitle,
-			final FLEFModel model, final String wrapperTag){
-		return new PlaceField(parent, dialogTitle, model, wrapperTag);
+	public static PlaceField createWithWrapperTag(final Dialog parent, final String dialogTitle, final FLEFModel model){
+		return new PlaceField(parent, dialogTitle, model);
 	}
 
 
-	private PlaceField(final Dialog parent, final String dialogTitle, final FLEFModel model,
-			final String wrapperTag){
+	private PlaceField(final Dialog parent, final String dialogTitle, final FLEFModel model){
 		super(20);
 
 		this.parentDialog = parent;
 		this.dialogTitle = dialogTitle;
 
 		this.model = model;
-		this.wrapperTag = wrapperTag;
 
 		setEditable(false);
 		setBackground(UIManager.getColor("TextField.background"));
 
+		initComponents();
+	}
+
+	private void initComponents(){
 		setupField(this,
-			() -> record != null,
+			() -> (record != null),
 			this::createNew,
 			this::add,
 			this::edit,
@@ -98,26 +100,20 @@ public class PlaceField extends JTextField{
 	}
 
 	public void load(final FLEFRecord parentRecord){
-		final FLEFRecord wrapper = (wrapperTag != null
-			? FLEFRecordUtils.findChild(parentRecord, wrapperTag)
-			: parentRecord);
-
-		if(wrapper != null)
-			setRecord(wrapper);
+		if(parentRecord != null){
+			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+			setText(placeHandler.getDisplayText(parentRecord));
+		}
 		else
 			clear();
 	}
 
 	public void save(final FLEFRecord parentRecord){
-		if(wrapperTag != null)
-			FLEFRecordUtils.removeChildren(parentRecord, wrapperTag);
-		else
-			FLEFRecordUtils.removeChildren(parentRecord, "PLACE");
+		FLEFRecordUtils.removeChildren(parentRecord, "PLACE");
 
-		if(record != null && wrapperTag != null){
-			final FLEFRecord wrapper = FLEFRecord.createChild(wrapperTag);
+		if(record != null){
+			final FLEFRecord wrapper = FLEFRecord.createChildWithValue("PLACE", record.getFormattedId());
 			parentRecord.addChild(wrapper);
-			wrapper.addChild(record);
 		}
 	}
 

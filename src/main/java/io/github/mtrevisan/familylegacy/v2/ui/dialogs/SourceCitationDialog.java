@@ -56,7 +56,7 @@ public class SourceCitationDialog extends JDialog{
 	public SourceCitationDialog(Dialog parent, FLEFModel model, FLEFRecord citationRecord){
 		super(parent, citationRecord == null? "Add Source Citation": "Edit Source Citation", true);
 
-		this.citationRecord = citationRecord != null? citationRecord: new FLEFRecord();
+		this.citationRecord = citationRecord != null? citationRecord: FLEFRecord.createEmpty();
 		this.panel = new SourceCitationPanel(model, this);
 		initComponents();
 		if(citationRecord != null){

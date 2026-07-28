@@ -93,7 +93,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	private final JButton placeBrowseBtn = new JButton("Browse...");
 	private final JButton placeClearBtn = new JButton("Clear");
 	private String selectedPlaceId;
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Place Evidence");
 
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
@@ -105,9 +105,6 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
 	private final ModificationPanel modificationPanel;
-
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
 
 	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
@@ -157,13 +154,8 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		add(tabbedPane, BorderLayout.CENTER);
 
 		// --- Button panel ---
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 
@@ -508,9 +500,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 		// PLACE (0:1) with CERTAINTY and CREDIBILITY
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
-			FLEFRecord place = new FLEFRecord();
-			place.setTag("PLACE");
-			place.setValue(selectedPlaceId);
+			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", selectedPlaceId);
 			record.addChild(place);
 
 			String pCert = placeQualifiers.getCertainty();
@@ -553,9 +543,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 		// Aggiungi un place di esempio
 		FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-		FLEFRecord name = new FLEFRecord();
-		name.setTag("NAME");
-		name.setValue("Rome");
+		FLEFRecord name = FLEFRecord.createChildWithValue("NAME", "Rome");
 		place.addChild(name);
 		model.addRecord(place);
 

@@ -1,12 +1,15 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
@@ -15,6 +18,7 @@ import javax.swing.text.JTextComponent;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -279,6 +283,33 @@ public final class GUIHelper{
 		if(tabbedPane != null && panel != null)
 			tabbedPane.setSelectedComponent(panel);
 		SwingUtilities.invokeLater(component::requestFocusInWindow);
+	}
+
+
+	public static JPanel createButtonPanel(final JRootPane rootPane, final Runnable save, final Runnable cancel){
+		final JButton saveButton = new JButton("Save");
+		final JButton cancelButton = new JButton("Cancel");
+
+		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		buttonPanel.add(saveButton);
+		buttonPanel.add(cancelButton);
+
+		saveButton.addActionListener(e -> save.run());
+
+		rootPane.setDefaultButton(saveButton);
+
+		final Action escapeAction = new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				cancel.run();
+			}
+		};
+		cancelButton.addActionListener(escapeAction);
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+			KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
+		rootPane.getActionMap().put("escape", escapeAction);
+
+		return buttonPanel;
 	}
 
 

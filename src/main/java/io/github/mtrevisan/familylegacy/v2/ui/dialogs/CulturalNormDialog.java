@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -56,6 +57,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.0.
  * <p>
@@ -94,10 +96,10 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private final BoundTextField titleField;
 	private final PlaceField placeField;
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Evidence");
 	private final DateField validFromField;
 	private final DateField validToField;
-	private final EvidenceQualifiersPanel qualifiers = new EvidenceQualifiersPanel("Evidence");
+	private final EvidenceQualifiersPanel qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 	private final NoteListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final ModificationPanel modificationPanel;
@@ -147,7 +149,8 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
-		add(createButtonPanel(), BorderLayout.SOUTH);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
 	private JPanel createMainPanel(){
@@ -196,6 +199,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 		// place
 		placeField.load(record);
+		placeQualifiers.load(record);
 
 		// validity range
 		validFromField.load(record);
@@ -203,17 +207,13 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 		// notes
 		final List<FLEFRecord> notes = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("NOTE".equals(child.getTag()) && child.getValue() != null)
+		for(final FLEFRecord child : record.findChildren("NOTE"))
+			if(child.getValue() != null)
 				notes.add(child);
 		notePanel.loadFromNotes(notes);
 
 		// sources
-		final List<FLEFRecord> sources = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("SOURCE".equals(child.getTag()))
-				sources.add(child);
-		sourceCitationPanel.setItems(sources);
+		sourceCitationPanel.setItems(record.findChildren("SOURCE"));
 
 		// qualifiers
 		qualifiers.load(record);
@@ -236,6 +236,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 		// place
 		placeField.save(record);
+		placeQualifiers.save(record);
 
 		// validity range
 		validFromField.save(record);
@@ -243,7 +244,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 		// notes
 		for(final FLEFRecord note : notePanel.getNotes())
-			FLEFRecordUtils.addChild(record, "NOTE", note.getId());
+			FLEFRecordUtils.addChild(record, "NOTE", note.getFormattedId());
 
 		// sources
 		for(final FLEFRecord source : sourceCitationPanel.getItems())

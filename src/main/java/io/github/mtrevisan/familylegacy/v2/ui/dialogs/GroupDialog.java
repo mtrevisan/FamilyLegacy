@@ -205,7 +205,9 @@ public class GroupDialog extends BaseRecordDialog{
 
 		setLayout(new MigLayout("fillx, top"));
 		add(tabbedPane, "growx");
-		add(createButtonPanel(), BorderLayout.SOUTH);
+
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
 	// ---- Main Panel ----
@@ -788,7 +790,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 		// NOTE
 		for(FLEFRecord id : notePanel.getItems()){
-			FLEFRecordUtils.addChild(record, "NOTE", id.getId());
+			FLEFRecordUtils.addChild(record, "NOTE", id.getFormattedId());
 		}
 
 		// SOURCE_CITATION

@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/* DONE */
 /**
  * Abstract panel for managing a list of items with add/edit/remove operations.
  * <p>

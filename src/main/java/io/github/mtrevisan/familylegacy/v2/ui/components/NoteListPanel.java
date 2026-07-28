@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -19,6 +43,7 @@ import java.util.List;
 import java.util.Set;
 
 
+/* DONE */
 /**
  * Panel for managing a list of NOTE references (by ID).
  * <p>
@@ -41,6 +66,8 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		HandlerRegistry.register(new NoteHandler());
 	}
 
+	private final RecordTypeHandler<?> noteHandler;
+
 
 	/**
 	 * Constructs a NoteListPanel with a titled border.
@@ -48,8 +75,8 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param model        the FLEF model
 	 * @param parentDialog the parent dialog
 	 */
-	public NoteListPanel(FLEFModel model, Dialog parentDialog){
-		super(parentDialog, "Notes", model);
+	public NoteListPanel(final FLEFModel model, final Dialog parentDialog){
+		this(model, parentDialog, "Notes");
 	}
 
 	/**
@@ -59,30 +86,30 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param parentDialog the parent dialog
 	 * @param borderTitle  the border title, or {@code null} for no border
 	 */
-	public NoteListPanel(FLEFModel model, Dialog parentDialog, String borderTitle){
+	public NoteListPanel(final FLEFModel model, final Dialog parentDialog, final String borderTitle){
 		super(parentDialog, borderTitle, model);
+
+		noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 	}
 
+
 	@Override
-	protected String getDisplay(FLEFRecord note){
-		if(note != null){
-			final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+	protected String getDisplay(final FLEFRecord note){
+		if(note != null)
 			return noteHandler.getDisplayText(note);
-		}
+
 		return "--";
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentDialog, model, noteHandler, selectedId -> {
-			final FLEFRecord rec = model.getRecordById(selectedId);
-			if(rec != null && !items.contains(rec)){
-				result[0] = rec;
-			}
-		});
+				final FLEFRecord record = model.getRecordById(selectedId);
+				if(record != null && !items.contains(record))
+					result[0] = record;
+			});
 		dialog.setVisible(true);
 		return result[0];
 	}
@@ -91,10 +118,11 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showEditDialog(FLEFRecord existing){
 		if(existing == null){
 			JOptionPane.showMessageDialog(parentDialog, "Note not found", "Error", JOptionPane.ERROR_MESSAGE);
+
 			return null;
 		}
-		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		JDialog editDialog = noteHandler.createEditDialog(parentDialog, model, existing);
+
+		final JDialog editDialog = noteHandler.createEditDialog(parentDialog, model, existing);
 		editDialog.setVisible(true);
 		// Return the same ID (the note was updated in place)
 		return existing;
@@ -104,18 +132,16 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * Creates a new note and adds it to the list.
 	 */
 	public void createNewNote(){
-		Set<FLEFRecord> before = new HashSet<>(items);
-		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		JDialog newNoteDialog = noteHandler.createNewDialog(parentDialog, model);
+		final Set<FLEFRecord> before = new HashSet<>(items);
+		final JDialog newNoteDialog = noteHandler.createNewDialog(parentDialog, model);
 		newNoteDialog.setVisible(true);
 
-		for(final FLEFRecord note : model.getRecordsByType("NOTE")){
+		for(final FLEFRecord note : model.getRecordsByType("NOTE"))
 			if(note != null && !before.contains(note) && !items.contains(note)){
 				addItemDirectly(note);
 
 				break;
 			}
-		}
 	}
 
 	/**
@@ -123,7 +149,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 *
 	 * @param notes the list of notes
 	 */
-	public void loadFromNotes(List<FLEFRecord> notes){
+	public void loadFromNotes(final List<FLEFRecord> notes){
 		clear();
 
 		for(final FLEFRecord note : notes)
@@ -148,9 +174,9 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		// Override the behavior to add "Create New..." and "Add Existing..."
-		for(MouseListener listener : list.getMouseListeners())
+		for(final MouseListener listener : list.getMouseListeners())
 			list.removeMouseListener(listener);
-		for(KeyListener listener : list.getKeyListeners())
+		for(final KeyListener listener : list.getKeyListeners())
 			list.removeKeyListener(listener);
 
 		GUIHelper.installBehavior(list,

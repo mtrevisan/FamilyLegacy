@@ -62,9 +62,10 @@ public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
 		final FLEFRecord name = FLEFRecordUtils.findChild(record, "NAME");
 		if(name != null){
 			final String value = FLEFRecordUtils.getChildValue(name, "VALUE");
-			final String id = record.getId();
-			if(value != null && !value.isEmpty())
+			if(value != null && !value.isEmpty()){
+				final String id = record.getId();
 				return value + " (" + id + ")";
+			}
 		}
 		return StringUtils.EMPTY;
 	}

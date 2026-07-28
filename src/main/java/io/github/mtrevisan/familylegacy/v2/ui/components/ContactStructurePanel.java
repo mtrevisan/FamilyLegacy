@@ -503,8 +503,7 @@ public class ContactStructurePanel extends JPanel{
 		}
 
 		if(contactRecord == null){
-			contactRecord = new FLEFRecord();
-			contactRecord.setTag("CONTACT");
+			contactRecord = FLEFRecord.createChild("CONTACT");
 		}
 
 		// Clear existing children

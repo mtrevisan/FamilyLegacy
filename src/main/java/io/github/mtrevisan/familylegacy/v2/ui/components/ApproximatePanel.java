@@ -186,7 +186,7 @@ public class ApproximatePanel extends JPanel{
 		}
 
 		if(culturalNormId != null && !culturalNormId.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue("CULTURAL_NORM", culturalNormId));
+			approx.addChild(FLEFRecord.createChildWithValue("CULTURAL_NORM", FLEFRecordUtils.formatXRef(culturalNormId)));
 		}
 
 		String margin = marginField.getText().trim();

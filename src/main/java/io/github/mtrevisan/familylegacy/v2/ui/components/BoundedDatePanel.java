@@ -69,7 +69,7 @@ public class BoundedDatePanel extends JPanel{
 	}
 
 	public FLEFRecord saveToRecord(final FLEFRecord target){
-		final FLEFRecord parent = (target != null? target: new FLEFRecord());
+		final FLEFRecord parent = (target != null? target: FLEFRecord.createEmpty());
 
 		final FLEFRecord record = FLEFRecord.createChild("BOUNDED");
 		if(notBeforePanel.hasData()){

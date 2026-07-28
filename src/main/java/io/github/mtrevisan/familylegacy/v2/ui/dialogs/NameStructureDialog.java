@@ -68,8 +68,6 @@ public class NameStructureDialog extends JDialog {
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 
-	private final JButton saveButton = new JButton("Save");
-	private final JButton cancelButton = new JButton("Cancel");
 
 	public NameStructureDialog(final Window parent, final FLEFModel model, final FLEFRecord existingRecord) {
 		super(parent, existingRecord == null ? "Add Name" : "Edit Name", ModalityType.APPLICATION_MODAL);
@@ -113,13 +111,8 @@ public class NameStructureDialog extends JDialog {
 		setLayout(new MigLayout("ins 10,fillx,top", "[grow]", "[]10[]"));
 		add(tabbedPane, "growx, wrap");
 
-		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(saveButton);
-		buttonPanel.add(cancelButton);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
 		add(buttonPanel, "growx");
-
-		saveButton.addActionListener(e -> save());
-		cancelButton.addActionListener(e -> dispose());
 	}
 
 	private JPanel createMainPanel() {
@@ -306,7 +299,7 @@ public class NameStructureDialog extends JDialog {
 
 		// Notes
 		for (FLEFRecord note : notePanel.getNotes()) {
-			FLEFRecordUtils.addReferenceChild(valueRec, "NOTE", note.getId());
+			FLEFRecordUtils.addReferenceChild(valueRec, "NOTE", note.getFormattedId());
 		}
 
 		// Source citations

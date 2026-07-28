@@ -86,8 +86,9 @@ public class AssociationDialog extends JDialog{
 	private static final long serialVersionUID = -6278867401602648130L;
 
 
-	private final FLEFModel model;
 	private final Frame parentFrame;
+
+	private final FLEFModel model;
 	private final FLEFRecord existingAssociation;
 	private boolean saved = false;
 
@@ -526,7 +527,7 @@ public class AssociationDialog extends JDialog{
 	private void loadData(){
 		String value = existingAssociation.getValue();
 		boolean isVoidAssociation = FLEFRecordUtils.isVoidReference(value) ||
-			existingAssociation.getId() != null && FLEFRecordUtils.isVoidReference(existingAssociation.getId());
+			existingAssociation.getId() != null && FLEFRecordUtils.isVoidReference(existingAssociation.getFormattedId());
 
 		if(isVoidAssociation){
 			voidRecordRadio.setSelected(true);
@@ -546,11 +547,7 @@ public class AssociationDialog extends JDialog{
 	}
 
 	public FLEFRecord getAssociationRecord(){
-		FLEFRecord record = existingAssociation != null? existingAssociation: new FLEFRecord();
-
-		if(existingAssociation == null){
-			record.setTag("ASSOCIATION");
-		}
+		FLEFRecord record = existingAssociation != null? existingAssociation: FLEFRecord.createChild("ASSOCIATION");
 
 		boolean isVoidSelected = voidRecordRadio.isSelected();
 
@@ -560,9 +557,7 @@ public class AssociationDialog extends JDialog{
 			String name = voidNameField.getText().trim();
 			FLEFRecordUtils.removeChildren(record, "NAME");
 			if(!name.isEmpty()){
-				FLEFRecord nameChild = new FLEFRecord();
-				nameChild.setTag("NAME");
-				nameChild.setValue(name);
+				FLEFRecord nameChild = FLEFRecord.createChildWithValue("NAME", name);
 				record.addChild(nameChild);
 			}
 		}

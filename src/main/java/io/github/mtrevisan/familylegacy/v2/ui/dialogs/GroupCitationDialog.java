@@ -88,8 +88,9 @@ public class GroupCitationDialog extends JDialog{
 		HandlerRegistry.register(new NoteHandler());
 	}
 
-	private final FLEFModel model;
 	private final Dialog parentDialog;
+
+	private final FLEFModel model;
 	private final FLEFRecord existingCitation; // may be null for new
 	private boolean saved = false;
 
@@ -388,10 +389,7 @@ public class GroupCitationDialog extends JDialog{
 			return null;
 		}
 
-		FLEFRecord record = existingCitation != null? existingCitation: new FLEFRecord();
-		if(existingCitation == null){
-			record.setTag("GROUP_CITATION");
-		}
+		FLEFRecord record = existingCitation != null? existingCitation: FLEFRecord.createChild("GROUP_CITATION");
 
 		// GROUP
 		record.setValue(selectedGroupId);

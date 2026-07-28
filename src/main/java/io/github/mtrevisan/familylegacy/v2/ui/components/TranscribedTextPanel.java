@@ -160,8 +160,7 @@ public class TranscribedTextPanel extends JPanel{
 		}
 
 		if(transRecord == null){
-			transRecord = new FLEFRecord();
-			transRecord.setTag("TRANSCRIBED_TEXT");
+			transRecord = FLEFRecord.createChild("TRANSCRIBED_TEXT");
 		}
 
 		// Clear existing children
@@ -171,16 +170,12 @@ public class TranscribedTextPanel extends JPanel{
 		String phoneticVal = phoneticValueField.getText().trim();
 
 		if(!phoneticSys.isEmpty() || !phoneticVal.isEmpty()){
-			FLEFRecord phonetic = new FLEFRecord();
-			phonetic.setTag("PHONETIC");
-			phonetic.setValue(phoneticSys);
+			FLEFRecord phonetic = FLEFRecord.createChildWithValue("PHONETIC", phoneticSys);
 			transRecord.addChild(phonetic);
 
 			// VALUE - required if PHONETIC exists
 			if(!phoneticVal.isEmpty()){
-				FLEFRecord value = new FLEFRecord();
-				value.setTag("VALUE");
-				value.setValue(phoneticVal);
+				FLEFRecord value = FLEFRecord.createChildWithValue("VALUE", phoneticVal);
 				phonetic.addChild(value);
 			}
 		}
@@ -190,24 +185,18 @@ public class TranscribedTextPanel extends JPanel{
 		String transVal = transcriptionValueField.getText().trim();
 
 		if(!transSys.isEmpty() || !transVal.isEmpty()){
-			FLEFRecord transcription = new FLEFRecord();
-			transcription.setTag("TRANSCRIPTION");
-			transcription.setValue(transSys);
+			FLEFRecord transcription = FLEFRecord.createChildWithValue("TRANSCRIPTION", transSys);
 			transRecord.addChild(transcription);
 
 			// TYPE (0:1)
 			if(transType != null && !transType.isEmpty()){
-				FLEFRecord type = new FLEFRecord();
-				type.setTag("TYPE");
-				type.setValue(transType);
+				FLEFRecord type = FLEFRecord.createChildWithValue("TYPE", transType);
 				transcription.addChild(type);
 			}
 
 			// VALUE - required if TRANSCRIPTION exists
 			if(!transVal.isEmpty()){
-				FLEFRecord value = new FLEFRecord();
-				value.setTag("VALUE");
-				value.setValue(transVal);
+				FLEFRecord value = FLEFRecord.createChildWithValue("VALUE", transVal);
 				transcription.addChild(value);
 			}
 		}

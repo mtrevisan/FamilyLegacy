@@ -3,19 +3,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
+import net.miginfocom.swing.MigLayout;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import java.awt.BorderLayout;
-import java.awt.Dialog;
-import java.awt.FlowLayout;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 
 /**
@@ -51,7 +44,7 @@ public class DateDialog extends JDialog{
 	}
 
 	/**
-	 * Creates a new DateDialog.
+	 * Creates a new DateDialog with an initial date.
 	 *
 	 * @param parent      the parent dialog
 	 * @param model       the FLEF model
@@ -70,7 +63,7 @@ public class DateDialog extends JDialog{
 		super(parent, title, true);
 
 		datePanel = new DatePanel(this, model);
-		datePanel.loadFromRecord(initialDate);
+		datePanel.load(initialDate);
 
 		initComponents();
 
@@ -81,25 +74,24 @@ public class DateDialog extends JDialog{
 
 
 	private void initComponents(){
-		setLayout(new BorderLayout(10, 10));
+		// Use MigLayout for the dialog content pane
+		setLayout(new MigLayout("ins 10,fill,wrap 1", "[grow]", "[grow][]"));
 
 		// Date panel
-		final JPanel panel = new JPanel(new BorderLayout(10, 10));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		panel.add(datePanel, BorderLayout.CENTER);
-		add(panel, BorderLayout.CENTER);
+		JPanel dateWrapper = new JPanel(new MigLayout("ins 0,fill"));
+		dateWrapper.add(datePanel, "grow");
+		add(dateWrapper, "grow");
 
-		// Buttons
-		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		final JButton okButton = new JButton("OK");
-		final JButton cancelButton = new JButton("Cancel");
-		buttonPanel.add(okButton);
+		JPanel buttonPanel = new JPanel(new MigLayout("ins 0,align right", "[][][]", "[]"));
+		JButton okButton = new JButton("OK");
+		JButton cancelButton = new JButton("Cancel");
+		buttonPanel.add(okButton, "gapright 5");
 		buttonPanel.add(cancelButton);
-		add(buttonPanel, BorderLayout.SOUTH);
+		add(buttonPanel, "growx");
 
 		okButton.addActionListener(e -> {
 			if(datePanel.validateRequiredFields()){
-				result = datePanel.saveToRecord(null);
+				result = datePanel.save(null);
 				saved = true;
 				dispose();
 			}
@@ -124,7 +116,7 @@ public class DateDialog extends JDialog{
 			}
 		};
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-			KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
+			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape");
 		getRootPane().getActionMap().put("escape", escapeAction);
 	}
 

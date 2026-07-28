@@ -83,8 +83,9 @@ public class NameDialog extends JDialog{
 	private static final long serialVersionUID = 5856181538971193737L;
 
 
-	private final FLEFModel model;
 	private final Frame parentFrame;
+
+	private final FLEFModel model;
 	private final FLEFRecord nameRecord;
 	private boolean saved = false;
 
@@ -150,7 +151,7 @@ public class NameDialog extends JDialog{
 
 		this.model = model;
 		this.parentFrame = getParentFrame(parent);
-		this.nameRecord = nameRecord != null? nameRecord: new FLEFRecord();
+		this.nameRecord = nameRecord != null? nameRecord: FLEFRecord.createEmpty();
 		initComponents();
 		if(nameRecord != null && nameRecord.getChildren() != null){
 			loadData();
@@ -668,8 +669,7 @@ public class NameDialog extends JDialog{
 				transRecord.setTag("TRANSCRIBED_TEXT");
 				FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
 				if(parent == null){
-					parent = new FLEFRecord();
-					parent.setTag(parentTag);
+					parent = FLEFRecord.createChild(parentTag);
 					nameRecord.addChild(parent);
 				}
 				parent.addChild(transRecord);
@@ -868,9 +868,7 @@ public class NameDialog extends JDialog{
 		String suffix = suffixField.getText().trim();
 		FLEFRecord givenNode = FLEFRecordUtils.findChild(nameRecord, "INDIVIDUAL_NAME");
 		if(givenNode == null){
-			givenNode = new FLEFRecord();
-			givenNode.setTag("INDIVIDUAL_NAME");
-			givenNode.setValue(givenNameField.getText().trim());
+			givenNode = FLEFRecord.createChildWithValue("INDIVIDUAL_NAME", givenNameField.getText().trim());
 			nameRecord.addChild(givenNode);
 		}
 		FLEFRecordUtils.updateChildValue(givenNode, "SUFFIX", suffix);
@@ -900,8 +898,7 @@ public class NameDialog extends JDialog{
 
 	private void ensureParentNode(String tag){
 		if(FLEFRecordUtils.findChild(nameRecord, tag) == null){
-			FLEFRecord parent = new FLEFRecord();
-			parent.setTag(tag);
+			FLEFRecord parent = FLEFRecord.createChild(tag);
 			nameRecord.addChild(parent);
 		}
 	}
