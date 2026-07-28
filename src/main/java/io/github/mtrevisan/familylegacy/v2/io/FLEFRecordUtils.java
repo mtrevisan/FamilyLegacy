@@ -224,7 +224,8 @@ public final class FLEFRecordUtils{
 
 		final FLEFRecord target = getNthChild(targetParent, seg);
 		if(target != null){
-			targetParent.getChildren().remove(target);
+			targetParent.getChildren()
+				.remove(target);
 
 			return target;
 		}
@@ -468,7 +469,7 @@ public final class FLEFRecordUtils{
 			.max()
 			.orElse(0);
 
-		return prefix + (max + 1);
+		return FLEFRecordUtils.formatXRef(prefix + (max + 1));
 	}
 
 }

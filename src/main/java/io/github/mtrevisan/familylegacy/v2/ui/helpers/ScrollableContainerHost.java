@@ -44,13 +44,13 @@ public final class ScrollableContainerHost extends JPanel implements Scrollable{
 
 
 	public ScrollableContainerHost(final Component component, final ScrollType scrollType){
-		super(new MigLayout("insets 0", "[grow]", "[grow]"));
+		super(new MigLayout("ins 0", "[grow]", "[grow]"));
 
 		setOpaque(false);
 
 		this.scrollType = scrollType;
 
-		final JPanel intermediatePanel = new JPanel(new MigLayout("insets 0", "[grow]", "[grow]"));
+		final JPanel intermediatePanel = new JPanel(new MigLayout("ins 0", "[grow]", "[grow]"));
 		intermediatePanel.add(component, "grow");
 		intermediatePanel.setOpaque(false);
 		add(intermediatePanel, "grow");

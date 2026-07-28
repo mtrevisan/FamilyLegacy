@@ -56,9 +56,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -86,43 +86,36 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new HistoricEventHandler());
 	}
 
-	// ========== Basic fields ==========
 	private final JTextField idField = new JTextField(10);
 	private final JTextField titleField = new JTextField(30);
 
-	// ========== PLACE (0:1) ==========
 	private final JTextField placeDisplayField = new JTextField(20);
 	private final JButton placeBrowseBtn = new JButton("Browse...");
 	private final JButton placeClearBtn = new JButton("Clear");
 	private String selectedPlaceId;
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
 
-	// ========== NOTE ==========
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== SOURCE_CITATION ==========
 	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
-	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 
-	// ==================== Constructors ====================
-	public HistoricEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Historic Event", model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
+
+	public HistoricEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -132,8 +125,8 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	public HistoricEventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Historic Event", model, null, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
+	public HistoricEventDialog(Dialog parent, FLEFModel model){
+		super(parent, model, null, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -143,7 +136,6 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	// ==================== UI Initialization ====================
 	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
@@ -174,7 +166,6 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
@@ -300,16 +291,15 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== Place methods ====================
 
 	private void browsePlace(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, placeHandler, selectedId -> {
+			this, model, placeHandler, selectedId -> {
 			if(selectedId != null){
 				selectedPlaceId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayName(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec));
 				}
 				else{
 					placeDisplayField.setText(selectedId);
@@ -320,12 +310,11 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		dialog.setVisible(true);
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -347,7 +336,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -369,7 +358,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -389,7 +378,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -403,10 +392,9 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Source Citation methods ====================
 
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, null);
+		SourceCitationDialog dialog = new SourceCitationDialog(this, model, null);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord citation = dialog.getCitationRecord();
@@ -423,7 +411,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
@@ -449,7 +437,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
+				return sourceHandler.getDisplayText(rec);
 			}
 			return sourceId;
 		}
@@ -457,11 +445,10 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	}
 
 	private void createNewSource(){
-		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = sourceHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 	}
 
-	// ==================== Load Data ====================
 
 	@Override
 	protected void loadData(){
@@ -478,15 +465,13 @@ public class HistoricEventDialog extends BaseRecordDialog{
 				selectedPlaceId = placeId;
 				FLEFRecord rec = model.getRecordById(placeId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayName(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec));
 				}
 				else{
 					placeDisplayField.setText(placeId);
 				}
 			}
-			String placeCert = FLEFRecordUtils.getChildValue(place, "CERTAINTY");
-			String placeCred = FLEFRecordUtils.getChildValue(place, "CREDIBILITY");
-			placeQualifiers.load(placeCert, placeCred);
+			placeQualifiers.load(place);
 		}
 
 		// NOTES (0:M)
@@ -503,17 +488,15 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
-	// ==================== Validation ====================
 
 	@Override
 	protected boolean validateData(){
 		return true;
 	}
 
-	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
@@ -548,7 +531,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		if(isNew){
 			model.addRecord(record);
@@ -558,7 +541,6 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{
@@ -586,7 +568,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Historic Event");
 			btn.addActionListener(e -> {
-				HistoricEventDialog dialog = new HistoricEventDialog(frame, model);
+				HistoricEventDialog dialog = new HistoricEventDialog(null, model);
 				dialog.setVisible(true);
 				System.out.println("Historic Event saved.");
 			});

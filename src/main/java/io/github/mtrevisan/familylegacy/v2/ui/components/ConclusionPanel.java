@@ -14,9 +14,17 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,19 +99,18 @@ public class ConclusionPanel extends JPanel{
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
 		this.researchPanel = new ResearchStatusListPanel(model, parent);
-		this.sourcePanel = new SourceCitationListPanel(model, parent);
+		this.sourcePanel = new SourceCitationListPanel(parent, model);
 
 		initComponents();
 	}
 
 	private void initComponents(){
-		// Register bound components
 		bindingManager.bind(contextField);
 		bindingManager.bind(proofStatusCombo);
 		bindingManager.bind(narrativeArea);
 		bindingManager.bind(dateField);
 
-		setLayout(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
+		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// CONTEXT
@@ -139,10 +146,9 @@ public class ConclusionPanel extends JPanel{
 		add(sourcePanel, "span 2,growx,wrap");
 	}
 
-	// ==================== Preferred Panel ====================
 
 	private JPanel createPreferredPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx, top", "[right]rel[grow]"));
+		JPanel panel = new JPanel(new MigLayout("fillx,top", "[right]rel[grow]"));
 		panel.setBorder(new TitledBorder("Preferred Record"));
 
 		preferredDisplayField.setEditable(false);
@@ -182,7 +188,6 @@ public class ConclusionPanel extends JPanel{
 		clearPreferredBtn.setEnabled(false);
 	}
 
-	// ==================== Load / Save ====================
 
 	/**
 	 * Loads data from a CONCLUSION record.
@@ -195,31 +200,30 @@ public class ConclusionPanel extends JPanel{
 		if(conclusionRecord == null)
 			return;
 
-		// Load bound fields
 		bindingManager.loadFromRecord(conclusionRecord);
 
-		// Load RESOLVES
+		// RESOLVES
 		List<String> resolves = new ArrayList<>();
 		for(FLEFRecord child : conclusionRecord.getChildren())
 			if("RESOLVES".equals(child.getTag()) && child.getValue() != null)
 				resolves.add(child.getValue());
 		resolvesPanel.setItems(resolves);
 
-		// Load PREFERRED
+		// PREFERRED
 		preferredId = FLEFRecordUtils.getChildValue(conclusionRecord, "PREFERRED");
 		if(preferredId != null && !preferredId.isEmpty()){
 			preferredDisplayField.setText(preferredId);
 			clearPreferredBtn.setEnabled(true);
 		}
 
-		// Load RESEARCH
+		// RESEARCH
 		List<String> researchIds = new ArrayList<>();
 		for(FLEFRecord child : conclusionRecord.getChildren())
 			if("RESEARCH".equals(child.getTag()) && child.getValue() != null)
 				researchIds.add(child.getValue());
 		researchPanel.setItems(researchIds);
 
-		// Load SOURCE_CITATION
+		// SOURCE_CITATION
 		List<FLEFRecord> citations = new ArrayList<>();
 		for(FLEFRecord child : conclusionRecord.getChildren())
 			if("SOURCE".equals(child.getTag()))

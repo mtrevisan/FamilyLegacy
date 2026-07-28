@@ -28,8 +28,9 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceDialog;
+import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -57,22 +58,24 @@ public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
-		String name = FLEFRecordUtils.getChildValue(record, "NAME");
-		String id = record.getId();
-		if(name != null && !name.isEmpty()){
-			return name + " (" + id + ")";
+	public String getDisplayText(final FLEFRecord record){
+		final FLEFRecord name = FLEFRecordUtils.findChild(record, "NAME");
+		if(name != null){
+			final String value = FLEFRecordUtils.getChildValue(name, "VALUE");
+			final String id = record.getId();
+			if(value != null && !value.isEmpty())
+				return value + " (" + id + ")";
 		}
-		return id;
+		return StringUtils.EMPTY;
 	}
 
 	@Override
-	public PlaceDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public PlaceDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return PlaceDialog.createEdit(parent, model, record);
 	}
 
 	@Override
-	public PlaceDialog createNewDialog(Frame parent, FLEFModel model){
+	public PlaceDialog createNewDialog(Dialog parent, FLEFModel model){
 		return PlaceDialog.createNew(parent, model);
 	}
 

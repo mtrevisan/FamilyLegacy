@@ -3,8 +3,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -14,18 +14,14 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -54,78 +50,43 @@ public class PlaceStructureDialog extends JDialog{
 	private final FLEFRecord placeRecord;
 	private boolean saved;
 
-	// UI Components
-	private final JTextField placeDisplayField = new JTextField(30);
-	private final JButton browsePlaceBtn = new JButton("Select...");
-	private final JButton clearPlaceBtn = new JButton("Clear");
-
 	// Source Citations {0:M}
 	private final DefaultListModel<String> sourceListModel = new DefaultListModel<>();
 	private final JList<String> sourceList = new JList<>(sourceListModel);
 	private final List<FLEFRecord> sourceCitations = new ArrayList<>();
 
+	private final EvidenceQualifiersPanel qualifiers = new EvidenceQualifiersPanel("Evidence");
+
 	private final JButton okButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
+
 	public PlaceStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord existingRecord){
 		super(parent, "Edit Place Structure", true);
+
 		this.model = model;
-		this.placeRecord = (existingRecord != null ? copyRecord(existingRecord) : FLEFRecord.createChild("PLACE"));
+		this.placeRecord = existingRecord;
 
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
-	}
-
-	public PlaceStructureDialog(final Frame parent, final FLEFModel model, final FLEFRecord existingRecord){
-		super(parent, "Edit Place Structure", true);
-		this.model = model;
-		this.placeRecord = (existingRecord != null ? copyRecord(existingRecord) : FLEFRecord.createChild("PLACE"));
-
-		initComponents();
-		loadData();
-		pack();
-		setLocationRelativeTo(parent);
-	}
-
-	private static FLEFRecord copyRecord(final FLEFRecord original){
-		final FLEFRecord copy = FLEFRecord.createChildWithValue(original.getTag(), original.getValue());
-		for(final FLEFRecord child : original.getChildren()){
-			copy.addChild(child);
-		}
-		return copy;
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10, fillx, top, wrap 1", "[grow]", "[]5[]5[]"));
+		setLayout(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]5[]"));
 
-		// 1. PLACE Selection
-		final JPanel placePanel = new JPanel(new MigLayout("fillx, top", "[right]rel[grow][]"));
-		placePanel.setBorder(new TitledBorder("Place Reference"));
-		placeDisplayField.setEditable(false);
-
-		placePanel.add(new JLabel("Place*:"), "align label");
-		placePanel.add(placeDisplayField, "growx");
-		placePanel.add(browsePlaceBtn);
-		placePanel.add(clearPlaceBtn);
-
-		add(placePanel, "growx");
-
-		// 2. SOURCE_CITATION {0:M}
 		add(createSourceCitationsPanel(), "growx");
 
-		// Buttons
+		add(qualifiers, "span 2, growx, wrap");
+
 		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(okButton);
 		buttonPanel.add(cancelButton);
 		add(buttonPanel, "growx");
-
-		browsePlaceBtn.addActionListener(e -> selectPlace());
-		clearPlaceBtn.addActionListener(e -> {
-			placeRecord.setValue(null);
-			placeDisplayField.setText(StringUtils.EMPTY);
-		});
 
 		okButton.addActionListener(e -> save());
 		cancelButton.addActionListener(e -> dispose());
@@ -159,36 +120,12 @@ public class PlaceStructureDialog extends JDialog{
 		return panel;
 	}
 
-	private void selectPlace(){
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-		final GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
-			(Frame)SwingUtilities.getWindowAncestor(this), model, placeHandler, selectedId -> {
-			if(selectedId != null){
-				placeRecord.setValue(FLEFRecordUtils.formatXRef(selectedId));
-				updatePlaceDisplay();
-			}
-		});
-		selDialog.setVisible(true);
-	}
-
-	private void updatePlaceDisplay(){
-		final String rawId = FLEFRecordUtils.extractXRef(placeRecord.getValue());
-		if(rawId != null){
-			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-			final FLEFRecord rec = model.getRecordById(rawId);
-			placeDisplayField.setText(rec != null? placeHandler.getDisplayName(rec) : rawId);
-		}
-		else{
-			placeDisplayField.setText(StringUtils.EMPTY);
-		}
-	}
-
 	// --- Source Citation Actions (Analogous to NoteDialog) ---
 
 	private void addSourceCitation(){
 		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 		final GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
-			(Frame)SwingUtilities.getWindowAncestor(this), model, sourceHandler, selectedId -> {
+			this, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
 				final FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", FLEFRecordUtils.formatXRef(selectedId));
 				sourceCitations.add(citation);
@@ -207,7 +144,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-		final JDialog dialog = sourceHandler.createNewDialog((Frame)SwingUtilities.getWindowAncestor(this), model);
+		final JDialog dialog = sourceHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		String newSourceId = null;
@@ -220,7 +157,7 @@ public class PlaceStructureDialog extends JDialog{
 
 		if(newSourceId != null){
 			final FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", FLEFRecordUtils.formatXRef(newSourceId));
-			final SourceCitationDialog citationDialog = new SourceCitationDialog((Frame)SwingUtilities.getWindowAncestor(this), model, citationRecord);
+			final SourceCitationDialog citationDialog = new SourceCitationDialog(this, model, citationRecord);
 			citationDialog.setVisible(true);
 
 			if(citationDialog.isSaved()){
@@ -249,7 +186,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-		final JDialog dialog = sourceHandler.createEditDialog((Frame)SwingUtilities.getWindowAncestor(this), model, rec);
+		final JDialog dialog = sourceHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		sourceListModel.set(idx, getSourceCitationDisplay(citation));
 	}
@@ -261,7 +198,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		final FLEFRecord existing = sourceCitations.get(idx);
-		final SourceCitationDialog dialog = new SourceCitationDialog((Frame)SwingUtilities.getWindowAncestor(this), model, existing);
+		final SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -290,14 +227,12 @@ public class PlaceStructureDialog extends JDialog{
 		if(rawSourceId != null){
 			final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 			final FLEFRecord record = model.getRecordById(rawSourceId);
-			return (record != null? sourceHandler.getDisplayName(record) : rawSourceId);
+			return (record != null? sourceHandler.getDisplayText(record) : rawSourceId);
 		}
 		return "[empty]";
 	}
 
 	private void loadData(){
-		updatePlaceDisplay();
-
 		sourceCitations.clear();
 		sourceListModel.clear();
 		for(final FLEFRecord child : placeRecord.getChildren()){
@@ -306,6 +241,13 @@ public class PlaceStructureDialog extends JDialog{
 				sourceListModel.addElement(getSourceCitationDisplay(child));
 			}
 		}
+
+		final FLEFRecord map = FLEFRecordUtils.findChild(placeRecord, "MAP");
+		if(map != null){
+			qualifiers.load(map);
+		}
+		else
+			qualifiers.clear();
 	}
 
 	private void save(){
@@ -319,6 +261,14 @@ public class PlaceStructureDialog extends JDialog{
 		for(final FLEFRecord citation : sourceCitations){
 			citation.setTag("SOURCE");
 			placeRecord.addChild(citation);
+		}
+
+		// ---- EVIDENCE_QUALIFIERS for place ----
+		String placeCert = qualifiers.getCertainty();
+		String placeCred = qualifiers.getCredibility();
+		if((placeCert != null && !placeCert.isEmpty()) || (placeCred != null && !placeCred.isEmpty())){
+			FLEFRecordUtils.updateChildValue(placeRecord, "CERTAINTY", placeCert);
+			FLEFRecordUtils.updateChildValue(placeRecord, "CREDIBILITY", placeCred);
 		}
 
 		saved = true;

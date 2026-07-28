@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.HistoricEventDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -57,7 +57,7 @@ public class HistoricEventHandler implements RecordTypeHandler<HistoricEventDial
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		String title = FLEFRecordUtils.getChildValue(record, "TITLE");
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){
@@ -67,12 +67,12 @@ public class HistoricEventHandler implements RecordTypeHandler<HistoricEventDial
 	}
 
 	@Override
-	public HistoricEventDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public HistoricEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return new HistoricEventDialog(parent, model, record);
 	}
 
 	@Override
-	public HistoricEventDialog createNewDialog(Frame parent, FLEFModel model){
+	public HistoricEventDialog createNewDialog(Dialog parent, FLEFModel model){
 		return new HistoricEventDialog(parent, model);
 	}
 

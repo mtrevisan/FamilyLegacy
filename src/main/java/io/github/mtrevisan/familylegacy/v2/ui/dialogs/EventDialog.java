@@ -27,9 +27,9 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ItemEvent;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -49,7 +49,6 @@ public class EventDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	// ========== Basic tab components ==========
 	private final JTextField idField = new JTextField(10);
 	private final BoundComboBox typeCombo;
 	private final JTextField familyField = new JTextField(15);
@@ -57,7 +56,6 @@ public class EventDialog extends BaseRecordDialog{
 	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
 	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
 
-	// ========== Details tab components (EVENT_STRUCTURE) ==========
 	private final JTextArea descriptionArea = new JTextArea(3, 30);
 	private final JTextField dateField = new JTextField(20);
 	private final JTextField placeField = new JTextField(15);
@@ -66,30 +64,25 @@ public class EventDialog extends BaseRecordDialog{
 	private final JTextField causeField = new JTextField(20);
 	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel("Cause Evidence");
 
-	// ========== Assessments tab components ==========
 	private final EvidenceQualifiersPanel eventQualifiers = new EvidenceQualifiersPanel("Event Evidence");
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// ========== Links tab components ==========
 	private final JTextField culturalNormsField = new JTextField(30);
 	private final JTextField notesField = new JTextField(30);
 	private final JTextField sourcesField = new JTextField(30);
 
-	// ========== Conclusion tab components ==========
 	private final JTextArea conclusionArea = new JTextArea(5, 30);
 
-	// ========== Modification tab components ==========
 	private final JTextArea modificationArea = new JTextArea(5, 30);
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
 	/**
 	 * Creates a dialog to edit an existing event record.
 	 */
-	public EventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Event", model, record, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
+	public EventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		// Initialize bound components before using them
 		typeCombo = new BoundComboBox("TYPE", new String[]{});
@@ -105,8 +98,8 @@ public class EventDialog extends BaseRecordDialog{
 	/**
 	 * Creates a dialog to create a new event record.
 	 */
-	public EventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Event", model, null, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
+	public EventDialog(Dialog parent, FLEFModel model){
+		super(parent, model, null, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		// Initialize bound components before using them
 		typeCombo = new BoundComboBox("TYPE", new String[]{});
@@ -123,7 +116,6 @@ public class EventDialog extends BaseRecordDialog{
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
-		// Register bound components
 		bindingManager.bind(typeCombo);
 
 		// Create tabbed pane
@@ -287,9 +279,7 @@ public class EventDialog extends BaseRecordDialog{
 
 		FLEFRecord place = findChild("PLACE");
 		if(place != null){
-			String placeCert = getChildValue(place, "CERTAINTY");
-			String placeCred = getChildValue(place, "CREDIBILITY");
-			placeQualifiers.load(placeCert, placeCred);
+			placeQualifiers.load(place);
 		}
 
 		agencyField.setText(getChildValue("AGENCY"));
@@ -297,14 +287,10 @@ public class EventDialog extends BaseRecordDialog{
 
 		FLEFRecord cause = findChild("CAUSE");
 		if(cause != null){
-			String causeCert = getChildValue(cause, "CERTAINTY");
-			String causeCred = getChildValue(cause, "CREDIBILITY");
-			causeQualifiers.load(causeCert, causeCred);
+			causeQualifiers.load(cause);
 		}
 
-		String eventCert = getChildValue("CERTAINTY");
-		String eventCred = getChildValue("CREDIBILITY");
-		eventQualifiers.load(eventCert, eventCred);
+		eventQualifiers.load(record);
 
 		restrictionCheckBox.setSelected("confidential".equals(getChildValue("RESTRICTION")));
 
@@ -435,14 +421,14 @@ public class EventDialog extends BaseRecordDialog{
 			editBtn.addActionListener(e -> {
 				FLEFRecord rec = model.getRecordById("E1");
 				if(rec != null){
-					EventDialog dialog = new EventDialog(frame, model, rec);
+					EventDialog dialog = new EventDialog(null, model, rec);
 					dialog.setVisible(true);
 				}
 			});
 
 			JButton newBtn = new JButton("New Event");
 			newBtn.addActionListener(e -> {
-				EventDialog dialog = new EventDialog(frame, model);
+				EventDialog dialog = new EventDialog(null, model);
 				dialog.setVisible(true);
 			});
 

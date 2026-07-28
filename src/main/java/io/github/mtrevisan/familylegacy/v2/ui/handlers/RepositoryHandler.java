@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -57,7 +57,7 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryDialog>{
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		String name = FLEFRecordUtils.getChildValue(record, "NAME");
 		String id = record.getId();
 		if(name != null && !name.isEmpty()){
@@ -67,12 +67,12 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryDialog>{
 	}
 
 	@Override
-	public RepositoryDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public RepositoryDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return RepositoryDialog.createEdit(parent, model, record);
 	}
 
 	@Override
-	public RepositoryDialog createNewDialog(Frame parent, FLEFModel model){
+	public RepositoryDialog createNewDialog(Dialog parent, FLEFModel model){
 		return RepositoryDialog.createNew(parent, model);
 	}
 

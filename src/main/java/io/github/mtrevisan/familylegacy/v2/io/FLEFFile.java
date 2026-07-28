@@ -81,11 +81,11 @@ public final class FLEFFile{
 	/**
 	 * Loads a FLEF data file and validates it against a grammar file.
 	 *
-	 * @param flefPath path to the .flef data file
-	 * @param gedgPath path to the .gedg protocol file
-	 * @return validated FLEFModel
-	 * @throws IOException         if files cannot be read
-	 * @throws ValidationException if validation fails
+	 * @param flefPath	Path to the {@code .flef} data file.
+	 * @param gedgPath	Path to the {@code .gedg} protocol file.
+	 * @return	Validated FLEFModel.
+	 * @throws IOException	If files cannot be read.
+	 * @throws ValidationException	If validation fails.
 	 */
 	public static FLEFModel loadAndValidate(final Path flefPath, final Path gedgPath)
 			throws IOException, ValidationException{
@@ -221,13 +221,13 @@ public final class FLEFFile{
 				sb.append("0 ")
 					.append(FLEFRecordUtils.formatXRef(record.getId()))
 					.append(" ")
-					.append(record.getType())
+					.append(record.getTag())
 					.append("\n");
 			}
 			else{
 				// Header or other root-level record without ID
 				sb.append("0 ")
-					.append(record.getType())
+					.append(record.getTag())
 					.append("\n");
 			}
 		}
@@ -284,7 +284,7 @@ public final class FLEFFile{
 	 */
 	private static FLEFRecord parseHeader(final List<String> lines, final int startIndex){
 		final FLEFRecord header = new FLEFRecord();
-		header.setType("HEADER");
+		header.setTag("HEADER");
 
 		// Start parsing from the next line with level 1
 		final Stack<FLEFRecord> stack = new Stack<>();
@@ -632,7 +632,7 @@ public final class FLEFFile{
 
 	private static FLEFRecord createTestHeader(){
 		final FLEFRecord header = new FLEFRecord();
-		header.setType("HEADER");
+		header.setTag("HEADER");
 
 		final FLEFRecord protocol = FLEFRecord.createChildWithValue("PROTOCOL", "FLEF");
 		header.addChild(protocol);

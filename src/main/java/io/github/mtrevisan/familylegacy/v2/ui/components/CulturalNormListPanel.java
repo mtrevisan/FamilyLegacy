@@ -7,7 +7,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -25,14 +26,15 @@ public class CulturalNormListPanel extends AbstractListPanel<String>{
 
 
 	public CulturalNormListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Cultural Norms");
+		super(parentDialog, "Cultural Norms", model);
 	}
+
 
 	@Override
 	protected String getDisplay(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return culturalNormHandler.getDisplayName(rec);
+			return culturalNormHandler.getDisplayText(rec);
 		}
 		return id;
 	}

@@ -2,7 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 
-import javax.swing.*;
+import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -17,7 +17,7 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 
 
 	public ResolvesListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Resolves (Conflicting Events/Associations)");
+		super(parentDialog, "Resolves (Conflicting Events/Associations)", model);
 	}
 
 

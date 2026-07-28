@@ -6,9 +6,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -26,14 +26,14 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 
 
 	public ResearchStatusListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Research References");
+		super(parentDialog, "Research References", model);
 	}
 
 	@Override
 	protected String getDisplay(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return researchHandler.getDisplayName(rec);
+			return researchHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -43,7 +43,7 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 		final String[] result = {null};
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ResearchStatusHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(parentDialog), model, handler, selectedId -> {
+			parentDialog, model, handler, selectedId -> {
 			if(selectedId != null){
 				result[0] = selectedId;
 			}
@@ -61,7 +61,7 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 			return null;
 		}
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ResearchStatusHandler.TYPE);
-		JDialog dialog = handler.createEditDialog(GUIHelper.getParentFrame(parentDialog), model, rec);
+		JDialog dialog = handler.createEditDialog(parentDialog, model, rec);
 		dialog.setVisible(true);
 		// Return the same ID (the record was edited in place)
 		return existing;

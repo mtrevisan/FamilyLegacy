@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeDialog;
 import org.apache.commons.lang3.StringUtils;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -91,7 +91,7 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 	 * @return a new {@code GroupAttributeDialog} in create mode
 	 */
 	@Override
-	public GroupAttributeDialog createNewDialog(Frame parent, FLEFModel model){
+	public GroupAttributeDialog createNewDialog(Dialog parent, FLEFModel model){
 		return GroupAttributeDialog.createNew(parent, model);
 	}
 
@@ -104,7 +104,7 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 	 * @return a new {@code GroupAttributeDialog} in edit mode
 	 */
 	@Override
-	public GroupAttributeDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public GroupAttributeDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return GroupAttributeDialog.createEdit(parent, model, record);
 	}
 
@@ -119,7 +119,7 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 	 * @return a human-readable display name
 	 */
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		if(record == null){
 			return StringUtils.EMPTY;
 		}

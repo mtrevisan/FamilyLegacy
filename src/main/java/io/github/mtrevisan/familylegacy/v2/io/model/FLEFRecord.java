@@ -38,7 +38,7 @@ public class FLEFRecord{
 
 	// For main records
 	private String id;
-	private String type;
+//	private String tag;
 
 	// For children
 	private String tag;
@@ -51,7 +51,7 @@ public class FLEFRecord{
 	public static FLEFRecord createMainRecord(final String id, final String type){
 		final FLEFRecord record = new FLEFRecord();
 		record.setId(id);
-		record.setType(type);
+		record.setTag(type);
 		return record;
 	}
 
@@ -76,14 +76,6 @@ public class FLEFRecord{
 
 	public void setId(final String id){
 		this.id = id;
-	}
-
-	public String getType(){
-		return type;
-	}
-
-	public void setType(final String type){
-		this.type = type;
 	}
 
 	public String getTag(){
@@ -211,11 +203,11 @@ public class FLEFRecord{
 	@Override
 	public String toString(){
 		if(id != null)
-			return type + " " + id;
+			return tag + " " + id;
 		else if(tag != null)
 			return tag + (value != null? " " + value: "");
 		else
-			return type != null? type: "Record";
+			return "??";
 	}
 
 }

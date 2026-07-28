@@ -4,7 +4,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
@@ -29,7 +29,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		// Try to get name from NAME structure
 		String given = null, family = null, id = record.getId();
 		for(FLEFRecord child : record.getChildren()){
@@ -63,12 +63,12 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	}
 
 	@Override
-	public IndividualDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public IndividualDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return IndividualDialog.createEdit(parent, model, record);
 	}
 
 	@Override
-	public IndividualDialog createNewDialog(Frame parent, FLEFModel model){
+	public IndividualDialog createNewDialog(Dialog parent, FLEFModel model){
 		return IndividualDialog.createNew(parent, model);
 	}
 

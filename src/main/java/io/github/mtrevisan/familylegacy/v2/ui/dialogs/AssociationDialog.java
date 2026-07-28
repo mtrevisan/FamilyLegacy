@@ -91,39 +91,31 @@ public class AssociationDialog extends JDialog{
 	private final FLEFRecord existingAssociation;
 	private boolean saved = false;
 
-	// ========== Type selection ==========
 	private final JRadioButton existingRecordRadio = new JRadioButton("Existing Record", true);
 	private final JRadioButton voidRecordRadio = new JRadioButton("Void Record (no research)");
 	private final ButtonGroup typeGroup = new ButtonGroup();
 
-	// ========== Existing Record panel ==========
 	private final JComboBox<String> targetTypeCombo = new JComboBox<>(new String[]{"INDIVIDUAL", "FAMILY"});
 	private final JTextField targetDisplayField = new JTextField(20);
 	private final JButton browseButton = new JButton("Browse...");
 
-	// ========== Void Record panel ==========
 	private final JTextField voidNameField = new JTextField(20);
 
-	// ========== Card panel ==========
 	private final JPanel cardPanel = new JPanel(new CardLayout());
 
-	// ========== Notes (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== Source Citations (0:M) ==========
 	private final DefaultListModel<String> sourceModel = new DefaultListModel<>();
 	private final JList<String> sourceList = new JList<>(sourceModel);
 	private final List<String> sourceIds = new ArrayList<>();
 	private final Map<String, String> sourceDisplayMap = new HashMap<>();
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
@@ -221,7 +213,6 @@ public class AssociationDialog extends JDialog{
 		showCard("EXISTING");
 	}
 
-	// ==================== Existing panel ====================
 
 	private JPanel createExistingPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]"));
@@ -251,7 +242,6 @@ public class AssociationDialog extends JDialog{
 		return panel;
 	}
 
-	// ==================== Reference panel helper ====================
 
 	private JPanel createReferencePanel(String title, DefaultListModel<String> model, JList<String> list,
 		List<String> ids, Map<String, String> displayMap,
@@ -322,7 +312,7 @@ public class AssociationDialog extends JDialog{
 		String display = targetId;
 		FLEFRecord target = model.getRecordById(targetId);
 		if(target != null){
-			display = handler.getDisplayName(target);
+			display = handler.getDisplayText(target);
 		}
 		targetDisplayField.setText(display);
 	}
@@ -343,7 +333,7 @@ public class AssociationDialog extends JDialog{
 		}
 
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, handler, selectedId -> {
+			this, model, handler, selectedId -> {
 			if(selectedId != null){
 				updateTargetDisplay(selectedId);
 			}
@@ -352,12 +342,11 @@ public class AssociationDialog extends JDialog{
 		dialog.setVisible(true);
 	}
 
-	// ==================== Notes methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -379,7 +368,7 @@ public class AssociationDialog extends JDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -401,7 +390,7 @@ public class AssociationDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -427,7 +416,7 @@ public class AssociationDialog extends JDialog{
 		// Store current note IDs to detect the newly created one
 		Set<String> beforeIds = new HashSet<>(noteIds);
 
-		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
+		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		// Find the newly created note and add it automatically
@@ -443,12 +432,11 @@ public class AssociationDialog extends JDialog{
 		}
 	}
 
-	// ==================== Source methods ====================
 
 	private String getSourceDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return sourceHandler.getDisplayName(rec);
+			return sourceHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -470,7 +458,7 @@ public class AssociationDialog extends JDialog{
 
 	private void addSource(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, sourceHandler, selectedId -> {
+			this, model, sourceHandler, selectedId -> {
 			if(selectedId != null && !sourceIds.contains(selectedId)){
 				sourceIds.add(selectedId);
 				String display = getSourceDisplayName(selectedId);
@@ -492,7 +480,7 @@ public class AssociationDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Source not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = sourceHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = sourceHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getSourceDisplayName(id);
 		sourceDisplayMap.put(id, newDisplay);
@@ -518,7 +506,7 @@ public class AssociationDialog extends JDialog{
 		// Store current source IDs to detect the newly created one
 		Set<String> beforeIds = new HashSet<>(sourceIds);
 
-		JDialog dialog = sourceHandler.createNewDialog(parentFrame, model);
+		JDialog dialog = sourceHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		// Find the newly created source and add it automatically
@@ -534,7 +522,6 @@ public class AssociationDialog extends JDialog{
 		}
 	}
 
-	// ==================== Load & Save ====================
 
 	private void loadData(){
 		String value = existingAssociation.getValue();

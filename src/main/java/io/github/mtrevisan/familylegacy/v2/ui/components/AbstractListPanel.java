@@ -35,40 +35,42 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	private static final long serialVersionUID = -2135553287905371181L;
 
 
-	protected final FLEFModel model;
 	protected final Dialog parentDialog;
+	private final String title;
+
+	protected final FLEFModel model;
 
 	protected final DefaultListModel<String> listModel = new DefaultListModel<>();
 	protected final JList<String> list = new JList<>(listModel);
 	protected final List<T> items = new ArrayList<>();
 
-	private final String title;
-
 
 	/**
 	 * Constructs an AbstractListPanel.
 	 *
-	 * @param model        the FLEF model
 	 * @param parentDialog the parent dialog (for showing modal dialogs)
 	 * @param title        the title for the TitledBorder, or {@code null} for no border
+	 * @param model        the FLEF model
 	 */
-	protected AbstractListPanel(FLEFModel model, Dialog parentDialog, String title){
-		this.model = model;
+	protected AbstractListPanel(final Dialog parentDialog, final String title, final FLEFModel model){
 		this.parentDialog = parentDialog;
 		this.title = title;
+
+		this.model = model;
+
 		initComponents();
 	}
 
 	/**
 	 * Constructs an AbstractListPanel without a border.
 	 */
-	protected AbstractListPanel(FLEFModel model, Dialog parentDialog){
-		this(model, parentDialog, null);
+	protected AbstractListPanel(final FLEFModel model, final Dialog parentDialog){
+		this(parentDialog, null, model);
 	}
 
 
 	void initComponents(){
-		setLayout(new MigLayout("fillx,wrap 1", "[grow]", "[]"));
+		setLayout(new MigLayout("fillx,wrap 1", "[grow]"));
 		if(title != null)
 			setBorder(new TitledBorder(title));
 
@@ -95,7 +97,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Delegates to {@link #showAddDialog()} and adds the result.
 	 */
 	public final void addItem(){
-		T newItem = showAddDialog();
+		final T newItem = showAddDialog();
 		if(newItem != null){
 			items.add(newItem);
 			listModel.addElement(getDisplay(newItem));
@@ -107,11 +109,12 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Delegates to {@link #showEditDialog(Object)} and updates the result.
 	 */
 	public final void editItem(){
-		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
+		final int idx = list.getSelectedIndex();
+		if(idx == -1)
+			return;
 
-		T current = items.get(idx);
-		T updated = showEditDialog(current);
+		final T current = items.get(idx);
+		final T updated = showEditDialog(current);
 		if(updated != null){
 			items.set(idx, updated);
 			listModel.set(idx, getDisplay(updated));
@@ -123,18 +126,19 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Called by the "Remove" action.
 	 */
 	public final void removeItem(){
-		int idx = list.getSelectedIndex();
-		if(idx == -1) return;
+		final int idx = list.getSelectedIndex();
+		if(idx == -1)
+			return;
 
-		if(JOptionPane.showConfirmDialog(parentDialog,
+		final int confirm = JOptionPane.showConfirmDialog(parentDialog,
 			"Remove this item?", "Confirm",
-			JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+			JOptionPane.YES_NO_OPTION);
+		if(confirm == JOptionPane.YES_OPTION){
 			items.remove(idx);
 			listModel.remove(idx);
 		}
 	}
 
-	// ==================== Methods to override ====================
 
 	/**
 	 * Returns the display string for an item.
@@ -170,7 +174,6 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		return true;
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Clears all items from the list.
@@ -212,14 +215,14 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @param newItems the new items
 	 */
-	public void setItems(List<T> newItems){
+	public void setItems(final List<T> newItems){
 		clear();
-		if(newItems != null){
-			for(T item : newItems){
+
+		if(newItems != null)
+			for(final T item : newItems){
 				items.add(item);
 				listModel.addElement(getDisplay(item));
 			}
-		}
 	}
 
 	/**
@@ -227,7 +230,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @param item the item to add
 	 */
-	protected void addItemDirectly(T item){
+	protected void addItemDirectly(final T item){
 		if(item != null){
 			items.add(item);
 			listModel.addElement(getDisplay(item));

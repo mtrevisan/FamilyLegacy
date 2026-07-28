@@ -40,9 +40,9 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
@@ -91,6 +91,8 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
+	private Dialog parent;
+
 	// Preferred Image
 	private String preferredImageId;
 	private String preferredImageCrop;
@@ -126,19 +128,21 @@ public class IndividualDialog extends BaseRecordDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 	// ----- Factory methods -----
-	public static IndividualDialog createNew(Frame parent, FLEFModel model){
+	public static IndividualDialog createNew(Dialog parent, FLEFModel model){
 		return new IndividualDialog(parent, model, null);
 	}
 
-	public static IndividualDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
+	public static IndividualDialog createEdit(Dialog parent, FLEFModel model, FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 		return new IndividualDialog(parent, model, record);
 	}
 
 	// ----- Constructor -----
-	private IndividualDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, buildTitle(model, record), model, record, HandlerRegistry.getHandler(IndividualHandler.TYPE));
+	private IndividualDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(IndividualHandler.TYPE));
+
+		this.parent = parent;
 
 		// Initialize bound components before using them
 		sexCombo = new BoundComboBox("SEX",
@@ -151,12 +155,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	private static String buildTitle(FLEFModel model, FLEFRecord record){
-		return (record == null
-					  ? "New Individual"
-					  : "Edit Individual - " + record.getId());
-	}
-
 	// ----- Initialisation -----
 	@Override
 	protected void initComponents(){
@@ -165,7 +163,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		conclusionPanel = new ConclusionPanel(model, this);
 		modificationPanel = new ModificationPanel(this);
 
-		// Register bound components
 		bindingManager.bind(sexCombo);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
@@ -187,9 +184,8 @@ public class IndividualDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Main Panel ====================
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[grow]", "[]5[]5[]10[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]5[]5[]10[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// Preferred Image
@@ -220,7 +216,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		panel.add(namePanel, "growx");
 
 		// Sex – now using the bound combo box
-		JPanel sexPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel sexPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		sexPanel.add(new JLabel("Sex:"), "align label");
 		sexPanel.add(sexCombo, "growx");
 		panel.add(sexPanel, "growx");
@@ -228,9 +224,8 @@ public class IndividualDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== References Panel ====================
 	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,wrap 1", "[grow]", "[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(createListPanel("Cultural Norms",
@@ -286,7 +281,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Preferred Image ====================
 	private Icon createPlaceholderIcon(){
 		BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g2 = img.createGraphics();
@@ -301,7 +295,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	private void selectAndCropImage(){
 		final String[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> result[0] = selectedId);
+			parent, model, sourceHandler, selectedId -> result[0] = selectedId);
 		dialog.setVisible(true);
 		String sourceId = result[0];
 		if(sourceId == null) return;
@@ -314,7 +308,7 @@ public class IndividualDialog extends BaseRecordDialog{
 			return;
 		}
 
-		ImageCropDialog cropDialog = new ImageCropDialog(GUIHelper.getParentFrame(this), image);
+		ImageCropDialog cropDialog = new ImageCropDialog(this, image);
 		cropDialog.setVisible(true);
 
 		Rectangle cropRect = cropDialog.getCrop();
@@ -363,10 +357,9 @@ public class IndividualDialog extends BaseRecordDialog{
 		preferredImageButton.setIcon(createPlaceholderIcon());
 	}
 
-	// ==================== Cultural Norm methods ====================
 	private void addCulturalNorm(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, culturalNormHandler, selectedId -> {
+			parent, model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
 				culturalNormIds.add(selectedId);
 				String display = getCulturalNormDisplayName(selectedId);
@@ -385,7 +378,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
-		JDialog dialog = culturalNormHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = culturalNormHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 
 		String newDisplay = getCulturalNormDisplayName(id);
@@ -406,7 +399,7 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private void createNewCulturalNorm(){
 		Set<String> before = new HashSet<>(culturalNormIds);
-		JDialog dialog = culturalNormHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = culturalNormHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
@@ -423,20 +416,19 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private String getCulturalNormDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return culturalNormHandler.getDisplayName(rec);
+		if(rec != null) return culturalNormHandler.getDisplayText(rec);
 		return id;
 	}
 
-	// ==================== Note helper methods ====================
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return noteHandler.getDisplayName(rec);
+		if(rec != null) return noteHandler.getDisplayText(rec);
 		return id;
 	}
 
 	private void addNoteToList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
+			parent, model, noteHandler, selectedId -> {
 			if(selectedId != null && !ids.contains(selectedId)){
 				ids.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -456,7 +448,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
 
-		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 
 		String newDisplay = getNoteDisplayName(id);
@@ -478,7 +470,7 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private void createNewNoteForList(DefaultListModel<String> listModel, List<String> ids, Map<String, String> displayMap){
 		Set<String> before = new HashSet<>(ids);
-		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
@@ -493,7 +485,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Note methods (top-level) ====================
 	private void addNote(){
 		addNoteToList(noteListModel, noteIds, noteDisplayMap);
 	}
@@ -510,10 +501,9 @@ public class IndividualDialog extends BaseRecordDialog{
 		createNewNoteForList(noteListModel, noteIds, noteDisplayMap);
 	}
 
-	// ==================== Source Citation methods ====================
 	private void addSourceCitation(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> {
+			parent, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
 				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 				sourceCitationRecords.add(citation);
@@ -528,7 +518,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -557,7 +547,7 @@ public class IndividualDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = sourceHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
@@ -576,18 +566,15 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
+				return sourceHandler.getDisplayText(rec);
 			}
 			return sourceId;
 		}
 		return "[empty]";
 	}
 
-	// ==================== Load Data ====================
 	@Override
 	protected void loadData(){
-		setTitle(buildTitle(model, record));
-
 		// ---- Simple fields: load via binding manager ----
 		bindingManager.loadFromRecord(record);
 
@@ -652,10 +639,9 @@ public class IndividualDialog extends BaseRecordDialog{
 		conclusionPanel.loadFromRecord(conclusion);
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
-	// ==================== Validation ====================
 	@Override
 	protected boolean validateData(){
 		// Validate names
@@ -670,7 +656,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		return !conclusionPanel.hasData() || conclusionPanel.validateRequiredFields();
 	}
 
-	// ==================== Save ====================
 	@Override
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
@@ -715,7 +700,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		// ---- Save simple fields via binding manager (must be after adding all other children) ----
 		bindingManager.saveToRecord(record);
@@ -728,7 +713,6 @@ public class IndividualDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Main test ====================
 	public static void main(String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -747,7 +731,7 @@ public class IndividualDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Individual");
 			btn.addActionListener(e -> {
-				IndividualDialog dialog = IndividualDialog.createNew(frame, model);
+				IndividualDialog dialog = IndividualDialog.createNew(null, model);
 				dialog.setVisible(true);
 				System.out.println("Individual saved.");
 			});

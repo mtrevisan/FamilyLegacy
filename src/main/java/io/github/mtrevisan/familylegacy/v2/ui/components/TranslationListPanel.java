@@ -43,7 +43,7 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 	}
 
 	public TranslationListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Translations");
+		super(parentDialog, "Translations", model);
 	}
 
 	@Override

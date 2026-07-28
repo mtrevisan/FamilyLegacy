@@ -6,9 +6,9 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -23,7 +23,7 @@ public class ImageCropDialog extends JDialog{
 	private Rectangle cropRect;
 	private final CropPanel cropPanel;
 
-	public ImageCropDialog(Frame parent, BufferedImage image){
+	public ImageCropDialog(Dialog parent, BufferedImage image){
 		super(parent, "Select Crop Area", true);
 		this.image = image;
 		cropPanel = new CropPanel(image);

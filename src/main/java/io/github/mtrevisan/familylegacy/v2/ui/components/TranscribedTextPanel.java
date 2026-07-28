@@ -61,11 +61,9 @@ public class TranscribedTextPanel extends JPanel{
 
 	private final Component parent;
 
-	// ========== PHONETIC (0:1) ==========
 	private final JTextField phoneticSystemField = new JTextField(15);
 	private final JTextField phoneticValueField = new JTextField(20);
 
-	// ========== TRANSCRIPTION (0:1) ==========
 	private final JTextField transcriptionSystemField = new JTextField(15);
 	private final JComboBox<String> transcriptionTypeCombo = new JComboBox<>(new String[]{
 		StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized",
@@ -87,17 +85,14 @@ public class TranscribedTextPanel extends JPanel{
 		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]"));
 		setBorder(new TitledBorder("Trasncribed Text"));
 
-		// ===== PHONETIC section =====
 		add(new JLabel("Phonetic System:"), "align label");
 		add(phoneticSystemField, "growx,wrap");
 
 		add(new JLabel("Phonetic Value:"), "align label");
 		add(phoneticValueField, "growx,wrap");
 
-		// ===== Separator =====
 		add(new JSeparator(), "span 2,growx,wrap");
 
-		// ===== TRANSCRIPTION section =====
 		add(new JLabel("Transcription System:"), "align label");
 		add(transcriptionSystemField, "growx,wrap");
 
@@ -108,7 +103,6 @@ public class TranscribedTextPanel extends JPanel{
 		add(transcriptionValueField, "growx");
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads data from a TRANSCRIBED_TEXT FLEFRecord.
@@ -173,7 +167,6 @@ public class TranscribedTextPanel extends JPanel{
 		// Clear existing children
 		FLEFRecordUtils.removeAllChildren(transRecord);
 
-		// ===== PHONETIC (0:1) =====
 		String phoneticSys = phoneticSystemField.getText().trim();
 		String phoneticVal = phoneticValueField.getText().trim();
 
@@ -192,7 +185,6 @@ public class TranscribedTextPanel extends JPanel{
 			}
 		}
 
-		// ===== TRANSCRIPTION (0:1) =====
 		String transSys = transcriptionSystemField.getText().trim();
 		String transType = (String)transcriptionTypeCombo.getSelectedItem();
 		String transVal = transcriptionValueField.getText().trim();
@@ -285,7 +277,6 @@ public class TranscribedTextPanel extends JPanel{
 		transcriptionValueField.setText(StringUtils.EMPTY);
 	}
 
-	// ==================== Getters for individual fields ====================
 
 	public String getPhoneticSystem(){
 		return phoneticSystemField.getText().trim();

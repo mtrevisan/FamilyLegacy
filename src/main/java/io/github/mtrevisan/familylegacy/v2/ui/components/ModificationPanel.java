@@ -35,7 +35,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -125,22 +124,18 @@ public class ModificationPanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("fillx,wrap 2", "[right]rel[grow]", "[]10[]10[]"));
+		setLayout(new MigLayout("fillx", "[grow]"));
 
-		// Register bound components
 		bindingManager.bind(creationCommentArea);
 
 		// CREATION section
-		final JPanel creationPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]", "[]5[]"));
-		creationPanel.setBorder(new TitledBorder("Creation"));
-
-		creationPanel.add(new JLabel("Comment:"), "align label,top");
 		creationCommentArea.setLineWrap(true);
 		creationCommentArea.setWrapStyleWord(true);
+		final JPanel creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
+		creationPanel.setBorder(new TitledBorder("Creation Comment"));
 		final JScrollPane commentScroll = GUIHelper.createScrollPane(creationCommentArea);
-		creationPanel.add(commentScroll, "growx,wrap");
-
-		add(creationPanel, "span 2,growx");
+		creationPanel.add(commentScroll, "growx");
+		add(creationPanel, "growx,wrap");
 
 		// UPDATES section
 		final JPanel updatePanel = new JPanel(new MigLayout("fillx", "[grow]"));
@@ -165,10 +160,9 @@ public class ModificationPanel extends JPanel{
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(updateList);
 		updatePanel.add(scrollPane, "growx,wrap");
 
-		add(updatePanel, "span 2,growx");
+		add(updatePanel, "growx");
 	}
 
-	// ==================== Update Management ====================
 
 	private void createNewUpdate(){
 		final UpdateEntry newEntry = showUpdateDialog(null);
@@ -212,7 +206,7 @@ public class ModificationPanel extends JPanel{
 	 */
 	private UpdateEntry showUpdateDialog(final UpdateEntry initial){
 		final JDialog dialog = new JDialog(parentDialog, initial == null? "Add Update": "Edit Update", true);
-		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]10[]"));
+		dialog.setLayout(new MigLayout("ins 10, fillx", "[grow]", "[]10[]"));
 
 		// COMMENT
 		final BoundTextArea commentArea = new BoundTextArea("UPDATE.COMMENT", 3, 25);
@@ -222,7 +216,6 @@ public class ModificationPanel extends JPanel{
 			commentArea.setText(initial.comment);
 		final JScrollPane commentScroll = GUIHelper.createScrollPane(commentArea);
 
-		dialog.add(new JLabel("Comment:"), "align label,top");
 		dialog.add(commentScroll, "growx,wrap");
 
 		final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -230,7 +223,7 @@ public class ModificationPanel extends JPanel{
 		final JButton cancelBtn = new JButton("Cancel");
 		btnPanel.add(okBtn);
 		btnPanel.add(cancelBtn);
-		dialog.add(btnPanel, "span 2,growx");
+		dialog.add(btnPanel, "growx");
 
 		final UpdateEntry[] result = {null};
 		okBtn.addActionListener(e -> {
@@ -248,14 +241,13 @@ public class ModificationPanel extends JPanel{
 		return result[0];
 	}
 
-	// ==================== Load / Save ====================
 
 	/**
 	 * Loads data from a record's MODIFICATION_STRUCTURE into the panel.
 	 *
 	 * @param record the record containing the MODIFICATION_STRUCTURE
 	 */
-	public void loadFromRecord(final FLEFRecord record){
+	public void load(final FLEFRecord record){
 		clear();
 
 		// ---- Load bound simple fields ----
@@ -289,7 +281,7 @@ public class ModificationPanel extends JPanel{
 	 *
 	 * @param targetRecord the record to save into
 	 */
-	public void saveToRecord(final FLEFRecord targetRecord){
+	public void save(final FLEFRecord targetRecord){
 		final FLEFRecord record = (targetRecord != null? targetRecord: new FLEFRecord());
 
 		// Remove existing children

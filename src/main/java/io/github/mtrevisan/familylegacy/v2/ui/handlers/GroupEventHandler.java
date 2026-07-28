@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupEventDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -57,7 +57,7 @@ public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		String typeId = FLEFRecordUtils.getChildValue(record, "TYPE");
 		String id = record.getId();
 		if(typeId != null && !typeId.isEmpty()){
@@ -69,12 +69,12 @@ public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 	}
 
 	@Override
-	public GroupEventDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public GroupEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return new GroupEventDialog(parent, model, record);
 	}
 
 	@Override
-	public GroupEventDialog createNewDialog(Frame parent, FLEFModel model){
+	public GroupEventDialog createNewDialog(Dialog parent, FLEFModel model){
 		return new GroupEventDialog(parent, model);
 	}
 

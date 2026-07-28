@@ -43,9 +43,16 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,9 +93,6 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final Frame parent;
-
-	// ----- UI components -----
 	private final NameListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
 	private final SourceCitationListPanel sourcePanel;
@@ -100,24 +104,22 @@ public class PlaceDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel mapQualifiers = new EvidenceQualifiersPanel("Map Evidence");
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]10[]5[]10[]5[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]10[]5[]"));
 
 
-	public static PlaceDialog createNew(final Frame parent, final FLEFModel model){
+	public static PlaceDialog createNew(final Dialog parent, final FLEFModel model){
 		return new PlaceDialog(parent, model, null);
 	}
 
-	public static PlaceDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record){
+	public static PlaceDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
 		return new PlaceDialog(parent, model, record);
 	}
 
-	private PlaceDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(PlaceHandler.TYPE));
-
-		this.parent = parent;
+	private PlaceDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(PlaceHandler.TYPE));
 
 		// Initialize components
 		this.typeCombo = new BoundComboBox<>("TYPE", new String[]{
@@ -126,8 +128,8 @@ public class PlaceDialog extends BaseRecordDialog{
 			"department", "district", "region", "macro_region", "country",
 			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
 		});
-		this.namePanel = new NameListPanel(model, this);
-		this.sourcePanel = new SourceCitationListPanel(model, this);
+		this.namePanel = new NameListPanel(this, model);
+		this.sourcePanel = new SourceCitationListPanel(this, model);
 		this.restrictionPanel = new RestrictionPanel(this);
 		this.conclusionPanel = new ConclusionPanel(model, this);
 		this.modificationPanel = new ModificationPanel(this);
@@ -141,24 +143,19 @@ public class PlaceDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	private static String buildTitle(final FLEFRecord record){
-		return (record == null? "New Place": "Edit Place - " + record.getId());
-	}
-
 	@Override
 	protected void initComponents(){
-		// Register bound components
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(latitudeField);
 		bindingManager.bind(longitudeField);
 
 		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", createRestrictionPanel());
+		tabbedPane.addTab("References", sourcePanel);
+		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Conclusion", conclusionPanel);
-		tabbedPane.addTab("Modification", createModificationPanel());
+		tabbedPane.addTab("Modification", modificationPanel);
 
-		setLayout(new MigLayout("fillx, top"));
+		setLayout(new MigLayout("fillx,top"));
 		add(tabbedPane, "growx");
 		add(createButtonPanel(), BorderLayout.SOUTH);
 	}
@@ -175,7 +172,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		mainPanel.add(typeCombo, "growx, wrap");
 
 		// ----- MAP -----
-		final JPanel mapPanel = new JPanel(new MigLayout("ins 5, fillx, top", "[right]rel[grow]", "[]5[]"));
+		final JPanel mapPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
 		mapPanel.setBorder(new TitledBorder("Map"));
 
 		mapPanel.add(new JLabel("Latitude:"), "align label");
@@ -194,27 +191,6 @@ public class PlaceDialog extends BaseRecordDialog{
 		return mainPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 5, fillx, top, wrap 1", "[grow]", "[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		panel.add(sourcePanel, "growx");
-		return panel;
-	}
-
-	private JPanel createRestrictionPanel(){
-		final JPanel panel = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		panel.add(restrictionPanel, "grow");
-		return panel;
-	}
-
-	private JPanel createModificationPanel(){
-		final JPanel panel = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		panel.add(modificationPanel, "grow");
-		return panel;
-	}
-
 	@Override
 	protected void loadData(){
 		// ---- Simple fields via BindingManager ----
@@ -226,22 +202,12 @@ public class PlaceDialog extends BaseRecordDialog{
 		// ---- MAP qualifiers (manual, since they are not bound) ----
 		final FLEFRecord map = FLEFRecordUtils.findChild(record, "MAP");
 		if(map != null){
-			final String cert = FLEFRecordUtils.getChildValue(map, "CERTAINTY");
-			final String cred = FLEFRecordUtils.getChildValue(map, "CREDIBILITY");
-			mapQualifiers.load(cert, cred);
+			mapQualifiers.load(map);
 		}
 		else
 			mapQualifiers.clear();
 
-		// ---- EVIDENCE_QUALIFIERS for place ----
-		final FLEFRecord evidence = FLEFRecordUtils.findChild(record, "EVIDENCE_QUALIFIERS");
-		if(evidence != null){
-			final String cert = FLEFRecordUtils.getChildValue(evidence, "CERTAINTY");
-			final String cred = FLEFRecordUtils.getChildValue(evidence, "CREDIBILITY");
-			placeQualifiers.load(cert, cred);
-		}
-		else
-			placeQualifiers.clear();
+		placeQualifiers.load(record);
 
 		// ---- SOURCE_CITATION ----
 		final List<FLEFRecord> citations = new ArrayList<>();
@@ -259,7 +225,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		conclusionPanel.loadFromRecord(conclusion);
 
 		// ---- MODIFICATION ----
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
 	@Override
@@ -320,12 +286,7 @@ public class PlaceDialog extends BaseRecordDialog{
 			map.addChild(FLEFRecord.createChildWithValue("LONGITUDE", lon));
 
 			// Add qualifiers
-			String cert = mapQualifiers.getCertainty();
-			String cred = mapQualifiers.getCredibility();
-			if(cert != null && !cert.isEmpty())
-				FLEFRecordUtils.updateChildValue(map, "CERTAINTY", cert);
-			if(cred != null && !cred.isEmpty())
-				FLEFRecordUtils.updateChildValue(map, "CREDIBILITY", cred);
+			mapQualifiers.save(map);
 
 			record.addChild(map);
 		}
@@ -334,14 +295,7 @@ public class PlaceDialog extends BaseRecordDialog{
 			FLEFRecordUtils.removeChildren(record, "MAP");
 
 		// ---- EVIDENCE_QUALIFIERS for place ----
-		String placeCert = placeQualifiers.getCertainty();
-		String placeCred = placeQualifiers.getCredibility();
-		if((placeCert != null && !placeCert.isEmpty()) || (placeCred != null && !placeCred.isEmpty())){
-			FLEFRecord evidence = FLEFRecord.createChild("EVIDENCE_QUALIFIERS");
-			FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", placeCert);
-			FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", placeCred);
-			record.addChild(evidence);
-		}
+		placeQualifiers.save(record);
 
 		// ---- SOURCE_CITATION ----
 		for(FLEFRecord citation : sourcePanel.getCitations()){
@@ -354,7 +308,7 @@ public class PlaceDialog extends BaseRecordDialog{
 			restrictionPanel.saveToRecord(record);
 
 		// ---- MODIFICATION ----
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		if(conclusionPanel.hasData())
 			conclusionPanel.saveToRecord(record);

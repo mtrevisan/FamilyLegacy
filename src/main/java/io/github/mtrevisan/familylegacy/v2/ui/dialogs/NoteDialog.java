@@ -1,5 +1,30 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -25,7 +50,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Frame;
+import java.awt.Dialog;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +89,6 @@ public class NoteDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final Frame parent;
 	private final BoundTextField titleField = new BoundTextField("TITLE", 30);
 	private final BoundTextArea valueArea = new BoundTextArea("VALUE", 10, 30);
 	private final BoundComboBox<String> mimeCombo = new BoundComboBox<>("MIME", new String[]{StringUtils.EMPTY, "text/plain", "text/html", "text/markdown"});
@@ -77,11 +101,11 @@ public class NoteDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	public static NoteDialog createNew(final Frame parent, final FLEFModel model){
+	public static NoteDialog createNew(final Dialog parent, final FLEFModel model){
 		return new NoteDialog(parent, model, null);
 	}
 
-	public static NoteDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record){
+	public static NoteDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
@@ -89,15 +113,13 @@ public class NoteDialog extends BaseRecordDialog{
 	}
 
 
-	private NoteDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
-
-		this.parent = parent;
+	private NoteDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
 
 		translationPanel = new TranslationListPanel(model, this);
 		restrictionPanel = new RestrictionPanel(this);
 		modificationPanel = new ModificationPanel(this);
-		sourceCitationPanel = new SourceCitationListPanel(model, this);
+		sourceCitationPanel = new SourceCitationListPanel(this, model);
 
 		initComponents();
 
@@ -108,30 +130,21 @@ public class NoteDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	private static String buildTitle(final FLEFRecord record){
-		return (record == null? "New Note": "Edit Note - " + record.getId());
-	}
-
 	@Override
 	protected void initComponents(){
-		// Register bound components
 		bindingManager.bind(titleField);
 		bindingManager.bind(valueArea);
 		bindingManager.bind(mimeCombo);
 		bindingManager.bind(localeCombo);
 
+		setLayout(new MigLayout("fillx,top"));
+
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-
 		final JPanel restrictionContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
 		restrictionContainer.add(restrictionPanel, "grow");
 		tabbedPane.addTab("Restriction", restrictionContainer);
-
-		final JPanel modificationContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
-		modificationContainer.add(modificationPanel, "grow");
-		tabbedPane.addTab("Modification", modificationContainer);
-
-		setLayout(new MigLayout("fillx,top"));
+		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
 		add(createButtonPanel(), BorderLayout.SOUTH);
@@ -165,17 +178,11 @@ public class NoteDialog extends BaseRecordDialog{
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-		// Translations panel
 		panel.add(translationPanel, "growx");
-
-		// Source Citations panel
 		panel.add(sourceCitationPanel, "growx");
-
 		return panel;
 	}
 
-	// ==================== Load / Save ====================
 
 	@Override
 	protected void loadData(){
@@ -204,7 +211,7 @@ public class NoteDialog extends BaseRecordDialog{
 		restrictionPanel.loadFromRecord(restrictionStruct);
 
 		// MODIFICATION
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
 	@Override
@@ -244,26 +251,28 @@ public class NoteDialog extends BaseRecordDialog{
 		restrictionPanel.saveToRecord(record);
 
 		// MODIFICATION
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		if(isNew)
 			model.addRecord(record);
 		isSaved = true;
 
-		dispose();
+// TODO to be removed
+FLEFFile.print(model);
+//		dispose();
 	}
 
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){}
+		catch(final Exception ignored){}
 
-		FLEFModel model = new FLEFModel();
+		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			NoteDialog dialog = NoteDialog.createNew(null, model);
+			final NoteDialog dialog = NoteDialog.createNew(null, model);
 			dialog.setVisible(true);
 		});
 	}

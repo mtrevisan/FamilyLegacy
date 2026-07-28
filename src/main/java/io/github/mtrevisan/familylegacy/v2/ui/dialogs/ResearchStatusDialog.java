@@ -63,9 +63,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -95,36 +95,28 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new ResearchStatusHandler());
 	}
 
-	// ========== Basic fields ==========
 	private final JTextField idField = new JTextField(10);
 	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "active", "paused", "completed", "blocked"});
 	private final JTextField questionField = new JTextField(30);
 	private final JComboBox<String> priorityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "high", "medium", "low"});
 
-	// ========== ASSOCIATION (0:M) ==========
 	private final DefaultListModel<String> associationListModel = new DefaultListModel<>();
 	private final JList<String> associationList = new JList<>(associationListModel);
 	private final List<AssociationEntry> associationEntries = new ArrayList<>();
 
-	// ========== BLOCKED_BY (0:M) ==========
 	private final DefaultListModel<String> blockedByListModel = new DefaultListModel<>();
 	private final JList<String> blockedByList = new JList<>(blockedByListModel);
 	private final List<String> blockedByIds = new ArrayList<>();
 
-	// ========== DESCRIPTION (0:1) ==========
 	private final JTextArea descriptionArea = new JTextArea(3, 30);
 
-	// ========== RESOLUTION ==========
 	private final JTextArea resolutionArea = new JTextArea(3, 30);
 
-	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> researchHandler = HandlerRegistry.getHandler("RESEARCH_STATUS");
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
@@ -134,7 +126,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 
-	// ========== Inner class for Association entry ==========
+
 	private static class AssociationEntry{
 		boolean isVoid;
 		String targetId; // null for void
@@ -159,9 +151,8 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Constructors ====================
-	public ResearchStatusDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Research Status", model, record, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
+	public ResearchStatusDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -171,8 +162,8 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	public ResearchStatusDialog(Frame parent, FLEFModel model){
-		super(parent, "New Research Status", model, null, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
+	public ResearchStatusDialog(Dialog parent, FLEFModel model){
+		super(parent, model, null, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -182,7 +173,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	// ==================== UI Initialization ====================
 	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
@@ -213,7 +203,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
@@ -330,7 +319,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== Association methods ====================
 
 	private void addAssociation(){
 		AssociationDialog dialog = AssociationDialog.createEdit(
@@ -413,7 +401,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 				entry = new AssociationEntry(false, targetId, null, new ArrayList<>());
 			}
 
-			// Load notes
 			for(FLEFRecord child : updated.getChildren()){
 				if("NOTE".equals(child.getTag()) && child.getValue() != null){
 					entry.noteIds.add(child.getValue());
@@ -435,11 +422,10 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		associationListModel.remove(idx);
 	}
 
-	// ==================== Blocked By methods ====================
 
 	private void addBlockedBy(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, researchHandler, selectedId -> {
+			this, model, researchHandler, selectedId -> {
 			if(selectedId != null && !blockedByIds.contains(selectedId)){
 				blockedByIds.add(selectedId);
 				blockedByListModel.addElement(getResearchDisplayName(selectedId));
@@ -457,7 +443,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null)
 			return;
-		JDialog dialog = researchHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = researchHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		blockedByListModel.set(idx, getResearchDisplayName(id));
 	}
@@ -475,12 +461,11 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	private String getResearchDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return researchHandler.getDisplayName(rec);
+			return researchHandler.getDisplayText(rec);
 		}
 		return id;
 	}
 
-	// ==================== Load Data ====================
 
 	@Override
 	protected void loadData(){
@@ -544,10 +529,9 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
-	// ==================== Validation ====================
 
 	@Override
 	protected boolean validateData(){
@@ -563,7 +547,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		return true;
 	}
 
-	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
@@ -623,7 +606,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		if(isNew){
 			model.addRecord(record);
@@ -633,7 +616,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{
@@ -676,7 +658,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Research Status");
 			btn.addActionListener(e -> {
-				ResearchStatusDialog dialog = new ResearchStatusDialog(frame, model);
+				ResearchStatusDialog dialog = new ResearchStatusDialog(null, model);
 				dialog.setVisible(true);
 				System.out.println("Research Status saved.");
 			});

@@ -52,9 +52,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -89,42 +89,36 @@ public class GroupCitationDialog extends JDialog{
 	}
 
 	private final FLEFModel model;
-	private final Frame parentFrame;
+	private final Dialog parentDialog;
 	private final FLEFRecord existingCitation; // may be null for new
 	private boolean saved = false;
 
-	// ========== GROUP field ==========
 	private final JTextField groupDisplayField = new JTextField(20);
 	private final JButton browseBtn = new JButton("Browse...");
 	private final JButton editBtn = new JButton("Edit");
 	private final JButton clearBtn = new JButton("Clear");
 	private String selectedGroupId;
 
-	// ========== ROLE (0:1) ==========
 	private final JTextField roleField = new JTextField(15);
 
-	// ========== NOTE (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== CREDIBILITY (0:1) ==========
 	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
 
-	public GroupCitationDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation){
+	public GroupCitationDialog(Dialog parent, FLEFModel model, FLEFRecord existingCitation){
 		super(parent, existingCitation == null? "Add Group Citation": "Edit Group Citation", true);
 		this.model = model;
-		this.parentFrame = parent;
+		this.parentDialog = parent;
 		this.existingCitation = existingCitation;
 		initComponents();
 		if(existingCitation != null){
@@ -201,7 +195,6 @@ public class GroupCitationDialog extends JDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Notes Panel ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
@@ -245,11 +238,10 @@ public class GroupCitationDialog extends JDialog{
 		return panel;
 	}
 
-	// ==================== Group methods ====================
 
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, groupHandler, selectedId -> {
+			parentDialog, model, groupHandler, selectedId -> {
 			if(selectedId != null){
 				selectGroup(selectedId);
 			}
@@ -271,7 +263,7 @@ public class GroupCitationDialog extends JDialog{
 		selectedGroupId = groupId;
 		FLEFRecord rec = model.getRecordById(groupId);
 		if(rec != null){
-			groupDisplayField.setText(groupHandler.getDisplayName(rec));
+			groupDisplayField.setText(groupHandler.getDisplayText(rec));
 		}
 		else{
 			groupDisplayField.setText(groupId);
@@ -280,19 +272,18 @@ public class GroupCitationDialog extends JDialog{
 		clearBtn.setEnabled(true);
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord note = model.getRecordById(id);
 		if(note != null){
-			return noteHandler.getDisplayName(note);
+			return noteHandler.getDisplayText(note);
 		}
 		return id;
 	}
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, noteHandler, selectedId -> {
+			parentDialog, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -313,7 +304,7 @@ public class GroupCitationDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + noteId, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, note);
+		JDialog dialog = noteHandler.createEditDialog(parentDialog, model, note);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(noteId);
 		noteDisplayMap.put(noteId, newDisplay);
@@ -334,7 +325,7 @@ public class GroupCitationDialog extends JDialog{
 
 	private void createNewNote(){
 		Set<String> before = new java.util.HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
+		JDialog dialog = noteHandler.createNewDialog(parentDialog, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -348,7 +339,6 @@ public class GroupCitationDialog extends JDialog{
 		}
 	}
 
-	// ==================== Load Data ====================
 
 	private void loadData(){
 		// GROUP
@@ -380,7 +370,6 @@ public class GroupCitationDialog extends JDialog{
 		}
 	}
 
-	// ==================== Validation ====================
 
 	private boolean validateFields(){
 		// GROUP
@@ -393,7 +382,6 @@ public class GroupCitationDialog extends JDialog{
 		return true;
 	}
 
-	// ==================== Save ====================
 
 	public FLEFRecord getCitationRecord(){
 		if(!saved){
@@ -449,7 +437,7 @@ public class GroupCitationDialog extends JDialog{
 
 			JButton btn = new JButton("New Group Citation");
 			btn.addActionListener(e -> {
-				GroupCitationDialog dialog = new GroupCitationDialog(frame, model, null);
+				GroupCitationDialog dialog = new GroupCitationDialog(null, model, null);
 				dialog.setVisible(true);
 				System.out.println("Group Citation saved.");
 			});

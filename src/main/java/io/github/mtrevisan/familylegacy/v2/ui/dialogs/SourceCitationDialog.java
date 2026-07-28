@@ -33,9 +33,9 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.io.Serial;
 
 
@@ -53,7 +53,7 @@ public class SourceCitationDialog extends JDialog{
 
 	private final SourceCitationPanel panel;
 
-	public SourceCitationDialog(Frame parent, FLEFModel model, FLEFRecord citationRecord){
+	public SourceCitationDialog(Dialog parent, FLEFModel model, FLEFRecord citationRecord){
 		super(parent, citationRecord == null? "Add Source Citation": "Edit Source Citation", true);
 
 		this.citationRecord = citationRecord != null? citationRecord: new FLEFRecord();

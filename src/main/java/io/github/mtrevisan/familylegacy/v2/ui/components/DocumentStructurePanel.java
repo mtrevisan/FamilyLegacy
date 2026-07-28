@@ -51,8 +51,8 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -90,36 +90,28 @@ public class DocumentStructurePanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== FILE  ==========
 	private final JTextField fileField = new JTextField(30);
 
-	// ========== SPHERICAL ==========
 	private final JCheckBox sphericalCheckBox = new JCheckBox("Spherical");
 
-	// ========== MAPPING ==========
 	private final JComboBox<String> mappingCombo = new JComboBox<>(new String[]{
 		StringUtils.EMPTY, "spherical_UV", "cylindrical_equirectangular_horizontal",
 		"cylindrical_equirectangular_vertical"
 	});
 
-	// ========== DESCRIPTION (0:1) ==========
 	private final JTextField descriptionField = new JTextField(30);
 
-	// ========== EXTRACT (0:1) ==========
 	private final JTextArea extractArea = new JTextArea(3, 20);
 	private final JComboBox<String> extractTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "transcript", "extract", "abstract"});
 	private final JTextField extractLocaleField = new JTextField(10);
 
-	// ========== RESTRICTION (0:1) ==========
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// ========== NOTE (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
 	/**
@@ -141,22 +133,18 @@ public class DocumentStructurePanel extends JPanel{
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
-		// ===== Basic tab =====
 		JPanel basicPanel = createBasicPanel();
 		tabbedPane.addTab("Basic", basicPanel);
 
-		// ===== Extract tab =====
 		JPanel extractPanel = createExtractPanel();
 		tabbedPane.addTab("Extract", extractPanel);
 
-		// ===== Notes tab =====
 		JPanel notesPanel = createNotesPanel();
 		tabbedPane.addTab("Notes", notesPanel);
 
 		add(tabbedPane, BorderLayout.CENTER);
 	}
 
-	// ==================== Basic Tab ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]"));
@@ -183,7 +171,6 @@ public class DocumentStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Extract Tab ====================
 
 	private JPanel createExtractPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]"));
@@ -205,7 +192,6 @@ public class DocumentStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Notes Tab ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
@@ -249,12 +235,11 @@ public class DocumentStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -269,7 +254,7 @@ public class DocumentStructurePanel extends JPanel{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog ? (Dialog)parent: null),
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
@@ -293,7 +278,7 @@ public class DocumentStructurePanel extends JPanel{
 			return;
 		}
 		JDialog dialog = noteHandler.createEditDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, rec
 		);
 		dialog.setVisible(true);
@@ -318,7 +303,7 @@ public class DocumentStructurePanel extends JPanel{
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
@@ -334,7 +319,6 @@ public class DocumentStructurePanel extends JPanel{
 		}
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads data from a DOCUMENT_STRUCTURE FLEFRecord.

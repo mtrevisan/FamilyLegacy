@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchStatusDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -57,7 +57,7 @@ public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDi
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		// Try to get the QUESTION field as display name
 		String question = FLEFRecordUtils.getChildValue(record, "QUESTION");
 		String status = FLEFRecordUtils.getChildValue(record, "STATUS");
@@ -91,12 +91,12 @@ public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDi
 	}
 
 	@Override
-	public ResearchStatusDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public ResearchStatusDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return new ResearchStatusDialog(parent, model, record);
 	}
 
 	@Override
-	public ResearchStatusDialog createNewDialog(Frame parent, FLEFModel model){
+	public ResearchStatusDialog createNewDialog(Dialog parent, FLEFModel model){
 		return new ResearchStatusDialog(parent, model);
 	}
 

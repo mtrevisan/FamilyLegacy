@@ -9,6 +9,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
+import java.awt.Dialog;
 
 
 /**
@@ -30,9 +31,9 @@ public class SpanningDatePanel extends JPanel{
 	private final SingleDatePanel toPanel;
 
 
-	public SpanningDatePanel(final FLEFModel model){
-		this.fromPanel = new SingleDatePanel(model);
-		this.toPanel = new SingleDatePanel(model);
+	public SpanningDatePanel(final Dialog parent, final FLEFModel model){
+		this.fromPanel = new SingleDatePanel(parent, model);
+		this.toPanel = new SingleDatePanel(parent, model);
 
 		initComponents();
 	}

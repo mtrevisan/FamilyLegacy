@@ -129,7 +129,6 @@ public final class FLEFGrammar{
 				lines.add(cleaned);
 		}
 
-		// ===== PASS 1: Parse definitions =====
 		final Map<String, RecordDefinition> tempStructDefs = new LinkedHashMap<>();
 		final Map<String, RecordDefinition> tempRecordDefs = new LinkedHashMap<>();
 
@@ -225,7 +224,6 @@ public final class FLEFGrammar{
 				tempRecordDefs.put(currentDefName, currentDef);
 		}
 
-		// ===== PROMOTION: Move referenced structures from tempRecordDefs to tempStructDefs =====
 		// Collect all structure names referenced in record definitions
 		final Set<String> referencedStructNames = new HashSet<>();
 		for(final RecordDefinition def : tempRecordDefs.values())
@@ -258,7 +256,6 @@ public final class FLEFGrammar{
 		}
 
 
-		// ===== PASS 2: Resolve structure references =====
 		final FLEFGrammar grammar = new FLEFGrammar();
 
 		for(final Map.Entry<String, RecordDefinition> entry : tempRecordDefs.entrySet()){

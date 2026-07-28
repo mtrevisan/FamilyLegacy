@@ -48,10 +48,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
-import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -229,7 +227,6 @@ public class PersonalNamePanel extends JPanel{
 		add(scrollPane, "growx,wrap");
 	}
 
-	// ==================== Data Loading ====================
 
 	public void loadFromRecord(FLEFRecord record){
 		nameEntries.clear();
@@ -295,7 +292,6 @@ public class PersonalNamePanel extends JPanel{
 		}
 	}
 
-	// ==================== Data Saving ====================
 
 	public void saveToRecord(FLEFRecord record){
 		List<FLEFRecord> toRemove = record.findChildren("NAME");
@@ -363,7 +359,6 @@ public class PersonalNamePanel extends JPanel{
 		}
 	}
 
-	// ==================== Actions ====================
 
 	private void createNewName(){
 		PersonalNameEntry newEntry = showNameDialog(null);
@@ -393,7 +388,6 @@ public class PersonalNamePanel extends JPanel{
 		}
 	}
 
-	// ==================== Main Name Dialog ====================
 
 	private PersonalNameEntry showNameDialog(PersonalNameEntry initial){
 		JDialog dialog = new JDialog(parentDialog, initial == null? "Add Personal Name": "Edit Personal Name", true);
@@ -599,7 +593,6 @@ public class PersonalNamePanel extends JPanel{
 		return result[0];
 	}
 
-	// ==================== Part Dialog (with Variants as list) ====================
 
 	/**
 	 * Shows a dialog to create or edit a name part.
@@ -815,11 +808,10 @@ public class PersonalNamePanel extends JPanel{
 		return result[0];
 	}
 
-	// ==================== Cultural Norm helpers ====================
 
 	private void addCulturalNorm(Dialog parent, List<String> currentNormIds, DefaultListModel<String> listModel){
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
-			getParentFrame(parent), model, culturalNormHandler, selectedId -> {
+			parent, model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !currentNormIds.contains(selectedId)){
 				currentNormIds.add(selectedId);
 				listModel.addElement(getCulturalNormDisplayName(selectedId));
@@ -838,11 +830,10 @@ public class PersonalNamePanel extends JPanel{
 		}
 	}
 
-	// ==================== Note helpers ====================
 
 	private void addNoteInList(Dialog parent, List<String> currentNoteIds, DefaultListModel<String> listModel){
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
-			getParentFrame(parent), model, noteHandler, selectedId -> {
+			parent, model, noteHandler, selectedId -> {
 			if(selectedId != null && !currentNoteIds.contains(selectedId)){
 				currentNoteIds.add(selectedId);
 				listModel.addElement(getNoteDisplayName(selectedId));
@@ -853,7 +844,7 @@ public class PersonalNamePanel extends JPanel{
 
 	private void createNewNoteInList(Dialog parent, List<String> currentNoteIds, DefaultListModel<String> listModel){
 		Set<String> before = new HashSet<>(currentNoteIds);
-		JDialog newNoteDialog = noteHandler.createNewDialog(getParentFrame(parent), model);
+		JDialog newNoteDialog = noteHandler.createNewDialog(parent, model);
 		newNoteDialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -871,7 +862,7 @@ public class PersonalNamePanel extends JPanel{
 		String id = currentNoteIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
-		JDialog editDialog = noteHandler.createEditDialog(getParentFrame(parent), model, rec);
+		JDialog editDialog = noteHandler.createEditDialog(parent, model, rec);
 		editDialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		listModel.set(idx, newDisplay);
@@ -887,11 +878,10 @@ public class PersonalNamePanel extends JPanel{
 		}
 	}
 
-	// ==================== Source helpers ====================
 
 	private void addSourceInList(Dialog parent, List<FLEFRecord> currentSources, DefaultListModel<String> listModel){
 		GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
-			getParentFrame(parent), model, sourceHandler, selectedId -> {
+			parent, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
 				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 				currentSources.add(citation);
@@ -905,7 +895,7 @@ public class PersonalNamePanel extends JPanel{
 		int idx = list.getSelectedIndex();
 		if(idx == -1) return;
 		FLEFRecord existing = currentSources.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(getParentFrame(parent), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(parent, model, existing);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
@@ -926,25 +916,16 @@ public class PersonalNamePanel extends JPanel{
 		}
 	}
 
-	// ==================== Utility Methods ====================
-
-	private Frame getParentFrame(Container container){
-		Container parent = container;
-		while(parent != null && !(parent instanceof Frame)){
-			parent = parent.getParent();
-		}
-		return (Frame)parent;
-	}
 
 	private String getCulturalNormDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return culturalNormHandler.getDisplayName(rec);
+		if(rec != null) return culturalNormHandler.getDisplayText(rec);
 		return id;
 	}
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return noteHandler.getDisplayName(rec);
+		if(rec != null) return noteHandler.getDisplayText(rec);
 		return id;
 	}
 
@@ -953,7 +934,7 @@ public class PersonalNamePanel extends JPanel{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
+				return sourceHandler.getDisplayText(rec);
 			}
 			return sourceId;
 		}

@@ -14,7 +14,6 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 
@@ -134,7 +133,7 @@ public class DateDialog extends JDialog{
 	 *
 	 * @return the DATE_STRUCTURE record, or null
 	 */
-	public FLEFRecord getDateRecord(){
+	public FLEFRecord getRecord(){
 		return saved? result: null;
 	}
 
@@ -160,7 +159,7 @@ public class DateDialog extends JDialog{
 			final FLEFRecord initialDate){
 		final DateDialog dialog = createEdit(parent, model, title, initialDate);
 		dialog.setVisible(true);
-		return dialog.getDateRecord();
+		return dialog.getRecord();
 	}
 
 }

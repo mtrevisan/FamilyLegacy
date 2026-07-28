@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,23 +29,24 @@ public class EvidenceQualifiersPanel extends JPanel{
 	private final JComboBox<String> certaintyCombo;
 	private final JComboBox<String> credibilityCombo;
 
+
 	/**
 	 * Constructs a new panel with the given title.
 	 *
 	 * @param title the title to display in the TitledBorder
 	 */
-	public EvidenceQualifiersPanel(String title){
+	public EvidenceQualifiersPanel(final String title){
 		this(title, CERTAINTY_VALUES, CREDIBILITY_VALUES);
 	}
 
 	/**
 	 * Constructs a new panel with custom values for certainty and credibility.
 	 *
-	 * @param title             the title to display in the TitledBorder
-	 * @param certaintyValues   the values for the certainty combo (may not be null)
-	 * @param credibilityValues the values for the credibility combo (may not be null)
+	 * @param title	The title to display in the {@code TitledBorder}.
+	 * @param certaintyValues	The values for the certainty combo (may not be {@code null}).
+	 * @param credibilityValues	The values for the credibility combo (may not be {@code null}).
 	 */
-	public EvidenceQualifiersPanel(String title, String[] certaintyValues, String[] credibilityValues){
+	public EvidenceQualifiersPanel(final String title, final String[] certaintyValues, final String[] credibilityValues){
 		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]"));
 		setBorder(BorderFactory.createTitledBorder(title));
 
@@ -69,10 +72,10 @@ public class EvidenceQualifiersPanel extends JPanel{
 	/**
 	 * Attaches a mouse listener that shows the tooltip on hover.
 	 */
-	private void attachTooltipListener(JComboBox<String> combo){
+	private void attachTooltipListener(final JComboBox<String> combo){
 		combo.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseEntered(MouseEvent e){
+			public void mouseEntered(final MouseEvent e){
 				// Show tooltip immediately
 				ToolTipManager.sharedInstance().mouseEntered(
 					new MouseEvent(combo, MouseEvent.MOUSE_ENTERED, System.currentTimeMillis(), 0,
@@ -86,12 +89,22 @@ public class EvidenceQualifiersPanel extends JPanel{
 	/**
 	 * Loads the selected values from the given strings.
 	 *
-	 * @param certainty   the certainty value (may be null)
-	 * @param credibility the credibility value (may be null)
+	 * @param record the record to read from
 	 */
-	public void load(String certainty, String credibility){
+	public void load(final FLEFRecord record){
+		final String certainty = FLEFRecordUtils.getChildValue(record, "CERTAINTY");
 		certaintyCombo.setSelectedItem(certainty != null? certainty: StringUtils.EMPTY);
+
+		final String credibility = FLEFRecordUtils.getChildValue(record, "CREDIBILITY");
 		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
+	}
+
+	public void save(final FLEFRecord record){
+		final String certainty = getCertainty();
+		FLEFRecordUtils.updateChildValue(record, "CERTAINTY", certainty);
+
+		final String credibility = getCredibility();
+		FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
 	}
 
 	/**
@@ -118,9 +131,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @return true if either combo has a non-empty selection
 	 */
 	public boolean hasData(){
-		String cert = getCertainty();
-		String cred = getCredibility();
-		return (cert != null && !cert.isEmpty()) || (cred != null && !cred.isEmpty());
+		final String certainty = getCertainty();
+		final String credibility = getCredibility();
+		return (certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty());
 	}
 
 	/**
@@ -137,8 +150,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param enabled true to enable, false to disable
 	 */
 	@Override
-	public void setEnabled(boolean enabled){
+	public void setEnabled(final boolean enabled){
 		super.setEnabled(enabled);
+
 		certaintyCombo.setEnabled(enabled);
 		credibilityCombo.setEnabled(enabled);
 	}
@@ -166,7 +180,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 *
 	 * @param tooltip the tooltip text
 	 */
-	public void setCertaintyToolTip(String tooltip){
+	public void setCertaintyToolTip(final String tooltip){
 		certaintyCombo.setToolTipText(tooltip);
 	}
 
@@ -175,7 +189,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 *
 	 * @param tooltip the tooltip text
 	 */
-	public void setCredibilityToolTip(String tooltip){
+	public void setCredibilityToolTip(final String tooltip){
 		credibilityCombo.setToolTipText(tooltip);
 	}
 

@@ -31,9 +31,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -82,7 +82,7 @@ public class RelationshipDialog extends JDialog{
 	}
 
 	private final FLEFModel model;
-	private final Frame parentFrame;
+	private final Dialog parentDialog;
 	private final FLEFRecord existingCitation; // may be null for new
 	private final String prefilledSubjectId;
 	private final String prefilledObjectId;
@@ -90,7 +90,6 @@ public class RelationshipDialog extends JDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	// ========== SUBJECT & OBJECT fields (manual) ==========
 	private final JTextField subjectDisplayField = new JTextField(20);
 	private final JButton browseSubjectBtn = new JButton("Browse...");
 	private final JButton editSubjectBtn = new JButton("Edit");
@@ -103,28 +102,24 @@ public class RelationshipDialog extends JDialog{
 	private final JButton clearObjectBtn = new JButton("Clear");
 	private String selectedObjectId;
 
-	// ========== Simple fields (bound) ==========
 	private final BoundTextField typeField;
 	private final BoundTextField roleField;
 	private final BoundComboBox credibilityCombo;
 
-	// ========== NOTE (0:M) manual ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
 
-	public RelationshipDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation){
+	public RelationshipDialog(Dialog parent, FLEFModel model, FLEFRecord existingCitation){
 		this(parent, model, existingCitation, null, null);
 	}
 
@@ -137,12 +132,12 @@ public class RelationshipDialog extends JDialog{
 	 * @param prefilledSubjectId a subject ID to pre-fill (may be null)
 	 * @param prefilledObjectId  an object ID to pre-fill (may be null)
 	 */
-	public RelationshipDialog(Frame parent, FLEFModel model, FLEFRecord existingCitation,
+	public RelationshipDialog(Dialog parent, FLEFModel model, FLEFRecord existingCitation,
 		String prefilledSubjectId, String prefilledObjectId){
 		super(parent, (existingCitation == null? "Add Relationship": "Edit Relationship"), true);
 
 		this.model = model;
-		this.parentFrame = parent;
+		this.parentDialog = parent;
 		this.existingCitation = existingCitation;
 		this.prefilledSubjectId = prefilledSubjectId;
 		this.prefilledObjectId = prefilledObjectId;
@@ -182,7 +177,6 @@ public class RelationshipDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
-		// Register bound components
 		bindingManager.bind(typeField);
 		bindingManager.bind(roleField);
 		bindingManager.bind(credibilityCombo);
@@ -273,7 +267,6 @@ public class RelationshipDialog extends JDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Notes Panel ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
@@ -317,12 +310,11 @@ public class RelationshipDialog extends JDialog{
 		return panel;
 	}
 
-	// ==================== Subject methods ====================
 
 	private void browseSubject(){
 		// For now, we assume the subject is a group (common use case).
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, groupHandler, selectedId -> {
+			this, model, groupHandler, selectedId -> {
 			if(selectedId != null){
 				selectSubject(selectedId);
 			}
@@ -343,11 +335,11 @@ public class RelationshipDialog extends JDialog{
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
 			String displayName = null;
-			if("GROUP".equals(rec.getType())){
-				displayName = groupHandler.getDisplayName(rec);
+			if("GROUP".equals(rec.getTag())){
+				displayName = groupHandler.getDisplayText(rec);
 			}
-			else if("INDIVIDUAL".equals(rec.getType())){
-				displayName = individualHandler.getDisplayName(rec);
+			else if("INDIVIDUAL".equals(rec.getTag())){
+				displayName = individualHandler.getDisplayText(rec);
 			}
 			subjectDisplayField.setText(displayName != null? displayName: id);
 		}
@@ -358,11 +350,10 @@ public class RelationshipDialog extends JDialog{
 		clearSubjectBtn.setEnabled(true);
 	}
 
-	// ==================== Object methods ====================
 
 	private void browseObject(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, individualHandler, selectedId -> {
+			this, model, individualHandler, selectedId -> {
 			if(selectedId != null){
 				selectObject(selectedId);
 			}
@@ -382,7 +373,7 @@ public class RelationshipDialog extends JDialog{
 		selectedObjectId = id;
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			objectDisplayField.setText(individualHandler.getDisplayName(rec));
+			objectDisplayField.setText(individualHandler.getDisplayText(rec));
 		}
 		else{
 			objectDisplayField.setText(id);
@@ -391,19 +382,18 @@ public class RelationshipDialog extends JDialog{
 		clearObjectBtn.setEnabled(true);
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord note = model.getRecordById(id);
 		if(note != null){
-			return noteHandler.getDisplayName(note);
+			return noteHandler.getDisplayText(note);
 		}
 		return id;
 	}
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -423,7 +413,7 @@ public class RelationshipDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + noteId, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, note);
+		JDialog dialog = noteHandler.createEditDialog(this, model, note);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(noteId);
 		noteDisplayMap.put(noteId, newDisplay);
@@ -443,7 +433,7 @@ public class RelationshipDialog extends JDialog{
 
 	private void createNewNote(){
 		Set<String> before = new java.util.HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
+		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -457,7 +447,6 @@ public class RelationshipDialog extends JDialog{
 		}
 	}
 
-	// ==================== Load Data ====================
 
 	private void loadData(){
 		// SUBJECT
@@ -508,7 +497,6 @@ public class RelationshipDialog extends JDialog{
 		}
 	}
 
-	// ==================== Validation ====================
 
 	private boolean validateFields(){
 		if(selectedSubjectId == null || selectedSubjectId.isEmpty()){
@@ -534,7 +522,6 @@ public class RelationshipDialog extends JDialog{
 		return true;
 	}
 
-	// ==================== Save ====================
 
 	/**
 	 * Returns the relationship record with all modifications applied.
@@ -593,7 +580,7 @@ public class RelationshipDialog extends JDialog{
 
 			JButton btn = new JButton("New Relationship");
 			btn.addActionListener(e -> {
-				RelationshipDialog dialog = new RelationshipDialog(frame, model, null, "G1", "I1");
+				RelationshipDialog dialog = new RelationshipDialog(null, model, null, "G1", "I1");
 				dialog.setVisible(true);
 				System.out.println("Relationship saved.");
 			});

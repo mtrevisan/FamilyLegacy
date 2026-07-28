@@ -160,7 +160,7 @@ public class NoteListEditorDialog extends JDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -169,7 +169,7 @@ public class NoteListEditorDialog extends JDialog{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -185,7 +185,7 @@ public class NoteListEditorDialog extends JDialog{
 
 	private void addExistingNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -202,7 +202,7 @@ public class NoteListEditorDialog extends JDialog{
 		String id = noteIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null) return;
-		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);

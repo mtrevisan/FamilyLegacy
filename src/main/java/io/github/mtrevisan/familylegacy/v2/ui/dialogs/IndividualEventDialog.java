@@ -59,9 +59,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ItemEvent;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -97,11 +97,9 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new GroupHandler());
 	}
 
-	// ========== Basic fields ==========
 	private final JTextField idField = new JTextField(10);
 	private final JComboBox<String> typeCombo = new JComboBox<>();
 
-	// ========== BIRTH fields ==========
 	private final JTextField familyDisplayField = new JTextField(20);
 	private final JButton familyBrowseBtn = new JButton("Browse...");
 	private final JButton familyClearBtn = new JButton("Clear");
@@ -111,24 +109,20 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	private final JList<String> twinList = new JList<>(twinListModel);
 	private final List<String> twinIds = new ArrayList<>();
 
-	// ========== ADOPTION fields ==========
 	private final JComboBox<String> relationshipParent1Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
 	private final JComboBox<String> relationshipParent2Combo = new JComboBox<>(new String[]{StringUtils.EMPTY, "biological", "adopted", "foster", "guardian"});
 
-	// ========== EVENT_STRUCTURE (0:1) ==========
 	private final EventStructurePanel eventStructurePanel;
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 
-	// ==================== Constructors ====================
-	public IndividualEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Individual Event", model, record, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
+
+	public IndividualEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -138,8 +132,8 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	public IndividualEventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Individual Event", model, null, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
+	public IndividualEventDialog(Dialog parent, FLEFModel model){
+		super(parent, model, null, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -149,7 +143,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	// ==================== UI Initialization ====================
 	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
@@ -237,7 +230,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Basic Panel ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
@@ -299,16 +291,15 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== Family browsing ====================
 
 	private void browseFamily(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, familyHandler, selectedId -> {
+			this, model, familyHandler, selectedId -> {
 			if(selectedId != null){
 				selectedFamilyId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					familyDisplayField.setText(familyHandler.getDisplayName(rec));
+					familyDisplayField.setText(familyHandler.getDisplayText(rec));
 				}
 				else{
 					familyDisplayField.setText(selectedId);
@@ -319,12 +310,11 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		dialog.setVisible(true);
 	}
 
-	// ==================== Twin methods ====================
 
 	private String getIndividualDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return individualHandler.getDisplayName(rec);
+			return individualHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -343,7 +333,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 	private void addTwin(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, individualHandler, selectedId -> {
+			this, model, individualHandler, selectedId -> {
 			if(selectedId != null && !twinIds.contains(selectedId)){
 				twinIds.add(selectedId);
 				twinListModel.addElement(getIndividualDisplayName(selectedId));
@@ -363,7 +353,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		twinListModel.remove(idx);
 	}
 
-	// ==================== Load Data ====================
 
 	@Override
 	protected void loadData(){
@@ -381,7 +370,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 			selectedFamilyId = familyId;
 			FLEFRecord rec = model.getRecordById(familyId);
 			if(rec != null){
-				familyDisplayField.setText(familyHandler.getDisplayName(rec));
+				familyDisplayField.setText(familyHandler.getDisplayText(rec));
 			}
 			else{
 				familyDisplayField.setText(familyId);
@@ -407,7 +396,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		onTypeChanged(null);
 	}
 
-	// ==================== Validation ====================
 
 	@Override
 	protected boolean validateData(){
@@ -433,7 +421,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		return (!eventStructurePanel.hasData() || eventStructurePanel.validateRequiredFields());
 	}
 
-	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
@@ -476,7 +463,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{
@@ -515,7 +501,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Individual Event");
 			btn.addActionListener(e -> {
-				IndividualEventDialog dialog = new IndividualEventDialog(frame, model);
+				IndividualEventDialog dialog = new IndividualEventDialog(null, model);
 				dialog.setVisible(true);
 				System.out.println("Individual Event saved.");
 			});

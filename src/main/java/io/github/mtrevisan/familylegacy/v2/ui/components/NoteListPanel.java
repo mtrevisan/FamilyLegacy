@@ -30,7 +30,7 @@ import java.util.Set;
  *   <li>Remove note reference</li>
  * </ul>
  */
-public class NoteListPanel extends AbstractListPanel<String>{
+public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -5638163012098890098L;
@@ -49,7 +49,7 @@ public class NoteListPanel extends AbstractListPanel<String>{
 	 * @param parentDialog the parent dialog
 	 */
 	public NoteListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Notes");
+		super(parentDialog, "Notes", model);
 	}
 
 	/**
@@ -60,27 +60,27 @@ public class NoteListPanel extends AbstractListPanel<String>{
 	 * @param borderTitle  the border title, or {@code null} for no border
 	 */
 	public NoteListPanel(FLEFModel model, Dialog parentDialog, String borderTitle){
-		super(model, parentDialog, borderTitle);
+		super(parentDialog, borderTitle, model);
 	}
 
 	@Override
-	protected String getDisplay(String noteId){
-		FLEFRecord rec = model.getRecordById(noteId);
-		if(rec != null){
+	protected String getDisplay(FLEFRecord note){
+		if(note != null){
 			final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(note);
 		}
-		return noteId;
+		return "--";
 	}
 
 	@Override
-	protected String showAddDialog(){
-		final String[] result = {null};
+	protected FLEFRecord showAddDialog(){
+		final FLEFRecord[] result = {null};
 		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(parentDialog), model, noteHandler, selectedId -> {
-			if(selectedId != null && !items.contains(selectedId)){
-				result[0] = selectedId;
+			parentDialog, model, noteHandler, selectedId -> {
+			final FLEFRecord rec = model.getRecordById(selectedId);
+			if(rec != null && !items.contains(rec)){
+				result[0] = rec;
 			}
 		});
 		dialog.setVisible(true);
@@ -88,14 +88,13 @@ public class NoteListPanel extends AbstractListPanel<String>{
 	}
 
 	@Override
-	protected String showEditDialog(String existing){
-		FLEFRecord rec = model.getRecordById(existing);
-		if(rec == null){
-			JOptionPane.showMessageDialog(parentDialog, "Note not found: " + existing, "Error", JOptionPane.ERROR_MESSAGE);
+	protected FLEFRecord showEditDialog(FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parentDialog, "Note not found", "Error", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
 		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		JDialog editDialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(parentDialog), model, rec);
+		JDialog editDialog = noteHandler.createEditDialog(parentDialog, model, existing);
 		editDialog.setVisible(true);
 		// Return the same ID (the note was updated in place)
 		return existing;
@@ -105,15 +104,15 @@ public class NoteListPanel extends AbstractListPanel<String>{
 	 * Creates a new note and adds it to the list.
 	 */
 	public void createNewNote(){
-		Set<String> before = new HashSet<>(items);
+		Set<FLEFRecord> before = new HashSet<>(items);
 		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-		JDialog newNoteDialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(parentDialog), model);
+		JDialog newNoteDialog = noteHandler.createNewDialog(parentDialog, model);
 		newNoteDialog.setVisible(true);
 
-		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id) && !items.contains(id)){
-				addItemDirectly(id);
+		for(final FLEFRecord note : model.getRecordsByType("NOTE")){
+			if(note != null && !before.contains(note) && !items.contains(note)){
+				addItemDirectly(note);
+
 				break;
 			}
 		}
@@ -122,15 +121,14 @@ public class NoteListPanel extends AbstractListPanel<String>{
 	/**
 	 * Loads a list of note IDs into the panel.
 	 *
-	 * @param noteIds the list of note IDs
+	 * @param notes the list of notes
 	 */
-	public void loadFromNoteIds(List<String> noteIds){
+	public void loadFromNotes(List<FLEFRecord> notes){
 		clear();
-		for(String id : noteIds){
-			if(id != null && !id.isEmpty()){
-				addItemDirectly(id);
-			}
-		}
+
+		for(final FLEFRecord note : notes)
+			if(note != null)
+				addItemDirectly(note);
 	}
 
 	/**
@@ -138,7 +136,7 @@ public class NoteListPanel extends AbstractListPanel<String>{
 	 *
 	 * @return the note IDs
 	 */
-	public List<String> getNoteIds(){
+	public List<FLEFRecord> getNotes(){
 		return getItems();
 	}
 

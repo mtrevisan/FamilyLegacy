@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import javax.swing.JDialog;
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -61,7 +61,7 @@ public interface RecordTypeHandler<T extends JDialog>{
 	 * @param record the record
 	 * @return the display name (e.g., "John Doe (I1)", "Smith Family (F1)")
 	 */
-	String getDisplayName(FLEFRecord record);
+	String getDisplayText(FLEFRecord record);
 
 	/**
 	 * Creates a dialog to edit an existing record.
@@ -71,7 +71,7 @@ public interface RecordTypeHandler<T extends JDialog>{
 	 * @param record the record to edit
 	 * @return the dialog (already configured but not shown)
 	 */
-	T createEditDialog(Frame parent, FLEFModel model, FLEFRecord record);
+	T createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record);
 
 	/**
 	 * Creates a dialog to create a new record.
@@ -80,6 +80,6 @@ public interface RecordTypeHandler<T extends JDialog>{
 	 * @param model  the FLEF model
 	 * @return the dialog (already configured but not shown)
 	 */
-	T createNewDialog(Frame parent, FLEFModel model);
+	T createNewDialog(Dialog parent, FLEFModel model);
 
 }

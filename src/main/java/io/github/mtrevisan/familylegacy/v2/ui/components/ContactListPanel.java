@@ -20,7 +20,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	public ContactListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Contact");
+		super(parentDialog, "Contact", model);
 	}
 
 	@Override

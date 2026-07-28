@@ -180,7 +180,7 @@ public class ImageSelectionDialog extends JDialog{
 		if(image != null){
 			ImageCropDialog cropDialog =
 				new ImageCropDialog(
-					(Frame)getOwner(),
+					this,
 					image
 				);
 

@@ -1,0 +1,69 @@
+package io.github.mtrevisan.familylegacy.v2.ui.components;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import java.awt.Dialog;
+import java.io.Serial;
+
+
+/**
+ * Panel for managing a list of PLACE references (XREF IDs).
+ */
+public class PlaceListPanel extends AbstractListPanel<String>{
+
+	@Serial
+	private static final long serialVersionUID = -5998352597761066840L;
+
+
+	private final PlaceHandler placeHandler = new PlaceHandler();
+
+
+	public PlaceListPanel(final Dialog parentDialog, final FLEFModel model){
+		super(parentDialog, "Places", model);
+	}
+
+
+	@Override
+	protected String getDisplay(final String id){
+		final FLEFRecord record = model.getRecordById(id);
+		return (record != null? placeHandler.getDisplayText(record): id);
+
+	}
+
+	@Override
+	protected String showAddDialog(){
+		final String[] result = {null};
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			parentDialog, model, handler, selectedId -> {
+			if(selectedId != null)
+				result[0] = selectedId;
+		});
+		dialog.setVisible(true);
+		return result[0];
+	}
+
+	@Override
+	protected String showEditDialog(final String existing){
+		final FLEFRecord rec = model.getRecordById(existing);
+		if(rec == null){
+			JOptionPane.showMessageDialog(parentDialog, "Place record not found: " + existing,
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final JDialog dialog = handler.createEditDialog(null, model, rec);
+		dialog.setVisible(true);
+		return existing;
+	}
+
+}

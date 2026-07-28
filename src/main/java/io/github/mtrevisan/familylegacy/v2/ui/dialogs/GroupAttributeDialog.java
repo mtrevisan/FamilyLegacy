@@ -59,9 +59,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -151,31 +151,25 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 	// ----- Factory methods -----
-	public static GroupAttributeDialog createNew(Frame parent, FLEFModel model){
+	public static GroupAttributeDialog createNew(Dialog parent, FLEFModel model){
 		return new GroupAttributeDialog(parent, model, null);
 	}
 
-	public static GroupAttributeDialog createEdit(Frame parent, FLEFModel model, FLEFRecord record){
+	public static GroupAttributeDialog createEdit(Dialog parent, FLEFModel model, FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 		return new GroupAttributeDialog(parent, model, record);
 	}
 
 	// ----- Constructor -----
-	private GroupAttributeDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, buildTitle(model, record), model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
+	private GroupAttributeDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
 
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(550, 600));
 		pack();
 		setLocationRelativeTo(parent);
-	}
-
-	private static String buildTitle(FLEFModel model, FLEFRecord record){
-		return (record == null
-					  ? "New Group Attribute"
-					  : "Edit Group Attribute - " + record.getId());
 	}
 
 	// ----- Initialisation -----
@@ -204,9 +198,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Main Panel ====================
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, wrap 1", "[right]rel[grow]", "[]5[]5[]10[]5[]5[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[right]rel[grow]", "[]5[]5[]10[]5[]5[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// GROUP
@@ -274,9 +267,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== References Panel ====================
 	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, wrap 1", "[grow]", "[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		// Source Citations
@@ -308,7 +300,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createEvidenceQualifiersPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx, ins 5", "[right]rel[grow]", "[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("fillx,ins 5", "[right]rel[grow]", "[]5[]"));
 		panel.setBorder(new TitledBorder("Evidence Qualifiers"));
 
 		// CERTAINTY
@@ -322,11 +314,10 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== Group methods ====================
 
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, groupHandler, selectedId -> {
+			this, model, groupHandler, selectedId -> {
 			if(selectedId != null){
 				selectGroup(selectedId);
 			}
@@ -346,7 +337,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			return;
 		}
 
-		JDialog dialog = groupHandler.createEditDialog(GUIHelper.getParentFrame(this), model, group);
+		JDialog dialog = groupHandler.createEditDialog(this, model, group);
 		dialog.setVisible(true);
 
 		// Refresh display (name may have changed)
@@ -370,14 +361,13 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	private void updateGroupDisplay(String groupId){
 		FLEFRecord group = model.getRecordById(groupId);
 		if(group != null){
-			groupDisplayField.setText(groupHandler.getDisplayName(group));
+			groupDisplayField.setText(groupHandler.getDisplayText(group));
 		}
 		else{
 			groupDisplayField.setText(groupId);
 		}
 	}
 
-	// ==================== Place methods (simplified) ====================
 
 	private void browsePlace(){
 		// TODO: Implement Place selection when PlaceDialog is available
@@ -399,11 +389,10 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		clearPlaceBtn.setEnabled(false);
 	}
 
-	// ==================== Source Citation methods ====================
 
 	private void addSourceCitation(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, sourceHandler, selectedId -> {
+			this, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
 				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 				sourceCitationRecords.add(citation);
@@ -418,7 +407,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -447,7 +436,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			if(id != null) before.add(id);
 		}
 
-		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = sourceHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
@@ -466,18 +455,15 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
+				return sourceHandler.getDisplayText(rec);
 			}
 			return sourceId;
 		}
 		return "[empty]";
 	}
 
-	// ==================== Load Data ====================
 	@Override
 	protected void loadData(){
-		setTitle(buildTitle(model, record));
-
 		// GROUP
 		String groupId = FLEFRecordUtils.getChildValue(record, "GROUP");
 		if(groupId != null && !groupId.isEmpty()){
@@ -568,10 +554,9 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		conclusionPanel.loadFromRecord(conclusion);
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
-	// ==================== Validation ====================
 	@Override
 	protected boolean validateData(){
 		// GROUP is required
@@ -626,7 +611,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		return !conclusionPanel.hasData() || conclusionPanel.validateRequiredFields();
 	}
 
-	// ==================== Save ====================
 	@Override
 	protected void saveRecord(){
 		FLEFRecordUtils.removeAllChildren(record);
@@ -706,13 +690,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		String credibility = (String)credibilityCombo.getSelectedItem();
 
 		if((certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty())){
-			FLEFRecord evidence = FLEFRecord.createChild("EVIDENCE_QUALIFIERS");
-
-			FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
-
-			FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", credibility);
-
-			record.addChild(evidence);
+			FLEFRecordUtils.updateChildValue(record, "CERTAINTY", certainty);
+			FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
 		}
 
 		// RESTRICTION_STRUCTURE
@@ -729,7 +708,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		if(isNew){
 			model.addRecord(record);
@@ -739,7 +718,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Main test ====================
+
 	public static void main(String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -758,7 +737,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Group Attribute");
 			btn.addActionListener(e -> {
-				GroupAttributeDialog dialog = GroupAttributeDialog.createNew(frame, model);
+				GroupAttributeDialog dialog = GroupAttributeDialog.createNew(null, model);
 				dialog.setVisible(true);
 				System.out.println("Group Attribute saved.");
 			});

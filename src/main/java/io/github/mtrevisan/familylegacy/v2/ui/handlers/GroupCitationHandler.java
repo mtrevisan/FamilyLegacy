@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupCitationDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -61,7 +61,7 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		String groupId = FLEFRecordUtils.getChildValue(record, "GROUP");
 		String id = record.getId();
 		if(groupId != null && !groupId.isEmpty()){
@@ -73,12 +73,12 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 	}
 
 	@Override
-	public GroupCitationDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public GroupCitationDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return new GroupCitationDialog(parent, model, record);
 	}
 
 	@Override
-	public GroupCitationDialog createNewDialog(Frame parent, FLEFModel model){
+	public GroupCitationDialog createNewDialog(Dialog parent, FLEFModel model){
 		return new GroupCitationDialog(parent, model, null);
 	}
 

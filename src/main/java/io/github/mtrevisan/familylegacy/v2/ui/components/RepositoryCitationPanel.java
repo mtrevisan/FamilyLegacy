@@ -47,8 +47,8 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -80,22 +80,18 @@ public class RepositoryCitationPanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== REPOSITORY ==========
 	private final JTextField repositoryDisplayField = new JTextField(20);
 	private final JButton browseRepoBtn = new JButton("Browse...");
 	private final JButton clearRepoBtn = new JButton("Clear");
 	private String selectedRepositoryId;
 
-	// ========== LOCATION ==========
 	private final JTextField locationField = new JTextField(30);
 
-	// ========== NOTE (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler("REPOSITORY");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
@@ -117,7 +113,6 @@ public class RepositoryCitationPanel extends JPanel{
 
 		noteList.setVisibleRowCount(4);
 
-		// ===== REPOSITORY =====
 		add(new JLabel("Repository:"), "align label");
 		repositoryDisplayField.setEditable(false);
 		repositoryDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -135,17 +130,14 @@ public class RepositoryCitationPanel extends JPanel{
 			repositoryDisplayField.setText(StringUtils.EMPTY);
 		});
 
-		// ===== LOCATION (0:1) =====
 		add(new JLabel("Location:"), "align label");
 		add(locationField, "growx,wrap");
 
-		// ===== NOTE (0:M) =====
 		add(new JLabel("Notes:"), "align label,top");
 		JPanel notePanel = createNotePanel();
 		add(notePanel, "growx");
 	}
 
-	// ==================== Note Panel ====================
 
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
@@ -188,17 +180,16 @@ public class RepositoryCitationPanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Repository methods ====================
 
 	private void browseRepository(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, repositoryHandler, selectedId -> {
 			if(selectedId != null){
 				selectedRepositoryId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					repositoryDisplayField.setText(repositoryHandler.getDisplayName(rec));
+					repositoryDisplayField.setText(repositoryHandler.getDisplayText(rec));
 				}
 				else{
 					repositoryDisplayField.setText(selectedId);
@@ -209,19 +200,18 @@ public class RepositoryCitationPanel extends JPanel{
 		dialog.setVisible(true);
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
@@ -245,7 +235,7 @@ public class RepositoryCitationPanel extends JPanel{
 			return;
 		}
 		JDialog dialog = noteHandler.createEditDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, rec
 		);
 		dialog.setVisible(true);
@@ -270,7 +260,7 @@ public class RepositoryCitationPanel extends JPanel{
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
@@ -286,7 +276,6 @@ public class RepositoryCitationPanel extends JPanel{
 		}
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads data from a REPOSITORY_CITATION FLEFRecord.
@@ -312,7 +301,7 @@ public class RepositoryCitationPanel extends JPanel{
 			selectedRepositoryId = repoId;
 			FLEFRecord rec = model.getRecordById(repoId);
 			if(rec != null){
-				repositoryDisplayField.setText(repositoryHandler.getDisplayName(rec));
+				repositoryDisplayField.setText(repositoryHandler.getDisplayText(rec));
 			}
 			else{
 				repositoryDisplayField.setText(repoId);

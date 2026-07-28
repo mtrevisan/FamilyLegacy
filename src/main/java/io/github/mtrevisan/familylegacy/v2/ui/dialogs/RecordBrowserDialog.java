@@ -262,7 +262,7 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 		filteredRecords.clear();
 		String lowerSearch = searchText.toLowerCase();
 		for(FLEFRecord record : allRecords){
-			String display = handler.getDisplayName(record);
+			String display = handler.getDisplayText(record);
 			if(display.toLowerCase().contains(lowerSearch)){
 				filteredRecords.add(record);
 			}
@@ -277,7 +277,7 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 	private void updateList(){
 		listModel.clear();
 		for(FLEFRecord record : filteredRecords){
-			listModel.addElement(handler.getDisplayName(record));
+			listModel.addElement(handler.getDisplayText(record));
 		}
 		if(filteredRecords.isEmpty()){
 			listModel.addElement("[No matching records]");
@@ -300,7 +300,7 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 		}
 
 		// Open the creation dialog
-		JDialog newDialog = handler.createNewDialog((Frame)getParent(), model);
+		JDialog newDialog = handler.createNewDialog(this, model);
 		newDialog.setVisible(true);
 
 		// Reload all records and reapply the search filter
@@ -335,7 +335,7 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 			return;
 		}
 		FLEFRecord selected = filteredRecords.get(idx);
-		JDialog editDialog = handler.createEditDialog((Frame)getParent(), model, selected);
+		JDialog editDialog = handler.createEditDialog(this, model, selected);
 		editDialog.setVisible(true);
 		// Refresh the list after editing
 		loadAllRecords();

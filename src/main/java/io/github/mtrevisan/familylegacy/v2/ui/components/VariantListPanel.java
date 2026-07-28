@@ -34,11 +34,11 @@ public class VariantListPanel extends AbstractListPanel<VariantEntry>{
 
 
 	public VariantListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Variants");
+		super(parentDialog, "Variants", model);
 	}
 
 	public VariantListPanel(FLEFModel model, Dialog parentDialog, String borderTitle){
-		super(model, parentDialog, borderTitle);
+		super(parentDialog, borderTitle, model);
 	}
 
 	@Override

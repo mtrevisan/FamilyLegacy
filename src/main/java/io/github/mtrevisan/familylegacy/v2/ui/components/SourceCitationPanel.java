@@ -50,7 +50,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -91,10 +90,8 @@ public class SourceCitationPanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== SOURCE ==========
 	private String selectedSourceId;
 
-	// ========== Simple fields – bound ==========
 	private final BoundComboBox<String> outcomeCombo;
 	private final BoundTextField scopeField;
 	private final BoundTextField locationField;
@@ -102,16 +99,11 @@ public class SourceCitationPanel extends JPanel{
 	private final BoundTextField cropField;
 	private final BoundComboBox<String> credibilityCombo;
 
-	// ========== SEARCH_DATE (0:1) – manual (complex) ==========
-	private final DatePanel searchDatePanel;
-
-	// ========== NOTE (0:M) – manual ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
@@ -136,8 +128,6 @@ public class SourceCitationPanel extends JPanel{
 		credibilityCombo = new BoundComboBox<>("CREDIBILITY",
 			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
-		this.searchDatePanel = new DatePanel(parent, model);
-
 		initComponents();
 	}
 
@@ -145,7 +135,6 @@ public class SourceCitationPanel extends JPanel{
 		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]5[]5[]5[]"));
 		setBorder(new TitledBorder("Source Citation"));
 
-		// Register bound components
 		bindingManager.bind(outcomeCombo);
 		bindingManager.bind(scopeField);
 		bindingManager.bind(locationField);
@@ -155,41 +144,29 @@ public class SourceCitationPanel extends JPanel{
 
 		noteList.setVisibleRowCount(4);
 
-		// ===== SEARCH_OUTCOME (0:1) – bound =====
 		add(new JLabel("Search Outcome:"), "align label");
 		add(outcomeCombo, "growx,wrap");
 
-		// ===== SEARCH_SCOPE (0:1) – bound =====
 		add(new JLabel("Search Scope:"), "align label");
 		add(scopeField, "growx,wrap");
 
-		// ===== SEARCH_DATE (0:1) – manual (DatePanel) =====
-		add(new JLabel("Search Date:"), "align label,top");
-		add(searchDatePanel, "growx,wrap");
-
-		// ===== LOCATION (0:1) – bound =====
 		add(new JLabel("Location:"), "align label");
 		add(locationField, "growx,wrap");
 
-		// ===== ROLE – bound =====
 		add(new JLabel("Role:"), "align label");
 		add(roleField, "growx,wrap");
 
-		// ===== CROP – bound =====
 		add(new JLabel("Crop:"), "align label");
 		add(cropField, "growx,wrap");
 
-		// ===== NOTE – manual =====
 		add(new JLabel("Notes:"), "align label,top");
 		JPanel notePanel = createNotePanel();
 		add(notePanel, "growx,wrap");
 
-		// ===== CREDIBILITY (0:1) – bound =====
 		add(new JLabel("Credibility:"), "align label");
 		add(credibilityCombo, "growx");
 	}
 
-	// ==================== Note Panel ====================
 
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
@@ -232,19 +209,18 @@ public class SourceCitationPanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
@@ -267,7 +243,7 @@ public class SourceCitationPanel extends JPanel{
 			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog((parent instanceof Frame? (Frame)parent: null), model, rec);
+		JDialog dialog = noteHandler.createEditDialog((parent instanceof Dialog? (Dialog)parent: null), model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -288,7 +264,7 @@ public class SourceCitationPanel extends JPanel{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog((parent instanceof Frame? (Frame)parent: null), model);
+		JDialog dialog = noteHandler.createNewDialog((parent instanceof Dialog? (Dialog)parent: null), model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -302,7 +278,6 @@ public class SourceCitationPanel extends JPanel{
 		}
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads data from a SOURCE_CITATION FLEFRecord.
@@ -312,7 +287,6 @@ public class SourceCitationPanel extends JPanel{
 	public void loadFromRecord(FLEFRecord citationRecord){
 		// Clear all manual fields
 		selectedSourceId = null;
-		searchDatePanel.clear();
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
@@ -331,10 +305,6 @@ public class SourceCitationPanel extends JPanel{
 		if(sourceId != null && !sourceId.isEmpty()){
 			selectedSourceId = sourceId;
 		}
-
-		// SEARCH_DATE
-		FLEFRecord dateRecord = FLEFRecordUtils.findChild(citationRecord, "SEARCH_DATE");
-		searchDatePanel.loadFromRecord(dateRecord);
 
 		// NOTE (0:M)
 		for(FLEFRecord child : citationRecord.getChildren()){
@@ -379,15 +349,6 @@ public class SourceCitationPanel extends JPanel{
 			citationRecord.setValue(selectedSourceId);
 		}
 
-		// SEARCH_DATE – manual
-		if(searchDatePanel.hasData()){
-			FLEFRecord dateRecord = searchDatePanel.saveToRecord(null);
-			if(dateRecord != null){
-				dateRecord.setTag("SEARCH_DATE");
-				citationRecord.addChild(dateRecord);
-			}
-		}
-
 		// NOTE (0:M) – manual
 		for(String id : noteIds){
 			FLEFRecordUtils.addChild(citationRecord, "NOTE", id);
@@ -421,7 +382,6 @@ public class SourceCitationPanel extends JPanel{
 		return (selectedSourceId != null && !selectedSourceId.isEmpty()) ||
 					 outcomeCombo.getSelectedIndex() >= 0 ||
 					 !scopeField.isEmpty() ||
-					 searchDatePanel.hasData() ||
 					 !locationField.isEmpty() ||
 					 !roleField.isEmpty() ||
 					 !cropField.isEmpty() ||
@@ -436,7 +396,6 @@ public class SourceCitationPanel extends JPanel{
 		selectedSourceId = null;
 		outcomeCombo.setSelectedItem(StringUtils.EMPTY);
 		scopeField.setText(StringUtils.EMPTY);
-		searchDatePanel.clear();
 		locationField.setText(StringUtils.EMPTY);
 		roleField.setText(StringUtils.EMPTY);
 		cropField.setText(StringUtils.EMPTY);

@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ContactListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -50,7 +51,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Frame;
+import java.awt.Dialog;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -87,12 +88,10 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 
-	private final Frame parent;
 	private final NameListPanel namePanel;
 	private final JTextField custodianDisplayField = new JTextField(20);
 	private String selectedCustodianId;
-	private final JTextField placeDisplayField = new JTextField(20);
-	private FLEFRecord placeStructureRecord;
+	private final PlaceField placeField;
 	private final ContactListPanel contactPanel;
 	private final NoteListPanel notePanel;
 	private final JTabbedPane tabbedPane = new JTabbedPane();
@@ -100,11 +99,11 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	public static RepositoryDialog createNew(final Frame parent, final FLEFModel model){
+	public static RepositoryDialog createNew(final Dialog parent, final FLEFModel model){
 		return new RepositoryDialog(parent, model, null);
 	}
 
-	public static RepositoryDialog createEdit(final Frame parent, final FLEFModel model, final FLEFRecord record){
+	public static RepositoryDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
@@ -112,13 +111,13 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 
-	private RepositoryDialog(final Frame parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, buildTitle(record), model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
+	private RepositoryDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
-		this.parent = parent;
+		placeField = PlaceField.create(parent, "Place", model);
 		modificationPanel = new ModificationPanel(this);
 		notePanel = new NoteListPanel(model, this);
-		namePanel = new NameListPanel(model, this);
+		namePanel = new NameListPanel(this, model);
 		contactPanel = new ContactListPanel(model, this);
 
 		initComponents();
@@ -130,20 +129,13 @@ public class RepositoryDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	private static String buildTitle(final FLEFRecord record){
-		return (record == null? "New Repository": "Edit Repository - " + record.getId());
-	}
-
 	@Override
 	protected void initComponents(){
+		setLayout(new MigLayout("fillx,top"));
+
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-
-		final JPanel modificationContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
-		modificationContainer.add(modificationPanel, "grow");
-		tabbedPane.addTab("Modification", modificationContainer);
-
-		setLayout(new MigLayout("fillx,top"));
+		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
 		add(createButtonPanel(), BorderLayout.SOUTH);
@@ -175,21 +167,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 		// PLACE
 		mainPanel.add(new JLabel("Place:"), "align label");
-		placeDisplayField.setEditable(false);
-		placeDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		GUIHelper.installBehavior(placeDisplayField,
-			() -> placeStructureRecord != null,
-			this::editPlace,
-			this::createNewPlace,
-			this::clearPlace,
-			builder -> {
-				builder.item("Create New...", this::createNewPlace);
-				builder.item("Add Existing...", this::addPlace);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editPlace);
-				builder.selectionSensitiveItem("Clear", this::clearPlace);
-			});
-		mainPanel.add(placeDisplayField, "growx");
+		mainPanel.add(placeField, "growx");
 
 		return mainPanel;
 	}
@@ -197,19 +175,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-		// Contacts
 		panel.add(contactPanel, "growx");
-
-		// Notes
 		panel.add(notePanel, "growx");
-
 		return panel;
 	}
 
 	private void createNewIndividual(){
 		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-		final BaseRecordDialog dialog = (BaseRecordDialog)individualHandler.createNewDialog(parent, model);
+		final BaseRecordDialog dialog = (BaseRecordDialog)individualHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved() && dialog.getRecord() != null){
@@ -221,7 +194,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private void addIndividual(){
 		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, individualHandler, selectedId -> {
+			this, model, individualHandler, selectedId -> {
 			if(selectedId != null){
 				selectedCustodianId = selectedId;
 				updateIndividualDisplay();
@@ -236,7 +209,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 		final FLEFRecord record = model.getRecordById(selectedCustodianId);
 		if(record != null){
-			final IndividualDialog dialog = IndividualDialog.createEdit(parent, model, record);
+			final IndividualDialog dialog = IndividualDialog.createEdit(this, model, record);
 			dialog.setVisible(true);
 			updateIndividualDisplay();
 		}
@@ -253,7 +226,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 			final FLEFRecord rec = model.getRecordById(selectedCustodianId);
 			if(rec != null){
 				final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-				displayText = individualHandler.getDisplayName(rec);
+				displayText = individualHandler.getDisplayText(rec);
 			}
 			else
 				displayText = selectedCustodianId;
@@ -261,54 +234,6 @@ public class RepositoryDialog extends BaseRecordDialog{
 		custodianDisplayField.setText(displayText);
 	}
 
-	private void createNewPlace(){
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-		final BaseRecordDialog dialog = (BaseRecordDialog)placeHandler.createNewDialog(parent, model);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved() && dialog.getRecord() != null){
-			placeStructureRecord = dialog.getRecord();
-			updatePlaceDisplay();
-		}
-	}
-
-	private void addPlace(){
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, placeHandler, selectedId -> {
-			if(selectedId != null){
-				placeStructureRecord = model.getRecordById(selectedId);
-				updatePlaceDisplay();
-			}
-		});
-		dialog.setVisible(true);
-	}
-
-	private void editPlace(){
-		if(placeStructureRecord == null)
-			return;
-
-		final PlaceStructureDialog dialog = new PlaceStructureDialog(this, model, placeStructureRecord);
-		dialog.setVisible(true);
-		if(dialog.isSaved())
-			updatePlaceDisplay();
-	}
-
-	private void clearPlace(){
-		placeStructureRecord = null;
-		placeDisplayField.setText(StringUtils.EMPTY);
-	}
-
-	private void updatePlaceDisplay(){
-		String displayText = StringUtils.EMPTY;
-		if(placeStructureRecord != null){
-			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-			displayText = placeHandler.getDisplayName(placeStructureRecord);
-		}
-		placeDisplayField.setText(displayText);
-	}
-
-	// ==================== Load / Save ====================
 
 	@Override
 	protected void loadData(){
@@ -327,8 +252,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 		}
 
 		// PLACE_STRUCTURE
-		placeStructureRecord = FLEFRecordUtils.findChild(record, "PLACE");
-		updatePlaceDisplay();
+		placeField.load(record);
 
 		// CONTACT_STRUCTURE
 		List<FLEFRecord> contacts = new ArrayList<>();
@@ -338,14 +262,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 		contactPanel.setItems(contacts);
 
 		// NOTE
-		final List<String> noteIds = new ArrayList<>();
+		final List<FLEFRecord> notes = new ArrayList<>();
 		for(final FLEFRecord child : record.getChildren())
 			if("NOTE".equals(child.getTag()) && child.getValue() != null)
-				noteIds.add(child.getValue());
-		notePanel.loadFromNoteIds(noteIds);
+				notes.add(child);
+		notePanel.loadFromNotes(notes);
 
 		// MODIFICATION
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
 	@Override
@@ -374,11 +298,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 			FLEFRecordUtils.addChild(record, "CUSTODIAN", FLEFRecordUtils.formatXRef(selectedCustodianId));
 
 		// PLACE
-		FLEFRecordUtils.removeChildren(record, "PLACE");
-		if(placeStructureRecord != null && placeStructureRecord.getValue() != null){
-			placeStructureRecord.setTag("PLACE");
-			record.addChild(placeStructureRecord);
-		}
+		placeField.save(record);
 
 		// CONTACT
 		for(final FLEFRecord contact : contactPanel.getItems()){
@@ -387,11 +307,11 @@ public class RepositoryDialog extends BaseRecordDialog{
 		}
 
 		// NOTE
-		for(final String id : notePanel.getNoteIds())
-			FLEFRecordUtils.addChild(record, "NOTE", FLEFRecordUtils.formatXRef(id));
+		for(final FLEFRecord note : notePanel.getNotes())
+			FLEFRecordUtils.addChild(record, "NOTE", note.getId());
 
 		// MODIFICATION
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		if(isNew)
 			model.addRecord(record);

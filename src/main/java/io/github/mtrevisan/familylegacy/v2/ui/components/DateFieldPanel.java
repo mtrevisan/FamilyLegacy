@@ -232,7 +232,6 @@ public class DateFieldPanel extends JPanel{
 		return extractSingleDate(child);
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads a DATE record into this panel.

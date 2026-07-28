@@ -61,9 +61,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -102,30 +102,29 @@ public class GroupEventDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new GroupEventHandler());
 	}
 
-	// ========== Basic fields ==========
+	private Dialog parent;
+
 	private final JTextField idField = new JTextField(10);
 	private final JTextField typeField = new JTextField(20);
 	private String selectedEventTypeId;
 
-	// ========== EVENT_STRUCTURE (0:1) ==========
 	private final EventStructurePanel eventStructurePanel;
 
-	// ========== GROUP (0:M) ==========
 	private final DefaultListModel<String> groupListModel = new DefaultListModel<>();
 	private final JList<String> groupList = new JList<>(groupListModel);
 	private final List<String> groupIds = new ArrayList<>();
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler("EVENT");
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
 
-	// ==================== Constructors ====================
-	public GroupEventDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Group Event", model, record, HandlerRegistry.getHandler(GroupEventHandler.TYPE));
+
+	public GroupEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(GroupEventHandler.TYPE));
+
+		this.parent = parent;
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -135,8 +134,10 @@ public class GroupEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	public GroupEventDialog(Frame parent, FLEFModel model){
-		super(parent, "New Group Event", model, null, HandlerRegistry.getHandler(GroupEventHandler.TYPE));
+	public GroupEventDialog(Dialog parent, FLEFModel model){
+		super(parent, model, null, HandlerRegistry.getHandler(GroupEventHandler.TYPE));
+
+		this.parent = parent;
 
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
@@ -146,7 +147,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	// ==================== UI Initialization ====================
 	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
@@ -174,7 +174,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
@@ -240,12 +239,11 @@ public class GroupEventDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== Group methods ====================
 
 	private String getGroupDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return groupHandler.getDisplayName(rec);
+			return groupHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -264,7 +262,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 	private void addGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, groupHandler, selectedId -> {
+			parent, model, groupHandler, selectedId -> {
 			if(selectedId != null && !groupIds.contains(selectedId)){
 				groupIds.add(selectedId);
 				groupListModel.addElement(getGroupDisplayName(selectedId));
@@ -284,7 +282,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this, "Group not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = groupHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = groupHandler.createEditDialog(parent, model, rec);
 		dialog.setVisible(true);
 		groupListModel.set(idx, getGroupDisplayName(id));
 	}
@@ -300,11 +298,10 @@ public class GroupEventDialog extends BaseRecordDialog{
 	}
 
 	private void createNewGroup(){
-		JDialog dialog = groupHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = groupHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 	}
 
-	// ==================== Load Data ====================
 
 	@Override
 	protected void loadData(){
@@ -316,7 +313,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 			selectedEventTypeId = typeId;
 			FLEFRecord rec = model.getRecordById(typeId);
 			if(rec != null){
-				typeField.setText(eventHandler.getDisplayName(rec));
+				typeField.setText(eventHandler.getDisplayText(rec));
 			}
 			else{
 				typeField.setText(typeId);
@@ -331,7 +328,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		loadGroups();
 	}
 
-	// ==================== Validation ====================
 
 	@Override
 	protected boolean validateData(){
@@ -347,7 +343,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		return (!eventStructurePanel.hasData() || eventStructurePanel.validateRequiredFields());
 	}
 
-	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
@@ -378,7 +373,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{
@@ -414,7 +408,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Group Event");
 			btn.addActionListener(e -> {
-				GroupEventDialog dialog = new GroupEventDialog(frame, model);
+				GroupEventDialog dialog = new GroupEventDialog(null, model);
 				dialog.setVisible(true);
 				System.out.println("Group Event saved.");
 			});

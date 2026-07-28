@@ -57,11 +57,11 @@ public class DatePanel extends JPanel{
 
 	public DatePanel(Dialog parent, FLEFModel model){
 		// Initialize child panels with the model
-		this.pointDatePanel = new SingleDatePanel(model);
-		this.boundedDatePanel = new BoundedDatePanel(model);
-		this.spanningDatePanel = new SpanningDatePanel(model);
+		this.pointDatePanel = new SingleDatePanel(parent, model);
+		this.boundedDatePanel = new BoundedDatePanel(parent, model);
+		this.spanningDatePanel = new SpanningDatePanel(parent, model);
 
-		this.sourceCitationPanel = new SourceCitationListPanel(model, parent);
+		this.sourceCitationPanel = new SourceCitationListPanel(parent, model);
 
 		initComponents();
 	}
@@ -120,7 +120,6 @@ public class DatePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Load / Save ====================
 
 	/**
 	 * Loads data from a DATE wrapper record.
@@ -155,7 +154,7 @@ public class DatePanel extends JPanel{
 			}
 		}
 
-		// Load SOURCE_CITATION
+		// SOURCE_CITATION
 		List<FLEFRecord> citations = new ArrayList<>();
 		for(FLEFRecord child : dateWrapper.getChildren()){
 			if("SOURCE".equals(child.getTag())){
@@ -164,7 +163,7 @@ public class DatePanel extends JPanel{
 		}
 		sourceCitationPanel.loadFromCitations(citations);
 
-		// Load EVIDENCE_QUALIFIERS
+		// EVIDENCE_QUALIFIERS
 		FLEFRecord evidence = FLEFRecordUtils.findChild(dateWrapper, "EVIDENCE_QUALIFIERS");
 		if(evidence != null){
 			String certainty = FLEFRecordUtils.getChildValue(evidence, "CERTAINTY");
@@ -207,10 +206,8 @@ public class DatePanel extends JPanel{
 		String certainty = (String)certaintyCombo.getSelectedItem();
 		String credibility = (String)credibilityCombo.getSelectedItem();
 		if((certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty())){
-			FLEFRecord evidence = FLEFRecord.createChild("EVIDENCE_QUALIFIERS");
-			FLEFRecordUtils.updateChildValue(evidence, "CERTAINTY", certainty);
-			FLEFRecordUtils.updateChildValue(evidence, "CREDIBILITY", credibility);
-			record.addChild(evidence);
+			FLEFRecordUtils.updateChildValue(record, "CERTAINTY", certainty);
+			FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
 		}
 
 		return record;
@@ -243,7 +240,6 @@ public class DatePanel extends JPanel{
 		};
 	}
 
-	// ==================== Save helpers ====================
 
 	/**
 	 * Saves a VALUE date.

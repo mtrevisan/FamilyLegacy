@@ -83,7 +83,7 @@ public final class FLEFValidator{
 
 		// Validate each record in the model
 		for(final FLEFRecord record : model.getRecords()){
-			final String type = record.getType();
+			final String type = record.getTag();
 			final RecordDefinition def = grammar.getRecordDefinition(type);
 			if(def == null){
 				errors.add(ValidationError.create(

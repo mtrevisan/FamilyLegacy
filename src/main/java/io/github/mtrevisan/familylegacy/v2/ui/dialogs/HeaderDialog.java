@@ -52,9 +52,9 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -102,60 +102,53 @@ public class HeaderDialog extends JDialog{
 	private static final long serialVersionUID = 8685753096364050900L;
 
 
+	private Dialog parent;
+
 	private final FLEFModel model;
 	private final FLEFRecord headerRecord;
 	private boolean saved = false;
 
-	// ========== PROTOCOL ==========
 	private final JTextField protocolNameField = new JTextField(15);
 	private final JTextField protocolVersionField = new JTextField(15);
 
-	// ========== SOURCE ==========
 	private final JTextField sourceIdField = new JTextField(20);
 	private final JTextField sourceNameField = new JTextField(20);
 	private final JTextField sourceVersionField = new JTextField(15);
 	private final JTextField sourceCorporateField = new JTextField(20);
 
-	// ========== DATE ==========
 	private final JTextField dateField = new JTextField(20);
 
-	// ========== COPYRIGHT ==========
 	private final JTextArea copyrightArea = new JTextArea(3, 30);
 
-	// ========== SUBMITTER ==========
 	private final JTextField submitterNameField = new JTextField(30);
 
-	// ========== SUBMITTER -> PLACE ==========
 	private final JTextField submitterAddressField = new JTextField(30);
 	private final JTextField submitterHierarchyField = new JTextField(30);
 	private final JTextField submitterLatitudeField = new JTextField(15);
 	private final JTextField submitterLongitudeField = new JTextField(15);
 	private final JTextArea submitterPlaceNoteArea = new JTextArea(2, 20);
 
-	// ========== SUBMITTER -> CONTACT_STRUCTURE (0:M) ==========
 	private final DefaultListModel<String> contactListModel = new DefaultListModel<>();
 	private final JList<String> contactList = new JList<>(contactListModel);
 	private final List<FLEFRecord> contactRecords = new ArrayList<>();
 
-	// ========== SUBMITTER -> NOTE (0:M) ==========
 	private final DefaultListModel<String> submitterNoteListModel = new DefaultListModel<>();
 	private final JList<String> submitterNoteList = new JList<>(submitterNoteListModel);
 	private final List<String> submitterNoteIds = new ArrayList<>();
 	private final Map<String, String> submitterNoteDisplayMap = new HashMap<>();
 
-	// ========== HEADER -> NOTE (0:1) ==========
 	private final JTextArea headerNoteArea = new JTextArea(3, 30);
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
-	// ==================== Constructors ====================
-	public HeaderDialog(Frame parent, FLEFModel model, FLEFRecord headerRecord){
+
+	public HeaderDialog(Dialog parent, FLEFModel model, FLEFRecord headerRecord){
 		super(parent, "Edit Header", true);
+
+		this.parent = parent;
 
 		this.model = model;
 		this.headerRecord = headerRecord != null? headerRecord: new FLEFRecord();
@@ -166,11 +159,10 @@ public class HeaderDialog extends JDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	public HeaderDialog(Frame parent, FLEFModel model){
+	public HeaderDialog(Dialog parent, FLEFModel model){
 		this(parent, model, null);
 	}
 
-	// ==================== UI Initialization ====================
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
@@ -194,7 +186,6 @@ public class HeaderDialog extends JDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
 
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]"));
@@ -356,7 +347,6 @@ public class HeaderDialog extends JDialog{
 		return panel;
 	}
 
-	// ==================== Contact methods ====================
 
 	private String getContactDisplay(FLEFRecord contact){
 		String address = contact.getValue();
@@ -488,12 +478,11 @@ public class HeaderDialog extends JDialog{
 		contactListModel.remove(idx);
 	}
 
-	// ==================== Submitter Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -518,7 +507,7 @@ public class HeaderDialog extends JDialog{
 
 	private void addSubmitterNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
+			parent, model, noteHandler, selectedId -> {
 			if(selectedId != null && !submitterNoteIds.contains(selectedId)){
 				submitterNoteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -540,7 +529,7 @@ public class HeaderDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(parent, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		submitterNoteDisplayMap.put(id, newDisplay);
@@ -560,7 +549,7 @@ public class HeaderDialog extends JDialog{
 
 	private void createNewSubmitterNote(){
 		Set<String> before = new HashSet<>(submitterNoteIds);
-		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = noteHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -574,13 +563,11 @@ public class HeaderDialog extends JDialog{
 		}
 	}
 
-	// ==================== Show confirm helper ====================
 
 	private boolean showConfirm(String title, String message){
 		return JOptionPane.showConfirmDialog(this, message, title, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
 	}
 
-	// ==================== Load Data ====================
 
 	private void loadData(){
 		// --- PROTOCOL ---
@@ -644,7 +631,6 @@ public class HeaderDialog extends JDialog{
 		}
 	}
 
-	// ==================== Validation ====================
 
 	private boolean validateData(){
 		// PROTOCOL NAME
@@ -695,7 +681,6 @@ public class HeaderDialog extends JDialog{
 		return true;
 	}
 
-	// ==================== Save ====================
 
 	private void save(){
 		if(!validateData()){
@@ -792,7 +777,6 @@ public class HeaderDialog extends JDialog{
 		return headerRecord;
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{
@@ -806,7 +790,7 @@ public class HeaderDialog extends JDialog{
 
 		// Crea un header di esempio
 		FLEFRecord header = new FLEFRecord();
-		header.setType("HEADER");
+		header.setTag("HEADER");
 
 		FLEFRecord protocol = new FLEFRecord();
 		protocol.setTag("PROTOCOL");
@@ -839,7 +823,7 @@ public class HeaderDialog extends JDialog{
 
 			JButton btn = new JButton("Edit Header");
 			btn.addActionListener(e -> {
-				HeaderDialog dialog = new HeaderDialog(frame, model, header);
+				HeaderDialog dialog = new HeaderDialog(null, model, header);
 				dialog.setVisible(true);
 				if(dialog.isSaved()){
 					System.out.println("Header saved.");

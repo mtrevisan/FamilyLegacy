@@ -43,24 +43,13 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	/**
-	 * Constructs a SourceCitationListPanel with a titled border.
+	 * Constructs a SourceCitationListPanel.
 	 *
-	 * @param model        the FLEF model
 	 * @param parentDialog the parent dialog
-	 */
-	public SourceCitationListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Source Citations");
-	}
-
-	/**
-	 * Constructs a SourceCitationListPanel without a border.
-	 *
 	 * @param model        the FLEF model
-	 * @param parentDialog the parent dialog
-	 * @param borderTitle  the border title, or {@code null} for no border
 	 */
-	public SourceCitationListPanel(FLEFModel model, Dialog parentDialog, String borderTitle){
-		super(model, parentDialog, borderTitle);
+	public SourceCitationListPanel(Dialog parentDialog, FLEFModel model){
+		super(parentDialog, "Source Citations", model);
 	}
 
 	@Override
@@ -70,7 +59,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
 				final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-				return sourceHandler.getDisplayName(rec);
+				return sourceHandler.getDisplayText(rec);
 			}
 			return sourceId;
 		}
@@ -82,7 +71,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		// Add existing source
 		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 		final GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(parentDialog), model, sourceHandler, selectedId -> {
+			parentDialog, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
 				// The callback will be handled, but we need to return the citation
 			}
@@ -93,7 +82,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		// We'll use a holder pattern
 		final FLEFRecord[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(parentDialog), model, sourceHandler, selectedId -> {
+			parentDialog, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
 				result[0] = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 			}
@@ -104,7 +93,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showEditDialog(FLEFRecord existing){
-		SourceCitationDialog editDialog = new SourceCitationDialog(GUIHelper.getParentFrame(parentDialog), model, existing);
+		SourceCitationDialog editDialog = new SourceCitationDialog(parentDialog, model, existing);
 		editDialog.setVisible(true);
 		if(editDialog.isSaved()){
 			FLEFRecord updated = editDialog.getCitationRecord();
@@ -128,7 +117,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 
 		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-		JDialog newSourceDialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(parentDialog), model);
+		JDialog newSourceDialog = sourceHandler.createNewDialog(parentDialog, model);
 		newSourceDialog.setVisible(true);
 
 		String newSourceId = null;
@@ -142,7 +131,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 		if(newSourceId != null){
 			FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", newSourceId);
-			SourceCitationDialog citationDialog = new SourceCitationDialog(GUIHelper.getParentFrame(parentDialog), model, citationRecord);
+			SourceCitationDialog citationDialog = new SourceCitationDialog(parentDialog, model, citationRecord);
 			citationDialog.setVisible(true);
 
 			if(citationDialog.isSaved()){

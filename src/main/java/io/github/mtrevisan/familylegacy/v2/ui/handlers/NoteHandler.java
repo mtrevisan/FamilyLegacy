@@ -5,7 +5,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 public class NoteHandler implements RecordTypeHandler<NoteDialog>{
@@ -30,7 +30,7 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
 		String id = record.getId();
 		if(value != null && !value.isEmpty()){
@@ -44,12 +44,12 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 	}
 
 	@Override
-	public NoteDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public NoteDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return NoteDialog.createEdit(parent, model, record);
 	}
 
 	@Override
-	public NoteDialog createNewDialog(Frame parent, FLEFModel model){
+	public NoteDialog createNewDialog(Dialog parent, FLEFModel model){
 		return NoteDialog.createNew(parent, model);
 	}
 

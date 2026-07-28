@@ -93,7 +93,6 @@ public class RestrictionPanel extends JPanel{
 	private void initComponents(){
 		setLayout(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]10[]10[]"));
 
-		// Register bound components
 		bindingManager.bind(levelCombo);
 		bindingManager.bind(rationaleArea);
 		bindingManager.bind(expiresField);
@@ -115,7 +114,6 @@ public class RestrictionPanel extends JPanel{
 		add(expiresField, "growx");
 	}
 
-	// ==================== Data Loading ====================
 
 	/**
 	 * Loads data from a RESTRICTION record into the panel.
@@ -142,7 +140,6 @@ public class RestrictionPanel extends JPanel{
 		expiresField.setText(expires != null? expires: StringUtils.EMPTY);
 	}
 
-	// ==================== Data Saving ====================
 
 	/**
 	 * Saves the panel data into a RESTRICTION record.
@@ -160,7 +157,6 @@ public class RestrictionPanel extends JPanel{
 		bindingManager.saveToRecord(targetRecord);
 	}
 
-	// ==================== Validation ====================
 
 	/**
 	 * Checks whether the panel has any data (i.e., LEVEL is selected).
@@ -198,7 +194,6 @@ public class RestrictionPanel extends JPanel{
 		return true;
 	}
 
-	// ==================== Utility methods ====================
 
 	/**
 	 * Clears all fields (sets LEVEL to empty, clears RATIONALE and EXPIRES).
@@ -209,7 +204,6 @@ public class RestrictionPanel extends JPanel{
 		expiresField.setText(StringUtils.EMPTY);
 	}
 
-	// ==================== Private helpers ====================
 
 	/**
 	 * Shows an error message dialog if a parent dialog is available.

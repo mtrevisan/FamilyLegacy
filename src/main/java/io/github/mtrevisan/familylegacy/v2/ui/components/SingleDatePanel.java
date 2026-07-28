@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.CardLayout;
+import java.awt.Dialog;
 
 
 /**
@@ -58,8 +59,8 @@ public class SingleDatePanel extends JPanel{
 	private FLEFRecord dateNode;
 
 
-	public SingleDatePanel(final FLEFModel model){
-		this.approxPanel = new ApproximatePanel(model);
+	public SingleDatePanel(final Dialog parentDialog, final FLEFModel model){
+		this.approxPanel = new ApproximatePanel(parentDialog, model);
 
 		initComponents();
 	}
@@ -68,7 +69,6 @@ public class SingleDatePanel extends JPanel{
 		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		// Register bound components
 		bindingManager.bind(fullDateField);
 		bindingManager.bind(centuryField);
 		bindingManager.bind(centuryPartCombo);
@@ -131,11 +131,10 @@ public class SingleDatePanel extends JPanel{
 
 		final String baseType = extractBaseType();
 
-		// Load APPROXIMATE (direct child of dateNode)
+		// APPROXIMATE
 		final FLEFRecord approx = FLEFRecordUtils.findChild(dateNode, "APPROXIMATE");
 		approxPanel.loadFromRecord(approx);
 
-		// Load bound fields using BindingManager
 		calendarCombo.setPath(baseType + ".CALENDAR");
 		bindingManager.loadFromRecord(dateNode);
 

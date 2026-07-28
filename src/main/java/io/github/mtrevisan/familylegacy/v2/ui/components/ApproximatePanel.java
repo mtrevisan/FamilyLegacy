@@ -16,11 +16,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 
 
 /**
@@ -34,6 +33,7 @@ import java.awt.Frame;
  */
 public class ApproximatePanel extends JPanel{
 
+	private final Dialog parentDialog;
 	private final FLEFModel model;
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
@@ -46,25 +46,27 @@ public class ApproximatePanel extends JPanel{
 
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
-	public ApproximatePanel(FLEFModel model){
+	public ApproximatePanel(Dialog parent, FLEFModel model){
+		this.parentDialog = parent;
 		this.model = model;
+
 		initComponents();
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0, fillx", "[right]rel[grow]", "[]5[]"));
+		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		add(approximateCheck, "span 2,growx,wrap");
 
 		// Basis
-		JPanel basisPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel basisPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		basisPanel.add(new JLabel("Basis:"), "align label");
 		basisPanel.add(basisCombo, "growx");
 		add(basisPanel, "growx,wrap");
 
 		// Cultural Norm
-		JPanel normPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel normPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		JPanel normFieldPanel = new JPanel(new BorderLayout(5, 0));
 		normFieldPanel.add(culturalNormField, BorderLayout.CENTER);
 		JPanel normBtnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
@@ -83,7 +85,7 @@ public class ApproximatePanel extends JPanel{
 		clearCulturalNormBtn.setEnabled(false);
 
 		// Margin
-		JPanel marginPanel = new JPanel(new MigLayout("ins 0, fillx", "[right]rel[grow]"));
+		JPanel marginPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		marginPanel.add(new JLabel("Margin:"), "align label");
 		marginPanel.add(marginField, "growx");
 		marginField.setToolTipText("ISO 8601 Duration (e.g., P2Y for +/- 2 years)");
@@ -108,12 +110,12 @@ public class ApproximatePanel extends JPanel{
 			return;
 		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(Frame)SwingUtilities.getWindowAncestor(this), model, culturalNormHandler, selectedId -> {
+			parentDialog, model, culturalNormHandler, selectedId -> {
 			if(selectedId != null){
 				culturalNormId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					culturalNormField.setText(culturalNormHandler.getDisplayName(rec));
+					culturalNormField.setText(culturalNormHandler.getDisplayText(rec));
 				}
 				else{
 					culturalNormField.setText(selectedId);
@@ -150,7 +152,7 @@ public class ApproximatePanel extends JPanel{
 			culturalNormId = normId;
 			FLEFRecord rec = model != null? model.getRecordById(normId): null;
 			if(rec != null){
-				culturalNormField.setText(culturalNormHandler.getDisplayName(rec));
+				culturalNormField.setText(culturalNormHandler.getDisplayText(rec));
 			}
 			else{
 				culturalNormField.setText(normId);

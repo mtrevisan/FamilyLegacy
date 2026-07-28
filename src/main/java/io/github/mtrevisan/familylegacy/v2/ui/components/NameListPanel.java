@@ -18,62 +18,57 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -922034547054981789L;
 
 
-	public NameListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Names*");
+	public NameListPanel(final Dialog parentDialog, final FLEFModel model){
+		super(parentDialog, "Names*", model);
 	}
 
-	@Override
-	protected String getDisplay(FLEFRecord nameRecord){
-		if(nameRecord == null){
-			return "[empty]";
-		}
-		FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
-		String text = (valueRec != null? valueRec.getValue(): null);
-		String type = FLEFRecordUtils.getChildValue(nameRecord, "TYPE");
 
-		StringBuilder sb = new StringBuilder();
+	@Override
+	protected String getDisplay(final FLEFRecord nameRecord){
+		if(nameRecord == null)
+			return "[empty]";
+
+		final FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		final String text = (valueRec != null? valueRec.getValue(): null);
+		final String type = FLEFRecordUtils.getChildValue(nameRecord, "TYPE");
+
+		final StringBuilder sb = new StringBuilder();
 		sb.append(StringUtils.isNotBlank(text)? text: "[unnamed]");
-		if(StringUtils.isNotBlank(type)){
+		if(StringUtils.isNotBlank(type))
 			sb.append(" (").append(type).append(")");
-		}
 		return sb.toString();
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		NameStructureDialog dialog = new NameStructureDialog(parentDialog, model, null);
+		final NameStructureDialog dialog = new NameStructureDialog(parentDialog, model, null);
 		dialog.setVisible(true);
 		return (dialog.isSaved()? dialog.getNameRecord(): null);
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(FLEFRecord existing){
-		NameStructureDialog dialog = new NameStructureDialog(parentDialog, model, existing);
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		final NameStructureDialog dialog = new NameStructureDialog(parentDialog, model, existing);
 		dialog.setVisible(true);
 		return (dialog.isSaved()? dialog.getNameRecord(): null);
 	}
 
-	public void loadFromRecord(FLEFRecord parentRecord){
-		List<FLEFRecord> names = new ArrayList<>();
-		for(FLEFRecord child : parentRecord.getChildren()){
-			if("NAME".equals(child.getTag())){
+	public void loadFromRecord(final FLEFRecord parentRecord){
+		final List<FLEFRecord> names = new ArrayList<>();
+		for(final FLEFRecord child : parentRecord.getChildren())
+			if("NAME".equals(child.getTag()))
 				names.add(child);
-			}
-		}
 		setItems(names);
 	}
 
-	public void saveToRecord(FLEFRecord parentRecord){
-		List<FLEFRecord> toRemove = new ArrayList<>();
-		for(FLEFRecord child : parentRecord.getChildren()){
-			if("NAME".equals(child.getTag())){
+	public void saveToRecord(final FLEFRecord parentRecord){
+		final List<FLEFRecord> toRemove = new ArrayList<>();
+		for(final FLEFRecord child : parentRecord.getChildren())
+			if("NAME".equals(child.getTag()))
 				toRemove.add(child);
-			}
-		}
-		for(FLEFRecord child : toRemove){
+		for(final FLEFRecord child : toRemove)
 			parentRecord.removeChild(child);
-		}
-		for(FLEFRecord name : getItems()){
+		for(final FLEFRecord name : getItems()){
 			name.setTag("NAME");
 			parentRecord.addChild(name);
 		}

@@ -48,8 +48,8 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -82,25 +82,20 @@ public class GroupCitationPanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== GROUP ==========
 	private final JTextField groupDisplayField = new JTextField(20);
 	private final JButton browseGroupBtn = new JButton("Browse...");
 	private final JButton clearGroupBtn = new JButton("Clear");
 	private String selectedGroupId;
 
-	// ========== ROLE ==========
 	private final JTextField roleField = new JTextField(20);
 
-	// ========== NOTE (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== CREDIBILITY (0:1) ==========
 	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
@@ -122,7 +117,6 @@ public class GroupCitationPanel extends JPanel{
 
 		noteList.setVisibleRowCount(4);
 
-		// ===== GROUP =====
 		add(new JLabel("Group:"), "align label");
 		groupDisplayField.setEditable(false);
 		groupDisplayField.setBackground(UIManager.getColor("TextField.background"));
@@ -140,21 +134,17 @@ public class GroupCitationPanel extends JPanel{
 			groupDisplayField.setText(StringUtils.EMPTY);
 		});
 
-		// ===== ROLE (0:1) =====
 		add(new JLabel("Role:"), "align label");
 		add(roleField, "growx,wrap");
 
-		// ===== NOTE (0:M) =====
 		add(new JLabel("Notes:"), "align label,top");
 		JPanel notePanel = createNotePanel();
 		add(notePanel, "growx,wrap");
 
-		// ===== CREDIBILITY (0:1) =====
 		add(new JLabel("Credibility:"), "align label");
 		add(credibilityCombo, "growx");
 	}
 
-	// ==================== Note Panel ====================
 
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
@@ -197,17 +187,16 @@ public class GroupCitationPanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Group methods ====================
 
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog ? (Dialog)parent: null),
 			model, groupHandler, selectedId -> {
 			if(selectedId != null){
 				selectedGroupId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					groupDisplayField.setText(groupHandler.getDisplayName(rec));
+					groupDisplayField.setText(groupHandler.getDisplayText(rec));
 				}
 				else{
 					groupDisplayField.setText(selectedId);
@@ -218,19 +207,18 @@ public class GroupCitationPanel extends JPanel{
 		dialog.setVisible(true);
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
@@ -254,7 +242,7 @@ public class GroupCitationPanel extends JPanel{
 			return;
 		}
 		JDialog dialog = noteHandler.createEditDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, rec
 		);
 		dialog.setVisible(true);
@@ -279,7 +267,7 @@ public class GroupCitationPanel extends JPanel{
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
@@ -295,7 +283,6 @@ public class GroupCitationPanel extends JPanel{
 		}
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads data from a GROUP_CITATION FLEFRecord.
@@ -322,7 +309,7 @@ public class GroupCitationPanel extends JPanel{
 			selectedGroupId = groupId;
 			FLEFRecord rec = model.getRecordById(groupId);
 			if(rec != null){
-				groupDisplayField.setText(groupHandler.getDisplayName(rec));
+				groupDisplayField.setText(groupHandler.getDisplayText(rec));
 			}
 			else{
 				groupDisplayField.setText(groupId);

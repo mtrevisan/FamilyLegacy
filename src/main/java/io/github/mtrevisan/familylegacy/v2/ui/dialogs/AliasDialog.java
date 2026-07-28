@@ -87,26 +87,21 @@ public class AliasDialog extends JDialog{
 	private final AliasEntry existingEntry;
 	private boolean saved = false;
 
-	// ========== ALIAS ID ==========
 	private final JTextField aliasDisplayField = new JTextField(20);
 	private final JButton browseAliasBtn = new JButton("Browse...");
 	private final JButton clearAliasBtn = new JButton("Clear");
 	private String selectedAliasId;
 
-	// ========== CERTAINTY + CREDIBILITY ==========
 	private final EvidenceQualifiersPanel qualifiersPanel = new EvidenceQualifiersPanel("Evidence Qualifiers");
 
-	// ========== NOTE (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
@@ -176,7 +171,6 @@ public class AliasDialog extends JDialog{
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
-		// ===== Basic tab =====
 		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]"));
 		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -203,13 +197,11 @@ public class AliasDialog extends JDialog{
 
 		tabbedPane.addTab("Basic", basicPanel);
 
-		// ===== Notes tab =====
 		JPanel notesPanel = createNotesPanel();
 		tabbedPane.addTab("Notes", notesPanel);
 
 		add(tabbedPane, BorderLayout.CENTER);
 
-		// ===== Button panel =====
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
 		buttonPanel.add(cancelButton);
@@ -224,7 +216,6 @@ public class AliasDialog extends JDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Notes Panel ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
@@ -268,16 +259,15 @@ public class AliasDialog extends JDialog{
 		return panel;
 	}
 
-	// ==================== Alias browsing ====================
 
 	private void browseAlias(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, individualHandler, selectedId -> {
+			this, model, individualHandler, selectedId -> {
 			if(selectedId != null){
 				selectedAliasId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					aliasDisplayField.setText(individualHandler.getDisplayName(rec));
+					aliasDisplayField.setText(individualHandler.getDisplayText(rec));
 				}
 				else{
 					aliasDisplayField.setText(selectedId);
@@ -288,12 +278,11 @@ public class AliasDialog extends JDialog{
 		dialog.setVisible(true);
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -314,7 +303,7 @@ public class AliasDialog extends JDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentFrame, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -336,7 +325,7 @@ public class AliasDialog extends JDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(parentFrame, model, rec);
+		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -357,7 +346,7 @@ public class AliasDialog extends JDialog{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(parentFrame, model);
+		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -371,7 +360,6 @@ public class AliasDialog extends JDialog{
 		}
 	}
 
-	// ==================== Load & Save ====================
 
 	private void loadData(){
 		// Alias ID
@@ -379,15 +367,15 @@ public class AliasDialog extends JDialog{
 			selectedAliasId = existingEntry.aliasId;
 			FLEFRecord rec = model.getRecordById(existingEntry.aliasId);
 			if(rec != null){
-				aliasDisplayField.setText(individualHandler.getDisplayName(rec));
+				aliasDisplayField.setText(individualHandler.getDisplayText(rec));
 			}
 			else{
 				aliasDisplayField.setText(existingEntry.aliasId);
 			}
 		}
 
-		// Certainty + Credibility
-		qualifiersPanel.load(existingEntry.certainty, existingEntry.credibility);
+		//FIXME Certainty + Credibility
+//		qualifiersPanel.load(existingEntry.certainty, existingEntry.credibility);
 
 		// Notes
 		loadNotes();

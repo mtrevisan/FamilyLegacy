@@ -73,18 +73,14 @@ public class TranslationDialog extends JDialog{
 	private final FLEFRecord transRecord;
 	private boolean saved = false;
 
-	// ========== Basic fields ==========
 	private final JTextField localeField = new JTextField(10);
 	private final JTextArea valueArea = new JTextArea(3, 20);
 
-	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
-	// ========== Buttons ==========
 	private final JButton okButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
 	/**
@@ -123,7 +119,6 @@ public class TranslationDialog extends JDialog{
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
-		// ===== Basic tab =====
 		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
 		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
@@ -136,12 +131,10 @@ public class TranslationDialog extends JDialog{
 
 		tabbedPane.addTab("Basic", basicPanel);
 
-		// ===== Modification tab =====
 		tabbedPane.addTab("Modification", modificationPanel);
 
 		add(tabbedPane, BorderLayout.CENTER);
 
-		// ===== Button panel =====
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		btnPanel.add(okButton);
 		btnPanel.add(cancelButton);
@@ -162,7 +155,7 @@ public class TranslationDialog extends JDialog{
 		valueArea.setText(FLEFRecordUtils.getChildValue(transRecord, "VALUE"));
 
 		// MODIFICATION
-		modificationPanel.loadFromRecord(transRecord);
+		modificationPanel.load(transRecord);
 	}
 
 	private boolean validateData(){
@@ -186,7 +179,7 @@ public class TranslationDialog extends JDialog{
 		FLEFRecordUtils.updateChildValue(transRecord, "VALUE", valueArea.getText().trim());
 
 		// MODIFICATION
-		modificationPanel.saveToRecord(transRecord);
+		modificationPanel.save(transRecord);
 	}
 
 	public boolean isSaved(){
@@ -197,7 +190,6 @@ public class TranslationDialog extends JDialog{
 		return transRecord;
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{

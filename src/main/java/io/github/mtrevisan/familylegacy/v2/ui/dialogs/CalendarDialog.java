@@ -56,9 +56,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -97,7 +97,6 @@ public class CalendarDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new CalendarHandler());
 	}
 
-	// ========== Basic fields ==========
 	private final JTextField idField = new JTextField(10);
 	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
 		StringUtils.EMPTY, "gregorian", "julian", "islamic", "hebrew", "chinese",
@@ -105,38 +104,32 @@ public class CalendarDialog extends BaseRecordDialog{
 		"soviet eternal", "ethiopian", "mayan"
 	});
 
-	// ========== CULTURAL_NORM ==========
 	private final DefaultListModel<String> culturalNormListModel = new DefaultListModel<>();
 	private final JList<String> culturalNormList = new JList<>(culturalNormListModel);
 	private final List<String> culturalNormIds = new ArrayList<>();
 	private final Map<String, String> culturalNormDisplayMap = new HashMap<>();
 
-	// ========== NOTE ==========
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== SOURCE_CITATION ==========
 	private final DefaultListModel<String> sourceCitationListModel = new DefaultListModel<>();
 	private final JList<String> sourceCitationList = new JList<>(sourceCitationListModel);
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
-	// ========== MODIFICATION ==========
 	private final ModificationPanel modificationPanel;
 
-	// ========== Buttons ==========
 	private final JButton saveButton = new JButton("Save");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler("CULTURAL_NORM");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 
 
-	public CalendarDialog(Frame parent, FLEFModel model, FLEFRecord record){
-		super(parent, "Edit Calendar", model, record, HandlerRegistry.getHandler(CalendarHandler.TYPE));
+	public CalendarDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -146,8 +139,8 @@ public class CalendarDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	public CalendarDialog(Frame parent, FLEFModel model){
-		super(parent, "New Calendar", model, null, HandlerRegistry.getHandler(CalendarHandler.TYPE));
+	public CalendarDialog(Dialog parent, FLEFModel model){
+		super(parent, model, null, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
@@ -190,7 +183,6 @@ public class CalendarDialog extends BaseRecordDialog{
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	// ==================== Panel factories ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
@@ -338,12 +330,11 @@ public class CalendarDialog extends BaseRecordDialog{
 		return panel;
 	}
 
-	// ==================== Cultural Norm methods ====================
 
 	private String getCulturalNormDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return culturalNormHandler.getDisplayName(rec);
+			return culturalNormHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -365,7 +356,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 	private void addCulturalNorm(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, culturalNormHandler, selectedId -> {
+			this, model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
 				culturalNormIds.add(selectedId);
 				String display = getCulturalNormDisplayName(selectedId);
@@ -387,7 +378,7 @@ public class CalendarDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this, "Cultural norm not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = culturalNormHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = culturalNormHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getCulturalNormDisplayName(id);
 		culturalNormDisplayMap.put(id, newDisplay);
@@ -407,7 +398,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 	private void createNewCulturalNorm(){
 		Set<String> before = new HashSet<>(culturalNormIds);
-		JDialog dialog = culturalNormHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = culturalNormHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
 			String id = rec.getId();
@@ -421,12 +412,11 @@ public class CalendarDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -448,7 +438,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			GUIHelper.getParentFrame(this), model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -470,7 +460,7 @@ public class CalendarDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog(GUIHelper.getParentFrame(this), model, rec);
+		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
@@ -490,7 +480,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
@@ -504,10 +494,9 @@ public class CalendarDialog extends BaseRecordDialog{
 		}
 	}
 
-	// ==================== Source Citation methods ====================
 
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, null);
+		SourceCitationDialog dialog = new SourceCitationDialog(this, model, null);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord citation = dialog.getCitationRecord();
@@ -524,7 +513,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(GUIHelper.getParentFrame(this), model, existing);
+		SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getCitationRecord();
@@ -550,7 +539,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
+				return sourceHandler.getDisplayText(rec);
 			}
 			return sourceId;
 		}
@@ -558,11 +547,10 @@ public class CalendarDialog extends BaseRecordDialog{
 	}
 
 	private void createNewSource(){
-		JDialog dialog = sourceHandler.createNewDialog(GUIHelper.getParentFrame(this), model);
+		JDialog dialog = sourceHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
 	}
 
-	// ==================== Load Data ====================
 
 	@Override
 	protected void loadData(){
@@ -589,10 +577,9 @@ public class CalendarDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION
-		modificationPanel.loadFromRecord(record);
+		modificationPanel.load(record);
 	}
 
-	// ==================== Validation ====================
 
 	@Override
 	protected boolean validateData(){
@@ -609,7 +596,6 @@ public class CalendarDialog extends BaseRecordDialog{
 		return true;
 	}
 
-	// ==================== Save ====================
 
 	@Override
 	protected void saveRecord(){
@@ -636,7 +622,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		}
 
 		// MODIFICATION
-		modificationPanel.saveToRecord(record);
+		modificationPanel.save(record);
 
 		if(isNew){
 			model.addRecord(record);
@@ -646,7 +632,6 @@ public class CalendarDialog extends BaseRecordDialog{
 		dispose();
 	}
 
-	// ==================== Main per test ====================
 
 	public static void main(String[] args){
 		try{
@@ -682,7 +667,7 @@ public class CalendarDialog extends BaseRecordDialog{
 
 			JButton btn = new JButton("New Calendar");
 			btn.addActionListener(e -> {
-				CalendarDialog dialog = new CalendarDialog(frame, model);
+				CalendarDialog dialog = new CalendarDialog(null, model);
 				dialog.setVisible(true);
 				System.out.println("Calendar saved.");
 			});

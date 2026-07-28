@@ -56,7 +56,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.GridLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -103,13 +102,10 @@ public class EventStructurePanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== DESCRIPTION (0:1) ==========
 	private final JTextArea descriptionArea = new JTextArea(3, 20);
 
-	// ========== DATE_STRUCTURE (0:1) ==========
 	private final DatePanel datePanel;
 
-	// ========== PLACE (0:1) ==========
 	private final JTextField placeDisplayField = new JTextField(20);
 	private final JButton placeBrowseBtn = new JButton("Browse...");
 	private final JButton placeNewBtn = new JButton("New");
@@ -117,43 +113,33 @@ public class EventStructurePanel extends JPanel{
 	private String selectedPlaceId;
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("Place Evidence");
 
-	// ========== AGENCY (0:1) ==========
 	private final JTextField agencyField = new JTextField(20);
 
-	// ========== CAUSE (0:1) ==========
 	private final JTextField causeField = new JTextField(20);
 	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel("Cause Evidence");
 
-	// ========== CULTURAL_NORM (0:M) ==========
 	private final DefaultListModel<String> culturalNormModel = new DefaultListModel<>();
 	private final JList<String> culturalNormList = new JList<>(culturalNormModel);
 	private final List<String> culturalNormIds = new ArrayList<>();
 	private final Map<String, String> culturalNormDisplayMap = new HashMap<>();
 
-	// ========== NOTE (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== SOURCE_CITATION (0:M) ==========
 	private final DefaultListModel<String> sourceModel = new DefaultListModel<>();
 	private final JList<String> sourceList = new JList<>(sourceModel);
 	private final List<FLEFRecord> sourceRecords = new ArrayList<>();
 
-	// ========== EVENT QUALIFIERS (0:1 each) ==========
 	private final EvidenceQualifiersPanel eventQualifiers = new EvidenceQualifiersPanel("Event Evidence");
 
-	// ========== RESTRICTION ==========
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// ========== MODIFICATION_STRUCTURE ==========
 	private final ModificationPanel modificationPanel;
 
-	// ========== CONCLUSION ==========
 	private final ConclusionPanel conclusionPanel;
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
@@ -184,24 +170,19 @@ public class EventStructurePanel extends JPanel{
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
-		// ===== Basic tab =====
 		JPanel basicPanel = createBasicPanel();
 		tabbedPane.addTab("Basic", basicPanel);
 
-		// ===== Notes & Sources tab =====
 		JPanel notesSourcesPanel = createNotesSourcesPanel();
 		tabbedPane.addTab("Notes & Sources", notesSourcesPanel);
 
-		// ===== Conclusion tab =====
 		tabbedPane.addTab("Conclusion", conclusionPanel);
 
-		// ===== Modification tab =====
 		tabbedPane.addTab("Modification", modificationPanel);
 
 		add(tabbedPane, BorderLayout.CENTER);
 	}
 
-	// ==================== Basic Tab ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
@@ -259,7 +240,6 @@ public class EventStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Notes & Sources Tab ====================
 
 	private JPanel createNotesSourcesPanel(){
 		JPanel panel = new JPanel(new GridLayout(1, 2, 10, 10));
@@ -290,7 +270,6 @@ public class EventStructurePanel extends JPanel{
 		return wrapper;
 	}
 
-	// ==================== Reference Panel Helper ====================
 
 	private JPanel createReferencePanel(String title, DefaultListModel<String> model, JList<String> list,
 		List<String> ids, Map<String, String> displayMap,
@@ -337,7 +316,6 @@ public class EventStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Source Citation Panel ====================
 
 	private JPanel createSourceCitationPanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
@@ -387,7 +365,7 @@ public class EventStructurePanel extends JPanel{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayName(rec);
+				return sourceHandler.getDisplayText(rec);
 			}
 		}
 		return sourceId != null? sourceId: "[empty]";
@@ -403,7 +381,7 @@ public class EventStructurePanel extends JPanel{
 	private void addSourceCitation(){
 		// Show a dialog to select a source and create a citation
 		SourceCitationDialog dialog = new SourceCitationDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			null // new citation
 		);
@@ -423,7 +401,7 @@ public class EventStructurePanel extends JPanel{
 			return;
 		FLEFRecord citation = sourceRecords.get(idx);
 		SourceCitationDialog dialog = new SourceCitationDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			citation
 		);
@@ -451,26 +429,25 @@ public class EventStructurePanel extends JPanel{
 
 	private void createNewSource(){
 		JDialog dialog = sourceHandler.createNewDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
 	}
 
-	// ==================== Place methods ====================
 
 	/**
 	 * Opens a dialog to browse and select an existing place.
 	 */
 	private void browsePlace(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, placeHandler, selectedId -> {
 			if(selectedId != null){
 				selectedPlaceId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayName(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec));
 				}
 				else{
 					placeDisplayField.setText(selectedId);
@@ -496,7 +473,7 @@ public class EventStructurePanel extends JPanel{
 
 		// Open the PlaceDialog in new mode
 		PlaceDialog dialog = PlaceDialog.createNew(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
@@ -516,7 +493,7 @@ public class EventStructurePanel extends JPanel{
 			selectedPlaceId = newPlaceId;
 			FLEFRecord rec = model.getRecordById(newPlaceId);
 			if(rec != null){
-				placeDisplayField.setText(placeHandler.getDisplayName(rec));
+				placeDisplayField.setText(placeHandler.getDisplayText(rec));
 			}
 			else{
 				placeDisplayField.setText(newPlaceId);
@@ -524,19 +501,18 @@ public class EventStructurePanel extends JPanel{
 		}
 	}
 
-	// ==================== Cultural Norm methods ====================
 
 	private String getCulturalNormDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return culturalNormHandler.getDisplayName(rec);
+			return culturalNormHandler.getDisplayText(rec);
 		}
 		return id;
 	}
 
 	private void addCulturalNorm(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, culturalNormHandler, selectedId -> {
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
 				culturalNormIds.add(selectedId);
@@ -560,7 +536,7 @@ public class EventStructurePanel extends JPanel{
 			return;
 		}
 		JDialog dialog = culturalNormHandler.createEditDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, rec
 		);
 		dialog.setVisible(true);
@@ -585,7 +561,7 @@ public class EventStructurePanel extends JPanel{
 	private void createNewCulturalNorm(){
 		Set<String> before = new HashSet<>(culturalNormIds);
 		JDialog dialog = culturalNormHandler.createNewDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
@@ -601,19 +577,18 @@ public class EventStructurePanel extends JPanel{
 		}
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
@@ -637,7 +612,7 @@ public class EventStructurePanel extends JPanel{
 			return;
 		}
 		JDialog dialog = noteHandler.createEditDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, rec
 		);
 		dialog.setVisible(true);
@@ -662,7 +637,7 @@ public class EventStructurePanel extends JPanel{
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
@@ -678,7 +653,6 @@ public class EventStructurePanel extends JPanel{
 		}
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads data from an EVENT_STRUCTURE FLEFRecord.
@@ -707,15 +681,13 @@ public class EventStructurePanel extends JPanel{
 				selectedPlaceId = placeId;
 				FLEFRecord rec = model.getRecordById(placeId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayName(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec));
 				}
 				else{
 					placeDisplayField.setText(placeId);
 				}
 			}
-			String placeCert = FLEFRecordUtils.getChildValue(place, "CERTAINTY");
-			String placeCred = FLEFRecordUtils.getChildValue(place, "CREDIBILITY");
-			placeQualifiers.load(placeCert, placeCred);
+			placeQualifiers.load(place);
 		}
 
 		// AGENCY (0:1)
@@ -725,9 +697,7 @@ public class EventStructurePanel extends JPanel{
 		FLEFRecord cause = FLEFRecordUtils.findChild(eventStructure, "CAUSE");
 		if(cause != null){
 			causeField.setText(cause.getValue());
-			String causeCert = FLEFRecordUtils.getChildValue(cause, "CERTAINTY");
-			String causeCred = FLEFRecordUtils.getChildValue(cause, "CREDIBILITY");
-			causeQualifiers.load(causeCert, causeCred);
+			causeQualifiers.load(cause);
 		}
 
 		// CULTURAL_NORM (0:M)
@@ -763,16 +733,14 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// EVENT QUALIFIERS (CERTAINTY + CREDIBILITY for the event itself)
-		String eventCert = FLEFRecordUtils.getChildValue(eventStructure, "CERTAINTY");
-		String eventCred = FLEFRecordUtils.getChildValue(eventStructure, "CREDIBILITY");
-		eventQualifiers.load(eventCert, eventCred);
+		eventQualifiers.load(eventStructure);
 
 		// RESTRICTION
 		String restriction = FLEFRecordUtils.getChildValue(eventStructure, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.loadFromRecord(eventStructure);
+		modificationPanel.load(eventStructure);
 
 		// CONCLUSION
 		FLEFRecord conclusion = FLEFRecordUtils.findChild(eventStructure, "CONCLUSION");
@@ -870,7 +838,7 @@ public class EventStructurePanel extends JPanel{
 		FLEFRecordUtils.updateChildValue(eventStructure, "RESTRICTION", restriction);
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.saveToRecord(eventStructure);
+		modificationPanel.save(eventStructure);
 
 		// CONCLUSION
 		if(conclusionPanel.hasData()){

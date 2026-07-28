@@ -7,9 +7,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
-import javax.swing.*;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import java.awt.Dialog;
-import java.awt.Frame;
 import java.io.Serial;
 
 
@@ -26,14 +26,14 @@ public class EventListPanel extends AbstractListPanel<String>{
 
 
 	public EventListPanel(FLEFModel model, Dialog parentDialog){
-		super(model, parentDialog, "Events");
+		super(parentDialog, "Events", model);
 	}
 
 	@Override
 	protected String getDisplay(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return eventHandler.getDisplayName(rec);
+			return eventHandler.getDisplayText(rec);
 		}
 		return id;
 	}

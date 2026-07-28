@@ -31,17 +31,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.io.Serial;
 import java.util.List;
@@ -67,16 +64,20 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected boolean isSaved;
 
 
-	protected BaseRecordDialog(final Frame parent, final String title, final FLEFModel model, final FLEFRecord record,
+	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
 			final RecordTypeHandler<?> handler){
-		super(parent, title, true);
+		super(parent, buildTitle(handler, record), true);
 
 		this.model = model;
 		this.record = (record != null? record: createNewRecord(handler));
 		this.isNew = (record == null);
 	}
 
-	// ==================== Abstract methods ====================
+	private static String buildTitle(final RecordTypeHandler<?> handler, final FLEFRecord record){
+		final String label = handler.getLabel();
+		return (record == null? "New " + label: "Edit " + label + " - " + record.getId());
+	}
+
 
 	protected abstract void initComponents();
 
@@ -136,7 +137,6 @@ public abstract class BaseRecordDialog extends JDialog{
 			saveRecord();
 	}
 
-	// ==================== Utility methods ====================
 
 	protected String getChildValue(final String tag){
 		return FLEFRecordUtils.getChildValue(record, tag);
@@ -196,15 +196,6 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
-	protected JPanel createTextAreaPanel(final String label){
-		final JPanel panel = new JPanel(new BorderLayout());
-		final JLabel lbl = new JLabel(label);
-		lbl.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		panel.add(lbl, BorderLayout.NORTH);
-		return panel;
-	}
-
-
 	protected void showError(final String title, final String message){
 		JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
 	}
@@ -219,11 +210,11 @@ public abstract class BaseRecordDialog extends JDialog{
 		return (selectedOption == JOptionPane.YES_OPTION);
 	}
 
-	protected boolean isSaved(){
+	public boolean isSaved(){
 		return isSaved;
 	}
 
-	protected FLEFRecord getRecord(){
+	public FLEFRecord getRecord(){
 		return record;
 	}
 

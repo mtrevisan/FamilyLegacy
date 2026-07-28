@@ -6,7 +6,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -25,15 +25,12 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
-import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 
 public class NameStructureDialog extends JDialog {
@@ -57,10 +54,8 @@ public class NameStructureDialog extends JDialog {
 	private final BoundComboBox<String> localeCombo;
 
 	// Validity Date Display Fields & Records
-	private final JTextField validFromDisplayField = new JTextField(20);
-	private final JTextField validToDisplayField = new JTextField(20);
-	private FLEFRecord validFromDateRecord;
-	private FLEFRecord validToDateRecord;
+	private final DateField validFromField;
+	private final DateField validToField;
 
 	// Variants
 	private final DefaultListModel<String> variantListModel = new DefaultListModel<>();
@@ -86,8 +81,11 @@ public class NameStructureDialog extends JDialog {
 		typeCombo = new BoundComboBox<>("TYPE", new String[]{StringUtils.EMPTY, "official", "colonial", "indigenous"});
 		localeCombo = new BoundComboBox<>("VALUE.LOCALE", new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 
+		validFromField = DateField.createWithWrapperTag(this, "Valid From Date", model, "VALID_FROM");
+		validToField = DateField.createWithWrapperTag(this, "Valid To Date", model, "VALID_TO");
+
 		notePanel = new NoteListPanel(model, this);
-		sourcePanel = new SourceCitationListPanel(model, this);
+		sourcePanel = new SourceCitationListPanel(this, model);
 
 		initComponents();
 		loadData();
@@ -108,14 +106,11 @@ public class NameStructureDialog extends JDialog {
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(localeCombo);
 
-		setupDateField(validFromDisplayField, () -> validFromDateRecord != null, this::editValidFrom, this::clearValidFrom);
-		setupDateField(validToDisplayField, () -> validToDateRecord != null, this::editValidTo, this::clearValidTo);
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Variants", createVariantsPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 
-		setLayout(new MigLayout("ins 10, fillx, top", "[grow]", "[]10[]"));
+		setLayout(new MigLayout("ins 10,fillx,top", "[grow]", "[]10[]"));
 		add(tabbedPane, "growx, wrap");
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -127,24 +122,8 @@ public class NameStructureDialog extends JDialog {
 		cancelButton.addActionListener(e -> dispose());
 	}
 
-	private void setupDateField(JTextField field, Supplier<Boolean> hasSelection, Runnable editAction, Runnable clearAction) {
-		field.setEditable(false);
-		field.setBackground(UIManager.getColor("TextField.background"));
-		GUIHelper.installBehavior(field,
-			hasSelection,
-			editAction,
-			editAction,
-			clearAction,
-			builder -> {
-				builder.item("Set Date...", editAction);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", editAction);
-				builder.selectionSensitiveItem("Clear", clearAction);
-			});
-	}
-
 	private JPanel createMainPanel() {
-		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]5[]5[]10[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]10[]"));
 
 		panel.add(new JLabel("Name Value*:"), "align label");
 		panel.add(valueField, "growx, wrap");
@@ -158,67 +137,20 @@ public class NameStructureDialog extends JDialog {
 		panel.add(localeCombo, "growx, wrap");
 
 		// Validity Range Panel
-		JPanel validityPanel = new JPanel(new MigLayout("ins 5, fillx, top", "[right]rel[grow]", "[]5[]"));
+		JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
-
 		validityPanel.add(new JLabel("Valid From:"), "align label");
-		validityPanel.add(validFromDisplayField, "growx, wrap");
-
+		validityPanel.add(validFromField, "growx, wrap");
 		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToDisplayField, "growx, wrap");
-
+		validityPanel.add(validToField, "growx, wrap");
 		panel.add(validityPanel, "span 2, growx, wrap");
 
 		return panel;
 	}
 
-	// ==================== Date Handlers ====================
-
-	private void editValidFrom() {
-		FLEFRecord updated = showDateDialog("Valid From Date", validFromDateRecord);
-		if (updated != null) {
-			validFromDateRecord = updated;
-			updateDateDisplay(validFromDisplayField, validFromDateRecord);
-		}
-	}
-
-	private void clearValidFrom() {
-		validFromDateRecord = null;
-		validFromDisplayField.setText(StringUtils.EMPTY);
-	}
-
-	private void editValidTo() {
-		FLEFRecord updated = showDateDialog("Valid To Date", validToDateRecord);
-		if (updated != null) {
-			validToDateRecord = updated;
-			updateDateDisplay(validToDisplayField, validToDateRecord);
-		}
-	}
-
-	private void clearValidTo() {
-		validToDateRecord = null;
-		validToDisplayField.setText(StringUtils.EMPTY);
-	}
-
-	private FLEFRecord showDateDialog(String title, FLEFRecord existingRecord) {
-		DateDialog dialog = DateDialog.createEdit(this, model, title, existingRecord);
-		dialog.setVisible(true);
-		return dialog.isSaved() ? dialog.getDateRecord() : existingRecord;
-	}
-
-	private void updateDateDisplay(JTextField field, FLEFRecord dateRecord){
-		if(dateRecord == null){
-			field.setText(StringUtils.EMPTY);
-			return;
-		}
-
-		field.setText(DatePanel.getDisplayText(dateRecord));
-	}
-
-	// ==================== Variants & References ====================
 
 	private JPanel createVariantsPanel() {
-		JPanel panel = new JPanel(new MigLayout("ins 10, fillx, top"));
+		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top"));
 		panel.setBorder(new TitledBorder("Text Value Variants"));
 
 		variantList.setVisibleRowCount(4);
@@ -239,7 +171,7 @@ public class NameStructureDialog extends JDialog {
 	}
 
 	private JPanel createReferencesPanel() {
-		JPanel panel = new JPanel(new MigLayout("ins 5, fillx, top, wrap 1", "[grow]", "[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		panel.add(notePanel, "growx");
 		panel.add(sourcePanel, "growx");
@@ -295,15 +227,12 @@ public class NameStructureDialog extends JDialog {
 		return record.getTag();
 	}
 
-	// ==================== Data Loading & Saving ====================
 
 	private void loadData() {
 		bindingManager.loadFromRecord(nameRecord);
 
 		FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
 		if (valueRec == null) {
-			clearValidFrom();
-			clearValidTo();
 			variantRecords.clear();
 			variantListModel.clear();
 			notePanel.clear();
@@ -311,25 +240,13 @@ public class NameStructureDialog extends JDialog {
 			return;
 		}
 
-		// Load VALID_FROM
-		FLEFRecord validFrom = FLEFRecordUtils.findChild(valueRec, "VALID_FROM");
-		if (validFrom != null) {
-			validFromDateRecord = FLEFRecordUtils.findChild(validFrom, "DATE");
-			updateDateDisplay(validFromDisplayField, validFromDateRecord);
-		} else {
-			clearValidFrom();
-		}
+		// VALID_FROM
+		validFromField.load(valueRec);
 
-		// Load VALID_TO
-		FLEFRecord validTo = FLEFRecordUtils.findChild(valueRec, "VALID_TO");
-		if (validTo != null) {
-			validToDateRecord = FLEFRecordUtils.findChild(validTo, "DATE");
-			updateDateDisplay(validToDisplayField, validToDateRecord);
-		} else {
-			clearValidTo();
-		}
+		// VALID_TO
+		validToField.load(valueRec);
 
-		// Load variants
+		// variants
 		variantRecords.clear();
 		variantListModel.clear();
 		for (FLEFRecord child : valueRec.getChildren()) {
@@ -339,17 +256,14 @@ public class NameStructureDialog extends JDialog {
 			}
 		}
 
-		// Load notes
-		List<String> noteIds = new ArrayList<>();
-		for (FLEFRecord child : valueRec.getChildren()) {
-			if ("NOTE".equals(child.getTag())) {
-				String rawId = FLEFRecordUtils.extractXRef(child.getValue());
-				if (rawId != null) noteIds.add(rawId);
-			}
-		}
-		notePanel.loadFromNoteIds(noteIds);
+		// notes
+		final List<FLEFRecord> notes = new ArrayList<>();
+		for(final FLEFRecord child : valueRec.getChildren())
+			if("NOTE".equals(child.getTag()))
+				notes.add(child);
+		notePanel.loadFromNotes(notes);
 
-		// Load source citations
+		// source citations
 		List<FLEFRecord> citations = new ArrayList<>();
 		for (FLEFRecord child : valueRec.getChildren()) {
 			if ("SOURCE".equals(child.getTag())) {
@@ -380,18 +294,10 @@ public class NameStructureDialog extends JDialog {
 		FLEFRecordUtils.removeChildren(valueRec, "VALID_FROM", "VALID_TO", "PHONETIC", "TRANSCRIPTION", "NOTE", "SOURCE");
 
 		// VALID_FROM
-		if (validFromDateRecord != null) {
-			FLEFRecord validFrom = FLEFRecord.createChild("VALID_FROM");
-			validFrom.addChild(validFromDateRecord);
-			valueRec.addChild(validFrom);
-		}
+		validFromField.save(valueRec);
 
 		// VALID_TO
-		if (validToDateRecord != null) {
-			FLEFRecord validTo = FLEFRecord.createChild("VALID_TO");
-			validTo.addChild(validToDateRecord);
-			valueRec.addChild(validTo);
-		}
+		validToField.save(valueRec);
 
 		// Variants
 		for (FLEFRecord variant : variantRecords) {
@@ -399,8 +305,8 @@ public class NameStructureDialog extends JDialog {
 		}
 
 		// Notes
-		for (String noteId : notePanel.getNoteIds()) {
-			FLEFRecordUtils.addReferenceChild(valueRec, "NOTE", noteId);
+		for (FLEFRecord note : notePanel.getNotes()) {
+			FLEFRecordUtils.addReferenceChild(valueRec, "NOTE", note.getId());
 		}
 
 		// Source citations

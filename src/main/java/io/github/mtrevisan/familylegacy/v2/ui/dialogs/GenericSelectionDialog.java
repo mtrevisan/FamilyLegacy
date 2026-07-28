@@ -45,15 +45,13 @@ import javax.swing.ListSelectionModel;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 
 
@@ -93,7 +91,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	 * @param handler     the handler for the record type
 	 * @param onSelection callback invoked with the selected record ID, or null if cancelled
 	 */
-	public GenericSelectionDialog(final Frame parent, final FLEFModel model, final RecordTypeHandler<T> handler,
+	public GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
 			final Consumer<String> onSelection){
 		super(parent, "Select " + handler.getLabel(), true);
 
@@ -191,15 +189,15 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
 		final String lowerSearch = searchText.toLowerCase();
 		for(final FLEFRecord record : allRecords){
-			final String display = handler.getDisplayName(record);
+			final String display = handler.getDisplayText(record);
 			if(display.toLowerCase().contains(lowerSearch))
 				filteredRecords.add(record);
 		}
 
 		// Order by display name
 		filteredRecords.sort((a, b) -> {
-			final String nameA = handler.getDisplayName(a);
-			final String nameB = handler.getDisplayName(b);
+			final String nameA = handler.getDisplayText(a);
+			final String nameB = handler.getDisplayText(b);
 			return nameA.compareToIgnoreCase(nameB);
 		});
 
@@ -219,7 +217,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 			list.setEnabled(true);
 			selectButton.setEnabled(true);
 			for(final FLEFRecord record : filteredRecords)
-				listModel.addElement(handler.getDisplayName(record));
+				listModel.addElement(handler.getDisplayText(record));
 		}
 	}
 

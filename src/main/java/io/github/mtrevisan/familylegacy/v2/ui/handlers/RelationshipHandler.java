@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipDialog;
 
-import java.awt.Frame;
+import java.awt.Dialog;
 
 
 /**
@@ -61,24 +61,24 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipDialog
 	}
 
 	@Override
-	public String getDisplayName(FLEFRecord record){
+	public String getDisplayText(FLEFRecord record){
 		String relationshipId = FLEFRecordUtils.getChildValue(record, "RELATIONSHIP");
-		String id = record.getType();
+		String type = record.getTag();
 		if(relationshipId != null && !relationshipId.isEmpty()){
 			// Try to get the actual event type name from the model
 			// For display name, we'll show the type ID with the event ID
-			return "Relationship " + id + " (" + relationshipId + ")";
+			return "Relationship " + type + " (" + relationshipId + ")";
 		}
-		return id;
+		return type;
 	}
 
 	@Override
-	public RelationshipDialog createEditDialog(Frame parent, FLEFModel model, FLEFRecord record){
+	public RelationshipDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return new RelationshipDialog(parent, model, record);
 	}
 
 	@Override
-	public RelationshipDialog createNewDialog(Frame parent, FLEFModel model){
+	public RelationshipDialog createNewDialog(Dialog parent, FLEFModel model){
 		return new RelationshipDialog(parent, model, null);
 	}
 

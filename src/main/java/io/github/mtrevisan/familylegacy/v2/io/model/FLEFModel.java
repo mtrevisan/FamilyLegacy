@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,11 +60,11 @@ public class FLEFModel{
 	public void addRecord(final FLEFRecord record){
 		records.add(record);
 		// Indexing by type
-		final String type = record.getType();
+		final String type = record.getTag();
 		recordsByType.computeIfAbsent(type, k -> new ArrayList<>()).add(record);
 		// Indexing by ID
 		if(record.getId() != null)
-			recordsById.put(record.getId(), record);
+			recordsById.put(FLEFRecordUtils.extractXRef(record.getId()), record);
 	}
 
 	public List<FLEFRecord> getRecordsByType(final String type){
@@ -70,14 +72,14 @@ public class FLEFModel{
 	}
 
 	public FLEFRecord getRecordById(final String id){
-		return recordsById.get(id);
+		return recordsById.get(FLEFRecordUtils.extractXRef(id));
 	}
 
 	public void removeRecord(final String id){
 		final FLEFRecord record = recordsById.remove(id);
 		if(record != null){
 			records.remove(record);
-			final String type = record.getType();
+			final String type = record.getTag();
 			final List<FLEFRecord> list = recordsByType.get(type);
 			if(list != null){
 				list.remove(record);

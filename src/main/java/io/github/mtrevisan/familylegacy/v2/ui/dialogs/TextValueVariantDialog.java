@@ -56,7 +56,7 @@ public class TextValueVariantDialog extends JDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		final JPanel panel = new JPanel(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]5[]5[]"));
 		panel.add(new JLabel("Variant Kind:"), "align label");
 		panel.add(radioPanel, "growx, wrap");
 

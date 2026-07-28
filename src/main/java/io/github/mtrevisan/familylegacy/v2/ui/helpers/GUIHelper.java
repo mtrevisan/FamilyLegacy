@@ -168,7 +168,6 @@ public final class GUIHelper{
 			});
 	}
 
-	// ===================== Private helpers =====================
 
 	private static JPopupMenu buildPopup(final List<MenuEntry> entries){
 		final JPopupMenu popup = new JPopupMenu();
@@ -185,7 +184,6 @@ public final class GUIHelper{
 		return popup;
 	}
 
-	// ===================== Inner classes =====================
 
 	/**
 	 * Builder that collects menu entries.

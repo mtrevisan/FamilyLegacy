@@ -53,7 +53,6 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -89,35 +88,27 @@ public class ContactStructurePanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	// ========== CONTACT ==========
 	private final JTextField contactField = new JTextField(30);
 
-	// ========== TYPE ==========
 	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
 		StringUtils.EMPTY, "work", "home", "blog", "personal", "social", "mobile", "fax"
 	});
 
-	// ========== CALLER_ID ==========
 	private final JTextField callerIdField = new JTextField(20);
 
-	// ========== CALLER_ID -> TRANSCRIBED_TEXT (0:M) ==========
 	private final DefaultListModel<String> transcriptionModel = new DefaultListModel<>();
 	private final JList<String> transcriptionList = new JList<>(transcriptionModel);
 	private final List<FLEFRecord> transcriptionRecords = new ArrayList<>();
 
-	// ========== NOTE (0:M) ==========
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	// ========== RESTRICTION ==========
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
 
-	// ========== MODIFICATION_STRUCTURE ==========
 	private final ModificationPanel modificationPanel;
 
-	// ========== Handlers ==========
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
 	/**
@@ -142,25 +133,20 @@ public class ContactStructurePanel extends JPanel{
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
-		// ===== Basic tab =====
 		JPanel basicPanel = createBasicPanel();
 		tabbedPane.addTab("Basic", basicPanel);
 
-		// ===== Caller ID Transcriptions tab =====
 		JPanel transcriptionsPanel = createTranscriptionsPanel();
 		tabbedPane.addTab("Transcriptions", transcriptionsPanel);
 
-		// ===== Notes tab =====
 		JPanel notesPanel = createNotesPanel();
 		tabbedPane.addTab("Notes", notesPanel);
 
-		// ===== Modification tab =====
 		tabbedPane.addTab("Modification", modificationPanel);
 
 		add(tabbedPane, BorderLayout.CENTER);
 	}
 
-	// ==================== Basic Tab ====================
 
 	private JPanel createBasicPanel(){
 		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]"));
@@ -184,7 +170,6 @@ public class ContactStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Transcriptions Tab ====================
 
 	private JPanel createTranscriptionsPanel(){
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
@@ -225,7 +210,6 @@ public class ContactStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Notes Tab ====================
 
 	private JPanel createNotesPanel(){
 		JPanel panel = new JPanel(new BorderLayout(5, 5));
@@ -269,7 +253,6 @@ public class ContactStructurePanel extends JPanel{
 		return panel;
 	}
 
-	// ==================== Transcriptions methods ====================
 
 	private String buildTranscriptionDisplay(FLEFRecord transRecord){
 		String phonetic = FLEFRecordUtils.getChildValue(transRecord, "PHONETIC");
@@ -364,12 +347,11 @@ public class ContactStructurePanel extends JPanel{
 		}
 	}
 
-	// ==================== Note methods ====================
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayName(rec);
+			return noteHandler.getDisplayText(rec);
 		}
 		return id;
 	}
@@ -384,7 +366,7 @@ public class ContactStructurePanel extends JPanel{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
@@ -408,7 +390,7 @@ public class ContactStructurePanel extends JPanel{
 			return;
 		}
 		JDialog dialog = noteHandler.createEditDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, rec
 		);
 		dialog.setVisible(true);
@@ -433,7 +415,7 @@ public class ContactStructurePanel extends JPanel{
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(
-			(parent instanceof Frame? (Frame)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);
 		dialog.setVisible(true);
@@ -449,7 +431,6 @@ public class ContactStructurePanel extends JPanel{
 		}
 	}
 
-	// ==================== Public API ====================
 
 	/**
 	 * Loads data from a CONTACT FLEFRecord.
@@ -505,7 +486,7 @@ public class ContactStructurePanel extends JPanel{
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.loadFromRecord(contactRecord);
+		modificationPanel.load(contactRecord);
 	}
 
 	/**
@@ -562,7 +543,7 @@ public class ContactStructurePanel extends JPanel{
 		FLEFRecordUtils.updateChildValue(contactRecord, "RESTRICTION", restriction);
 
 		// MODIFICATION_STRUCTURE
-		modificationPanel.saveToRecord(contactRecord);
+		modificationPanel.save(contactRecord);
 
 		return contactRecord;
 	}
