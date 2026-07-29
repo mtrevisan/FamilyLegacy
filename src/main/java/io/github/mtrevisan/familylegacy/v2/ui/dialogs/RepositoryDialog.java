@@ -50,7 +50,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.0.
  * <p>
@@ -73,7 +73,6 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 3053114409506763765L;
 
 
-	// Handlers
 	static{
 		HandlerRegistry.register(new RepositoryHandler());
 		HandlerRegistry.register(new IndividualHandler());

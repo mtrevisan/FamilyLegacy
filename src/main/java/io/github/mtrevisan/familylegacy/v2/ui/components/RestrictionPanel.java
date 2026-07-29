@@ -91,7 +91,7 @@ public class RestrictionPanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10, fillx, top", "[right]rel[grow]", "[]10[]10[]"));
+		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
 
 		bindingManager.bind(levelCombo);
 		bindingManager.bind(rationaleArea);

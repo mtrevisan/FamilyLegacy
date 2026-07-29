@@ -56,6 +56,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* ONGOING */
 /**
  * Dialog for editing a PLACE_RECORD according to FLEF 0.1.0.
  * <p>
@@ -171,7 +172,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		mainPanel.add(typeCombo, "growx, wrap");
 
 		// ----- MAP -----
-		final JPanel mapPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		final JPanel mapPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]"));
 		mapPanel.setBorder(new TitledBorder("Map"));
 
 		mapPanel.add(new JLabel("Latitude:"), "align label");
