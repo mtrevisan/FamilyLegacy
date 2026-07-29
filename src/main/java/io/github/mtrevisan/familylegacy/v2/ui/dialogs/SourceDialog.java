@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -161,11 +160,11 @@ public class SourceDialog extends BaseRecordDialog{
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
 
-		placeField = PlaceField.create(parent, "Place", model);
+		placeField = PlaceField.create("PLACE", parent, model);
 		dateField = DateField.create(this, "Valid Date", model);
 		documentPanel = new DocumentStructurePanel(model, this);
 		modificationPanel = new ModificationPanel(this);
-		sourceCitationPanel = new SourceCitationListPanel(this, model);
+		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 
 		initComponents();
 
@@ -176,7 +175,6 @@ public class SourceDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		bindingManager.bind(titleField);
 		bindingManager.bind(authorField);
@@ -201,8 +199,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 
 		idField.setEditable(false);
 		idField.setText(record != null? record.getId(): StringUtils.EMPTY);
@@ -223,8 +220,7 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createPlaceDatePanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]"));
 
 		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]"));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
@@ -393,7 +389,7 @@ public class SourceDialog extends BaseRecordDialog{
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					null,
-					location != null? location: StringUtils.EMPTY
+					StringUtils.defaultString(location)
 				);
 				existing.setValue(selectedId);
 				FLEFRecordUtils.updateChildValue(existing, "LOCATION", newLocation.trim());
@@ -527,7 +523,7 @@ public class SourceDialog extends BaseRecordDialog{
 		idField.setText(record != null? record.getId(): StringUtils.EMPTY);
 
 		// ---- Load bound simple fields ----
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		// ---- Load manual fields ----
 
@@ -549,11 +545,7 @@ public class SourceDialog extends BaseRecordDialog{
 		documentPanel.loadFromRecord(doc);
 
 		// SOURCE_CITATION
-		final List<FLEFRecord> sources = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("SOURCE".equals(child.getTag()))
-				sources.add(child);
-		sourceCitationPanel.setItems(sources);
+		sourceCitationPanel.load(record);
 
 		// Notes
 		loadNotes();
@@ -563,16 +555,14 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		return true;
 	}
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// ---- Save bound simple fields ----
-		bindingManager.saveToRecord(record);
+		bindingManager.save(record);
 
 		// ---- Save manual fields ----
 
@@ -602,10 +592,7 @@ public class SourceDialog extends BaseRecordDialog{
 		}
 
 		// SOURCE CITATIONS
-		for(final FLEFRecord source : sourceCitationPanel.getItems()){
-			source.setTag("SOURCE");
-			record.addChild(source);
-		}
+		sourceCitationPanel.save(record);
 
 		// Notes
 		for(String id : noteIds){
@@ -614,15 +601,6 @@ public class SourceDialog extends BaseRecordDialog{
 
 		// Modification
 		modificationPanel.save(record);
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-// TODO to be removed
-FLEFFile.print(model);
-//		dispose();
 	}
 
 

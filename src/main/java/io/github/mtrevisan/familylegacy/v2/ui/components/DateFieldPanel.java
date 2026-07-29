@@ -112,26 +112,24 @@ public class DateFieldPanel extends JPanel{
 	 * - BOUNDED (with NOT_BEFORE/NOT_AFTER, each containing a date)
 	 * - SPANNING (with FROM/TO, each containing a date)
 	 */
-	private String extractDateSummary(FLEFRecord dateNode){
-		if(dateNode == null) return "[not set]";
+	public static String extractDateSummary(final FLEFRecord dateNode){
+		if(dateNode == null)
+			return StringUtils.EMPTY;
 
-		// Check for POINT (single date)
-		FLEFRecord value = FLEFRecordUtils.findChild(dateNode, "POINT");
-		if(value != null){
+		// Check for POINT
+		final FLEFRecord value = FLEFRecordUtils.findChild(dateNode, "POINT");
+		if(value != null)
 			return extractSingleDate(value);
-		}
 
 		// Check for BOUNDED
-		FLEFRecord bounded = FLEFRecordUtils.findChild(dateNode, "BOUNDED");
-		if(bounded != null){
+		final FLEFRecord bounded = FLEFRecordUtils.findChild(dateNode, "BOUNDED");
+		if(bounded != null)
 			return extractBoundedSummary(bounded);
-		}
 
 		// Check for SPANNING
-		FLEFRecord spanning = FLEFRecordUtils.findChild(dateNode, "SPANNING");
-		if(spanning != null){
+		final FLEFRecord spanning = FLEFRecordUtils.findChild(dateNode, "SPANNING");
+		if(spanning != null)
 			return extractSpanningSummary(spanning);
-		}
 
 		return "[invalid]";
 	}
@@ -140,93 +138,90 @@ public class DateFieldPanel extends JPanel{
 	 * Extracts a single date string from a node that may contain ISO, CENTURY, or DECADE
 	 * and optional APPROXIMATE.
 	 */
-	private String extractSingleDate(FLEFRecord node){
-		String dateStr = extractDateValue(node);
-		if(dateStr.isEmpty()) return "[empty]";
+	private static String extractSingleDate(final FLEFRecord node){
+		final StringBuilder dateStr = new StringBuilder(extractDateValue(node));
+		if(dateStr.isEmpty())
+			return "[empty]";
 
 		// Check for APPROXIMATE (direct child of the node)
-		FLEFRecord approx = FLEFRecordUtils.findChild(node, "APPROXIMATE");
+		final FLEFRecord approx = FLEFRecordUtils.findChild(node, "APPROXIMATE");
 		if(approx != null){
-			String basis = FLEFRecordUtils.getChildValue(approx, "BASIS");
-			String margin = FLEFRecordUtils.getChildValue(approx, "MARGIN");
+			final String basis = FLEFRecordUtils.getChildValue(approx, "BASIS");
+			final String margin = FLEFRecordUtils.getChildValue(approx, "MARGIN");
 			if(basis != null || margin != null){
-				dateStr += " (approx";
-				if(basis != null) dateStr += " basis: " + basis;
-				if(margin != null) dateStr += " margin: " + margin;
-				dateStr += ")";
+				dateStr.append(" (approx");
+				if(basis != null)
+					dateStr.append(" basis: ").append(basis);
+				if(margin != null)
+					dateStr.append(" margin: ").append(margin);
+				dateStr.append(")");
 			}
-			else{
-				dateStr += " (approx)";
-			}
+			else
+				dateStr.append(" (approx)");
 		}
-		return dateStr;
+		return dateStr.toString();
 	}
 
 	/**
 	 * Extracts the actual date value from FULL_DATE, CENTURY, or DECADE (including CALENDAR).
 	 */
-	private String extractDateValue(FLEFRecord parent){
-		FLEFRecord iso = FLEFRecordUtils.findChild(parent, "FULL_DATE");
-		if(iso != null && iso.getValue() != null){
-			String calendar = FLEFRecordUtils.getChildValue(iso, "CALENDAR");
-			return iso.getValue() + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
+	private static String extractDateValue(final FLEFRecord parent){
+		final FLEFRecord fullDate = FLEFRecordUtils.findChild(parent, "FULL_DATE");
+		if(fullDate != null && fullDate.getValue() != null){
+			final String calendar = FLEFRecordUtils.getChildValue(fullDate, "CALENDAR");
+			return fullDate.getValue() + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
 		}
-		FLEFRecord century = FLEFRecordUtils.findChild(parent, "CENTURY");
-		if(century != null && century.getValue() != null){
-			String part = FLEFRecordUtils.getChildValue(century, "PART");
-			String calendar = FLEFRecordUtils.getChildValue(century, "CALENDAR");
-			String centuryStr = century.getValue() + "th century";
-			if(part != null) centuryStr += " (" + part + ")";
-			if(calendar != null) centuryStr += " (" + calendar + ")";
-			return centuryStr;
-		}
-		FLEFRecord decade = FLEFRecordUtils.findChild(parent, "DECADE");
+
+		final FLEFRecord decade = FLEFRecordUtils.findChild(parent, "DECADE");
 		if(decade != null && decade.getValue() != null){
-			String calendar = FLEFRecordUtils.getChildValue(decade, "CALENDAR");
+			final String calendar = FLEFRecordUtils.getChildValue(decade, "CALENDAR");
 			return decade.getValue() + "s" + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
 		}
+
+		final FLEFRecord century = FLEFRecordUtils.findChild(parent, "CENTURY");
+		if(century != null && century.getValue() != null){
+			final String part = FLEFRecordUtils.getChildValue(century, "PART");
+			final String calendar = FLEFRecordUtils.getChildValue(century, "CALENDAR");
+			String centuryStr = century.getValue() + "th century";
+			if(part != null)
+				centuryStr += " (" + part + ")";
+			if(calendar != null)
+				centuryStr += " (" + calendar + ")";
+			return centuryStr;
+		}
+
 		return StringUtils.EMPTY;
 	}
 
-	private String extractBoundedSummary(FLEFRecord boundedNode){
-		String before = extractBoundEndpoint(boundedNode, "NOT_BEFORE");
-		String after = extractBoundEndpoint(boundedNode, "NOT_AFTER");
-		if(!before.isEmpty() && !after.isEmpty()){
-			return "between " + before + " and " + after;
-		}
-		else if(!before.isEmpty()){
-			return "after " + before;
-		}
-		else if(!after.isEmpty()){
-			return "before " + after;
-		}
-		else{
-			return "[bounded]";
-		}
+	private static String extractBoundedSummary(final FLEFRecord boundedNode){
+		final String notBefore = extractBoundEndpoint(boundedNode, "NOT_BEFORE");
+		final String notAfter = extractBoundEndpoint(boundedNode, "NOT_AFTER");
+		if(!notBefore.isEmpty() && !notAfter.isEmpty())
+			return "between " + notBefore + " and " + notAfter;
+		if(!notBefore.isEmpty())
+			return "after " + notBefore;
+		if(!notAfter.isEmpty())
+			return "before " + notAfter;
+		return "[bounded]";
 	}
 
-	private String extractSpanningSummary(FLEFRecord spanningNode){
-		String from = extractBoundEndpoint(spanningNode, "FROM");
-		String to = extractBoundEndpoint(spanningNode, "TO");
-		if(!from.isEmpty() && !to.isEmpty()){
+	private static String extractSpanningSummary(final FLEFRecord spanningNode){
+		final String from = extractBoundEndpoint(spanningNode, "FROM");
+		final String to = extractBoundEndpoint(spanningNode, "TO");
+		if(!from.isEmpty() && !to.isEmpty())
 			return "from " + from + " to " + to;
-		}
-		else if(!from.isEmpty()){
+		if(!from.isEmpty())
 			return "from " + from;
-		}
-		else if(!to.isEmpty()){
+		if(!to.isEmpty())
 			return "until " + to;
-		}
-		else{
-			return "[spanning]";
-		}
+		return "[spanning]";
 	}
 
 	/**
 	 * Extracts the date string from a bound endpoint node (NOT_BEFORE, NOT_AFTER, FROM, TO).
 	 * The endpoint node contains ISO/CENTURY/DECADE and optional APPROXIMATE.
 	 */
-	private String extractBoundEndpoint(FLEFRecord parent, String childTag){
+	private static String extractBoundEndpoint(FLEFRecord parent, String childTag){
 		FLEFRecord child = FLEFRecordUtils.findChild(parent, childTag);
 		if(child == null) return StringUtils.EMPTY;
 		return extractSingleDate(child);
@@ -240,6 +235,7 @@ public class DateFieldPanel extends JPanel{
 	 */
 	public void loadFromRecord(FLEFRecord record){
 		this.dateRecord = record;
+
 		updateSummary();
 	}
 

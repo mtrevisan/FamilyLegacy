@@ -74,7 +74,7 @@ public final class FLEFRecordUtils{
 	 */
 	public static FLEFRecord findChild(final FLEFRecord parent, final String path){
 		if(parent == null || StringUtils.isEmpty(path))
-			return null;
+			return parent;
 
 		FLEFRecord current = parent;
 		for(final String segment : path.split("\\.")){
@@ -379,7 +379,7 @@ public final class FLEFRecordUtils{
 	 * @return	The formatted XREF string, or {@code null} if the input is blank.
 	 */
 	public static String formatXRef(final String id){
-		if(id == null || id.isBlank())
+		if(StringUtils.isEmpty(id))
 			return null;
 
 		return (id.startsWith(XREF_PREFIX) && id.endsWith(XREF_SUFFIX)

@@ -40,7 +40,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -170,7 +169,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	}
 
 	// ----- Initialisation -----
-	@Override
 	protected void initComponents(){
 		modificationPanel = new ModificationPanel(this);
 		conclusionPanel = new ConclusionPanel(model, this);
@@ -192,7 +190,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[right]rel[grow]", "[]5[]5[]10[]5[]5[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// GROUP
 		JPanel groupPanel = new JPanel(new BorderLayout(5, 5));
@@ -261,7 +258,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,wrap 1", "[grow]", "[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		// Source Citations
 		panel.add(createSourceCitationPanel(), "growx");
@@ -368,7 +364,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			"Info", JOptionPane.INFORMATION_MESSAGE);
 
 		String placeId = JOptionPane.showInputDialog(this, "Enter Place ID (e.g., @P123@):");
-		if(placeId != null && !placeId.trim().isEmpty()){
+		if(!StringUtils.isEmpty(placeId)){
 			selectedPlaceId = placeId.trim();
 			placeField.setText(selectedPlaceId);
 			clearPlaceBtn.setEnabled(true);
@@ -464,11 +460,11 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 		// TYPE
 		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
-		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
+		typeCombo.setSelectedItem(StringUtils.defaultString(type));
 
 		// VALUE
 		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
-		valueArea.setText(value != null? value: StringUtils.EMPTY);
+		valueArea.setText(StringUtils.defaultString(value));
 
 		// DATE_STRUCTURE (simplified)
 		FLEFRecord dateStruct = FLEFRecordUtils.findChild(record, "DATE_STRUCTURE");
@@ -480,9 +476,9 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 				if(qualified != null){
 					FLEFRecord single = FLEFRecordUtils.findChild(qualified, "SINGLE_DATE");
 					if(single != null){
-						FLEFRecord iso = FLEFRecordUtils.findChild(single, "FULL_DATE");
-						if(iso != null){
-							dateField.setText(iso.getValue());
+						FLEFRecord fullDate = FLEFRecordUtils.findChild(single, "FULL_DATE");
+						if(fullDate != null){
+							dateField.setText(fullDate.getValue());
 						}
 					}
 				}
@@ -495,7 +491,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			FLEFRecord dateStructFrom = FLEFRecordUtils.findChild(validFrom, "DATE_STRUCTURE");
 			if(dateStructFrom != null){
 				String fromDate = FLEFRecordUtils.getChildValue(dateStructFrom, "DATE");
-				validFromField.setText(fromDate != null? fromDate: StringUtils.EMPTY);
+				validFromField.setText(StringUtils.defaultString(fromDate));
 			}
 		}
 
@@ -505,7 +501,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			FLEFRecord dateStructTo = FLEFRecordUtils.findChild(validTo, "DATE_STRUCTURE");
 			if(dateStructTo != null){
 				String toDate = FLEFRecordUtils.getChildValue(dateStructTo, "DATE");
-				validToField.setText(toDate != null? toDate: StringUtils.EMPTY);
+				validToField.setText(StringUtils.defaultString(toDate));
 			}
 		}
 
@@ -513,7 +509,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		FLEFRecord placeStruct = FLEFRecordUtils.findChild(record, "PLACE_STRUCTURE");
 		if(placeStruct != null){
 			selectedPlaceId = placeStruct.getValue();
-			placeField.setText(selectedPlaceId != null? selectedPlaceId: StringUtils.EMPTY);
+			placeField.setText(StringUtils.defaultString(selectedPlaceId));
 			clearPlaceBtn.setEnabled(selectedPlaceId != null);
 		}
 
@@ -531,10 +527,10 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		FLEFRecord evidence = FLEFRecordUtils.findChild(record, "EVIDENCE_QUALIFIERS");
 		if(evidence != null){
 			String certainty = FLEFRecordUtils.getChildValue(evidence, "CERTAINTY");
-			certaintyCombo.setSelectedItem(certainty != null? certainty: StringUtils.EMPTY);
+			certaintyCombo.setSelectedItem(StringUtils.defaultString(certainty));
 
 			String credibility = FLEFRecordUtils.getChildValue(evidence, "CREDIBILITY");
-			credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
+			credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 		}
 
 		// RESTRICTION_STRUCTURE
@@ -550,7 +546,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		// GROUP is required
 		if(selectedGroupId == null || selectedGroupId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
@@ -604,9 +600,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// GROUP
 		FLEFRecordUtils.updateChildValue(record, "GROUP", selectedGroupId);
 
@@ -633,11 +627,11 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			FLEFRecord singleDate = FLEFRecord.createChild("SINGLE_DATE");
 			qualifiedDate.addChild(singleDate);
 
-			FLEFRecord iso = FLEFRecord.createChildWithValue("FULL_DATE", date);
-			singleDate.addChild(iso);
+			FLEFRecord fullDate = FLEFRecord.createChildWithValue("FULL_DATE", date);
+			singleDate.addChild(fullDate);
 
 			FLEFRecord calendar = FLEFRecord.createChildWithValue("CALENDAR", "gregorian");
-			iso.addChild(calendar);
+			fullDate.addChild(calendar);
 
 			dateStruct.addChild(dateValue);
 			record.addChild(dateStruct);
@@ -701,13 +695,6 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 		// MODIFICATION_STRUCTURE
 		modificationPanel.save(record);
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-		dispose();
 	}
 
 

@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -53,8 +51,6 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /* DONE */
@@ -83,7 +79,6 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 950729006569948384L;
 
 
-	// Handlers
 	static{
 		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new PlaceHandler());
@@ -96,11 +91,11 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private final BoundTextField titleField;
 	private final PlaceField placeField;
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers;
 	private final DateField validFromField;
 	private final DateField validToField;
-	private final EvidenceQualifiersPanel qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 	private final NoteListPanel notePanel;
+	private final EvidenceQualifiersPanel qualifiers;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final ModificationPanel modificationPanel;
 
@@ -121,11 +116,13 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
 
 		titleField = new BoundTextField("TITLE", 30);
-		placeField = PlaceField.create(parent, "Place", model);
-		validFromField = DateField.createWithWrapperTag(this, "Valid From Date", model, "VALID_FROM");
-		validToField = DateField.createWithWrapperTag(this, "Valid To Date", model, "VALID_TO");
-		notePanel = new NoteListPanel(model, this);
-		sourceCitationPanel = new SourceCitationListPanel(this, model);
+		placeField = PlaceField.create("PLACE", parent, model);
+		placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Evidence");
+		validFromField = DateField.createWithWrapperTag("VALID_FROM", this, "Valid From Date", model);
+		validToField = DateField.createWithWrapperTag("VALID_TO", this, "Valid To Date", model);
+		notePanel = new NoteListPanel("NOTE", model, this);
+		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
+		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
@@ -137,7 +134,6 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		bindingManager.bind(titleField);
 
@@ -155,7 +151,6 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// title
 		mainPanel.add(new JLabel("Title:"), "align label");
@@ -172,97 +167,61 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		validityPanel.add(new JLabel("Valid From:"), "align label");
-		validityPanel.add(validFromField, "growx, wrap");
+		validityPanel.add(validFromField, "growx,wrap");
 		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx, wrap");
-		mainPanel.add(validityPanel, "span 2, growx, wrap");
+		validityPanel.add(validToField, "growx,wrap");
+		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		// qualifiers
-		mainPanel.add(qualifiers, "span 2,growx,wrap");
+		mainPanel.add(qualifiers, "span 2,growx");
 
 		return mainPanel;
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+
+		// note
 		panel.add(notePanel, "growx");
+
+		// source citation
 		panel.add(sourceCitationPanel, "growx");
+
 		return panel;
 	}
 
 
 	@Override
 	protected void loadData(){
-		// title
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
-		// place
 		placeField.load(record);
 		placeQualifiers.load(record);
-
-		// validity range
 		validFromField.load(record);
 		validToField.load(record);
-
-		// notes
-		final List<FLEFRecord> notes = new ArrayList<>();
-		for(final FLEFRecord child : record.findChildren("NOTE"))
-			if(child.getValue() != null)
-				notes.add(child);
-		notePanel.loadFromNotes(notes);
-
-		// sources
-		sourceCitationPanel.setItems(record.findChildren("SOURCE"));
-
-		// qualifiers
+		notePanel.load(record);
 		qualifiers.load(record);
-
-		// modification
+		sourceCitationPanel.load(record);
 		modificationPanel.load(record);
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		return true;
 	}
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
+	protected void saveData(){
+		bindingManager.save(record);
 
-		// title
-		bindingManager.saveToRecord(record);
-
-		// place
 		placeField.save(record);
 		placeQualifiers.save(record);
-
-		// validity range
 		validFromField.save(record);
 		validToField.save(record);
-
-		// notes
-		for(final FLEFRecord note : notePanel.getNotes())
-			FLEFRecordUtils.addChild(record, "NOTE", note.getFormattedId());
-
-		// sources
-		for(final FLEFRecord source : sourceCitationPanel.getItems())
-			record.addChild(source);
-
-		// qualifiers
+		notePanel.save(record);
 		qualifiers.save(record);
-
-		// modification
+		sourceCitationPanel.save(record);
 		modificationPanel.save(record);
-
-		if(isNew)
-			model.addRecord(record);
-		isSaved = true;
-
-// TODO to be removed
-FLEFFile.print(model);
-//		dispose();
 	}
 
 

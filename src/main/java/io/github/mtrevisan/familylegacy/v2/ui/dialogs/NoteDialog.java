@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -119,7 +118,7 @@ public class NoteDialog extends BaseRecordDialog{
 		translationPanel = new TranslationListPanel(model, this);
 		restrictionPanel = new RestrictionPanel(this);
 		modificationPanel = new ModificationPanel(this);
-		sourceCitationPanel = new SourceCitationListPanel(this, model);
+		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 
 		initComponents();
 
@@ -130,7 +129,6 @@ public class NoteDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		bindingManager.bind(titleField);
 		bindingManager.bind(valueArea);
@@ -178,7 +176,6 @@ public class NoteDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		panel.add(translationPanel, "growx");
 		panel.add(sourceCitationPanel, "growx");
 		return panel;
@@ -187,7 +184,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		// Translations
 		final List<TranslationEntry> translations = new ArrayList<>();
@@ -201,11 +198,7 @@ public class NoteDialog extends BaseRecordDialog{
 		translationPanel.setItems(translations);
 
 		// Source Citations
-		final List<FLEFRecord> citations = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("SOURCE".equals(child.getTag()))
-				citations.add(child);
-		sourceCitationPanel.loadFromCitations(citations);
+		sourceCitationPanel.load(record);
 
 		// Restriction & Modification
 		final FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
@@ -216,7 +209,7 @@ public class NoteDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		if(valueArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this, "Note VALUE is required.",
 				tabbedPane, mainPanel, valueArea);
@@ -228,10 +221,8 @@ public class NoteDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
-		bindingManager.saveToRecord(record);
+	protected void saveData(){
+		bindingManager.save(record);
 
 		// Translations
 		final List<TranslationEntry> translations = translationPanel.getItems();
@@ -243,24 +234,13 @@ public class NoteDialog extends BaseRecordDialog{
 		}
 
 		// Source Citations
-		for(final FLEFRecord citation : sourceCitationPanel.getCitations()){
-			citation.setTag("SOURCE");
-			record.addChild(citation);
-		}
+		sourceCitationPanel.save(record);
 
 		// RESTRICTION
 		restrictionPanel.saveToRecord(record);
 
 		// MODIFICATION
 		modificationPanel.save(record);
-
-		if(isNew)
-			model.addRecord(record);
-		isSaved = true;
-
-// TODO to be removed
-FLEFFile.print(model);
-//		dispose();
 	}
 
 

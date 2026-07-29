@@ -22,43 +22,56 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.io.grammar;
+package io.github.mtrevisan.familylegacy.v2.ui.components;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 
-import org.apache.commons.lang3.StringUtils;
+/* DONE */
+public enum DateType{
+
+	FULL_DATE("Full Date", "FULL_DATE", "Date is required for FULL DATE type."),
+	DECADE("Decade", "DECADE", "Decade is required for DECADE type."),
+	CENTURY("Century", "CENTURY", "Century is required for CENTURY type.");
 
 
-/**
- * Represents a validation error with a path and message.
- */
-public final class ValidationError{
-
-	private final String path;
-	private final String message;
+	private final String label;
+	private final String tagName;
+	private final String errorMessage;
 
 
-	public static ValidationError create(final String path, final String message){
-		return new ValidationError(path, message);
+	DateType(final String label, final String tagName, final String errorMessage){
+		this.label = label;
+		this.tagName = tagName;
+		this.errorMessage = errorMessage;
 	}
 
 
-	private ValidationError(final String path, final String message){
-		this.path = path;
-		this.message = message;
+	public String getLabel(){
+		return label;
+	}
+
+	public String getTagName(){
+		return tagName;
+	}
+
+	public String getErrorMessage(){
+		return errorMessage;
 	}
 
 
-	public String getPath(){
-		return path;
+	public static DateType fromNode(final FLEFRecord record){
+		for(final DateType type : values())
+			if(record.findChild(type.tagName) != null)
+				return type;
+		return FULL_DATE;
 	}
 
-	public String getMessage(){
-		return message;
-	}
 
 	@Override
 	public String toString(){
-		return (path != null && !path.isEmpty()? path + ": ": StringUtils.EMPTY) + message;
+		return label;
 	}
 
 }
+

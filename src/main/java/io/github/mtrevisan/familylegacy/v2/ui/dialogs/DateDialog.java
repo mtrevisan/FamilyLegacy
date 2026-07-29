@@ -5,8 +5,14 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -28,6 +34,7 @@ import java.awt.event.KeyEvent;
 public class DateDialog extends JDialog{
 
 	private final DatePanel datePanel;
+
 	private FLEFRecord result;
 	private boolean saved = false;
 
@@ -59,6 +66,7 @@ public class DateDialog extends JDialog{
 		return new DateDialog(parent, model, title, existingEntry);
 	}
 
+
 	private DateDialog(final Dialog parent, final FLEFModel model, final String title, final FLEFRecord initialDate){
 		super(parent, title, true);
 
@@ -74,7 +82,6 @@ public class DateDialog extends JDialog{
 
 
 	private void initComponents(){
-		// Use MigLayout for the dialog content pane
 		setLayout(new MigLayout("ins 10,fill,wrap 1", "[grow]", "[grow][]"));
 
 		// Date panel
@@ -91,7 +98,7 @@ public class DateDialog extends JDialog{
 
 		okButton.addActionListener(e -> {
 			if(datePanel.validateRequiredFields()){
-				result = datePanel.save(null);
+				result = datePanel.save();
 				saved = true;
 				dispose();
 			}

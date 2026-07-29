@@ -24,11 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ContactListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.IndividualField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
@@ -37,17 +36,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -89,13 +84,12 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 
 	private final NameListPanel namePanel;
-	private final JTextField custodianDisplayField = new JTextField(20);
-	private String selectedCustodianId;
+	private final IndividualField custodianField;
 	private final PlaceField placeField;
 	private final ContactListPanel contactPanel;
 	private final NoteListPanel notePanel;
-	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final ModificationPanel modificationPanel;
 
 
@@ -114,9 +108,10 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private RepositoryDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
-		placeField = PlaceField.create(parent, "Place", model);
+		custodianField = IndividualField.create("CUSTODIAN", parent, model);
+		placeField = PlaceField.create("PLACE", parent, model);
 		modificationPanel = new ModificationPanel(this);
-		notePanel = new NoteListPanel(model, this);
+		notePanel = new NoteListPanel("NOTE", model, this);
 		namePanel = new NameListPanel(this, model);
 		contactPanel = new ContactListPanel(model, this);
 
@@ -129,7 +124,6 @@ public class RepositoryDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		setLayout(new MigLayout("fillx,top"));
 
@@ -143,30 +137,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-		// NAME_STRUCTURE
+		// name structure
 		mainPanel.add(namePanel, "span 2,growx,wrap");
 
-		// CUSTODIAN
+		// custodian
 		mainPanel.add(new JLabel("Custodian:"), "align label");
-		custodianDisplayField.setEditable(false);
-		custodianDisplayField.setBackground(UIManager.getColor("TextField.background"));
-		GUIHelper.installBehavior(custodianDisplayField,
-			() -> selectedCustodianId != null && !selectedCustodianId.isEmpty(),
-			this::editIndividual,
-			this::createNewIndividual,
-			this::clearIndividual,
-			builder -> {
-				builder.item("Create New...", this::createNewIndividual);
-				builder.item("Add Existing...", this::addIndividual);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editIndividual);
-				builder.selectionSensitiveItem("Clear", this::clearIndividual);
-			});
-		mainPanel.add(custodianDisplayField, "growx,wrap");
+		mainPanel.add(custodianField, "growx,wrap");
 
-		// PLACE
+		// place structure
 		mainPanel.add(new JLabel("Place:"), "align label");
 		mainPanel.add(placeField, "growx");
 
@@ -174,65 +152,15 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+
+		// contact structure
 		panel.add(contactPanel, "growx");
+
+		// note
 		panel.add(notePanel, "growx");
+
 		return panel;
-	}
-
-	private void createNewIndividual(){
-		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-		final BaseRecordDialog dialog = (BaseRecordDialog)individualHandler.createNewDialog(this, model);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved() && dialog.getRecord() != null){
-			selectedCustodianId = dialog.getRecord().getId();
-			updateIndividualDisplay();
-		}
-	}
-
-	private void addIndividual(){
-		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, individualHandler, selectedId -> {
-			if(selectedId != null){
-				selectedCustodianId = selectedId;
-				updateIndividualDisplay();
-			}
-		});
-		dialog.setVisible(true);
-	}
-
-	private void editIndividual(){
-		if(selectedCustodianId == null)
-			return;
-
-		final FLEFRecord record = model.getRecordById(selectedCustodianId);
-		if(record != null){
-			final IndividualDialog dialog = IndividualDialog.createEdit(this, model, record);
-			dialog.setVisible(true);
-			updateIndividualDisplay();
-		}
-	}
-
-	private void clearIndividual(){
-		selectedCustodianId = null;
-		custodianDisplayField.setText(StringUtils.EMPTY);
-	}
-
-	private void updateIndividualDisplay(){
-		String displayText = StringUtils.EMPTY;
-		if(selectedCustodianId != null && !selectedCustodianId.isEmpty()){
-			final FLEFRecord rec = model.getRecordById(selectedCustodianId);
-			if(rec != null){
-				final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-				displayText = individualHandler.getDisplayText(rec);
-			}
-			else
-				displayText = selectedCustodianId;
-		}
-		custodianDisplayField.setText(displayText);
 	}
 
 
@@ -245,14 +173,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 				names.add(child);
 		namePanel.setItems(names);
 
-		// CUSTODIAN
-		final String custodianId = FLEFRecordUtils.getChildValue(record, "CUSTODIAN");
-		if(custodianId != null && !custodianId.isEmpty()){
-			selectedCustodianId = custodianId;
-			updateIndividualDisplay();
-		}
-
-		// PLACE_STRUCTURE
+		custodianField.load(record);
 		placeField.load(record);
 
 		// CONTACT_STRUCTURE
@@ -262,19 +183,12 @@ public class RepositoryDialog extends BaseRecordDialog{
 				contacts.add(child);
 		contactPanel.setItems(contacts);
 
-		// NOTE
-		final List<FLEFRecord> notes = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("NOTE".equals(child.getTag()) && child.getValue() != null)
-				notes.add(child);
-		notePanel.loadFromNotes(notes);
-
-		// MODIFICATION
+		notePanel.load(record);
 		modificationPanel.load(record);
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		if(namePanel.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this, "At least one NAME structure is required.",
 				tabbedPane, mainPanel, namePanel);
@@ -285,20 +199,14 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// NAME
 		for(final FLEFRecord nameRec : namePanel.getItems()){
 			nameRec.setTag("NAME");
 			record.addChild(nameRec);
 		}
 
-		// CUSTODIAN
-		if(StringUtils.isNotBlank(selectedCustodianId))
-			FLEFRecordUtils.addChild(record, "CUSTODIAN", FLEFRecordUtils.formatXRef(selectedCustodianId));
-
-		// PLACE
+		custodianField.save(record);
 		placeField.save(record);
 
 		// CONTACT
@@ -307,20 +215,8 @@ public class RepositoryDialog extends BaseRecordDialog{
 			record.addChild(contact);
 		}
 
-		// NOTE
-		for(final FLEFRecord note : notePanel.getNotes())
-			FLEFRecordUtils.addChild(record, "NOTE", note.getFormattedId());
-
-		// MODIFICATION
+		notePanel.save(record);
 		modificationPanel.save(record);
-
-		if(isNew)
-			model.addRecord(record);
-		isSaved = true;
-
-// TODO to be removed
-FLEFFile.print(model);
-//		dispose();
 	}
 
 

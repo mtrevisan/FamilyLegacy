@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -180,8 +179,7 @@ public class HeaderDialog extends JDialog{
 
 
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]"));
 
 		// --- PROTOCOL ---
 		panel.add(new JLabel("Protocol Name*:"), "align label");
@@ -221,8 +219,7 @@ public class HeaderDialog extends JDialog{
 	}
 
 	private JPanel createSubmitterPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 
 		// --- SUBMITTER NAME ---
 		panel.add(new JLabel("Submitter Name*:"), "align label");
@@ -608,7 +605,7 @@ public class HeaderDialog extends JDialog{
 				for(FLEFRecord note : place.getChildren()){
 					if("NOTE".equals(note.getTag()) && note.getValue() != null){
 						if(!notes.isEmpty())
-							notes.append("\n");
+							notes.append(StringUtils.LF);
 						notes.append(note.getValue());
 					}
 				}
@@ -626,7 +623,7 @@ public class HeaderDialog extends JDialog{
 
 	private boolean validateData(){
 		// PROTOCOL NAME
-		if(protocolNameField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(protocolNameField.getText())){
 			JOptionPane.showMessageDialog(this,
 				"Protocol Name is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -635,7 +632,7 @@ public class HeaderDialog extends JDialog{
 		}
 
 		// PROTOCOL VERSION
-		if(protocolVersionField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(protocolVersionField.getText())){
 			JOptionPane.showMessageDialog(this,
 				"Protocol Version is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -644,7 +641,7 @@ public class HeaderDialog extends JDialog{
 		}
 
 		// SOURCE ID
-		if(sourceIdField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(sourceIdField.getText())){
 			JOptionPane.showMessageDialog(this,
 				"Source ID is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -653,7 +650,7 @@ public class HeaderDialog extends JDialog{
 		}
 
 		// DATE
-		if(dateField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(dateField.getText())){
 			JOptionPane.showMessageDialog(this,
 				"Date is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -662,7 +659,7 @@ public class HeaderDialog extends JDialog{
 		}
 
 		// SUBMITTER NAME
-		if(submitterNameField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(submitterNameField.getText())){
 			JOptionPane.showMessageDialog(this,
 				"Submitter Name is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);

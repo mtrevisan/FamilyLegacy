@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -137,8 +136,7 @@ public class GroupCitationDialog extends JDialog{
 		JTabbedPane tabbedPane = new JTabbedPane();
 
 		// --- Basic tab ---
-		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
-		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel basicPanel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]"));
 
 		// GROUP
 		basicPanel.add(new JLabel("Group:"), "align label");
@@ -350,11 +348,11 @@ public class GroupCitationDialog extends JDialog{
 
 		// ROLE
 		String role = FLEFRecordUtils.getChildValue(existingCitation, "ROLE");
-		roleField.setText(role != null? role: StringUtils.EMPTY);
+		roleField.setText(StringUtils.defaultString(role));
 
 		// CREDIBILITY (0:1)
 		String credibility = FLEFRecordUtils.getChildValue(existingCitation, "CREDIBILITY");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
+		credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 
 		// NOTE (0:M)
 		noteModel.clear();

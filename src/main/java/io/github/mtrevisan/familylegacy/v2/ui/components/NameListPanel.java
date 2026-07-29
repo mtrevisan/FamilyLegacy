@@ -28,8 +28,8 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 		if(nameRecord == null)
 			return "[empty]";
 
-		final FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
-		final String text = (valueRec != null? valueRec.getValue(): null);
+		final FLEFRecord valueRecord = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		final String text = (valueRecord != null? valueRecord.getValue(): null);
 		final String type = FLEFRecordUtils.getChildValue(nameRecord, "TYPE");
 
 		final StringBuilder sb = new StringBuilder();

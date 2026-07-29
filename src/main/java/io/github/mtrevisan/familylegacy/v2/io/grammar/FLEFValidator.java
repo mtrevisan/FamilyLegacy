@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,7 +78,7 @@ public final class FLEFValidator{
 	public List<ValidationError> validate(final FLEFModel model){
 		errors.clear();
 		if(model == null){
-			errors.add(ValidationError.create("", "Model is null"));
+			errors.add(ValidationError.create(StringUtils.EMPTY, "Model is null"));
 			return errors;
 		}
 
@@ -87,7 +88,7 @@ public final class FLEFValidator{
 			final RecordDefinition def = grammar.getRecordDefinition(type);
 			if(def == null){
 				errors.add(ValidationError.create(
-					(record.getId() != null? record.getId(): ""),
+					StringUtils.defaultString(record.getId()),
 					"Unknown record type: " + type
 				));
 				continue;

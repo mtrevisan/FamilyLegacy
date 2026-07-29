@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -149,8 +148,7 @@ public class ContactStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]"));
 
 		// CONTACT
 		panel.add(new JLabel("Contact:"), "align label");
@@ -449,7 +447,7 @@ public class ContactStructurePanel extends JPanel{
 
 		// TYPE
 		String type = FLEFRecordUtils.getChildValue(contactRecord, "TYPE");
-		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
+		typeCombo.setSelectedItem(StringUtils.defaultString(type));
 
 		// CALLER_ID
 		FLEFRecord callerIdRecord = FLEFRecordUtils.findChild(contactRecord, "CALLER_ID");
@@ -559,7 +557,7 @@ public class ContactStructurePanel extends JPanel{
 		}
 
 		// CONTACT - required if contact has data
-		if(contactField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(contactField.getText())){
 			JOptionPane.showMessageDialog(parent,
 				"CONTACT is required.\n" +
 					"Please enter a contact address.",
@@ -577,10 +575,10 @@ public class ContactStructurePanel extends JPanel{
 	 * @return true if any field has data
 	 */
 	public boolean hasData(){
-		return !contactField.getText().trim().isEmpty() ||
+		return !StringUtils.isEmpty(contactField.getText()) ||
 			(typeCombo.getSelectedItem() != null &&
 				!((String)typeCombo.getSelectedItem()).isEmpty()) ||
-			!callerIdField.getText().trim().isEmpty() ||
+			!StringUtils.isEmpty(callerIdField.getText()) ||
 			!transcriptionModel.isEmpty() ||
 			!noteModel.isEmpty() ||
 			restrictionCheckBox.isSelected();

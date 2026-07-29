@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
@@ -12,6 +36,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 
 
+/* DONE */
 /**
  * Panel for SPANNING date (duration).
  * <p>
@@ -39,60 +64,55 @@ public class SpanningDatePanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0,fillx,top", "[grow, fill][grow, fill]"));
+		setLayout(new MigLayout("ins 0,fillx,top", "[grow,fill][grow,fill]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		final JPanel fromPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		fromPanelBorder.setBorder(new TitledBorder("From"));
-		fromPanelBorder.add(fromPanel, "growx");
-		add(fromPanelBorder, "growx");
+		final JPanel fromPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		fromPanel.setBorder(new TitledBorder("From"));
+		fromPanel.add(this.fromPanel, "growx");
+		add(fromPanel, "growx");
 
-		final JPanel toPanelBorder = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
-		toPanelBorder.setBorder(new TitledBorder("To"));
-		toPanelBorder.add(toPanel, "growx");
-		add(toPanelBorder, "growx");
+		final JPanel toPanel = new JPanel(new MigLayout("fillx", "[right]rel[grow]"));
+		toPanel.setBorder(new TitledBorder("To"));
+		toPanel.add(this.toPanel, "growx");
+		add(toPanel, "growx");
 	}
 
-	public void loadFromRecord(final FLEFRecord spanningRecord){
+	public void load(final FLEFRecord record){
 		clear();
 
-		if(spanningRecord == null)
+		if(record == null)
 			return;
 
-		final FLEFRecord from = FLEFRecordUtils.findChild(spanningRecord, "FROM");
+		final FLEFRecord from = FLEFRecordUtils.findChild(record, "FROM");
 		if(from != null)
-			fromPanel.loadFromRecord(from);
+			fromPanel.load(from);
 
-		final FLEFRecord to = FLEFRecordUtils.findChild(spanningRecord, "TO");
+		final FLEFRecord to = FLEFRecordUtils.findChild(record, "TO");
 		if(to != null)
-			toPanel.loadFromRecord(to);
+			toPanel.load(to);
 	}
 
-	public FLEFRecord saveToRecord(final FLEFRecord target){
-		final FLEFRecord parent = (target != null? target: FLEFRecord.createEmpty());
+	public FLEFRecord saveToRecord(){
+		final FLEFRecord record = FLEFRecord.createEmpty();
 
-		final FLEFRecord record = FLEFRecord.createChild("SPANNING");
 		if(fromPanel.hasData()){
-			final FLEFRecord from = FLEFRecord.createChild("FROM");
-			final FLEFRecord dateNode = fromPanel.saveToRecord(null);
-			if(dateNode != null && dateNode.hasChildren()){
-				for(final FLEFRecord child : dateNode.getChildren())
-					from.addChild(child);
+			final FLEFRecord from = fromPanel.save();
+			if(from != null && from.hasChildren()){
+				from.setTag("FROM");
 				record.addChild(from);
 			}
 		}
 
 		if(toPanel.hasData()){
-			final FLEFRecord to = FLEFRecord.createChild("TO");
-			final FLEFRecord dateNode = toPanel.saveToRecord(null);
-			if(dateNode != null && dateNode.hasChildren()){
-				for(final FLEFRecord child : dateNode.getChildren())
-					to.addChild(child);
+			final FLEFRecord to = toPanel.save();
+			if(to != null && to.hasData()){
+				to.setTag("TO");
 				record.addChild(to);
 			}
 		}
 
-		return (record.hasChildren()? parent.addChild(record): null);
+		return (record.hasData()? record.setTag("SPANNING"): FLEFRecord.createEmpty());
 	}
 
 	public void clear(){

@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
@@ -10,50 +34,64 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import net.miginfocom.swing.MigLayout;
 
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.UIManager;
+import java.awt.Color;
 import java.awt.Dialog;
 import java.util.function.Supplier;
 
 
 /* DONE */
-public class PlaceField extends JTextField{
+public class PlaceField extends JPanel{
 
-	private final Dialog parentDialog;
-	private final String dialogTitle;
+	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
+	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
+	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
 
+	private static final String PLACEHOLDER_TEXT = "(right-click to manage place)";
+	private static final String TOOLTIP_TEXT = "right-click or double-click to create, select, edit, or clear place";
+
+
+	private final Dialog parent;
+
+	private final String path;
 	private final FLEFModel model;
 
 	private FLEFRecord record;
 
+	private final JTextField displayField = new JTextField(20);
 
-	public static PlaceField create(final Dialog parent, final String dialogTitle, final FLEFModel model){
-		return new PlaceField(parent, dialogTitle, model);
+
+	public static PlaceField create(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceField(path, parent, model);
 	}
 
-	public static PlaceField createWithWrapperTag(final Dialog parent, final String dialogTitle, final FLEFModel model){
-		return new PlaceField(parent, dialogTitle, model);
+	public static PlaceField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceField(path, parent, model);
 	}
 
 
-	private PlaceField(final Dialog parent, final String dialogTitle, final FLEFModel model){
-		super(20);
+	private PlaceField(final String path, final Dialog parent, final FLEFModel model){
+		super(new MigLayout("ins 0,fillx", "[grow]"));
 
-		this.parentDialog = parent;
-		this.dialogTitle = dialogTitle;
+		this.parent = parent;
 
+		this.path = path;
 		this.model = model;
-
-		setEditable(false);
-		setBackground(UIManager.getColor("TextField.background"));
 
 		initComponents();
 	}
 
+
 	private void initComponents(){
-		setupField(this,
+		displayField.setEditable(false);
+		displayField.setBackground(COLOR_BACKGROUND);
+		displayField.setToolTipText(TOOLTIP_TEXT);
+
+		setupField(displayField,
 			() -> (record != null),
 			this::createNew,
 			this::add,
@@ -61,14 +99,14 @@ public class PlaceField extends JTextField{
 			this::editCitation,
 			this::clear
 		);
+
+		add(displayField, "growx");
 	}
 
 	private void setupField(final JTextField field,
 			final Supplier<Boolean> hasSelection,
 			final Runnable newAction, final Runnable addAction, final Runnable editAction,
 			final Runnable editCitationAction, final Runnable clearAction){
-		field.setEditable(false);
-		field.setBackground(UIManager.getColor("TextField.background"));
 		GUIHelper.installBehavior(field,
 			hasSelection,
 			editAction,
@@ -101,24 +139,24 @@ public class PlaceField extends JTextField{
 
 	public void load(final FLEFRecord parentRecord){
 		if(parentRecord != null){
-			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-			setText(placeHandler.getDisplayText(parentRecord));
+			final FLEFRecord child = FLEFRecordUtils.findChild(parentRecord, path);
+			setRecord(child);
 		}
 		else
 			clear();
 	}
 
 	public void save(final FLEFRecord parentRecord){
-		FLEFRecordUtils.removeChildren(parentRecord, "PLACE");
+		FLEFRecordUtils.removeChildren(parentRecord, path);
 
 		if(record != null){
-			final FLEFRecord wrapper = FLEFRecord.createChildWithValue("PLACE", record.getFormattedId());
+			final FLEFRecord wrapper = FLEFRecord.createChildWithValue(path, record.getFormattedId());
 			parentRecord.addChild(wrapper);
 		}
 	}
 
 	private void createNew(){
-		final PlaceDialog dialog = PlaceDialog.createNew(parentDialog, model);
+		final PlaceDialog dialog = PlaceDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -126,9 +164,9 @@ public class PlaceField extends JTextField{
 	}
 
 	private void add(){
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, placeHandler,
+			parent, model, placeHandler,
 			selectedId -> {
 				if(selectedId != null){
 					final FLEFRecord record = model.getRecordById(selectedId);
@@ -140,11 +178,14 @@ public class PlaceField extends JTextField{
 	}
 
 	private void edit(){
-		if(record == null)
+		if(record == null){
+			add();
 			return;
+		}
 
-		final PlaceDialog dialog = PlaceDialog.createEdit(parentDialog, model, record);
+		final PlaceDialog dialog = PlaceDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			updateDisplay();
 	}
@@ -153,19 +194,22 @@ public class PlaceField extends JTextField{
 		if(record == null)
 			return;
 
-		final PlaceStructureDialog dialog = new PlaceStructureDialog(parentDialog, model, record);
+		final PlaceStructureDialog dialog = new PlaceStructureDialog(parent, model, record);
 		dialog.setVisible(true);
 		if(dialog.isSaved())
 			updateDisplay();
 	}
 
 	private void updateDisplay(){
-		String displayText = StringUtils.EMPTY;
-		if(record != null){
+		if(record != null && record.hasData()){
 			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-			displayText = placeHandler.getDisplayText(record);
+			displayField.setText(placeHandler.getDisplayText(record));
+			displayField.setForeground(COLOR_FOREGROUND_ENABLED);
 		}
-		setText(displayText);
+		else{
+			displayField.setText(PLACEHOLDER_TEXT);
+			displayField.setForeground(COLOR_FOREGROUND_DISABLED);
+		}
 	}
 
 }

@@ -15,7 +15,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -185,8 +184,7 @@ public class RelationshipDialog extends JDialog{
 		JTabbedPane tabbedPane = new JTabbedPane();
 
 		// --- Basic tab ---
-		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
-		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel basicPanel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 
 		// SUBJECT
 		basicPanel.add(new JLabel("Subject:"), "align label");
@@ -481,7 +479,7 @@ public class RelationshipDialog extends JDialog{
 		}
 
 		// ---- Load simple fields via binding manager ----
-		bindingManager.loadFromRecord(existingCitation);
+		bindingManager.load(existingCitation);
 
 		// NOTE (0:M) – manual
 		noteModel.clear();
@@ -551,7 +549,7 @@ public class RelationshipDialog extends JDialog{
 
 		// ---- Simple fields via binding manager (TYPE, ROLE, CREDIBILITY) ----
 		// This will create/update the children with correct levels
-		bindingManager.saveToRecord(record);
+		bindingManager.save(record);
 
 		return record;
 	}

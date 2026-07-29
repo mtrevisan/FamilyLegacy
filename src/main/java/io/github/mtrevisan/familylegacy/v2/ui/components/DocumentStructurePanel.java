@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -147,8 +146,7 @@ public class DocumentStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
 
 		// FILE
 		panel.add(new JLabel("File:"), "align label");
@@ -341,7 +339,7 @@ public class DocumentStructurePanel extends JPanel{
 
 		// MAPPING
 		String mapping = FLEFRecordUtils.getChildValue(documentRecord, "MAPPING");
-		mappingCombo.setSelectedItem(mapping != null? mapping: StringUtils.EMPTY);
+		mappingCombo.setSelectedItem(StringUtils.defaultString(mapping));
 
 		// DESCRIPTION (0:1)
 		descriptionField.setText(FLEFRecordUtils.getChildValue(documentRecord, "DESCRIPTION"));
@@ -351,9 +349,9 @@ public class DocumentStructurePanel extends JPanel{
 		if(extract != null){
 			extractArea.setText(extract.getValue());
 			String extractType = FLEFRecordUtils.getChildValue(extract, "TYPE");
-			extractTypeCombo.setSelectedItem(extractType != null? extractType: StringUtils.EMPTY);
+			extractTypeCombo.setSelectedItem(StringUtils.defaultString(extractType));
 			String extractLocale = FLEFRecordUtils.getChildValue(extract, "LOCALE");
-			extractLocaleField.setText(extractLocale != null? extractLocale: StringUtils.EMPTY);
+			extractLocaleField.setText(StringUtils.defaultString(extractLocale));
 		}
 
 		// RESTRICTION (0:1)
@@ -450,7 +448,7 @@ public class DocumentStructurePanel extends JPanel{
 		}
 
 		// FILE - required if document has data
-		if(fileField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(fileField.getText())){
 			JOptionPane.showMessageDialog(parent,
 				"FILE is required for a DOCUMENT_STRUCTURE.\n" +
 					"Please enter a file reference.",
@@ -467,12 +465,12 @@ public class DocumentStructurePanel extends JPanel{
 	 * @return true if any field has data
 	 */
 	public boolean hasData(){
-		return !fileField.getText().trim().isEmpty() ||
+		return !StringUtils.isEmpty(fileField.getText()) ||
 			sphericalCheckBox.isSelected() ||
 			(mappingCombo.getSelectedItem() != null &&
 				!((String)mappingCombo.getSelectedItem()).isEmpty()) ||
-			!descriptionField.getText().trim().isEmpty() ||
-			!extractArea.getText().trim().isEmpty() ||
+			!StringUtils.isEmpty(descriptionField.getText()) ||
+			!StringUtils.isEmpty(extractArea.getText()) ||
 			restrictionCheckBox.isSelected() ||
 			!noteModel.isEmpty();
 	}

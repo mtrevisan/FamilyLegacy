@@ -188,6 +188,32 @@ public final class GUIHelper{
 		return popup;
 	}
 
+	/**
+	 * Displays the JPopupMenu associated with the specified component.
+	 *
+	 * @param component	The component source.
+	 * @param x	The X position relative to the component where the menu should be shown.
+	 * @param y	The Y position relative to the component where the menu should be shown.
+	 */
+	public static void showPopupMenu(final JComponent component, final int x, final int y){
+		if(component == null || !component.isEnabled())
+			return;
+
+		final JPopupMenu popup = component.getComponentPopupMenu();
+		if(popup != null)
+			popup.show(component, x, y);
+	}
+
+	/**
+	 * Displays the JPopupMenu associated with the specified component, positioning it directly beneath its lower edge.
+	 *
+	 * @param component	The component source.
+	 */
+	public static void showPopupMenu(final JComponent component){
+		if(component != null)
+			showPopupMenu(component, 0, component.getHeight());
+	}
+
 
 	/**
 	 * Builder that collects menu entries.

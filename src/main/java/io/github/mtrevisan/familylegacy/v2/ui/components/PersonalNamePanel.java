@@ -128,8 +128,8 @@ public class PersonalNamePanel extends JPanel{
 		private final List<VariantEntry> variants;
 
 		PartEntry(String type, String value, List<VariantEntry> variants){
-			this.type = type != null? type: StringUtils.EMPTY;
-			this.value = value != null? value: StringUtils.EMPTY;
+			this.type = StringUtils.defaultString(type);
+			this.value = StringUtils.defaultString(value);
 			this.variants = variants != null? variants: new ArrayList<>();
 		}
 
@@ -160,7 +160,7 @@ public class PersonalNamePanel extends JPanel{
 		PersonalNameEntry(String type, List<PartEntry> parts,
 			List<String> culturalNormIds, List<String> noteIds,
 			List<FLEFRecord> sourceCitations){
-			this.type = type != null? type: StringUtils.EMPTY;
+			this.type = StringUtils.defaultString(type);
 			this.parts = parts != null? parts: new ArrayList<>();
 			this.culturalNormIds = culturalNormIds != null? culturalNormIds: new ArrayList<>();
 			this.noteIds = noteIds != null? noteIds: new ArrayList<>();
@@ -170,7 +170,7 @@ public class PersonalNamePanel extends JPanel{
 		public String getFullName(){
 			StringBuilder sb = new StringBuilder();
 			for(PartEntry part : parts){
-				if(!sb.isEmpty()) sb.append(" ");
+				if(!sb.isEmpty()) sb.append(StringUtils.SPACE);
 				sb.append(part.value);
 			}
 			return sb.toString();
@@ -182,9 +182,9 @@ public class PersonalNamePanel extends JPanel{
 			if(!type.isEmpty()){
 				sb.append(" [").append(type).append("]");
 			}
-			if(!parts.isEmpty()){
-				sb.append(" (").append(parts.size()).append(" parts)");
-			}
+//			if(!parts.isEmpty()){
+//				sb.append(" (").append(parts.size()).append(" parts)");
+//			}
 			if(!culturalNormIds.isEmpty()){
 				sb.append(" (").append(culturalNormIds.size()).append(" norms)");
 			}
@@ -197,6 +197,7 @@ public class PersonalNamePanel extends JPanel{
 			return sb.toString();
 		}
 	}
+
 
 	public PersonalNamePanel(FLEFModel model, Dialog parent){
 		this.model = model;
@@ -299,7 +300,6 @@ public class PersonalNamePanel extends JPanel{
 			record.removeChild(child);
 		}
 
-		int baseLevel = 1;
 		for(PersonalNameEntry entry : nameEntries){
 			FLEFRecord nameStruct = FLEFRecord.createChild("NAME");
 
@@ -395,8 +395,11 @@ public class PersonalNamePanel extends JPanel{
 
 		// NAME TYPE
 		JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-			StringUtils.EMPTY, "official", "religious", "aka", "nickname",
-			"immigrant", "legal", "married", "adoption", "fostering"
+			StringUtils.EMPTY, "official", "religious", "birth",
+			"married", "maiden", "divorce", "adoption", "fostering",
+			"legal", "immigrant", "adapted",
+			"aka", "nickname", "artistic", "professional", "user",
+			"regnal", "slavename"
 		});
 		if(initial != null && !initial.type.isEmpty()){
 			typeCombo.setSelectedItem(initial.type);
@@ -604,9 +607,34 @@ public class PersonalNamePanel extends JPanel{
 
 		// PART TYPE
 		JComboBox<String> typeCombo = new JComboBox<>(new String[]{
-			StringUtils.EMPTY, "given", "family", "patronymic", "matronymic",
-			"clan", "lineage", "tribal", "title", "nickname",
-			"family nickname", "generation", "suffix", "prefix"
+			StringUtils.EMPTY,
+			// Personal and birth names:
+			"given",					// Primary personal name / baptismal name / Ism.
+			"generation",			// Generation name (e.g., Zì 辈 in East Asian genealogies).
+			// Direct family relationships (Descent)
+			"patronymic",			// Name derived from father's given name (Ivanov, bin Hasan, Eriksson).
+			"matronymic",			// Name derived from mother's given name.
+			"kunya",					// Arabic teknonym ("Father of..." / "Mother of...", e.g., Abu Bakr).
+			// Extended family and social belonging
+			"family",				// Generic surname / family name.
+			"family nickname",	// Branch nickname / agnatic alias (e.g., historical local house aliases).
+			"lineage",				// Line of descent / dynastic branch.
+			"house",					// Ancestral house / estate / German Hofname / Japanese Uji.
+			"clan",					// Clan / Gens / Sippe.
+			"tribal",				// Tribal affiliation / Indigenous nation.
+			"caste",					// Caste / Jāti (for South Asian contexts).
+			// Geographical and territorial origin
+			"toponymic",			// Place of origin, lordship, or estate (da, von, de, van).
+			// Titles, roles and professions
+			"title",					// Noble, academic, or professional title (Lord, Sir, Count).
+			"occupational",		// Historical trade or profession before hereditary surnames (Faber, Baker).
+			"prefix",				// Name prefix (Dr., Don, Prof.).
+			"suffix",				// Generational or honorific suffix (Jr., III, Ph.D.).
+			// Assumed names, nicknames and contextual
+			"nickname",				// Personal epithet / Agnomen / Laqab.
+			"regnal",				// Regnal or papal name assumed upon accession.
+			"religious",			// Monastic, clerical, or initiation name (Brother Aloysius).
+			"posthumous"			// Posthumous or temple name (Shihao 諡號 / Miaohao 廟號 in East Asia).
 		});
 		if(initial != null && !initial.type.isEmpty()){
 			typeCombo.setSelectedItem(initial.type);

@@ -34,12 +34,11 @@ public class BoundTextArea extends JTextArea implements PathBound{
 
 	@Override
 	public void setValue(final String value){
-		setText(value != null? value: StringUtils.EMPTY);
+		setText(StringUtils.defaultString(value));
 	}
 
 	public boolean isEmpty(){
-		final String value = getValue();
-		return (value == null || value.trim().isEmpty());
+		return StringUtils.isEmpty(getValue());
 	}
 
 }

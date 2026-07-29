@@ -99,10 +99,10 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 */
 	public void load(final FLEFRecord record){
 		final String certainty = FLEFRecordUtils.getChildValue(record, path + "CERTAINTY");
-		certaintyCombo.setSelectedItem(certainty != null? certainty: StringUtils.EMPTY);
+		certaintyCombo.setSelectedItem(StringUtils.defaultString(certainty));
 
 		final String credibility = FLEFRecordUtils.getChildValue(record, path + "CREDIBILITY");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
+		credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 	}
 
 	public void save(final FLEFRecord record){

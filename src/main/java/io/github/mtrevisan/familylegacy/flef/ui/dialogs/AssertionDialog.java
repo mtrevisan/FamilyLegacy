@@ -242,11 +242,11 @@ public final class AssertionDialog extends CommonListDialog{
 			final String sourceIdentifier = extractRecordSourceIdentifier(container);
 			final String location = extractRecordLocation(container);
 			final String referenceTable = extractRecordReferenceTable(container);
-			final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+			final String identifier = StringUtils.defaultString(sourceIdentifier)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
-				+ (location != null? location: StringUtils.EMPTY)
+				+ StringUtils.defaultString(location)
 				+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
-				+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
+				+ StringUtils.defaultString(referenceTable);
 			final FilterString filter = FilterString.create()
 				.add(key)
 				.add(sourceIdentifier)
@@ -352,11 +352,11 @@ public final class AssertionDialog extends CommonListDialog{
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedAssertionRecord);
 				final String location = extractRecordLocation(updatedAssertionRecord);
 				final String referenceTable = extractRecordReferenceTable(updatedAssertionRecord);
-				final String identifier = (sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+				final String identifier = StringUtils.defaultString(sourceIdentifier)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
-					+ (location != null? location: StringUtils.EMPTY)
+					+ StringUtils.defaultString(location)
 					+ (location != null && referenceTable != null? " for ": StringUtils.EMPTY)
-					+ (referenceTable != null? referenceTable: StringUtils.EMPTY);
+					+ StringUtils.defaultString(referenceTable);
 
 				model.setValueAt(identifier, modelRowIndex, TABLE_INDEX_REFERENCE_TABLE);
 

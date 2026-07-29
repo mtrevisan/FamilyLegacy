@@ -267,9 +267,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 			final String sourceIdentifier = extractRecordSourceIdentifier(container);
 			final String location = extractRecordLocation(container);
 			final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
-			identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+			identifier.add(StringUtils.defaultString(sourceIdentifier)
 				+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
-				+ (location != null? location: StringUtils.EMPTY));
+				+ StringUtils.defaultString(location));
 			final String extract = extractRecordExtract(container);
 			if(extract != null && !extract.isEmpty())
 				identifier.add("[" + extract + "]");
@@ -401,9 +401,9 @@ public final class CitationDialog extends CommonListDialog implements TextPrevie
 				final Map<String, Object> updatedCitationRecord = getRecords(EntityManager.TABLE_NAME_CITATION).get(recordID);
 				final String sourceIdentifier = extractRecordSourceIdentifier(updatedCitationRecord);
 				final StringJoiner identifier = new StringJoiner(StringUtils.SPACE);
-				identifier.add((sourceIdentifier != null? sourceIdentifier: StringUtils.EMPTY)
+				identifier.add(StringUtils.defaultString(sourceIdentifier)
 					+ (sourceIdentifier != null && location != null? " at ": StringUtils.EMPTY)
-					+ (location != null? location: StringUtils.EMPTY));
+					+ StringUtils.defaultString(location));
 				if(extract != null && !extract.isEmpty())
 					identifier.add("[" + extract + "]");
 

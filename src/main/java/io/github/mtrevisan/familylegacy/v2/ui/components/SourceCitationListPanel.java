@@ -43,14 +43,19 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 
+	private final String path;
+
+
 	/**
 	 * Constructs a SourceCitationListPanel.
 	 *
 	 * @param parentDialog the parent dialog
 	 * @param model        the FLEF model
 	 */
-	public SourceCitationListPanel(Dialog parentDialog, FLEFModel model){
+	public SourceCitationListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
 		super(parentDialog, "Source Citations", model);
+
+		this.path = path;
 	}
 
 	@Override
@@ -145,6 +150,16 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 	}
 
+	public void load(final FLEFRecord record){
+		setItems(record.findChildren("SOURCE"));
+	}
+
+	public void save(final FLEFRecord record){
+		for(final FLEFRecord source : getItems())
+			if("SOURCE".equals(source.getTag()))
+				record.addChild(source);
+	}
+
 	/**
 	 * Loads a list of citations into the panel.
 	 *
@@ -184,11 +199,11 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		GUIHelper.installBehavior(list,
 			() -> list.getSelectedIndex() >= 0,
 			this::editItem,
-			this::addItem,
+			this::createNewItem,
 			this::removeItem,
 			builder -> {
 				builder.item("Create New...", this::createNewSourceAndAddCitation);
-				builder.item("Add Existing...", this::addItem);
+				builder.item("Add Existing...", this::createNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);

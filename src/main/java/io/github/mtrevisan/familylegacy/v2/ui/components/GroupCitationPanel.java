@@ -332,7 +332,7 @@ public class GroupCitationPanel extends JPanel{
 
 		// CREDIBILITY (0:1)
 		String credibility = FLEFRecordUtils.getChildValue(citationRecord, "CREDIBILITY");
-		credibilityCombo.setSelectedItem(credibility != null? credibility: StringUtils.EMPTY);
+		credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 	}
 
 	/**
@@ -405,7 +405,7 @@ public class GroupCitationPanel extends JPanel{
 	 */
 	public boolean hasData(){
 		return (selectedGroupId != null && !selectedGroupId.isEmpty()) ||
-			!roleField.getText().trim().isEmpty() ||
+			!StringUtils.isEmpty(roleField.getText()) ||
 			!noteModel.isEmpty() ||
 			(credibilityCombo.getSelectedItem() != null &&
 				!((String)credibilityCombo.getSelectedItem()).isEmpty());

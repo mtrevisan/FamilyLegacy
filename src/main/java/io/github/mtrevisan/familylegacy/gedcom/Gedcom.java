@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.gedcom.transformations.RepositoryTransfo
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SourceTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.SubmitterTransformation;
 import io.github.mtrevisan.familylegacy.gedcom.transformations.Transformation;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -153,7 +154,7 @@ public final class Gedcom extends Store{
 			String line;
 			while(zeroLevelsFound < 2 && (line = br.readLine()) != null){
 				//skip empty lines
-				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || line.trim().isEmpty())
+				if(line.charAt(0) == ' ' || line.charAt(0) == '\t' || StringUtils.isEmpty(line))
 					continue;
 
 				if(line.charAt(0) == '0')

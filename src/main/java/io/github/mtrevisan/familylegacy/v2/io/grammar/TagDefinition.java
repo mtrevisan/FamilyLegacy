@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.Objects;
 
 
@@ -84,7 +86,7 @@ public final class TagDefinition{
 
 	@Override
 	public String toString(){
-		return (isStructure()? "<<" + structureName + ">>": name) + " " + cardinality;
+		return (isStructure()? "<<" + structureName + ">>": name) + StringUtils.SPACE + cardinality;
 	}
 
 }

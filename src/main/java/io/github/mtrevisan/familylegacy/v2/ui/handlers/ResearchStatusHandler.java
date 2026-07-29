@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchStatusDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -74,7 +75,7 @@ public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDi
 
 		if(status != null && !status.isEmpty()){
 			if(!sb.isEmpty())
-				sb.append(" ");
+				sb.append(StringUtils.SPACE);
 			sb.append("(")
 				.append(status)
 				.append(")");

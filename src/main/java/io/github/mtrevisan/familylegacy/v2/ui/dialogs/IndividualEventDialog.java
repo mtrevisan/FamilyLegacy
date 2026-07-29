@@ -43,7 +43,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -140,7 +139,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
@@ -224,8 +222,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 
 		// ID (read-only)
 		idField.setEditable(false);
@@ -374,11 +371,11 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 		// PARENT1_RELATIONSHIP (0:1)
 		String p1 = FLEFRecordUtils.getChildValue(record, "PARENT1_RELATIONSHIP");
-		relationshipParent1Combo.setSelectedItem(p1 != null? p1: StringUtils.EMPTY);
+		relationshipParent1Combo.setSelectedItem(StringUtils.defaultString(p1));
 
 		// PARENT2_RELATIONSHIP (0:1)
 		String p2 = FLEFRecordUtils.getChildValue(record, "PARENT2_RELATIONSHIP");
-		relationshipParent2Combo.setSelectedItem(p2 != null? p2: StringUtils.EMPTY);
+		relationshipParent2Combo.setSelectedItem(StringUtils.defaultString(p2));
 
 		// EVENT_STRUCTURE (0:1)
 		FLEFRecord eventStruct = FLEFRecordUtils.findChild(record, "EVENT_STRUCTURE");
@@ -390,7 +387,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		if(type == null || type.isEmpty()){
@@ -415,9 +412,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
@@ -446,13 +441,6 @@ public class IndividualEventDialog extends BaseRecordDialog{
 				record.addChild(eventStruct);
 			}
 		}
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-		dispose();
 	}
 
 

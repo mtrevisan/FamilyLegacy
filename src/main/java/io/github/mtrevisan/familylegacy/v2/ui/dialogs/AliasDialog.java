@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -172,8 +171,7 @@ public class AliasDialog extends JDialog{
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
-		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]"));
-		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel basicPanel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]"));
 
 		// ALIAS ID
 		basicPanel.add(new JLabel("Alias (Individual):"), "align label");

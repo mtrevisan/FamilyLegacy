@@ -217,8 +217,7 @@ public class NameDialog extends JDialog{
 
 		tabbedPane.addTab("Main", mainPanel);
 
-		JPanel refPanel = new JPanel(new MigLayout("insets 5", "[grow]", "[]10[]10[]"));
-		refPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel refPanel = new JPanel(new MigLayout("ins 5", "[grow]", "[]10[]10[]"));
 
 		// Cultural Norms
 		refPanel.add(createReferencePanel("Cultural Norms", culturalNormsModel, culturalNormsList,

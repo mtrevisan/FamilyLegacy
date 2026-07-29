@@ -42,9 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -144,7 +142,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
@@ -168,8 +165,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]"));
 
 		// ID (read-only)
 		idField.setEditable(false);
@@ -322,7 +318,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		// TYPE
 		if(selectedEventTypeId == null || selectedEventTypeId.isEmpty()){
 			JOptionPane.showMessageDialog(this,
@@ -337,9 +333,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// TYPE
 		FLEFRecordUtils.updateChildValue(record, "TYPE", selectedEventTypeId);
 
@@ -356,13 +350,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		for(String id : groupIds){
 			FLEFRecordUtils.addChild(record, "GROUP", id);
 		}
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-		dispose();
 	}
 
 

@@ -14,7 +14,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -67,7 +66,7 @@ public class ConclusionPanel extends JPanel{
 	// Bound fields
 	private final BoundTextField contextField = new BoundTextField("CONTEXT", 30);
 	private final BoundComboBox<String> proofStatusCombo = new BoundComboBox<>("PROOF_STATUS",
-		new String[]{"", "unresearched", "conflicting_evidence", "preponderance_of_evidence", "proven", "disproven"});
+		new String[]{StringUtils.EMPTY, "unresearched", "conflicting_evidence", "preponderance_of_evidence", "proven", "disproven"});
 	private final BoundTextArea narrativeArea = new BoundTextArea("NARRATIVE", 4, 30);
 	private final BoundTextField dateField = new BoundTextField("DATE", 15);
 
@@ -99,7 +98,7 @@ public class ConclusionPanel extends JPanel{
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
 		this.researchPanel = new ResearchStatusListPanel(model, parent);
-		this.sourcePanel = new SourceCitationListPanel(parent, model);
+		this.sourcePanel = new SourceCitationListPanel("SOURCE", parent, model);
 
 		initComponents();
 	}
@@ -111,7 +110,6 @@ public class ConclusionPanel extends JPanel{
 		bindingManager.bind(dateField);
 
 		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
-		setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// CONTEXT
 		add(new JLabel("Context*:"), "align label");
@@ -175,7 +173,7 @@ public class ConclusionPanel extends JPanel{
 		String input = JOptionPane.showInputDialog(parentDialog,
 			"Enter the XREF ID of the preferred record (e.g., @E123@, @I456@):",
 			"Select Preferred Record", JOptionPane.PLAIN_MESSAGE);
-		if(input != null && !input.trim().isEmpty()){
+		if(!StringUtils.isEmpty(input)){
 			preferredId = input.trim();
 			preferredDisplayField.setText(preferredId);
 			clearPreferredBtn.setEnabled(true);
@@ -200,7 +198,7 @@ public class ConclusionPanel extends JPanel{
 		if(conclusionRecord == null)
 			return;
 
-		bindingManager.loadFromRecord(conclusionRecord);
+		bindingManager.load(conclusionRecord);
 
 		// RESOLVES
 		List<String> resolves = new ArrayList<>();
@@ -224,11 +222,7 @@ public class ConclusionPanel extends JPanel{
 		researchPanel.setItems(researchIds);
 
 		// SOURCE_CITATION
-		List<FLEFRecord> citations = new ArrayList<>();
-		for(FLEFRecord child : conclusionRecord.getChildren())
-			if("SOURCE".equals(child.getTag()))
-				citations.add(child);
-		sourcePanel.setItems(citations);
+		sourcePanel.load(conclusionRecord);
 	}
 
 	/**
@@ -245,7 +239,7 @@ public class ConclusionPanel extends JPanel{
 		FLEFRecordUtils.removeAllChildren(record);
 
 		// Save bound fields
-		bindingManager.saveToRecord(record);
+		bindingManager.save(record);
 
 		// Save RESOLVES
 		for(String id : resolvesPanel.getItems()){
@@ -297,7 +291,7 @@ public class ConclusionPanel extends JPanel{
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
 		return (!context.isEmpty()
 			|| (proofStatus != null && !proofStatus.isEmpty())
-			|| !narrativeArea.getText().trim().isEmpty()
+			|| !StringUtils.isEmpty(narrativeArea.getText())
 			|| !resolvesPanel.isEmpty()
 			|| (preferredId != null && !preferredId.isEmpty())
 			|| !researchPanel.isEmpty()

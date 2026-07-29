@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,8 +93,10 @@ public class FLEFRecord{
 		return tag;
 	}
 
-	public void setTag(final String tag){
+	public FLEFRecord setTag(final String tag){
 		this.tag = tag;
+
+		return this;
 	}
 
 	public String getValue(){
@@ -146,6 +149,10 @@ public class FLEFRecord{
 		return !children.isEmpty();
 	}
 
+	public boolean hasData(){
+		return (id != null && !id.isEmpty() || value != null && !value.isEmpty() || !children.isEmpty());
+	}
+
 	public int getLineCount(){
 		return lineCount;
 	}
@@ -187,6 +194,11 @@ public class FLEFRecord{
 		return child != null? child.getValue(): null;
 	}
 
+	public void copyChildrenFrom(final FLEFRecord record){
+		for(final FLEFRecord child : record.getChildren())
+			addChild(child);
+	}
+
 	/**
 	 * Checks whether this record's value is a reference to another record
 	 * (i.e. wrapped in @...@, but not the special @VOID@ constant).
@@ -213,11 +225,11 @@ public class FLEFRecord{
 	@Override
 	public String toString(){
 		if(id != null)
-			return tag + " " + id;
+			return tag + StringUtils.SPACE + id;
 		else if(tag != null)
-			return tag + (value != null? " " + value: "");
+			return tag + (value != null? StringUtils.SPACE + value: StringUtils.EMPTY);
 		else
-			return "??";
+			return null;
 	}
 
 }

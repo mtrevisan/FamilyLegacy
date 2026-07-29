@@ -27,7 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -40,18 +44,17 @@ import java.util.function.Supplier;
 
 
 /* DONE */
-public class DateField extends JPanel{
+public class IndividualField extends JPanel{
 
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
 	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
 	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
 
-	private static final String PLACEHOLDER_TEXT = "(right-click to set date)";
-	private static final String TOOLTIP_TEXT = "right-click or double-click to set, edit, or clear date";
+	private static final String PLACEHOLDER_TEXT = "(right-click to manage individual)";
+	private static final String TOOLTIP_TEXT = "right-click or double-click to create, select, edit, or clear individual";
 
 
 	private final Dialog parent;
-	private final String dialogTitle;
 
 	private final String path;
 	private final FLEFModel model;
@@ -61,21 +64,19 @@ public class DateField extends JPanel{
 	private final JTextField displayField = new JTextField(20);
 
 
-	public static DateField create(final Dialog parentDialog, final String dialogTitle, final FLEFModel model){
-		return new DateField(null, parentDialog, dialogTitle, model);
+	public static IndividualField create(final String path, final Dialog parent, final FLEFModel model){
+		return new IndividualField(path, parent, model);
 	}
 
-	public static DateField createWithWrapperTag(final String path, final Dialog parentDialog, final String dialogTitle,
-			final FLEFModel model){
-		return new DateField(path, parentDialog, dialogTitle, model);
+	public static IndividualField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
+		return new IndividualField(path, parent, model);
 	}
 
 
-	private DateField(final String path, final Dialog parent, final String dialogTitle, final FLEFModel model){
+	private IndividualField(final String path, final Dialog parent, final FLEFModel model){
 		super(new MigLayout("ins 0,fillx", "[grow]"));
 
 		this.parent = parent;
-		this.dialogTitle = dialogTitle;
 
 		this.path = path;
 		this.model = model;
@@ -92,6 +93,7 @@ public class DateField extends JPanel{
 		setupField(displayField,
 			() -> (record != null),
 			this::createNew,
+			this::add,
 			this::edit,
 			this::clear
 		);
@@ -101,14 +103,16 @@ public class DateField extends JPanel{
 
 	private void setupField(final JTextField field,
 			final Supplier<Boolean> hasSelection,
-			final Runnable newAction, final Runnable editAction, final Runnable clearAction){
+			final Runnable newAction, final Runnable addAction, final Runnable editAction,
+			final Runnable clearAction){
 		GUIHelper.installBehavior(field,
 			hasSelection,
 			editAction,
 			newAction,
 			clearAction,
 			builder -> {
-				builder.item("Set Date...", newAction);
+				builder.item("Create New...", newAction);
+				builder.item("Add Existing...", addAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", editAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
@@ -143,35 +147,50 @@ public class DateField extends JPanel{
 		FLEFRecordUtils.removeChildren(parentRecord, path);
 
 		if(record != null){
-			record.setTag(path);
-			parentRecord.addChild(record);
+			final FLEFRecord wrapper = FLEFRecord.createChildWithValue(path, record.getFormattedId());
+			parentRecord.addChild(wrapper);
 		}
 	}
 
 	private void createNew(){
-		final DateDialog dialog = DateDialog.createNew(parent, model, dialogTitle);
+		final IndividualDialog dialog = IndividualDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
 			setRecord(dialog.getRecord());
+	}
+
+	private void add(){
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			parent, model, individualHandler,
+			selectedId -> {
+				if(selectedId != null){
+					final FLEFRecord record = model.getRecordById(selectedId);
+					setRecord(record);
+				}
+			}
+		);
+		dialog.setVisible(true);
 	}
 
 	private void edit(){
 		if(record == null){
-			createNew();
+			add();
 			return;
 		}
 
-		final DateDialog dialog = DateDialog.createEdit(parent, model, dialogTitle, record);
+		final IndividualDialog dialog = IndividualDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
-			setRecord(dialog.getRecord());
+			updateDisplay();
 	}
 
 	private void updateDisplay(){
 		if(record != null && record.hasData()){
-			displayField.setText(DateFieldPanel.extractDateSummary(record));
+			final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+			displayField.setText(individualHandler.getDisplayText(record));
 			displayField.setForeground(COLOR_FOREGROUND_ENABLED);
 		}
 		else{

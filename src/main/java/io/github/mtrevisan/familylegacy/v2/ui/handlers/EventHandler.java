@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.EventDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -38,7 +39,7 @@ public class EventHandler implements RecordTypeHandler<EventDialog>{
 			sb.append(type);
 		if(date != null){
 			if(!sb.isEmpty())
-				sb.append(" ");
+				sb.append(StringUtils.SPACE);
 			sb.append("(")
 				.append(date)
 				.append(")");

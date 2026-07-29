@@ -35,9 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -161,8 +159,7 @@ public class AssociationDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
-		JPanel mainPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[grow]", "[]10[]10[]10[]"));
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel mainPanel = new JPanel(new MigLayout("ins 10", "[grow]", "[]10[]10[]10[]"));
 
 		// ---- Association Type (radio buttons) ----
 		typeGroup.add(existingRecordRadio);
@@ -216,8 +213,7 @@ public class AssociationDialog extends JDialog{
 
 
 	private JPanel createExistingPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]"));
 
 		panel.add(new JLabel("Target Type:"), "align label");
 		panel.add(targetTypeCombo, "growx,wrap");
@@ -234,8 +230,7 @@ public class AssociationDialog extends JDialog{
 	}
 
 	private JPanel createVoidPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]"));
 
 		panel.add(new JLabel("Name:"), "align label");
 		panel.add(voidNameField, "growx,wrap");

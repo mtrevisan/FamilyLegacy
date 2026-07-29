@@ -128,16 +128,16 @@ public class RestrictionPanel extends JPanel{
 		}
 
 		// ---- Load bound simple fields ----
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		final String level = FLEFRecordUtils.getChildValue(record, "LEVEL");
-		levelCombo.setSelectedItem(level != null? level: StringUtils.EMPTY);
+		levelCombo.setSelectedItem(StringUtils.defaultString(level));
 
 		final String rationale = FLEFRecordUtils.getChildValue(record, "RATIONALE");
-		rationaleArea.setText(rationale != null? rationale: StringUtils.EMPTY);
+		rationaleArea.setText(StringUtils.defaultString(rationale));
 
 		final String expires = FLEFRecordUtils.getChildValue(record, "EXPIRES");
-		expiresField.setText(expires != null? expires: StringUtils.EMPTY);
+		expiresField.setText(StringUtils.defaultString(expires));
 	}
 
 
@@ -154,7 +154,7 @@ public class RestrictionPanel extends JPanel{
 		FLEFRecordUtils.removeChild(targetRecord, "RESTRICTION");
 
 		// ---- Save bound simple fields ----
-		bindingManager.saveToRecord(targetRecord);
+		bindingManager.save(targetRecord);
 	}
 
 

@@ -29,7 +29,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
 import java.awt.event.ItemEvent;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -110,7 +109,6 @@ public class EventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
@@ -256,7 +254,7 @@ public class EventDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// ---- Simple fields: load via binding manager ----
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		// ---- Complex fields: manual load ----
 		// Note: FAMILY, TWIN, PARENT1_RELATIONSHIP, PARENT2_RELATIONSHIP are not part of the
@@ -298,14 +296,14 @@ public class EventDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		return false;
 	}
 
 	@Override
-	protected void saveRecord(){
+	protected void saveData(){
 		// ---- Save simple fields via binding manager (must be after all other children) ----
-		bindingManager.saveToRecord(record);
+		bindingManager.save(record);
 
 		// ---- Complex fields: manual save ----
 		// Note: FAMILY, TWIN, PARENT1_RELATIONSHIP, PARENT2_RELATIONSHIP are kept for backward compatibility
@@ -366,13 +364,6 @@ public class EventDialog extends BaseRecordDialog{
 
 		addChild("CONCLUSION", conclusionArea.getText().trim());
 		addChild("MODIFICATION", modificationArea.getText().trim());
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-		dispose();
 	}
 
 

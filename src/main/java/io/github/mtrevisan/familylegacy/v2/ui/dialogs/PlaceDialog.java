@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -42,6 +41,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -54,8 +54,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -123,13 +121,13 @@ public class PlaceDialog extends BaseRecordDialog{
 
 		// Initialize components
 		this.typeCombo = new BoundComboBox<>("TYPE", new String[]{
-			"", "address", "building", "street", "hamlet", "village", "town",
+			StringUtils.EMPTY, "address", "building", "street", "hamlet", "village", "town",
 			"municipality", "city", "metropolitan_area", "county", "province",
 			"department", "district", "region", "macro_region", "country",
 			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
 		});
 		this.namePanel = new NameListPanel(this, model);
-		this.sourcePanel = new SourceCitationListPanel(this, model);
+		this.sourcePanel = new SourceCitationListPanel("SOURCE", this, model);
 		this.restrictionPanel = new RestrictionPanel(this);
 		this.conclusionPanel = new ConclusionPanel(model, this);
 		this.modificationPanel = new ModificationPanel(this);
@@ -143,7 +141,6 @@ public class PlaceDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(latitudeField);
@@ -196,7 +193,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// ---- Simple fields via BindingManager ----
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		// ---- NAME_STRUCTURE ----
 		namePanel.loadFromRecord(record);
@@ -207,11 +204,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		placeQualifiers.load(record);
 
 		// ---- SOURCE_CITATION ----
-		final List<FLEFRecord> citations = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("SOURCE".equals(child.getTag()))
-				citations.add(child);
-		sourcePanel.loadFromCitations(citations);
+		sourcePanel.load(record);
 
 		// ---- RESTRICTION ----
 		final FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
@@ -226,7 +219,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		// At least one NAME is required
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
@@ -258,14 +251,12 @@ public class PlaceDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// ---- NAME_STRUCTURE ----
 		namePanel.saveToRecord(record);
 
 		// ---- Simple fields via BindingManager ----
-		bindingManager.saveToRecord(record);
+		bindingManager.save(record);
 
 //		// ---- MAP (0:1) ----
 //		// The BindingManager already wrote LATITUDE and LONGITUDE under MAP.
@@ -294,10 +285,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		placeQualifiers.save(record);
 
 		// ---- SOURCE_CITATION ----
-		for(FLEFRecord citation : sourcePanel.getCitations()){
-			citation.setTag("SOURCE");
-			record.addChild(citation);
-		}
+		sourcePanel.save(record);
 
 		// ---- RESTRICTION ----
 		if(restrictionPanel.hasData())
@@ -308,15 +296,6 @@ public class PlaceDialog extends BaseRecordDialog{
 
 		if(conclusionPanel.hasData())
 			conclusionPanel.saveToRecord(record);
-
-
-		if(isNew)
-			model.addRecord(record);
-		isSaved = true;
-
-// TODO to be removed
-FLEFFile.print(model);
-//		dispose();
 	}
 
 

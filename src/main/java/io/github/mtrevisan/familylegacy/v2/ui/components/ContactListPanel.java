@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -27,7 +28,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	protected String getDisplay(FLEFRecord contact){
 		String address = contact.getValue();
 		String type = contact.getTag();
-		return (address != null ? address : "") + (type != null ? " (" + type + ")" : "");
+		return (address != null ? address : StringUtils.EMPTY) + (type != null ? " (" + type + ")" : StringUtils.EMPTY);
 	}
 
 	@Override

@@ -27,13 +27,15 @@ import java.awt.FlowLayout;
  * <p>
  * Structure (real tags):
  * APPROXIMATE
- * +1 BASIS <APPROXIMATION_BASIS>
- * +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@
- * +1 MARGIN <DURATION>
+ * +1 BASIS <APPROXIMATION_BASIS>    {0:1}
+ * +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:1}
+ * +1 MARGIN <DURATION>    {0:1}
  */
 public class ApproximatePanel extends JPanel{
 
 	private final Dialog parentDialog;
+
+	private final String path;
 	private final FLEFModel model;
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
@@ -46,8 +48,10 @@ public class ApproximatePanel extends JPanel{
 
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
-	public ApproximatePanel(Dialog parent, FLEFModel model){
+	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
 		this.parentDialog = parent;
+
+		this.path = path;
 		this.model = model;
 
 		initComponents();
@@ -132,20 +136,17 @@ public class ApproximatePanel extends JPanel{
 		clearCulturalNormBtn.setEnabled(false);
 	}
 
-	/**
-	 * Loads from an APPROXIMATE record.
-	 *
-	 * @param approxRecord the APPROXIMATE record, or null
-	 */
-	public void loadFromRecord(FLEFRecord approxRecord){
+	public void loadFromRecord(FLEFRecord record){
 		clear();
-		if(approxRecord == null){
+
+		final FLEFRecord approxRecord = FLEFRecordUtils.findChild(record, path);
+		if(approxRecord == null)
 			return;
-		}
+
 		approximateCheck.setSelected(true);
 
 		String basis = FLEFRecordUtils.getChildValue(approxRecord, "BASIS");
-		basisCombo.setSelectedItem(basis != null? basis: StringUtils.EMPTY);
+		basisCombo.setSelectedItem(StringUtils.defaultString(basis));
 
 		String normId = FLEFRecordUtils.getChildValue(approxRecord, "CULTURAL_NORM");
 		if(normId != null){
@@ -161,7 +162,7 @@ public class ApproximatePanel extends JPanel{
 		}
 
 		String margin = FLEFRecordUtils.getChildValue(approxRecord, "MARGIN");
-		marginField.setText(margin != null? margin: StringUtils.EMPTY);
+		marginField.setText(StringUtils.defaultString(margin));
 
 		updateEnabled();
 	}
@@ -173,12 +174,11 @@ public class ApproximatePanel extends JPanel{
 	 * @param parent the parent record (e.g., VALUE, NOT_BEFORE, etc.)
 	 */
 	public void saveToRecord(FLEFRecord parent){
-		if(!approximateCheck.isSelected()){
+		if(!approximateCheck.isSelected())
 			return;
-		}
 
 		// Create an APPROXIMATE node as a child of parent
-		FLEFRecord approx = FLEFRecord.createChild("APPROXIMATE");
+		FLEFRecord approx = FLEFRecord.createChild(path);
 
 		String basis = (String)basisCombo.getSelectedItem();
 		if(basis != null && !basis.isEmpty()){

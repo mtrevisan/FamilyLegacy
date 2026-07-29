@@ -185,8 +185,7 @@ public class EventStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 
 		// DESCRIPTION (0:1)
 		panel.add(new JLabel("Description:"), "align label,top");
@@ -773,7 +772,7 @@ public class EventStructurePanel extends JPanel{
 
 		// DATE_STRUCTURE (0:1)
 		if(datePanel.hasData()){
-			FLEFRecord dateRecord = datePanel.save(null);
+			FLEFRecord dateRecord = datePanel.save();
 			if(dateRecord != null){
 				dateRecord.setTag("DATE");
 				eventStructure.addChild(dateRecord);
@@ -873,11 +872,11 @@ public class EventStructurePanel extends JPanel{
 	 * @return true if any field has data
 	 */
 	public boolean hasData(){
-		return !descriptionArea.getText().trim().isEmpty() ||
+		return !StringUtils.isEmpty(descriptionArea.getText()) ||
 			datePanel.hasData() ||
 			(selectedPlaceId != null && !selectedPlaceId.isEmpty()) ||
-			!agencyField.getText().trim().isEmpty() ||
-			!causeField.getText().trim().isEmpty() ||
+			!StringUtils.isEmpty(agencyField.getText()) ||
+			!StringUtils.isEmpty(causeField.getText()) ||
 			!culturalNormModel.isEmpty() ||
 			!noteModel.isEmpty() ||
 			!sourceModel.isEmpty() ||

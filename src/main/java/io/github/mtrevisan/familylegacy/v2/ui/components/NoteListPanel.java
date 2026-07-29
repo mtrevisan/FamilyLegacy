@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
@@ -61,10 +62,11 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -5638163012098890098L;
 
 
-	// Handlers
 	static{
 		HandlerRegistry.register(new NoteHandler());
 	}
+
+	private final String path;
 
 	private final RecordTypeHandler<?> noteHandler;
 
@@ -75,8 +77,8 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param model        the FLEF model
 	 * @param parentDialog the parent dialog
 	 */
-	public NoteListPanel(final FLEFModel model, final Dialog parentDialog){
-		this(model, parentDialog, "Notes");
+	public NoteListPanel(final String path, final FLEFModel model, final Dialog parentDialog){
+		this(path, model, parentDialog, "Notes");
 	}
 
 	/**
@@ -86,9 +88,10 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param parentDialog the parent dialog
 	 * @param borderTitle  the border title, or {@code null} for no border
 	 */
-	public NoteListPanel(final FLEFModel model, final Dialog parentDialog, final String borderTitle){
+	public NoteListPanel(final String path, final FLEFModel model, final Dialog parentDialog, final String borderTitle){
 		super(parentDialog, borderTitle, model);
 
+		this.path = path;
 		noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 	}
 
@@ -136,7 +139,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		final JDialog newNoteDialog = noteHandler.createNewDialog(parentDialog, model);
 		newNoteDialog.setVisible(true);
 
-		for(final FLEFRecord note : model.getRecordsByType("NOTE"))
+		for(final FLEFRecord note : model.getRecordsByType(path))
 			if(note != null && !before.contains(note) && !items.contains(note)){
 				addItemDirectly(note);
 
@@ -144,17 +147,17 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 			}
 	}
 
-	/**
-	 * Loads a list of note IDs into the panel.
-	 *
-	 * @param notes the list of notes
-	 */
-	public void loadFromNotes(final List<FLEFRecord> notes){
+	public void load(final FLEFRecord record){
 		clear();
 
-		for(final FLEFRecord note : notes)
-			if(note != null)
-				addItemDirectly(note);
+		for(final FLEFRecord child : record.findChildren(path))
+			if(child.getValue() != null)
+				addItemDirectly(child);
+	}
+
+	public void save(final FLEFRecord record){
+		for(final FLEFRecord note : getItems())
+			FLEFRecordUtils.addChild(record, path, note.getFormattedId());
 	}
 
 	/**
@@ -182,11 +185,11 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		GUIHelper.installBehavior(list,
 			() -> list.getSelectedIndex() >= 0,
 			this::editItem,
-			this::addItem,
+			this::createNewItem,
 			this::removeItem,
 			builder -> {
 				builder.item("Create New...", this::createNewNote);
-				builder.item("Add Existing...", this::addItem);
+				builder.item("Add Existing...", this::createNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);

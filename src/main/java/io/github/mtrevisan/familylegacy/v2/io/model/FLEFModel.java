@@ -58,13 +58,16 @@ public class FLEFModel{
 	}
 
 	public void addRecord(final FLEFRecord record){
-		records.add(record);
-		// Indexing by type
-		final String type = record.getTag();
-		recordsByType.computeIfAbsent(type, k -> new ArrayList<>()).add(record);
-		// Indexing by ID
-		if(record.getId() != null)
-			recordsById.put(record.getId(), record);
+		final String id = record.getId();
+		if(id != null && !recordsById.containsKey(id)){
+			records.add(record);
+
+			// Indexing by type
+			recordsByType.computeIfAbsent(record.getTag(), k -> new ArrayList<>()).add(record);
+
+			// Indexing by ID
+			recordsById.put(id, record);
+		}
 	}
 
 	public List<FLEFRecord> getRecordsByType(final String type){

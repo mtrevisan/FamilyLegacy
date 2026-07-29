@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
@@ -12,6 +36,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 
 
+/* DONE */
 /**
  * Panel for BOUNDED date (uncertainty interval).
  * <p>
@@ -53,46 +78,41 @@ public class BoundedDatePanel extends JPanel{
 		add(afterPanel, "growx");
 	}
 
-	public void loadFromRecord(final FLEFRecord boundedRecord){
+	public void load(final FLEFRecord record){
 		clear();
 
-		if(boundedRecord == null)
+		if(record == null)
 			return;
 
-		final FLEFRecord notBefore = FLEFRecordUtils.findChild(boundedRecord, "NOT_BEFORE");
+		final FLEFRecord notBefore = FLEFRecordUtils.findChild(record, "NOT_BEFORE");
 		if(notBefore != null)
-			notBeforePanel.loadFromRecord(notBefore);
+			notBeforePanel.load(notBefore);
 
-		final FLEFRecord notAfter = FLEFRecordUtils.findChild(boundedRecord, "NOT_AFTER");
+		final FLEFRecord notAfter = FLEFRecordUtils.findChild(record, "NOT_AFTER");
 		if(notAfter != null)
-			notAfterPanel.loadFromRecord(notAfter);
+			notAfterPanel.load(notAfter);
 	}
 
-	public FLEFRecord saveToRecord(final FLEFRecord target){
-		final FLEFRecord parent = (target != null? target: FLEFRecord.createEmpty());
+	public FLEFRecord save(){
+		final FLEFRecord record = FLEFRecord.createEmpty();
 
-		final FLEFRecord record = FLEFRecord.createChild("BOUNDED");
 		if(notBeforePanel.hasData()){
-			final FLEFRecord notBefore = FLEFRecord.createChild("NOT_BEFORE");
-			final FLEFRecord dateNode = notBeforePanel.saveToRecord(null);
-			if(dateNode != null && dateNode.hasChildren()){
-				for(final FLEFRecord child : dateNode.getChildren())
-					notBefore.addChild(child);
+			final FLEFRecord notBefore = notBeforePanel.save();
+			if(notBefore != null && notBefore.hasData()){
+				notBefore.setTag("NOT_BEFORE");
 				record.addChild(notBefore);
 			}
 		}
 
 		if(notAfterPanel.hasData()){
-			final FLEFRecord notAfter = FLEFRecord.createChild("NOT_AFTER");
-			final FLEFRecord dateNode = notAfterPanel.saveToRecord(null);
-			if(dateNode != null && dateNode.hasChildren()){
-				for(final FLEFRecord child : dateNode.getChildren())
-					notAfter.addChild(child);
+			final FLEFRecord notAfter = notAfterPanel.save();
+			if(notAfter != null && notAfter.hasData()){
+				notAfter.setTag("NOT_AFTER");
 				record.addChild(notAfter);
 			}
 		}
 
-		return (record.hasChildren()? parent.addChild(record): null);
+		return (record.hasData()? record.setTag("BOUNDED"): FLEFRecord.createEmpty());
 	}
 
 	public void clear(){

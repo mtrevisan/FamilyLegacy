@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.ValidationError;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.ValidationException;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -220,27 +221,27 @@ public final class FLEFFile{
 			if(record.getId() != null){
 				sb.append("0 ")
 					.append(FLEFRecordUtils.formatXRef(record.getId()))
-					.append(" ")
+					.append(StringUtils.SPACE)
 					.append(record.getTag())
-					.append("\n");
+					.append(StringUtils.LF);
 			}
 			else{
 				// Header or other root-level record without ID
 				sb.append("0 ")
 					.append(record.getTag())
-					.append("\n");
+					.append(StringUtils.LF);
 			}
 		}
 		else{
 			// Child line: "level TAG value"
 			sb.append(level)
-				.append(" ")
+				.append(StringUtils.SPACE)
 				.append(record.getTag());
 			if(record.getValue() != null){
-				sb.append(" ")
+				sb.append(StringUtils.SPACE)
 					.append(record.getValue());
 			}
-			sb.append("\n");
+			sb.append(StringUtils.LF);
 		}
 
 		// Recursively serialize children with incremented level

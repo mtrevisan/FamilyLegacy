@@ -444,13 +444,13 @@ n @<XREF:RESEARCH_LOG>@ RESEARCH_LOG    {1:1}
 
 CONCLUSION_STRUCTURE :=	/* A formal statement that resolves a conflict between conflicting evidence by selecting the hypothesis deemed most truthful based on a critical analysis of the sources. */
 n CONCLUSION    {1:1}
-  +1 CONTEXT <RESOLUTION_CONTEXT>    {1:1}	/* The specific context that is resolved, for example, "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type". */
+..  +1 CONTEXT <RESOLUTION_CONTEXT>    {1:1}	/* The specific context that is resolved, for example, "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type". */
   +1 RESOLVES @<XREF:ID>@    {0:M}	/* A pointer to one or more conflicting events (or associations) that this conclusion is intended to resolve. */
   +1 PREFERRED @<XREF:ID>@    {0:1}	/* The record (usually an EVENT, but can be a GROUP or INDIVIDUAL or PLACE etc.) that this conclusion determines to be the true one. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. */
-  +1 PROOF_STATUS <PROOF_STATUS_VALUE>    {1:1}	/* The status of the test according to the genealogical standard. Permitted values: "unresearched" (not yet sought), "conflicting_evidence" (the evidence is conflicting, none prevails), "supported" (preponderance of evidence, but not absolute certainty), "proven" (proven according to the Genealogical Proof Standard), "disproven" (proven false). */
-  +1 NARRATIVE <TEXT>    {0:1}	/* A discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen. */
+..  +1 PROOF_STATUS <PROOF_STATUS_VALUE>    {1:1}	/* The status of the test according to the genealogical standard. Permitted values: "unresearched" (not yet sought), "conflicting_evidence" (the evidence is conflicting, none prevails), "supported" (preponderance of evidence, but not absolute certainty), "proven" (proven according to the Genealogical Proof Standard), "disproven" (proven false). */
+..  +1 NARRATIVE <TEXT>    {0:1}	/* A discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen. */
   +1 RESEARCH @<XREF:RESEARCH_STATUS>@   {0:M}	/* References to research questions that led to this conclusion. */
-  +1 DATE <DATE>    {0:1}	/* The date the researcher made this conclusion (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
+..  +1 DATE <DATE>    {0:1}	/* The date the researcher made this conclusion (as defined by ISO 8601: https://en.wikipedia.org/wiki/ISO_8601). */
 ..  +1 <<SOURCE_CITATION>>    {0:M}	/* Any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict). */
 
 

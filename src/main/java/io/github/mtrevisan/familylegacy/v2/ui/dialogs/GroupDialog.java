@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -52,7 +51,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -182,8 +180,8 @@ public class GroupDialog extends BaseRecordDialog{
 		this.modificationPanel = new ModificationPanel(this);
 		this.eventPanel = new EventListPanel(model, this);
 		this.culturalNormPanel = new CulturalNormListPanel(model, this);
-		this.notePanel = new NoteListPanel(model, this);
-		this.sourcePanel = new SourceCitationListPanel(this, model);
+		this.notePanel = new NoteListPanel("NOTE", model, this);
+		this.sourcePanel = new SourceCitationListPanel("SOURCE", this, model);
 
 		initComponents();
 		loadData();
@@ -193,7 +191,6 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	// ---- Initialisation ----
-	@Override
 	protected void initComponents(){
 		bindingManager.bind(typeCombo);
 
@@ -213,7 +210,6 @@ public class GroupDialog extends BaseRecordDialog{
 	// ---- Main Panel ----
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]5[]5[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// Preferred Image
 		preferredImageButton.setPreferredSize(new Dimension(80, 80));
@@ -295,7 +291,6 @@ public class GroupDialog extends BaseRecordDialog{
 	// ---- References Panel ----
 	private JPanel createReferencesPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(eventPanel, "growx");
 		panel.add(createListPanel("Relationships (all)", relationshipList, relationshipListModel,
@@ -317,7 +312,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// Helper for lists that are not yet abstract (relationships)
 	private JPanel createListPanel(String title, JList<String> list, DefaultListModel<String> model,
-		Runnable addAction, Runnable editAction, Runnable deleteAction){
+		Runnable createNewAction, Runnable editAction, Runnable deleteAction){
 		JPanel panel = new JPanel(new MigLayout("fillx"));
 		panel.setBorder(new TitledBorder(title));
 
@@ -327,10 +322,10 @@ public class GroupDialog extends BaseRecordDialog{
 		GUIHelper.installBehavior(list,
 			() -> list.getSelectedIndex() >= 0,
 			editAction,
-			addAction,
+			createNewAction,
 			deleteAction,
 			builder -> {
-				builder.item("Add...", addAction);
+				builder.item("Create New...", createNewAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", editAction);
 				builder.selectionSensitiveItem("Remove", deleteAction);
@@ -393,7 +388,7 @@ public class GroupDialog extends BaseRecordDialog{
 		Rectangle cropRect = cropDialog.getCrop();
 		if(cropRect != null){
 			preferredImageId = sourceId;
-			preferredImageCrop = cropRect.x + " " + cropRect.y + " " + cropRect.width + " " + cropRect.height;
+			preferredImageCrop = cropRect.x + StringUtils.SPACE + cropRect.y + StringUtils.SPACE + cropRect.width + StringUtils.SPACE + cropRect.height;
 			updateImageButton(sourceId);
 		}
 	}
@@ -681,7 +676,7 @@ public class GroupDialog extends BaseRecordDialog{
 	// ---- Load Data ----
 	@Override
 	protected void loadData(){
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		// NAME_STRUCTURE
 		List<FLEFRecord> names = new ArrayList<>();
@@ -709,9 +704,6 @@ public class GroupDialog extends BaseRecordDialog{
 		// Process children for lists
 		List<String> eventIds = new ArrayList<>();
 		List<String> culturalNormIds = new ArrayList<>();
-		List<FLEFRecord> notes = new ArrayList<>();
-		List<FLEFRecord> sourceCitations = new ArrayList<>();
-
 		for(FLEFRecord child : record.getChildren()){
 			String tag = child.getTag();
 
@@ -729,18 +721,12 @@ public class GroupDialog extends BaseRecordDialog{
 			else if("CULTURAL_NORM".equals(tag) && child.getValue() != null){
 				culturalNormIds.add(child.getValue());
 			}
-			else if("NOTE".equals(tag) && child.getValue() != null){
-				notes.add(child);
-			}
-			else if("SOURCE".equals(tag)){
-				sourceCitations.add(child);
-			}
 		}
 
 		eventPanel.setItems(eventIds);
 		culturalNormPanel.setItems(culturalNormIds);
-		notePanel.setItems(notes);
-		sourcePanel.setItems(sourceCitations);
+		notePanel.load(record);
+		sourcePanel.load(record);
 
 		// Preferred Image
 		FLEFRecord pref = FLEFRecordUtils.findChild(record, "PREFERRED_IMAGE");
@@ -759,7 +745,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// ---- Validation ----
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		if(restrictionPanel.hasData() && !restrictionPanel.validateRequiredFields()){
 			return false;
 		}
@@ -771,11 +757,9 @@ public class GroupDialog extends BaseRecordDialog{
 
 	// ---- Save ----
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// TYPE is saved by binding manager
-		bindingManager.saveToRecord(record);
+		bindingManager.save(record);
 
 		// NAME_STRUCTURE
 		for(FLEFRecord nameRec : namePanel.getItems()){
@@ -789,15 +773,10 @@ public class GroupDialog extends BaseRecordDialog{
 		}
 
 		// NOTE
-		for(FLEFRecord id : notePanel.getItems()){
-			FLEFRecordUtils.addChild(record, "NOTE", id.getFormattedId());
-		}
+		notePanel.save(record);
 
 		// SOURCE_CITATION
-		for(FLEFRecord citation : sourcePanel.getItems()){
-			citation.setTag("SOURCE");
-			record.addChild(citation);
-		}
+		sourcePanel.save(record);
 
 		// PREFERRED_IMAGE
 		if(preferredImageId != null && !preferredImageId.isEmpty()){
@@ -837,15 +816,6 @@ public class GroupDialog extends BaseRecordDialog{
 
 		// MODIFICATION
 		modificationPanel.save(record);
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-// TODO to be removed
-FLEFFile.print(model);
-//		dispose();
 	}
 
 	private String getGroupId(){

@@ -28,8 +28,8 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 		private final String value;
 
 		public TranslationEntry(String locale, String value){
-			this.locale = (locale != null ? locale : StringUtils.EMPTY);
-			this.value = (value != null ? value : StringUtils.EMPTY);
+			this.locale = StringUtils.defaultString(locale);
+			this.value = StringUtils.defaultString(value);
 		}
 
 		public String getLocale(){

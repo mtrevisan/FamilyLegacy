@@ -24,22 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import java.awt.Dialog;
-import java.awt.FlowLayout;
-import java.awt.event.ActionEvent;
 import java.io.Serial;
 import java.util.List;
 
@@ -75,9 +68,27 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
-	protected abstract void initComponents();
-
 	protected abstract void loadData();
+
+	/**
+	 * Public save method that performs validation and then saves.
+	 * Called by the Save button.
+	 */
+	public final void save(){
+		if(validData()){
+			FLEFRecordUtils.removeAllChildren(record);
+
+			saveData();
+
+			if(isNew)
+				model.addRecord(record);
+			isSaved = true;
+
+// TODO to be removed
+FLEFFile.print(model);
+//		dispose();
+		}
+	}
 
 	/**
 	 * Validates the data before saving.
@@ -85,13 +96,13 @@ public abstract class BaseRecordDialog extends JDialog{
 	 *
 	 * @return	Whether the data is valid.
 	 */
-	protected abstract boolean validateData();
+	protected abstract boolean validData();
 
 	/**
 	 * Saves the record data to the model.
 	 * Subclasses must call validateData() at the beginning of this method.
 	 */
-	protected abstract void saveRecord();
+	protected abstract void saveData();
 
 	private FLEFRecord createNewRecord(final RecordTypeHandler<?> handler){
 		return FLEFRecord.createMainRecord(generateNewId(handler), handler.getType());
@@ -99,15 +110,6 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	private String generateNewId(final RecordTypeHandler<?> handler){
 		return FLEFRecordUtils.generateNewId(model, handler.getType(), handler.getIDPrefix());
-	}
-
-	/**
-	 * Public save method that performs validation and then saves.
-	 * Called by the Save button.
-	 */
-	public final void save(){
-		if(validateData())
-			saveRecord();
 	}
 
 

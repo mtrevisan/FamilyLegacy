@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -99,8 +98,7 @@ public class NoteListEditorDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new MigLayout("fillx"));
 
-		JPanel panel = new JPanel(new MigLayout("fillx"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10,fillx"));
 
 		JPanel listPanel = createNoteListPanel();
 		panel.add(listPanel, "growx,wrap");

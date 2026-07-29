@@ -44,7 +44,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -170,7 +169,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
@@ -197,8 +195,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 
 		// ID (read-only)
 		idField.setEditable(false);
@@ -460,14 +457,14 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 		// STATUS
 		String status = FLEFRecordUtils.getChildValue(record, "STATUS");
-		statusCombo.setSelectedItem(status != null? status: StringUtils.EMPTY);
+		statusCombo.setSelectedItem(StringUtils.defaultString(status));
 
 		// QUESTION
 		questionField.setText(FLEFRecordUtils.getChildValue(record, "QUESTION"));
 
 		// PRIORITY
 		String priority = FLEFRecordUtils.getChildValue(record, "PRIORITY");
-		priorityCombo.setSelectedItem(priority != null? priority: StringUtils.EMPTY);
+		priorityCombo.setSelectedItem(StringUtils.defaultString(priority));
 
 		// DESCRIPTION
 		descriptionArea.setText(FLEFRecordUtils.getChildValue(record, "DESCRIPTION"));
@@ -521,9 +518,9 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		// QUESTION
-		if(questionField.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(questionField.getText())){
 			JOptionPane.showMessageDialog(this,
 				"QUESTION is required.\nPlease enter a research question.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -536,9 +533,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// STATUS
 		String status = (String)statusCombo.getSelectedItem();
 		FLEFRecordUtils.updateChildValue(record, "STATUS", status);
@@ -589,13 +584,6 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 		// MODIFICATION
 		modificationPanel.save(record);
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-		dispose();
 	}
 
 

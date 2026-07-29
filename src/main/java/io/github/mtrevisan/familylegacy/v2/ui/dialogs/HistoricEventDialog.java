@@ -39,7 +39,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -133,7 +132,6 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	@Override
 	protected void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
@@ -160,8 +158,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]10[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]"));
 
 		// ID (read-only)
 		idField.setEditable(false);
@@ -485,15 +482,13 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		return true;
 	}
 
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// TITLE (0:1)
 		String title = titleField.getText().trim();
 		FLEFRecordUtils.updateChildValue(record, "TITLE", title);
@@ -522,13 +517,6 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 		// MODIFICATION
 		modificationPanel.save(record);
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-		dispose();
 	}
 
 

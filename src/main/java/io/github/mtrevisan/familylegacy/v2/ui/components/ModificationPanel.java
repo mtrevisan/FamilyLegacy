@@ -93,8 +93,8 @@ public class ModificationPanel extends JPanel{
 		private final String comment;
 
 		UpdateEntry(String date, String comment){
-			this.date = date != null? date: StringUtils.EMPTY;
-			this.comment = comment != null? comment: StringUtils.EMPTY;
+			this.date = StringUtils.defaultString(date);
+			this.comment = StringUtils.defaultString(comment);
 		}
 
 		@Override
@@ -124,7 +124,7 @@ public class ModificationPanel extends JPanel{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("fillx", "[grow]"));
+		setLayout(new MigLayout("ins 10,fillx", "[grow]"));
 
 		bindingManager.bind(creationCommentArea);
 
@@ -251,7 +251,7 @@ public class ModificationPanel extends JPanel{
 		clear();
 
 		// ---- Load bound simple fields ----
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		// Find CREATION
 		final FLEFRecord creation = FLEFRecordUtils.findChild(record, "CREATION");
@@ -260,7 +260,7 @@ public class ModificationPanel extends JPanel{
 
 			// Load creation comment if present (non-standard, but we keep it)
 			final String comment = FLEFRecordUtils.getChildValue(creation, "COMMENT");
-			creationCommentArea.setText(comment != null? comment: StringUtils.EMPTY);
+			creationCommentArea.setText(StringUtils.defaultString(comment));
 		}
 
 		// Find UPDATE entries
@@ -294,7 +294,7 @@ public class ModificationPanel extends JPanel{
 		FLEFRecordUtils.addChild(record, "CREATION.DATE", creationDate);
 
 		// ---- Save bound simple fields ----
-		bindingManager.saveToRecord(record);
+		bindingManager.save(record);
 
 		// Save creation comment if present
 		final String creationComment = creationCommentArea.getText()

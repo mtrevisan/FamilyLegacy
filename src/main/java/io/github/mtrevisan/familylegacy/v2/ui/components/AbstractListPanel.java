@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -81,10 +105,10 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		GUIHelper.installBehavior(list,
 			() -> list.getSelectedIndex() >= 0,
 			this::editItem,
-			this::addItem,
+			this::createNewItem,
 			this::removeItem,
 			builder -> {
-				builder.item("Add...", this::addItem);
+				builder.item("Create New...", this::createNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
@@ -97,7 +121,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Adds a new item. Called by the "Add" action.
 	 * Delegates to {@link #showAddDialog()} and adds the result.
 	 */
-	public final void addItem(){
+	public final void createNewItem(){
 		final T newItem = showAddDialog();
 		if(newItem != null){
 			items.add(newItem);

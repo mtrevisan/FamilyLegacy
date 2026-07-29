@@ -34,7 +34,7 @@ public class BindingManager{
 	 *
 	 * @param record the record to read from
 	 */
-	public void loadFromRecord(final FLEFRecord record){
+	public void load(final FLEFRecord record){
 		for(final PathBound comp : boundComponents){
 			final String path = comp.getPath();
 			if(path == null || path.isEmpty())
@@ -51,7 +51,7 @@ public class BindingManager{
 	 *
 	 * @param record the record to write into
 	 */
-	public void saveToRecord(final FLEFRecord record){
+	public void save(final FLEFRecord record){
 		for(final PathBound comp : boundComponents){
 			final String path = comp.getPath();
 			if(path == null || path.isEmpty())

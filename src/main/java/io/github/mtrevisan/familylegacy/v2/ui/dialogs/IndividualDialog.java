@@ -19,7 +19,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -153,7 +152,6 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	// ----- Initialisation -----
-	@Override
 	protected void initComponents(){
 		namePanel = new PersonalNamePanel(model, this);
 		restrictionPanel = new RestrictionPanel(this);
@@ -178,7 +176,6 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]5[]5[]10[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
 		// Preferred Image
 		preferredImageButton.setPreferredSize(new Dimension(80, 80));
@@ -218,7 +215,6 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,wrap 1", "[grow]", "[]5[]5[]"));
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
 		panel.add(createListPanel("Cultural Norms",
 				culturalNormList, culturalNormListModel,
@@ -306,7 +302,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		Rectangle cropRect = cropDialog.getCrop();
 		if(cropRect != null){
 			preferredImageId = sourceId;
-			preferredImageCrop = cropRect.x + " " + cropRect.y + " " + cropRect.width + " " + cropRect.height;
+			preferredImageCrop = cropRect.x + StringUtils.SPACE + cropRect.y + StringUtils.SPACE + cropRect.width + StringUtils.SPACE + cropRect.height;
 			updateImageButton(sourceId);
 		}
 	}
@@ -568,7 +564,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// ---- Simple fields: load via binding manager ----
-		bindingManager.loadFromRecord(record);
+		bindingManager.load(record);
 
 		// ---- Complex panels: manual load ----
 		namePanel.loadFromRecord(record);
@@ -635,7 +631,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected boolean validateData(){
+	protected boolean validData(){
 		// Validate names
 		if(!namePanel.validateRequiredFields()){
 			return false;
@@ -649,9 +645,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	}
 
 	@Override
-	protected void saveRecord(){
-		FLEFRecordUtils.removeAllChildren(record);
-
+	protected void saveData(){
 		// ---- Save complex panels first ----
 		namePanel.saveToRecord(record);
 
@@ -695,14 +689,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		modificationPanel.save(record);
 
 		// ---- Save simple fields via binding manager (must be after adding all other children) ----
-		bindingManager.saveToRecord(record);
-
-		if(isNew){
-			model.addRecord(record);
-		}
-		isSaved = true;
-
-		dispose();
+		bindingManager.save(record);
 	}
 
 	public static void main(String[] args){

@@ -209,7 +209,7 @@ public final class FileHelper{
 	 */
 	public static String getRelativePath(final Path baseDir, final String targetDir){
 		final Path basePath = baseDir.toAbsolutePath().normalize();
-		final Path targetPath = Paths.get(targetDir != null? targetDir: StringUtils.EMPTY).toAbsolutePath().normalize();
+		final Path targetPath = Paths.get(StringUtils.defaultString(targetDir)).toAbsolutePath().normalize();
 		final Path relativePath = basePath.relativize(targetPath);
 		return relativePath.toString();
 	}

@@ -389,7 +389,7 @@ public class RepositoryCitationPanel extends JPanel{
 	 */
 	public boolean hasData(){
 		return (selectedRepositoryId != null && !selectedRepositoryId.isEmpty()) ||
-			!locationField.getText().trim().isEmpty() ||
+			!StringUtils.isEmpty(locationField.getText()) ||
 			!noteModel.isEmpty();
 	}
 

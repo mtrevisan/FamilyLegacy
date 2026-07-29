@@ -296,7 +296,7 @@ public class SourceCitationPanel extends JPanel{
 		}
 
 		// ---- Load bound simple fields ----
-		bindingManager.loadFromRecord(citationRecord);
+		bindingManager.load(citationRecord);
 
 		// ---- Load manual fields ----
 
@@ -332,7 +332,7 @@ public class SourceCitationPanel extends JPanel{
 		}
 
 		// ---- Save bound simple fields ----
-		bindingManager.saveToRecord(citationRecord);
+		bindingManager.save(citationRecord);
 
 		if(citationRecord == null){
 			citationRecord = FLEFRecord.createChild("SOURCE");

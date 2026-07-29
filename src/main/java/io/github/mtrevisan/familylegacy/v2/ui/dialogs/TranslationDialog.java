@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -119,8 +118,7 @@ public class TranslationDialog extends JDialog{
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 
-		JPanel basicPanel = new JPanel(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]10[]"));
-		basicPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		JPanel basicPanel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]"));
 
 		basicPanel.add(new JLabel("Locale:"), "align label");
 		basicPanel.add(localeField, "growx,wrap");
@@ -160,7 +158,7 @@ public class TranslationDialog extends JDialog{
 
 	private boolean validateData(){
 		// VALUE
-		if(valueArea.getText().trim().isEmpty()){
+		if(StringUtils.isEmpty(valueArea.getText())){
 			JOptionPane.showMessageDialog(this,
 				"VALUE is required for a translation.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
