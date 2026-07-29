@@ -126,7 +126,7 @@ public class PlaceDialog extends BaseRecordDialog{
 			"department", "district", "region", "macro_region", "country",
 			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
 		});
-		this.namePanel = new NameListPanel(this, model);
+		this.namePanel = new NameListPanel("NAME", this, model);
 		this.sourcePanel = new SourceCitationListPanel("SOURCE", this, model);
 		this.restrictionPanel = new RestrictionPanel(this);
 		this.conclusionPanel = new ConclusionPanel(model, this);
@@ -196,7 +196,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		bindingManager.load(record);
 
 		// ---- NAME_STRUCTURE ----
-		namePanel.loadFromRecord(record);
+		namePanel.load(record);
 
 		// ---- MAP qualifiers ----
 		mapQualifiers.load(record);
@@ -253,7 +253,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		// ---- NAME_STRUCTURE ----
-		namePanel.saveToRecord(record);
+		namePanel.save(record);
 
 		// ---- Simple fields via BindingManager ----
 		bindingManager.save(record);

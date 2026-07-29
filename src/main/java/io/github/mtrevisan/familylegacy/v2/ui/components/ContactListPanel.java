@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +13,8 @@ import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
@@ -20,9 +23,15 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = 2648904511050688880L;
 
 
-	public ContactListPanel(FLEFModel model, Dialog parentDialog){
+	private final String path;
+
+
+	public ContactListPanel(final String path, FLEFModel model, Dialog parentDialog){
 		super(parentDialog, "Contact", model);
+
+		this.path = path;
 	}
+
 
 	@Override
 	protected String getDisplay(FLEFRecord contact){
@@ -105,6 +114,27 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		dialog.setVisible(true);
 
 		return result[0];
+	}
+
+	public void load(final FLEFRecord record){
+		final List<FLEFRecord> contacts = new ArrayList<>();
+		for(final FLEFRecord child : record.getChildren())
+			if("CONTACT".equals(child.getTag()))
+				contacts.add(child);
+		setItems(contacts);
+	}
+
+	public void save(final FLEFRecord record){
+		FLEFRecordUtils.removeChildren(record, path);
+
+		for(final FLEFRecord contact : getItems()){
+			contact.setTag("CONTACT");
+			record.addChild(contact);
+		}
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

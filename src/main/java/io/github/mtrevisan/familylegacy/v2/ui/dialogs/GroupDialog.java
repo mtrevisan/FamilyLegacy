@@ -174,7 +174,7 @@ public class GroupDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(GroupHandler.TYPE));
 
 		// Initialize panels
-		this.namePanel = new NameListPanel(this, model);
+		this.namePanel = new NameListPanel("NAME", this, model);
 		this.restrictionPanel = new RestrictionPanel(this);
 		this.conclusionPanel = new ConclusionPanel(model, this);
 		this.modificationPanel = new ModificationPanel(this);

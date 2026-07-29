@@ -18,8 +18,13 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -922034547054981789L;
 
 
-	public NameListPanel(final Dialog parentDialog, final FLEFModel model){
+	private final String path;
+
+
+	public NameListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
 		super(parentDialog, "Names*", model);
+
+		this.path = path;
 	}
 
 
@@ -53,21 +58,13 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 		return (dialog.isSaved()? dialog.getNameRecord(): null);
 	}
 
-	public void loadFromRecord(final FLEFRecord parentRecord){
-		final List<FLEFRecord> names = new ArrayList<>();
-		for(final FLEFRecord child : parentRecord.getChildren())
-			if("NAME".equals(child.getTag()))
-				names.add(child);
-		setItems(names);
+	public void load(final FLEFRecord parentRecord){
+		setItems(FLEFRecordUtils.findChildren(parentRecord, path));
 	}
 
-	public void saveToRecord(final FLEFRecord parentRecord){
-		final List<FLEFRecord> toRemove = new ArrayList<>();
-		for(final FLEFRecord child : parentRecord.getChildren())
-			if("NAME".equals(child.getTag()))
-				toRemove.add(child);
-		for(final FLEFRecord child : toRemove)
-			parentRecord.removeChild(child);
+	public void save(final FLEFRecord parentRecord){
+		FLEFRecordUtils.removeChildren(parentRecord, path);
+
 		for(final FLEFRecord name : getItems()){
 			name.setTag("NAME");
 			parentRecord.addChild(name);

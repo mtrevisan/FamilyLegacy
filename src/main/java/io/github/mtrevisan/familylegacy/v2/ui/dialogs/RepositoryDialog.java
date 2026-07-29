@@ -48,10 +48,9 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
 
 
+/* ONGOING */
 /**
  * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.0.
  * <p>
@@ -83,13 +82,13 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final NameListPanel namePanel;
 	private final IndividualField custodianField;
 	private final PlaceField placeField;
 	private final ContactListPanel contactPanel;
 	private final NoteListPanel notePanel;
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
-	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final ModificationPanel modificationPanel;
 
 
@@ -108,12 +107,12 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private RepositoryDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
+		namePanel = new NameListPanel("NAME", this, model);
 		custodianField = IndividualField.create("CUSTODIAN", parent, model);
 		placeField = PlaceField.create("PLACE", parent, model);
-		modificationPanel = new ModificationPanel(this);
+		contactPanel = new ContactListPanel("CONTACT", model, this);
 		notePanel = new NoteListPanel("NOTE", model, this);
-		namePanel = new NameListPanel(this, model);
-		contactPanel = new ContactListPanel(model, this);
+		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
 
@@ -166,23 +165,10 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		// NAME_STRUCTURE
-		final List<FLEFRecord> names = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("NAME".equals(child.getTag()))
-				names.add(child);
-		namePanel.setItems(names);
-
+		namePanel.load(record);
 		custodianField.load(record);
 		placeField.load(record);
-
-		// CONTACT_STRUCTURE
-		List<FLEFRecord> contacts = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("CONTACT".equals(child.getTag()))
-				contacts.add(child);
-		contactPanel.setItems(contacts);
-
+		contactPanel.load(record);
 		notePanel.load(record);
 		modificationPanel.load(record);
 	}
@@ -200,21 +186,10 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		// NAME
-		for(final FLEFRecord nameRec : namePanel.getItems()){
-			nameRec.setTag("NAME");
-			record.addChild(nameRec);
-		}
-
+		namePanel.save(record);
 		custodianField.save(record);
 		placeField.save(record);
-
-		// CONTACT
-		for(final FLEFRecord contact : contactPanel.getItems()){
-			contact.setTag("CONTACT");
-			record.addChild(contact);
-		}
-
+		contactPanel.save(record);
 		notePanel.save(record);
 		modificationPanel.save(record);
 	}

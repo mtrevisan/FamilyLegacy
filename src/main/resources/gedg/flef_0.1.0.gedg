@@ -304,7 +304,7 @@ n REPOSITORY @<XREF:REPOSITORY>@    {1:1}	/* A list of xref ID of repository rec
 
 CONTACT_STRUCTURE :=	/* Machine-readable contact information for a person, organization, repository, submitter, or other entity. */
 n CONTACT <CONTACT_ADDRESS>    {1:1}	/* A phone number, an electronic address that can be used for contact such as an email address following RFC 5322 specifications, or a World Wide Web page address following RFC 3986 specifications, or any other type of contact address. */
-  +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type (work, home, blog, personal, social, etc.). */
+  +1 TYPE <CONTACT_TYPE>    {0:1}	/* Indicates the phone number type ('work', 'home', 'blog', 'personal', 'social', etc.). */
   +1 CALLER_ID <TEXT>    {0:1}	/* Indicates the name of the person associated with this contact. */
     +2 <<TEXT_VALUE_VARIANT>>    {0:M}
   +1 NOTE <TEXT>    {0:1}	/* Free-text note. */
