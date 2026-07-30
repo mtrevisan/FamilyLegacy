@@ -92,6 +92,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		super(parentDialog, borderTitle, model);
 
 		this.path = path;
+
 		noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 	}
 

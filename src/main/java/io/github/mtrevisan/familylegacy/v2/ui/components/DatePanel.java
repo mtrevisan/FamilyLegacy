@@ -64,10 +64,18 @@ public class DatePanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 7489525613734145165L;
 
+	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_CERTAINTY = "CERTAINTY";
+	private static final String TAG_CREDIBILITY = "CREDIBILITY";
+	private static final String TAG_POINT = "POINT";
+	private static final String TAG_BOUNDED = "BOUNDED";
+	private static final String TAG_SPANNING = "SPANNING";
+
 
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
+
 	private final SingleDatePanel pointDatePanel;
 	private final BoundedDatePanel boundedDatePanel;
 	private final SpanningDatePanel spanningDatePanel;
@@ -81,10 +89,10 @@ public class DatePanel extends JPanel{
 		this.boundedDatePanel = new BoundedDatePanel(parent, model);
 		this.spanningDatePanel = new SpanningDatePanel(parent, model);
 
-		this.sourceCitationPanel = new SourceCitationListPanel("SOURCE", parent, model);
-		certaintyCombo = new BoundComboBox<>("CERTAINTY",
+		this.sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
+		certaintyCombo = new BoundComboBox<>(TAG_CERTAINTY,
 			new String[]{StringUtils.EMPTY, "challenged", "disproven", "proven"});
-		credibilityCombo = new BoundComboBox<>("CREDIBILITY",
+		credibilityCombo = new BoundComboBox<>(TAG_CREDIBILITY,
 			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 		initComponents();
@@ -161,19 +169,19 @@ public class DatePanel extends JPanel{
 			return;
 
 		// Load the date value: POINT, BOUNDED, or SPANNING
-		final FLEFRecord point = FLEFRecordUtils.findChild(dateWrapper, "POINT");
+		final FLEFRecord point = FLEFRecordUtils.findChild(dateWrapper, TAG_POINT);
 		if(point != null){
 			tabbedPane.setSelectedIndex(0);
 			pointDatePanel.load(point);
 		}
 		else{
-			final FLEFRecord bounded = FLEFRecordUtils.findChild(dateWrapper, "BOUNDED");
+			final FLEFRecord bounded = FLEFRecordUtils.findChild(dateWrapper, TAG_BOUNDED);
 			if(bounded != null){
 				tabbedPane.setSelectedIndex(1);
 				boundedDatePanel.load(bounded);
 			}
 			else{
-				final FLEFRecord spanning = FLEFRecordUtils.findChild(dateWrapper, "SPANNING");
+				final FLEFRecord spanning = FLEFRecordUtils.findChild(dateWrapper, TAG_SPANNING);
 				if(spanning != null){
 					tabbedPane.setSelectedIndex(2);
 					spanningDatePanel.load(spanning);
@@ -234,11 +242,11 @@ public class DatePanel extends JPanel{
 		};
 	}
 
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		return switch(tabbedPane.getSelectedIndex()){
-			case 0 -> pointDatePanel.validateRequiredFields();
-			case 1 -> boundedDatePanel.validateRequiredFields();
-			case 2 -> spanningDatePanel.validateRequiredFields();
+			case 0 -> pointDatePanel.validateData();
+			case 1 -> boundedDatePanel.validateData();
+			case 2 -> spanningDatePanel.validateData();
 			default -> true;
 		};
 	}

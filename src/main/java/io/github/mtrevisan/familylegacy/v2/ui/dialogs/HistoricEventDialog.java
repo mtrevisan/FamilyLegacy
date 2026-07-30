@@ -70,7 +70,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a HISTORIC_EVENT_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a {@code HISTORIC_EVENT_RECORD} according to FLEF 0.0.9.
  */
 public class HistoricEventDialog extends BaseRecordDialog{
 

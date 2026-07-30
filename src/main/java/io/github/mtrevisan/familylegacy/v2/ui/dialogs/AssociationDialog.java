@@ -70,7 +70,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing an ASSOCIATION structure.
+ * Dialog for editing an {@code ASSOCIATION} structure according to FLEF 0.0.9.
  * <p>
  * Supports two variants:
  * <ul>

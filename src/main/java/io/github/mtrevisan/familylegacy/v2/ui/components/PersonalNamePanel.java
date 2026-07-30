@@ -973,7 +973,7 @@ public class PersonalNamePanel extends JPanel{
 		return !nameEntries.isEmpty();
 	}
 
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		if(nameEntries.isEmpty()){
 			JOptionPane.showMessageDialog(parentDialog,
 				"At least one name is required.",

@@ -34,6 +34,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
+import java.io.Serial;
 
 
 /* DONE */
@@ -51,6 +52,13 @@ import java.awt.Dialog;
  * <p>
  */
 public class BoundedDatePanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = 1351303209761075021L;
+
+	private static final String TAG_NOT_BEFORE = "NOT_BEFORE";
+	private static final String TAG_NOT_AFTER = "NOT_AFTER";
+	private static final String TAG_BOUNDED = "BOUNDED";
 
 	private final SingleDatePanel notBeforePanel;
 	private final SingleDatePanel notAfterPanel;
@@ -84,11 +92,11 @@ public class BoundedDatePanel extends JPanel{
 		if(record == null)
 			return;
 
-		final FLEFRecord notBefore = FLEFRecordUtils.findChild(record, "NOT_BEFORE");
+		final FLEFRecord notBefore = FLEFRecordUtils.findChild(record, TAG_NOT_BEFORE);
 		if(notBefore != null)
 			notBeforePanel.load(notBefore);
 
-		final FLEFRecord notAfter = FLEFRecordUtils.findChild(record, "NOT_AFTER");
+		final FLEFRecord notAfter = FLEFRecordUtils.findChild(record, TAG_NOT_AFTER);
 		if(notAfter != null)
 			notAfterPanel.load(notAfter);
 	}
@@ -99,7 +107,7 @@ public class BoundedDatePanel extends JPanel{
 		if(notBeforePanel.hasData()){
 			final FLEFRecord notBefore = notBeforePanel.save();
 			if(notBefore != null && notBefore.hasData()){
-				notBefore.setTag("NOT_BEFORE");
+				notBefore.setTag(TAG_NOT_BEFORE);
 				record.addChild(notBefore);
 			}
 		}
@@ -107,12 +115,12 @@ public class BoundedDatePanel extends JPanel{
 		if(notAfterPanel.hasData()){
 			final FLEFRecord notAfter = notAfterPanel.save();
 			if(notAfter != null && notAfter.hasData()){
-				notAfter.setTag("NOT_AFTER");
+				notAfter.setTag(TAG_NOT_AFTER);
 				record.addChild(notAfter);
 			}
 		}
 
-		return (record.hasData()? record.setTag("BOUNDED"): FLEFRecord.createEmpty());
+		return (record.hasData()? record.setTag(TAG_BOUNDED): FLEFRecord.createEmpty());
 	}
 
 	public void clear(){
@@ -124,7 +132,7 @@ public class BoundedDatePanel extends JPanel{
 		return (notBeforePanel.hasData() || notAfterPanel.hasData());
 	}
 
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
 				"At least one of Not Before or Not After is required for BOUNDED date.",
@@ -133,10 +141,10 @@ public class BoundedDatePanel extends JPanel{
 			return false;
 		}
 
-		if(notBeforePanel.hasData() && !notBeforePanel.validateRequiredFields())
+		if(notBeforePanel.hasData() && !notBeforePanel.validateData())
 			return false;
 
-		return (!notAfterPanel.hasData() || notAfterPanel.validateRequiredFields());
+		return (!notAfterPanel.hasData() || notAfterPanel.validateData());
 	}
 
 }

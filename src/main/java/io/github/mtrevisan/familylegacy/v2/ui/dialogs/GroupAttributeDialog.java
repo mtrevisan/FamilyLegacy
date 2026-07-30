@@ -171,8 +171,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	// ----- Initialisation -----
 	protected void initComponents(){
 		modificationPanel = new ModificationPanel(this);
-		conclusionPanel = new ConclusionPanel(model, this);
-		restrictionPanel = new RestrictionPanel(this);
+		restrictionPanel = new RestrictionPanel("RESTRICTION", this);
+		conclusionPanel = new ConclusionPanel("CONCLUSION", model, this);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
@@ -534,12 +534,10 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		}
 
 		// RESTRICTION_STRUCTURE
-		FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
-		restrictionPanel.loadFromRecord(restrictionStruct);
+		restrictionPanel.load(record);
 
 		// CONCLUSION_STRUCTURE
-		FLEFRecord conclusion = FLEFRecordUtils.findChild(record, "CONCLUSION");
-		conclusionPanel.loadFromRecord(conclusion);
+		conclusionPanel.load(record);
 
 		// MODIFICATION_STRUCTURE
 		modificationPanel.load(record);
@@ -592,11 +590,11 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(restrictionPanel.hasData() && !restrictionPanel.validateRequiredFields()){
+		if(restrictionPanel.hasData() && !restrictionPanel.validateData()){
 			return false;
 		}
 
-		return !conclusionPanel.hasData() || conclusionPanel.validateRequiredFields();
+		return !conclusionPanel.hasData() || conclusionPanel.validateData();
 	}
 
 	@Override
@@ -682,11 +680,11 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 		// RESTRICTION_STRUCTURE
 		if(restrictionPanel.hasData())
-			restrictionPanel.saveToRecord(record);
+			restrictionPanel.save(record);
 
 		// CONCLUSION_STRUCTURE
 		if(conclusionPanel.hasData()){
-			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
+			FLEFRecord conclusion = conclusionPanel.save(null);
 			if(conclusion != null){
 				conclusion.setTag("CONCLUSION");
 				record.addChild(conclusion);

@@ -39,6 +39,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.CardLayout;
 import java.awt.Dialog;
+import java.io.Serial;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -53,6 +54,18 @@ import java.util.Map;
  * - APPROXIMATE (with BASIS, MARGIN, CULTURAL_NORM)
  */
 public class SingleDatePanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = 3393161879295516317L;
+
+	private static final String TAG_FULL_DATE = "FULL_DATE";
+	private static final String TAG_DECADE = "DECADE";
+	private static final String TAG_CENTURY = "CENTURY";
+	private static final String TAG_PART = "PART";
+	private static final String CALENDAR = "CALENDAR";
+	private static final String TAG_CALENDAR = "CALENDAR";
+	private static final String TAG_APPROXIMATE = "APPROXIMATE";
+	private static final String TAG_POINT = "POINT";
 
 	private static final String DOT = ".";
 
@@ -74,12 +87,12 @@ public class SingleDatePanel extends JPanel{
 
 
 	public SingleDatePanel(final Dialog parentDialog, final FLEFModel model){
-		fullDateField = new BoundTextField("FULL_DATE", 15);
-		decadeField = new BoundTextField("DECADE", 5);
-		centuryField = new BoundTextField("CENTURY", 5);
-		centuryPartCombo = new BoundComboBox<>("PART", new String[]{StringUtils.EMPTY, "1st quarter", "2nd quarter", "3rd quarter", "4th quarter", "first half", "second half", "early", "mid", "late"});
-		calendarCombo = new BoundComboBox<>("CALENDAR", new String[]{"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
-		approxPanel = new ApproximatePanel("APPROXIMATE", parentDialog, model);
+		fullDateField = new BoundTextField(TAG_FULL_DATE, 15);
+		decadeField = new BoundTextField(TAG_DECADE, 5);
+		centuryField = new BoundTextField(TAG_CENTURY, 5);
+		centuryPartCombo = new BoundComboBox<>(TAG_PART, new String[]{StringUtils.EMPTY, "1st quarter", "2nd quarter", "3rd quarter", "4th quarter", "first half", "second half", "early", "mid", "late"});
+		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
+		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parentDialog, model);
 
 		fieldMap.put(DateType.FULL_DATE, fullDateField);
 		fieldMap.put(DateType.DECADE, decadeField);
@@ -154,8 +167,8 @@ public class SingleDatePanel extends JPanel{
 
 		approxPanel.loadFromRecord(record);
 
-		centuryPartCombo.setPath(type.getTagName() + DOT + "PART");
-		calendarCombo.setPath(type.getTagName() + DOT + "CALENDAR");
+		centuryPartCombo.setPath(type.getTagName() + DOT + TAG_PART);
+		calendarCombo.setPath(type.getTagName() + DOT + CALENDAR);
 		bindingManager.load(record);
 
 		cardLayout.show(cardPanel, type.name());
@@ -182,9 +195,9 @@ public class SingleDatePanel extends JPanel{
 		if(selectedType != DateType.CENTURY)
 			centuryPartCombo.setValue(StringUtils.EMPTY);
 
-		final FLEFRecord record = FLEFRecord.createChild("POINT");
-		centuryPartCombo.setPath(selectedType.getTagName() + DOT + "PART");
-		calendarCombo.setPath(selectedType.getTagName() + DOT + "CALENDAR");
+		final FLEFRecord record = FLEFRecord.createChild(TAG_POINT);
+		centuryPartCombo.setPath(selectedType.getTagName() + DOT + TAG_PART);
+		calendarCombo.setPath(selectedType.getTagName() + DOT + TAG_CALENDAR);
 
 		bindingManager.save(record);
 
@@ -212,7 +225,7 @@ public class SingleDatePanel extends JPanel{
 		return activeField != null && !activeField.isEmpty();
 	}
 
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		final DateType selected = (DateType)dateTypeCombo.getSelectedItem();
 		if(selected != null){
 			final BoundTextField activeField = fieldMap.get(selected);
@@ -230,7 +243,7 @@ public class SingleDatePanel extends JPanel{
 			return false;
 		}
 
-		return approxPanel.validateRequiredFields();
+		return approxPanel.validateData();
 	}
 
 }

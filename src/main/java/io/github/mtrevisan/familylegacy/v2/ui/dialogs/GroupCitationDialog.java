@@ -65,7 +65,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a GROUP_CITATION structure according to FLEF 0.0.9.
+ * Dialog for editing a {@code GROUP_CITATION} structure according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>

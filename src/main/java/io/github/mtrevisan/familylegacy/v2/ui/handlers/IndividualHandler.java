@@ -37,6 +37,10 @@ import java.util.List;
 /* DONE */
 public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 
+	private static final String TAG_NAME = "NAME";
+	private static final String TAG_PART = "PART";
+	private static final String TAG_VALUE = "VALUE";
+
 	public static final String TYPE = "INDIVIDUAL";
 	public static final String ID_PREFIX = "I";
 
@@ -64,7 +68,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 		// Locate the first populated NAME structure
 		String formattedName = null;
 		for(final FLEFRecord child : record.getChildren())
-			if("NAME".equals(child.getTag())){
+			if(TAG_NAME.equals(child.getTag())){
 				formattedName = buildNameFromParts(child);
 				if(StringUtils.isNotEmpty(formattedName))
 					break;
@@ -83,7 +87,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	private String buildNameFromParts(final FLEFRecord nameRecord){
 		final List<String> parts = new ArrayList<>();
 		for(final FLEFRecord child : nameRecord.getChildren())
-			if("PART".equals(child.getTag())){
+			if(TAG_PART.equals(child.getTag())){
 				final String value = getTextValueFromPart(child);
 				if(StringUtils.isNotEmpty(value))
 					parts.add(value);
@@ -96,7 +100,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	 */
 	private String getTextValueFromPart(final FLEFRecord partRecord){
 		for(final FLEFRecord textValueChild : partRecord.getChildren())
-			if("VALUE".equals(textValueChild.getTag())){
+			if(TAG_VALUE.equals(textValueChild.getTag())){
 				final String val = textValueChild.getValue();
 				if(StringUtils.isNotBlank(val))
 					return val.trim();

@@ -7,9 +7,9 @@ import java.util.function.Function;
 
 /**
  * Abstract base for Swing components that are bound to a record path.
- * Subclasses must provide a way to convert between the component's type and String.
+ * Subclasses must provide a way to convert between the component's type and {@code String}.
  *
- * @param <C> the concrete Swing component type (e.g., JTextField, JComboBox)
+ * @param <C>	The concrete Swing component type (e.g., {@code JTextField}, {@code JComboBox})
  */
 public abstract class AbstractBoundComponent<C extends JComponent> implements PathBound{
 
@@ -25,7 +25,9 @@ public abstract class AbstractBoundComponent<C extends JComponent> implements Pa
 	protected AbstractBoundComponent(final C component, final String path, final Function<C, String> toValue,
 			final BiConsumer<C, String> toComponent){
 		this.component = component;
+
 		this.path = path;
+
 		this.toValue = toValue;
 		this.toComponent = toComponent;
 	}

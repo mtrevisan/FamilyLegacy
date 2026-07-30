@@ -73,7 +73,7 @@ import java.util.List;
 
 
 /**
- * Dialog for editing a RESEARCH_STATUS_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a {@code RESEARCH_STATUS_RECORD} according to FLEF 0.0.9.
  */
 public class ResearchStatusDialog extends BaseRecordDialog{
 

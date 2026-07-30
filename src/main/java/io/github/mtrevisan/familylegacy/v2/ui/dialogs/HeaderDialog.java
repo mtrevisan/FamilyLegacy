@@ -391,7 +391,7 @@ public class HeaderDialog extends JDialog{
 
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
-			if(panel.validateRequiredFields()){
+			if(panel.validateData()){
 				FLEFRecord contact = panel.saveToRecord(null);
 				if(contact != null){
 					contact.setTag("CONTACT");
@@ -435,7 +435,7 @@ public class HeaderDialog extends JDialog{
 
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
-			if(panel.validateRequiredFields()){
+			if(panel.validateData()){
 				FLEFRecord contact = panel.saveToRecord(existing);
 				if(contact != null){
 					contact.setTag("CONTACT");

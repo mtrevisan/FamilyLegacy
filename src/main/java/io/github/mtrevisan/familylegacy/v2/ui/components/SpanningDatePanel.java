@@ -34,6 +34,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
+import java.io.Serial;
 
 
 /* DONE */
@@ -51,6 +52,13 @@ import java.awt.Dialog;
  * <p>
  */
 public class SpanningDatePanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = 6538587318116402553L;
+
+	private static final String TAG_FROM = "FROM";
+	private static final String TAG_TO = "TO";
+	private static final String TAG_SPANNING = "SPANNING";
 
 	private final SingleDatePanel fromPanel;
 	private final SingleDatePanel toPanel;
@@ -84,11 +92,11 @@ public class SpanningDatePanel extends JPanel{
 		if(record == null)
 			return;
 
-		final FLEFRecord from = FLEFRecordUtils.findChild(record, "FROM");
+		final FLEFRecord from = FLEFRecordUtils.findChild(record, TAG_FROM);
 		if(from != null)
 			fromPanel.load(from);
 
-		final FLEFRecord to = FLEFRecordUtils.findChild(record, "TO");
+		final FLEFRecord to = FLEFRecordUtils.findChild(record, TAG_TO);
 		if(to != null)
 			toPanel.load(to);
 	}
@@ -99,7 +107,7 @@ public class SpanningDatePanel extends JPanel{
 		if(fromPanel.hasData()){
 			final FLEFRecord from = fromPanel.save();
 			if(from != null && from.hasChildren()){
-				from.setTag("FROM");
+				from.setTag(TAG_FROM);
 				record.addChild(from);
 			}
 		}
@@ -107,12 +115,12 @@ public class SpanningDatePanel extends JPanel{
 		if(toPanel.hasData()){
 			final FLEFRecord to = toPanel.save();
 			if(to != null && to.hasData()){
-				to.setTag("TO");
+				to.setTag(TAG_TO);
 				record.addChild(to);
 			}
 		}
 
-		return (record.hasData()? record.setTag("SPANNING"): FLEFRecord.createEmpty());
+		return (record.hasData()? record.setTag(TAG_SPANNING): FLEFRecord.createEmpty());
 	}
 
 	public void clear(){
@@ -124,7 +132,7 @@ public class SpanningDatePanel extends JPanel{
 		return (fromPanel.hasData() || toPanel.hasData());
 	}
 
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		if(!hasData()){
 			JOptionPane.showMessageDialog(this,
 				"At least one of From or To is required for SPANNING date.",
@@ -133,10 +141,10 @@ public class SpanningDatePanel extends JPanel{
 			return false;
 		}
 
-		if(fromPanel.hasData() && !fromPanel.validateRequiredFields())
+		if(fromPanel.hasData() && !fromPanel.validateData())
 			return false;
 
-		return (!toPanel.hasData() || toPanel.validateRequiredFields());
+		return (!toPanel.hasData() || toPanel.validateData());
 	}
 
 }

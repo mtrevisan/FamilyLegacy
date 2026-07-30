@@ -155,7 +155,7 @@ public class TranscribedTextPanel extends JPanel{
 	 */
 	public FLEFRecord saveToRecord(FLEFRecord transRecord){
 		// Validate before saving
-		if(!validateRequiredFields()){
+		if(!validateData()){
 			return null;
 		}
 
@@ -210,7 +210,7 @@ public class TranscribedTextPanel extends JPanel{
 	 *
 	 * @return true if valid, false otherwise
 	 */
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		// If no data at all, validation passes
 		if(!hasData()){
 			return true;

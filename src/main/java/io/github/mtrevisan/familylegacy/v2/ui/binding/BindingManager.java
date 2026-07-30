@@ -64,13 +64,6 @@ public class BindingManager{
 	}
 
 	/**
-	 * Returns the number of registered bound components.
-	 */
-	public int size(){
-		return boundComponents.size();
-	}
-
-	/**
 	 * Removes all registered components.
 	 */
 	public void clear(){

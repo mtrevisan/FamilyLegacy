@@ -65,7 +65,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing an ALIAS structure according to FLEF 0.0.9.
+ * Dialog for editing an {@code ALIAS} structure according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>
@@ -207,7 +207,7 @@ public class AliasDialog extends JDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 
 		saveButton.addActionListener(e -> {
-			if(validateRequiredFields()){
+			if(validateData()){
 				saved = true;
 				dispose();
 			}
@@ -380,7 +380,7 @@ public class AliasDialog extends JDialog{
 		loadNotes();
 	}
 
-	private boolean validateRequiredFields(){
+	private boolean validateData(){
 		// ALIAS ID
 		if(selectedAliasId == null || selectedAliasId.isEmpty()){
 			JOptionPane.showMessageDialog(this,

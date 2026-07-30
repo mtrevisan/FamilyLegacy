@@ -496,7 +496,7 @@ public class ContactStructurePanel extends JPanel{
 	 */
 	public FLEFRecord saveToRecord(FLEFRecord contactRecord){
 		// Validate before saving
-		if(!validateRequiredFields()){
+		if(!validateData()){
 			return null;
 		}
 
@@ -550,7 +550,7 @@ public class ContactStructurePanel extends JPanel{
 	 *
 	 * @return true if valid, false otherwise
 	 */
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		// If no data at all, validation passes (contact can be empty)
 		if(!hasData()){
 			return true;

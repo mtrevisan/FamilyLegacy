@@ -53,7 +53,7 @@ import java.io.Serial;
 
 
 /**
- * Dialog for editing a TRANSLATION structure.
+ * Dialog for editing a {@code TRANSLATION} structure according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>

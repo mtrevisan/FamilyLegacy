@@ -214,7 +214,7 @@ public class ApproximatePanel extends JPanel{
 		return approximateCheck.isSelected();
 	}
 
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		if(approximateCheck.isSelected()){
 			String basis = (String)basisCombo.getSelectedItem();
 			if(basis == null || basis.isEmpty()){

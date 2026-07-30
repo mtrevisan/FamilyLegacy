@@ -327,7 +327,7 @@ public class SourceCitationPanel extends JPanel{
 	 */
 	public FLEFRecord saveToRecord(FLEFRecord citationRecord){
 		// Validate required fields before saving
-		if(!validateRequiredFields()){
+		if(!validateData()){
 			return null;
 		}
 
@@ -361,7 +361,7 @@ public class SourceCitationPanel extends JPanel{
 	 *
 	 * @return true if all required fields are filled
 	 */
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		if(selectedSourceId == null || selectedSourceId.isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"SOURCE is required for a citation.\n" +

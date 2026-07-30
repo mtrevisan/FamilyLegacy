@@ -37,7 +37,7 @@ import java.util.List;
 
 
 /**
- * Dialog for editing an INDIVIDUAL_EVENT_RECORD.
+ * Dialog for editing an {@code INDIVIDUAL_EVENT_RECORD} according to FLEF 0.0.9.
  * <p>
  * Supports BIRTH, ADOPTION, and generic event types.
  */

@@ -116,7 +116,7 @@ public class NoteDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
 
 		translationPanel = new TranslationListPanel(model, this);
-		restrictionPanel = new RestrictionPanel(this);
+		restrictionPanel = new RestrictionPanel("RESTRICTION", this);
 		modificationPanel = new ModificationPanel(this);
 		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 
@@ -201,8 +201,7 @@ public class NoteDialog extends BaseRecordDialog{
 		sourceCitationPanel.load(record);
 
 		// Restriction & Modification
-		final FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, "RESTRICTION");
-		restrictionPanel.loadFromRecord(restrictionStruct);
+		restrictionPanel.load(record);
 
 		// MODIFICATION
 		modificationPanel.load(record);
@@ -217,7 +216,7 @@ public class NoteDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		return (!restrictionPanel.hasData() || restrictionPanel.validateRequiredFields());
+		return (!restrictionPanel.hasData() || restrictionPanel.validateData());
 	}
 
 	@Override
@@ -237,7 +236,7 @@ public class NoteDialog extends BaseRecordDialog{
 		sourceCitationPanel.save(record);
 
 		// RESTRICTION
-		restrictionPanel.saveToRecord(record);
+		restrictionPanel.save(record);
 
 		// MODIFICATION
 		modificationPanel.save(record);

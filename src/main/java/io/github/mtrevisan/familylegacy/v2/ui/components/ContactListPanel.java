@@ -56,7 +56,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
-			if(panel.validateRequiredFields()){
+			if(panel.validateData()){
 				final FLEFRecord contact = panel.saveToRecord(null);
 				if(contact != null){
 					contact.setTag("CONTACT");
@@ -97,7 +97,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
-			if(panel.validateRequiredFields()){
+			if(panel.validateData()){
 				final FLEFRecord contact = panel.saveToRecord(item);
 				if(contact != null){
 					contact.setTag("CONTACT");

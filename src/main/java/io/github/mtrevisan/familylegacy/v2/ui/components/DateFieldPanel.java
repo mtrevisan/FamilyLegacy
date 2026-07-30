@@ -262,14 +262,14 @@ public class DateFieldPanel extends JPanel{
 	 *
 	 * @return true if valid or empty, false otherwise
 	 */
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		if(!hasData()){
 			return true;
 		}
 		// Delegate full validation to DatePanel (which knows the structure)
 		DatePanel tempPanel = new DatePanel(parentDialog, model);
 		tempPanel.load(dateRecord);
-		return tempPanel.validateRequiredFields();
+		return tempPanel.validateData();
 	}
 
 	/**

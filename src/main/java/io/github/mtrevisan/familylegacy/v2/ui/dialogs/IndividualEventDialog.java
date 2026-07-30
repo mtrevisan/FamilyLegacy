@@ -69,7 +69,7 @@ import java.util.List;
 
 
 /**
- * Dialog for editing an INDIVIDUAL_EVENT_RECORD according to FLEF 0.0.9.
+ * Dialog for editing an {@code INDIVIDUAL_EVENT_RECORD} according to FLEF 0.0.9.
  * <p>
  * Supports three variants:
  * <ul>
@@ -407,7 +407,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		}
 
 		// EVENT_STRUCTURE (0:1) - validate if present
-		return (!eventStructurePanel.hasData() || eventStructurePanel.validateRequiredFields());
+		return (!eventStructurePanel.hasData() || eventStructurePanel.validateData());
 	}
 
 

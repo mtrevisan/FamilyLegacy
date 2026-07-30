@@ -63,6 +63,8 @@ public class ConclusionPanel extends JPanel{
 	private final FLEFModel model;
 	private final Dialog parentDialog;
 
+	private final String path;
+
 	// Bound fields
 	private final BoundTextField contextField = new BoundTextField("CONTEXT", 30);
 	private final BoundComboBox<String> proofStatusCombo = new BoundComboBox<>("PROOF_STATUS",
@@ -92,9 +94,11 @@ public class ConclusionPanel extends JPanel{
 	 * @param model  the FLEF model
 	 * @param parent the parent dialog (used for showing message dialogs)
 	 */
-	public ConclusionPanel(FLEFModel model, Dialog parent){
-		this.model = model;
+	public ConclusionPanel(final String path, FLEFModel model, Dialog parent){
 		this.parentDialog = parent;
+
+		this.model = model;
+		this.path = path;
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
 		this.researchPanel = new ResearchStatusListPanel(model, parent);
@@ -190,11 +194,12 @@ public class ConclusionPanel extends JPanel{
 	/**
 	 * Loads data from a CONCLUSION record.
 	 *
-	 * @param conclusionRecord the CONCLUSION record, or null
+	 * @param record the CONCLUSION record, or null
 	 */
-	public void loadFromRecord(FLEFRecord conclusionRecord){
+	public void load(FLEFRecord record){
 		clear();
 
+		final FLEFRecord conclusionRecord = FLEFRecordUtils.findChild(record, path);
 		if(conclusionRecord == null)
 			return;
 
@@ -231,11 +236,11 @@ public class ConclusionPanel extends JPanel{
 	 * @param target the target record (will be cleared and filled)
 	 * @return the target record, or null if no data
 	 */
-	public FLEFRecord saveToRecord(FLEFRecord target){
+	public FLEFRecord save(FLEFRecord target){
 		if(!hasData())
 			return null;
 
-		FLEFRecord record = target != null? target: FLEFRecord.createChild("CONCLUSION");
+		FLEFRecord record = target != null? target: FLEFRecord.createChild(path);
 		FLEFRecordUtils.removeAllChildren(record);
 
 		// Save bound fields
@@ -303,7 +308,7 @@ public class ConclusionPanel extends JPanel{
 	 *
 	 * @return true if valid, false otherwise
 	 */
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		String context = contextField.getText().trim();
 		if(context.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(parentDialog, "CONTEXT is required for a conclusion.",

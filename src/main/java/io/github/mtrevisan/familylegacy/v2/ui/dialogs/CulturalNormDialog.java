@@ -36,9 +36,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -60,17 +57,17 @@ import java.io.Serial;
  * Structure:
  * <pre>
  * CULTURAL_NORM_RECORD :=
- *   n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
- *     +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}
- *     +1 <<PLACE_STRUCTURE>>    {0:1}
- *     +1 VALID_FROM    {0:1}
- *       +2 <<DATE_STRUCTURE>>    {1:1}
- *     +1 VALID_TO    {0:1}
- *       +2 <<DATE_STRUCTURE>>    {1:1}
- *     +1 NOTE @<XREF:NOTE>@    {0:M}
- *     +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
- *     +1 <<SOURCE_CITATION>>    {0:M}
- *     +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
+ *   +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}
+ *   +1 <<PLACE_STRUCTURE>>    {0:1}
+ *   +1 VALID_FROM    {0:1}
+ *     +2 <<DATE_STRUCTURE>>    {1:1}
+ *   +1 VALID_TO    {0:1}
+ *     +2 <<DATE_STRUCTURE>>    {1:1}
+ *   +1 NOTE @<XREF:NOTE>@    {0:M}
+ *   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+ *   +1 <<SOURCE_CITATION>>    {0:M}
+ *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
 public class CulturalNormDialog extends BaseRecordDialog{
@@ -78,12 +75,16 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 950729006569948384L;
 
+	private static final String TAG_TITLE = "TITLE";
+	private static final String TAG_PLACE = "PLACE";
+	private static final String TAG_VALID_FROM = "VALID_FROM";
+	private static final String TAG_VALID_TO = "VALID_TO";
+	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_SOURCE = "SOURCE";
+
 
 	static{
 		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new PlaceHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new SourceHandler());
 	}
 
 
@@ -115,14 +116,14 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	private CulturalNormDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
 
-		titleField = new BoundTextField("TITLE", 30);
-		placeField = PlaceField.create("PLACE", parent, model);
-		placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Evidence");
-		validFromField = DateField.createWithWrapperTag("VALID_FROM", this, "Valid From Date", model);
-		validToField = DateField.createWithWrapperTag("VALID_TO", this, "Valid To Date", model);
-		notePanel = new NoteListPanel("NOTE", model, this);
+		titleField = new BoundTextField(TAG_TITLE, 30);
+		placeField = PlaceField.create(TAG_PLACE, parent, model);
+		placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Evidence");
+		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From Date", model);
+		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To Date", model);
+		notePanel = new NoteListPanel(TAG_NOTE, model, this);
 		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
-		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		modificationPanel = new ModificationPanel(this);
 
 		initComponents();

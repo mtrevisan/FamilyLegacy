@@ -70,7 +70,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a CALENDAR_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a {@code CALENDAR_RECORD} according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>

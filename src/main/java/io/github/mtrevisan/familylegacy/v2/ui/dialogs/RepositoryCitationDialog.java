@@ -39,7 +39,7 @@ import java.io.Serial;
 
 
 /**
- * Dialog for editing a REPOSITORY_CITATION.
+ * Dialog for editing a {@code REPOSITORY_CITATION} according to FLEF 0.0.9.
  * Wraps the RepositoryCitationPanel in a dialog.
  */
 public class RepositoryCitationDialog extends JDialog{
@@ -80,7 +80,7 @@ public class RepositoryCitationDialog extends JDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 
 		saveBtn.addActionListener(e -> {
-			if(panel.validateRequiredFields()){
+			if(panel.validateData()){
 				saved = true;
 				dispose();
 			}

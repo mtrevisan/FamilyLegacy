@@ -97,7 +97,7 @@ public class DateDialog extends JDialog{
 		add(buttonPanel, "growx");
 
 		okButton.addActionListener(e -> {
-			if(datePanel.validateRequiredFields()){
+			if(datePanel.validateData()){
 				result = datePanel.save();
 				saved = true;
 				dispose();

@@ -382,7 +382,7 @@ public class DocumentStructurePanel extends JPanel{
 	 */
 	public FLEFRecord saveToRecord(FLEFRecord documentRecord){
 		// Validate before saving
-		if(!validateRequiredFields()){
+		if(!validateData()){
 			return null;
 		}
 
@@ -441,7 +441,7 @@ public class DocumentStructurePanel extends JPanel{
 	 *
 	 * @return true if valid, false otherwise
 	 */
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		// If no data at all, validation passes (document can be empty)
 		if(!hasData()){
 			return true;

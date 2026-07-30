@@ -33,9 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -72,17 +69,21 @@ public class RepositoryDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 3053114409506763765L;
 
+	private static final String TAG_NAME = "NAME";
+	private static final String TAG_CUSTODIAN = "CUSTODIAN";
+	private static final String TAG_PLACE = "PLACE";
+	private static final String TAG_CONTACT = "CONTACT";
+	private static final String TAG_NOTE = "NOTE";
+
 
 	static{
 		HandlerRegistry.register(new RepositoryHandler());
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new PlaceHandler());
-		HandlerRegistry.register(new NoteHandler());
 	}
 
 
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 	private final JTabbedPane tabbedPane = new JTabbedPane();
+
 	private final NameListPanel namePanel;
 	private final IndividualField custodianField;
 	private final PlaceField placeField;
@@ -106,11 +107,11 @@ public class RepositoryDialog extends BaseRecordDialog{
 	private RepositoryDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
-		namePanel = new NameListPanel("NAME", this, model);
-		custodianField = IndividualField.create("CUSTODIAN", parent, model);
-		placeField = PlaceField.create("PLACE", parent, model);
-		contactPanel = new ContactListPanel("CONTACT", model, this);
-		notePanel = new NoteListPanel("NOTE", model, this);
+		namePanel = new NameListPanel(TAG_NAME, this, model);
+		custodianField = IndividualField.create(TAG_CUSTODIAN, parent, model);
+		placeField = PlaceField.create(TAG_PLACE, parent, model);
+		contactPanel = new ContactListPanel(TAG_CONTACT, model, this);
+		notePanel = new NoteListPanel(TAG_NOTE, model, this);
 		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
@@ -174,8 +175,9 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(namePanel.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(this, "At least one NAME structure is required.",
+		if(!namePanel.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"At least one NAME structure is required.",
 				tabbedPane, mainPanel, namePanel);
 
 			return false;

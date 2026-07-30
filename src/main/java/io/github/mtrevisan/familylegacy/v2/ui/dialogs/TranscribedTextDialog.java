@@ -41,7 +41,7 @@ import java.io.Serial;
 
 
 /**
- * Dialog for editing a TRANSCRIBED_TEXT structure.
+ * Dialog for editing a {@code TRANSCRIBED_TEXT} structure according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>

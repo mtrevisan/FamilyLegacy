@@ -70,7 +70,7 @@ import java.util.List;
 
 
 /**
- * Dialog for editing a GROUP_EVENT_RECORD according to FLEF 0.0.9.
+ * Dialog for editing a {@code GROUP_EVENT_RECORD} according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>
@@ -328,7 +328,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		}
 
 		// EVENT_STRUCTURE (0:1) - validate if present
-		return (!eventStructurePanel.hasData() || eventStructurePanel.validateRequiredFields());
+		return (!eventStructurePanel.hasData() || eventStructurePanel.validateData());
 	}
 
 

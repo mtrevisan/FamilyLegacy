@@ -72,7 +72,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a PERSONAL_NAME_STRUCTURE.
+ * Dialog for editing a {@code PERSONAL_NAME_STRUCTURE} according to FLEF 0.0.9.
  * Uses BoxLayout for complete collapse of hidden panels.
  * ZERO vertical gaps when all transcription panels are hidden.
  * Transcription lists show at least 3 rows and have a "Transcriptions" title.

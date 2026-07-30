@@ -40,7 +40,7 @@ import java.io.Serial;
 
 
 /**
- * Dialog for editing a SOURCE_CITATION.
+ * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.0.9.
  * Wraps the SourceCitationPanel in a dialog.
  */
 public class SourceCitationDialog extends JDialog{
@@ -83,7 +83,7 @@ public class SourceCitationDialog extends JDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 
 		saveBtn.addActionListener(e -> {
-			if(panel.validateRequiredFields()){
+			if(panel.validateData()){
 				saved = true;
 				dispose();
 			}

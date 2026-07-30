@@ -156,7 +156,7 @@ public class EventStructurePanel extends JPanel{
 		this.parent = parent;
 		this.datePanel = new DatePanel(parent, model);
 		this.modificationPanel = new ModificationPanel(parent);
-		this.conclusionPanel = new ConclusionPanel(model, parent);
+		this.conclusionPanel = new ConclusionPanel("CONCLUSION", model, parent);
 
 		initComponents();
 	}
@@ -742,8 +742,7 @@ public class EventStructurePanel extends JPanel{
 		modificationPanel.load(eventStructure);
 
 		// CONCLUSION
-		FLEFRecord conclusion = FLEFRecordUtils.findChild(eventStructure, "CONCLUSION");
-		conclusionPanel.loadFromRecord(conclusion);
+		conclusionPanel.load(eventStructure);
 	}
 
 	/**
@@ -755,7 +754,7 @@ public class EventStructurePanel extends JPanel{
 	 */
 	public FLEFRecord saveToRecord(FLEFRecord eventStructure){
 		// Validate before saving
-		if(!validateRequiredFields()){
+		if(!validateData()){
 			return null;
 		}
 
@@ -836,7 +835,7 @@ public class EventStructurePanel extends JPanel{
 
 		// CONCLUSION
 		if(conclusionPanel.hasData()){
-			FLEFRecord conclusion = conclusionPanel.saveToRecord(null);
+			FLEFRecord conclusion = conclusionPanel.save(null);
 			if(conclusion != null){
 				conclusion.setTag("CONCLUSION");
 				eventStructure.addChild(conclusion);
@@ -852,7 +851,7 @@ public class EventStructurePanel extends JPanel{
 	 *
 	 * @return true if valid, false otherwise
 	 */
-	public boolean validateRequiredFields(){
+	public boolean validateData(){
 		// If no data at all, validation passes
 		if(!hasData()){
 			return true;
@@ -860,7 +859,7 @@ public class EventStructurePanel extends JPanel{
 
 		// CONCLUSION (0:1) - validate if present
 		if(conclusionPanel.hasData()){
-			return conclusionPanel.validateRequiredFields();
+			return conclusionPanel.validateData();
 		}
 
 		return true;

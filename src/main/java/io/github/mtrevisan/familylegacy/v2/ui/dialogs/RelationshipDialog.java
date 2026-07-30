@@ -44,7 +44,7 @@ import java.util.Set;
 
 
 /**
- * Dialog for editing a RELATIONSHIP structure according to FLEF 0.0.9.
+ * Dialog for editing a {@code RELATIONSHIP} structure according to FLEF 0.0.9.
  * <p>
  * Structure:
  * <pre>

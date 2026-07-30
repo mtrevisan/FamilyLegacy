@@ -137,8 +137,8 @@ n @<XREF:INDIVIDUAL_ATTRIBUTE>@ INDIVIDUAL_ATTRIBUTE    {1:1}
 
 GROUP_RECORD :=	/* A group of genealogical entities. A group can be a family, a household, a neighborhood, a club, a research group, etc. Membership in a GROUP is determined exclusively through RELATIONSHIP_RECORD objects whose OBJECT references the GROUP record and whose TYPE identifies a group membership relationship (e.g., 'group_member'). GROUP_RECORD does not directly contain a member list. This design ensures that membership is treated as a relationship with its own properties (dates, evidence, conclusions). */
 n @<XREF:GROUP>@ GROUP    {1:1}
-  +1 TYPE <GROUP_TYPE>    {0:1}	/* The type of the group. For example 'family', 'household', 'neighborhood', 'fraternity', 'club', 'literary society', 'association', 'organization', 'tribe', etc. Custom values are permitted. */
 ..  +1 <<NAME_STRUCTURE>>    {0:M}	/* Names associated with the group. For a family, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts. */
+  +1 TYPE <GROUP_TYPE>    {0:1}	/* The type of the group. For example 'family', 'household', 'neighborhood', 'fraternity', 'club', 'literary society', 'association', 'organization', 'tribe', etc. Custom values are permitted. */
   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
 ..  +1 NOTE @<XREF:NOTE>@    {0:M}
 ..  +1 <<SOURCE_CITATION>>    {0:M}
@@ -217,7 +217,7 @@ n @<XREF:EVENT_PARTICIPATION>@ EVENT_PARTICIPATION    {1:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
-/* ONGOING */
+/* DONE */
 PLACE_RECORD :=	/* A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP records in order to model changing jurisdictions and historical geography. */
 n @<XREF:PLACE>@ PLACE    {1:1}
 ..  +1 <<NAME_STRUCTURE>>    {1:M}	/* The name of the place formatted for display and address generation. */
@@ -265,6 +265,7 @@ n @<XREF:PLACE_RELATIONSHIP>@ PLACE_RELATIONSHIP    {1:1}
 ..  +1 <<MODIFICATION_STRUCTURE>>    {1:1}	/* Creation and update metadata for this record. */
 
 
+/* DONE */
 ..REPOSITORY_RECORD :=	/* A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book. */
 ..n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
 ..  +1 <<NAME_STRUCTURE>>    {1:M}	/* The official name of the archive in which the stated source material is stored. */
