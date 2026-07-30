@@ -1,38 +1,30 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
-import org.apache.commons.lang3.StringUtils;
 
+public class ValidationError{
 
-/**
- * Represents a validation failure within a FLEF structure.
- */
-public final class ValidationError{
-
-	private final String path;
 	private final String message;
+	private final String path; // optional
 
-
-	public static ValidationError create(final String path, final String message){
-		return new ValidationError(path, message);
+	public ValidationError(String message){
+		this(message, null);
 	}
 
-
-	private ValidationError(final String path, final String message){
-		this.path = path;
+	public ValidationError(String message, String path){
 		this.message = message;
-	}
-
-	public String getPath(){
-		return path;
+		this.path = path;
 	}
 
 	public String getMessage(){
 		return message;
 	}
 
-	@Override
-	public String toString(){
-		return (path != null && !path.isEmpty()? path + ": ": StringUtils.EMPTY) + message;
+	public String getPath(){
+		return path;
 	}
 
+	@Override
+	public String toString(){
+		return (path != null? "[" + path + "] ": "") + message;
+	}
 }

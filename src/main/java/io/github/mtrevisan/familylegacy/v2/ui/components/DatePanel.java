@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;

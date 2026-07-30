@@ -3,102 +3,190 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
-/**
- * Validates a {@link FLEFModel} structure against a loaded {@link FLEFGrammar}.
- */
-public final class FLEFValidator{
+public class FLEFValidator{
 
 	private final FLEFGrammar grammar;
 
-
-	/**
-	 * Creates a new validator with the given grammar.
-	 *
-	 * @param grammar	The grammar to validate against
-	 */
-	public static FLEFValidator create(final FLEFGrammar grammar){
-		return new FLEFValidator(grammar);
-	}
-
-
-	private FLEFValidator(final FLEFGrammar grammar){
+	public FLEFValidator(FLEFGrammar grammar){
 		this.grammar = grammar;
 	}
 
+	public List<ValidationError> validate(FLEFModel model){
+		List<ValidationError> errors = new ArrayList<>();
 
-	/**
-	 * Validates the given model against the grammar.
-	 *
-	 * @param model	The model to validate
-	 * @return	A list of validation errors; empty if the model is valid
-	 */
-	public List<ValidationError> validate(final FLEFModel model){
-		final List<ValidationError> errors = new ArrayList<>();
+		// Validate header
+		FLEFRecord header = model.getHeader();
+		if(header == null){
+			errors.add(new ValidationError("Missing Header"));
+		}
+		else{
+			validateRecordAgainstType(header, "Header", errors, new HashSet<>());
+		}
 
-		if(model.getHeader() != null)
-			validateRecordAgainstEntity("Header", model.getHeader(), "header", errors);
+		// Validate records
+		FLEFGrammar.TypeDefinition recordUnion = grammar.getType("Record");
+		if(!(recordUnion instanceof FLEFGrammar.UnionType)){
+			errors.add(new ValidationError("Record type must be a union"));
+			return errors;
+		}
+		FLEFGrammar.UnionType union = (FLEFGrammar.UnionType)recordUnion;
+		Set<String> allowedRecordTypes = union.getChoices().keySet();
 
-		for(final FLEFRecord record : model.getRecords()){
-			final String recordType = record.getTag();
-			final FLEFGrammar.EntityDef entityDef = grammar.getEntity(recordType);
-
-			if(entityDef == null)
-				errors.add(ValidationError.create(record.getId() != null ? record.getId() : recordType,
-					"Unknown record type definition in grammar: " + recordType));
-			else
-				validateRecordAgainstEntity(recordType, record, record.getId() != null? record.getId(): recordType, errors);
+		for(FLEFRecord record : model.getRecords()){
+			String type = record.getTag();
+			if(!allowedRecordTypes.contains(type)){
+				errors.add(new ValidationError("Unknown record type: " + type));
+				continue;
+			}
+			FLEFGrammar.TypeDefinition recordDef = grammar.getType(type);
+			if(!(recordDef instanceof FLEFGrammar.RecordType)){
+				errors.add(new ValidationError("Record type " + type + " is not a record"));
+				continue;
+			}
+			validateRecordAgainstType(record, type, errors, new HashSet<>());
 		}
 
 		return errors;
 	}
 
-	private void validateRecordAgainstEntity(final String entityName, final FLEFRecord record, final String currentPath,
-			final List<ValidationError> errors){
-		final FLEFGrammar.EntityDef entityDef = grammar.getEntity(entityName);
-		if(entityDef == null)
+	private void validateRecordAgainstType(FLEFRecord record, String typeName,
+		List<ValidationError> errors,
+		Set<String> processedTypes){
+		if(processedTypes.contains(typeName)){
+			return; // avoid infinite recursion
+		}
+		processedTypes = new HashSet<>(processedTypes);
+		processedTypes.add(typeName);
+
+		FLEFGrammar.TypeDefinition typeDef = grammar.getType(typeName);
+		if(typeDef == null){
+			errors.add(new ValidationError("Type not found: " + typeName));
 			return;
+		}
 
-		for(final Map.Entry<String, FLEFGrammar.FieldDef> entry : entityDef.getFields().entrySet()){
-			final String fieldName = entry.getKey();
-			final FLEFGrammar.FieldDef fieldDef = entry.getValue();
+		if(typeDef instanceof FLEFGrammar.StructType){
+			validateStruct(record, (FLEFGrammar.StructType)typeDef, errors, processedTypes);
+		}
+		else if(typeDef instanceof FLEFGrammar.UnionType){
+			// Should not happen for records
+			errors.add(new ValidationError("Expected struct, got union for type " + typeName));
+		}
+		else if(typeDef instanceof FLEFGrammar.ReferenceType){
+			// Check value is a valid reference
+			if(!record.isReference() && !((FLEFGrammar.ReferenceType)typeDef).isVoidable()){
+				errors.add(new ValidationError("Expected reference, got: " + record.getValue()));
+			}
+		}
+		else if(typeDef instanceof FLEFGrammar.EnumType){
+			// not applicable
+		}
+		else{
+			// scalar
+		}
+	}
 
-			final List<FLEFRecord> matchingChildren = record.findChildren(fieldName);
-			final int count = matchingChildren.size();
+	private void validateStruct(FLEFRecord record, FLEFGrammar.StructType struct,
+		List<ValidationError> errors,
+		Set<String> processedTypes){
+		// Group children by tag
+		Map<String, List<FLEFRecord>> childrenByTag = new HashMap<>();
+		for(FLEFRecord child : record.getChildren()){
+			childrenByTag.computeIfAbsent(child.getTag(), k -> new ArrayList<>()).add(child);
+		}
 
-			// Validate Cardinality
-			switch(fieldDef.getCardinality()){
-				case EXACTLY_ONE -> {
-					if(count != 1 && record.getChildValue(fieldName) == null)
-						errors.add(ValidationError.create(currentPath + "." + fieldName,
-							"Field is required (exactly 1 expected, found " + count + ")"));
-				}
-				case ONE_OR_MORE -> {
-					if(count < 1)
-						errors.add(ValidationError.create(currentPath + "." + fieldName,
-							"Field requires at least 1 element, found 0"));
-				}
+		// Check each field definition
+		for(FLEFGrammar.FieldDefinition field : struct.getFields()){
+			String fieldName = field.getName();
+			List<FLEFRecord> children = childrenByTag.getOrDefault(fieldName, Collections.emptyList());
+			int count = children.size();
+			boolean required = field.getCardinality() == FLEFGrammar.Cardinality.REQUIRED;
+			boolean oneOrMore = field.getCardinality() == FLEFGrammar.Cardinality.ONE_OR_MORE;
+			boolean optional = field.getCardinality() == FLEFGrammar.Cardinality.OPTIONAL ||
+										 field.getCardinality() == FLEFGrammar.Cardinality.ZERO_OR_MORE;
+
+			if(required && count == 0){
+				errors.add(new ValidationError("Missing required field: " + fieldName + " in " + record.getTag()));
+				continue;
+			}
+			if(oneOrMore && count == 0){
+				errors.add(new ValidationError("Missing at least one occurrence of field: " + fieldName + " in " + record.getTag()));
+				continue;
 			}
 
-			// Validate Enum types if present
-			if(fieldDef.isEnumInline() && count > 0){
-				for(final FLEFRecord child : matchingChildren){
-					final String val = child.getValue();
-					if(val != null && !fieldDef.getInlineEnumValues().contains(val))
-						errors.add(ValidationError.create(currentPath + "." + fieldName,
-							"Value '" + val + "' is not valid for enum " + fieldDef.getInlineEnumValues()));
+			// Validate each child against the field type
+			FLEFGrammar.TypeDefinition fieldType = field.getType();
+			for(FLEFRecord child : children){
+				// If field type is a struct, validate child as that struct
+				if(fieldType instanceof FLEFGrammar.StructType){
+					validateRecordAgainstType(child, fieldType.getName(), errors, processedTypes);
+				}
+				else if(fieldType instanceof FLEFGrammar.UnionType){
+					// A union field must have a child that is a choice (one of the variants)
+					// The child's tag should be one of the union choice names
+					FLEFGrammar.UnionType union = (FLEFGrammar.UnionType)fieldType;
+					if(!union.getChoices().containsKey(child.getTag())){
+						errors.add(new ValidationError("Invalid union choice: " + child.getTag() +
+																	 " for field " + fieldName + " in " + record.getTag()));
+					}
+					else{
+						// Validate the choice's content
+						FLEFGrammar.TypeDefinition choiceType = union.getChoices().get(child.getTag());
+						if(choiceType instanceof FLEFGrammar.StructType){
+							// The child should have children that match the struct
+							validateRecordAgainstType(child, choiceType.getName(), errors, processedTypes);
+						}
+						else if(choiceType instanceof FLEFGrammar.ReferenceType ||
+									  choiceType instanceof FLEFGrammar.ScalarType ||
+									  choiceType instanceof FLEFGrammar.EnumType){
+							// For scalar choice, the child should have a value
+							// and no children? Actually, for scalar union choices, we might have stored the value directly.
+							// We need to adapt representation.
+							// In our parser, we store scalar union choices as a child with the choice tag and a value.
+							// So the child's value should be set.
+							if(child.getValue() == null && child.hasChildren()){
+								errors.add(new ValidationError("Union choice " + child.getTag() +
+																			 " expected scalar value but has children"));
+							}
+						}
+					}
+				}
+				else if(fieldType instanceof FLEFGrammar.ReferenceType){
+					if(!child.isReference() && !((FLEFGrammar.ReferenceType)fieldType).isVoidable()){
+						errors.add(new ValidationError("Expected reference for field " + fieldName +
+																	 " in " + record.getTag()));
+					}
+				}
+				else if(fieldType instanceof FLEFGrammar.EnumType){
+					// Enum value should match one of the enum values or custom if allowed
+					FLEFGrammar.EnumType enumType = (FLEFGrammar.EnumType)fieldType;
+					if(!enumType.getValues().contains(child.getValue()) && !enumType.isAllowCustom()){
+						errors.add(new ValidationError("Invalid enum value: " + child.getValue() +
+																	 " for field " + fieldName + " in " + record.getTag()));
+					}
+				}
+				else{
+					// scalar: just check that value is not empty (if required)
 				}
 			}
+		}
 
-			// Recursive validation for struct types
-			if(grammar.getEntities().containsKey(fieldDef.getTypeName()))
-				for(final FLEFRecord child : matchingChildren)
-					validateRecordAgainstEntity(fieldDef.getTypeName(), child, currentPath + "." + fieldName,
-						errors);
+		// Check for unexpected fields
+		Set<String> definedFields = new HashSet<>();
+		for(FLEFGrammar.FieldDefinition field : struct.getFields()){
+			definedFields.add(field.getName());
+		}
+		for(String tag : childrenByTag.keySet()){
+			if(!definedFields.contains(tag)){
+				// Allow "id" field in records even if not defined? We'll allow it as a special case.
+				if("id".equals(tag) && record.getId() != null){
+					// It's the record's own id, not a child field.
+					continue;
+				}
+				errors.add(new ValidationError("Unexpected field: " + tag + " in " + record.getTag()));
+			}
 		}
 	}
 
