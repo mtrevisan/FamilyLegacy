@@ -1,57 +1,19 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 
 /**
- * Validates a FLEFModel against a FLEFGrammar.
- * <p>
- * Checks that:
- * <ul>
- *   <li>All records are defined in the grammar</li>
- *   <li>All child tags conform to the grammar's cardinality constraints</li>
- *   <li>Structure references are resolved and validated recursively</li>
- * </ul>
+ * Validates a {@link FLEFModel} structure against a loaded {@link FLEFGrammar}.
  */
 public final class FLEFValidator{
 
 	private final FLEFGrammar grammar;
-	private final List<ValidationError> errors = new ArrayList<>();
 
 
 	/**
@@ -65,7 +27,7 @@ public final class FLEFValidator{
 
 
 	private FLEFValidator(final FLEFGrammar grammar){
-		this.grammar = Objects.requireNonNull(grammar, "Grammar cannot be null");
+		this.grammar = grammar;
 	}
 
 
@@ -76,87 +38,68 @@ public final class FLEFValidator{
 	 * @return	A list of validation errors; empty if the model is valid
 	 */
 	public List<ValidationError> validate(final FLEFModel model){
-		errors.clear();
-		if(model == null){
-			errors.add(ValidationError.create(StringUtils.EMPTY, "Model is null"));
-			return errors;
-		}
+		final List<ValidationError> errors = new ArrayList<>();
 
-		// Validate each record in the model
+		if(model.getHeader() != null)
+			validateRecordAgainstEntity("Header", model.getHeader(), "header", errors);
+
 		for(final FLEFRecord record : model.getRecords()){
-			final String type = record.getTag();
-			final RecordDefinition def = grammar.getRecordDefinition(type);
-			if(def == null){
-				errors.add(ValidationError.create(
-					StringUtils.defaultString(record.getId()),
-					"Unknown record type: " + type
-				));
-				continue;
-			}
-			validateRecord(record, def, (record.getId() != null? record.getId(): type));
+			final String recordType = record.getTag();
+			final FLEFGrammar.EntityDef entityDef = grammar.getEntity(recordType);
+
+			if(entityDef == null)
+				errors.add(ValidationError.create(record.getId() != null ? record.getId() : recordType,
+					"Unknown record type definition in grammar: " + recordType));
+			else
+				validateRecordAgainstEntity(recordType, record, record.getId() != null? record.getId(): recordType, errors);
 		}
 
-		return Collections.unmodifiableList(errors);
+		return errors;
 	}
 
-	/**
-	 * Validates a single record against its definition.
-	 *
-	 * @param record	The record to validate
-	 * @param def	The definition of the record
-	 * @param path	The current path for error reporting
-	 */
-	private void validateRecord(final FLEFRecord record, final RecordDefinition def, final String path){
-		// Count occurrences of each child tag
-		final Map<String, Integer> tagCounts = new HashMap<>();
-		for(final FLEFRecord child : record.getChildren()){
-			final String tag = child.getTag();
-			if(tag != null)
-				tagCounts.put(tag, tagCounts.getOrDefault(tag, 0) + 1);
-		}
+	private void validateRecordAgainstEntity(final String entityName, final FLEFRecord record, final String currentPath,
+			final List<ValidationError> errors){
+		final FLEFGrammar.EntityDef entityDef = grammar.getEntity(entityName);
+		if(entityDef == null)
+			return;
 
-		// Check each defined tag
-		for(final TagDefinition tagDef : def.getTags()){
-			final String tagName = tagDef.getName();
-			final int count = tagCounts.getOrDefault(tagName, 0);
-			final Cardinality card = tagDef.getCardinality();
+		for(final Map.Entry<String, FLEFGrammar.FieldDef> entry : entityDef.getFields().entrySet()){
+			final String fieldName = entry.getKey();
+			final FLEFGrammar.FieldDef fieldDef = entry.getValue();
 
-			if(!card.isValidCount(count)){
-				errors.add(ValidationError.create(
-					path + "/" + tagName,
-					"Tag '" + tagName + "' appears " + count + " times, expected " + card
-				));
-			}
+			final List<FLEFRecord> matchingChildren = record.findChildren(fieldName);
+			final int count = matchingChildren.size();
 
-			// If it's a structure, validate its children recursively
-			if(tagDef.isStructure()){
-				final String structName = tagDef.getStructureName();
-				final RecordDefinition structDef = grammar.getStructureDefinition(structName);
-				if(structDef == null){
-					errors.add(ValidationError.create(
-						path + "/" + tagName,
-						"Structure definition not found: " + structName
-					));
-					continue;
+			// Validate Cardinality
+			switch(fieldDef.getCardinality()){
+				case EXACTLY_ONE -> {
+					if(count != 1 && record.getChildValue(fieldName) == null)
+						errors.add(ValidationError.create(currentPath + "." + fieldName,
+							"Field is required (exactly 1 expected, found " + count + ")"));
 				}
-				// Validate each child with this tag against the structure definition
-				for(final FLEFRecord child : record.getChildren())
-					if(tagName.equals(child.getTag()))
-						validateRecord(child, structDef, path + "/" + tagName);
+				case ONE_OR_MORE -> {
+					if(count < 1)
+						errors.add(ValidationError.create(currentPath + "." + fieldName,
+							"Field requires at least 1 element, found 0"));
+				}
 			}
-		}
 
-		// Check for unexpected tags
-		final Set<String> allowedTags = new HashSet<>();
-		for(final TagDefinition tagDef : def.getTags())
-			allowedTags.add(tagDef.getName());
-		for(final String tag : tagCounts.keySet())
-			if(!allowedTags.contains(tag)){
-				errors.add(ValidationError.create(
-					path,
-					"Unexpected tag '" + tag + "' (not allowed in " + def.getName() + ")"
-				));
+			// Validate Enum types if present
+			if(fieldDef.isEnumInline() && count > 0){
+				for(final FLEFRecord child : matchingChildren){
+					final String val = child.getValue();
+					if(val != null && !fieldDef.getInlineEnumValues().contains(val))
+						errors.add(ValidationError.create(currentPath + "." + fieldName,
+							"Value '" + val + "' is not valid for enum " + fieldDef.getInlineEnumValues()));
+				}
 			}
+
+			// Recursive validation for struct types
+			if(grammar.getEntities().containsKey(fieldDef.getTypeName()))
+				for(final FLEFRecord child : matchingChildren)
+					validateRecordAgainstEntity(fieldDef.getTypeName(), child, currentPath + "." + fieldName,
+						errors);
+		}
 	}
 
 }

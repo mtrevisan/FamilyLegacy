@@ -1,30 +1,4 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.io.model;
-
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +9,7 @@ import java.util.Set;
 
 /**
  * FLEF data model.
- * Contains the header and a list of records.
+ * Contains the header and a list of top-level records.
  */
 public class FLEFModel{
 
@@ -58,16 +32,20 @@ public class FLEFModel{
 	}
 
 	public void addRecord(final FLEFRecord record){
-		final String id = record.getId();
-		if(id != null && !recordsById.containsKey(id)){
-			records.add(record);
+		if(record == null)
+			return;
 
-			// Indexing by type
-			recordsByType.computeIfAbsent(record.getTag(), k -> new ArrayList<>()).add(record);
-
-			// Indexing by ID
-			recordsById.put(id, record);
+		final String cleanId = record.getId(); // Already extracts XRef via FLEFRecordUtils
+		if(cleanId != null){
+			if(recordsById.containsKey(cleanId))
+				// Optionally remove existing record to allow replacement/update
+				removeRecord(cleanId);
+			recordsById.put(cleanId, record);
 		}
+
+		records.add(record);
+		if(record.getTag() != null)
+			recordsByType.computeIfAbsent(record.getTag(), k -> new ArrayList<>()).add(record);
 	}
 
 	public List<FLEFRecord> getRecordsByType(final String type){
@@ -75,11 +53,19 @@ public class FLEFModel{
 	}
 
 	public FLEFRecord getRecordById(final String id){
+		if(id == null)
+			return null;
+
 		return recordsById.get(FLEFRecordUtils.extractXRef(id));
 	}
 
 	public void removeRecord(final String id){
-		final FLEFRecord record = recordsById.remove(id);
+		if(id == null)
+			return;
+
+		final String cleanId = FLEFRecordUtils.extractXRef(id);
+		final FLEFRecord record = recordsById.remove(cleanId);
+
 		if(record != null){
 			records.remove(record);
 			final String type = record.getTag();
@@ -93,18 +79,16 @@ public class FLEFModel{
 	}
 
 	public boolean hasRecord(final String id){
-		return recordsById.containsKey(id);
+		if(id == null)
+			return false;
+
+		return recordsById.containsKey(FLEFRecordUtils.extractXRef(id));
 	}
 
 	public int getRecordCount(){
 		return records.size();
 	}
 
-	/**
-	 * Returns the set of record types present in this model.
-	 *
-	 * @return a set of record type names (e.g., "INDIVIDUAL", "FAMILY", etc.)
-	 */
 	public Set<String> getRecordTypes(){
 		return recordsByType.keySet();
 	}
@@ -112,7 +96,7 @@ public class FLEFModel{
 	@Override
 	public String toString(){
 		return "FLEFModel{" +
-			"header=" + header +
+			"header=" + (header != null ? header.getTag() : "null") +
 			", records=" + records.size() +
 			'}';
 	}

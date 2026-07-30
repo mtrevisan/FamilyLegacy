@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFFile;
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -314,7 +314,6 @@ public class DatePanel extends JPanel{
 				FLEFRecord record = panel.save();
 				if(record != null){
 					System.out.println("=== Saved DATE ===");
-					FLEFFile.print(model);
 				}
 			});
 			frame.add(printBtn, BorderLayout.SOUTH);

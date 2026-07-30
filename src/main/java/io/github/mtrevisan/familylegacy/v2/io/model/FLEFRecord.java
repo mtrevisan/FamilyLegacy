@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFRecordUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
