@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchStatusDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,8 +60,8 @@ public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDi
 	@Override
 	public String getDisplayText(FLEFRecord record){
 		// Try to get the QUESTION field as display name
-		String question = FLEFRecordUtils.getChildValue(record, "QUESTION");
-		String status = FLEFRecordUtils.getChildValue(record, "STATUS");
+		String question = FLEFRecordHelper.getChildValue(record, "QUESTION");
+		String status = FLEFRecordHelper.getChildValue(record, "STATUS");
 		String id = record.getId();
 
 		StringBuilder sb = new StringBuilder();

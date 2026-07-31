@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -31,9 +31,9 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 		if(nameRecord == null)
 			return "[empty]";
 
-		final FLEFRecord valueRecord = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		final FLEFRecord valueRecord = FLEFRecordHelper.findChild(nameRecord, "VALUE");
 		final String text = (valueRecord != null? valueRecord.getValue(): null);
-		final String type = FLEFRecordUtils.getChildValue(nameRecord, "TYPE");
+		final String type = FLEFRecordHelper.getChildValue(nameRecord, "TYPE");
 
 		final StringBuilder sb = new StringBuilder();
 		sb.append(StringUtils.isNotBlank(text)? text: "[unnamed]");
@@ -57,11 +57,11 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void load(final FLEFRecord parentRecord){
-		setItems(FLEFRecordUtils.findChildren(parentRecord, path));
+		setItems(FLEFRecordHelper.findChildren(parentRecord, path));
 	}
 
 	public void save(final FLEFRecord parentRecord){
-		FLEFRecordUtils.removeChildren(parentRecord, path);
+		FLEFRecordHelper.removeChildren(parentRecord, path);
 
 		for(final FLEFRecord name : getItems()){
 			name.setTag("NAME");

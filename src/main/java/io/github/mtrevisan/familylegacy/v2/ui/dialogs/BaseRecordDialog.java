@@ -25,9 +25,10 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFDataParser;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
 import javax.swing.JDialog;
@@ -76,7 +77,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	public final void save(){
 		if(validData()){
-			FLEFRecordUtils.removeAllChildren(record);
+			FLEFRecordHelper.removeAllChildren(record);
 
 			saveData();
 
@@ -109,65 +110,65 @@ System.out.println(FLEFDataParser.serialize(model));
 	}
 
 	private String generateNewId(final RecordTypeHandler<?> handler){
-		return FLEFRecordUtils.generateNewId(model, handler.getType(), handler.getIDPrefix());
+		return XRefHelper.generateNewId(model, handler.getType(), handler.getIDPrefix());
 	}
 
 
 	protected String getChildValue(final String tag){
-		return FLEFRecordUtils.getChildValue(record, tag);
+		return FLEFRecordHelper.getChildValue(record, tag);
 	}
 
 	protected String getChildValue(final FLEFRecord parent, final String tag){
-		return FLEFRecordUtils.getChildValue(parent, tag);
+		return FLEFRecordHelper.getChildValue(parent, tag);
 	}
 
 	protected FLEFRecord findChild(final String tag){
-		return FLEFRecordUtils.findChild(record, tag);
+		return FLEFRecordHelper.findChild(record, tag);
 	}
 
 	protected FLEFRecord findChild(final FLEFRecord parent, final String tag){
-		return FLEFRecordUtils.findChild(parent, tag);
+		return FLEFRecordHelper.findChild(parent, tag);
 	}
 
 	protected List<FLEFRecord> findChildren(final String tag){
-		return FLEFRecordUtils.findChildren(record, tag);
+		return FLEFRecordHelper.findChildren(record, tag);
 	}
 
 	protected List<FLEFRecord> findChildren(final FLEFRecord parent, final String tag){
-		return FLEFRecordUtils.findChildren(parent, tag);
+		return FLEFRecordHelper.findChildren(parent, tag);
 	}
 
 	protected String getChildValuesAsString(final String tag){
-		return FLEFRecordUtils.getChildValuesAsString(record, tag);
+		return FLEFRecordHelper.getChildValuesAsString(record, tag);
 	}
 
 	protected String getChildValuesAsString(final FLEFRecord parent, final String tag){
-		return FLEFRecordUtils.getChildValuesAsString(parent, tag);
+		return FLEFRecordHelper.getChildValuesAsString(parent, tag);
 	}
 
 	protected void updateChildValue(final String tag, final String value){
-		FLEFRecordUtils.updateChildValue(record, tag, value);
+		FLEFRecordHelper.updateChildValue(record, tag, value);
 	}
 
 	protected void updateChildValue(final FLEFRecord parent, final String tag, final String value){
-		FLEFRecordUtils.updateChildValue(parent, tag, value);
+		FLEFRecordHelper.updateChildValue(parent, tag, value);
 	}
 
 	protected void addChild(final String tag, final String value){
-		FLEFRecordUtils.addChild(record, tag, value);
+		FLEFRecordHelper.addChild(record, tag, value);
 	}
 
 	protected void addChild(final FLEFRecord parent, final String tag, final String value){
-		FLEFRecordUtils.addChild(parent, tag, value);
+		FLEFRecordHelper.addChild(parent, tag, value);
 	}
 
 
 	protected void removeChildren(final String tag){
-		FLEFRecordUtils.removeChildren(record, tag);
+		FLEFRecordHelper.removeChildren(record, tag);
 	}
 
 	protected void removeChildren(final FLEFRecord parent, final String tag){
-		FLEFRecordUtils.removeChildren(parent, tag);
+		FLEFRecordHelper.removeChildren(parent, tag);
 	}
 
 

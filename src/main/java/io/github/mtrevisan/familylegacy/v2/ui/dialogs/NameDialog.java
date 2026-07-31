@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -666,7 +666,7 @@ public class NameDialog extends JDialog{
 			FLEFRecord transRecord = dialog.getTranscribedTextRecord();
 			if(transRecord != null){
 				transRecord.setTag("TRANSCRIBED_TEXT");
-				FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
+				FLEFRecord parent = FLEFRecordHelper.findChild(nameRecord, parentTag);
 				if(parent == null){
 					parent = FLEFRecord.createChild(parentTag);
 					nameRecord.addChild(parent);
@@ -699,7 +699,7 @@ public class NameDialog extends JDialog{
 		int confirm = JOptionPane.showConfirmDialog(this, "Remove this transcription?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			FLEFRecord transRecord = records.remove(idx);
-			FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
+			FLEFRecord parent = FLEFRecordHelper.findChild(nameRecord, parentTag);
 			if(parent != null){
 				parent.getChildren().remove(transRecord);
 			}
@@ -782,15 +782,15 @@ public class NameDialog extends JDialog{
 
 	private void loadData(){
 		// Main fields
-		typeCombo.setSelectedItem(FLEFRecordUtils.getChildValue(nameRecord, "TYPE"));
-		titleField.setText(FLEFRecordUtils.getChildValue(nameRecord, "TITLE"));
-		givenNameField.setText(FLEFRecordUtils.getChildValue(nameRecord, "INDIVIDUAL_NAME"));
-		nicknameField.setText(FLEFRecordUtils.getChildValue(nameRecord, "INDIVIDUAL_NICKNAME"));
-		familyNameField.setText(FLEFRecordUtils.getChildValue(nameRecord, "FAMILY_NAME"));
-		familyNicknameField.setText(FLEFRecordUtils.getChildValue(nameRecord, "FAMILY_NICKNAME"));
+		typeCombo.setSelectedItem(FLEFRecordHelper.getChildValue(nameRecord, "TYPE"));
+		titleField.setText(FLEFRecordHelper.getChildValue(nameRecord, "TITLE"));
+		givenNameField.setText(FLEFRecordHelper.getChildValue(nameRecord, "INDIVIDUAL_NAME"));
+		nicknameField.setText(FLEFRecordHelper.getChildValue(nameRecord, "INDIVIDUAL_NICKNAME"));
+		familyNameField.setText(FLEFRecordHelper.getChildValue(nameRecord, "FAMILY_NAME"));
+		familyNicknameField.setText(FLEFRecordHelper.getChildValue(nameRecord, "FAMILY_NICKNAME"));
 
-		FLEFRecord givenNode = FLEFRecordUtils.findChild(nameRecord, "INDIVIDUAL_NAME");
-		suffixField.setText(givenNode != null? FLEFRecordUtils.getChildValue(givenNode, "SUFFIX"): StringUtils.EMPTY);
+		FLEFRecord givenNode = FLEFRecordHelper.findChild(nameRecord, "INDIVIDUAL_NAME");
+		suffixField.setText(givenNode != null? FLEFRecordHelper.getChildValue(givenNode, "SUFFIX"): StringUtils.EMPTY);
 
 		// transcriptions
 		loadTranscriptions("TITLE", titleTransModel, titleTransRecords);
@@ -810,7 +810,7 @@ public class NameDialog extends JDialog{
 		List<FLEFRecord> records){
 		model.clear();
 		records.clear();
-		FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
+		FLEFRecord parent = FLEFRecordHelper.findChild(nameRecord, parentTag);
 		if(parent == null)
 			return;
 		for(FLEFRecord child : parent.getChildren()){
@@ -825,7 +825,7 @@ public class NameDialog extends JDialog{
 		List<FLEFRecord> records){
 		model.clear();
 		records.clear();
-		FLEFRecord parent = FLEFRecordUtils.findChild(nameRecord, parentTag);
+		FLEFRecord parent = FLEFRecordHelper.findChild(nameRecord, parentTag);
 		if(parent == null)
 			return;
 		for(FLEFRecord child : parent.getChildren()){
@@ -837,8 +837,8 @@ public class NameDialog extends JDialog{
 	}
 
 	private String buildTranscriptionDisplay(FLEFRecord transRecord){
-		String phonetic = FLEFRecordUtils.getChildValue(transRecord, "PHONETIC");
-		String transcription = FLEFRecordUtils.getChildValue(transRecord, "TRANSCRIPTION");
+		String phonetic = FLEFRecordHelper.getChildValue(transRecord, "PHONETIC");
+		String transcription = FLEFRecordHelper.getChildValue(transRecord, "TRANSCRIPTION");
 		StringBuilder sb = new StringBuilder();
 		if(phonetic != null)
 			sb.append("phonetic: ")
@@ -855,22 +855,22 @@ public class NameDialog extends JDialog{
 	}
 
 	private void saveData(){
-		FLEFRecordUtils.removeAllChildren(nameRecord);
+		FLEFRecordHelper.removeAllChildren(nameRecord);
 
-		FLEFRecordUtils.updateChildValue(nameRecord, "TYPE", (String)typeCombo.getSelectedItem());
-		FLEFRecordUtils.updateChildValue(nameRecord, "TITLE", titleField.getText().trim());
-		FLEFRecordUtils.updateChildValue(nameRecord, "INDIVIDUAL_NAME", givenNameField.getText().trim());
-		FLEFRecordUtils.updateChildValue(nameRecord, "INDIVIDUAL_NICKNAME", nicknameField.getText().trim());
-		FLEFRecordUtils.updateChildValue(nameRecord, "FAMILY_NAME", familyNameField.getText().trim());
-		FLEFRecordUtils.updateChildValue(nameRecord, "FAMILY_NICKNAME", familyNicknameField.getText().trim());
+		FLEFRecordHelper.updateChildValue(nameRecord, "TYPE", (String)typeCombo.getSelectedItem());
+		FLEFRecordHelper.updateChildValue(nameRecord, "TITLE", titleField.getText().trim());
+		FLEFRecordHelper.updateChildValue(nameRecord, "INDIVIDUAL_NAME", givenNameField.getText().trim());
+		FLEFRecordHelper.updateChildValue(nameRecord, "INDIVIDUAL_NICKNAME", nicknameField.getText().trim());
+		FLEFRecordHelper.updateChildValue(nameRecord, "FAMILY_NAME", familyNameField.getText().trim());
+		FLEFRecordHelper.updateChildValue(nameRecord, "FAMILY_NICKNAME", familyNicknameField.getText().trim());
 
 		String suffix = suffixField.getText().trim();
-		FLEFRecord givenNode = FLEFRecordUtils.findChild(nameRecord, "INDIVIDUAL_NAME");
+		FLEFRecord givenNode = FLEFRecordHelper.findChild(nameRecord, "INDIVIDUAL_NAME");
 		if(givenNode == null){
 			givenNode = FLEFRecord.createChildWithValue("INDIVIDUAL_NAME", givenNameField.getText().trim());
 			nameRecord.addChild(givenNode);
 		}
-		FLEFRecordUtils.updateChildValue(givenNode, "SUFFIX", suffix);
+		FLEFRecordHelper.updateChildValue(givenNode, "SUFFIX", suffix);
 
 		// Ensure parent nodes for transcriptions (transcriptions are already added)
 		ensureParentNode("TITLE");
@@ -881,22 +881,22 @@ public class NameDialog extends JDialog{
 		ensureParentNode("FAMILY_NICKNAME");
 
 		// References
-		FLEFRecordUtils.removeChildren(nameRecord, "CULTURAL_NORM");
-		FLEFRecordUtils.removeChildren(nameRecord, "NOTE");
-		FLEFRecordUtils.removeChildren(nameRecord, "SOURCE");
+		FLEFRecordHelper.removeChildren(nameRecord, "CULTURAL_NORM");
+		FLEFRecordHelper.removeChildren(nameRecord, "NOTE");
+		FLEFRecordHelper.removeChildren(nameRecord, "SOURCE");
 		for(String id : culturalNormIds){
-			FLEFRecordUtils.addChild(nameRecord, "CULTURAL_NORM", id);
+			FLEFRecordHelper.addChild(nameRecord, "CULTURAL_NORM", id);
 		}
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(nameRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(nameRecord, "NOTE", id);
 		}
 		for(String id : sourceIds){
-			FLEFRecordUtils.addChild(nameRecord, "SOURCE", id);
+			FLEFRecordHelper.addChild(nameRecord, "SOURCE", id);
 		}
 	}
 
 	private void ensureParentNode(String tag){
-		if(FLEFRecordUtils.findChild(nameRecord, tag) == null){
+		if(FLEFRecordHelper.findChild(nameRecord, tag) == null){
 			FLEFRecord parent = FLEFRecord.createChild(tag);
 			nameRecord.addChild(parent);
 		}

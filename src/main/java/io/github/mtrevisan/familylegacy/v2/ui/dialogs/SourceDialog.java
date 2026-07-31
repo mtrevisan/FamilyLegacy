@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -328,7 +328,7 @@ public class SourceDialog extends BaseRecordDialog{
 			if(rec != null){
 				final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 				String display = repositoryHandler.getDisplayText(rec);
-				String location = FLEFRecordUtils.getChildValue(citation, "LOCATION");
+				String location = FLEFRecordHelper.getChildValue(citation, "LOCATION");
 				if(location != null && !location.isEmpty()){
 					return display + " (loc: " + location + ")";
 				}
@@ -361,7 +361,7 @@ public class SourceDialog extends BaseRecordDialog{
 					JOptionPane.PLAIN_MESSAGE
 				);
 				FLEFRecord citation = FLEFRecord.createChildWithValue("REPOSITORY_CITATION", selectedId);
-				FLEFRecordUtils.updateChildValue(citation, "LOCATION", location.trim());
+				FLEFRecordHelper.updateChildValue(citation, "LOCATION", location.trim());
 				repositoryRecords.add(citation);
 				repositoryListModel.addElement(getRepositoryCitationDisplay(citation));
 			}
@@ -376,7 +376,7 @@ public class SourceDialog extends BaseRecordDialog{
 			return;
 		FLEFRecord existing = repositoryRecords.get(idx);
 		String repoId = existing.getValue();
-		String location = FLEFRecordUtils.getChildValue(existing, "LOCATION");
+		String location = FLEFRecordHelper.getChildValue(existing, "LOCATION");
 
 		final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
@@ -392,7 +392,7 @@ public class SourceDialog extends BaseRecordDialog{
 					StringUtils.defaultString(location)
 				);
 				existing.setValue(selectedId);
-				FLEFRecordUtils.updateChildValue(existing, "LOCATION", newLocation.trim());
+				FLEFRecordHelper.updateChildValue(existing, "LOCATION", newLocation.trim());
 			}
 			repositoryRecords.set(idx, existing);
 			repositoryListModel.set(idx, getRepositoryCitationDisplay(existing));
@@ -528,7 +528,7 @@ public class SourceDialog extends BaseRecordDialog{
 		// ---- Load manual fields ----
 
 		// Restriction (checkbox)
-		String restriction = FLEFRecordUtils.getChildValue(record, "RESTRICTION");
+		String restriction = FLEFRecordHelper.getChildValue(record, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		// PLACE_STRUCTURE
@@ -541,7 +541,7 @@ public class SourceDialog extends BaseRecordDialog{
 		loadRepositoryCitations();
 
 		// Document
-		FLEFRecord doc = FLEFRecordUtils.findChild(record, "DOCUMENT_STRUCTURE");
+		FLEFRecord doc = FLEFRecordHelper.findChild(record, "DOCUMENT_STRUCTURE");
 		documentPanel.loadFromRecord(doc);
 
 		// SOURCE_CITATION
@@ -567,7 +567,7 @@ public class SourceDialog extends BaseRecordDialog{
 		// ---- Save manual fields ----
 
 		// Restriction
-		FLEFRecordUtils.updateChildValue(record, "RESTRICTION",
+		FLEFRecordHelper.updateChildValue(record, "RESTRICTION",
 			restrictionCheckBox.isSelected()? "confidential": null);
 
 		// PLACE
@@ -596,7 +596,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 		// Notes
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", id);
+			FLEFRecordHelper.addChild(record, "NOTE", id);
 		}
 
 		// Modification

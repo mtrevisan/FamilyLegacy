@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceDialog;
 
 import java.awt.Dialog;
@@ -58,7 +58,7 @@ public class SourceHandler implements RecordTypeHandler<SourceDialog>{
 
 	@Override
 	public String getDisplayText(FLEFRecord record){
-		String title = FLEFRecordUtils.getChildValue(record, "TITLE.VALUE");
+		String title = FLEFRecordHelper.getChildValue(record, "TITLE.VALUE");
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){
 			return title + " (" + id + ")";

@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import net.miginfocom.swing.MigLayout;
@@ -52,10 +52,11 @@ import java.io.Serial;
  * <p>
  * The actual structure (real tags):
  * <pre>
- * DATE_STRUCTURE :=
- * n <<DATE_VALUE>>    {1:1}
- * n <<SOURCE_CITATION>>    {0:M}
- * n <<EVIDENCE_QUALIFIERS>>    {0:1}
+ * struct DateStructure {
+ *   value: DateValue
+ *   citation*: SourceCitation
+ *   evidence?: EvidenceQualifiers
+ * }
  * </pre>
  */
 public class DatePanel extends JPanel{
@@ -168,19 +169,19 @@ public class DatePanel extends JPanel{
 			return;
 
 		// Load the date value: POINT, BOUNDED, or SPANNING
-		final FLEFRecord point = FLEFRecordUtils.findChild(dateWrapper, TAG_POINT);
+		final FLEFRecord point = FLEFRecordHelper.findChild(dateWrapper, TAG_POINT);
 		if(point != null){
 			tabbedPane.setSelectedIndex(0);
 			pointDatePanel.load(point);
 		}
 		else{
-			final FLEFRecord bounded = FLEFRecordUtils.findChild(dateWrapper, TAG_BOUNDED);
+			final FLEFRecord bounded = FLEFRecordHelper.findChild(dateWrapper, TAG_BOUNDED);
 			if(bounded != null){
 				tabbedPane.setSelectedIndex(1);
 				boundedDatePanel.load(bounded);
 			}
 			else{
-				final FLEFRecord spanning = FLEFRecordUtils.findChild(dateWrapper, TAG_SPANNING);
+				final FLEFRecord spanning = FLEFRecordHelper.findChild(dateWrapper, TAG_SPANNING);
 				if(spanning != null){
 					tabbedPane.setSelectedIndex(2);
 					spanningDatePanel.load(spanning);

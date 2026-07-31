@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -546,7 +546,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		idField.setText(record.getId());
 
 		// TYPE
-		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
+		String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 		typeCombo.setSelectedItem(StringUtils.defaultString(type));
 
 		// CULTURAL_NORM
@@ -590,16 +590,16 @@ public class CalendarDialog extends BaseRecordDialog{
 	protected void saveData(){
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
+		FLEFRecordHelper.updateChildValue(record, "TYPE", type);
 
 		// CULTURAL_NORM
 		for(String id : culturalNormIds){
-			FLEFRecordUtils.addChild(record, "CULTURAL_NORM", id);
+			FLEFRecordHelper.addChild(record, "CULTURAL_NORM", id);
 		}
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", id);
+			FLEFRecordHelper.addChild(record, "NOTE", id);
 		}
 
 		// SOURCE_CITATION (0:M)

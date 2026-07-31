@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -158,7 +158,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public void save(final FLEFRecord record){
 		for(final FLEFRecord note : getItems())
-			FLEFRecordUtils.addChild(record, path, note.getFormattedId());
+			FLEFRecordHelper.addChild(record, path, note.getFormattedId());
 	}
 
 	/**

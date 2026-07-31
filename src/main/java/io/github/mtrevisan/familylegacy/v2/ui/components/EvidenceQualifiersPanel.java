@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -98,19 +98,19 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record the record to read from
 	 */
 	public void load(final FLEFRecord record){
-		final String certainty = FLEFRecordUtils.getChildValue(record, path + "CERTAINTY");
+		final String certainty = FLEFRecordHelper.getChildValue(record, path + "CERTAINTY");
 		certaintyCombo.setSelectedItem(StringUtils.defaultString(certainty));
 
-		final String credibility = FLEFRecordUtils.getChildValue(record, path + "CREDIBILITY");
+		final String credibility = FLEFRecordHelper.getChildValue(record, path + "CREDIBILITY");
 		credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 	}
 
 	public void save(final FLEFRecord record){
 		final String certainty = getCertainty();
-		FLEFRecordUtils.updateChildValue(record, path + "CERTAINTY", certainty);
+		FLEFRecordHelper.updateChildValue(record, path + "CERTAINTY", certainty);
 
 		final String credibility = getCredibility();
-		FLEFRecordUtils.updateChildValue(record, path + "CREDIBILITY", credibility);
+		FLEFRecordHelper.updateChildValue(record, path + "CREDIBILITY", credibility);
 	}
 
 	/**

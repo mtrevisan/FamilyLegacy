@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipDialog;
 
 import java.awt.Dialog;
@@ -62,7 +62,7 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipDialog
 
 	@Override
 	public String getDisplayText(FLEFRecord record){
-		String relationshipId = FLEFRecordUtils.getChildValue(record, "RELATIONSHIP");
+		String relationshipId = FLEFRecordHelper.getChildValue(record, "RELATIONSHIP");
 		String type = record.getTag();
 		if(relationshipId != null && !relationshipId.isEmpty()){
 			// Try to get the actual event type name from the model

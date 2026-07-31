@@ -24,11 +24,12 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -85,6 +86,10 @@ public class DocumentStructurePanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -7512372301406529923L;
 
+
+	static{
+		HandlerRegistry.register(new NoteHandler());
+	}
 
 	private final FLEFModel model;
 	private final Component parent;
@@ -334,28 +339,28 @@ public class DocumentStructurePanel extends JPanel{
 		fileField.setText(documentRecord.getValue());
 
 		// SPHERICAL
-		String spherical = FLEFRecordUtils.getChildValue(documentRecord, "SPHERICAL");
+		String spherical = FLEFRecordHelper.getChildValue(documentRecord, "SPHERICAL");
 		sphericalCheckBox.setSelected("Y".equals(spherical));
 
 		// MAPPING
-		String mapping = FLEFRecordUtils.getChildValue(documentRecord, "MAPPING");
+		String mapping = FLEFRecordHelper.getChildValue(documentRecord, "MAPPING");
 		mappingCombo.setSelectedItem(StringUtils.defaultString(mapping));
 
 		// DESCRIPTION (0:1)
-		descriptionField.setText(FLEFRecordUtils.getChildValue(documentRecord, "DESCRIPTION"));
+		descriptionField.setText(FLEFRecordHelper.getChildValue(documentRecord, "DESCRIPTION"));
 
 		// EXTRACT (0:1)
-		FLEFRecord extract = FLEFRecordUtils.findChild(documentRecord, "EXTRACT");
+		FLEFRecord extract = FLEFRecordHelper.findChild(documentRecord, "EXTRACT");
 		if(extract != null){
 			extractArea.setText(extract.getValue());
-			String extractType = FLEFRecordUtils.getChildValue(extract, "TYPE");
+			String extractType = FLEFRecordHelper.getChildValue(extract, "TYPE");
 			extractTypeCombo.setSelectedItem(StringUtils.defaultString(extractType));
-			String extractLocale = FLEFRecordUtils.getChildValue(extract, "LOCALE");
+			String extractLocale = FLEFRecordHelper.getChildValue(extract, "LOCALE");
 			extractLocaleField.setText(StringUtils.defaultString(extractLocale));
 		}
 
 		// RESTRICTION (0:1)
-		String restriction = FLEFRecordUtils.getChildValue(documentRecord, "RESTRICTION");
+		String restriction = FLEFRecordHelper.getChildValue(documentRecord, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		// NOTE (0:M)
@@ -391,7 +396,7 @@ public class DocumentStructurePanel extends JPanel{
 		}
 
 		// Clear existing children
-		FLEFRecordUtils.removeAllChildren(documentRecord);
+		FLEFRecordHelper.removeAllChildren(documentRecord);
 
 		// FILE
 		String file = fileField.getText().trim();
@@ -401,16 +406,16 @@ public class DocumentStructurePanel extends JPanel{
 
 		// SPHERICAL
 		if(sphericalCheckBox.isSelected()){
-			FLEFRecordUtils.updateChildValue(documentRecord, "SPHERICAL", "Y");
+			FLEFRecordHelper.updateChildValue(documentRecord, "SPHERICAL", "Y");
 		}
 
 		// MAPPING (0:1)
 		String mapping = (String)mappingCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(documentRecord, "MAPPING", mapping);
+		FLEFRecordHelper.updateChildValue(documentRecord, "MAPPING", mapping);
 
 		// DESCRIPTION (0:1)
 		String description = descriptionField.getText().trim();
-		FLEFRecordUtils.updateChildValue(documentRecord, "DESCRIPTION", description);
+		FLEFRecordHelper.updateChildValue(documentRecord, "DESCRIPTION", description);
 
 		// EXTRACT (0:1) with its children
 		String extractText = extractArea.getText().trim();
@@ -419,18 +424,18 @@ public class DocumentStructurePanel extends JPanel{
 			documentRecord.addChild(extract);
 
 			String extractType = (String)extractTypeCombo.getSelectedItem();
-			FLEFRecordUtils.updateChildValue(extract, "TYPE", extractType);
+			FLEFRecordHelper.updateChildValue(extract, "TYPE", extractType);
 			String extractLocale = extractLocaleField.getText().trim();
-			FLEFRecordUtils.updateChildValue(extract, "LOCALE", extractLocale);
+			FLEFRecordHelper.updateChildValue(extract, "LOCALE", extractLocale);
 		}
 
 		// RESTRICTION (0:1)
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		FLEFRecordUtils.updateChildValue(documentRecord, "RESTRICTION", restriction);
+		FLEFRecordHelper.updateChildValue(documentRecord, "RESTRICTION", restriction);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(documentRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(documentRecord, "NOTE", id);
 		}
 
 		return documentRecord;

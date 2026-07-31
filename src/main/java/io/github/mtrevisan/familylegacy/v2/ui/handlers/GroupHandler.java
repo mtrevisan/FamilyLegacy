@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -120,11 +120,11 @@ public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 		}
 
 		// Find NAME_STRUCTURE -> TEXT_VALUE -> VALUE
-		FLEFRecord nameStruct = FLEFRecordUtils.findChild(record, "NAME_STRUCTURE");
+		FLEFRecord nameStruct = FLEFRecordHelper.findChild(record, "NAME_STRUCTURE");
 		if(nameStruct != null){
-			FLEFRecord textValue = FLEFRecordUtils.findChild(nameStruct, "TEXT_VALUE");
+			FLEFRecord textValue = FLEFRecordHelper.findChild(nameStruct, "TEXT_VALUE");
 			if(textValue != null){
-				String value = FLEFRecordUtils.getChildValue(textValue, "VALUE");
+				String value = FLEFRecordHelper.getChildValue(textValue, "VALUE");
 				if(value != null && !value.isEmpty()){
 					return value;
 				}

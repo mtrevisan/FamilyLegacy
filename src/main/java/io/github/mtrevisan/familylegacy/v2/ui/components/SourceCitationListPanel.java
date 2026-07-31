@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -90,7 +90,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentDialog, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				result[0] = FLEFRecord.createChildWithValue("SOURCE", FLEFRecordUtils.formatXRef(selectedId));
+				result[0] = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(selectedId));
 			}
 		});
 		dialog.setVisible(true);
@@ -136,7 +136,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 
 		if(newSourceId != null){
-			FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", FLEFRecordUtils.formatXRef(newSourceId));
+			FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(newSourceId));
 			SourceCitationDialog citationDialog = new SourceCitationDialog(parentDialog, model, citationRecord);
 			citationDialog.setVisible(true);
 

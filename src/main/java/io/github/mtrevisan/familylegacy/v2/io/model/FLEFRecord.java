@@ -45,7 +45,6 @@ public class FLEFRecord{
 	private String value;
 
 	private final List<FLEFRecord> children = new ArrayList<>();
-	private int lineCount;
 
 
 	public static FLEFRecord createMainRecord(final String id, final String type){
@@ -77,7 +76,7 @@ public class FLEFRecord{
 
 
 	public String getId(){
-		return FLEFRecordUtils.extractXRef(id);
+		return XRefHelper.extractXRef(id);
 	}
 
 	public String getFormattedId(){
@@ -85,7 +84,7 @@ public class FLEFRecord{
 	}
 
 	public void setId(final String id){
-		this.id = FLEFRecordUtils.formatXRef(id);
+		this.id = XRefHelper.formatXRef(id);
 	}
 
 	public String getTag(){
@@ -152,14 +151,6 @@ public class FLEFRecord{
 		return (id != null && !id.isEmpty() || value != null && !value.isEmpty() || !children.isEmpty());
 	}
 
-	public int getLineCount(){
-		return lineCount;
-	}
-
-	public void setLineCount(final int lineCount){
-		this.lineCount = lineCount;
-	}
-
 	/**
 	 * Find the first child with a given tag.
 	 */
@@ -203,14 +194,14 @@ public class FLEFRecord{
 	 * (i.e. wrapped in @...@, but not the special @VOID@ constant).
 	 */
 	public boolean isReference(){
-		return FLEFRecordUtils.isReference(value);
+		return XRefHelper.isReference(value);
 	}
 
 	/**
 	 * Checks whether this record's value is the special @VOID@ constant.
 	 */
 	public boolean isVoid(){
-		return FLEFRecordUtils.isVoidReference(value);
+		return XRefHelper.isVoidReference(value);
 	}
 
 	/**
@@ -218,7 +209,7 @@ public class FLEFRecord{
 	 * (without the surrounding @ symbols). Otherwise returns {@code null}.
 	 */
 	public String getReferenceId(){
-		return FLEFRecordUtils.extractXRef(value);
+		return XRefHelper.extractXRef(value);
 	}
 
 	@Override

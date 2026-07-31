@@ -1,10 +1,12 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,6 +34,10 @@ import java.awt.FlowLayout;
  * +1 MARGIN <DURATION>    {0:1}
  */
 public class ApproximatePanel extends JPanel{
+
+	static{
+		HandlerRegistry.register(new CulturalNormHandler());
+	}
 
 	private final Dialog parentDialog;
 
@@ -139,16 +145,16 @@ public class ApproximatePanel extends JPanel{
 	public void loadFromRecord(FLEFRecord record){
 		clear();
 
-		final FLEFRecord approxRecord = FLEFRecordUtils.findChild(record, path);
+		final FLEFRecord approxRecord = FLEFRecordHelper.findChild(record, path);
 		if(approxRecord == null)
 			return;
 
 		approximateCheck.setSelected(true);
 
-		String basis = FLEFRecordUtils.getChildValue(approxRecord, "BASIS");
+		String basis = FLEFRecordHelper.getChildValue(approxRecord, "BASIS");
 		basisCombo.setSelectedItem(StringUtils.defaultString(basis));
 
-		String normId = FLEFRecordUtils.getChildValue(approxRecord, "CULTURAL_NORM");
+		String normId = FLEFRecordHelper.getChildValue(approxRecord, "CULTURAL_NORM");
 		if(normId != null){
 			culturalNormId = normId;
 			FLEFRecord rec = model != null? model.getRecordById(normId): null;
@@ -161,7 +167,7 @@ public class ApproximatePanel extends JPanel{
 			clearCulturalNormBtn.setEnabled(true);
 		}
 
-		String margin = FLEFRecordUtils.getChildValue(approxRecord, "MARGIN");
+		String margin = FLEFRecordHelper.getChildValue(approxRecord, "MARGIN");
 		marginField.setText(StringUtils.defaultString(margin));
 
 		updateEnabled();
@@ -186,7 +192,7 @@ public class ApproximatePanel extends JPanel{
 		}
 
 		if(culturalNormId != null && !culturalNormId.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue("CULTURAL_NORM", FLEFRecordUtils.formatXRef(culturalNormId)));
+			approx.addChild(FLEFRecord.createChildWithValue("CULTURAL_NORM", XRefHelper.formatXRef(culturalNormId)));
 		}
 
 		String margin = marginField.getText().trim();

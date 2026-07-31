@@ -22,6 +22,10 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 	private static final long serialVersionUID = -5998352597761066840L;
 
 
+	static{
+		HandlerRegistry.register(new PlaceHandler());
+	}
+
 	private final PlaceHandler placeHandler = new PlaceHandler();
 
 

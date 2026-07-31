@@ -22,7 +22,9 @@ public class EventListPanel extends AbstractListPanel<String>{
 	private static final long serialVersionUID = 4727208227799748736L;
 
 
-	private final EventHandler eventHandler = new EventHandler();
+	static{
+		HandlerRegistry.register(new EventHandler());
+	}
 
 
 	public EventListPanel(FLEFModel model, Dialog parentDialog){
@@ -33,7 +35,8 @@ public class EventListPanel extends AbstractListPanel<String>{
 	protected String getDisplay(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return eventHandler.getDisplayText(rec);
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(EventHandler.TYPE);
+			return handler.getDisplayText(rec);
 		}
 		return id;
 	}

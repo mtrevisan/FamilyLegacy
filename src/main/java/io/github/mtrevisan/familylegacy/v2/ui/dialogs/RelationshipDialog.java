@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -449,7 +449,7 @@ public class RelationshipDialog extends JDialog{
 
 	private void loadData(){
 		// SUBJECT
-		String subjectId = FLEFRecordUtils.getChildValue(existingCitation, "SUBJECT");
+		String subjectId = FLEFRecordHelper.getChildValue(existingCitation, "SUBJECT");
 		if(subjectId != null && !subjectId.isEmpty()){
 			selectSubject(subjectId);
 			if(prefilledSubjectId != null && prefilledSubjectId.equals(subjectId)){
@@ -464,7 +464,7 @@ public class RelationshipDialog extends JDialog{
 		}
 
 		// OBJECT
-		String objectId = FLEFRecordUtils.getChildValue(existingCitation, "OBJECT");
+		String objectId = FLEFRecordHelper.getChildValue(existingCitation, "OBJECT");
 		if(objectId != null && !objectId.isEmpty()){
 			selectObject(objectId);
 			if(prefilledObjectId != null && prefilledObjectId.equals(objectId)){
@@ -537,14 +537,14 @@ public class RelationshipDialog extends JDialog{
 
 		// ---- Manual fields: SUBJECT, OBJECT, NOTES ----
 		// SUBJECT
-		FLEFRecordUtils.updateChildValue(record, "SUBJECT", selectedSubjectId);
+		FLEFRecordHelper.updateChildValue(record, "SUBJECT", selectedSubjectId);
 		// OBJECT
-		FLEFRecordUtils.updateChildValue(record, "OBJECT", selectedObjectId);
+		FLEFRecordHelper.updateChildValue(record, "OBJECT", selectedObjectId);
 
 		// NOTE – remove all and re-add
-		FLEFRecordUtils.removeChildren(record, "NOTE");
+		FLEFRecordHelper.removeChildren(record, "NOTE");
 		for(String noteId : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", noteId);
+			FLEFRecordHelper.addChild(record, "NOTE", noteId);
 		}
 
 		// ---- Simple fields via binding manager (TYPE, ROLE, CREDIBILITY) ----

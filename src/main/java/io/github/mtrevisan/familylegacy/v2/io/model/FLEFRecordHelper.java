@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,13 +37,9 @@ import java.util.stream.Collectors;
  * Utility methods for working with FLEFRecord objects.
  * Provides common operations for finding, adding, and updating child records.
  */
-public final class FLEFRecordUtils{
+public final class FLEFRecordHelper{
 
 	private static final Pattern PATH_SEGMENT = Pattern.compile("([^.\\[]+)(?:\\[(\\d+)\\])?");
-
-	private static final String XREF_PREFIX = "@";
-	private static final String XREF_SUFFIX = "@";
-	private static final String XREF_VOID = "@VOID@";
 
 
 	private record Segment(String tag, int index){
@@ -60,7 +55,7 @@ public final class FLEFRecordUtils{
 	}
 
 
-	private FLEFRecordUtils(){}
+	private FLEFRecordHelper(){}
 
 
 	/**
@@ -348,121 +343,6 @@ public final class FLEFRecordUtils{
 			current = getNthChildOrCreate(current, seg);
 		}
 		return current;
-	}
-
-
-	/**
-	 * Copies a record and all its children, adjusting the level offset.
-	 *
-	 * @param source   the source record to copy
-	 * @param newLevel the new level for the root of the copied tree
-	 * @return a deep copy of the record with adjusted levels
-	 */
-	public static FLEFRecord copyRecordWithLevel(final FLEFRecord source, final int newLevel){
-		if(source == null)
-			return null;
-
-		final FLEFRecord copy = FLEFRecord.createChildWithValue(source.getTag(), source.getValue());
-		for(final FLEFRecord child : source.getChildren())
-			copy.addChild(copyRecordWithLevel(child, newLevel + 1));
-		return copy;
-	}
-
-
-	/**
-	 * Formats a raw ID into an XREF reference (e.g., "N123" -> "@N123@").
-	 * If the ID is already formatted or null/blank, it is handled safely.
-	 *
-	 * @param id	The raw ID to format.
-	 * @return	The formatted XREF string, or {@code null} if the input is blank.
-	 */
-	public static String formatXRef(final String id){
-		if(StringUtils.isEmpty(id))
-			return null;
-
-		return (id.startsWith(XREF_PREFIX) && id.endsWith(XREF_SUFFIX)
-			? id
-			: XREF_PREFIX + id + XREF_SUFFIX);
-	}
-
-	/**
-	 * Extracts the raw ID from an XREF reference (e.g., "@N123@" -> "N123").
-	 *
-	 * @param xref	The XREF string to strip.
-	 * @return	The unformatted raw ID, or the original string if not an XREF.
-	 */
-	public static String extractXRef(final String xref){
-		return (xref != null && xref.startsWith(XREF_PREFIX) && xref.endsWith(XREF_SUFFIX) && xref.length() >= 2
-			? xref.substring(1, xref.length() - 1)
-			: null);
-	}
-
-	/**
-	 * Checks whether this record's value is a reference to another record
-	 * (i.e. wrapped in {@code @...@}, but not the special {@code @VOID@} constant).
-	 *
-	 * @param value	The value.
-	 */
-	public static boolean isReference(final String value){
-		return (value != null && value.startsWith(XREF_PREFIX) && value.endsWith(XREF_SUFFIX)
-			&& !isVoidReference(value));
-	}
-
-	/**
-	 * Checks whether this record's value is the special {@code @VOID@} constant.
-	 *
-	 * @param value	The value.
-	 */
-	public static boolean isVoidReference(final String value){
-		return XREF_VOID.equals(value);
-	}
-
-	/**
-	 * Adds a child record representing a reference (XREF) to another record.
-	 * Automatically wraps the target ID with '@' delimiters.
-	 *
-	 * @param parent	The parent record.
-	 * @param tag	The tag for the child record (e.g., "NOTE", "INDIVIDUAL").
-	 * @param targetId	The raw target ID to reference.
-	 * @return	The created child record, or {@code null} if input parameters are invalid.
-	 */
-	public static FLEFRecord addReferenceChild(final FLEFRecord parent, final String tag, final String targetId){
-		if(parent == null || tag == null || targetId == null)
-			return null;
-
-		final FLEFRecord child = FLEFRecord.createChildWithValue(tag, formatXRef(targetId));
-		parent.addChild(child);
-		return child;
-	}
-
-	/**
-	 * Generates a new unique ID for a record type.
-	 *
-	 * @param model	The FLEF model.
-	 * @param type	The record type (e.g., "INDIVIDUAL", "FAMILY", "EVENT").
-	 * @param prefix	The ID prefix (e.g., "I", "F", "E").
-	 * @return	A new unique ID.
-	 */
-	public static String generateNewId(final FLEFModel model, final String type, final String prefix){
-		if(model == null || type == null || prefix == null)
-			return prefix + "1";
-
-		final int max = model.getRecordsByType(type).stream()
-			.map(FLEFRecord::getId)
-			.filter(Objects::nonNull)
-			.filter(id -> id.startsWith(prefix))
-			.mapToInt(id -> {
-				try{
-					return Integer.parseInt(id.substring(prefix.length()));
-				}
-				catch(final NumberFormatException ignored){
-					return 0;
-				}
-			})
-			.max()
-			.orElse(0);
-
-		return prefix + (max + 1);
 	}
 
 }

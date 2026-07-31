@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
@@ -125,7 +125,7 @@ public class RestrictionPanel extends JPanel{
 	 * @param record the RESTRICTION record, or {@code null}
 	 */
 	public void load(final FLEFRecord record){
-		final FLEFRecord restrictionStruct = FLEFRecordUtils.findChild(record, path);
+		final FLEFRecord restrictionStruct = FLEFRecordHelper.findChild(record, path);
 		if(restrictionStruct == null){
 			clear();
 
@@ -135,13 +135,13 @@ public class RestrictionPanel extends JPanel{
 		// ---- Load bound simple fields ----
 		bindingManager.load(restrictionStruct);
 
-		final String level = FLEFRecordUtils.getChildValue(restrictionStruct, "LEVEL");
+		final String level = FLEFRecordHelper.getChildValue(restrictionStruct, "LEVEL");
 		levelCombo.setSelectedItem(StringUtils.defaultString(level));
 
-		final String rationale = FLEFRecordUtils.getChildValue(restrictionStruct, "RATIONALE");
+		final String rationale = FLEFRecordHelper.getChildValue(restrictionStruct, "RATIONALE");
 		rationaleArea.setText(StringUtils.defaultString(rationale));
 
-		final String expires = FLEFRecordUtils.getChildValue(restrictionStruct, "EXPIRES");
+		final String expires = FLEFRecordHelper.getChildValue(restrictionStruct, "EXPIRES");
 		expiresField.setText(StringUtils.defaultString(expires));
 	}
 
@@ -156,7 +156,7 @@ public class RestrictionPanel extends JPanel{
 			return;
 
 		// Remove existing child
-		FLEFRecordUtils.removeChild(targetRecord, path);
+		FLEFRecordHelper.removeChild(targetRecord, path);
 
 		// ---- Save bound simple fields ----
 		bindingManager.save(targetRecord);

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -52,22 +53,22 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.0.
+ * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * CULTURAL_NORM_RECORD :=
- * n @<XREF:CULTURAL_NORM>@ CULTURAL_NORM    {1:1}
- *   +1 TITLE <CULTURAL_NORM_DESCRIPTIVE_TITLE>    {0:1}
- *   +1 <<PLACE_STRUCTURE>>    {0:1}
- *   +1 VALID_FROM    {0:1}
- *     +2 <<DATE_STRUCTURE>>    {1:1}
- *   +1 VALID_TO    {0:1}
- *     +2 <<DATE_STRUCTURE>>    {1:1}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * record CulturalNormRecord {
+ *   id: LocalID
+ *   title?: Text
+ *   rule_type?: enum { age_of_majority, naming_convention, inheritance_rule, marriage_minimum_age } | Text
+ *   place?: PlaceStructure
+ *   valid_from?: DateStructure
+ *   valid_to?: DateStructure
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   citation*: SourceCitation
+ *   evidence?: EvidenceQualifiers
+ *   modification: ModificationStructure
+ * }
  * </pre>
  */
 public class CulturalNormDialog extends BaseRecordDialog{
@@ -76,6 +77,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 950729006569948384L;
 
 	private static final String TAG_TITLE = "TITLE";
+	private static final String TAG_RULE_TYPE = "RULE_TYPE";
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
@@ -91,13 +93,14 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField titleField;
+	private final BoundComboBox<String> ruleTypeCombo;
 	private final PlaceField placeField;
 	private final EvidenceQualifiersPanel placeQualifiers;
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final NoteListPanel notePanel;
-	private final EvidenceQualifiersPanel qualifiers;
 	private final SourceCitationListPanel sourceCitationPanel;
+	private final EvidenceQualifiersPanel qualifiers;
 	private final ModificationPanel modificationPanel;
 
 
@@ -117,13 +120,14 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
 
 		titleField = new BoundTextField(TAG_TITLE, 30);
+		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{"age_of_majority", "naming_convention", "inheritance_rule", "marriage_minimum_age"});
 		placeField = PlaceField.create(TAG_PLACE, parent, model);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Evidence");
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To Date", model);
 		notePanel = new NoteListPanel(TAG_NOTE, model, this);
-		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
@@ -137,6 +141,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	protected void initComponents(){
 		bindingManager.bind(titleField);
+		bindingManager.bind(ruleTypeCombo);
 
 		setLayout(new MigLayout("fillx,top"));
 
@@ -156,6 +161,11 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		// title
 		mainPanel.add(new JLabel("Title:"), "align label");
 		mainPanel.add(titleField, "growx,wrap");
+
+		// rule type
+		ruleTypeCombo.setEditable(true);
+		mainPanel.add(new JLabel("Rule Type:"), "align label");
+		mainPanel.add(ruleTypeCombo, "growx, wrap");
 
 		// place
 		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]"));
@@ -201,8 +211,8 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		validFromField.load(record);
 		validToField.load(record);
 		notePanel.load(record);
-		qualifiers.load(record);
 		sourceCitationPanel.load(record);
+		qualifiers.load(record);
 		modificationPanel.load(record);
 	}
 
@@ -220,8 +230,8 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		validFromField.save(record);
 		validToField.save(record);
 		notePanel.save(record);
-		qualifiers.save(record);
 		sourceCitationPanel.save(record);
+		qualifiers.save(record);
 		modificationPanel.save(record);
 	}
 

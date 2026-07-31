@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -122,24 +122,24 @@ public class TranscribedTextPanel extends JPanel{
 		}
 
 		// PHONETIC (0:1)
-		FLEFRecord phonetic = FLEFRecordUtils.findChild(transRecord, "PHONETIC");
+		FLEFRecord phonetic = FLEFRecordHelper.findChild(transRecord, "PHONETIC");
 		if(phonetic != null){
 			phoneticSystemField.setText(phonetic.getValue());
-			FLEFRecord value = FLEFRecordUtils.findChild(phonetic, "VALUE");
+			FLEFRecord value = FLEFRecordHelper.findChild(phonetic, "VALUE");
 			if(value != null){
 				phoneticValueField.setText(value.getValue());
 			}
 		}
 
 		// TRANSCRIPTION (0:1)
-		FLEFRecord transcription = FLEFRecordUtils.findChild(transRecord, "TRANSCRIPTION");
+		FLEFRecord transcription = FLEFRecordHelper.findChild(transRecord, "TRANSCRIPTION");
 		if(transcription != null){
 			transcriptionSystemField.setText(transcription.getValue());
-			FLEFRecord type = FLEFRecordUtils.findChild(transcription, "TYPE");
+			FLEFRecord type = FLEFRecordHelper.findChild(transcription, "TYPE");
 			if(type != null){
 				transcriptionTypeCombo.setSelectedItem(type.getValue());
 			}
-			FLEFRecord value = FLEFRecordUtils.findChild(transcription, "VALUE");
+			FLEFRecord value = FLEFRecordHelper.findChild(transcription, "VALUE");
 			if(value != null){
 				transcriptionValueField.setText(value.getValue());
 			}
@@ -164,7 +164,7 @@ public class TranscribedTextPanel extends JPanel{
 		}
 
 		// Clear existing children
-		FLEFRecordUtils.removeAllChildren(transRecord);
+		FLEFRecordHelper.removeAllChildren(transRecord);
 
 		String phoneticSys = phoneticSystemField.getText().trim();
 		String phoneticVal = phoneticValueField.getText().trim();

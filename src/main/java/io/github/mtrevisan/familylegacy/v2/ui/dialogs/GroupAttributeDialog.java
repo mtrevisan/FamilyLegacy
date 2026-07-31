@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
@@ -453,30 +453,30 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		// GROUP
-		String groupId = FLEFRecordUtils.getChildValue(record, "GROUP");
+		String groupId = FLEFRecordHelper.getChildValue(record, "GROUP");
 		if(groupId != null && !groupId.isEmpty()){
 			selectGroup(groupId);
 		}
 
 		// TYPE
-		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
+		String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 		typeCombo.setSelectedItem(StringUtils.defaultString(type));
 
 		// VALUE
-		String value = FLEFRecordUtils.getChildValue(record, "VALUE");
+		String value = FLEFRecordHelper.getChildValue(record, "VALUE");
 		valueArea.setText(StringUtils.defaultString(value));
 
 		// DATE_STRUCTURE (simplified)
-		FLEFRecord dateStruct = FLEFRecordUtils.findChild(record, "DATE_STRUCTURE");
+		FLEFRecord dateStruct = FLEFRecordHelper.findChild(record, "DATE_STRUCTURE");
 		if(dateStruct != null){
-			FLEFRecord dateValue = FLEFRecordUtils.findChild(dateStruct, "DATE_VALUE");
+			FLEFRecord dateValue = FLEFRecordHelper.findChild(dateStruct, "DATE_VALUE");
 			if(dateValue != null){
 				// For simplicity, we read the first child's value
-				FLEFRecord qualified = FLEFRecordUtils.findChild(dateValue, "QUALIFIED_DATE");
+				FLEFRecord qualified = FLEFRecordHelper.findChild(dateValue, "QUALIFIED_DATE");
 				if(qualified != null){
-					FLEFRecord single = FLEFRecordUtils.findChild(qualified, "SINGLE_DATE");
+					FLEFRecord single = FLEFRecordHelper.findChild(qualified, "SINGLE_DATE");
 					if(single != null){
-						FLEFRecord fullDate = FLEFRecordUtils.findChild(single, "FULL_DATE");
+						FLEFRecord fullDate = FLEFRecordHelper.findChild(single, "FULL_DATE");
 						if(fullDate != null){
 							dateField.setText(fullDate.getValue());
 						}
@@ -486,27 +486,27 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		}
 
 		// VALID_FROM
-		FLEFRecord validFrom = FLEFRecordUtils.findChild(record, "VALID_FROM");
+		FLEFRecord validFrom = FLEFRecordHelper.findChild(record, "VALID_FROM");
 		if(validFrom != null){
-			FLEFRecord dateStructFrom = FLEFRecordUtils.findChild(validFrom, "DATE_STRUCTURE");
+			FLEFRecord dateStructFrom = FLEFRecordHelper.findChild(validFrom, "DATE_STRUCTURE");
 			if(dateStructFrom != null){
-				String fromDate = FLEFRecordUtils.getChildValue(dateStructFrom, "DATE");
+				String fromDate = FLEFRecordHelper.getChildValue(dateStructFrom, "DATE");
 				validFromField.setText(StringUtils.defaultString(fromDate));
 			}
 		}
 
 		// VALID_TO
-		FLEFRecord validTo = FLEFRecordUtils.findChild(record, "VALID_TO");
+		FLEFRecord validTo = FLEFRecordHelper.findChild(record, "VALID_TO");
 		if(validTo != null){
-			FLEFRecord dateStructTo = FLEFRecordUtils.findChild(validTo, "DATE_STRUCTURE");
+			FLEFRecord dateStructTo = FLEFRecordHelper.findChild(validTo, "DATE_STRUCTURE");
 			if(dateStructTo != null){
-				String toDate = FLEFRecordUtils.getChildValue(dateStructTo, "DATE");
+				String toDate = FLEFRecordHelper.getChildValue(dateStructTo, "DATE");
 				validToField.setText(StringUtils.defaultString(toDate));
 			}
 		}
 
 		// PLACE_STRUCTURE
-		FLEFRecord placeStruct = FLEFRecordUtils.findChild(record, "PLACE_STRUCTURE");
+		FLEFRecord placeStruct = FLEFRecordHelper.findChild(record, "PLACE_STRUCTURE");
 		if(placeStruct != null){
 			selectedPlaceId = placeStruct.getValue();
 			placeField.setText(StringUtils.defaultString(selectedPlaceId));
@@ -524,12 +524,12 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		}
 
 		// EVIDENCE_QUALIFIERS
-		FLEFRecord evidence = FLEFRecordUtils.findChild(record, "EVIDENCE_QUALIFIERS");
+		FLEFRecord evidence = FLEFRecordHelper.findChild(record, "EVIDENCE_QUALIFIERS");
 		if(evidence != null){
-			String certainty = FLEFRecordUtils.getChildValue(evidence, "CERTAINTY");
+			String certainty = FLEFRecordHelper.getChildValue(evidence, "CERTAINTY");
 			certaintyCombo.setSelectedItem(StringUtils.defaultString(certainty));
 
-			String credibility = FLEFRecordUtils.getChildValue(evidence, "CREDIBILITY");
+			String credibility = FLEFRecordHelper.getChildValue(evidence, "CREDIBILITY");
 			credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 		}
 
@@ -600,15 +600,15 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		// GROUP
-		FLEFRecordUtils.updateChildValue(record, "GROUP", selectedGroupId);
+		FLEFRecordHelper.updateChildValue(record, "GROUP", selectedGroupId);
 
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
+		FLEFRecordHelper.updateChildValue(record, "TYPE", type);
 
 		// VALUE
 		String value = valueArea.getText().trim();
-		FLEFRecordUtils.updateChildValue(record, "VALUE", value);
+		FLEFRecordHelper.updateChildValue(record, "VALUE", value);
 
 		// DATE_STRUCTURE (simplified)
 		String date = dateField.getText().trim();
@@ -674,8 +674,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		String credibility = (String)credibilityCombo.getSelectedItem();
 
 		if((certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty())){
-			FLEFRecordUtils.updateChildValue(record, "CERTAINTY", certainty);
-			FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
+			FLEFRecordHelper.updateChildValue(record, "CERTAINTY", certainty);
+			FLEFRecordHelper.updateChildValue(record, "CREDIBILITY", credibility);
 		}
 
 		// RESTRICTION_STRUCTURE

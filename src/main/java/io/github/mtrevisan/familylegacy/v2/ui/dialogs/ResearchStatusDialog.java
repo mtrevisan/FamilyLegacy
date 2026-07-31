@@ -24,9 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -319,11 +320,11 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(dialog.isSaved()){
 			FLEFRecord assocRecord = dialog.getAssociationRecord();
 			String value = assocRecord.getValue();
-			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(assocRecord.getFormattedId());
+			boolean isVoid = (XRefHelper.isVoidReference(value) || XRefHelper.isVoidReference(assocRecord.getFormattedId()));
 
 			AssociationEntry entry;
 			if(isVoid){
-				String name = FLEFRecordUtils.getChildValue(assocRecord, "NAME");
+				String name = FLEFRecordHelper.getChildValue(assocRecord, "NAME");
 				entry = new AssociationEntry(true, null, name, new ArrayList<>());
 			}
 			else{
@@ -373,11 +374,11 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getAssociationRecord();
 			String value = updated.getValue();
-			boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(updated.getFormattedId());
+			boolean isVoid = (XRefHelper.isVoidReference(value) || XRefHelper.isVoidReference(updated.getFormattedId()));
 
 			AssociationEntry entry;
 			if(isVoid){
-				String name = FLEFRecordUtils.getChildValue(updated, "NAME");
+				String name = FLEFRecordHelper.getChildValue(updated, "NAME");
 				entry = new AssociationEntry(true, null, name, new ArrayList<>());
 			}
 			else{
@@ -456,21 +457,21 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		idField.setText(record.getId());
 
 		// STATUS
-		String status = FLEFRecordUtils.getChildValue(record, "STATUS");
+		String status = FLEFRecordHelper.getChildValue(record, "STATUS");
 		statusCombo.setSelectedItem(StringUtils.defaultString(status));
 
 		// QUESTION
-		questionField.setText(FLEFRecordUtils.getChildValue(record, "QUESTION"));
+		questionField.setText(FLEFRecordHelper.getChildValue(record, "QUESTION"));
 
 		// PRIORITY
-		String priority = FLEFRecordUtils.getChildValue(record, "PRIORITY");
+		String priority = FLEFRecordHelper.getChildValue(record, "PRIORITY");
 		priorityCombo.setSelectedItem(StringUtils.defaultString(priority));
 
 		// DESCRIPTION
-		descriptionArea.setText(FLEFRecordUtils.getChildValue(record, "DESCRIPTION"));
+		descriptionArea.setText(FLEFRecordHelper.getChildValue(record, "DESCRIPTION"));
 
 		// RESOLUTION (0:1)
-		resolutionArea.setText(FLEFRecordUtils.getChildValue(record, "RESOLUTION"));
+		resolutionArea.setText(FLEFRecordHelper.getChildValue(record, "RESOLUTION"));
 
 		// ASSOCIATION (0:M)
 		associationEntries.clear();
@@ -478,11 +479,11 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		for(FLEFRecord child : record.getChildren()){
 			if("ASSOCIATION".equals(child.getTag())){
 				String value = child.getValue();
-				boolean isVoid = FLEFRecordUtils.isVoidReference(value) || FLEFRecordUtils.isVoidReference(child.getFormattedId());
+				boolean isVoid = (XRefHelper.isVoidReference(value) || XRefHelper.isVoidReference(child.getFormattedId()));
 
 				AssociationEntry entry;
 				if(isVoid){
-					String name = FLEFRecordUtils.getChildValue(child, "NAME");
+					String name = FLEFRecordHelper.getChildValue(child, "NAME");
 					entry = new AssociationEntry(true, null, name, new ArrayList<>());
 				}
 				else{
@@ -536,23 +537,23 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	protected void saveData(){
 		// STATUS
 		String status = (String)statusCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "STATUS", status);
+		FLEFRecordHelper.updateChildValue(record, "STATUS", status);
 
 		// QUESTION
 		String question = questionField.getText().trim();
-		FLEFRecordUtils.updateChildValue(record, "QUESTION", question);
+		FLEFRecordHelper.updateChildValue(record, "QUESTION", question);
 
 		// PRIORITY
 		String priority = (String)priorityCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "PRIORITY", priority);
+		FLEFRecordHelper.updateChildValue(record, "PRIORITY", priority);
 
 		// DESCRIPTION
 		String description = descriptionArea.getText().trim();
-		FLEFRecordUtils.updateChildValue(record, "DESCRIPTION", description);
+		FLEFRecordHelper.updateChildValue(record, "DESCRIPTION", description);
 
 		// RESOLUTION (0:1)
 		String resolution = resolutionArea.getText().trim();
-		FLEFRecordUtils.updateChildValue(record, "RESOLUTION", resolution);
+		FLEFRecordHelper.updateChildValue(record, "RESOLUTION", resolution);
 
 		// ASSOCIATION (0:M)
 		for(AssociationEntry entry : associationEntries){
@@ -579,7 +580,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 
 		// BLOCKED_BY (0:M)
 		for(String id : blockedByIds){
-			FLEFRecordUtils.addChild(record, "BLOCKED_BY", id);
+			FLEFRecordHelper.addChild(record, "BLOCKED_BY", id);
 		}
 
 		// MODIFICATION

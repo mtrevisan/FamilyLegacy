@@ -24,12 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TranscribedTextDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -82,6 +83,11 @@ public class ContactStructurePanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -4578408607463890901L;
+
+
+	static{
+		HandlerRegistry.register(new NoteHandler());
+	}
 
 
 	private final FLEFModel model;
@@ -253,8 +259,8 @@ public class ContactStructurePanel extends JPanel{
 
 
 	private String buildTranscriptionDisplay(FLEFRecord transRecord){
-		String phonetic = FLEFRecordUtils.getChildValue(transRecord, "PHONETIC");
-		String transcription = FLEFRecordUtils.getChildValue(transRecord, "TRANSCRIPTION");
+		String phonetic = FLEFRecordHelper.getChildValue(transRecord, "PHONETIC");
+		String transcription = FLEFRecordHelper.getChildValue(transRecord, "TRANSCRIPTION");
 		StringBuilder sb = new StringBuilder();
 		if(phonetic != null) sb.append("phonetic: ").append(phonetic);
 		if(transcription != null){
@@ -293,7 +299,7 @@ public class ContactStructurePanel extends JPanel{
 		if(parent == null)
 			return null;
 		// Find CALLER_ID under the parent (CONTACT)
-		FLEFRecord callerId = FLEFRecordUtils.findChild(parent, "CALLER_ID");
+		FLEFRecord callerId = FLEFRecordHelper.findChild(parent, "CALLER_ID");
 		if(callerId == null){
 			callerId = FLEFRecord.createChildWithValue("CALLER_ID", callerIdField.getText().trim());
 			parent.addChild(callerId);
@@ -446,11 +452,11 @@ public class ContactStructurePanel extends JPanel{
 		contactField.setText(contactRecord.getValue());
 
 		// TYPE
-		String type = FLEFRecordUtils.getChildValue(contactRecord, "TYPE");
+		String type = FLEFRecordHelper.getChildValue(contactRecord, "TYPE");
 		typeCombo.setSelectedItem(StringUtils.defaultString(type));
 
 		// CALLER_ID
-		FLEFRecord callerIdRecord = FLEFRecordUtils.findChild(contactRecord, "CALLER_ID");
+		FLEFRecord callerIdRecord = FLEFRecordHelper.findChild(contactRecord, "CALLER_ID");
 		if(callerIdRecord != null){
 			callerIdField.setText(callerIdRecord.getValue());
 
@@ -480,7 +486,7 @@ public class ContactStructurePanel extends JPanel{
 		}
 
 		// RESTRICTION
-		String restriction = FLEFRecordUtils.getChildValue(contactRecord, "RESTRICTION");
+		String restriction = FLEFRecordHelper.getChildValue(contactRecord, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		// MODIFICATION_STRUCTURE
@@ -505,7 +511,7 @@ public class ContactStructurePanel extends JPanel{
 		}
 
 		// Clear existing children
-		FLEFRecordUtils.removeAllChildren(contactRecord);
+		FLEFRecordHelper.removeAllChildren(contactRecord);
 
 		// CONTACT
 		String contact = contactField.getText().trim();
@@ -515,7 +521,7 @@ public class ContactStructurePanel extends JPanel{
 
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(contactRecord, "TYPE", type);
+		FLEFRecordHelper.updateChildValue(contactRecord, "TYPE", type);
 
 		// CALLER_ID (0:1) with its TRANSCRIBED_TEXT children
 		String callerId = callerIdField.getText().trim();
@@ -532,12 +538,12 @@ public class ContactStructurePanel extends JPanel{
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(contactRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(contactRecord, "NOTE", id);
 		}
 
 		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		FLEFRecordUtils.updateChildValue(contactRecord, "RESTRICTION", restriction);
+		FLEFRecordHelper.updateChildValue(contactRecord, "RESTRICTION", restriction);
 
 		// MODIFICATION_STRUCTURE
 		modificationPanel.save(contactRecord);

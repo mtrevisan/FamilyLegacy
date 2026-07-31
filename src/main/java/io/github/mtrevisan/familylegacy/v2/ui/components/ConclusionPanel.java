@@ -1,8 +1,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
@@ -199,7 +200,7 @@ public class ConclusionPanel extends JPanel{
 	public void load(FLEFRecord record){
 		clear();
 
-		final FLEFRecord conclusionRecord = FLEFRecordUtils.findChild(record, path);
+		final FLEFRecord conclusionRecord = FLEFRecordHelper.findChild(record, path);
 		if(conclusionRecord == null)
 			return;
 
@@ -213,7 +214,7 @@ public class ConclusionPanel extends JPanel{
 		resolvesPanel.setItems(resolves);
 
 		// PREFERRED
-		preferredId = FLEFRecordUtils.getChildValue(conclusionRecord, "PREFERRED");
+		preferredId = FLEFRecordHelper.getChildValue(conclusionRecord, "PREFERRED");
 		if(preferredId != null && !preferredId.isEmpty()){
 			preferredDisplayField.setText(preferredId);
 			clearPreferredBtn.setEnabled(true);
@@ -241,14 +242,14 @@ public class ConclusionPanel extends JPanel{
 			return null;
 
 		FLEFRecord record = target != null? target: FLEFRecord.createChild(path);
-		FLEFRecordUtils.removeAllChildren(record);
+		FLEFRecordHelper.removeAllChildren(record);
 
 		// Save bound fields
 		bindingManager.save(record);
 
 		// Save RESOLVES
 		for(String id : resolvesPanel.getItems()){
-			record.addChild(FLEFRecord.createChildWithValue("RESOLVES", FLEFRecordUtils.formatXRef(id)));
+			record.addChild(FLEFRecord.createChildWithValue("RESOLVES", XRefHelper.formatXRef(id)));
 		}
 
 		// Save PREFERRED
@@ -258,7 +259,7 @@ public class ConclusionPanel extends JPanel{
 
 		// Save RESEARCH
 		for(String id : researchPanel.getItems()){
-			record.addChild(FLEFRecord.createChildWithValue("RESEARCH", FLEFRecordUtils.formatXRef(id)));
+			record.addChild(FLEFRecord.createChildWithValue("RESEARCH", XRefHelper.formatXRef(id)));
 		}
 
 		// Save SOURCE_CITATION

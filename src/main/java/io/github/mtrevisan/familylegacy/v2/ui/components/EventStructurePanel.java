@@ -24,14 +24,19 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -97,6 +102,14 @@ public class EventStructurePanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = 4957059450168606708L;
+
+
+	static{
+		HandlerRegistry.register(new PlaceHandler());
+		HandlerRegistry.register(new NoteHandler());
+		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
+	}
 
 
 	private final FLEFModel model;
@@ -666,14 +679,14 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// DESCRIPTION (0:1)
-		descriptionArea.setText(FLEFRecordUtils.getChildValue(eventStructure, "DESCRIPTION"));
+		descriptionArea.setText(FLEFRecordHelper.getChildValue(eventStructure, "DESCRIPTION"));
 
 		// DATE_STRUCTURE (0:1)
-		FLEFRecord dateRecord = FLEFRecordUtils.findChild(eventStructure, "DATE");
+		FLEFRecord dateRecord = FLEFRecordHelper.findChild(eventStructure, "DATE");
 		datePanel.load(dateRecord);
 
 		// PLACE (0:1)
-		FLEFRecord place = FLEFRecordUtils.findChild(eventStructure, "PLACE");
+		FLEFRecord place = FLEFRecordHelper.findChild(eventStructure, "PLACE");
 		if(place != null){
 			String placeId = place.getValue();
 			if(placeId != null && !placeId.isEmpty()){
@@ -690,10 +703,10 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// AGENCY (0:1)
-		agencyField.setText(FLEFRecordUtils.getChildValue(eventStructure, "AGENCY"));
+		agencyField.setText(FLEFRecordHelper.getChildValue(eventStructure, "AGENCY"));
 
 		// CAUSE (0:1)
-		FLEFRecord cause = FLEFRecordUtils.findChild(eventStructure, "CAUSE");
+		FLEFRecord cause = FLEFRecordHelper.findChild(eventStructure, "CAUSE");
 		if(cause != null){
 			causeField.setText(cause.getValue());
 			causeQualifiers.load(cause);
@@ -735,7 +748,7 @@ public class EventStructurePanel extends JPanel{
 		eventQualifiers.load(eventStructure);
 
 		// RESTRICTION
-		String restriction = FLEFRecordUtils.getChildValue(eventStructure, "RESTRICTION");
+		String restriction = FLEFRecordHelper.getChildValue(eventStructure, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
 		// MODIFICATION_STRUCTURE
@@ -763,11 +776,11 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// Clear existing children
-		FLEFRecordUtils.removeAllChildren(eventStructure);
+		FLEFRecordHelper.removeAllChildren(eventStructure);
 
 		// DESCRIPTION (0:1)
 		String description = descriptionArea.getText().trim();
-		FLEFRecordUtils.updateChildValue(eventStructure, "DESCRIPTION", description);
+		FLEFRecordHelper.updateChildValue(eventStructure, "DESCRIPTION", description);
 
 		// DATE_STRUCTURE (0:1)
 		if(datePanel.hasData()){
@@ -780,17 +793,17 @@ public class EventStructurePanel extends JPanel{
 
 		// PLACE (0:1) with its children
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
-			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", FLEFRecordUtils.formatXRef(selectedPlaceId));
+			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", XRefHelper.formatXRef(selectedPlaceId));
 			eventStructure.addChild(place);
 			String placeCert = placeQualifiers.getCertainty();
-			FLEFRecordUtils.updateChildValue(place, "CERTAINTY", placeCert);
+			FLEFRecordHelper.updateChildValue(place, "CERTAINTY", placeCert);
 			String placeCred = placeQualifiers.getCredibility();
-			FLEFRecordUtils.updateChildValue(place, "CREDIBILITY", placeCred);
+			FLEFRecordHelper.updateChildValue(place, "CREDIBILITY", placeCred);
 		}
 
 		// AGENCY (0:1)
 		String agency = agencyField.getText().trim();
-		FLEFRecordUtils.updateChildValue(eventStructure, "AGENCY", agency);
+		FLEFRecordHelper.updateChildValue(eventStructure, "AGENCY", agency);
 
 		// CAUSE (0:1) with its children
 		String causeVal = causeField.getText().trim();
@@ -798,19 +811,19 @@ public class EventStructurePanel extends JPanel{
 			FLEFRecord cause = FLEFRecord.createChildWithValue("CAUSE", causeVal);
 			eventStructure.addChild(cause);
 			String causeCert = causeQualifiers.getCertainty();
-			FLEFRecordUtils.updateChildValue(cause, "CERTAINTY", causeCert);
+			FLEFRecordHelper.updateChildValue(cause, "CERTAINTY", causeCert);
 			String causeCred = causeQualifiers.getCredibility();
-			FLEFRecordUtils.updateChildValue(cause, "CREDIBILITY", causeCred);
+			FLEFRecordHelper.updateChildValue(cause, "CREDIBILITY", causeCred);
 		}
 
 		// CULTURAL_NORM (0:M)
 		for(String id : culturalNormIds){
-			FLEFRecordUtils.addChild(eventStructure, "CULTURAL_NORM", id);
+			FLEFRecordHelper.addChild(eventStructure, "CULTURAL_NORM", id);
 		}
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(eventStructure, "NOTE", id);
+			FLEFRecordHelper.addChild(eventStructure, "NOTE", id);
 		}
 
 		// SOURCE_CITATION (0:M)
@@ -822,13 +835,13 @@ public class EventStructurePanel extends JPanel{
 
 		// EVENT QUALIFIERS (CERTAINTY + CREDIBILITY for the event itself)
 		String eventCert = eventQualifiers.getCertainty();
-		FLEFRecordUtils.updateChildValue(eventStructure, "CERTAINTY", eventCert);
+		FLEFRecordHelper.updateChildValue(eventStructure, "CERTAINTY", eventCert);
 		String eventCred = eventQualifiers.getCredibility();
-		FLEFRecordUtils.updateChildValue(eventStructure, "CREDIBILITY", eventCred);
+		FLEFRecordHelper.updateChildValue(eventStructure, "CREDIBILITY", eventCred);
 
 		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		FLEFRecordUtils.updateChildValue(eventStructure, "RESTRICTION", restriction);
+		FLEFRecordHelper.updateChildValue(eventStructure, "RESTRICTION", restriction);
 
 		// MODIFICATION_STRUCTURE
 		modificationPanel.save(eventStructure);

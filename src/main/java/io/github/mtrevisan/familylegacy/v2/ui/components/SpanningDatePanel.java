@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -41,15 +41,14 @@ import java.io.Serial;
 /**
  * Panel for SPANNING date (duration).
  * <p>
- * Structure (real tags):
- * SPANNING
- * +1 FROM
- * (ISO | CENTURY | DECADE)
- * APPROXIMATE (optional)
- * +1 TO
- * (ISO | CENTURY | DECADE)
- * APPROXIMATE (optional)
- * <p>
+ * Structure:
+ * <pre>
+ * struct Spanning {
+ *   from?: QualifiedDate
+ *   to?: QualifiedDate
+ *   require one_of(from, to)
+ * }
+ * </pre>
  */
 public class SpanningDatePanel extends JPanel{
 
@@ -92,11 +91,11 @@ public class SpanningDatePanel extends JPanel{
 		if(record == null)
 			return;
 
-		final FLEFRecord from = FLEFRecordUtils.findChild(record, TAG_FROM);
+		final FLEFRecord from = FLEFRecordHelper.findChild(record, TAG_FROM);
 		if(from != null)
 			fromPanel.load(from);
 
-		final FLEFRecord to = FLEFRecordUtils.findChild(record, TAG_TO);
+		final FLEFRecord to = FLEFRecordHelper.findChild(record, TAG_TO);
 		if(to != null)
 			toPanel.load(to);
 	}

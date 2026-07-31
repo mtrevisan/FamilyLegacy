@@ -24,11 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -78,6 +80,11 @@ public class GroupCitationPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -6484848805034159063L;
 
+
+	static{
+		HandlerRegistry.register(new GroupHandler());
+		HandlerRegistry.register(new NoteHandler());
+	}
 
 	private final FLEFModel model;
 	private final Component parent;
@@ -317,7 +324,7 @@ public class GroupCitationPanel extends JPanel{
 		}
 
 		// ROLE (0:1)
-		roleField.setText(FLEFRecordUtils.getChildValue(citationRecord, "ROLE"));
+		roleField.setText(FLEFRecordHelper.getChildValue(citationRecord, "ROLE"));
 
 		// NOTE (0:M)
 		for(FLEFRecord child : citationRecord.getChildren()){
@@ -331,7 +338,7 @@ public class GroupCitationPanel extends JPanel{
 		}
 
 		// CREDIBILITY (0:1)
-		String credibility = FLEFRecordUtils.getChildValue(citationRecord, "CREDIBILITY");
+		String credibility = FLEFRecordHelper.getChildValue(citationRecord, "CREDIBILITY");
 		credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 	}
 
@@ -353,7 +360,7 @@ public class GroupCitationPanel extends JPanel{
 		}
 
 		// Clear existing children
-		FLEFRecordUtils.removeAllChildren(citationRecord);
+		FLEFRecordHelper.removeAllChildren(citationRecord);
 
 		// GROUP
 		if(selectedGroupId != null && !selectedGroupId.isEmpty()){
@@ -362,16 +369,16 @@ public class GroupCitationPanel extends JPanel{
 
 		// ROLE
 		String role = roleField.getText().trim();
-		FLEFRecordUtils.updateChildValue(citationRecord, "ROLE", role);
+		FLEFRecordHelper.updateChildValue(citationRecord, "ROLE", role);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(citationRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(citationRecord, "NOTE", id);
 		}
 
 		// CREDIBILITY (0:1)
 		String credibility = (String)credibilityCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(citationRecord, "CREDIBILITY", credibility);
+		FLEFRecordHelper.updateChildValue(citationRecord, "CREDIBILITY", credibility);
 
 		return citationRecord;
 	}

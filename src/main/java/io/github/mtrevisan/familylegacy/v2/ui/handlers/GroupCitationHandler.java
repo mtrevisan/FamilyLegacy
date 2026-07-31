@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupCitationDialog;
 
 import java.awt.Dialog;
@@ -62,7 +62,7 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 
 	@Override
 	public String getDisplayText(FLEFRecord record){
-		String groupId = FLEFRecordUtils.getChildValue(record, "GROUP");
+		String groupId = FLEFRecordHelper.getChildValue(record, "GROUP");
 		String id = record.getId();
 		if(groupId != null && !groupId.isEmpty()){
 			// Try to get the actual event type name from the model

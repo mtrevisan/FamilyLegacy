@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -254,12 +254,12 @@ public class ModificationPanel extends JPanel{
 		bindingManager.load(record);
 
 		// Find CREATION
-		final FLEFRecord creation = FLEFRecordUtils.findChild(record, "CREATION");
+		final FLEFRecord creation = FLEFRecordHelper.findChild(record, "CREATION");
 		if(creation != null){
-			creationDate = FLEFRecordUtils.getChildValue(creation, "DATE");
+			creationDate = FLEFRecordHelper.getChildValue(creation, "DATE");
 
 			// Load creation comment if present (non-standard, but we keep it)
-			final String comment = FLEFRecordUtils.getChildValue(creation, "COMMENT");
+			final String comment = FLEFRecordHelper.getChildValue(creation, "COMMENT");
 			creationCommentArea.setText(StringUtils.defaultString(comment));
 		}
 
@@ -268,8 +268,8 @@ public class ModificationPanel extends JPanel{
 		updateModel.clear();
 		for(final FLEFRecord child : record.getChildren())
 			if("UPDATE".equals(child.getTag())){
-				final String date = FLEFRecordUtils.getChildValue(child, "DATE");
-				final String comment = FLEFRecordUtils.getChildValue(child, "COMMENT");
+				final String date = FLEFRecordHelper.getChildValue(child, "DATE");
+				final String comment = FLEFRecordHelper.getChildValue(child, "COMMENT");
 				final UpdateEntry entry = new UpdateEntry(date, comment);
 				updateEntries.add(entry);
 				updateModel.addElement(entry);
@@ -285,13 +285,13 @@ public class ModificationPanel extends JPanel{
 		final FLEFRecord record = (targetRecord != null? targetRecord: FLEFRecord.createEmpty());
 
 		// Remove existing children
-		FLEFRecordUtils.removeChildren(record, "CREATION");
-		FLEFRecordUtils.removeChildren(record, "UPDATE");
+		FLEFRecordHelper.removeChildren(record, "CREATION");
+		FLEFRecordHelper.removeChildren(record, "UPDATE");
 
 		// CREATION
 		if(creationDate == null || creationDate.isEmpty())
 			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-		FLEFRecordUtils.addChild(record, "CREATION.DATE", creationDate);
+		FLEFRecordHelper.addChild(record, "CREATION.DATE", creationDate);
 
 		// ---- Save bound simple fields ----
 		bindingManager.save(record);
@@ -299,13 +299,13 @@ public class ModificationPanel extends JPanel{
 		// Save creation comment if present
 		final String creationComment = creationCommentArea.getText()
 			.trim();
-		FLEFRecordUtils.addChild(record, "CREATION.COMMENT", creationComment);
+		FLEFRecordHelper.addChild(record, "CREATION.COMMENT", creationComment);
 
 		// UPDATE entries
 		for(int i = 0, length = updateEntries.size(); i < length; i ++){
 			final UpdateEntry entry = updateEntries.get(i);
-			FLEFRecordUtils.addChild(record, "UPDATE[" + i + "].DATE", entry.date);
-			FLEFRecordUtils.addChild(record, "UPDATE[" + i + "].COMMENT", entry.comment);
+			FLEFRecordHelper.addChild(record, "UPDATE[" + i + "].DATE", entry.date);
+			FLEFRecordHelper.addChild(record, "UPDATE[" + i + "].COMMENT", entry.comment);
 		}
 	}
 

@@ -22,7 +22,9 @@ public class CulturalNormListPanel extends AbstractListPanel<String>{
 	private static final long serialVersionUID = -4182038208327584807L;
 
 
-	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
+	static{
+		HandlerRegistry.register(new CulturalNormHandler());
+	}
 
 
 	public CulturalNormListPanel(FLEFModel model, Dialog parentDialog){
@@ -34,7 +36,8 @@ public class CulturalNormListPanel extends AbstractListPanel<String>{
 	protected String getDisplay(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return culturalNormHandler.getDisplayText(rec);
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
+			return handler.getDisplayText(rec);
 		}
 		return id;
 	}

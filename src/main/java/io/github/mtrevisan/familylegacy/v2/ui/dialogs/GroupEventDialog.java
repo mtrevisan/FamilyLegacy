@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EventStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -296,7 +296,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		idField.setText(record.getId());
 
 		// TYPE
-		String typeId = FLEFRecordUtils.getChildValue(record, "TYPE");
+		String typeId = FLEFRecordHelper.getChildValue(record, "TYPE");
 		if(typeId != null && !typeId.isEmpty()){
 			selectedEventTypeId = typeId;
 			FLEFRecord rec = model.getRecordById(typeId);
@@ -309,7 +309,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		}
 
 		// EVENT_STRUCTURE (0:1)
-		FLEFRecord eventStruct = FLEFRecordUtils.findChild(record, "EVENT_STRUCTURE");
+		FLEFRecord eventStruct = FLEFRecordHelper.findChild(record, "EVENT_STRUCTURE");
 		eventStructurePanel.loadFromRecord(eventStruct);
 
 		// GROUP (0:M)
@@ -335,7 +335,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		// TYPE
-		FLEFRecordUtils.updateChildValue(record, "TYPE", selectedEventTypeId);
+		FLEFRecordHelper.updateChildValue(record, "TYPE", selectedEventTypeId);
 
 		// EVENT_STRUCTURE
 		if(eventStructurePanel.hasData()){
@@ -348,7 +348,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 
 		// GROUP (0:M)
 		for(String id : groupIds){
-			FLEFRecordUtils.addChild(record, "GROUP", id);
+			FLEFRecordHelper.addChild(record, "GROUP", id);
 		}
 	}
 

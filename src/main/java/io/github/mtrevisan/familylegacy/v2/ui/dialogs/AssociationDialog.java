@@ -24,9 +24,10 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -521,13 +522,13 @@ public class AssociationDialog extends JDialog{
 
 	private void loadData(){
 		String value = existingAssociation.getValue();
-		boolean isVoidAssociation = FLEFRecordUtils.isVoidReference(value) ||
-			existingAssociation.getId() != null && FLEFRecordUtils.isVoidReference(existingAssociation.getFormattedId());
+		boolean isVoidAssociation = XRefHelper.isVoidReference(value) ||
+			existingAssociation.getId() != null && XRefHelper.isVoidReference(existingAssociation.getFormattedId());
 
 		if(isVoidAssociation){
 			voidRecordRadio.setSelected(true);
 			showCard("VOID");
-			voidNameField.setText(FLEFRecordUtils.getChildValue(existingAssociation, "NAME"));
+			voidNameField.setText(FLEFRecordHelper.getChildValue(existingAssociation, "NAME"));
 		}
 		else{
 			existingRecordRadio.setSelected(true);
@@ -550,7 +551,7 @@ public class AssociationDialog extends JDialog{
 			record.setId("VOID");
 			record.setValue(null);
 			String name = voidNameField.getText().trim();
-			FLEFRecordUtils.removeChildren(record, "NAME");
+			FLEFRecordHelper.removeChildren(record, "NAME");
 			if(!name.isEmpty()){
 				FLEFRecord nameChild = FLEFRecord.createChildWithValue("NAME", name);
 				record.addChild(nameChild);
@@ -564,15 +565,15 @@ public class AssociationDialog extends JDialog{
 		}
 
 		// NOTE references
-		FLEFRecordUtils.removeChildren(record, "NOTE");
+		FLEFRecordHelper.removeChildren(record, "NOTE");
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", id);
+			FLEFRecordHelper.addChild(record, "NOTE", id);
 		}
 
 		// SOURCE_CITATION references
-		FLEFRecordUtils.removeChildren(record, "SOURCE");
+		FLEFRecordHelper.removeChildren(record, "SOURCE");
 		for(String id : sourceIds){
-			FLEFRecordUtils.addChild(record, "SOURCE", id);
+			FLEFRecordHelper.addChild(record, "SOURCE", id);
 		}
 
 		return record;

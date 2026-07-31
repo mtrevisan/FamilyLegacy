@@ -1,8 +1,9 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -127,7 +128,7 @@ public class PlaceStructureDialog extends JDialog{
 		final GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
 			this, model, sourceHandler, selectedId -> {
 			if(selectedId != null){
-				final FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", FLEFRecordUtils.formatXRef(selectedId));
+				final FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(selectedId));
 				sourceCitations.add(citation);
 				sourceListModel.addElement(getSourceCitationDisplay(citation));
 			}
@@ -156,7 +157,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		if(newSourceId != null){
-			final FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", FLEFRecordUtils.formatXRef(newSourceId));
+			final FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(newSourceId));
 			final SourceCitationDialog citationDialog = new SourceCitationDialog(this, model, citationRecord);
 			citationDialog.setVisible(true);
 
@@ -178,7 +179,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		final FLEFRecord citation = sourceCitations.get(idx);
-		final String rawId = FLEFRecordUtils.extractXRef(citation.getValue());
+		final String rawId = XRefHelper.extractXRef(citation.getValue());
 		final FLEFRecord rec = model.getRecordById(rawId);
 		if(rec == null){
 			JOptionPane.showMessageDialog(this, "Source record not found: " + rawId, "Error", JOptionPane.ERROR_MESSAGE);
@@ -223,7 +224,7 @@ public class PlaceStructureDialog extends JDialog{
 	}
 
 	private String getSourceCitationDisplay(final FLEFRecord citation){
-		final String rawSourceId = FLEFRecordUtils.extractXRef(citation.getValue());
+		final String rawSourceId = XRefHelper.extractXRef(citation.getValue());
 		if(rawSourceId != null){
 			final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 			final FLEFRecord record = model.getRecordById(rawSourceId);
@@ -252,7 +253,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		// Rebuild children
-		FLEFRecordUtils.removeAllChildren(placeRecord);
+		FLEFRecordHelper.removeAllChildren(placeRecord);
 		for(final FLEFRecord citation : sourceCitations){
 			citation.setTag("SOURCE");
 			placeRecord.addChild(citation);
@@ -262,8 +263,8 @@ public class PlaceStructureDialog extends JDialog{
 		String placeCert = qualifiers.getCertainty();
 		String placeCred = qualifiers.getCredibility();
 		if((placeCert != null && !placeCert.isEmpty()) || (placeCred != null && !placeCred.isEmpty())){
-			FLEFRecordUtils.updateChildValue(placeRecord, "CERTAINTY", placeCert);
-			FLEFRecordUtils.updateChildValue(placeRecord, "CREDIBILITY", placeCred);
+			FLEFRecordHelper.updateChildValue(placeRecord, "CERTAINTY", placeCert);
+			FLEFRecordHelper.updateChildValue(placeRecord, "CREDIBILITY", placeCred);
 		}
 
 		saved = true;

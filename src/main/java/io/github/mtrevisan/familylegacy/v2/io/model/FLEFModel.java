@@ -15,6 +15,7 @@ public class FLEFModel{
 
 	private FLEFRecord header;
 	private final List<FLEFRecord> records = new ArrayList<>();
+
 	private final Map<String, List<FLEFRecord>> recordsByType = new HashMap<>();
 	private final Map<String, FLEFRecord> recordsById = new HashMap<>();
 
@@ -35,11 +36,12 @@ public class FLEFModel{
 		if(record == null)
 			return;
 
-		final String cleanId = record.getId(); // Already extracts XRef via FLEFRecordUtils
+		final String cleanId = record.getId();
 		if(cleanId != null){
 			if(recordsById.containsKey(cleanId))
 				// Optionally remove existing record to allow replacement/update
 				removeRecord(cleanId);
+
 			recordsById.put(cleanId, record);
 		}
 
@@ -56,18 +58,20 @@ public class FLEFModel{
 		if(id == null)
 			return null;
 
-		return recordsById.get(FLEFRecordUtils.extractXRef(id));
+		final String cleanId = XRefHelper.extractXRef(id);
+		return recordsById.get(cleanId);
 	}
 
 	public void removeRecord(final String id){
 		if(id == null)
 			return;
 
-		final String cleanId = FLEFRecordUtils.extractXRef(id);
+		final String cleanId = XRefHelper.extractXRef(id);
 		final FLEFRecord record = recordsById.remove(cleanId);
 
 		if(record != null){
 			records.remove(record);
+
 			final String type = record.getTag();
 			final List<FLEFRecord> list = recordsByType.get(type);
 			if(list != null){
@@ -82,7 +86,8 @@ public class FLEFModel{
 		if(id == null)
 			return false;
 
-		return recordsById.containsKey(FLEFRecordUtils.extractXRef(id));
+		final String cleanId = XRefHelper.extractXRef(id);
+		return recordsById.containsKey(cleanId);
 	}
 
 	public int getRecordCount(){
@@ -93,10 +98,11 @@ public class FLEFModel{
 		return recordsByType.keySet();
 	}
 
+
 	@Override
 	public String toString(){
 		return "FLEFModel{" +
-			"header=" + (header != null ? header.getTag() : "null") +
+			"header=" + (header != null? header.getTag(): "null") +
 			", records=" + records.size() +
 			'}';
 	}

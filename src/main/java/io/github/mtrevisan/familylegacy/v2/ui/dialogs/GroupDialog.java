@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
@@ -86,22 +86,25 @@ import java.util.Set;
 
 /* ONGOING */
 /**
- * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.0.
+ * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * GROUP_RECORD :=
- * n @<XREF:GROUP>@ GROUP    {1:1}
- *   +1 <<NAME_STRUCTURE>>    {0:M}
- *   +1 TYPE <GROUP_TYPE>    {0:1}
- *   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 PREFERRED_IMAGE <RESOURCE_URI>    {0:1}
- *     +2 CROP <CROP_COORDINATES>    {0:1}
- *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
- *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * record GroupRecord {
+ *   id: LocalID
+ *   name*: NameStructure
+ *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
+ *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   citation*: SourceCitation
+ *   preferred_image?: struct {
+ *     uri: Uri
+ *     crop?: CropCoord
+ *   }
+ *   restriction?: RestrictionStructure
+ *   conclusion*: Xref&lt;ConclusionRecord&gt;
+ *   modification: ModificationStructure
+ * }
  * </pre>
  */
 public class GroupDialog extends BaseRecordDialog{
@@ -111,21 +114,21 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_DOCUMENT_STRUCTURE = "DOCUMENT_STRUCTURE";
-	private static final String TAG_FILE = "FILE";
+	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
+	private static final String TAG_URI = "URI";
+	private static final String TAG_CROP = "CROP";
+	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_ROLE = "ROLE";
 	private static final String TAG_SUBJECT = "SUBJECT";
 	private static final String TAG_EVENT = "EVENT";
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
-	private static final String TAG_CROP = "CROP";
 
 
 	static{
@@ -385,11 +388,7 @@ public class GroupDialog extends BaseRecordDialog{
 		if(source == null)
 			return null;
 
-		final FLEFRecord doc = FLEFRecordUtils.findChild(source, TAG_DOCUMENT_STRUCTURE);
-		if(doc == null)
-			return null;
-
-		final String filePath = FLEFRecordUtils.getChildValue(doc, TAG_FILE);
+		final String filePath = FLEFRecordHelper.getChildValue(source, TAG_URI);
 		if(filePath == null || filePath.isEmpty())
 			return null;
 
@@ -618,8 +617,8 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	private String getRelationshipDisplay(final FLEFRecord relationship){
-		final String objectId = FLEFRecordUtils.getChildValue(relationship, TAG_OBJECT);
-		final String role = FLEFRecordUtils.getChildValue(relationship, TAG_ROLE);
+		final String objectId = FLEFRecordHelper.getChildValue(relationship, TAG_OBJECT);
+		final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
 		final StringBuilder display = new StringBuilder();
 		if(objectId != null){
 			final FLEFRecord obj = model.getRecordById(objectId);
@@ -638,8 +637,8 @@ public class GroupDialog extends BaseRecordDialog{
 	}
 
 	private boolean isMemberRelationship(final FLEFRecord relationship){
-		final String subjectId = FLEFRecordUtils.getChildValue(relationship, TAG_SUBJECT);
-		final String objectId = FLEFRecordUtils.getChildValue(relationship, TAG_OBJECT);
+		final String subjectId = FLEFRecordHelper.getChildValue(relationship, TAG_SUBJECT);
+		final String objectId = FLEFRecordHelper.getChildValue(relationship, TAG_OBJECT);
 		final String groupId = getGroupId();
 		if(groupId == null)
 			return false;
@@ -717,10 +716,10 @@ public class GroupDialog extends BaseRecordDialog{
 		sourcePanel.load(record);
 
 		// Preferred Image
-		final FLEFRecord pref = FLEFRecordUtils.findChild(record, TAG_PREFERRED_IMAGE);
+		final FLEFRecord pref = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE);
 		if(pref != null){
 			preferredImageId = pref.getValue();
-			preferredImageCrop = FLEFRecordUtils.getChildValue(pref, TAG_CROP);
+			preferredImageCrop = FLEFRecordHelper.getChildValue(pref, TAG_CROP);
 			updateImageButton(preferredImageId);
 		}
 		else
@@ -754,7 +753,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 		// CULTURAL_NORM
 		for(final String id : culturalNormPanel.getItems())
-			FLEFRecordUtils.addChild(record, TAG_CULTURAL_NORM, id);
+			FLEFRecordHelper.addChild(record, TAG_CULTURAL_NORM, id);
 
 		// NOTE
 		notePanel.save(record);
@@ -767,7 +766,7 @@ public class GroupDialog extends BaseRecordDialog{
 			final FLEFRecord pref = FLEFRecord.createChildWithValue(TAG_PREFERRED_IMAGE, preferredImageId);
 			record.addChild(pref);
 			if(preferredImageCrop != null && !preferredImageCrop.isEmpty())
-				FLEFRecordUtils.updateChildValue(pref, TAG_CROP, preferredImageCrop);
+				FLEFRecordHelper.updateChildValue(pref, TAG_CROP, preferredImageCrop);
 		}
 
 		// RESTRICTION

@@ -22,6 +22,10 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	private static final long serialVersionUID = 8660802930133158028L;
 
 
+	static{
+		HandlerRegistry.register(new ResearchStatusHandler());
+	}
+
 	private final ResearchStatusHandler researchHandler = new ResearchStatusHandler();
 
 

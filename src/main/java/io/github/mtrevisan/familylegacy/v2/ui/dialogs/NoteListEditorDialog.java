@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -230,7 +230,7 @@ public class NoteListEditorDialog extends JDialog{
 
 		// Add the current note list as new children
 		for(String id : noteIds){
-			FLEFRecord noteChild = FLEFRecord.createChildWithValue("NOTE", FLEFRecordUtils.formatXRef(id));
+			FLEFRecord noteChild = FLEFRecord.createChildWithValue("NOTE", XRefHelper.formatXRef(id));
 			ownerRecord.addChild(noteChild);
 		}
 	}

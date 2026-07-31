@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
@@ -190,8 +190,8 @@ public class NoteDialog extends BaseRecordDialog{
 		final List<TranslationEntry> translations = new ArrayList<>();
 		for(final FLEFRecord child : record.getChildren())
 			if("TRANSLATION".equals(child.getTag())){
-				final String translationLocale = FLEFRecordUtils.getChildValue(child, "LOCALE");
-				final String translationValue = FLEFRecordUtils.getChildValue(child, "VALUE");
+				final String translationLocale = FLEFRecordHelper.getChildValue(child, "LOCALE");
+				final String translationValue = FLEFRecordHelper.getChildValue(child, "VALUE");
 				if(StringUtils.isNotEmpty(translationValue))
 					translations.add(new TranslationEntry(translationLocale, translationValue));
 			}
@@ -227,9 +227,9 @@ public class NoteDialog extends BaseRecordDialog{
 		final List<TranslationEntry> translations = translationPanel.getItems();
 		for(int i = 0; i < translations.size(); i ++){
 			final TranslationEntry entry = translations.get(i);
-			FLEFRecordUtils.addChild(record, "TRANSLATION[" + i + "].VALUE", entry.getValue());
+			FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].VALUE", entry.getValue());
 			if(StringUtils.isNotEmpty(entry.getLocale()))
-				FLEFRecordUtils.addChild(record, "TRANSLATION[" + i + "].LOCALE", entry.getLocale());
+				FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].LOCALE", entry.getLocale());
 		}
 
 		// Source Citations

@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -117,17 +117,17 @@ public class DateFieldPanel extends JPanel{
 			return StringUtils.EMPTY;
 
 		// Check for POINT
-		final FLEFRecord value = FLEFRecordUtils.findChild(dateNode, "POINT");
+		final FLEFRecord value = FLEFRecordHelper.findChild(dateNode, "POINT");
 		if(value != null)
 			return extractSingleDate(value);
 
 		// Check for BOUNDED
-		final FLEFRecord bounded = FLEFRecordUtils.findChild(dateNode, "BOUNDED");
+		final FLEFRecord bounded = FLEFRecordHelper.findChild(dateNode, "BOUNDED");
 		if(bounded != null)
 			return extractBoundedSummary(bounded);
 
 		// Check for SPANNING
-		final FLEFRecord spanning = FLEFRecordUtils.findChild(dateNode, "SPANNING");
+		final FLEFRecord spanning = FLEFRecordHelper.findChild(dateNode, "SPANNING");
 		if(spanning != null)
 			return extractSpanningSummary(spanning);
 
@@ -144,10 +144,10 @@ public class DateFieldPanel extends JPanel{
 			return "[empty]";
 
 		// Check for APPROXIMATE (direct child of the node)
-		final FLEFRecord approx = FLEFRecordUtils.findChild(node, "APPROXIMATE");
+		final FLEFRecord approx = FLEFRecordHelper.findChild(node, "APPROXIMATE");
 		if(approx != null){
-			final String basis = FLEFRecordUtils.getChildValue(approx, "BASIS");
-			final String margin = FLEFRecordUtils.getChildValue(approx, "MARGIN");
+			final String basis = FLEFRecordHelper.getChildValue(approx, "BASIS");
+			final String margin = FLEFRecordHelper.getChildValue(approx, "MARGIN");
 			if(basis != null || margin != null){
 				dateStr.append(" (approx");
 				if(basis != null)
@@ -166,22 +166,22 @@ public class DateFieldPanel extends JPanel{
 	 * Extracts the actual date value from FULL_DATE, CENTURY, or DECADE (including CALENDAR).
 	 */
 	private static String extractDateValue(final FLEFRecord parent){
-		final FLEFRecord fullDate = FLEFRecordUtils.findChild(parent, "FULL_DATE");
+		final FLEFRecord fullDate = FLEFRecordHelper.findChild(parent, "FULL_DATE");
 		if(fullDate != null && fullDate.getValue() != null){
-			final String calendar = FLEFRecordUtils.getChildValue(fullDate, "CALENDAR");
+			final String calendar = FLEFRecordHelper.getChildValue(fullDate, "CALENDAR");
 			return fullDate.getValue() + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
 		}
 
-		final FLEFRecord decade = FLEFRecordUtils.findChild(parent, "DECADE");
+		final FLEFRecord decade = FLEFRecordHelper.findChild(parent, "DECADE");
 		if(decade != null && decade.getValue() != null){
-			final String calendar = FLEFRecordUtils.getChildValue(decade, "CALENDAR");
+			final String calendar = FLEFRecordHelper.getChildValue(decade, "CALENDAR");
 			return decade.getValue() + "s" + (calendar != null? " (" + calendar + ")": StringUtils.EMPTY);
 		}
 
-		final FLEFRecord century = FLEFRecordUtils.findChild(parent, "CENTURY");
+		final FLEFRecord century = FLEFRecordHelper.findChild(parent, "CENTURY");
 		if(century != null && century.getValue() != null){
-			final String part = FLEFRecordUtils.getChildValue(century, "PART");
-			final String calendar = FLEFRecordUtils.getChildValue(century, "CALENDAR");
+			final String part = FLEFRecordHelper.getChildValue(century, "PART");
+			final String calendar = FLEFRecordHelper.getChildValue(century, "CALENDAR");
 			String centuryStr = century.getValue() + "th century";
 			if(part != null)
 				centuryStr += " (" + part + ")";
@@ -222,7 +222,7 @@ public class DateFieldPanel extends JPanel{
 	 * The endpoint node contains ISO/CENTURY/DECADE and optional APPROXIMATE.
 	 */
 	private static String extractBoundEndpoint(FLEFRecord parent, String childTag){
-		FLEFRecord child = FLEFRecordUtils.findChild(parent, childTag);
+		FLEFRecord child = FLEFRecordHelper.findChild(parent, childTag);
 		if(child == null) return StringUtils.EMPTY;
 		return extractSingleDate(child);
 	}

@@ -1,25 +1,35 @@
 // PROTOCOL_VERSION = 0.1.1
-// PROTOCOL_DATE = 2026-07-30
-// PROTOCOL_SOURCE = localhost
+// PROTOCOL_DATE = 2026-07-31
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
+
+// ## Global Validation Rules
+// - LocalID values MUST be unique within a file.
+// - References MUST resolve to an existing record unless explicitly declared as VOID.
+// - Circular citation chains SHOULD be avoided.
+// - Place relationship cycles SHOULD be prevented.
+// - Identity hypotheses SHOULD be unique per unordered pair.
+// - blocked_by relationships SHOULD form a DAG.
+// - follow_up relationships SHOULD be acyclic.
+
 
 // ============================================================
 // Base scalar types
 // ============================================================
 
 alias Text           = string
-alias Date           = string   // calendar date, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
+alias Date           = string   // complete ISO 8601 calendar date, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
 alias HistoricalDate = string   // historical date, reduced precision forms are allowed, such as a year ("1894") or year-month ("1894-03"), as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601
 alias Duration       = string   // duration, as defined by ISO 8601, https://en.wikipedia.org/wiki/ISO_8601#Durations (e.g. "P2Y")
 alias Uri            = string   // resource URI, following RFC 3986 specifications, https://datatracker.ietf.org/doc/html/rfc3986
 alias LocaleCode     = string   // locale identifier, as defined by IETF BCP 47, https://tools.ietf.org/html/bcp47
-alias SemVer         = string   // as defined by Semantic Versioning (https://semver.org/)
-alias Coord          = string   // geographic coordinate, as defined by ISO 6709, https://en.wikipedia.org/wiki/ISO_6709
-alias UUID           = string   // unique identifier within the current file
+alias SemVer         = string   // as defined by Semantic Versioning, https://semver.org
+alias Coord          = string   // geographic coordinates, as defined by ISO 6709, https://en.wikipedia.org/wiki/ISO_6709
+alias LocalID        = string   // unique identifier within the current file
 alias Bool           = bool
 alias Int            = int
 
-// Top-left and bottom-right coordinates of the enclosing box inside an image.
+// Top-left and bottom-right coordinates (expressed in image pixels) of the enclosing box inside an image.
+// TOP_LEFT.x MUST be <= BOTTOM_RIGHT.x, TOP_LEFT.y MUST be <= BOTTOM_RIGHT.y.
 struct CropCoord {
   top_left: struct { x: Int, y: Int }
   bottom_right: struct { x: Int, y: Int }
@@ -62,6 +72,7 @@ Record = oneof {
 // Header
 // ============================================================
 
+// metadata
 struct Header {
   protocol: struct {
     name: Text        // the name of the protocol
@@ -88,10 +99,11 @@ struct Header {
 // Individual
 // ============================================================
 
+// primary record
 // A representation of a historical individual together with the facts, events, relationships, and evidence believed to apply to that individual.
 record IndividualRecord {
-  id: UUID
-  name*: PersonalNameStructure               // one or more names associated with this individual (birth name, married name, alias, etc.)
+  id: LocalID
+  name*: PersonalNameStructure               // names associated with this individual (birth name, married name, alias, etc.)
   sex?: enum { MALE, FEMALE, UNKNOWN }       // biological sex as recorded or inferred
   cultural_norm*: Xref<CulturalNormRecord>   // cultural norms that apply to this individual (e.g., naming conventions, age of majority)
   note*: Xref<NoteRecord>                    // free-text notes about this individual
@@ -101,10 +113,10 @@ record IndividualRecord {
     crop?: CropCoord   // specifies the portion of the image that should be displayed as the preferred representation
   }
   restriction?: RestrictionStructure         // privacy and distribution restrictions for this individual
-  conclusion*: Xref<ConclusionRecord>        // formal conclusions about this individual (e.g., resolution of birth date, death, or identity)
   modification: ModificationStructure        // creation and update metadata for this record
 }
 
+// embedded
 // A structured personal name composed of one or more name parts. This structure is intended to support naming systems from all cultures, including given
 // names, family names, patronymics, matronymics, clan names, lineage names, titles, and other naming components. The order of PART elements is
 // significant and should reflect the historical or culturally appropriate representation of the name.
@@ -152,10 +164,11 @@ struct PersonalNameStructure {
 // Event
 // ============================================================
 
+// primary record
 // Represents the occurrence of a historical action, ceremony, condition, transaction, legal process, or other happening. An EVENT describes what
 // happened. Persistent associations resulting from an event SHOULD be represented separately using RELATIONSHIP records.
 record EventRecord {
-  id: UUID
+  id: LocalID
   type: enum {
     BIRTH, DEATH, ADOPTION, GRADUATION, IMMIGRATION, NATURALIZATION, BANKRUPTCY,
     GUARDIANSHIP, CORONER_REPORT, CREMATION, BURIAL, EDUCATION, RETIREMENT,
@@ -171,6 +184,7 @@ record EventRecord {
   detail: EventStructure   // details of the event: date, place, agency, cause, cultural norms, notes, source citations, evidence qualifiers, restriction, conclusion, and modification metadata
 }
 
+// embedded
 // Shared descriptive structure containing the details associated with an EVENT record.
 struct EventStructure {
   description?: Text       // text describing a particular event pertaining to the individual or group, or the value of an attribute
@@ -186,7 +200,6 @@ struct EventStructure {
   citation*: SourceCitation
   evidence?: EvidenceQualifiers         // evidence qualifiers for the event
   restriction?: RestrictionStructure
-  conclusion?: Xref<ConclusionRecord>   // specific conclusion that resolves the value of this single event (e.g. "this date of birth is the proven one")
   modification: ModificationStructure
 }
 
@@ -230,10 +243,11 @@ struct EventStructure {
 // Individual attribute
 // ============================================================
 
+// entity-owned record
 // A characteristic, condition, status, classification, or descriptive property attributed to an individual. Attributes may be directly recorded
 // in sources, derived from evidence, inferred from research, or reported through oral tradition.
 record IndividualAttributeRecord {
-  id: UUID
+  id: LocalID
   individual: Xref<IndividualRecord>   // the individual to whom this attribute applies
   type: enum {
     CHARACTERISTIC, RESIDENCE, OCCUPATION, POSSESSION, MILITARY_RANK, CASTE,
@@ -247,7 +261,6 @@ record IndividualAttributeRecord {
   citation*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
-  conclusion?: Xref<ConclusionRecord>
   modification: ModificationStructure
 }
 
@@ -256,13 +269,15 @@ record IndividualAttributeRecord {
 // Event participation
 // ============================================================
 
+// association record
 // Associates an entity with an event and, when known, describes the role played by the entity within that event. All participation in events SHALL
 // be represented through EVENT_PARTICIPATION records. This design allows the same event to have multiple participants (e.g., a marriage has two
 // spouses) and the same entity to participate in multiple events (e.g., a person can be born, married, and buried).
+// Implementations SHOULD validate participant types according to the EVENT type when such constraints are known.
 record EventParticipationRecord {
-  id: UUID
+  id: LocalID
   event: Xref<EventRecord>   // the event in which the entity participated
-  entity: Xref<UUID>         // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
+  participant: EntityParticipant   // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
   role?: enum { CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, WITNESS, OFFICIANT, INFORMANT, EXECUTOR, GRANTOR, GRANTEE, LANDLORD, TENANT, SOLDIER, COMMANDER, VICTIM, SURVIVOR, ACCUSED, JUDGE } | Text   // optional because the role may be unknown or not applicable
   note*: Xref<NoteRecord>
   citation*: SourceCitation
@@ -276,13 +291,14 @@ record EventParticipationRecord {
 // Group
 // ============================================================
 
+// primary record
 // A group of genealogical entities. A group can be a family, a household, a neighborhood, a club, a research group, etc. Membership in a GROUP is
 // determined exclusively through RELATIONSHIP_RECORD objects whose OBJECT references the GROUP record and whose TYPE identifies a group membership
 // relationship (e.g., 'group_member'). GROUP_RECORD does not directly contain a member list. This design ensures that membership is treated as a
 // relationship with its own properties (dates, evidence, conclusions).
 record GroupRecord {
-  id: UUID
-  name*: NameStructure   // names associated with the group. For a family, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
+  id: LocalID
+  name*: NameStructure   // names associated with the group. For a family in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
@@ -292,7 +308,6 @@ record GroupRecord {
     crop?: CropCoord   // specifies the portion of the image that should be displayed as the preferred representation
   }
   restriction?: RestrictionStructure
-  conclusion*: Xref<ConclusionRecord>   // formal conclusions about this group (e.g., resolution of a conflicting marriage date, paternity, or group membership)
   modification: ModificationStructure
 }
 
@@ -301,10 +316,11 @@ record GroupRecord {
 // Group attribute
 // ============================================================
 
+// entity-owned record
 // A characteristic, condition, status, classification, or descriptive property attributed to a group. Attributes may be directly recorded in
 // sources, derived from evidence, inferred from research, or reported through oral tradition.
 record GroupAttributeRecord {
-  id: UUID
+  id: LocalID
   group: Xref<GroupRecord>   // the group to which this attribute applies
   type: enum {
     RESIDENCE,        // place where the group is known to reside
@@ -319,7 +335,6 @@ record GroupAttributeRecord {
   citation*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
-  conclusion?: Xref<ConclusionRecord>
   modification: ModificationStructure
 }
 
@@ -328,6 +343,7 @@ record GroupAttributeRecord {
 // Naming (generic, non-personal) and text values
 // ============================================================
 
+// embedded
 // A generic naming structure used for places, organizations, repositories, groups, and other non-person entities. Unlike PersonalNameStructure, this
 // structure does not decompose the name into culturally-specific components.
 struct NameStructure {
@@ -335,6 +351,7 @@ struct NameStructure {
   type?: enum { official, colonial, indigenous } | Text   // geographical/institutional
 }
 
+// embedded
 // A textual value representing a name, address, title, label, or other historically relevant text associated with an entity. Multiple TextValue
 // structures may be recorded when the same entity is known by different historical, linguistic, official, or customary names.
 struct TextValue {
@@ -347,6 +364,7 @@ struct TextValue {
   citation*: SourceCitation
 }
 
+// embedded
 // Alternative written, phonetic, transliterated, or transcribed representations of the same textual value. These representations do not constitute separate
 // names; they are alternate renderings of the same name.
 TextValueVariant = oneof {
@@ -366,27 +384,29 @@ TextValueVariant = oneof {
 // Relationship
 // ============================================================
 
+// association record
 // Represents an enduring association between genealogical entities. A RELATIONSHIP describes a state, connection, or affiliation that may exist
 // before, during, or after one or more events. Events that create, modify, recognize, or terminate a relationship SHOULD be represented separately
 // using EVENT records. This separation allows relationships to exist independently of events (e.g., a biological parent-child relationship
 // exists regardless of whether a birth event is documented).
+// Implementations SHOULD validate the allowed SUBJECT and OBJECT types according to the relationship TYPE.
 record RelationshipRecord {
-  id: UUID
-  subject: XrefOrVoid<UUID>   // the entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the OBJECT.
-  object: XrefOrVoid<UUID>    // the entity to which the subject is related
+  id: LocalID
+  subject: EntityParticipant   // the entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the OBJECT.
+  object: EntityParticipant    // the entity to which the subject is related
   type: enum {
-    biological_child,      // relationship exists through birth
-    adoptive_child,        // relationship created through legal adoption
-    foster_child,          // temporary foster-care relationship
-    guarded_child,         // court-appointed legal guardianship relationship
-    step_child,            // relationship created through marriage and not through descent
-    civil_spouse,          // marriage recognized by civil authority
-    religious_spouse,      // marriage recognized by religious authority
-    customary_spouse,      // marriage recognized by local custom or tradition
-    cohabiting_partner,    // non-marital domestic partnership
-    engaged_partner,       // promise or agreement to marry
-    group_member,          // membership in a group
-    associate              // general association
+    biological_child,      // (Individual -> Individual) relationship exists through birth
+    adoptive_child,        // (Individual -> Individual) relationship created through legal adoption
+    foster_child,          // (Individual -> Individual) temporary foster-care relationship
+    guarded_child,         // (Individual -> Individual) court-appointed legal guardianship relationship
+    step_child,            // (Individual -> Individual) relationship created through marriage and not through descent
+    civil_spouse,          // (Individual -> Individual) marriage recognized by civil authority
+    religious_spouse,      // (Individual -> Individual) marriage recognized by religious authority
+    customary_spouse,      // (Individual -> Individual) marriage recognized by local custom or tradition
+    cohabiting_partner,    // (Individual -> Individual) non-marital domestic partnership
+    engaged_partner,       // (Individual -> Individual) promise or agreement to marry
+    group_member,          // (Individual -> Group) membership in a group
+    associate              // (Individual -> Individual | Individual -> Group | Group -> Group) general association
   } | Text
   role?: Text   // the function, position, capacity or responsibility held by the subject within the relationship (e.g., 'president', 'member', 'resident', 'head of household', 'tribal leader')
   status?: enum {
@@ -399,12 +419,16 @@ record RelationshipRecord {
   date?: DateStructure         // the date the relationship was established, recognized, or documented
   valid_from?: DateStructure   // the date from which this relationship was known to be in effect
   valid_to?: DateStructure     // the date until which this relationship was known to be in effect
-  evidence?: EvidenceQualifiers
   note*: Xref<NoteRecord>
   citation*: SourceCitation
+  evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
-  conclusion?: Xref<ConclusionRecord>   // specific conclusion that resolves the validity or interpretation of this relationship
   modification: ModificationStructure
+}
+
+EntityParticipant = oneof {
+  individual: Xref<IndividualRecord>
+  group: Xref<GroupRecord>
 }
 
 
@@ -412,10 +436,11 @@ record RelationshipRecord {
 // Place
 // ============================================================
 
+// primary record
 // A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP
 // records in order to model changing jurisdictions and historical geography.
 record PlaceRecord {
-  id: UUID
+  id: LocalID
   name+: NameStructure   // the name of the place formatted for display and address generation
   type?: enum {
     address, building, street, hamlet, village, town, municipality, city,
@@ -424,16 +449,16 @@ record PlaceRecord {
   } | Text
   // Contains the location of a place in a Global Positioning System.
   map?: struct {
-    coordinate: Coord   // geographic coordinate of the place
+    coordinates: Coord   // geographic coordinates of the place
     evidence?: EvidenceQualifiers
   }
   citation*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
-  conclusion*: Xref<ConclusionRecord>   // one or more formal conclusions regarding this place
   modification: ModificationStructure
 }
 
+// embedded
 // Reference to a PLACE record together with location-specific citations and evidence qualifiers.
 struct PlaceStructure {
   place: Xref<PlaceRecord>
@@ -442,11 +467,13 @@ struct PlaceStructure {
   evidence?: EvidenceQualifiers
 }
 
+// association record
 // A relationship connecting two place records. Place relationships are used to represent geographic, administrative, ecclesiastical, judicial,
 // cadastral, postal, or historical associations between places. These relationships may change over time and can therefore be bounded by
 // validity dates.
+// For each relationship type, implementations SHOULD prevent cycles. Cycle validation SHOULD take validity dates into account when present.
 record PlaceRelationshipRecord {
-  id: UUID
+  id: LocalID
   subject: Xref<PlaceRecord>  // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT.
   object: Xref<PlaceRecord>   // the place to which the subject is related
   type: enum {
@@ -468,10 +495,11 @@ record PlaceRelationshipRecord {
 // Note
 // ============================================================
 
+// primary record
 record NoteRecord {
-  id: UUID
+  id: LocalID
   title?: Text  // note title
-  value: Text   // comments or opinions from the submitter following markdown language. References to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](confidential)`.
+  value: Text   // comments or opinions from the submitter following markdown language. References to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](confidential)`, and this last marks text that SHOULD be hidden when confidential information is suppressed.
   mime?: Text   // e.g., text/html, text/markdown
   locale?: LocaleCode
   translation*: struct {
@@ -488,9 +516,10 @@ record NoteRecord {
 // Repository
 // ============================================================
 
+// primary record
 // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
 record RepositoryRecord {
-  id: UUID
+  id: LocalID
   name+: NameStructure                 // the official name of the archive in which the stated source material is stored
   custodian?: Xref<IndividualRecord>   // the individual acting as custodian of the repository or its source material
   place?: PlaceStructure               // the location of the repository
@@ -500,6 +529,7 @@ record RepositoryRecord {
   modification: ModificationStructure
 }
 
+// embedded
 // Citation of a repository holding a source or source collection. Allows recording repository-specific shelf marks, page references,
 // entry identifiers, or other retrieval information.
 struct RepositoryCitation {
@@ -513,6 +543,7 @@ struct RepositoryCitation {
 // Contact
 // ============================================================
 
+// embedded
 // Machine-readable contact information for a person, organization, repository, submitter, or other entity.
 struct ContactStructure {
   address: Text   // a phone number, an electronic address such as an email (RFC 5322), a web page address (RFC 3986), or any other type of contact address
@@ -530,12 +561,13 @@ struct ContactStructure {
 // Cultural norm
 // ============================================================
 
+// primary record
 // Genealogical events and individual characteristics at various times and places are influenced by customs, practices, and conditions of their
 // culture. This affects the interpretation of recorded information and the assumptions made about probable genealogical events when there is no or
 // little known information. For example, a birth year can be estimated by knowing the date of a religious ceremony which normally involves a child
 // of 12 years old.
 record CulturalNormRecord {
-  id: UUID
+  id: LocalID
   title?: Text                 // the title of the rule
   rule_type?: enum { age_of_majority, naming_convention, inheritance_rule, marriage_minimum_age } | Text   // Broad category of cultural rule. Detailed interpretation and parameters are expressed through notes, citations, and external documentation.
   place?: PlaceStructure       // the location in which this cultural norm was in effect
@@ -559,10 +591,12 @@ record CulturalNormRecord {
 // Source
 // ============================================================
 
+// primary record
 // A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral
 // testimony, database entry, image, audio recording, or any other evidence-bearing artifact.
+// Citation relationships SHOULD NOT form cycles.
 record SourceRecord {
-  id: UUID
+  id: LocalID
   title+: TextValue                     // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
   author?: Text                         // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
   date?: DateStructure                  // the date this source was created
@@ -574,10 +608,10 @@ record SourceRecord {
   note*: Xref<NoteRecord>               // may contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
   citation*: SourceCitation
   restriction?: RestrictionStructure
-  conclusion*: Xref<ConclusionRecord>   // one or more formal conclusions regarding this source
   modification: ModificationStructure
 }
 
+// embedded
 // Reference to a SOURCE record used as evidence for an assertion, together with optional location, notes, crop coordinates, and evidence assessment.
 struct SourceCitation {
   source: Xref<SourceRecord>
@@ -587,6 +621,7 @@ struct SourceCitation {
   evidence?: EvidenceQualifiers
 }
 
+// embedded
 // A digital or physical representation associated with a source, such as an image, PDF, scan, transcription, audio recording, video, or other media
 // resource.
 struct DocumentStructure {
@@ -610,6 +645,7 @@ struct DocumentStructure {
 // Date
 // ============================================================
 
+// embedded
 // Used for historical, documentary, and genealogical dates whose value may require interpretation, source evaluation, calendar conversion, or
 // evidentiary analysis. Administrative dates such as creation dates, update dates, search dates, expiration dates, and other system metadata should
 // use the simpler `Date` type instead.
@@ -619,6 +655,7 @@ struct DateStructure {
   evidence?: EvidenceQualifiers
 }
 
+// embedded
 // Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time.
 DateValue = oneof {
   point: QualifiedDate   // a single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence.
@@ -626,20 +663,23 @@ DateValue = oneof {
   spanning: Spanning     // the fact itself extends across the specified interval. Unlike BOUNDED, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition.
 }
 
+// embedded
 struct Bounded {
   not_before?: QualifiedDate
   not_after?: QualifiedDate
-  // At least one of NOT_BEFORE or NOT_AFTER is required. An omitted bound represents an open-ended limit.
+  // At least one of NOT_BEFORE or NOT_AFTER is required. An omitted bound represents an open-ended limit. When both bounds are present, NOT_BEFORE MUST be <= NOT_AFTER.
   require one_of(not_before, not_after)
 }
 
+// embedded
 struct Spanning {
   from?: QualifiedDate
   to?: QualifiedDate
-  // At least one of FROM or TO is required.
+  // At least one of FROM or TO is required. An omitted bound represents an open-ended limit. When both bounds are present, FROM MUST be <= TO.
   require one_of(from, to)
 }
 
+// embedded
 // A single point in time, optionally marked as an estimate rather than a value accepted as recorded/derived. This is the sole point of recursion in
 // the grammar: it lets an interval's endpoint (or a standalone date) carry its own approximation, without allowing intervals to nest inside intervals.
 struct QualifiedDate {
@@ -647,6 +687,7 @@ struct QualifiedDate {
   approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
 }
 
+// embedded
 // The exact date is unknown, but this value is considered a reasonable approximation.
 struct Approximate {
   basis?: enum {
@@ -660,6 +701,7 @@ struct Approximate {
   require if basis == conventional: cultural_norm
 }
 
+// embedded
 // A single point in time expressed at an explicitly declared level of precision. The granularity is determined by the selected representation
 // and is not inferred from formatting conventions.
 SingleDate = oneof {
@@ -678,11 +720,13 @@ SingleDate = oneof {
   }
 }
 
+// embedded
 enum CalendarType {
   gregorian, julian, islamic, hebrew, chinese, indian, buddhist,
   french_republican, coptic, soviet_eternal, ethiopian, mayan
 }
 
+// embedded
 enum CenturyPart {
   // A subdivision of the century, such as a quarter, half, or relative position.
   first_quarter, second_quarter, third_quarter, fourth_quarter,
@@ -694,12 +738,13 @@ enum CenturyPart {
 // Historic event
 // ============================================================
 
+// primary record
 // A significant historical event that may provide context for genealogical research. Historic events can explain migrations, mortality patterns,
 // social changes, legal reforms, economic conditions, territorial changes, epidemics, wars, natural disasters, or scientific discoveries that
 // affected individuals, families, groups, or places. Unlike EVENT records, a HISTORIC_EVENT is not normally tied to a specific individual or group. It
 // exists primarily to provide historical, legal, social, environmental, or political context.
 record HistoricEventRecord {
-  id: UUID
+  id: LocalID
   title?: Text             // the title of the event
   date?: DateStructure     // the date on which this historic event happened
   place?: PlaceStructure   // the place in which this historic event happened
@@ -713,36 +758,38 @@ record HistoricEventRecord {
 // Research
 // ============================================================
 
+// primary record
 // Defines a research question and its overall status. RESEARCH_LOG_RECORD entries document the activities performed to answer this question.
 // Multiple logs may contribute to a single status, and a single log may contribute to multiple statuses (via RESEARCH references).
 record ResearchStatusRecord {
-  id: UUID
+  id: LocalID
   status?: enum { active, paused, completed, blocked }   // 'active' = currently being searched, 'completed' = all the information has been found
   question: Text                                         // the research question being investigated
   priority?: enum { high, medium, low }
   // Associates this research question with records for which information is missing, uncertain, conflicting, or otherwise requires investigation.
   association*: struct {
-    target: XrefOrVoid<UUID> // an xref of a record that lacks research
-    name?: Text              // the name of the individual, only for VOID reference
+    target: XrefOrVoid<LocalID>   // an xref of a record that lacks research
+    name?: Text                   // the name of the individual, only for VOID reference
   }
-  blocked_by*: Xref<ResearchStatusRecord>   // if this research is blocked by another unresolved question
+  blocked_by*: Xref<ResearchStatusRecord>   // if this research is blocked by another unresolved question (blocked_by relationships SHOULD form a Directed Acyclic Graph)
   plan?: Text                               // detailed description of what needs to be done
   resolution?: Text                         // how the question was resolved, if completed
   modification: ModificationStructure
 }
 
+// primary record
 // Documents a specific research activity performed to answer one or more research questions. Each log entry is a point-in-time record of what was
 // done, what was found, and what the next steps are.
 record ResearchLogRecord {
-  id: UUID
+  id: LocalID
   action: Text                            // description of the research activity performed (e.g., a repository search, source review, correspondence, or archive consultation)
-  target?: XrefOrVoid<UUID>               // the record that was the subject of the research activity. If the target is not represented elsewhere in the file, the VOID marker may be used.
+  target?: XrefOrVoid<LocalID>            // the record that was the subject of the research activity. If the target is not represented elsewhere in the file, the VOID marker may be used.
   source*: Xref<SourceRecord>             // a source record that was consulted, reviewed, searched, or discovered during the research activity
   search_scope?: Text                     // what was searched: "entire_volume", "pages_10_to_20", "index_only", "selected_entries"
-  search_outcome?: enum { found, not_fou        nd, partially_found, unreadable, destroyed }
+  search_outcome?: enum { found, not_found, partially_found, unreadable, destroyed }
   finding?: Text                          // a note describing the outcome, findings, observations, or conclusions of the research activity
   next_step?: Text                        // what to do next as a result of this research activity
-  follow_up*: Xref<ResearchLogRecord>     // References subsequent research activities that were performed as a consequence of the findings recorded in this log entry.
+  follow_up*: Xref<ResearchLogRecord>     // References subsequent research activities that were performed as a consequence of the findings recorded in this log entry (follow_up SHOULD be acyclic)
   research*: Xref<ResearchStatusRecord>   // a research question or objective to which this activity contributes
   date: Date                              // the date the search was performed
   restriction?: RestrictionStructure
@@ -754,6 +801,7 @@ record ResearchLogRecord {
 // Restriction, modification, conclusion, identity, evidence
 // ============================================================
 
+// embedded
 // Specifies how this structure may be displayed, exported, or distributed. The restriction expresses the intent of the data contributor and should be
 // respected regardless of any automatic privacy policy applied by the receiving system.
 struct RestrictionStructure {
@@ -762,10 +810,11 @@ struct RestrictionStructure {
     restricted,    // information should be treated with caution and may be omitted from public reports, exports, or distributions
     confidential   // information should not normally be displayed, exported, or included in public distributions
   }
-  reason?: enum { living_person, privacy_law, copyright, repository_license, sensitive_information } | Text  // Standardized reason for the restriction. Custom values MAY be supplied for application-specific needs.
+  reason?: enum { living_person, privacy_law, copyright, repository_license, sensitive_information } | Text  // Standardized reason for the restriction. Custom values MAY be supplied for application-specific needs. REASON SHOULD be omitted when LEVEL is public.
   expires?: Date   // the date this restriction expires
 }
 
+// embedded
 // Audit trail describing when the structure was created and subsequently modified. This information concerns the record itself, not the historical
 // subject represented by the record.
 struct ModificationStructure {
@@ -779,15 +828,16 @@ struct ModificationStructure {
   }
 }
 
+// primary record
 // A formal statement that resolves a conflict between conflicting evidence by selecting the hypothesis deemed most truthful based on a critical
 // analysis of the sources.
 // Conclusions are research outcomes rather than source assertions. A conclusion records the researcher’s evaluation of competing
 // evidence and is separate from the underlying records it analyzes.
 record ConclusionRecord {
-  id: UUID
-  context: Text            // the specific context that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
-  resolves*: Xref<UUID>    // a pointer to one or more conflicting events (or associations) that this conclusion is intended to resolve. Implementations SHOULD restrict targets to EventRecord, RelationshipRecord, IndividualAttributeRecord, GroupAttributeRecord, or IdentityHypothesisRecord.
-  preferred?: Xref<UUID>   // the record that this conclusion determines to be the true one. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted.
+  id: LocalID
+  context: Text                  // the specific context that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
+  resolves*: ConclusionTarget    // a pointer to one or more conflicting assertions or hypotheses. When PROOF_STATUS is DISPROVEN, RESOLVES SHOULD normally contain at least two targets.
+  preferred?: ConclusionTarget   // the assertion or hypothesis judged most likely to be correct. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. When present, PREFERRED MUST be one of the records listed in RESOLVES. When PROOF_STATUS is DISPROVEN, PREFERRED SHOULD normally be omitted.
   proof_status: enum {
     unresearched,          // not yet sought
     conflicting_evidence,  // the evidence is conflicting, none prevails
@@ -801,18 +851,36 @@ record ConclusionRecord {
   citation*: SourceCitation               // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
 }
 
+ConclusionTarget = oneof {
+  event: Xref<EventRecord>
+  relationship: Xref<RelationshipRecord>
+  individual_attribute: Xref<IndividualAttributeRecord>
+  group_attribute: Xref<GroupAttributeRecord>
+  identity_hypothesis: Xref<IdentityHypothesisRecord>
+}
+
+// association record
 // Represents the possibility that two records describe the same real-world entity. The hypothesis itself carries no acceptance
 // or rejection status. Evaluation of the hypothesis is expressed through one or more ConclusionRecord instances.
+// SUBJECT and CANDIDATE MUST reference different records.
+// Implementations SHOULD treat (subject, candidate) as an unordered pair.
 record IdentityHypothesisRecord {
-  id: UUID
-  subject: Xref<UUID>     // the first record in the identity hypothesis
-  candidate: Xref<UUID>   // the second record in the identity hypothesis
+  id: LocalID
+  subject: IdentityCandidate     // the first record in the identity hypothesis
+  candidate: IdentityCandidate   // the second record in the identity hypothesis
+  comment?: Text                 // a note explaining the basis for the possible duplicate hypothesis
   citation*: SourceCitation
   evidence?: EvidenceQualifiers
-  comment?: Text          // a note explaining the basis for the possible duplicate hypothesis
   modification: ModificationStructure
 }
 
+IdentityCandidate = oneof {
+  individual: Xref<IndividualRecord>
+  group: Xref<GroupRecord>
+  place: Xref<PlaceRecord>
+}
+
+// embedded
 // Qualifiers describing the confidence assigned to an assertion and the quality of evidence supporting that assertion.
 struct EvidenceQualifiers {
   certainty?: enum {

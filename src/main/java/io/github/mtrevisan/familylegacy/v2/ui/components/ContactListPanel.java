@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -125,7 +125,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordUtils.removeChildren(record, path);
+		FLEFRecordHelper.removeChildren(record, path);
 
 		for(final FLEFRecord contact : getItems()){
 			contact.setTag("CONTACT");

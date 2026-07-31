@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EventStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -348,13 +348,13 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		idField.setText(record.getId());
 
 		// TYPE
-		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
+		String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 		if(type != null){
 			typeCombo.setSelectedItem(type);
 		}
 
 		// FAMILY
-		String familyId = FLEFRecordUtils.getChildValue(record, "FAMILY");
+		String familyId = FLEFRecordHelper.getChildValue(record, "FAMILY");
 		if(familyId != null && !familyId.isEmpty()){
 			selectedFamilyId = familyId;
 			FLEFRecord rec = model.getRecordById(familyId);
@@ -370,15 +370,15 @@ public class IndividualEventDialog extends BaseRecordDialog{
 		loadTwins();
 
 		// PARENT1_RELATIONSHIP (0:1)
-		String p1 = FLEFRecordUtils.getChildValue(record, "PARENT1_RELATIONSHIP");
+		String p1 = FLEFRecordHelper.getChildValue(record, "PARENT1_RELATIONSHIP");
 		relationshipParent1Combo.setSelectedItem(StringUtils.defaultString(p1));
 
 		// PARENT2_RELATIONSHIP (0:1)
-		String p2 = FLEFRecordUtils.getChildValue(record, "PARENT2_RELATIONSHIP");
+		String p2 = FLEFRecordHelper.getChildValue(record, "PARENT2_RELATIONSHIP");
 		relationshipParent2Combo.setSelectedItem(StringUtils.defaultString(p2));
 
 		// EVENT_STRUCTURE (0:1)
-		FLEFRecord eventStruct = FLEFRecordUtils.findChild(record, "EVENT_STRUCTURE");
+		FLEFRecord eventStruct = FLEFRecordHelper.findChild(record, "EVENT_STRUCTURE");
 		eventStructurePanel.loadFromRecord(eventStruct);
 
 		// Apply type-specific visibility
@@ -415,23 +415,23 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	protected void saveData(){
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "TYPE", type);
+		FLEFRecordHelper.updateChildValue(record, "TYPE", type);
 
 		// FAMILY
-		FLEFRecordUtils.updateChildValue(record, "FAMILY", selectedFamilyId);
+		FLEFRecordHelper.updateChildValue(record, "FAMILY", selectedFamilyId);
 
 		// TWIN
 		for(String id : twinIds){
-			FLEFRecordUtils.addChild(record, "TWIN", id);
+			FLEFRecordHelper.addChild(record, "TWIN", id);
 		}
 
 		// PARENT1_RELATIONSHIP (0:1)
 		String p1 = (String)relationshipParent1Combo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "PARENT1_RELATIONSHIP", p1);
+		FLEFRecordHelper.updateChildValue(record, "PARENT1_RELATIONSHIP", p1);
 
 		// PARENT2_RELATIONSHIP (0:1)
 		String p2 = (String)relationshipParent2Combo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "PARENT2_RELATIONSHIP", p2);
+		FLEFRecordHelper.updateChildValue(record, "PARENT2_RELATIONSHIP", p2);
 
 		// EVENT_STRUCTURE (0:1)
 		if(eventStructurePanel.hasData()){

@@ -49,19 +49,20 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.0.
+ * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * REPOSITORY_RECORD :=
- * n @<XREF:REPOSITORY>@ REPOSITORY    {1:1}
- *   +1 <<NAME_STRUCTURE>>    {1:M}
- *   +1 CUSTODIAN @<XREF:INDIVIDUAL>@    {0:1}
- *   +1 <<PLACE_STRUCTURE>>    {0:1}
- *   +1 <<CONTACT_STRUCTURE>>    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * record RepositoryRecord {
+ *   id: LocalID
+ *   name+: NameStructure
+ *   custodian?: Xref&lt;IndividualRecord&gt;
+ *   place?: PlaceStructure
+ *   contact*: ContactStructure
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   restriction?: RestrictionStructure
+ *   modification: ModificationStructure
+ * }
  * </pre>
  */
 public class RepositoryDialog extends BaseRecordDialog{

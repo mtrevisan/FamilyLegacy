@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -149,8 +149,8 @@ public class TranslationDialog extends JDialog{
 	}
 
 	private void loadData(){
-		localeField.setText(FLEFRecordUtils.getChildValue(transRecord, "LOCALE"));
-		valueArea.setText(FLEFRecordUtils.getChildValue(transRecord, "VALUE"));
+		localeField.setText(FLEFRecordHelper.getChildValue(transRecord, "LOCALE"));
+		valueArea.setText(FLEFRecordHelper.getChildValue(transRecord, "VALUE"));
 
 		// MODIFICATION
 		modificationPanel.load(transRecord);
@@ -170,11 +170,11 @@ public class TranslationDialog extends JDialog{
 	}
 
 	private void saveData(){
-		FLEFRecordUtils.removeAllChildren(transRecord);
+		FLEFRecordHelper.removeAllChildren(transRecord);
 
 		// Main fields
-		FLEFRecordUtils.updateChildValue(transRecord, "LOCALE", localeField.getText().trim());
-		FLEFRecordUtils.updateChildValue(transRecord, "VALUE", valueArea.getText().trim());
+		FLEFRecordHelper.updateChildValue(transRecord, "LOCALE", localeField.getText().trim());
+		FLEFRecordHelper.updateChildValue(transRecord, "VALUE", valueArea.getText().trim());
 
 		// MODIFICATION
 		modificationPanel.save(transRecord);

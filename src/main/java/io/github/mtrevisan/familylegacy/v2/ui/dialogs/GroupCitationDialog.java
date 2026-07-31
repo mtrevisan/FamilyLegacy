@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -347,11 +347,11 @@ public class GroupCitationDialog extends JDialog{
 		}
 
 		// ROLE
-		String role = FLEFRecordUtils.getChildValue(existingCitation, "ROLE");
+		String role = FLEFRecordHelper.getChildValue(existingCitation, "ROLE");
 		roleField.setText(StringUtils.defaultString(role));
 
 		// CREDIBILITY (0:1)
-		String credibility = FLEFRecordUtils.getChildValue(existingCitation, "CREDIBILITY");
+		String credibility = FLEFRecordHelper.getChildValue(existingCitation, "CREDIBILITY");
 		credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
 
 		// NOTE (0:M)
@@ -394,16 +394,16 @@ public class GroupCitationDialog extends JDialog{
 
 		// ROLE
 		String role = roleField.getText().trim();
-		FLEFRecordUtils.updateChildValue(record, "ROLE", role);
+		FLEFRecordHelper.updateChildValue(record, "ROLE", role);
 
 		// CREDIBILITY
 		String credibility = (String)credibilityCombo.getSelectedItem();
-		FLEFRecordUtils.updateChildValue(record, "CREDIBILITY", credibility);
+		FLEFRecordHelper.updateChildValue(record, "CREDIBILITY", credibility);
 
 		// NOTE (0:M)
-		FLEFRecordUtils.removeChildren(record, "NOTE");
+		FLEFRecordHelper.removeChildren(record, "NOTE");
 		for(String noteId : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", noteId);
+			FLEFRecordHelper.addChild(record, "NOTE", noteId);
 		}
 
 		return record;

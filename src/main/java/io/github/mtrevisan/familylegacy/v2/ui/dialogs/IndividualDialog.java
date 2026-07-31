@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
@@ -311,10 +311,10 @@ public class IndividualDialog extends BaseRecordDialog{
 		FLEFRecord source = model.getRecordById(sourceId);
 		if(source == null) return null;
 
-		FLEFRecord doc = FLEFRecordUtils.findChild(source, "DOCUMENT_STRUCTURE");
+		FLEFRecord doc = FLEFRecordHelper.findChild(source, "DOCUMENT_STRUCTURE");
 		if(doc == null) return null;
 
-		String filePath = FLEFRecordUtils.getChildValue(doc, "FILE");
+		String filePath = FLEFRecordHelper.getChildValue(doc, "FILE");
 		if(filePath == null || filePath.isEmpty()) return null;
 
 		try{
@@ -608,10 +608,10 @@ public class IndividualDialog extends BaseRecordDialog{
 		}
 
 		// Preferred Image
-		FLEFRecord pref = FLEFRecordUtils.findChild(record, "PREFERRED_IMAGE");
+		FLEFRecord pref = FLEFRecordHelper.findChild(record, "PREFERRED_IMAGE");
 		if(pref != null){
 			preferredImageId = pref.getValue();
-			preferredImageCrop = FLEFRecordUtils.getChildValue(pref, "CROP");
+			preferredImageCrop = FLEFRecordHelper.getChildValue(pref, "CROP");
 			updateImageButton(preferredImageId);
 		}
 		else{
@@ -649,12 +649,12 @@ public class IndividualDialog extends BaseRecordDialog{
 
 		// CULTURAL_NORM
 		for(String id : culturalNormIds){
-			FLEFRecordUtils.addChild(record, "CULTURAL_NORM", id);
+			FLEFRecordHelper.addChild(record, "CULTURAL_NORM", id);
 		}
 
 		// NOTE (top-level)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", id);
+			FLEFRecordHelper.addChild(record, "NOTE", id);
 		}
 
 		// SOURCE_CITATION
@@ -667,7 +667,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(preferredImageId != null && !preferredImageId.isEmpty()){
 			FLEFRecord pref = FLEFRecord.createChildWithValue("PREFERRED_IMAGE", preferredImageId);
 			record.addChild(pref);
-			FLEFRecordUtils.updateChildValue(pref, "CROP", preferredImageCrop);
+			FLEFRecordHelper.updateChildValue(pref, "CROP", preferredImageCrop);
 		}
 
 		// RESTRICTION_STRUCTURE

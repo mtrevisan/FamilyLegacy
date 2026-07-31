@@ -24,12 +24,14 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -75,6 +77,12 @@ public class RepositoryCitationPanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -2445624581367265605L;
+
+
+	static{
+		HandlerRegistry.register(new RepositoryHandler());
+		HandlerRegistry.register(new NoteHandler());
+	}
 
 
 	private final FLEFModel model;
@@ -309,7 +317,7 @@ public class RepositoryCitationPanel extends JPanel{
 		}
 
 		// LOCATION (0:1)
-		locationField.setText(FLEFRecordUtils.getChildValue(citationRecord, "LOCATION"));
+		locationField.setText(FLEFRecordHelper.getChildValue(citationRecord, "LOCATION"));
 
 		// NOTE (0:M)
 		for(FLEFRecord child : citationRecord.getChildren()){
@@ -341,7 +349,7 @@ public class RepositoryCitationPanel extends JPanel{
 		}
 
 		// Clear existing children
-		FLEFRecordUtils.removeAllChildren(citationRecord);
+		FLEFRecordHelper.removeAllChildren(citationRecord);
 
 		// REPOSITORY - required
 		if(selectedRepositoryId != null && !selectedRepositoryId.isEmpty()){
@@ -350,11 +358,11 @@ public class RepositoryCitationPanel extends JPanel{
 
 		// LOCATION (0:1)
 		String location = locationField.getText().trim();
-		FLEFRecordUtils.updateChildValue(citationRecord, "LOCATION", location);
+		FLEFRecordHelper.updateChildValue(citationRecord, "LOCATION", location);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(citationRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(citationRecord, "NOTE", id);
 		}
 
 		return citationRecord;

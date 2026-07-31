@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CalendarDialog;
 
 import java.awt.Dialog;
@@ -58,7 +58,7 @@ public class CalendarHandler implements RecordTypeHandler<CalendarDialog>{
 
 	@Override
 	public String getDisplayText(FLEFRecord record){
-		String type = FLEFRecordUtils.getChildValue(record, "TYPE");
+		String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 		String id = record.getId();
 		if(type != null && !type.isEmpty()){
 			return type + " (" + id + ")";

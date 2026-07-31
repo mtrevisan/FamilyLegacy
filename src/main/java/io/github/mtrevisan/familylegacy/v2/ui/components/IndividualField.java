@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -52,6 +52,11 @@ public class IndividualField extends JPanel{
 
 	private static final String PLACEHOLDER_TEXT = "(right-click to manage individual)";
 	private static final String TOOLTIP_TEXT = "right-click or double-click to create, select, edit, or clear individual";
+
+
+	static{
+		HandlerRegistry.register(new IndividualHandler());
+	}
 
 
 	private final Dialog parent;
@@ -136,7 +141,7 @@ public class IndividualField extends JPanel{
 
 	public void load(final FLEFRecord parentRecord){
 		if(parentRecord != null){
-			final FLEFRecord child = FLEFRecordUtils.findChild(parentRecord, path);
+			final FLEFRecord child = FLEFRecordHelper.findChild(parentRecord, path);
 			setRecord(child);
 		}
 		else
@@ -144,7 +149,7 @@ public class IndividualField extends JPanel{
 	}
 
 	public void save(final FLEFRecord parentRecord){
-		FLEFRecordUtils.removeChildren(parentRecord, path);
+		FLEFRecordHelper.removeChildren(parentRecord, path);
 
 		if(record != null){
 			final FLEFRecord wrapper = FLEFRecord.createChildWithValue(path, record.getFormattedId());

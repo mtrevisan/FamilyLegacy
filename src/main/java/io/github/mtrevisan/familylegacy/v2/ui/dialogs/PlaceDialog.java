@@ -55,23 +55,28 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.0.
+ * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * PLACE_RECORD :=
- * n @<XREF:PLACE>@ PLACE    {1:1}
- *   +1 <<NAME_STRUCTURE>>    {1:M}
- *   +1 TYPE <PLACE_TYPE>    {0:1}
- *   +1 MAP    {0:1}
- *     +2 LATITUDE <PLACE_LATITUDE>    {1:1}
- *     +2 LONGITUDE <PLACE_LONGITUDE>    {1:1}
- *     +2 <<EVIDENCE_QUALIFIERS>>    {0:1}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
- *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
- *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
- * \  +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * record PlaceRecord {
+ *   id: LocalID
+ *   name+: NameStructure
+ *   type?: enum {
+ *     address, building, street, hamlet, village, town, municipality, city,
+ *     metropolitan_area, county, province, department, district, region,
+ *     macro_region, country, empire, parish, diocese, cemetery, archive, unknown
+ *   } | Text
+ *   map?: struct {
+ *     coordinates: Coord
+ *     evidence?: EvidenceQualifiers
+ *   }
+ *   citation*: SourceCitation
+ *   evidence?: EvidenceQualifiers
+ *   restriction?: RestrictionStructure
+ *   conclusion*: Xref&lt;ConclusionRecord&gt;
+ *   modification: ModificationStructure
+ * }
  * </pre>
  */
 public class PlaceDialog extends BaseRecordDialog{
@@ -80,11 +85,11 @@ public class PlaceDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -2581031991500033899L;
 
 	private static final String DOT = ".";
+
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_MAP = "MAP";
-	private static final String TAG_LATITUDE = "LATITUDE";
-	private static final String TAG_LONGITUDE = "LONGITUDE";
+	private static final String TAG_COORDINATES = "COORDINATES";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
@@ -102,8 +107,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	private final NameListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
-	private final BoundTextField latitudeField;
-	private final BoundTextField longitudeField;
+	private final BoundTextField mapCoordinatesField;
 	private final EvidenceQualifiersPanel mapQualifiers;
 	private final SourceCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel placeQualifiers;
@@ -134,8 +138,7 @@ public class PlaceDialog extends BaseRecordDialog{
 			"department", "district", "region", "macro_region", "country",
 			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
 		});
-		latitudeField = new BoundTextField(TAG_MAP + DOT + TAG_LATITUDE, 15);
-		longitudeField = new BoundTextField(TAG_MAP + DOT + TAG_LONGITUDE, 15);
+		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES, 31);
 		mapQualifiers = new EvidenceQualifiersPanel(TAG_MAP, "Map Evidence");
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		placeQualifiers = new EvidenceQualifiersPanel(null, "Place Evidence");
@@ -154,8 +157,7 @@ public class PlaceDialog extends BaseRecordDialog{
 
 	protected void initComponents(){
 		bindingManager.bind(typeCombo);
-		bindingManager.bind(latitudeField);
-		bindingManager.bind(longitudeField);
+		bindingManager.bind(mapCoordinatesField);
 
 		setLayout(new MigLayout("fillx,top"));
 
@@ -182,10 +184,8 @@ public class PlaceDialog extends BaseRecordDialog{
 		// map
 		final JPanel mapPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]"));
 		mapPanel.setBorder(new TitledBorder("Map"));
-		mapPanel.add(new JLabel("Latitude:"), "align label");
-		mapPanel.add(latitudeField, "growx,wrap");
-		mapPanel.add(new JLabel("Longitude:"), "align label");
-		mapPanel.add(longitudeField, "growx,wrap");
+		mapPanel.add(new JLabel("Coordinates:"), "align label");
+		mapPanel.add(mapCoordinatesField, "growx,wrap");
 		mapPanel.add(mapQualifiers, "span 2,growx,wrap");
 		mainPanel.add(mapPanel, "span 2,growx,wrap");
 
@@ -222,11 +222,9 @@ public class PlaceDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		final boolean hasLatitude = !latitudeField.isEmpty();
-		final boolean hasLongitude = !longitudeField.isEmpty();
-		if(hasLatitude ^ hasLongitude){
+		if(mapCoordinatesField.isEmpty()){
 			JOptionPane.showMessageDialog(this,
-				"Both LATITUDE and LONGITUDE are required when MAP is present.",
+				"COORDINATE is required when MAP is present.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;

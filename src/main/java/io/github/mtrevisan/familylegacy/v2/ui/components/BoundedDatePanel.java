@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -41,15 +41,15 @@ import java.io.Serial;
 /**
  * Panel for BOUNDED date (uncertainty interval).
  * <p>
- * Structure (real tags):
- * BOUNDED
- * +1 NOT_BEFORE
- * (ISO | CENTURY | DECADE)
- * APPROXIMATE (optional)
- * +1 NOT_AFTER
- * (ISO | CENTURY | DECADE)
- * APPROXIMATE (optional)
- * <p>
+ * Structure:
+ * <pre>
+ * struct Bounded {
+ *   not_before?: QualifiedDate
+ *   not_after?: QualifiedDate
+ *   // At least one of NOT_BEFORE or NOT_AFTER is required. An omitted bound represents an open-ended limit.
+ *   require one_of(not_before, not_after)
+ * }
+ * </pre>
  */
 public class BoundedDatePanel extends JPanel{
 
@@ -92,11 +92,11 @@ public class BoundedDatePanel extends JPanel{
 		if(record == null)
 			return;
 
-		final FLEFRecord notBefore = FLEFRecordUtils.findChild(record, TAG_NOT_BEFORE);
+		final FLEFRecord notBefore = FLEFRecordHelper.findChild(record, TAG_NOT_BEFORE);
 		if(notBefore != null)
 			notBeforePanel.load(notBefore);
 
-		final FLEFRecord notAfter = FLEFRecordUtils.findChild(record, TAG_NOT_AFTER);
+		final FLEFRecord notAfter = FLEFRecordHelper.findChild(record, TAG_NOT_AFTER);
 		if(notAfter != null)
 			notAfterPanel.load(notAfter);
 	}

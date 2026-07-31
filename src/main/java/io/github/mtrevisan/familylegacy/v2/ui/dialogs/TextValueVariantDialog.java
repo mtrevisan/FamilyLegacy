@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.ButtonGroup;
@@ -101,13 +101,13 @@ public class TextValueVariantDialog extends JDialog{
 		if("TRANSCRIPTION".equals(variantRecord.getTag())){
 			transcriptionRadio.setSelected(true);
 			systemField.setText(variantRecord.getValue());
-			typeField.setText(FLEFRecordUtils.getChildValue(variantRecord, "TYPE"));
-			valueField.setText(FLEFRecordUtils.getChildValue(variantRecord, "VALUE"));
+			typeField.setText(FLEFRecordHelper.getChildValue(variantRecord, "TYPE"));
+			valueField.setText(FLEFRecordHelper.getChildValue(variantRecord, "VALUE"));
 		}
 		else{
 			phoneticRadio.setSelected(true);
 			systemField.setText(variantRecord.getValue());
-			valueField.setText(FLEFRecordUtils.getChildValue(variantRecord, "VALUE"));
+			valueField.setText(FLEFRecordHelper.getChildValue(variantRecord, "VALUE"));
 		}
 		updateFieldsState();
 	}

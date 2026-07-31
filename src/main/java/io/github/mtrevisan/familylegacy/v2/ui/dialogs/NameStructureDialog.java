@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -224,12 +224,12 @@ public class NameStructureDialog extends JDialog{
 
 	private String getVariantDisplay(final FLEFRecord record){
 		if("PHONETIC".equals(record.getTag())){
-			final String val = FLEFRecordUtils.getChildValue(record, "VALUE");
+			final String val = FLEFRecordHelper.getChildValue(record, "VALUE");
 			return "[Phonetic - " + record.getValue() + "]: " + StringUtils.defaultString(val);
 		}
 		if("TRANSCRIPTION".equals(record.getTag())){
-			final String type = FLEFRecordUtils.getChildValue(record, "TYPE");
-			final String val = FLEFRecordUtils.getChildValue(record, "VALUE");
+			final String type = FLEFRecordHelper.getChildValue(record, "TYPE");
+			final String val = FLEFRecordHelper.getChildValue(record, "VALUE");
 			return "[Transcription - " + record.getValue() + (StringUtils.isNotBlank(type) ? " (" + type + ")" : StringUtils.EMPTY) + "]: " + StringUtils.defaultString(val);
 		}
 		return record.getTag();
@@ -238,7 +238,7 @@ public class NameStructureDialog extends JDialog{
 	private void loadData(){
 		bindingManager.load(nameRecord);
 
-		final FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		final FLEFRecord valueRec = FLEFRecordHelper.findChild(nameRecord, "VALUE");
 		if(valueRec == null){
 			variantRecords.clear();
 			variantListModel.clear();
@@ -277,7 +277,7 @@ public class NameStructureDialog extends JDialog{
 		bindingManager.save(nameRecord);
 
 		// Retrieve or create VALUE record (TEXT_VALUE)
-		FLEFRecord valueRec = FLEFRecordUtils.findChild(nameRecord, "VALUE");
+		FLEFRecord valueRec = FLEFRecordHelper.findChild(nameRecord, "VALUE");
 		if(valueRec == null){
 			valueRec = FLEFRecord.createChildWithValue("VALUE", text);
 			nameRecord.addChild(valueRec);
@@ -287,7 +287,7 @@ public class NameStructureDialog extends JDialog{
 		}
 
 		// Remove previous sub-nodes under VALUE to prevent duplicates
-		FLEFRecordUtils.removeChildren(valueRec, "VALID_FROM", "VALID_TO", "PHONETIC", "TRANSCRIPTION", "NOTE", "SOUR", "SOURCE");
+		FLEFRecordHelper.removeChildren(valueRec, "VALID_FROM", "VALID_TO", "PHONETIC", "TRANSCRIPTION", "NOTE", "SOUR", "SOURCE");
 
 		// Save sub-structures directly into VALUE
 		validFromField.save(valueRec);

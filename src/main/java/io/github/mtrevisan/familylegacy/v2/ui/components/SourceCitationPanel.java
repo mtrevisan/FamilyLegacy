@@ -24,14 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -84,6 +85,10 @@ public class SourceCitationPanel extends JPanel{
 	private static final long serialVersionUID = -8036724779224867360L;
 
 
+	static{
+		HandlerRegistry.register(new NoteHandler());
+	}
+
 	private final BindingManager bindingManager = new BindingManager();
 
 
@@ -104,7 +109,6 @@ public class SourceCitationPanel extends JPanel{
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
 
 	/**
@@ -339,7 +343,7 @@ public class SourceCitationPanel extends JPanel{
 		}
 
 		// Clear existing children
-		FLEFRecordUtils.removeAllChildren(citationRecord);
+		FLEFRecordHelper.removeAllChildren(citationRecord);
 
 		// ---- Save manual fields ----
 
@@ -350,7 +354,7 @@ public class SourceCitationPanel extends JPanel{
 
 		// NOTE (0:M) – manual
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(citationRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(citationRecord, "NOTE", id);
 		}
 
 		return citationRecord;

@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CulturalNormDialog;
 
 import java.awt.Dialog;
@@ -58,7 +58,7 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormDialog
 
 	@Override
 	public String getDisplayText(FLEFRecord record){
-		String title = FLEFRecordUtils.getChildValue(record, "TITLE");
+		String title = FLEFRecordHelper.getChildValue(record, "TITLE");
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){
 			return title + " (" + id + ")";

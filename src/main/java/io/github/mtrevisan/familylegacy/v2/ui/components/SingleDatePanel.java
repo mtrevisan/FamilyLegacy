@@ -48,10 +48,24 @@ import java.util.Map;
 /**
  * Panel for editing a single date (FULL_DATE, DECADE, or CENTURY) with optional APPROXIMATE.
  * <p>
- * This panel operates directly on the real FLEF tags:
- * - FULL_DATE, DECADE, CENTURY (mutually exclusive)
- * - CALENDAR (required for all)
- * - APPROXIMATE (with BASIS, MARGIN, CULTURAL_NORM)
+ * Structure:
+ * <pre>
+ * SingleDate = oneof {
+ *   full_date: struct {
+ *     value: HistoricalDate
+ *     calendar: CalendarType | Text
+ *   }
+ *   decade: struct {
+ *     start_year: Int
+ *     calendar: CalendarType | Text
+ *   }
+ *   century: struct {
+ *     ordinal: Int
+ *     part?: CenturyPart
+ *     calendar: CalendarType | Text
+ *   }
+ * }
+ * </pre>
  */
 public class SingleDatePanel extends JPanel{
 

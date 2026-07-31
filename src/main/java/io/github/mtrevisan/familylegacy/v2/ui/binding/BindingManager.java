@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class BindingManager{
 			if(path == null || path.isEmpty())
 				continue;
 
-			final String value = FLEFRecordUtils.getChildValuesAsString(record, path);
+			final String value = FLEFRecordHelper.getChildValuesAsString(record, path);
 			comp.setValue(value);
 		}
 	}
@@ -59,7 +59,7 @@ public class BindingManager{
 
 			final String value = comp.getValue();
 			if(value != null && !value.isEmpty())
-				FLEFRecordUtils.updateChildValue(record, path, value);
+				FLEFRecordHelper.updateChildValue(record, path, value);
 		}
 	}
 

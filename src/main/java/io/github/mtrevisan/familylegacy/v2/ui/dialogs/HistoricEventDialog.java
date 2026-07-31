@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordUtils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -444,10 +444,10 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		idField.setText(record.getId());
 
 		// TITLE (0:1)
-		titleField.setText(FLEFRecordUtils.getChildValue(record, "TITLE"));
+		titleField.setText(FLEFRecordHelper.getChildValue(record, "TITLE"));
 
 		// PLACE (0:1) with CERTAINTY and CREDIBILITY
-		FLEFRecord place = FLEFRecordUtils.findChild(record, "PLACE");
+		FLEFRecord place = FLEFRecordHelper.findChild(record, "PLACE");
 		if(place != null){
 			String placeId = place.getValue();
 			if(placeId != null && !placeId.isEmpty()){
@@ -491,7 +491,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	protected void saveData(){
 		// TITLE (0:1)
 		String title = titleField.getText().trim();
-		FLEFRecordUtils.updateChildValue(record, "TITLE", title);
+		FLEFRecordHelper.updateChildValue(record, "TITLE", title);
 
 		// PLACE (0:1) with CERTAINTY and CREDIBILITY
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
@@ -499,14 +499,14 @@ public class HistoricEventDialog extends BaseRecordDialog{
 			record.addChild(place);
 
 			String pCert = placeQualifiers.getCertainty();
-			FLEFRecordUtils.updateChildValue(place, "CERTAINTY", pCert);
+			FLEFRecordHelper.updateChildValue(place, "CERTAINTY", pCert);
 			String pCred = placeQualifiers.getCredibility();
-			FLEFRecordUtils.updateChildValue(place, "CREDIBILITY", pCred);
+			FLEFRecordHelper.updateChildValue(place, "CREDIBILITY", pCred);
 		}
 
 		// NOTES (0:M)
 		for(String id : noteIds){
-			FLEFRecordUtils.addChild(record, "NOTE", id);
+			FLEFRecordHelper.addChild(record, "NOTE", id);
 		}
 
 		// SOURCE CITATIONS (0:M)
