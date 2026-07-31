@@ -4,10 +4,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
+import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.List;
 
 
 public class NameListPanel extends AbstractListPanel<FLEFRecord>{
@@ -27,45 +29,81 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	@Override
-	protected String getDisplay(final FLEFRecord nameRecord){
-		if(nameRecord == null)
-			return "[empty]";
+	protected void initComponents(){
+		super.initComponents();
 
-		final FLEFRecord valueRecord = FLEFRecordHelper.findChild(nameRecord, "VALUE");
-		final String text = (valueRecord != null? valueRecord.getValue(): null);
-		final String type = FLEFRecordHelper.getChildValue(nameRecord, "TYPE");
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
 
-		final StringBuilder sb = new StringBuilder();
-		sb.append(StringUtils.isNotBlank(text)? text: "[unnamed]");
-		if(StringUtils.isNotBlank(type))
-			sb.append(" (").append(type).append(")");
-		return sb.toString();
+	@Override
+	protected String getDisplay(final FLEFRecord name){
+		String value = FLEFRecordHelper.getChildValue(name, "VALUE");
+		if(value != null && !value.isEmpty()){
+			// Truncate long names
+			if(value.length() > 50)
+				value = value.substring(0, 50) + "...";
+
+			final String type = FLEFRecordHelper.getChildValue(name, "TYPE");
+			if(type != null && !type.isEmpty())
+				value += " (" +  type + ")";
+
+			return value;
+		}
+		return "--";
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
+		return null;
+	}
+
+	/**
+	 * Creates a new name and adds it to the list.
+	 */
+	@Override
+	protected FLEFRecord showCreateNewDialog(){
 		final NameStructureDialog dialog = new NameStructureDialog(parentDialog, model, null);
 		dialog.setVisible(true);
-		return (dialog.isSaved()? dialog.getNameRecord(): null);
+
+		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parentDialog, "Name not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
 		final NameStructureDialog dialog = new NameStructureDialog(parentDialog, model, existing);
 		dialog.setVisible(true);
-		return (dialog.isSaved()? dialog.getNameRecord(): null);
+
+		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
-	public void load(final FLEFRecord parentRecord){
-		setItems(FLEFRecordHelper.findChildren(parentRecord, path));
+	public void load(final FLEFRecord record){
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(record, path);
+		setItems(names);
 	}
 
-	public void save(final FLEFRecord parentRecord){
-		FLEFRecordHelper.removeChildren(parentRecord, path);
+	public void save(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, path);
 
 		for(final FLEFRecord name : getItems()){
 			name.setTag("NAME");
-			parentRecord.addChild(name);
+			record.addChild(name);
 		}
 	}
 

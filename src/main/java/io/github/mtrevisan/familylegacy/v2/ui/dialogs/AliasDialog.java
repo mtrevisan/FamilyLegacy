@@ -266,7 +266,7 @@ public class AliasDialog extends JDialog{
 				selectedAliasId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					aliasDisplayField.setText(individualHandler.getDisplayText(rec));
+					aliasDisplayField.setText(individualHandler.getDisplayText(rec, model));
 				}
 				else{
 					aliasDisplayField.setText(selectedId);
@@ -281,7 +281,7 @@ public class AliasDialog extends JDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -326,6 +326,7 @@ public class AliasDialog extends JDialog{
 		}
 		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -347,6 +348,7 @@ public class AliasDialog extends JDialog{
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -366,7 +368,7 @@ public class AliasDialog extends JDialog{
 			selectedAliasId = existingEntry.aliasId;
 			FLEFRecord rec = model.getRecordById(existingEntry.aliasId);
 			if(rec != null){
-				aliasDisplayField.setText(individualHandler.getDisplayText(rec));
+				aliasDisplayField.setText(individualHandler.getDisplayText(rec, model));
 			}
 			else{
 				aliasDisplayField.setText(existingEntry.aliasId);
@@ -445,6 +447,7 @@ public class AliasDialog extends JDialog{
 			btn.addActionListener(e -> {
 				AliasDialog dialog = createNew(frame, model);
 				dialog.setVisible(true);
+
 				if(dialog.isSaved()){
 					AliasDialog.AliasEntry entry = dialog.getEntry();
 					System.out.println("Alias saved: " + entry.aliasId);

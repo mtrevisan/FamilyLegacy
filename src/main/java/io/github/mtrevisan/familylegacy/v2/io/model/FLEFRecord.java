@@ -223,6 +223,11 @@ public class FLEFRecord{
 		return XRefHelper.extractXRef(value);
 	}
 
+	public boolean isEmpty(){
+		return (StringUtils.isEmpty(value) && children.isEmpty());
+	}
+
+
 	@Override
 	public String toString(){
 		if(id != null)

@@ -204,6 +204,7 @@ public class TranslationDialog extends JDialog{
 			parent.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			TranslationDialog dialog = new TranslationDialog(parent, model);
 			dialog.setVisible(true);
+
 			if(dialog.isSaved()){
 				System.out.println("Translation saved.");
 			}

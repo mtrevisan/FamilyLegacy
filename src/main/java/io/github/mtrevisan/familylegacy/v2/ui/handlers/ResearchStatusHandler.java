@@ -58,7 +58,7 @@ public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDi
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		// Try to get the QUESTION field as display name
 		String question = FLEFRecordHelper.getChildValue(record, "QUESTION");
 		String status = FLEFRecordHelper.getChildValue(record, "STATUS");

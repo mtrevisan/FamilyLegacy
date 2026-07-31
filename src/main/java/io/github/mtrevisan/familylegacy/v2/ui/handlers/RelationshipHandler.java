@@ -44,6 +44,9 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipDialog
 	public static final String TYPE = "Relationship";
 	public static final String ID_PREFIX = "REL";
 
+	private static final String TAG_OBJECT = "OBJECT";
+	private static final String TAG_ROLE = "ROLE";
+
 
 	@Override
 	public String getLabel(){
@@ -61,24 +64,33 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipDialog
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
-		String relationshipId = FLEFRecordHelper.getChildValue(record, "RELATIONSHIP");
-		String type = record.getTag();
-		if(relationshipId != null && !relationshipId.isEmpty()){
-			// Try to get the actual event type name from the model
-			// For display name, we'll show the type ID with the event ID
-			return "Relationship " + type + " (" + relationshipId + ")";
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		final String objectId = FLEFRecordHelper.getChildValue(record, TAG_OBJECT);
+		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
+		final StringBuilder display = new StringBuilder();
+		if(objectId != null){
+			final FLEFRecord obj = model.getRecordById(objectId);
+			if(obj != null){
+				final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+				display.append(individualHandler.getDisplayText(obj, model));
+			}
+			else
+				display.append(objectId);
 		}
-		return type;
+		else
+			display.append("?");
+		if(role != null && !role.isEmpty())
+			display.append(" [").append(role).append("]");
+		return display.toString();
 	}
 
 	@Override
-	public RelationshipDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+	public RelationshipDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		return new RelationshipDialog(parent, model, record);
 	}
 
 	@Override
-	public RelationshipDialog createNewDialog(Dialog parent, FLEFModel model){
+	public RelationshipDialog createNewDialog(final Dialog parent, final FLEFModel model){
 		return new RelationshipDialog(parent, model, null);
 	}
 

@@ -200,6 +200,7 @@ public class PlaceField extends JPanel{
 
 		final PlaceStructureDialog dialog = new PlaceStructureDialog(parent, model, record);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved())
 			updateDisplay();
 	}
@@ -207,7 +208,7 @@ public class PlaceField extends JPanel{
 	private void updateDisplay(){
 		if(record != null && record.hasData()){
 			final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
-			displayField.setText(placeHandler.getDisplayText(record));
+			displayField.setText(placeHandler.getDisplayText(record, model));
 			displayField.setForeground(COLOR_FOREGROUND_ENABLED);
 		}
 		else{

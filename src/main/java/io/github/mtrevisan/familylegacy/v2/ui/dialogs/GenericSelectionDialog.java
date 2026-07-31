@@ -189,15 +189,15 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
 		final String lowerSearch = searchText.toLowerCase();
 		for(final FLEFRecord record : allRecords){
-			final String display = handler.getDisplayText(record);
+			final String display = handler.getDisplayText(record, model);
 			if(display.toLowerCase().contains(lowerSearch))
 				filteredRecords.add(record);
 		}
 
 		// Order by display name
 		filteredRecords.sort((a, b) -> {
-			final String nameA = handler.getDisplayText(a);
-			final String nameB = handler.getDisplayText(b);
+			final String nameA = handler.getDisplayText(a, model);
+			final String nameB = handler.getDisplayText(b, model);
 			return nameA.compareToIgnoreCase(nameB);
 		});
 
@@ -217,7 +217,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 			list.setEnabled(true);
 			selectButton.setEnabled(true);
 			for(final FLEFRecord record : filteredRecords)
-				listModel.addElement(handler.getDisplayText(record));
+				listModel.addElement(handler.getDisplayText(record, model));
 		}
 	}
 

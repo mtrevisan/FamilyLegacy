@@ -58,7 +58,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -116,7 +115,6 @@ public class SourceDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JTextField idField = new JTextField(10);
 	private final BoundTextField titleField;
 	private final BoundTextField authorField;
 	private final BoundTextField publisherField;
@@ -161,7 +159,7 @@ public class SourceDialog extends BaseRecordDialog{
 				"tombstone", "video"});
 
 		placeField = PlaceField.create("PLACE", parent, model);
-		dateField = DateField.create(this, "Valid Date", model);
+		dateField = DateField.createWithWrapperTag("DATE", this, "Valid Date", model);
 		documentPanel = new DocumentStructurePanel(model, this);
 		modificationPanel = new ModificationPanel(this);
 		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
@@ -200,11 +198,6 @@ public class SourceDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
-
-		idField.setEditable(false);
-		idField.setText(record != null? record.getId(): StringUtils.EMPTY);
-		panel.add(new JLabel("ID:"), "align label");
-		panel.add(idField, "growx,wrap");
 
 		panel.add(new JLabel("Title:"), "align label");
 		panel.add(titleField, "growx,wrap");
@@ -327,7 +320,7 @@ public class SourceDialog extends BaseRecordDialog{
 			FLEFRecord rec = model.getRecordById(repoId);
 			if(rec != null){
 				final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
-				String display = repositoryHandler.getDisplayText(rec);
+				String display = repositoryHandler.getDisplayText(rec, model);
 				String location = FLEFRecordHelper.getChildValue(citation, "LOCATION");
 				if(location != null && !location.isEmpty()){
 					return display + " (loc: " + location + ")";
@@ -418,25 +411,11 @@ public class SourceDialog extends BaseRecordDialog{
 	}
 
 
-	private String getSourceCitationDisplay(FLEFRecord citation){
-		String sourceId = citation.getValue();
-		if(sourceId != null){
-			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null){
-				final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-				return sourceHandler.getDisplayText(rec);
-			}
-			return sourceId;
-		}
-		return "[empty]";
-	}
-
-
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
 			final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -484,6 +463,7 @@ public class SourceDialog extends BaseRecordDialog{
 		final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteListModel.set(idx, newDisplay);
@@ -505,6 +485,7 @@ public class SourceDialog extends BaseRecordDialog{
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -520,9 +501,6 @@ public class SourceDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		idField.setText(record != null? record.getId(): StringUtils.EMPTY);
-
-		// ---- Load bound simple fields ----
 		bindingManager.load(record);
 
 		// ---- Load manual fields ----
@@ -568,7 +546,7 @@ public class SourceDialog extends BaseRecordDialog{
 
 		// Restriction
 		FLEFRecordHelper.updateChildValue(record, "RESTRICTION",
-			restrictionCheckBox.isSelected()? "confidential": null);
+			(restrictionCheckBox.isSelected()? "confidential": null));
 
 		// PLACE
 		placeField.save(record);

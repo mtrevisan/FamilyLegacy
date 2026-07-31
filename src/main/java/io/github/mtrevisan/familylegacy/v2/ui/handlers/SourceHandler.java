@@ -57,7 +57,7 @@ public class SourceHandler implements RecordTypeHandler<SourceDialog>{
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String title = FLEFRecordHelper.getChildValue(record, "TITLE.VALUE");
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){

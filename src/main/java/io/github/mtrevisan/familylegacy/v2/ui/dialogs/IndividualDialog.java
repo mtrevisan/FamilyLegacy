@@ -285,6 +285,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parent, model, sourceHandler, selectedId -> result[0] = selectedId);
 		dialog.setVisible(true);
+
 		String sourceId = result[0];
 		if(sourceId == null) return;
 
@@ -404,13 +405,13 @@ public class IndividualDialog extends BaseRecordDialog{
 
 	private String getCulturalNormDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return culturalNormHandler.getDisplayText(rec);
+		if(rec != null) return culturalNormHandler.getDisplayText(rec, model);
 		return id;
 	}
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return noteHandler.getDisplayText(rec);
+		if(rec != null) return noteHandler.getDisplayText(rec, model);
 		return id;
 	}
 
@@ -506,11 +507,11 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getCitationRecord();
+			FLEFRecord updated = dialog.getRecord();
 			if(updated != null){
 				sourceCitationRecords.set(idx, updated);
 				sourceCitationListModel.set(idx, getSourceCitationDisplay(updated));
@@ -554,7 +555,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayText(rec);
+				return sourceHandler.getDisplayText(rec, model);
 			}
 			return sourceId;
 		}
@@ -710,6 +711,7 @@ public class IndividualDialog extends BaseRecordDialog{
 			btn.addActionListener(e -> {
 				IndividualDialog dialog = IndividualDialog.createNew(null, model);
 				dialog.setVisible(true);
+
 				System.out.println("Individual saved.");
 			});
 

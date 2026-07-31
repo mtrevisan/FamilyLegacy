@@ -6,6 +6,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -34,10 +35,27 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	}
 
 	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
+
+	@Override
 	protected String getDisplay(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return researchHandler.getDisplayText(rec);
+			return researchHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -53,7 +71,17 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 			}
 		});
 		dialog.setVisible(true);
+
 		return result[0];
+	}
+
+	/**
+	 * Creates a new research status and adds it to the list.
+	 */
+	@Override
+	protected String showCreateNewDialog(){
+		//TODO
+		return null;
 	}
 
 	@Override
@@ -67,6 +95,7 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ResearchStatusHandler.TYPE);
 		JDialog dialog = handler.createEditDialog(parentDialog, model, rec);
 		dialog.setVisible(true);
+
 		// Return the same ID (the record was edited in place)
 		return existing;
 	}

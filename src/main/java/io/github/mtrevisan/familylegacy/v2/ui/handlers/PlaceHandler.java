@@ -58,7 +58,7 @@ public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
 	}
 
 	@Override
-	public String getDisplayText(final FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final FLEFRecord name = FLEFRecordHelper.findChild(record, "NAME");
 		if(name != null){
 			final String value = FLEFRecordHelper.getChildValue(name, "VALUE");

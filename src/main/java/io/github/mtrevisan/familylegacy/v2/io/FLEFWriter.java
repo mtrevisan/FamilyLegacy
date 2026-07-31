@@ -7,12 +7,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.util.List;
-import java.util.Objects;
-
-
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -89,9 +87,9 @@ public class FLEFWriter{
 	/**
 	 * Writes a {@link FLEFModel} to an output {@link Writer}.
 	 *
-	 * @param model  model to write
-	 * @param writer target output stream writer
-	 * @throws IOException if writing fails
+	 * @param model	Model to write.
+	 * @param writer	Target output stream writer.
+	 * @throws IOException	If writing fails.
 	 */
 	public void write(final FLEFModel model, final Writer writer) throws IOException{
 		Objects.requireNonNull(model, "model cannot be null");
@@ -124,10 +122,10 @@ public class FLEFWriter{
 	/**
 	 * Iteratively writes a {@link FLEFRecord} structure without recursion.
 	 *
-	 * @param rootRecord  record to serialize
-	 * @param writer      target output writer
-	 * @param indentLevel current tree nesting level
-	 * @throws IOException if writing fails
+	 * @param rootRecord	Record to serialize.
+	 * @param writer	Target output writer.
+	 * @param indentLevel	Current tree nesting level.
+	 * @throws IOException	If writing fails.
 	 */
 	public void writeRecord(final FLEFRecord rootRecord, final Writer writer, final int indentLevel) throws IOException{
 		if(rootRecord == null || !rootRecord.hasData())

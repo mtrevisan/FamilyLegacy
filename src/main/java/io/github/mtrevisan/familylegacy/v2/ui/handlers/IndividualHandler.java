@@ -61,7 +61,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	}
 
 	@Override
-	public String getDisplayText(final FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return StringUtils.EMPTY;
 

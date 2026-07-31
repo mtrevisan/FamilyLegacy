@@ -317,6 +317,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 			null // new association
 		);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			FLEFRecord assocRecord = dialog.getAssociationRecord();
 			String value = assocRecord.getValue();
@@ -371,6 +372,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 			assocRecord
 		);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			FLEFRecord updated = dialog.getAssociationRecord();
 			String value = updated.getValue();
@@ -430,6 +432,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 			return;
 		JDialog dialog = researchHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		blockedByListModel.set(idx, getResearchDisplayName(id));
 	}
 
@@ -446,7 +449,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	private String getResearchDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return researchHandler.getDisplayText(rec);
+			return researchHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -623,6 +626,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 			btn.addActionListener(e -> {
 				ResearchStatusDialog dialog = new ResearchStatusDialog(null, model);
 				dialog.setVisible(true);
+
 				System.out.println("Research Status saved.");
 			});
 

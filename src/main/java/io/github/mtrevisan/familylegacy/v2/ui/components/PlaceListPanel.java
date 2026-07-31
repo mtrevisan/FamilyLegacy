@@ -6,6 +6,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -35,9 +36,26 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 
 
 	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
+
+	@Override
 	protected String getDisplay(final String id){
 		final FLEFRecord record = model.getRecordById(id);
-		return (record != null? placeHandler.getDisplayText(record): id);
+		return (record != null? placeHandler.getDisplayText(record, model): id);
 
 	}
 
@@ -51,7 +69,17 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 				result[0] = selectedId;
 		});
 		dialog.setVisible(true);
+
 		return result[0];
+	}
+
+	/**
+	 * Creates a new place and adds it to the list.
+	 */
+	@Override
+	protected String showCreateNewDialog(){
+		//TODO
+		return null;
 	}
 
 	@Override
@@ -67,6 +95,7 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 		final JDialog dialog = handler.createEditDialog(null, model, rec);
 		dialog.setVisible(true);
+
 		return existing;
 	}
 

@@ -191,7 +191,7 @@ System.out.println(FLEFWriter.create().writeToString(model));
 	}
 
 	public FLEFRecord getRecord(){
-		return record;
+		return (!record.isEmpty()? record: null);
 	}
 
 }

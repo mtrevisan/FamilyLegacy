@@ -197,7 +197,7 @@ public class RepositoryCitationPanel extends JPanel{
 				selectedRepositoryId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					repositoryDisplayField.setText(repositoryHandler.getDisplayText(rec));
+					repositoryDisplayField.setText(repositoryHandler.getDisplayText(rec, model));
 				}
 				else{
 					repositoryDisplayField.setText(selectedId);
@@ -212,7 +212,7 @@ public class RepositoryCitationPanel extends JPanel{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -247,6 +247,7 @@ public class RepositoryCitationPanel extends JPanel{
 			model, rec
 		);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -272,6 +273,7 @@ public class RepositoryCitationPanel extends JPanel{
 			model
 		);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -309,7 +311,7 @@ public class RepositoryCitationPanel extends JPanel{
 			selectedRepositoryId = repoId;
 			FLEFRecord rec = model.getRecordById(repoId);
 			if(rec != null){
-				repositoryDisplayField.setText(repositoryHandler.getDisplayText(rec));
+				repositoryDisplayField.setText(repositoryHandler.getDisplayText(rec, model));
 			}
 			else{
 				repositoryDisplayField.setText(repoId);

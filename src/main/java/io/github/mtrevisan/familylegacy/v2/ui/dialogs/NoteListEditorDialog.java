@@ -159,7 +159,7 @@ public class NoteListEditorDialog extends JDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -170,6 +170,7 @@ public class NoteListEditorDialog extends JDialog{
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -203,6 +204,7 @@ public class NoteListEditorDialog extends JDialog{
 		if(rec == null) return;
 		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteListModel.set(idx, newDisplay);

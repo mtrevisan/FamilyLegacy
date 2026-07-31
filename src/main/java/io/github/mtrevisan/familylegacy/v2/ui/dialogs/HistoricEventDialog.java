@@ -288,7 +288,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 				selectedPlaceId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayText(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec, model));
 				}
 				else{
 					placeDisplayField.setText(selectedId);
@@ -303,7 +303,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -349,6 +349,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		}
 		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteListModel.set(idx, newDisplay);
@@ -369,6 +370,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -383,10 +385,11 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = new SourceCitationDialog(this, model, null);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, null);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
-			FLEFRecord citation = dialog.getCitationRecord();
+			FLEFRecord citation = dialog.getRecord();
 			if(citation != null){
 				citation.setTag("SOURCE");
 				sourceCitationRecords.add(citation);
@@ -400,10 +403,11 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getCitationRecord();
+			FLEFRecord updated = dialog.getRecord();
 			if(updated != null){
 				sourceCitationRecords.set(idx, updated);
 				sourceCitationListModel.set(idx, getSourceCitationDisplay(updated));
@@ -426,7 +430,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayText(rec);
+				return sourceHandler.getDisplayText(rec, model);
 			}
 			return sourceId;
 		}
@@ -454,7 +458,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 				selectedPlaceId = placeId;
 				FLEFRecord rec = model.getRecordById(placeId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayText(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec, model));
 				}
 				else{
 					placeDisplayField.setText(placeId);
@@ -546,6 +550,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 			btn.addActionListener(e -> {
 				HistoricEventDialog dialog = new HistoricEventDialog(null, model);
 				dialog.setVisible(true);
+
 				System.out.println("Historic Event saved.");
 			});
 

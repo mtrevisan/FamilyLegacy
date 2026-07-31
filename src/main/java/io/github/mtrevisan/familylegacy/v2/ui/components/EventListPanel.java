@@ -6,6 +6,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -32,11 +33,28 @@ public class EventListPanel extends AbstractListPanel<String>{
 	}
 
 	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
+
+	@Override
 	protected String getDisplay(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(EventHandler.TYPE);
-			return handler.getDisplayText(rec);
+			return handler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -52,7 +70,17 @@ public class EventListPanel extends AbstractListPanel<String>{
 			}
 		});
 		dialog.setVisible(true);
+
 		return result[0];
+	}
+
+	/**
+	 * Creates a new event and adds it to the list.
+	 */
+	@Override
+	protected String showCreateNewDialog(){
+		//TODO
+		return null;
 	}
 
 	@Override
@@ -66,6 +94,7 @@ public class EventListPanel extends AbstractListPanel<String>{
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(EventHandler.TYPE);
 		JDialog dialog = handler.createEditDialog(null, model, rec);
 		dialog.setVisible(true);
+
 		return existing;
 	}
 

@@ -335,10 +335,10 @@ public class RelationshipDialog extends JDialog{
 		if(rec != null){
 			String displayName = null;
 			if("GROUP".equals(rec.getTag())){
-				displayName = groupHandler.getDisplayText(rec);
+				displayName = groupHandler.getDisplayText(rec, model);
 			}
 			else if("INDIVIDUAL".equals(rec.getTag())){
-				displayName = individualHandler.getDisplayText(rec);
+				displayName = individualHandler.getDisplayText(rec, model);
 			}
 			subjectDisplayField.setText(displayName != null? displayName: id);
 		}
@@ -372,7 +372,7 @@ public class RelationshipDialog extends JDialog{
 		selectedObjectId = id;
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			objectDisplayField.setText(individualHandler.getDisplayText(rec));
+			objectDisplayField.setText(individualHandler.getDisplayText(rec, model));
 		}
 		else{
 			objectDisplayField.setText(id);
@@ -385,7 +385,7 @@ public class RelationshipDialog extends JDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord note = model.getRecordById(id);
 		if(note != null){
-			return noteHandler.getDisplayText(note);
+			return noteHandler.getDisplayText(note, model);
 		}
 		return id;
 	}
@@ -414,6 +414,7 @@ public class RelationshipDialog extends JDialog{
 		}
 		JDialog dialog = noteHandler.createEditDialog(this, model, note);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(noteId);
 		noteDisplayMap.put(noteId, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -434,6 +435,7 @@ public class RelationshipDialog extends JDialog{
 		Set<String> before = new java.util.HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(this, model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -578,6 +580,7 @@ public class RelationshipDialog extends JDialog{
 			btn.addActionListener(e -> {
 				RelationshipDialog dialog = new RelationshipDialog(null, model, null, "G1", "I1");
 				dialog.setVisible(true);
+
 				System.out.println("Relationship saved.");
 			});
 

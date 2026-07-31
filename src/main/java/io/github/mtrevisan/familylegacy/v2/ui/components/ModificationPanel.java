@@ -238,6 +238,7 @@ public class ModificationPanel extends JPanel{
 		dialog.pack();
 		dialog.setLocationRelativeTo(parentDialog);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 

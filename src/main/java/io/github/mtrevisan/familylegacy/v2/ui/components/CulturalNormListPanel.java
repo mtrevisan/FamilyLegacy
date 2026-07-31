@@ -2,21 +2,25 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CulturalNormDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.List;
 
 
 /**
- * Panel for managing a list of CULTURAL_NORM references (XREF IDs).
+ * Panel for managing a list of CULTURAL_NORM references.
  */
-public class CulturalNormListPanel extends AbstractListPanel<String>{
+public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -4182038208327584807L;
@@ -27,47 +31,95 @@ public class CulturalNormListPanel extends AbstractListPanel<String>{
 	}
 
 
-	public CulturalNormListPanel(FLEFModel model, Dialog parentDialog){
+	private final String path;
+
+	private final RecordTypeHandler<?> culturalNormHandler;
+
+
+	public CulturalNormListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
 		super(parentDialog, "Cultural Norms", model);
+
+		this.path = path;
+
+		culturalNormHandler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
 	}
 
 
 	@Override
-	protected String getDisplay(String id){
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null){
-			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
-			return handler.getDisplayText(rec);
-		}
-		return id;
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.item("Add Existing...", this::addItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
 	}
 
 	@Override
-	protected String showAddDialog(){
-		final String[] result = {null};
-		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
+	protected String getDisplay(final FLEFRecord culturalNorm){
+		if(culturalNorm != null)
+			return culturalNormHandler.getDisplayText(culturalNorm, model);
+
+		return "--";
+	}
+
+	@Override
+	protected FLEFRecord showAddDialog(){
+		final FLEFRecord[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			null, model, handler, selectedId -> {
-			if(selectedId != null){
-				result[0] = selectedId;
-			}
-		});
+			parentDialog, model, culturalNormHandler, selectedId -> {
+			final FLEFRecord culturalNorm = model.getRecordById(selectedId);
+			if(culturalNorm != null && !items.contains(culturalNorm))
+				result[0] = culturalNorm;
+		}
+		);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 
+	/**
+	 * Creates a new cultural norm and adds it to the list.
+	 */
 	@Override
-	protected String showEditDialog(String existing){
-		FLEFRecord rec = model.getRecordById(existing);
-		if(rec == null){
-			JOptionPane.showMessageDialog(parentDialog, "Cultural norm record not found: " + existing,
-				"Error", JOptionPane.ERROR_MESSAGE);
+	protected FLEFRecord showCreateNewDialog(){
+		final CulturalNormDialog dialog = (CulturalNormDialog)culturalNormHandler.createNewDialog(parentDialog, model);
+		dialog.setVisible(true);
+
+		return (dialog.isSaved()? dialog.getRecord(): null);
+	}
+
+	@Override
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parentDialog, "Cultural norm not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
 			return null;
 		}
-		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
-		JDialog dialog = handler.createEditDialog(null, model, rec);
+		JDialog dialog = culturalNormHandler.createEditDialog(null, model, existing);
 		dialog.setVisible(true);
+
+		// Return the same record (it was updated in place)
 		return existing;
+	}
+
+	public void load(final FLEFRecord record){
+		final List<FLEFRecord> culturalNorms = FLEFRecordHelper.findChildren(record, path);
+		setItems(culturalNorms);
+	}
+
+	public void save(final FLEFRecord record){
+		for(final FLEFRecord culturalNorm : getItems())
+			FLEFRecordHelper.addChild(record, path, culturalNorm.getFormattedId());
 	}
 
 }

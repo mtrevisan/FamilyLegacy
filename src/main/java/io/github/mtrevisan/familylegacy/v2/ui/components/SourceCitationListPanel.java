@@ -2,26 +2,27 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import java.awt.Dialog;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
 import java.io.Serial;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 
+/* DONE */
 /**
- * Panel for managing a list of SOURCE_CITATION records.
+ * Panel for managing a list of SOURCE references.
  * <p>
  * Provides:
  * <ul>
@@ -37,7 +38,9 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -764509672344287269L;
 
 
-	// Handlers
+	private static final String PARAM_SOURCE = "SOURCE";
+
+
 	static{
 		HandlerRegistry.register(new SourceHandler());
 	}
@@ -45,169 +48,168 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
+	private final RecordTypeHandler<?> sourceHandler;
+
 
 	/**
-	 * Constructs a SourceCitationListPanel.
+	 * Constructs a SourceCitationListPanel without a border.
 	 *
 	 * @param parentDialog the parent dialog
 	 * @param model        the FLEF model
 	 */
 	public SourceCitationListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
-		super(parentDialog, "Source Citations", model);
+		this(path, parentDialog, "Sources", model);
+	}
+
+	/**
+	 * Constructs a SourceCitationListPanel with a titled border.
+	 *
+	 * @param parentDialog the parent dialog
+	 * @param borderTitle  the border title, or {@code null} for no border
+	 * @param model        the FLEF model
+	 */
+	public SourceCitationListPanel(final String path, final Dialog parentDialog, final String borderTitle,
+			final FLEFModel model){
+		super(parentDialog, borderTitle, model);
 
 		this.path = path;
+
+		sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 	}
 
-	@Override
-	protected String getDisplay(FLEFRecord citation){
-		String sourceId = citation.getValue();
-		if(sourceId != null){
-			FLEFRecord rec = model.getRecordById(sourceId);
-			if(rec != null){
-				final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-				return sourceHandler.getDisplayText(rec);
-			}
-			return sourceId;
-		}
-		return "[empty]";
-	}
 
-	@Override
-	protected FLEFRecord showAddDialog(){
-		// Add existing source
-		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-		final GenericSelectionDialog<?> selDialog = new GenericSelectionDialog<>(
-			parentDialog, model, sourceHandler, selectedId -> {
-			if(selectedId != null){
-				// TODO The callback will be handled, but we need to return the citation
-			}
-		});
-		selDialog.setVisible(true);
-
-		// Since the callback doesn't return the citation directly, we handle it differently
-		// We'll use a holder pattern
-		final FLEFRecord[] result = {null};
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, sourceHandler, selectedId -> {
-			if(selectedId != null){
-				result[0] = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(selectedId));
-			}
-		});
-		dialog.setVisible(true);
-		return result[0];
-	}
-
-	@Override
-	protected FLEFRecord showEditDialog(FLEFRecord existing){
-		SourceCitationDialog editDialog = new SourceCitationDialog(parentDialog, model, existing);
-		editDialog.setVisible(true);
-		if(editDialog.isSaved()){
-			FLEFRecord updated = editDialog.getCitationRecord();
-			if(updated != null){
-				updated.setTag("SOURCE");
-				return updated;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Creates a new source and adds a citation for it.
-	 * This method is called from the context menu via the builder.
-	 */
-	public void createNewSourceAndAddCitation(){
-		Set<String> before = new HashSet<>();
-		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
-			String id = rec.getId();
-			if(id != null) before.add(id);
-		}
-
-		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-		JDialog newSourceDialog = sourceHandler.createNewDialog(parentDialog, model);
-		newSourceDialog.setVisible(true);
-
-		String newSourceId = null;
-		for(FLEFRecord rec : model.getRecordsByType("SOURCE")){
-			String id = rec.getId();
-			if(id != null && !before.contains(id)){
-				newSourceId = id;
-				break;
-			}
-		}
-
-		if(newSourceId != null){
-			FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(newSourceId));
-			SourceCitationDialog citationDialog = new SourceCitationDialog(parentDialog, model, citationRecord);
-			citationDialog.setVisible(true);
-
-			if(citationDialog.isSaved()){
-				FLEFRecord savedCitation = citationDialog.getCitationRecord();
-				if(savedCitation != null){
-					savedCitation.setTag("SOURCE");
-					addItemDirectly(savedCitation);
-				}
-			}
-		}
-	}
-
-	public void load(final FLEFRecord record){
-		setItems(record.findChildren("SOURCE"));
-	}
-
-	public void save(final FLEFRecord record){
-		for(final FLEFRecord source : getItems())
-			if("SOURCE".equals(source.getTag()))
-				record.addChild(source);
-	}
-
-	/**
-	 * Loads a list of citations into the panel.
-	 *
-	 * @param citations the list of citation records
-	 */
-	public void loadFromCitations(List<FLEFRecord> citations){
-		clear();
-		for(FLEFRecord citation : citations){
-			citation.setTag("SOURCE");
-			addItemDirectly(citation);
-		}
-	}
-
-	/**
-	 * Returns the list of citation records.
-	 *
-	 * @return the citations
-	 */
-	public List<FLEFRecord> getCitations(){
-		return getItems();
-	}
-
-	/**
-	 * Overrides the builder to add "New..." and "Add Existing..." items.
-	 */
 	@Override
 	protected void initComponents(){
 		super.initComponents();
 
-		// Override the behavior to add "New..." and "Add Existing..."
-		// We need to re-install the behavior with the custom builder
-		for(MouseListener listener : list.getMouseListeners())
-			list.removeMouseListener(listener);
-		for(KeyListener listener : list.getKeyListeners())
-			list.removeKeyListener(listener);
-
 		GUIHelper.installBehavior(list,
-			() -> list.getSelectedIndex() >= 0,
+			() -> (list.getSelectedIndex() >= 0),
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,
 			builder -> {
-				builder.item("Create New...", this::createNewSourceAndAddCitation);
-				builder.item("Add Existing...", this::createNewItem);
+				builder.item("Create New...", this::createNewItem);
+				builder.item("Add Existing...", this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Edit...", this::editSource);
+				builder.selectionSensitiveItem("Edit Citation...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			});
+	}
+
+	@Override
+	protected String getDisplay(final FLEFRecord sourceCitation){
+		final String sourceId = findRecordSourceId(sourceCitation);
+		if(sourceId != null){
+			final FLEFRecord source = model.getRecordById(sourceId);
+			if(source != null)
+				return sourceHandler.getDisplayText(source, model);
+			return sourceId;
+		}
+		return "--";
+	}
+
+	public String findRecordSourceId(final FLEFRecord sourceCitation){
+		String id = null;
+		for(final FLEFRecord child : sourceCitation.getChildren())
+			if(PARAM_SOURCE.equals(child.getTag()))
+				id = XRefHelper.extractXRef(child.getValue());
+		return id;
+	}
+
+	@Override
+	protected FLEFRecord showAddDialog(){
+		final FLEFRecord[] result = {null};
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			parentDialog, model, sourceHandler, selectedId -> {
+				final FLEFRecord sourceCitation = model.getRecordById(selectedId);
+				if(sourceCitation != null && !items.contains(sourceCitation)){
+					final String sourceId = findRecordSourceId(sourceCitation);
+					final FLEFRecord source = model.getRecordById(sourceId);
+					if(source != null)
+						result[0] = source;
+				}
+			}
+		);
+		dialog.setVisible(true);
+
+		return result[0];
+	}
+
+	/**
+	 * Creates a new source and adds a citation for it and adds this one to the list.
+	 */
+	@Override
+	protected FLEFRecord showCreateNewDialog(){
+		final SourceDialog newSourceDialog = (SourceDialog)sourceHandler.createNewDialog(parentDialog, model);
+		newSourceDialog.setVisible(true);
+
+		FLEFRecord newSourceCitation = null;
+		final FLEFRecord newSource = newSourceDialog.getRecord();
+		if(newSource != null){
+			final String newSourceId = newSource.getId();
+			final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
+			sourceCitation.addChild(FLEFRecord.createChildWithValue(PARAM_SOURCE, XRefHelper.formatXRef(newSourceId)));
+			final SourceCitationDialog citationDialog = SourceCitationDialog.createEdit(parentDialog, model, sourceCitation);
+			citationDialog.setVisible(true);
+
+			if(citationDialog.isSaved())
+				newSourceCitation = citationDialog.getRecord();
+			else
+				model.removeRecord(newSourceId);
+		}
+		return newSourceCitation;
+	}
+
+	@Override
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parentDialog, "Source Citation not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		final JDialog dialog = SourceCitationDialog.createEdit(parentDialog, model, existing);
+		dialog.setVisible(true);
+
+		// Return the same record (it was updated in place)
+		return existing;
+	}
+
+	public final void editSource(){
+		final int idx = list.getSelectedIndex();
+		if(idx == -1)
+			return;
+
+		final FLEFRecord sourceCitation = items.get(idx);
+		final String sourceId = findRecordSourceId(sourceCitation);
+		if(sourceId != null){
+			final FLEFRecord source = model.getRecordById(sourceId);
+			final SourceDialog dialog = SourceDialog.createEdit(parentDialog, model, source);
+			dialog.setVisible(true);
+
+			if(dialog.isSaved())
+				listModel.setElementAt(getDisplay(sourceCitation), idx);
+		}
+	}
+
+	public void load(final FLEFRecord record){
+		final List<FLEFRecord> sourceCitations = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> sources = new ArrayList<>();
+		for(final FLEFRecord sourceCitation : sourceCitations){
+			final String sourceId = findRecordSourceId(sourceCitation);
+			if(sourceId != null){
+				final FLEFRecord source = model.getRecordById(sourceId);
+				sources.add(source);
+			}
+		}
+		setItems(sources);
+	}
+
+	public void save(final FLEFRecord record){
+		for(final FLEFRecord sourceCitation : getItems())
+			record.addChild(sourceCitation);
 	}
 
 }

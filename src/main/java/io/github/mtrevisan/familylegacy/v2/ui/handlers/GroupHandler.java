@@ -114,7 +114,7 @@ public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 	 * @return a human-readable display name
 	 */
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null){
 			return StringUtils.EMPTY;
 		}

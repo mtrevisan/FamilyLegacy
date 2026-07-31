@@ -309,7 +309,7 @@ public class AssociationDialog extends JDialog{
 		String display = targetId;
 		FLEFRecord target = model.getRecordById(targetId);
 		if(target != null){
-			display = handler.getDisplayText(target);
+			display = handler.getDisplayText(target, model);
 		}
 		targetDisplayField.setText(display);
 	}
@@ -343,7 +343,7 @@ public class AssociationDialog extends JDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -389,6 +389,7 @@ public class AssociationDialog extends JDialog{
 		}
 		JDialog dialog = noteHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -433,7 +434,7 @@ public class AssociationDialog extends JDialog{
 	private String getSourceDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return sourceHandler.getDisplayText(rec);
+			return sourceHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -479,6 +480,7 @@ public class AssociationDialog extends JDialog{
 		}
 		JDialog dialog = sourceHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getSourceDisplayName(id);
 		sourceDisplayMap.put(id, newDisplay);
 		sourceModel.set(idx, newDisplay);
@@ -601,6 +603,7 @@ public class AssociationDialog extends JDialog{
 			parent.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 			AssociationDialog dialog = createEdit(parent, model, null);
 			dialog.setVisible(true);
+
 			if(dialog.isSaved()){
 				FLEFRecord record = dialog.getAssociationRecord();
 				System.out.println("Saved association: " + record);

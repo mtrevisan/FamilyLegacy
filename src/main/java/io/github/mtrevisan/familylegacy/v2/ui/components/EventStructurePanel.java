@@ -377,7 +377,7 @@ public class EventStructurePanel extends JPanel{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayText(rec);
+				return sourceHandler.getDisplayText(rec, model);
 			}
 		}
 		return sourceId != null? sourceId: "[empty]";
@@ -392,14 +392,15 @@ public class EventStructurePanel extends JPanel{
 
 	private void addSourceCitation(){
 		// Show a dialog to select a source and create a citation
-		SourceCitationDialog dialog = new SourceCitationDialog(
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			null // new citation
 		);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
-			FLEFRecord citation = dialog.getCitationRecord();
+			FLEFRecord citation = dialog.getRecord();
 			if(citation != null){
 				sourceRecords.add(citation);
 				sourceModel.addElement(getSourceCitationDisplay(citation));
@@ -412,14 +413,15 @@ public class EventStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		FLEFRecord citation = sourceRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			citation
 		);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getCitationRecord();
+			FLEFRecord updated = dialog.getRecord();
 			if(updated != null){
 				sourceRecords.set(idx, updated);
 				sourceModel.set(idx, getSourceCitationDisplay(updated));
@@ -459,7 +461,7 @@ public class EventStructurePanel extends JPanel{
 				selectedPlaceId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayText(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec, model));
 				}
 				else{
 					placeDisplayField.setText(selectedId);
@@ -505,7 +507,7 @@ public class EventStructurePanel extends JPanel{
 			selectedPlaceId = newPlaceId;
 			FLEFRecord rec = model.getRecordById(newPlaceId);
 			if(rec != null){
-				placeDisplayField.setText(placeHandler.getDisplayText(rec));
+				placeDisplayField.setText(placeHandler.getDisplayText(rec, model));
 			}
 			else{
 				placeDisplayField.setText(newPlaceId);
@@ -517,7 +519,7 @@ public class EventStructurePanel extends JPanel{
 	private String getCulturalNormDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return culturalNormHandler.getDisplayText(rec);
+			return culturalNormHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -552,6 +554,7 @@ public class EventStructurePanel extends JPanel{
 			model, rec
 		);
 		dialog.setVisible(true);
+
 		String newDisplay = getCulturalNormDisplayName(id);
 		culturalNormDisplayMap.put(id, newDisplay);
 		culturalNormModel.set(idx, newDisplay);
@@ -577,6 +580,7 @@ public class EventStructurePanel extends JPanel{
 			model
 		);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("CULTURAL_NORM")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !culturalNormIds.contains(id)){
@@ -593,7 +597,7 @@ public class EventStructurePanel extends JPanel{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -628,6 +632,7 @@ public class EventStructurePanel extends JPanel{
 			model, rec
 		);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -653,6 +658,7 @@ public class EventStructurePanel extends JPanel{
 			model
 		);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -693,7 +699,7 @@ public class EventStructurePanel extends JPanel{
 				selectedPlaceId = placeId;
 				FLEFRecord rec = model.getRecordById(placeId);
 				if(rec != null){
-					placeDisplayField.setText(placeHandler.getDisplayText(rec));
+					placeDisplayField.setText(placeHandler.getDisplayText(rec, model));
 				}
 				else{
 					placeDisplayField.setText(placeId);

@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
@@ -10,7 +11,6 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -32,6 +32,23 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		this.path = path;
 	}
 
+
+	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
 
 	@Override
 	protected String getDisplay(FLEFRecord contact){
@@ -68,11 +85,23 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setMinimumSize(new Dimension(500, 450));
 		dialog.setLocationRelativeTo(parentDialog);
 		dialog.setVisible(true);
 
 		return result[0];
+	}
+
+	/**
+	 * Creates a new contact and adds it to the list.
+	 */
+	@Override
+	protected FLEFRecord showCreateNewDialog(){
+		//TODO
+//		final ContactDialog dialog = new ContactDialog(parentDialog, model, null);
+//		dialog.setVisible(true);
+//
+//		return dialog.getRecord();
+		return null;
 	}
 
 	@Override
@@ -109,7 +138,6 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setMinimumSize(new Dimension(500, 450));
 		dialog.setLocationRelativeTo(parentDialog);
 		dialog.setVisible(true);
 

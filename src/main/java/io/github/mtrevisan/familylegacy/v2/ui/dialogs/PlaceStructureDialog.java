@@ -103,8 +103,7 @@ public class PlaceStructureDialog extends JDialog{
 		GUIHelper.installBehavior(sourceList,
 			() -> sourceList.getSelectedIndex() >= 0,
 			this::editSourceCitation,
-			() -> {
-			},
+			() -> {},
 			this::removeSourceCitation,
 			builder -> {
 				builder.item("Create New...", this::createNewSourceAndAddCitation);
@@ -158,11 +157,11 @@ public class PlaceStructureDialog extends JDialog{
 
 		if(newSourceId != null){
 			final FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(newSourceId));
-			final SourceCitationDialog citationDialog = new SourceCitationDialog(this, model, citationRecord);
+			final SourceCitationDialog citationDialog = SourceCitationDialog.createEdit(this, model, citationRecord);
 			citationDialog.setVisible(true);
 
 			if(citationDialog.isSaved()){
-				final FLEFRecord savedCitation = citationDialog.getCitationRecord();
+				final FLEFRecord savedCitation = citationDialog.getRecord();
 				if(savedCitation != null){
 					savedCitation.setTag("SOURCE");
 					sourceCitations.add(savedCitation);
@@ -189,6 +188,7 @@ public class PlaceStructureDialog extends JDialog{
 		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 		final JDialog dialog = sourceHandler.createEditDialog(this, model, rec);
 		dialog.setVisible(true);
+
 		sourceListModel.set(idx, getSourceCitationDisplay(citation));
 	}
 
@@ -199,11 +199,11 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		final FLEFRecord existing = sourceCitations.get(idx);
-		final SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
+		final SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
-			final FLEFRecord updated = dialog.getCitationRecord();
+			final FLEFRecord updated = dialog.getRecord();
 			if(updated != null){
 				sourceCitations.set(idx, updated);
 				sourceListModel.set(idx, getSourceCitationDisplay(updated));
@@ -228,7 +228,7 @@ public class PlaceStructureDialog extends JDialog{
 		if(rawSourceId != null){
 			final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 			final FLEFRecord record = model.getRecordById(rawSourceId);
-			return (record != null? sourceHandler.getDisplayText(record) : rawSourceId);
+			return (record != null? sourceHandler.getDisplayText(record, model) : rawSourceId);
 		}
 		return "[empty]";
 	}

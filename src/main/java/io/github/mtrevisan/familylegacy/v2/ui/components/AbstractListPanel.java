@@ -102,26 +102,38 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installBehavior(list,
-			() -> list.getSelectedIndex() >= 0,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
-			builder -> {
-				builder.item("Create New...", this::createNewItem);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
-				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+//		GUIHelper.installBehavior(list,
+//			() -> (list.getSelectedIndex() >= 0),
+//			this::editItem,
+//			this::createNewItem,
+//			this::removeItem,
+//			builder -> {
+//				builder.item("Create New...", this::createNewItem);
+//				builder.separator();
+//				builder.selectionSensitiveItem("Edit...", this::editItem);
+//				builder.selectionSensitiveItem("Remove", this::removeItem);
+//			});
 
 		add(GUIHelper.createScrollPane(list), "growx");
 	}
 
 	/**
 	 * Adds a new item. Called by the "Add" action.
-	 * Delegates to {@link #showAddDialog()} and adds the result.
+	 * Delegates to {@link #showCreateNewDialog()} and adds the result.
 	 */
 	public final void createNewItem(){
+		final T newItem = showCreateNewDialog();
+		if(newItem != null){
+			items.add(newItem);
+			listModel.addElement(getDisplay(newItem));
+		}
+	}
+
+	/**
+	 * Adds a new item from a list. Called by the "Add" action.
+	 * Delegates to {@link #showAddDialog()} and adds the result.
+	 */
+	public final void addItem(){
 		final T newItem = showAddDialog();
 		if(newItem != null){
 			items.add(newItem);
@@ -175,6 +187,13 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 	/**
 	 * Shows a dialog to create a new item.
+	 *
+	 * @return the new item, or {@code null} if canceled
+	 */
+	protected abstract T showCreateNewDialog();
+
+	/**
+	 * Shows a dialog to add a new item from a list.
 	 *
 	 * @return the new item, or {@code null} if canceled
 	 */

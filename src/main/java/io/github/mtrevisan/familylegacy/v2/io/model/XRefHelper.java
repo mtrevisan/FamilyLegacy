@@ -40,7 +40,7 @@ public class XRefHelper{
 	public static String extractXRef(final String xref){
 		return (isReference(xref)
 			? xref.substring(XREF_PREFIX.length(), xref.length() - XREF_SUFFIX.length())
-			: null);
+			: xref);
 	}
 
 	/**

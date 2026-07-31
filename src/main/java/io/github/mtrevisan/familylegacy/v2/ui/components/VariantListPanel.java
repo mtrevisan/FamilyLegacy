@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,6 +43,23 @@ public class VariantListPanel extends AbstractListPanel<VariantEntry>{
 	}
 
 	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
+
+	@Override
 	protected String getDisplay(VariantEntry item){
 		return item.toString();
 	}
@@ -49,6 +67,15 @@ public class VariantListPanel extends AbstractListPanel<VariantEntry>{
 	@Override
 	protected VariantEntry showAddDialog(){
 		return showVariantDialog(null);
+	}
+
+	/**
+	 * Creates a new variant and adds it to the list.
+	 */
+	@Override
+	protected VariantEntry showCreateNewDialog(){
+		//TODO
+		return null;
 	}
 
 	@Override
@@ -136,6 +163,7 @@ public class VariantListPanel extends AbstractListPanel<VariantEntry>{
 		dialog.pack();
 		dialog.setLocationRelativeTo(parentDialog);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 

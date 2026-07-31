@@ -76,6 +76,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 950729006569948384L;
 
+
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_RULE_TYPE = "RULE_TYPE";
 	private static final String TAG_PLACE = "PLACE";
@@ -125,7 +126,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Evidence");
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To Date", model);
-		notePanel = new NoteListPanel(TAG_NOTE, model, this);
+		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 		modificationPanel = new ModificationPanel(this);

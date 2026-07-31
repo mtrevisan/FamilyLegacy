@@ -57,7 +57,7 @@ public class CalendarHandler implements RecordTypeHandler<CalendarDialog>{
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 		String id = record.getId();
 		if(type != null && !type.isEmpty()){

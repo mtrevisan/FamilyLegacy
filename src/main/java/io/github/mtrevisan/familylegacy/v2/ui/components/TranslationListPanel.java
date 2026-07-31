@@ -47,6 +47,23 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 	}
 
 	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
+
+	@Override
 	protected String getDisplay(TranslationEntry item){
 		StringBuilder sb = new StringBuilder();
 		if(!item.locale.isEmpty()){
@@ -63,6 +80,15 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 	@Override
 	protected TranslationEntry showAddDialog(){
 		return showTranslationDialog(null);
+	}
+
+	/**
+	 * Creates a new translation and adds it to the list.
+	 */
+	@Override
+	protected TranslationEntry showCreateNewDialog(){
+		//TODO
+		return null;
 	}
 
 	@Override
@@ -114,6 +140,7 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 		dialog.pack();
 		dialog.setLocationRelativeTo(parentDialog);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 

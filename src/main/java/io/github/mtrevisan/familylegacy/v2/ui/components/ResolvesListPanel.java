@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
@@ -23,6 +24,23 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 
 
 	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
+	}
+
+	@Override
 	protected String getDisplay(String id){
 		return id;
 	}
@@ -35,6 +53,15 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 		if(!StringUtils.isEmpty(input)){
 			return input.trim();
 		}
+		return null;
+	}
+
+	/**
+	 * Creates a new item and adds it to the list.
+	 */
+	@Override
+	protected String showCreateNewDialog(){
+		//TODO
 		return null;
 	}
 

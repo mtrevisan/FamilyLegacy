@@ -3,7 +3,6 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 
 import java.util.List;
 import java.util.regex.Pattern;

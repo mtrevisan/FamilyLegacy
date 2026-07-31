@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -85,6 +86,9 @@ public class SourceCitationPanel extends JPanel{
 	private static final long serialVersionUID = -8036724779224867360L;
 
 
+	private static final String PARAM_SOURCE = "SOURCE";
+
+
 	static{
 		HandlerRegistry.register(new NoteHandler());
 	}
@@ -95,7 +99,7 @@ public class SourceCitationPanel extends JPanel{
 	private final FLEFModel model;
 	private final Component parent;
 
-	private String selectedSourceId;
+	private String sourceId;
 
 	private final BoundComboBox<String> outcomeCombo;
 	private final BoundTextField scopeField;
@@ -118,7 +122,9 @@ public class SourceCitationPanel extends JPanel{
 	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
 	 */
-	public SourceCitationPanel(FLEFModel model, Dialog parent){
+	public SourceCitationPanel(final String sourceId, final FLEFModel model, final Dialog parent){
+		this.sourceId = sourceId;
+
 		this.model = model;
 		this.parent = parent;
 
@@ -217,7 +223,7 @@ public class SourceCitationPanel extends JPanel{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -249,6 +255,7 @@ public class SourceCitationPanel extends JPanel{
 		}
 		JDialog dialog = noteHandler.createEditDialog((parent instanceof Dialog? (Dialog)parent: null), model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -270,6 +277,7 @@ public class SourceCitationPanel extends JPanel{
 		Set<String> before = new HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog((parent instanceof Dialog? (Dialog)parent: null), model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -288,9 +296,8 @@ public class SourceCitationPanel extends JPanel{
 	 *
 	 * @param citationRecord the SOURCE_CITATION record (may be null)
 	 */
-	public void loadFromRecord(FLEFRecord citationRecord){
+	public void load(FLEFRecord citationRecord){
 		// Clear all manual fields
-		selectedSourceId = null;
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
@@ -303,12 +310,6 @@ public class SourceCitationPanel extends JPanel{
 		bindingManager.load(citationRecord);
 
 		// ---- Load manual fields ----
-
-		// SOURCE
-		String sourceId = citationRecord.getValue();
-		if(sourceId != null && !sourceId.isEmpty()){
-			selectedSourceId = sourceId;
-		}
 
 		// NOTE (0:M)
 		for(FLEFRecord child : citationRecord.getChildren()){
@@ -329,14 +330,11 @@ public class SourceCitationPanel extends JPanel{
 	 * @param citationRecord the SOURCE_CITATION record to save into (may be null)
 	 * @return the saved record (new if null was passed), or null if validation fails
 	 */
-	public FLEFRecord saveToRecord(FLEFRecord citationRecord){
+	public FLEFRecord save(FLEFRecord citationRecord){
 		// Validate required fields before saving
 		if(!validateData()){
 			return null;
 		}
-
-		// ---- Save bound simple fields ----
-		bindingManager.save(citationRecord);
 
 		if(citationRecord == null){
 			citationRecord = FLEFRecord.createChild("SOURCE");
@@ -345,11 +343,14 @@ public class SourceCitationPanel extends JPanel{
 		// Clear existing children
 		FLEFRecordHelper.removeAllChildren(citationRecord);
 
+		// ---- Save bound simple fields ----
+		bindingManager.save(citationRecord);
+
 		// ---- Save manual fields ----
 
 		// SOURCE
-		if(selectedSourceId != null && !selectedSourceId.isEmpty()){
-			citationRecord.setValue(selectedSourceId);
+		if(sourceId != null && !sourceId.isEmpty()){
+			citationRecord.addChild(FLEFRecord.createChildWithValue(PARAM_SOURCE, XRefHelper.formatXRef(sourceId)));
 		}
 
 		// NOTE (0:M) – manual
@@ -366,7 +367,7 @@ public class SourceCitationPanel extends JPanel{
 	 * @return true if all required fields are filled
 	 */
 	public boolean validateData(){
-		if(selectedSourceId == null || selectedSourceId.isEmpty()){
+		if(sourceId == null || sourceId.isEmpty()){
 			JOptionPane.showMessageDialog(parent,
 				"SOURCE is required for a citation.\n" +
 					"Please select a source record.",
@@ -382,7 +383,7 @@ public class SourceCitationPanel extends JPanel{
 	 * @return true if any field has data
 	 */
 	public boolean hasData(){
-		return (selectedSourceId != null && !selectedSourceId.isEmpty()) ||
+		return (sourceId != null && !sourceId.isEmpty()) ||
 					 outcomeCombo.getSelectedIndex() >= 0 ||
 					 !scopeField.isEmpty() ||
 					 !locationField.isEmpty() ||
@@ -396,7 +397,6 @@ public class SourceCitationPanel extends JPanel{
 	 * Clears all fields in the panel.
 	 */
 	public void clear(){
-		selectedSourceId = null;
 		outcomeCombo.setSelectedItem(StringUtils.EMPTY);
 		scopeField.setText(StringUtils.EMPTY);
 		locationField.setText(StringUtils.EMPTY);

@@ -39,7 +39,7 @@ public class FLEFModel{
 		if(record == null)
 			return;
 
-		final String id = record.findRecordId();
+		final String id = record.getId();
 		if(id != null){
 			if(recordsById.containsKey(id))
 				// Optionally remove existing record to allow replacement/update

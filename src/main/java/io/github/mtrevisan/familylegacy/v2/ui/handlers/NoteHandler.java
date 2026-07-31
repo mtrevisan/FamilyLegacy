@@ -13,6 +13,8 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 	public static final String TYPE = "NOTE";
 	public static final String ID_PREFIX = "N";
 
+	private static final String TAG_VALUE = "VALUE";
+
 
 	@Override
 	public String getLabel(){
@@ -30,8 +32,8 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
-		String value = FLEFRecordHelper.getChildValue(record, "VALUE");
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		String id = record.getId();
 		if(value != null && !value.isEmpty()){
 			// Truncate long notes

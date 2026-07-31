@@ -57,7 +57,7 @@ public class IndividualEventHandler implements RecordTypeHandler<IndividualEvent
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 		String id = record.getId();
 		if(type != null && !type.isEmpty()){

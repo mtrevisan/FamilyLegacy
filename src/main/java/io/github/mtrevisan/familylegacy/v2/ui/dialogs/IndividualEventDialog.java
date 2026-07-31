@@ -288,7 +288,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 				selectedFamilyId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					familyDisplayField.setText(familyHandler.getDisplayText(rec));
+					familyDisplayField.setText(familyHandler.getDisplayText(rec, model));
 				}
 				else{
 					familyDisplayField.setText(selectedId);
@@ -303,7 +303,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 	private String getIndividualDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return individualHandler.getDisplayText(rec);
+			return individualHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -359,7 +359,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 			selectedFamilyId = familyId;
 			FLEFRecord rec = model.getRecordById(familyId);
 			if(rec != null){
-				familyDisplayField.setText(familyHandler.getDisplayText(rec));
+				familyDisplayField.setText(familyHandler.getDisplayText(rec, model));
 			}
 			else{
 				familyDisplayField.setText(familyId);
@@ -478,6 +478,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 			btn.addActionListener(e -> {
 				IndividualEventDialog dialog = new IndividualEventDialog(null, model);
 				dialog.setVisible(true);
+
 				System.out.println("Individual Event saved.");
 			});
 

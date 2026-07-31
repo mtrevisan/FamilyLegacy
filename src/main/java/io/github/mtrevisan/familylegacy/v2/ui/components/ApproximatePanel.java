@@ -125,7 +125,7 @@ public class ApproximatePanel extends JPanel{
 				culturalNormId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					culturalNormField.setText(culturalNormHandler.getDisplayText(rec));
+					culturalNormField.setText(culturalNormHandler.getDisplayText(rec, model));
 				}
 				else{
 					culturalNormField.setText(selectedId);
@@ -159,7 +159,7 @@ public class ApproximatePanel extends JPanel{
 			culturalNormId = normId;
 			FLEFRecord rec = model != null? model.getRecordById(normId): null;
 			if(rec != null){
-				culturalNormField.setText(culturalNormHandler.getDisplayText(rec));
+				culturalNormField.setText(culturalNormHandler.getDisplayText(rec, model));
 			}
 			else{
 				culturalNormField.setText(normId);

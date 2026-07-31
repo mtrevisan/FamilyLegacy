@@ -57,7 +57,7 @@ public class HistoricEventHandler implements RecordTypeHandler<HistoricEventDial
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String title = FLEFRecordHelper.getChildValue(record, "TITLE");
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){

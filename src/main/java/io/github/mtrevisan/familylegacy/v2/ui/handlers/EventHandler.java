@@ -30,7 +30,7 @@ public class EventHandler implements RecordTypeHandler<EventDialog>{
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String type = getChildValue(record, "TYPE");
 		String date = getChildValue(record, "DATE");
 		String id = record.getId();

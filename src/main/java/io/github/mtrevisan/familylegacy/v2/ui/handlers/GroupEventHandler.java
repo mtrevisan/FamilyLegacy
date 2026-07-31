@@ -57,7 +57,7 @@ public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String typeId = FLEFRecordHelper.getChildValue(record, "TYPE");
 		String id = record.getId();
 		if(typeId != null && !typeId.isEmpty()){

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -36,17 +37,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseListener;
 import java.io.Serial;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 /* DONE */
 /**
- * Panel for managing a list of NOTE references (by ID).
+ * Panel for managing a list of NOTE references.
  * <p>
  * Provides:
  * <ul>
@@ -66,29 +63,30 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		HandlerRegistry.register(new NoteHandler());
 	}
 
+
 	private final String path;
 
 	private final RecordTypeHandler<?> noteHandler;
 
 
 	/**
-	 * Constructs a NoteListPanel with a titled border.
+	 * Constructs a NoteListPanel without a border.
 	 *
-	 * @param model        the FLEF model
 	 * @param parentDialog the parent dialog
+	 * @param model        the FLEF model
 	 */
-	public NoteListPanel(final String path, final FLEFModel model, final Dialog parentDialog){
-		this(path, model, parentDialog, "Notes");
+	public NoteListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
+		this(path, parentDialog, "Notes", model);
 	}
 
 	/**
-	 * Constructs a NoteListPanel without a border.
+	 * Constructs a NoteListPanel with a titled border.
 	 *
-	 * @param model        the FLEF model
 	 * @param parentDialog the parent dialog
 	 * @param borderTitle  the border title, or {@code null} for no border
+	 * @param model        the FLEF model
 	 */
-	public NoteListPanel(final String path, final FLEFModel model, final Dialog parentDialog, final String borderTitle){
+	public NoteListPanel(final String path, final Dialog parentDialog, final String borderTitle, final FLEFModel model){
 		super(parentDialog, borderTitle, model);
 
 		this.path = path;
@@ -98,9 +96,28 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	@Override
+	protected void initComponents(){
+		super.initComponents();
+
+		GUIHelper.installBehavior(list,
+			() -> (list.getSelectedIndex() >= 0),
+			this::editItem,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.item("Add Existing...", this::addItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			}
+		);
+	}
+
+	@Override
 	protected String getDisplay(final FLEFRecord note){
 		if(note != null)
-			return noteHandler.getDisplayText(note);
+			return noteHandler.getDisplayText(note, model);
 
 		return "--";
 	}
@@ -110,91 +127,53 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parentDialog, model, noteHandler, selectedId -> {
-				final FLEFRecord record = model.getRecordById(selectedId);
-				if(record != null && !items.contains(record))
-					result[0] = record;
-			});
+				final FLEFRecord note = model.getRecordById(selectedId);
+				if(note != null && !items.contains(note))
+					result[0] = note;
+			}
+		);
 		dialog.setVisible(true);
+
 		return result[0];
-	}
-
-	@Override
-	protected FLEFRecord showEditDialog(FLEFRecord existing){
-		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Note not found", "Error", JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
-		final JDialog editDialog = noteHandler.createEditDialog(parentDialog, model, existing);
-		editDialog.setVisible(true);
-		// Return the same ID (the note was updated in place)
-		return existing;
 	}
 
 	/**
 	 * Creates a new note and adds it to the list.
 	 */
-	public void createNewNote(){
-		final Set<FLEFRecord> before = new HashSet<>(items);
-		final JDialog newNoteDialog = noteHandler.createNewDialog(parentDialog, model);
-		newNoteDialog.setVisible(true);
+	@Override
+	protected FLEFRecord showCreateNewDialog(){
+		final NoteDialog dialog = (NoteDialog)noteHandler.createNewDialog(parentDialog, model);
+		dialog.setVisible(true);
 
-		for(final FLEFRecord note : model.getRecordsByType(path))
-			if(note != null && !before.contains(note) && !items.contains(note)){
-				addItemDirectly(note);
+		return (dialog.isSaved()? dialog.getRecord(): null);
+	}
 
-				break;
-			}
+	@Override
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parentDialog, "Note not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		final JDialog dialog = noteHandler.createEditDialog(parentDialog, model, existing);
+		dialog.setVisible(true);
+
+		// Return the same record (it was updated in place)
+		return existing;
 	}
 
 	public void load(final FLEFRecord record){
-		clear();
-
-		for(final FLEFRecord child : record.findChildren(path))
-			if(child.getValue() != null)
-				addItemDirectly(child);
+		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(record, path);
+		setItems(notes);
 	}
 
 	public void save(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, path);
+
 		for(final FLEFRecord note : getItems())
 			FLEFRecordHelper.addChild(record, path, note.getFormattedId());
-	}
-
-	/**
-	 * Returns the list of note IDs.
-	 *
-	 * @return the note IDs
-	 */
-	public List<FLEFRecord> getNotes(){
-		return getItems();
-	}
-
-	/**
-	 * Overrides the builder to add "Create New..." and "Add Existing..." items.
-	 */
-	@Override
-	protected void initComponents(){
-		super.initComponents();
-
-		// Override the behavior to add "Create New..." and "Add Existing..."
-		for(final MouseListener listener : list.getMouseListeners())
-			list.removeMouseListener(listener);
-		for(final KeyListener listener : list.getKeyListeners())
-			list.removeKeyListener(listener);
-
-		GUIHelper.installBehavior(list,
-			() -> list.getSelectedIndex() >= 0,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
-			builder -> {
-				builder.item("Create New...", this::createNewNote);
-				builder.item("Add Existing...", this::createNewItem);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
-				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
 	}
 
 }

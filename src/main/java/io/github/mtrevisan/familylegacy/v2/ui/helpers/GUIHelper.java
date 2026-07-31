@@ -13,6 +13,7 @@ import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 import java.awt.Component;
@@ -122,11 +123,13 @@ public final class GUIHelper{
 		// Keyboard shortcuts
 		if(keyInsertAction != null)
 			addKeyboardShortcut(component, KeyEvent.VK_INSERT, "insert-action", keyInsertAction);
-		if(keyDeleteAction != null && component instanceof JList)
+		if(keyDeleteAction != null && component instanceof JList<?> list){
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 			addKeyboardShortcut(component, KeyEvent.VK_DELETE, "delete-action", () -> {
 				if(hasSelection.get())
 					keyDeleteAction.run();
 			});
+		}
 	}
 
 	private static void addKeyboardShortcut(final JComponent component, final int virtualKey, final String actionMapKey,

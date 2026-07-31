@@ -349,7 +349,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	private void updateGroupDisplay(String groupId){
 		FLEFRecord group = model.getRecordById(groupId);
 		if(group != null){
-			groupDisplayField.setText(groupHandler.getDisplayText(group));
+			groupDisplayField.setText(groupHandler.getDisplayText(group, model));
 		}
 		else{
 			groupDisplayField.setText(groupId);
@@ -395,11 +395,11 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getCitationRecord();
+			FLEFRecord updated = dialog.getRecord();
 			if(updated != null){
 				sourceCitationRecords.set(idx, updated);
 				sourceCitationListModel.set(idx, getSourceCitationDisplay(updated));
@@ -443,7 +443,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayText(rec);
+				return sourceHandler.getDisplayText(rec, model);
 			}
 			return sourceId;
 		}
@@ -716,6 +716,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			btn.addActionListener(e -> {
 				GroupAttributeDialog dialog = GroupAttributeDialog.createNew(null, model);
 				dialog.setVisible(true);
+
 				System.out.println("Group Attribute saved.");
 			});
 

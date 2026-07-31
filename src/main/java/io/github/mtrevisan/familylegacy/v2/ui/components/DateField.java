@@ -39,7 +39,6 @@ import java.awt.Dialog;
 import java.util.function.Supplier;
 
 
-/* DONE */
 public class DateField extends JPanel{
 
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");

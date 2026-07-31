@@ -2,7 +2,6 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;

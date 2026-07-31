@@ -231,7 +231,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 	private String getGroupDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return groupHandler.getDisplayText(rec);
+			return groupHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -272,6 +272,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		}
 		JDialog dialog = groupHandler.createEditDialog(parent, model, rec);
 		dialog.setVisible(true);
+
 		groupListModel.set(idx, getGroupDisplayName(id));
 	}
 
@@ -301,7 +302,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 			selectedEventTypeId = typeId;
 			FLEFRecord rec = model.getRecordById(typeId);
 			if(rec != null){
-				typeField.setText(eventHandler.getDisplayText(rec));
+				typeField.setText(eventHandler.getDisplayText(rec, model));
 			}
 			else{
 				typeField.setText(typeId);
@@ -385,6 +386,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 			btn.addActionListener(e -> {
 				GroupEventDialog dialog = new GroupEventDialog(null, model);
 				dialog.setVisible(true);
+
 				System.out.println("Group Event saved.");
 			});
 

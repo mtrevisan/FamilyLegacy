@@ -53,6 +53,7 @@ public class NameStructureDialog extends JDialog{
 	}
 
 	private final BindingManager bindingManager = new BindingManager();
+
 	private final FLEFModel model;
 	private final FLEFRecord nameRecord;
 	private boolean saved;
@@ -95,7 +96,7 @@ public class NameStructureDialog extends JDialog{
 		validFromField = DateField.createWithWrapperTag("VALID_FROM", this, "Valid From Date", model);
 		validToField = DateField.createWithWrapperTag("VALID_TO", this, "Valid To Date", model);
 
-		notePanel = new NoteListPanel("NOTE", model, this);
+		notePanel = new NoteListPanel("NOTE", this, model);
 		sourcePanel = new SourceCitationListPanel("SOUR", this, model);
 
 		initComponents();
@@ -186,6 +187,7 @@ public class NameStructureDialog extends JDialog{
 	private void addVariant(){
 		final TextValueVariantDialog dialog = new TextValueVariantDialog(this, null);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			final FLEFRecord record = dialog.getVariantRecord();
 			if(record != null){
@@ -308,7 +310,7 @@ public class NameStructureDialog extends JDialog{
 		return saved;
 	}
 
-	public FLEFRecord getNameRecord(){
+	public FLEFRecord getRecord(){
 		return nameRecord;
 	}
 

@@ -313,6 +313,7 @@ public class ContactStructurePanel extends JPanel{
 			null
 		);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			FLEFRecord transRecord = dialog.getTranscribedTextRecord();
 			if(transRecord != null){
@@ -334,6 +335,7 @@ public class ContactStructurePanel extends JPanel{
 			transRecord
 		);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
 			transcriptionModel.set(idx, buildTranscriptionDisplay(transRecord));
 		}
@@ -355,7 +357,7 @@ public class ContactStructurePanel extends JPanel{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -398,6 +400,7 @@ public class ContactStructurePanel extends JPanel{
 			model, rec
 		);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -423,6 +426,7 @@ public class ContactStructurePanel extends JPanel{
 			model
 		);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){

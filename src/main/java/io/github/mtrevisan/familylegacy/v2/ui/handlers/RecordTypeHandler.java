@@ -59,9 +59,10 @@ public interface RecordTypeHandler<T extends JDialog>{
 	 * Used for list rendering.
 	 *
 	 * @param record the record
+	 * @param model  the FLEF model
 	 * @return the display name (e.g., "John Doe (I1)", "Smith Family (F1)")
 	 */
-	String getDisplayText(FLEFRecord record);
+	String getDisplayText(FLEFRecord record, FLEFModel model);
 
 	/**
 	 * Creates a dialog to edit an existing record.

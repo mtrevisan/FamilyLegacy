@@ -57,7 +57,7 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryDialog>{
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String name = FLEFRecordHelper.getChildValue(record, "NAME");
 		String id = record.getId();
 		if(name != null && !name.isEmpty()){

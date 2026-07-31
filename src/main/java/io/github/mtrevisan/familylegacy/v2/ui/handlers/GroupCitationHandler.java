@@ -61,7 +61,7 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String groupId = FLEFRecordHelper.getChildValue(record, "GROUP");
 		String id = record.getId();
 		if(groupId != null && !groupId.isEmpty()){

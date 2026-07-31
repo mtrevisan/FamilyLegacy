@@ -203,7 +203,7 @@ public class GroupCitationPanel extends JPanel{
 				selectedGroupId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
 				if(rec != null){
-					groupDisplayField.setText(groupHandler.getDisplayText(rec));
+					groupDisplayField.setText(groupHandler.getDisplayText(rec, model));
 				}
 				else{
 					groupDisplayField.setText(selectedId);
@@ -218,7 +218,7 @@ public class GroupCitationPanel extends JPanel{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -253,6 +253,7 @@ public class GroupCitationPanel extends JPanel{
 			model, rec
 		);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		noteDisplayMap.put(id, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -278,6 +279,7 @@ public class GroupCitationPanel extends JPanel{
 			model
 		);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -316,7 +318,7 @@ public class GroupCitationPanel extends JPanel{
 			selectedGroupId = groupId;
 			FLEFRecord rec = model.getRecordById(groupId);
 			if(rec != null){
-				groupDisplayField.setText(groupHandler.getDisplayText(rec));
+				groupDisplayField.setText(groupHandler.getDisplayText(rec, model));
 			}
 			else{
 				groupDisplayField.setText(groupId);

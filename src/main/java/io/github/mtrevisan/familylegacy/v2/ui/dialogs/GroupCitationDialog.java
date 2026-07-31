@@ -262,7 +262,7 @@ public class GroupCitationDialog extends JDialog{
 		selectedGroupId = groupId;
 		FLEFRecord rec = model.getRecordById(groupId);
 		if(rec != null){
-			groupDisplayField.setText(groupHandler.getDisplayText(rec));
+			groupDisplayField.setText(groupHandler.getDisplayText(rec, model));
 		}
 		else{
 			groupDisplayField.setText(groupId);
@@ -275,7 +275,7 @@ public class GroupCitationDialog extends JDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord note = model.getRecordById(id);
 		if(note != null){
-			return noteHandler.getDisplayText(note);
+			return noteHandler.getDisplayText(note, model);
 		}
 		return id;
 	}
@@ -305,6 +305,7 @@ public class GroupCitationDialog extends JDialog{
 		}
 		JDialog dialog = noteHandler.createEditDialog(parentDialog, model, note);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(noteId);
 		noteDisplayMap.put(noteId, newDisplay);
 		noteModel.set(idx, newDisplay);
@@ -326,6 +327,7 @@ public class GroupCitationDialog extends JDialog{
 		Set<String> before = new java.util.HashSet<>(noteIds);
 		JDialog dialog = noteHandler.createNewDialog(parentDialog, model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !noteIds.contains(id)){
@@ -435,6 +437,7 @@ public class GroupCitationDialog extends JDialog{
 			btn.addActionListener(e -> {
 				GroupCitationDialog dialog = new GroupCitationDialog(null, model, null);
 				dialog.setVisible(true);
+
 				System.out.println("Group Citation saved.");
 			});
 

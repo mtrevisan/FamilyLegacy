@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationPanel;
 import net.miginfocom.swing.MigLayout;
 
@@ -34,7 +35,6 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.Serial;
 
@@ -48,23 +48,48 @@ public class SourceCitationDialog extends JDialog{
 	@Serial
 	private static final long serialVersionUID = -7024588390352183760L;
 
+
+	private static final String PARAM_SOURCE = "SOURCE";
+
+
 	private final FLEFRecord citationRecord;
 	private boolean saved = false;
 
 	private final SourceCitationPanel panel;
 
-	public SourceCitationDialog(Dialog parent, FLEFModel model, FLEFRecord citationRecord){
+
+	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model){
+		return new SourceCitationDialog(parent, model, null);
+	}
+
+	public static SourceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+
+		return new SourceCitationDialog(parent, model, record);
+	}
+
+
+	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord citationRecord){
 		super(parent, citationRecord == null? "Add Source Citation": "Edit Source Citation", true);
 
-		this.citationRecord = citationRecord != null? citationRecord: FLEFRecord.createEmpty();
-		this.panel = new SourceCitationPanel(model, this);
+		this.citationRecord = (citationRecord != null? citationRecord: FLEFRecord.createEmpty());
+		panel = new SourceCitationPanel(findRecordSourceId(citationRecord), model, this);
+		panel.load(citationRecord);
+
 		initComponents();
-		if(citationRecord != null){
-			panel.loadFromRecord(citationRecord);
-		}
+
 		pack();
-		setMinimumSize(new Dimension(600, 650));
+
 		setLocationRelativeTo(parent);
+	}
+
+	public String findRecordSourceId(final FLEFRecord sourceCitation){
+		String id = null;
+		for(final FLEFRecord child : sourceCitation.getChildren())
+			if(PARAM_SOURCE.equals(child.getTag()))
+				id = XRefHelper.extractXRef(child.getValue());
+		return id;
 	}
 
 	private void initComponents(){
@@ -95,11 +120,10 @@ public class SourceCitationDialog extends JDialog{
 		return saved;
 	}
 
-	public FLEFRecord getCitationRecord(){
-		if(!saved){
+	public FLEFRecord getRecord(){
+		if(!saved)
 			return null;
-		}
-		return panel.saveToRecord(citationRecord);
+		return panel.save(citationRecord);
 	}
 
 }

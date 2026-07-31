@@ -70,6 +70,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 3053114409506763765L;
 
+
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_CUSTODIAN = "CUSTODIAN";
 	private static final String TAG_PLACE = "PLACE";
@@ -112,7 +113,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 		custodianField = IndividualField.create(TAG_CUSTODIAN, parent, model);
 		placeField = PlaceField.create(TAG_PLACE, parent, model);
 		contactPanel = new ContactListPanel(TAG_CONTACT, model, this);
-		notePanel = new NoteListPanel(TAG_NOTE, model, this);
+		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		modificationPanel = new ModificationPanel(this);
 
 		initComponents();

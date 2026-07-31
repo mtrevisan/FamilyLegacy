@@ -158,7 +158,8 @@ public class DateDialog extends JDialog{
 			final FLEFRecord initialDate){
 		final DateDialog dialog = createEdit(parent, model, title, initialDate);
 		dialog.setVisible(true);
-		return dialog.getRecord();
+
+		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
 }

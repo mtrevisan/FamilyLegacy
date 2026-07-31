@@ -2,8 +2,6 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 

@@ -1,12 +1,12 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
-import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.AlternationType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.Cardinality;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ConditionalRequireConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.AlternationType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.Cardinality;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.EnumType;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.FieldDefinition;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ReferenceType;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ScalarType;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.StructType;
@@ -29,7 +29,7 @@ import java.util.Map;
  * Grammar (informal):
  * <pre>
  * grammar      := (fileDef | aliasDef | enumDef | structDef | recordDef | oneofAliasDef)*
- * fileDef      := 'file' IDENT structBody                     // must contain 'header' and 'records' fields
+ * fileDef      := 'file' IDENT structBody
  * aliasDef     := 'alias' IDENT '=' type
  * enumDef      := 'enum' IDENT '{' identList '}' ('|' IDENT)?
  * structDef    := 'struct' IDENT structBody

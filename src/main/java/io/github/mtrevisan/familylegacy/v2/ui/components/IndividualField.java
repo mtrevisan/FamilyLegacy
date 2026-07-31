@@ -195,7 +195,7 @@ public class IndividualField extends JPanel{
 	private void updateDisplay(){
 		if(record != null && record.hasData()){
 			final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-			displayField.setText(individualHandler.getDisplayText(record));
+			displayField.setText(individualHandler.getDisplayText(record, model));
 			displayField.setForeground(COLOR_FOREGROUND_ENABLED);
 		}
 		else{

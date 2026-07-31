@@ -601,6 +601,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.pack();
 		dialog.setLocationRelativeTo(parentDialog);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 
@@ -763,6 +764,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.pack();
 		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 
@@ -841,6 +843,7 @@ public class PersonalNamePanel extends JPanel{
 		dialog.pack();
 		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 
@@ -882,6 +885,7 @@ public class PersonalNamePanel extends JPanel{
 		Set<String> before = new HashSet<>(currentNoteIds);
 		JDialog newNoteDialog = noteHandler.createNewDialog(parent, model);
 		newNoteDialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !currentNoteIds.contains(id)){
@@ -900,6 +904,7 @@ public class PersonalNamePanel extends JPanel{
 		if(rec == null) return;
 		JDialog editDialog = noteHandler.createEditDialog(parent, model, rec);
 		editDialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		listModel.set(idx, newDisplay);
 	}
@@ -931,10 +936,11 @@ public class PersonalNamePanel extends JPanel{
 		int idx = list.getSelectedIndex();
 		if(idx == -1) return;
 		FLEFRecord existing = currentSources.get(idx);
-		SourceCitationDialog dialog = new SourceCitationDialog(parent, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
-			FLEFRecord updated = dialog.getCitationRecord();
+			FLEFRecord updated = dialog.getRecord();
 			if(updated != null){
 				currentSources.set(idx, updated);
 				listModel.set(idx, getSourceCitationDisplay(updated));
@@ -955,13 +961,13 @@ public class PersonalNamePanel extends JPanel{
 
 	private String getCulturalNormDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return culturalNormHandler.getDisplayText(rec);
+		if(rec != null) return culturalNormHandler.getDisplayText(rec, model);
 		return id;
 	}
 
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null) return noteHandler.getDisplayText(rec);
+		if(rec != null) return noteHandler.getDisplayText(rec, model);
 		return id;
 	}
 
@@ -970,7 +976,7 @@ public class PersonalNamePanel extends JPanel{
 		if(sourceId != null){
 			FLEFRecord rec = model.getRecordById(sourceId);
 			if(rec != null){
-				return sourceHandler.getDisplayText(rec);
+				return sourceHandler.getDisplayText(rec, model);
 			}
 			return sourceId;
 		}

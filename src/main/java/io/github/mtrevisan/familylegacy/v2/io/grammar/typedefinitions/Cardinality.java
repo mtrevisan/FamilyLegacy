@@ -2,10 +2,10 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 
 public enum Cardinality{
-	REQUIRED,      // no suffix
-	OPTIONAL,      // ?
-	ZERO_OR_MORE,  // *
-	ONE_OR_MORE;   // +
+	REQUIRED,		// no suffix
+	OPTIONAL,		// ?
+	ZERO_OR_MORE,	// *
+	ONE_OR_MORE;	// +
 
 	public String symbol(){
 		return switch(this){

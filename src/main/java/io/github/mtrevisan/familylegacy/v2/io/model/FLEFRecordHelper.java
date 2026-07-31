@@ -61,9 +61,9 @@ public final class FLEFRecordHelper{
 	/**
 	 * Finds a child navigating through a path of tags separated by '.'.
 	 *
-	 * @param parent The starting record.
-	 * @param path   The dot‑separated tag path (e.g. "ROOT.RESTRICTION[2].CODE").
-	 * @return The matching record, or {@code null} if any tag in the path is not found.
+	 * @param parent	The starting record.
+	 * @param path	The dot‑separated tag path (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @return	The matching record, or {@code null} if any tag in the path is not found.
 	 */
 	public static FLEFRecord findChild(final FLEFRecord parent, final String path){
 		if(parent == null || StringUtils.isEmpty(path))
@@ -95,8 +95,17 @@ public final class FLEFRecordHelper{
 		if(parent == null|| StringUtils.isEmpty(path))
 			return result;
 
-		for(final FLEFRecord child : parent.getChildren())
-			if(path.equals(child.getTag()))
+		final String[] segments = path.split("\\.");
+		final FLEFRecord targetParent = navigateToParent(parent, segments);
+		if(targetParent == null)
+			return result;
+
+		final Segment seg = Segment.parse(segments[segments.length - 1]);
+		if(seg == null)
+			return result;
+
+		for(final FLEFRecord child : targetParent.getChildren())
+			if(seg.tag.equals(child.getTag()))
 				result.add(child);
 		return result;
 	}
@@ -106,7 +115,7 @@ public final class FLEFRecordHelper{
 	 * If the last node has a value, it is returned; otherwise {@code null}.
 	 *
 	 * @param parent	The parent record.
-	 * @param path   The dot‑separated tag path (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @return	The value as a {@code String}, or {@code null} if not found or no value.
 	 */
 	public static String getChildValue(final FLEFRecord parent, final String path){
@@ -118,7 +127,7 @@ public final class FLEFRecordHelper{
 	 * Collects values of all children with the given tag as a comma-separated string.
 	 *
 	 * @param parent	The parent record.
-	 * @param path   The dot‑separated tag path to search for (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path to search for (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @return	A comma-separated string of values, or empty string if none found.
 	 */
 	public static String getChildValuesAsString(final FLEFRecord parent, final String path){
@@ -137,7 +146,7 @@ public final class FLEFRecordHelper{
 	 * If the value is {@code null} or empty, the child is removed.
 	 *
 	 * @param parent	The parent record.
-	 * @param path   The dot‑separated tag path to update (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path to update (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @param value	The new value ({@code null} or empty to remove).
 	 */
 	public static void updateChildValue(final FLEFRecord parent, final String path, final String value){
@@ -161,7 +170,7 @@ public final class FLEFRecordHelper{
 	 * Adds a single child with the given tag and value, if value is not empty.
 	 *
 	 * @param parent	The parent record.
-	 * @param path   The dot‑separated tag path for the new child (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path for the new child (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @param value	The value to set (ignored if {@code null} or empty).
 	 */
 	public static void addChild(final FLEFRecord parent, final String path, final String value){
@@ -197,7 +206,7 @@ public final class FLEFRecordHelper{
 	 * Remove a child navigating through a path of tags separated by '.'.
 	 *
 	 * @param parent The starting record.
-	 * @param path   The dot‑separated tag path (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @return The deleted child, or {@code null} if any tag in the path is not found.
 	 */
 	public static FLEFRecord removeChild(final FLEFRecord parent, final String path){
@@ -234,7 +243,7 @@ public final class FLEFRecordHelper{
 	 * Removes all children with the given tag.
 	 *
 	 * @param parent	The parent record.
-	 * @param path   The dot‑separated tag path to remove (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param path	The dot‑separated tag path to remove (e.g. "ROOT.RESTRICTION[2].CODE").
 	 */
 	public static boolean removeChildren(final FLEFRecord parent, final String path){
 		if(parent == null || StringUtils.isEmpty(path))

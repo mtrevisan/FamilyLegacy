@@ -403,7 +403,6 @@ public class HeaderDialog extends JDialog{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setMinimumSize(new Dimension(500, 450));
 		dialog.setLocationRelativeTo(this);
 		dialog.setVisible(true);
 
@@ -447,7 +446,6 @@ public class HeaderDialog extends JDialog{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setMinimumSize(new Dimension(500, 450));
 		dialog.setLocationRelativeTo(this);
 		dialog.setVisible(true);
 
@@ -471,7 +469,7 @@ public class HeaderDialog extends JDialog{
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec != null){
-			return noteHandler.getDisplayText(rec);
+			return noteHandler.getDisplayText(rec, model);
 		}
 		return id;
 	}
@@ -520,6 +518,7 @@ public class HeaderDialog extends JDialog{
 		}
 		JDialog dialog = noteHandler.createEditDialog(parent, model, rec);
 		dialog.setVisible(true);
+
 		String newDisplay = getNoteDisplayName(id);
 		submitterNoteDisplayMap.put(id, newDisplay);
 		submitterNoteListModel.set(idx, newDisplay);
@@ -540,6 +539,7 @@ public class HeaderDialog extends JDialog{
 		Set<String> before = new HashSet<>(submitterNoteIds);
 		JDialog dialog = noteHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
+
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
 			String id = rec.getId();
 			if(id != null && !before.contains(id) && !submitterNoteIds.contains(id)){
@@ -801,6 +801,7 @@ public class HeaderDialog extends JDialog{
 			btn.addActionListener(e -> {
 				HeaderDialog dialog = new HeaderDialog(null, model, header);
 				dialog.setVisible(true);
+
 				if(dialog.isSaved()){
 					System.out.println("Header saved.");
 				}

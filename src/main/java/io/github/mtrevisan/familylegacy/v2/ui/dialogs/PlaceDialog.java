@@ -84,6 +84,7 @@ public class PlaceDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -2581031991500033899L;
 
+
 	private static final String DOT = ".";
 
 	private static final String TAG_NAME = "NAME";
