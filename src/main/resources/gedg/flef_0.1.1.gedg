@@ -79,7 +79,7 @@ struct Header {
     version: SemVer   // the version of the protocol, following Semantic Versioning. It is defined and changed by the creators of the product.
   }
   source: struct {
-    system_id: Text     // a system identification name. Must be unique across products. Spaces must be substituted with underscores.
+    system_id: Text     // a system identification name. Must be unique across products.
     name?: Text        // the human-readable name of the software product that produced this file
     version?: SemVer   // the version of the software product, following Semantic Versioning. It is defined and changed by the creators of the product.
     corporate?: Text   // the name of the organization or person that produced or commissioned the product

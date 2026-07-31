@@ -1,18 +1,17 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.AlternationType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.Cardinality;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.ConditionalRequireConstraint;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.Constraint;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.EnumType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.FieldDefinition;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.FileDefinition;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.OneOfConstraint;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.ReferenceType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.ScalarType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.StructType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.TypeDefinition;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.UnionType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.AlternationType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.Cardinality;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ConditionalRequireConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.EnumType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.FieldDefinition;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ReferenceType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ScalarType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.StructType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.UnionType;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -30,6 +29,9 @@ import java.util.Set;
  * pipeline: {@link FLEFGrammarParser} never fails on a semantically-invalid-but-syntactically-correct grammar.
  */
 public final class FLEFGrammarValidator{
+
+	private static final String DOT = ".";
+
 
 	public record ValidationResult(List<String> errors, List<String> warnings){
 		public boolean isValid(){
@@ -125,7 +127,7 @@ public final class FLEFGrammarValidator{
 		for(final FieldDefinition field : struct.getFields()){
 			if(!fieldNames.add(field.name()))
 				errors.add(context + ": duplicate field '" + field.name() + "'");
-			validateTypeUsage(field.type(), context + "." + field.name());
+			validateTypeUsage(field.type(), context + DOT + field.name());
 		}
 		for(final Constraint constraint : struct.getConstraints())
 			validateConstraint(constraint, fieldNames, context);
@@ -152,7 +154,7 @@ public final class FLEFGrammarValidator{
 		if(union.getChoices().isEmpty())
 			warnings.add(context + ": oneof has no choices");
 		for(final Map.Entry<String, TypeDefinition> choice : union.getChoices().entrySet())
-			validateTypeUsage(choice.getValue(), context + "." + choice.getKey());
+			validateTypeUsage(choice.getValue(), context + DOT + choice.getKey());
 	}
 
 	private void validateEnum(final EnumType enumType, final String context){
@@ -179,12 +181,14 @@ public final class FLEFGrammarValidator{
 	private void checkTypeReference(final String name, final String context){
 		if(name == null){
 			errors.add(context + ": missing type reference");
+
 			return;
 		}
 		if(FLEFGrammar.PRIMITIVE_TYPES.contains(name))
 			return;
 		if(grammar.hasType(name))
 			return;
+
 		errors.add(context + ": unresolved type reference '" + name + "'");
 	}
 

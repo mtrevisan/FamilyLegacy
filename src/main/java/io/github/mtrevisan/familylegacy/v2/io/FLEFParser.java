@@ -1,8 +1,15 @@
 package io.github.mtrevisan.familylegacy.v2.io;
 
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 
 public class FLEFParser{
@@ -93,13 +100,8 @@ public class FLEFParser{
 			}
 
 			// Simple value
-			if(!value.isEmpty()){
-				// If it contains spaces, the first token could be an ID or the full value
-				if(record.getId() == null && XRefHelper.isReference(value))
-					record.setId(XRefHelper.extractXRef(value));
-				else
-					record.setValue(value);
-			}
+			if(!value.isEmpty())
+				record.setValue(value);
 
 			skipSpaces();
 
@@ -262,7 +264,44 @@ public class FLEFParser{
 	}
 
 
-	public static void main(String[] args){
+	public static void main(String[] args) throws IOException{
+		//with errors
+		String text2 = """
+			header {
+			  date 2026-07-31
+			  submitter {
+			    name Mario Rossi
+			  }
+			}
+			records {
+			  individual {
+			    id @I1@
+			    sex INVALID_VALUE
+			    modification {
+			      creation {
+			        date 2026-07-31
+			      }
+			    }
+			  }
+			  event_participation {
+			    id @EP1@
+			    event {
+			      event @E999@
+			    }
+			    participant {
+			      individual @I1@
+			    }
+			    role CHILD
+			    modification {
+			      creation {
+			        date 2026-07-31
+			      }
+			    }
+			  }
+			}
+		""";
+
+		//without errors
 		String text = """
 			header {
 			  protocol {
@@ -341,9 +380,7 @@ public class FLEFParser{
 			  }
 			  event_participation {
 			    id @EP1@
-			    event {
-			      event @E1@
-			    }
+			    event @E1@
 			    participant {
 			      individual @I1@
 			    }
@@ -357,15 +394,45 @@ public class FLEFParser{
 			}
 			""";
 
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.1.gedg");
+		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
+		for(final String warning : grammar.getParseWarnings())
+			System.out.println(warning);
+
+
+		System.out.println();
+
+
 		final FLEFParser parser = new FLEFParser();
 		final FLEFModel root = parser.parse(text);
 
 		System.out.println(root);
 
+
 		System.out.println();
+
 
 		final FLEFWriter writer = FLEFWriter.create();
 		System.out.println(writer.writeToString(root));
+
+
+		System.out.println();
+
+
+		final FLEFValidator validator = new FLEFValidator(grammar);
+		final List<String> errorsSchema = validator.validateSchema(root);
+		System.out.println("Schema check:");
+		for(final String error : errorsSchema)
+			System.out.println(error);
+
+
+		System.out.println();
+
+
+		final List<String> errorsIntegrity = validator.validateIntegrity(root);
+		System.out.println("Integrity check:");
+		for(final String error : errorsIntegrity)
+			System.out.println(error);
 	}
 
 }

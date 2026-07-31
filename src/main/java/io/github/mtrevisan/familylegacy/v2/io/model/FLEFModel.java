@@ -13,6 +13,9 @@ import java.util.Set;
  */
 public class FLEFModel{
 
+	private static final String PARAM_ID = "id";
+
+
 	private FLEFRecord header;
 	private final List<FLEFRecord> records = new ArrayList<>();
 
@@ -36,13 +39,13 @@ public class FLEFModel{
 		if(record == null)
 			return;
 
-		final String cleanId = record.getId();
-		if(cleanId != null){
-			if(recordsById.containsKey(cleanId))
+		final String id = record.findRecordId();
+		if(id != null){
+			if(recordsById.containsKey(id))
 				// Optionally remove existing record to allow replacement/update
-				removeRecord(cleanId);
+				removeRecord(id);
 
-			recordsById.put(cleanId, record);
+			recordsById.put(id, record);
 		}
 
 		records.add(record);

@@ -1,19 +1,17 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.AlternationType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.Cardinality;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.ConditionalRequireConstraint;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.Constraint;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.EnumType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.FieldDefinition;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.FileDefinition;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.OneOfConstraint;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.RecordType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.ReferenceType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.ScalarType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.StructType;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.TypeDefinition;
-import io.github.mtrevisan.familylegacy.v2.io.grammar.ast.UnionType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.AlternationType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.Cardinality;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ConditionalRequireConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.EnumType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.FieldDefinition;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ReferenceType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ScalarType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.StructType;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.UnionType;
 
 import java.io.IOException;
 import java.nio.file.Files;

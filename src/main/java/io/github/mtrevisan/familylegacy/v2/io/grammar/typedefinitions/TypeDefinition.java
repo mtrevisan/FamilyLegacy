@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.v2.io.grammar.ast;
+package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;

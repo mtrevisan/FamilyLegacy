@@ -32,9 +32,12 @@ import java.util.List;
 
 /**
  * Represents a FLEF record (header or data record).
- * A record has an ID (optional), a type, a list of children, and can have a level (for children) and a tag/value.
+ * A record has an ID (optional), a type, a list of children, and can have a tag/value.
  */
 public class FLEFRecord{
+
+	private static final String PARAM_ID = "id";
+
 
 	// For main records
 	private String id;
@@ -77,6 +80,14 @@ public class FLEFRecord{
 
 	public String getId(){
 		return XRefHelper.extractXRef(id);
+	}
+
+	public String findRecordId(){
+		String id = null;
+		for(final FLEFRecord child : children)
+			if(PARAM_ID.equals(child.getTag()))
+				id = XRefHelper.extractXRef(child.getValue());
+		return id;
 	}
 
 	public String getFormattedId(){

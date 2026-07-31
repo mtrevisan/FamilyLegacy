@@ -23,6 +23,8 @@ import java.awt.event.MouseEvent;
  */
 public class EvidenceQualifiersPanel extends JPanel{
 
+	private static final String DOT = ".";
+
 	private static final String[] CERTAINTY_VALUES = {StringUtils.EMPTY, "challenged", "disproven", "proven"};
 	private static final String[] CREDIBILITY_VALUES = {StringUtils.EMPTY, "0", "1", "2", "3"};
 
@@ -50,7 +52,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param credibilityValues	The values for the credibility combo (may not be {@code null}).
 	 */
 	public EvidenceQualifiersPanel(final String path, final String title, final String[] certaintyValues, final String[] credibilityValues){
-		this.path = (path != null && !path.isEmpty()? path + ".": StringUtils.EMPTY);
+		this.path = (path != null && !path.isEmpty()? path + DOT: StringUtils.EMPTY);
 
 
 		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]"));

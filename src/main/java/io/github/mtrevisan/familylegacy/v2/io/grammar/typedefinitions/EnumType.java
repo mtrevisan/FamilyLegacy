@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.v2.io.grammar.ast;
+package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -19,7 +19,8 @@ public final class EnumType extends TypeDefinition{
 
 	public EnumType(final String name, final List<String> values, final boolean allowCustomText){
 		super(name);
-		this.values = Collections.unmodifiableList(new ArrayList<>(values));
+
+		this.values = List.copyOf(values);
 		this.allowCustomText = allowCustomText;
 	}
 
