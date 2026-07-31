@@ -1,5 +1,10 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.ast;
 
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+
+import java.util.List;
+
 
 /**
  * {@code Xref<Target>} or {@code XrefOrVoid<Target>}.
@@ -23,6 +28,18 @@ public final class ReferenceType extends TypeDefinition{
 
 	public boolean isVoidable(){
 		return voidable;
+	}
+
+	@Override
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar,
+			final List<String> errors){
+		if(!record.isReference()){
+			errors.add(String.format("Expected cross-reference at '%s'", contextPath));
+
+			return;
+		}
+		if(record.isVoid() && !voidable)
+			errors.add(String.format("Void reference not allowed at '%s'", contextPath));
 	}
 
 	@Override

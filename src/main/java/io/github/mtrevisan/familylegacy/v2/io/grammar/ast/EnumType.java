@@ -1,5 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.ast;
 
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +30,14 @@ public final class EnumType extends TypeDefinition{
 
 	public boolean isAllowCustomText(){
 		return allowCustomText;
+	}
+
+	@Override
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar,
+			final List<String> errors){
+		final String val = record.getValue();
+		if(val != null && !values.contains(val) && !allowCustomText)
+			errors.add(String.format("Invalid enum value '%s' at '%s'. Allowed: %s", val, contextPath, values));
 	}
 
 	@Override

@@ -16,4 +16,12 @@ public enum Cardinality{
 		};
 	}
 
+	public boolean isRequired(){
+		return (this == REQUIRED || this == ONE_OR_MORE);
+	}
+
+	public boolean isSingle(){
+		return false;
+	}
+
 }

@@ -319,3 +319,108 @@ A formal schema (e.g., XML Schema, JSON Schema, or a custom schema language) SHO
 3. Declare it in the HEADER.
 4. Follow the naming convention: <NAMESPACE>_<TAG>.
 5. Provide a schema (optional but recommended).
+
+
+## FLEF 0.1.1 Example
+
+avendo questo file di esempio, che segue il protocollo FLEF 0.1.1
+
+```
+header {
+  protocol {
+    name Family LEgacy Format
+    version 0.1.1
+  }
+  source {
+    system_id MyGenealogySoftware
+    name My Genealogy Software
+    version 1.0.0
+  }
+  date 2026-07-31
+  submitter {
+    name Mario Rossi
+    contact {
+      address mario.rossi@example.com
+      type personal
+    }
+  }
+  scope Example family
+}
+records {
+  individual {
+    id I1
+      name {
+        part {
+          type given
+          value Mario
+        }
+        part {
+          type family
+          value """
+            Rossi
+            Bianchi
+          """
+        }
+      }
+    sex MALE
+    modification {
+      creation {
+        date 2026-07-31
+      }
+    }
+  }
+  note {
+    id N1
+    value Individuo presente nel registro di nascita.
+    modification {
+      creation {
+        date 2026-07-31
+      }
+    }
+  }
+  event {
+    id E1
+    type BIRTH
+    detail {
+      date {
+        value {
+          point {
+            single_date {
+              full_date {
+                value 1894-03-17
+                calendar gregorian
+              }
+            }
+          }
+        }
+      }
+      modification {
+        creation {
+          date 2026-07-31
+        }
+      }
+    }
+  }
+  event_participation {
+    id EP1
+    event {
+      event E1
+    }
+    participant {
+      individual I1
+    }
+    role CHILD
+    modification {
+      creation {
+        date 2026-07-31
+      }
+    }
+  }
+}
+```
+
+con la convenzione che se il campo contiene ritorni a capo allora deve essere circondato da `""""`
+
+implementa il parser, verifica che parsi correttamente un file di esempio con tutte le casistiche che possono capitare, fai la validazione del file passato in input contro il parsing della grammatica dato in una struttura FLEFGrammar
+
+dopo il primo IDENT, tutto quello che segue prima del ritorno a capo, fa parte del valore, a meno che non cominci con tre doppie virgolette, e allora tutto quello che è chiuso tra triple virgolette doppie, ritorni a capo inclusi, fa parte del valore
