@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
@@ -35,14 +34,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.TranslationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.TranslationListPanel.TranslationEntry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -51,27 +48,28 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
 
 
+/* ONGOING */
 /**
- * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.0.
+ * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * NOTE_RECORD :=
- * n @<XREF:NOTE>@ NOTE    {1:1}
- *   +1 TITLE <TEXT>    {0:1}
- *   +1 VALUE <SUBMITTER_TEXT>    {1:1}
- *   +1 MIME <MIME_TYPE>    {0:1}
- *   +1 LOCALE <LOCALE_CODE>    {0:1}
- *   +1 TRANSLATION    {0:M}
- *     +2 VALUE <TEXT>    {1:1}
- *     +2 LOCALE <LOCALE_CODE>    {0:1}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * record NoteRecord {
+ *   id: LocalID
+ *   title?: Text
+ *   value: Text
+ *   mime?: Text
+ *   locale?: LocaleCode
+ *   translation*: struct {
+ *     value: Text
+ *     locale?: LocaleCode
+ *   }
+ *   citation*: SourceCitation
+ *   restriction?: RestrictionStructure
+ *   modification: ModificationStructure
+ * }
  * </pre>
  */
 public class NoteDialog extends BaseRecordDialog{
@@ -80,7 +78,16 @@ public class NoteDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -4670126000119212975L;
 
 
-	// Handlers
+	private static final String TAG_TITLE = "TITLE";
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_MIME = "MIME";
+	private static final String TAG_LOCALE = "LOCALE";
+	private static final String TAG_TRANSLATION = "TRANSLATION";
+	private static final String TAG_CITATION = "CITATION";
+	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_MODIFICATION = "MODIFICATION";
+
+
 	static{
 		HandlerRegistry.register(new NoteHandler());
 	}
@@ -88,10 +95,10 @@ public class NoteDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final BoundTextField titleField = new BoundTextField("TITLE", 30);
-	private final BoundTextArea valueArea = new BoundTextArea("VALUE", 10, 30);
-	private final BoundComboBox<String> mimeCombo = new BoundComboBox<>("MIME", new String[]{StringUtils.EMPTY, "text/plain", "text/html", "text/markdown"});
-	private final BoundComboBox<String> localeCombo = new BoundComboBox<>("LOCALE", new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+	private final BoundTextField titleField;
+	private final BoundTextArea valueArea;
+	private final BoundComboBox<String> mimeCombo;
+	private final BoundComboBox<String> localeCombo;
 	private final TranslationListPanel translationPanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final JTabbedPane tabbedPane = new JTabbedPane();
@@ -115,9 +122,13 @@ public class NoteDialog extends BaseRecordDialog{
 	private NoteDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
 
-		translationPanel = new TranslationListPanel(model, this);
-		restrictionPanel = new RestrictionPanel("RESTRICTION", this);
-		modificationPanel = new ModificationPanel(this);
+		titleField = new BoundTextField(TAG_TITLE, 30);
+		valueArea = new BoundTextArea(TAG_VALUE, 10, 30);
+		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{StringUtils.EMPTY, "text/plain", "text/html", "text/markdown"});
+		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		translationPanel = new TranslationListPanel(TAG_TRANSLATION, model, this);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		modificationPanel = new ModificationPanel(model, this);
 		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 
 		initComponents();
@@ -150,24 +161,22 @@ public class NoteDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-		// TITLE
+		// title
 		mainPanel.add(new JLabel("Title:"), "align label");
 		mainPanel.add(titleField, "growx,wrap");
 
-		// VALUE
+		// value
 		mainPanel.add(new JLabel("Value*:"), "align label,top");
 		valueArea.setLineWrap(true);
 		valueArea.setWrapStyleWord(true);
 		valueArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
 		mainPanel.add(GUIHelper.createScrollPane(valueArea), "growx, growy, wrap");
 
-		// MIME
+		// mime
 		mainPanel.add(new JLabel("MIME:"), "align label");
 		mainPanel.add(mimeCombo, "growx,wrap");
 
-		// LOCALE
+		// locale
 		mainPanel.add(new JLabel("Locale:"), "align label");
 		mainPanel.add(localeCombo, "growx,wrap");
 
@@ -186,24 +195,9 @@ public class NoteDialog extends BaseRecordDialog{
 	protected void loadData(){
 		bindingManager.load(record);
 
-		// Translations
-		final List<TranslationEntry> translations = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("TRANSLATION".equals(child.getTag())){
-				final String translationLocale = FLEFRecordHelper.getChildValue(child, "LOCALE");
-				final String translationValue = FLEFRecordHelper.getChildValue(child, "VALUE");
-				if(StringUtils.isNotEmpty(translationValue))
-					translations.add(new TranslationEntry(translationLocale, translationValue));
-			}
-		translationPanel.setItems(translations);
-
-		// Source Citations
+		translationPanel.load(record);
 		sourceCitationPanel.load(record);
-
-		// Restriction & Modification
 		restrictionPanel.load(record);
-
-		// MODIFICATION
 		modificationPanel.load(record);
 	}
 
@@ -216,29 +210,16 @@ public class NoteDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		return (!restrictionPanel.hasData() || restrictionPanel.validateData());
+		return true;
 	}
 
 	@Override
 	protected void saveData(){
 		bindingManager.save(record);
 
-		// Translations
-		final List<TranslationEntry> translations = translationPanel.getItems();
-		for(int i = 0; i < translations.size(); i ++){
-			final TranslationEntry entry = translations.get(i);
-			FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].VALUE", entry.getValue());
-			if(StringUtils.isNotEmpty(entry.getLocale()))
-				FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].LOCALE", entry.getLocale());
-		}
-
-		// Source Citations
+		translationPanel.save(record);
 		sourceCitationPanel.save(record);
-
-		// RESTRICTION
 		restrictionPanel.save(record);
-
-		// MODIFICATION
 		modificationPanel.save(record);
 	}
 

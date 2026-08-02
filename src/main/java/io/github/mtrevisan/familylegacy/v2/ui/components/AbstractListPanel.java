@@ -102,18 +102,6 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-//		GUIHelper.installBehavior(list,
-//			() -> (list.getSelectedIndex() >= 0),
-//			this::editItem,
-//			this::createNewItem,
-//			this::removeItem,
-//			builder -> {
-//				builder.item("Create New...", this::createNewItem);
-//				builder.separator();
-//				builder.selectionSensitiveItem("Edit...", this::editItem);
-//				builder.selectionSensitiveItem("Remove", this::removeItem);
-//			});
-
 		add(GUIHelper.createScrollPane(list), "growx");
 	}
 
@@ -124,8 +112,9 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	public final void createNewItem(){
 		final T newItem = showCreateNewDialog();
 		if(newItem != null){
-			items.add(newItem);
-			listModel.addElement(getDisplay(newItem));
+			addElement(newItem);
+
+			GUIHelper.updatePlaceholder(list);
 		}
 	}
 
@@ -136,8 +125,22 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	public final void addItem(){
 		final T newItem = showAddDialog();
 		if(newItem != null){
-			items.add(newItem);
-			listModel.addElement(getDisplay(newItem));
+			addElement(newItem);
+
+			GUIHelper.updatePlaceholder(list);
+		}
+	}
+
+	/**
+	 * Adds a single item directly (without showing a dialog).
+	 *
+	 * @param item the item to add
+	 */
+	protected void addItemDirectly(final T item){
+		if(item != null){
+			addElement(item);
+
+			GUIHelper.updatePlaceholder(list);
 		}
 	}
 
@@ -173,6 +176,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(confirm == JOptionPane.YES_OPTION){
 			items.remove(idx);
 			listModel.remove(idx);
+
+			GUIHelper.updatePlaceholder(list);
 		}
 	}
 
@@ -193,9 +198,9 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	protected abstract T showCreateNewDialog();
 
 	/**
-	 * Shows a dialog to add a new item from a list.
+	 * Shows a dialog to add an existing item (e.g., from a selection list).
 	 *
-	 * @return the new item, or {@code null} if canceled
+	 * @return the item to add, or {@code null} if canceled
 	 */
 	protected abstract T showAddDialog();
 
@@ -225,6 +230,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	public void clear(){
 		items.clear();
 		listModel.clear();
+
+		GUIHelper.updatePlaceholder(list);
 	}
 
 	/**
@@ -251,7 +258,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @return the items
 	 */
 	public List<T> getItems(){
-		return new ArrayList<>(items);
+		return items;
 	}
 
 	/**
@@ -263,22 +270,15 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		clear();
 
 		if(newItems != null)
-			for(final T item : newItems){
-				items.add(item);
-				listModel.addElement(getDisplay(item));
-			}
+			for(final T item : newItems)
+				addElement(item);
+
+		GUIHelper.updatePlaceholder(list);
 	}
 
-	/**
-	 * Adds a single item directly (without showing a dialog).
-	 *
-	 * @param item the item to add
-	 */
-	protected void addItemDirectly(final T item){
-		if(item != null){
-			items.add(item);
-			listModel.addElement(getDisplay(item));
-		}
+	private void addElement(final T newItem){
+		items.add(newItem);
+		listModel.addElement(getDisplay(newItem));
 	}
 
 }

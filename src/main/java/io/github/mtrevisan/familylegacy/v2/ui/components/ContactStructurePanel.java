@@ -125,7 +125,7 @@ public class ContactStructurePanel extends JPanel{
 	public ContactStructurePanel(FLEFModel model, Component parent){
 		this.model = model;
 		this.parent = parent;
-		this.modificationPanel = new ModificationPanel((Dialog)parent);
+		this.modificationPanel = new ModificationPanel(model, (Dialog)parent);
 
 		initComponents();
 	}

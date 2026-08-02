@@ -42,7 +42,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -145,7 +144,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		placeQualifiers = new EvidenceQualifiersPanel(null, "Place Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		conclusionPanel = new ConclusionPanel(TAG_CONCLUSION, model, this);
-		modificationPanel = new ModificationPanel(this);
+		modificationPanel = new ModificationPanel(model, this);
 
 		initComponents();
 
@@ -222,20 +221,6 @@ public class PlaceDialog extends BaseRecordDialog{
 
 			return false;
 		}
-
-		if(mapCoordinatesField.isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				"COORDINATE is required when MAP is present.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return false;
-		}
-
-		if(restrictionPanel.hasData() && !restrictionPanel.validateData())
-			return false;
-
-		if(conclusionPanel.hasData() && !conclusionPanel.validateData())
-			return false;
 
 		return true;
 	}

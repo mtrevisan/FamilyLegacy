@@ -33,21 +33,10 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
-import java.awt.Color;
 import java.awt.Dialog;
-import java.util.function.Supplier;
 
 
 public class DateField extends JPanel{
-
-	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
-	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
-	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
-
-	private static final String PLACEHOLDER_TEXT = "(right-click to set date)";
-	private static final String TOOLTIP_TEXT = "right-click or double-click to set, edit, or clear date";
-
 
 	private final Dialog parent;
 	private final String dialogTitle;
@@ -84,12 +73,7 @@ public class DateField extends JPanel{
 
 
 	private void initComponents(){
-		displayField.setEditable(false);
-		displayField.setBackground(COLOR_BACKGROUND);
-		displayField.setToolTipText(TOOLTIP_TEXT);
-
 		setupField(displayField,
-			() -> (record != null),
 			this::createNew,
 			this::edit,
 			this::clear
@@ -99,10 +83,8 @@ public class DateField extends JPanel{
 	}
 
 	private void setupField(final JTextField field,
-			final Supplier<Boolean> hasSelection,
 			final Runnable newAction, final Runnable editAction, final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			hasSelection,
 			editAction,
 			newAction,
 			clearAction,
@@ -169,14 +151,9 @@ public class DateField extends JPanel{
 	}
 
 	private void updateDisplay(){
-		if(record != null && record.hasData()){
-			displayField.setText(DateFieldPanel.extractDateSummary(record));
-			displayField.setForeground(COLOR_FOREGROUND_ENABLED);
-		}
-		else{
-			displayField.setText(PLACEHOLDER_TEXT);
-			displayField.setForeground(COLOR_FOREGROUND_DISABLED);
-		}
+		GUIHelper.updateDisplay(displayField,
+			() -> (record != null && record.hasData()),
+			() -> DateFieldPanel.extractDateSummary(record));
 	}
 
 }

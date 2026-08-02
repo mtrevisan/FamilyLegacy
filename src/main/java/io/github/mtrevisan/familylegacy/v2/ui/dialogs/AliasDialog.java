@@ -111,13 +111,18 @@ public class AliasDialog extends JDialog{
 	public static class AliasEntry{
 		public String aliasId;
 		public String certainty;
-		public String credibility;
+		public String sourceType;
+		public String informationTYpe;
+		public String evidenceType;
 		public List<String> noteIds;
 
-		public AliasEntry(String aliasId, String certainty, String credibility, List<String> noteIds){
+		public AliasEntry(String aliasId, String certainty, String sourceType, final String informationTYpe,
+				final String evidenceType, List<String> noteIds){
 			this.aliasId = aliasId;
 			this.certainty = certainty;
-			this.credibility = credibility;
+			this.sourceType = sourceType;
+			this.informationTYpe = informationTYpe;
+			this.evidenceType = evidenceType;
 			this.noteIds = noteIds != null? noteIds: new ArrayList<>();
 		}
 
@@ -156,7 +161,7 @@ public class AliasDialog extends JDialog{
 
 		this.model = model;
 		this.parentFrame = parent;
-		this.existingEntry = existingEntry != null? existingEntry: new AliasEntry(StringUtils.EMPTY, null, null, new ArrayList<>());
+		this.existingEntry = existingEntry != null? existingEntry: new AliasEntry(StringUtils.EMPTY, null, null, null, null, new ArrayList<>());
 		initComponents();
 		if(existingEntry != null){
 			loadData();
@@ -405,7 +410,9 @@ public class AliasDialog extends JDialog{
 		return new AliasEntry(
 			selectedAliasId,
 			qualifiersPanel.getCertainty(),
-			qualifiersPanel.getCredibility(),
+			qualifiersPanel.getSourceType(),
+			qualifiersPanel.getInformationType(),
+			qualifiersPanel.getEvidenceType(),
 			new ArrayList<>(noteIds)
 		);
 	}

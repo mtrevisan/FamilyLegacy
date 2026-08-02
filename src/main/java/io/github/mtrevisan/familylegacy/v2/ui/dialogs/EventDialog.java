@@ -46,6 +46,7 @@ public class EventDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -9191829528682252778L;
 
+
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JTextField idField = new JTextField(10);
@@ -297,7 +298,7 @@ public class EventDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		return false;
+		return true;
 	}
 
 	@Override
@@ -324,9 +325,17 @@ public class EventDialog extends BaseRecordDialog{
 			if(pCert != null && !pCert.isEmpty()){
 				addChild(place, "CERTAINTY", pCert);
 			}
-			String pCred = placeQualifiers.getCredibility();
-			if(pCred != null && !pCred.isEmpty()){
-				addChild(place, "CREDIBILITY", pCred);
+			String pSourceType = placeQualifiers.getSourceType();
+			if(pSourceType != null && !pSourceType.isEmpty()){
+				addChild(place, "SOURCE_TYPE", pSourceType);
+			}
+			String pInformationType = placeQualifiers.getInformationType();
+			if(pInformationType != null && !pInformationType.isEmpty()){
+				addChild(place, "INFORMATION_TYPE", pInformationType);
+			}
+			String pEvidenceType = placeQualifiers.getEvidenceType();
+			if(pEvidenceType != null && !pEvidenceType.isEmpty()){
+				addChild(place, "EVIDENCE_TYPE", pEvidenceType);
 			}
 		}
 
@@ -341,9 +350,17 @@ public class EventDialog extends BaseRecordDialog{
 			if(cCert != null && !cCert.isEmpty()){
 				addChild(cause, "CERTAINTY", cCert);
 			}
-			String cCred = causeQualifiers.getCredibility();
-			if(cCred != null && !cCred.isEmpty()){
-				addChild(cause, "CREDIBILITY", cCred);
+			String cSourceType = placeQualifiers.getSourceType();
+			if(cSourceType != null && !cSourceType.isEmpty()){
+				addChild(cause, "SOURCE_TYPE", cSourceType);
+			}
+			String cInformationType = placeQualifiers.getInformationType();
+			if(cInformationType != null && !cInformationType.isEmpty()){
+				addChild(cause, "INFORMATION_TYPE", cInformationType);
+			}
+			String cEvidenceType = placeQualifiers.getEvidenceType();
+			if(cEvidenceType != null && !cEvidenceType.isEmpty()){
+				addChild(cause, "EVIDENCE_TYPE", cEvidenceType);
 			}
 		}
 
@@ -351,9 +368,17 @@ public class EventDialog extends BaseRecordDialog{
 		if(eCert != null && !eCert.isEmpty()){
 			addChild("CERTAINTY", eCert);
 		}
-		String eCred = eventQualifiers.getCredibility();
-		if(eCred != null && !eCred.isEmpty()){
-			addChild("CREDIBILITY", eCred);
+		String eSourceType = placeQualifiers.getSourceType();
+		if(eSourceType != null && !eSourceType.isEmpty()){
+			addChild("SOURCE_TYPE", eSourceType);
+		}
+		String eInformationType = placeQualifiers.getInformationType();
+		if(eInformationType != null && !eInformationType.isEmpty()){
+			addChild("INFORMATION_TYPE", eInformationType);
+		}
+		String eEvidenceType = placeQualifiers.getEvidenceType();
+		if(eEvidenceType != null && !eEvidenceType.isEmpty()){
+			addChild("EVIDENCE_TYPE", eEvidenceType);
 		}
 
 		addChild("RESTRICTION", restrictionCheckBox.isSelected()? "confidential": null);

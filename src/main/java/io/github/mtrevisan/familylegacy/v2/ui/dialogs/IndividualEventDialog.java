@@ -395,6 +395,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 				"TYPE is required.\nPlease select an event type.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			typeCombo.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -403,6 +404,7 @@ public class IndividualEventDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"FAMILY is required for ADOPTION events.\nPlease select a family.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 

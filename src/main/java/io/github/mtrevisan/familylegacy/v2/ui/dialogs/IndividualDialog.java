@@ -83,7 +83,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -4670126000119212974L;
 
-	// Handlers
+
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 	private final NoteHandler noteHandler = new NoteHandler();
 	private final SourceHandler sourceHandler = new SourceHandler();
@@ -156,7 +156,7 @@ public class IndividualDialog extends BaseRecordDialog{
 		namePanel = new PersonalNamePanel(model, this);
 		restrictionPanel = new RestrictionPanel("RESTRICTION", this);
 		conclusionPanel = new ConclusionPanel("CONCLUSION", model, this);
-		modificationPanel = new ModificationPanel(this);
+		modificationPanel = new ModificationPanel(model, this);
 
 		bindingManager.bind(sexCombo);
 
@@ -243,13 +243,19 @@ public class IndividualDialog extends BaseRecordDialog{
 		list.setVisibleRowCount(4);
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installStandardBehavior(list,
-			() -> list.getSelectedIndex() >= 0,
-			() -> createNewItemForList(list, model),
-			addAction,
+		final Runnable createNewAction = () -> createNewItemForList(list, model);
+		GUIHelper.installBehavior(list,
 			editAction,
+			createNewAction,
 			deleteAction,
-			null);
+			builder -> {
+				builder.item("Create New...", createNewAction);
+				builder.item("Add Existing...", addAction);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", editAction);
+				builder.selectionSensitiveItem("Clear", deleteAction);
+			}
+		);
 
 		JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		panel.add(scrollPane, "growx,wrap");
@@ -632,15 +638,13 @@ public class IndividualDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		// Validate names
-		if(!namePanel.validateData()){
+		if(!namePanel.validateData())
 			return false;
-		}
 
-		if(restrictionPanel.hasData() && !restrictionPanel.validateData()){
+		if(restrictionPanel.hasData() && !restrictionPanel.validateData())
 			return false;
-		}
 
-		return !conclusionPanel.hasData() || conclusionPanel.validateData();
+		return (!conclusionPanel.hasData() || conclusionPanel.validateData());
 	}
 
 	@Override

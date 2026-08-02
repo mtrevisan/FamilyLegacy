@@ -1,6 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -15,6 +17,8 @@ import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class TranslationListPanel extends AbstractListPanel<TranslationListPanel.TranslationEntry>{
@@ -23,11 +27,15 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 	private static final long serialVersionUID = -2934528588234172844L;
 
 
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_LOCALE = "LOCALE";
+
+
 	public static class TranslationEntry{
 		private final String locale;
 		private final String value;
 
-		public TranslationEntry(String locale, String value){
+		public TranslationEntry(String value, String locale){
 			this.locale = StringUtils.defaultString(locale);
 			this.value = StringUtils.defaultString(value);
 		}
@@ -42,8 +50,13 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 
 	}
 
-	public TranslationListPanel(FLEFModel model, Dialog parentDialog){
+	private final String path;
+
+
+	public TranslationListPanel(final String path, FLEFModel model, Dialog parentDialog){
 		super(parentDialog, "Translations", model);
+
+		this.path = path;
 	}
 
 	@Override
@@ -51,7 +64,6 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			() -> (list.getSelectedIndex() >= 0),
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,
@@ -132,7 +144,7 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 				JOptionPane.showMessageDialog(dialog, "Translation value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			result[0] = new TranslationEntry(locale != null && !locale.isEmpty() ? locale : null, value);
+			result[0] = new TranslationEntry(value, locale != null && !locale.isEmpty() ? locale : null);
 			dialog.dispose();
 		});
 		cancelBtn.addActionListener(e -> dialog.dispose());
@@ -142,6 +154,27 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 		dialog.setVisible(true);
 
 		return result[0];
+	}
+
+	public void load(final FLEFRecord record){
+		final List<TranslationEntry> translations = new ArrayList<>();
+		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, path)){
+			final String translationValue = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
+			final String translationLocale = FLEFRecordHelper.getChildValue(child, TAG_LOCALE);
+			if(StringUtils.isNotEmpty(translationValue))
+				translations.add(new TranslationEntry(translationValue, translationLocale));
+		}
+		setItems(translations);
+	}
+
+	public void save(final FLEFRecord record){
+		final List<TranslationEntry> translations = getItems();
+		for(int i = 0; i < translations.size(); i ++){
+			final TranslationEntry entry = translations.get(i);
+			FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].VALUE", entry.getValue());
+			if(StringUtils.isNotEmpty(entry.getLocale()))
+				FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].LOCALE", entry.getLocale());
+		}
 	}
 
 }

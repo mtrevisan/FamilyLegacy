@@ -13,7 +13,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -56,7 +55,6 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			() -> (list.getSelectedIndex() >= 0),
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,
@@ -117,10 +115,7 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void load(final FLEFRecord record){
-		final List<FLEFRecord> relationships = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if(TAG_RELATIONSHIP.equals(child.getTag()))
-				relationships.add(child);
+		final List<FLEFRecord> relationships = FLEFRecordHelper.findChildren(record, TAG_RELATIONSHIP);
 		setItems(relationships);
 	}
 

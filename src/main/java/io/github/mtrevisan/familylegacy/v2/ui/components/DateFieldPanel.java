@@ -52,7 +52,9 @@ public class DateFieldPanel extends JPanel{
 	public DateFieldPanel(FLEFModel model, Dialog parent, String label){
 		this.model = model;
 		this.parentDialog = parent;
+
 		this.label = label;
+
 		initComponents();
 	}
 

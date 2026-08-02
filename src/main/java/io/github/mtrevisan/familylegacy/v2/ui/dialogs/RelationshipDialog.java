@@ -74,6 +74,7 @@ public class RelationshipDialog extends JDialog{
 	@Serial
 	private static final long serialVersionUID = 6392435736491575834L;
 
+
 	static{
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new IndividualHandler());

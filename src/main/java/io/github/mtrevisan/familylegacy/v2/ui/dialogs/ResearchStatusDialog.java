@@ -151,7 +151,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	public ResearchStatusDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this);
+		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 750));
@@ -162,7 +162,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	public ResearchStatusDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this);
+		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 750));
@@ -529,6 +529,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 				"QUESTION is required.\nPlease enter a research question.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			questionField.requestFocusInWindow();
+
 			return false;
 		}
 

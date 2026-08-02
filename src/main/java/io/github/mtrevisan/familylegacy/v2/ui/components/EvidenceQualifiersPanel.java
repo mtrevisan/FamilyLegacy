@@ -15,76 +15,74 @@ import java.awt.event.MouseEvent;
 
 
 /**
- * Reusable panel that groups a CERTAINTY combo and a CREDIBILITY combo
- * inside a titled border.
- * <p>
- * The panel provides methods to load, retrieve, and clear the selected values.
- * Both combos are optional (empty selection allowed).
+ * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol:
+ * certainty, source_type, information_type, and evidence_type.
+ * All combos are optional (empty selection allowed).
  */
 public class EvidenceQualifiersPanel extends JPanel{
 
 	private static final String DOT = ".";
 
-	private static final String[] CERTAINTY_VALUES = {StringUtils.EMPTY, "challenged", "disproven", "proven"};
-	private static final String[] CREDIBILITY_VALUES = {StringUtils.EMPTY, "0", "1", "2", "3"};
+	// Values for each combo (empty first for "not set")
+	private static final String[] CERTAINTY_VALUES = {StringUtils.EMPTY, "proven", "challenged", "disproven"};
+	private static final String[] SOURCE_TYPE_VALUES = {StringUtils.EMPTY, "original", "derived"};
+	private static final String[] INFORMATION_TYPE_VALUES = {StringUtils.EMPTY, "primary", "secondary", "undetermined"};
+	private static final String[] EVIDENCE_TYPE_VALUES = {StringUtils.EMPTY, "direct", "indirect", "negative"};
 
 
-	private String path;
+	private final String path;
 
 	private final JComboBox<String> certaintyCombo;
-	private final JComboBox<String> credibilityCombo;
+	private final JComboBox<String> sourceTypeCombo;
+	private final JComboBox<String> informationTypeCombo;
+	private final JComboBox<String> evidenceTypeCombo;
 
 
 	/**
-	 * Constructs a new panel with the given title.
+	 * Constructs a new panel with the given path prefix and title.
 	 *
+	 * @param path  the path prefix for child fields (e.g., "EVIDENCE" or "EVIDENCE.QUALIFIERS")
 	 * @param title the title to display in the TitledBorder
 	 */
 	public EvidenceQualifiersPanel(final String path, final String title){
-		this(path, title, CERTAINTY_VALUES, CREDIBILITY_VALUES);
-	}
+		this.path = (path != null && !path.isEmpty())? path + DOT: StringUtils.EMPTY;
 
-	/**
-	 * Constructs a new panel with custom values for certainty and credibility.
-	 *
-	 * @param title	The title to display in the {@code TitledBorder}.
-	 * @param certaintyValues	The values for the certainty combo (may not be {@code null}).
-	 * @param credibilityValues	The values for the credibility combo (may not be {@code null}).
-	 */
-	public EvidenceQualifiersPanel(final String path, final String title, final String[] certaintyValues, final String[] credibilityValues){
-		this.path = (path != null && !path.isEmpty()? path + DOT: StringUtils.EMPTY);
-
-
-		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]"));
+		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]")); // we'll add 4 rows, each on new line
 		setBorder(BorderFactory.createTitledBorder(title));
 
-		certaintyCombo = new JComboBox<>(certaintyValues);
-		credibilityCombo = new JComboBox<>(credibilityValues);
+		certaintyCombo = new JComboBox<>(CERTAINTY_VALUES);
+		sourceTypeCombo = new JComboBox<>(SOURCE_TYPE_VALUES);
+		informationTypeCombo = new JComboBox<>(INFORMATION_TYPE_VALUES);
+		evidenceTypeCombo = new JComboBox<>(EVIDENCE_TYPE_VALUES);
 
-		// Set tooltips
-		certaintyCombo.setToolTipText("Status code for the evidence: " +
-			"challenged (suspect but unproven), disproven (proven false), proven (confirmed)");
-		credibilityCombo.setToolTipText("Quantitative evaluation of credibility: " +
-			"0=unreliable, 1=questionable, 2=secondary evidence, 3=direct/primary evidence");
+		// Tooltips
+		certaintyCombo.setToolTipText("Confidence in the assertion itself: " +
+													"proven (sufficient evidence and accepted), challenged (questioned by conflicting evidence), disproven (demonstrated incorrect)");
+		sourceTypeCombo.setToolTipText("Classification of the source itself: original (first-hand) or derived (secondary)");
+		informationTypeCombo.setToolTipText("Classification of the information provided by the source: primary, secondary, or undetermined");
+		evidenceTypeCombo.setToolTipText("Nature of the evidentiary contribution: direct, indirect, or negative");
 
+		// Layout: label + combo per row
 		add(new JLabel("Certainty:"), "align label");
 		add(certaintyCombo, "growx,wrap");
-		add(new JLabel("Credibility:"), "align label");
-		add(credibilityCombo, "growx");
+		add(new JLabel("Source Type:"), "align label");
+		add(sourceTypeCombo, "growx,wrap");
+		add(new JLabel("Info Type:"), "align label");
+		add(informationTypeCombo, "growx,wrap");
+		add(new JLabel("Evidence Type:"), "align label");
+		add(evidenceTypeCombo, "growx");
 
-		// Add mouse listeners to show tooltips more prominently on hover
+		// Attach hover tooltip listeners
 		attachTooltipListener(certaintyCombo);
-		attachTooltipListener(credibilityCombo);
+		attachTooltipListener(sourceTypeCombo);
+		attachTooltipListener(informationTypeCombo);
+		attachTooltipListener(evidenceTypeCombo);
 	}
 
-	/**
-	 * Attaches a mouse listener that shows the tooltip on hover.
-	 */
 	private void attachTooltipListener(final JComboBox<String> combo){
 		combo.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseEntered(final MouseEvent e){
-				// Show tooltip immediately
 				ToolTipManager.sharedInstance().mouseEntered(
 					new MouseEvent(combo, MouseEvent.MOUSE_ENTERED, System.currentTimeMillis(), 0,
 						e.getX(), e.getY(), 0, false)
@@ -93,67 +91,77 @@ public class EvidenceQualifiersPanel extends JPanel{
 		});
 	}
 
-
 	/**
-	 * Loads the selected values from the given strings.
+	 * Loads the selected values from the given record.
 	 *
 	 * @param record the record to read from
 	 */
 	public void load(final FLEFRecord record){
-		final String certainty = FLEFRecordHelper.getChildValue(record, path + "CERTAINTY");
-		certaintyCombo.setSelectedItem(StringUtils.defaultString(certainty));
+		String value = FLEFRecordHelper.getChildValue(record, path + "CERTAINTY");
+		certaintyCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		final String credibility = FLEFRecordHelper.getChildValue(record, path + "CREDIBILITY");
-		credibilityCombo.setSelectedItem(StringUtils.defaultString(credibility));
-	}
+		value = FLEFRecordHelper.getChildValue(record, path + "SOURCE_TYPE");
+		sourceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-	public void save(final FLEFRecord record){
-		final String certainty = getCertainty();
-		FLEFRecordHelper.updateChildValue(record, path + "CERTAINTY", certainty);
+		value = FLEFRecordHelper.getChildValue(record, path + "INFORMATION_TYPE");
+		informationTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		final String credibility = getCredibility();
-		FLEFRecordHelper.updateChildValue(record, path + "CREDIBILITY", credibility);
+		value = FLEFRecordHelper.getChildValue(record, path + "EVIDENCE_TYPE");
+		evidenceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 	}
 
 	/**
-	 * Returns the selected certainty.
+	 * Saves the selected values into the given record.
 	 *
-	 * @return the certainty string, or an empty string if none selected
+	 * @param record the record to save into
 	 */
+	public void save(final FLEFRecord record){
+		FLEFRecordHelper.updateChildValue(record, path + "CERTAINTY", getCertainty());
+		FLEFRecordHelper.updateChildValue(record, path + "SOURCE_TYPE", getSourceType());
+		FLEFRecordHelper.updateChildValue(record, path + "INFORMATION_TYPE", getInformationType());
+		FLEFRecordHelper.updateChildValue(record, path + "EVIDENCE_TYPE", getEvidenceType());
+	}
+
 	public String getCertainty(){
 		return (String)certaintyCombo.getSelectedItem();
 	}
 
-	/**
-	 * Returns the selected credibility.
-	 *
-	 * @return the credibility string, or an empty string if none selected
-	 */
-	public String getCredibility(){
-		return (String)credibilityCombo.getSelectedItem();
+	public String getSourceType(){
+		return (String)sourceTypeCombo.getSelectedItem();
+	}
+
+	public String getInformationType(){
+		return (String)informationTypeCombo.getSelectedItem();
+	}
+
+	public String getEvidenceType(){
+		return (String)evidenceTypeCombo.getSelectedItem();
 	}
 
 	/**
-	 * Checks if the panel has any data (i.e., a non-empty selection).
+	 * Checks if any field has a non-empty selection.
 	 *
-	 * @return true if either combo has a non-empty selection
+	 * @return true if at least one combo has a value
 	 */
 	public boolean hasData(){
-		final String certainty = getCertainty();
-		final String credibility = getCredibility();
-		return (certainty != null && !certainty.isEmpty()) || (credibility != null && !credibility.isEmpty());
+		return (!getCertainty().isEmpty() ||
+			!getSourceType().isEmpty() ||
+			!getInformationType().isEmpty() ||
+			!getEvidenceType().isEmpty());
 	}
 
 	/**
-	 * Clears both combo selections to the empty string.
+	 * Clears all combos to the empty string.
 	 */
 	public void clear(){
 		certaintyCombo.setSelectedItem(StringUtils.EMPTY);
-		credibilityCombo.setSelectedItem(StringUtils.EMPTY);
+		sourceTypeCombo.setSelectedItem(StringUtils.EMPTY);
+		informationTypeCombo.setSelectedItem(StringUtils.EMPTY);
+		evidenceTypeCombo.setSelectedItem(StringUtils.EMPTY);
 	}
 
 	/**
-	 * Sets the enabled state of both combos.
+	 * Sets the enabled state of all combos.
 	 *
 	 * @param enabled true to enable, false to disable
 	 */
@@ -162,43 +170,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 		super.setEnabled(enabled);
 
 		certaintyCombo.setEnabled(enabled);
-		credibilityCombo.setEnabled(enabled);
-	}
-
-	/**
-	 * Returns the certainty combo for advanced customization.
-	 *
-	 * @return the certainty JComboBox
-	 */
-	public JComboBox<String> getCertaintyCombo(){
-		return certaintyCombo;
-	}
-
-	/**
-	 * Returns the credibility combo for advanced customization.
-	 *
-	 * @return the credibility JComboBox
-	 */
-	public JComboBox<String> getCredibilityCombo(){
-		return credibilityCombo;
-	}
-
-	/**
-	 * Sets a custom tooltip for the certainty combo.
-	 *
-	 * @param tooltip the tooltip text
-	 */
-	public void setCertaintyToolTip(final String tooltip){
-		certaintyCombo.setToolTipText(tooltip);
-	}
-
-	/**
-	 * Sets a custom tooltip for the credibility combo.
-	 *
-	 * @param tooltip the tooltip text
-	 */
-	public void setCredibilityToolTip(final String tooltip){
-		credibilityCombo.setToolTipText(tooltip);
+		sourceTypeCombo.setEnabled(enabled);
+		informationTypeCombo.setEnabled(enabled);
+		evidenceTypeCombo.setEnabled(enabled);
 	}
 
 }

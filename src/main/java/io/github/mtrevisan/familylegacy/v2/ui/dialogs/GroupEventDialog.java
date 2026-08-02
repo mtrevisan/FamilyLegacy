@@ -325,6 +325,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"TYPE is required.\nPlease select an event type.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 

@@ -126,13 +126,18 @@ public class NoteListEditorDialog extends JDialog{
 		noteList.setVisibleRowCount(4);
 		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installStandardBehavior(noteList,
-			() -> noteList.getSelectedIndex() >= 0,
-			this::createNewNote,
-			this::addExistingNote,
+		GUIHelper.installBehavior(noteList,
 			this::editNote,
+			this::createNewNote,
 			this::deleteNote,
-			null);
+			builder -> {
+				builder.item("Create New...", this::createNewNote);
+				builder.item("Add Existing...", this::addExistingNote);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editNote);
+				builder.selectionSensitiveItem("Clear", this::deleteNote);
+			}
+		);
 
 		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
 		panel.add(scrollPane, "growx,wrap");

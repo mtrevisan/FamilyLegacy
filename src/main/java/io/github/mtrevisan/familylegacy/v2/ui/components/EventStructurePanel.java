@@ -168,7 +168,7 @@ public class EventStructurePanel extends JPanel{
 		this.model = model;
 		this.parent = parent;
 		this.datePanel = new DatePanel(parent, model);
-		this.modificationPanel = new ModificationPanel(parent);
+		this.modificationPanel = new ModificationPanel(model, parent);
 		this.conclusionPanel = new ConclusionPanel("CONCLUSION", model, parent);
 
 		initComponents();
@@ -803,8 +803,12 @@ public class EventStructurePanel extends JPanel{
 			eventStructure.addChild(place);
 			String placeCert = placeQualifiers.getCertainty();
 			FLEFRecordHelper.updateChildValue(place, "CERTAINTY", placeCert);
-			String placeCred = placeQualifiers.getCredibility();
-			FLEFRecordHelper.updateChildValue(place, "CREDIBILITY", placeCred);
+			String placeSourceType = placeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(place, "SOURCE_TYPE", placeSourceType);
+			String placeInformationType = placeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(place, "INFORMATION_TYPE", placeInformationType);
+			String placeEvidenceType = placeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(place, "EVIDENCE_TYPE", placeEvidenceType);
 		}
 
 		// AGENCY (0:1)
@@ -818,8 +822,12 @@ public class EventStructurePanel extends JPanel{
 			eventStructure.addChild(cause);
 			String causeCert = causeQualifiers.getCertainty();
 			FLEFRecordHelper.updateChildValue(cause, "CERTAINTY", causeCert);
-			String causeCred = causeQualifiers.getCredibility();
-			FLEFRecordHelper.updateChildValue(cause, "CREDIBILITY", causeCred);
+			String causeSourceType = causeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(cause, "SOURCE_TYPE", causeSourceType);
+			String causeInformationType = causeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(cause, "INFORMATION_TYPE", causeInformationType);
+			String causeEvidenceType = causeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(cause, "EVIDENCE_TYPE", causeEvidenceType);
 		}
 
 		// CULTURAL_NORM (0:M)
@@ -842,8 +850,12 @@ public class EventStructurePanel extends JPanel{
 		// EVENT QUALIFIERS (CERTAINTY + CREDIBILITY for the event itself)
 		String eventCert = eventQualifiers.getCertainty();
 		FLEFRecordHelper.updateChildValue(eventStructure, "CERTAINTY", eventCert);
-		String eventCred = eventQualifiers.getCredibility();
-		FLEFRecordHelper.updateChildValue(eventStructure, "CREDIBILITY", eventCred);
+		String eventSourceType = eventQualifiers.getSourceType();
+		FLEFRecordHelper.updateChildValue(eventStructure, "SOURCE_TYPE", eventSourceType);
+		String eventInformationType = eventQualifiers.getSourceType();
+		FLEFRecordHelper.updateChildValue(eventStructure, "INFORMATION_TYPE", eventInformationType);
+		String eventEvidenceType = eventQualifiers.getSourceType();
+		FLEFRecordHelper.updateChildValue(eventStructure, "EVIDENCE_TYPE", eventEvidenceType);
 
 		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;

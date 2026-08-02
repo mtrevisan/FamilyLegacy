@@ -78,6 +78,7 @@ public class RecordBrowserDialog<T extends JDialog> extends JDialog{
 	@Serial
 	private static final long serialVersionUID = -1546248199171435881L;
 
+
 	private final FLEFModel model;
 	private final RecordTypeHandler<T> handler;
 	private final Consumer<String> onSelection;

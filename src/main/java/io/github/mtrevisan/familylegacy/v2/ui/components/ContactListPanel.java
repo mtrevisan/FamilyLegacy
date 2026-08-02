@@ -13,7 +13,6 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -38,7 +37,6 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			() -> (list.getSelectedIndex() >= 0),
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,
@@ -145,10 +143,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void load(final FLEFRecord record){
-		final List<FLEFRecord> contacts = new ArrayList<>();
-		for(final FLEFRecord child : record.getChildren())
-			if("CONTACT".equals(child.getTag()))
-				contacts.add(child);
+		final List<FLEFRecord> contacts = FLEFRecordHelper.findChildren(record, "CONTACT");
 		setItems(contacts);
 	}
 

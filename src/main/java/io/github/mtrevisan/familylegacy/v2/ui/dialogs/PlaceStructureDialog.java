@@ -101,7 +101,6 @@ public class PlaceStructureDialog extends JDialog{
 		sourceList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		GUIHelper.installBehavior(sourceList,
-			() -> sourceList.getSelectedIndex() >= 0,
 			this::editSourceCitation,
 			() -> {},
 			this::removeSourceCitation,
@@ -261,10 +260,16 @@ public class PlaceStructureDialog extends JDialog{
 
 		// ---- EVIDENCE_QUALIFIERS for place ----
 		String placeCert = qualifiers.getCertainty();
-		String placeCred = qualifiers.getCredibility();
-		if((placeCert != null && !placeCert.isEmpty()) || (placeCred != null && !placeCred.isEmpty())){
+		String placeSourceType = qualifiers.getSourceType();
+		String placeInformationType = qualifiers.getInformationType();
+		String placeEvidenceType = qualifiers.getEvidenceType();
+		if((placeCert != null && !placeCert.isEmpty()) || (placeSourceType != null && !placeSourceType.isEmpty())
+				|| (placeInformationType != null && !placeInformationType.isEmpty())
+				|| (placeEvidenceType != null && !placeEvidenceType.isEmpty())){
 			FLEFRecordHelper.updateChildValue(placeRecord, "CERTAINTY", placeCert);
-			FLEFRecordHelper.updateChildValue(placeRecord, "CREDIBILITY", placeCred);
+			FLEFRecordHelper.updateChildValue(placeRecord, "SOURCE_TYPE", placeSourceType);
+			FLEFRecordHelper.updateChildValue(placeRecord, "INFORMATION_TYPE", placeInformationType);
+			FLEFRecordHelper.updateChildValue(placeRecord, "EVIDENCE_TYPE", placeEvidenceType);
 		}
 
 		saved = true;

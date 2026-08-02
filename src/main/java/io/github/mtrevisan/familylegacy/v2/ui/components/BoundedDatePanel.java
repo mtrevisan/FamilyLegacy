@@ -56,6 +56,7 @@ public class BoundedDatePanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 1351303209761075021L;
 
+
 	private static final String TAG_NOT_BEFORE = "NOT_BEFORE";
 	private static final String TAG_NOT_AFTER = "NOT_AFTER";
 	private static final String TAG_BOUNDED = "BOUNDED";

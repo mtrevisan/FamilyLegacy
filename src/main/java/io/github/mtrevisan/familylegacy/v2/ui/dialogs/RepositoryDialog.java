@@ -114,7 +114,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 		placeField = PlaceField.create(TAG_PLACE, parent, model);
 		contactPanel = new ContactListPanel(TAG_CONTACT, model, this);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		modificationPanel = new ModificationPanel(this);
+		modificationPanel = new ModificationPanel(model, this);
 
 		initComponents();
 
@@ -154,13 +154,8 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
-
-		// contact structure
 		panel.add(contactPanel, "growx");
-
-		// note
 		panel.add(notePanel, "growx");
-
 		return panel;
 	}
 
@@ -184,6 +179,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 
 			return false;
 		}
+
 		return true;
 	}
 

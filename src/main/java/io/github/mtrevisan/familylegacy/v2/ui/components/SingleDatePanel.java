@@ -72,6 +72,7 @@ public class SingleDatePanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 3393161879295516317L;
 
+
 	private static final String TAG_FULL_DATE = "FULL_DATE";
 	private static final String TAG_DECADE = "DECADE";
 	private static final String TAG_CENTURY = "CENTURY";
@@ -104,8 +105,12 @@ public class SingleDatePanel extends JPanel{
 		fullDateField = new BoundTextField(TAG_FULL_DATE, 15);
 		decadeField = new BoundTextField(TAG_DECADE, 5);
 		centuryField = new BoundTextField(TAG_CENTURY, 5);
-		centuryPartCombo = new BoundComboBox<>(TAG_PART, new String[]{StringUtils.EMPTY, "1st quarter", "2nd quarter", "3rd quarter", "4th quarter", "first half", "second half", "early", "mid", "late"});
-		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
+		centuryPartCombo = new BoundComboBox<>(TAG_PART, new String[]{StringUtils.EMPTY,
+			"first_quarter", "second_quarter", "third_quarter", "fourth_quarter",
+			"first_half", "second_half",
+			"early", "mid", "late"});
+		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{"gregorian", "julian", "islamic", "hebrew",
+			"chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
 		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parentDialog, model);
 
 		fieldMap.put(DateType.FULL_DATE, fullDateField);

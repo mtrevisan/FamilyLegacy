@@ -68,7 +68,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			() -> (list.getSelectedIndex() >= 0),
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,
@@ -272,12 +271,9 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 	}
 
-	public void load(final FLEFRecord groupRecord){
-		final List<FLEFRecord> rels = new ArrayList<>();
-		for(final FLEFRecord child : groupRecord.getChildren())
-			if(TAG_RELATIONSHIP.equals(child.getTag()))
-				rels.add(child);
-		setItems(rels);
+	public void load(final FLEFRecord record){
+		final List<FLEFRecord> relationships = FLEFRecordHelper.findChildren(record, TAG_RELATIONSHIP);
+		setItems(relationships);
 	}
 
 	public void save(final FLEFRecord groupRecord){

@@ -100,7 +100,6 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			() -> (list.getSelectedIndex() >= 0),
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,

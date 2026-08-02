@@ -105,6 +105,7 @@ public class SourceDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = 8722200901398839002L;
 
+
 	static{
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new RepositoryHandler());
@@ -161,7 +162,7 @@ public class SourceDialog extends BaseRecordDialog{
 		placeField = PlaceField.create("PLACE", parent, model);
 		dateField = DateField.createWithWrapperTag("DATE", this, "Valid Date", model);
 		documentPanel = new DocumentStructurePanel(model, this);
-		modificationPanel = new ModificationPanel(this);
+		modificationPanel = new ModificationPanel(model, this);
 		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 
 		initComponents();

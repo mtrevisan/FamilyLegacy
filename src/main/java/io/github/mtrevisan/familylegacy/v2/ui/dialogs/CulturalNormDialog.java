@@ -129,7 +129,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
-		modificationPanel = new ModificationPanel(this);
+		modificationPanel = new ModificationPanel(model, this);
 
 		initComponents();
 
@@ -192,13 +192,8 @@ public class CulturalNormDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
-
-		// note
 		panel.add(notePanel, "growx");
-
-		// source citation
 		panel.add(sourceCitationPanel, "growx");
-
 		return panel;
 	}
 

@@ -127,7 +127,7 @@ public class CalendarDialog extends BaseRecordDialog{
 	public CalendarDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this);
+		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 650));
@@ -138,7 +138,7 @@ public class CalendarDialog extends BaseRecordDialog{
 	public CalendarDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this);
+		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 650));
@@ -585,6 +585,7 @@ public class CalendarDialog extends BaseRecordDialog{
 				"TYPE is required.\nPlease select a calendar type.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			typeCombo.requestFocusInWindow();
+
 			return false;
 		}
 

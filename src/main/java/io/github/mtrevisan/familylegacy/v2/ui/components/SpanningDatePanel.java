@@ -55,6 +55,7 @@ public class SpanningDatePanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 6538587318116402553L;
 
+
 	private static final String TAG_FROM = "FROM";
 	private static final String TAG_TO = "TO";
 	private static final String TAG_SPANNING = "SPANNING";

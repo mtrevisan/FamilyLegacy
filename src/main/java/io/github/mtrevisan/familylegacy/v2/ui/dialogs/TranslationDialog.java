@@ -93,7 +93,7 @@ public class TranslationDialog extends JDialog{
 		super(parent, transRecord == null? "Add Translation": "Edit Translation", true);
 
 		this.transRecord = transRecord != null? transRecord: FLEFRecord.createChild("TRANSLATION");
-		this.modificationPanel = new ModificationPanel(this);
+		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		if(transRecord != null){
 			loadData();

@@ -47,6 +47,7 @@ public class NameStructureDialog extends JDialog{
 	@Serial
 	private static final long serialVersionUID = 7526263144620538539L;
 
+
 	static{
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
@@ -162,7 +163,6 @@ public class NameStructureDialog extends JDialog{
 
 		variantList.setVisibleRowCount(4);
 		GUIHelper.installBehavior(variantList,
-			() -> variantList.getSelectedIndex() >= 0,
 			this::editVariant,
 			this::addVariant,
 			this::removeVariant,

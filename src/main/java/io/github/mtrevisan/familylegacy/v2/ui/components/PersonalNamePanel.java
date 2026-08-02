@@ -221,7 +221,6 @@ public class PersonalNamePanel extends JPanel{
 		nameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		GUIHelper.installBehavior(nameList,
-			() -> nameList.getSelectedIndex() >= 0,
 			this::editName,
 			this::createNewName,
 			this::deleteName,
@@ -428,7 +427,6 @@ public class PersonalNamePanel extends JPanel{
 		JScrollPane partScroll = GUIHelper.createScrollPane(partList);
 
 		GUIHelper.installBehavior(partList,
-			() -> partList.getSelectedIndex() >= 0,
 			() -> {
 				int idx = partList.getSelectedIndex();
 				if(idx != -1){
@@ -503,7 +501,6 @@ public class PersonalNamePanel extends JPanel{
 		JScrollPane normScroll = GUIHelper.createScrollPane(normList);
 
 		GUIHelper.installBehavior(normList,
-			() -> normList.getSelectedIndex() >= 0,
 			null,
 			() -> addCulturalNorm(dialog, currentNormIds, normModel),
 			() -> removeCulturalNorm(dialog, normList, currentNormIds, normModel),
@@ -529,7 +526,6 @@ public class PersonalNamePanel extends JPanel{
 		JScrollPane noteScroll = GUIHelper.createScrollPane(noteList);
 
 		GUIHelper.installBehavior(noteList,
-			() -> noteList.getSelectedIndex() >= 0,
 			() -> editNoteInList(dialog, noteList, currentNoteIds, noteModel),
 			() -> addNoteInList(dialog, currentNoteIds, noteModel),
 			() -> removeNoteFromList(dialog, noteList, currentNoteIds, noteModel),
@@ -557,7 +553,6 @@ public class PersonalNamePanel extends JPanel{
 		JScrollPane sourceScroll = GUIHelper.createScrollPane(sourceList);
 
 		GUIHelper.installBehavior(sourceList,
-			() -> sourceList.getSelectedIndex() >= 0,
 			() -> editSourceInList(dialog, sourceList, currentSources, sourceModel),
 			() -> addSourceInList(dialog, currentSources, sourceModel),
 			() -> removeSourceFromList(dialog, sourceList, currentSources, sourceModel),
@@ -672,7 +667,6 @@ public class PersonalNamePanel extends JPanel{
 		JScrollPane variantScroll = GUIHelper.createScrollPane(variantList);
 
 		GUIHelper.installBehavior(variantList,
-			() -> variantList.getSelectedIndex() >= 0,
 			() -> { // double-click → edit
 				int idx = variantList.getSelectedIndex();
 				if(idx != -1){

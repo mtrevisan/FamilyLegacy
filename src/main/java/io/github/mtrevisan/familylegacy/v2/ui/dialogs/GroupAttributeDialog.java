@@ -98,7 +98,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -4670126000119212973L;
 
-	// Handlers
+
 	private final GroupHandler groupHandler = new GroupHandler();
 	private final SourceHandler sourceHandler = new SourceHandler();
 	private final NoteHandler noteHandler = new NoteHandler();
@@ -170,7 +170,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	// ----- Initialisation -----
 	protected void initComponents(){
-		modificationPanel = new ModificationPanel(this);
+		modificationPanel = new ModificationPanel(model, this);
 		restrictionPanel = new RestrictionPanel("RESTRICTION", this);
 		conclusionPanel = new ConclusionPanel("CONCLUSION", model, this);
 
@@ -258,13 +258,8 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,wrap 1", "[grow]", "[]5[]"));
-
-		// Source Citations
 		panel.add(createSourceCitationPanel(), "growx");
-
-		// Evidence Qualifiers
 		panel.add(createEvidenceQualifiersPanel(), "growx");
-
 		return panel;
 	}
 
@@ -274,13 +269,18 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		sourceCitationList.setVisibleRowCount(4);
 		sourceCitationList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
-		GUIHelper.installStandardBehavior(sourceCitationList,
-			() -> sourceCitationList.getSelectedIndex() >= 0,
-			this::createNewSource,
-			this::addSourceCitation,
+		GUIHelper.installBehavior(sourceCitationList,
 			this::editSourceCitation,
+			this::createNewSource,
 			this::deleteSourceCitation,
-			null);
+			builder -> {
+				builder.item("Create New...", this::createNewSource);
+				builder.item("Add Existing...", this::addSourceCitation);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit...", this::editSourceCitation);
+				builder.selectionSensitiveItem("Clear", this::deleteSourceCitation);
+			}
+		);
 
 		JScrollPane scrollPane = GUIHelper.createScrollPane(sourceCitationList);
 		panel.add(scrollPane, "growx,wrap");
@@ -550,6 +550,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"Group is required.\nPlease select a group.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 
@@ -559,6 +560,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"Type is required.\nPlease select an attribute type.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 
@@ -571,6 +573,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"Date must be in ISO 8601 format (YYYY-MM-DD).",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 
@@ -579,6 +582,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"Valid From must be in ISO 8601 format (YYYY-MM-DD).",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 
@@ -587,14 +591,14 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 			JOptionPane.showMessageDialog(this,
 				"Valid To must be in ISO 8601 format (YYYY-MM-DD).",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 
-		if(restrictionPanel.hasData() && !restrictionPanel.validateData()){
+		if(restrictionPanel.hasData() && !restrictionPanel.validateData())
 			return false;
-		}
 
-		return !conclusionPanel.hasData() || conclusionPanel.validateData();
+		return (!conclusionPanel.hasData() || conclusionPanel.validateData());
 	}
 
 	@Override

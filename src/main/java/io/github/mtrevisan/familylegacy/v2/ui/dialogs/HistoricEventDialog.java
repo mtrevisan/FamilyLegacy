@@ -113,7 +113,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	public HistoricEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this);
+		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 700));
@@ -124,7 +124,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	public HistoricEventDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this);
+		this.modificationPanel = new ModificationPanel(model, this);
 		initComponents();
 		loadData();
 		setMinimumSize(new Dimension(850, 700));
@@ -504,8 +504,12 @@ public class HistoricEventDialog extends BaseRecordDialog{
 
 			String pCert = placeQualifiers.getCertainty();
 			FLEFRecordHelper.updateChildValue(place, "CERTAINTY", pCert);
-			String pCred = placeQualifiers.getCredibility();
-			FLEFRecordHelper.updateChildValue(place, "CREDIBILITY", pCred);
+			String pSourceType = placeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(place, "SOURCE_TYPE", pSourceType);
+			String pInformationType = placeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(place, "INFORMATION_TYPE", pInformationType);
+			String pEvidenceType = placeQualifiers.getSourceType();
+			FLEFRecordHelper.updateChildValue(place, "EVIDENCE_TYPE", pEvidenceType);
 		}
 
 		// NOTES (0:M)

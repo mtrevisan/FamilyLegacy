@@ -2,8 +2,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -12,10 +15,13 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.text.JTextComponent;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
@@ -33,15 +39,18 @@ import java.util.function.Supplier;
 
 /**
  * Utilities for installing UI behaviors (popup menus, double‑click, keyboard shortcuts).
- * <p>
- * The main entry point is {@link #installBehavior(JComponent, Supplier, Runnable, Runnable, Runnable, Consumer)},
- * which lets you define the popup menu structure exactly via a {@link MenuBuilder}.
- * You can specify any number of items, separators, and custom enable conditions.
- * <p>
- * A legacy overload is provided for backward compatibility, but it is just a wrapper
- * that builds a standard menu using the same builder.
  */
 public final class GUIHelper{
+
+	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
+	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
+	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
+
+
+	public static final String PLACEHOLDER_ITEM = "___PLACEHOLDER___";
+	private static final String PLACEHOLDER_LIST = "(no items)";
+	private static final String PLACEHOLDER_TEXT = "(right-click to set)";
+	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
 
 	private GUIHelper(){}
 
@@ -72,16 +81,38 @@ public final class GUIHelper{
 	 * each time it is shown, so enabled states are always current.
 	 *
 	 * @param component	The component to enhance.
-	 * @param hasSelection	Supplier that tells whether an item is selected.
 	 * @param doubleClickAction	Action invoked on double‑click (may be {@code null}).
 	 * @param keyInsertAction	Action invoked by the INSERT key (may be {@code null}).
 	 * @param keyDeleteAction	Action invoked by the DELETE key (may be {@code null}).
 	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
-	public static void installBehavior(final JComponent component, final Supplier<Boolean> hasSelection,
+	public static void installBehavior(final JComponent component,
 			final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
 			final Consumer<MenuBuilder> menuBuilder){
+		if(component instanceof JTextComponent field)
+			field.setEditable(false);
+		component.setBackground(COLOR_BACKGROUND);
+		component.setToolTipText(TOOLTIP_TEXT);
+		if(component instanceof JList<?> list){
+			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+			list.setCellRenderer(new DefaultListCellRenderer(){
+				@Override
+				public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+						final boolean isSelected, final boolean cellHasFocus){
+					final DefaultListModel<?> model = (DefaultListModel<?>)list.getModel();
+					if(model.isEmpty() || PLACEHOLDER_ITEM.equals(value)){
+						final JLabel label = (JLabel)super.getListCellRendererComponent(list, null, index, false, false);
+						label.setText(PLACEHOLDER_LIST);
+						label.setForeground(COLOR_FOREGROUND_DISABLED);
+						return label;
+					}
+					return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+				}
+			});
+		}
+
 		// Collect the menu entries from the builder
+		final Supplier<Boolean> hasSelection = buildSelectionSupplier(component);
 		final MenuBuilder builder = new MenuBuilder(hasSelection);
 		menuBuilder.accept(builder);
 		final List<MenuEntry> entries = builder.getEntries();
@@ -123,13 +154,44 @@ public final class GUIHelper{
 		// Keyboard shortcuts
 		if(keyInsertAction != null)
 			addKeyboardShortcut(component, KeyEvent.VK_INSERT, "insert-action", keyInsertAction);
-		if(keyDeleteAction != null && component instanceof JList<?> list){
-			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		if(keyDeleteAction != null){
 			addKeyboardShortcut(component, KeyEvent.VK_DELETE, "delete-action", () -> {
 				if(hasSelection.get())
 					keyDeleteAction.run();
 			});
 		}
+	}
+
+	private static Supplier<Boolean> buildSelectionSupplier(final JComponent component){
+		if(component instanceof JList<?> list)
+			return () -> {
+				final int idx = list.getSelectedIndex();
+				if(idx == -1)
+					return false;
+
+				final Object value = list.getModel().getElementAt(idx);
+				return !PLACEHOLDER_ITEM.equals(value);
+			};
+
+		if(component instanceof JTextComponent textComp)
+			return () -> !textComp.getText().isEmpty();
+
+		// For other components, no meaningful selection; default to false
+		return () -> false;
+	}
+
+	/**
+	 * Ensures that a placeholder item is present in the list model if the list is empty.
+	 * If the list is not empty, the placeholder is removed.
+	 */
+	@SuppressWarnings("unchecked")
+	public static void updatePlaceholder(final JList<?> list){
+		@SuppressWarnings("rawtypes")
+		final DefaultListModel model = (DefaultListModel)list.getModel();
+		if(model.isEmpty())
+			model.addElement(PLACEHOLDER_ITEM);
+		else if(model.getSize() > 1 && model.contains(PLACEHOLDER_ITEM))
+			model.removeElement(PLACEHOLDER_ITEM);
 	}
 
 	private static void addKeyboardShortcut(final JComponent component, final int virtualKey, final String actionMapKey,
@@ -144,37 +206,6 @@ public final class GUIHelper{
 				}
 			});
 	}
-
-	/**
-	 * It builds a standard menu with "Create New...", "Add Existing...",
-	 * "Edit...", "Clear", "Notes..." (where "Edit", "Clear", and "Notes"
-	 * are selection‑sensitive). This is just a convenience wrapper around
-	 * the builder version.
-	 */
-	public static void installStandardBehavior(final JComponent component, final Supplier<Boolean> hasSelection,
-			final Runnable createNewAction, final Runnable addAction, final Runnable editAction,
-			final Runnable clearAction, final Runnable notesAction){
-		installBehavior(component, hasSelection, editAction, createNewAction, clearAction,
-			builder -> {
-				if(createNewAction != null)
-					builder.item("Create New...", createNewAction);
-				if(addAction != null)
-					builder.item("Add Existing...", addAction);
-				if(editAction != null || clearAction != null || notesAction != null)
-					builder.separator();
-				if(editAction != null)
-					builder.selectionSensitiveItem("Edit...", editAction);
-				if(clearAction != null)
-					builder.selectionSensitiveItem("Clear", clearAction);
-				if(notesAction != null){
-					if(editAction != null || clearAction != null)
-						builder.separator();
-
-					builder.selectionSensitiveItem("Notes...", notesAction);
-				}
-			});
-	}
-
 
 	private static JPopupMenu buildPopup(final List<MenuEntry> entries){
 		final JPopupMenu popup = new JPopupMenu();
@@ -198,7 +229,7 @@ public final class GUIHelper{
 	 * @param x	The X position relative to the component where the menu should be shown.
 	 * @param y	The Y position relative to the component where the menu should be shown.
 	 */
-	public static void showPopupMenu(final JComponent component, final int x, final int y){
+	private static void showPopupMenu(final JComponent component, final int x, final int y){
 		if(component == null || !component.isEnabled())
 			return;
 
@@ -212,7 +243,7 @@ public final class GUIHelper{
 	 *
 	 * @param component	The component source.
 	 */
-	public static void showPopupMenu(final JComponent component){
+	private static void showPopupMenu(final JComponent component){
 		if(component != null)
 			showPopupMenu(component, 0, component.getHeight());
 	}
@@ -289,6 +320,19 @@ public final class GUIHelper{
 	}
 
 
+	public static void updateDisplay(final JTextField component, final Supplier<Boolean> hasData,
+			final Supplier<String> getText){
+		if(hasData.get()){
+			component.setText(getText.get());
+			component.setForeground(COLOR_FOREGROUND_ENABLED);
+		}
+		else{
+			component.setText(PLACEHOLDER_TEXT);
+			component.setForeground(COLOR_FOREGROUND_DISABLED);
+		}
+	}
+
+
 
 	/**
 	 * Returns the parent frame of this panel.
@@ -346,7 +390,8 @@ public final class GUIHelper{
 	 * Immutable record representing a menu entry.
 	 */
 	private record MenuEntry(String label, Runnable action, Supplier<Boolean> enabledCondition, boolean isSeparator){
-		private static MenuEntry createEntry(String label, Runnable action, Supplier<Boolean> enabledCondition){
+		private static MenuEntry createEntry(final String label, final Runnable action,
+				final Supplier<Boolean> enabledCondition){
 			return new MenuEntry(label, action, enabledCondition, false);
 		}
 

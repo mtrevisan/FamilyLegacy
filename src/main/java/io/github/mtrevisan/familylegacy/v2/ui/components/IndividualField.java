@@ -37,22 +37,11 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.UIManager;
-import java.awt.Color;
 import java.awt.Dialog;
-import java.util.function.Supplier;
 
 
 /* DONE */
 public class IndividualField extends JPanel{
-
-	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
-	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
-	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
-
-	private static final String PLACEHOLDER_TEXT = "(right-click to manage individual)";
-	private static final String TOOLTIP_TEXT = "right-click or double-click to create, select, edit, or clear individual";
-
 
 	static{
 		HandlerRegistry.register(new IndividualHandler());
@@ -67,6 +56,8 @@ public class IndividualField extends JPanel{
 	private FLEFRecord record;
 
 	private final JTextField displayField = new JTextField(20);
+
+	private final RecordTypeHandler<?> individualHandler;
 
 
 	public static IndividualField create(final String path, final Dialog parent, final FLEFModel model){
@@ -86,17 +77,14 @@ public class IndividualField extends JPanel{
 		this.path = path;
 		this.model = model;
 
+		individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+
 		initComponents();
 	}
 
 
 	private void initComponents(){
-		displayField.setEditable(false);
-		displayField.setBackground(COLOR_BACKGROUND);
-		displayField.setToolTipText(TOOLTIP_TEXT);
-
 		setupField(displayField,
-			() -> (record != null),
 			this::createNew,
 			this::add,
 			this::edit,
@@ -107,11 +95,9 @@ public class IndividualField extends JPanel{
 	}
 
 	private void setupField(final JTextField field,
-			final Supplier<Boolean> hasSelection,
 			final Runnable newAction, final Runnable addAction, final Runnable editAction,
 			final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			hasSelection,
 			editAction,
 			newAction,
 			clearAction,
@@ -166,7 +152,6 @@ public class IndividualField extends JPanel{
 	}
 
 	private void add(){
-		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parent, model, individualHandler,
 			selectedId -> {
@@ -193,15 +178,9 @@ public class IndividualField extends JPanel{
 	}
 
 	private void updateDisplay(){
-		if(record != null && record.hasData()){
-			final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-			displayField.setText(individualHandler.getDisplayText(record, model));
-			displayField.setForeground(COLOR_FOREGROUND_ENABLED);
-		}
-		else{
-			displayField.setText(PLACEHOLDER_TEXT);
-			displayField.setForeground(COLOR_FOREGROUND_DISABLED);
-		}
+		GUIHelper.updateDisplay(displayField,
+			() -> (record != null && record.hasData()),
+			() -> individualHandler.getDisplayText(record, model));
 	}
 
 }

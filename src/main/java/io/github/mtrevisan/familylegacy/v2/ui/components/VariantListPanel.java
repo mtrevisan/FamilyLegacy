@@ -47,7 +47,6 @@ public class VariantListPanel extends AbstractListPanel<VariantEntry>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			() -> (list.getSelectedIndex() >= 0),
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,

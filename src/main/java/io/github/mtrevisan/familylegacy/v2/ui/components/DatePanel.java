@@ -48,7 +48,7 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.0.
+ * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.1.
  * <p>
  * The actual structure (real tags):
  * <pre>
@@ -63,6 +63,7 @@ public class DatePanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = 7489525613734145165L;
+
 
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_CERTAINTY = "CERTAINTY";
