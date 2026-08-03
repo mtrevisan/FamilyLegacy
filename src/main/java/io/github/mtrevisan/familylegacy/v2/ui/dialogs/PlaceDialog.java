@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NameListPanel;
@@ -73,7 +73,6 @@ import java.io.Serial;
  *   citation*: SourceCitation
  *   evidence?: EvidenceQualifiers
  *   restriction?: RestrictionStructure
- *   conclusion*: Xref&lt;ConclusionRecord&gt;
  *   modification: ModificationStructure
  * }
  * </pre>
@@ -112,8 +111,10 @@ public class PlaceDialog extends BaseRecordDialog{
 	private final SourceCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel placeQualifiers;
 	private final RestrictionPanel restrictionPanel;
-	private final ConclusionPanel conclusionPanel;
 	private final ModificationPanel modificationPanel;
+
+	// Other
+	private final ConclusionListPanel conclusionPanel;
 
 
 	public static PlaceDialog createNew(final Dialog parent, final FLEFModel model){
@@ -143,8 +144,9 @@ public class PlaceDialog extends BaseRecordDialog{
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		placeQualifiers = new EvidenceQualifiersPanel(null, "Place Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		conclusionPanel = new ConclusionPanel(TAG_CONCLUSION, model, this);
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this, model);
+
+		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
 
 		initComponents();
 
@@ -164,7 +166,6 @@ public class PlaceDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Conclusion", conclusionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
@@ -196,7 +197,10 @@ public class PlaceDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		return sourcePanel;
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]5[]"));
+		panel.add(conclusionPanel, "growx");
+		panel.add(sourcePanel, "growx");
+		return panel;
 	}
 
 	@Override
@@ -208,8 +212,9 @@ public class PlaceDialog extends BaseRecordDialog{
 		sourcePanel.load(record);
 		placeQualifiers.load(record);
 		restrictionPanel.load(record);
-		conclusionPanel.load(record);
 		modificationPanel.load(record);
+
+		conclusionPanel.load(record);
 	}
 
 	@Override
@@ -234,8 +239,9 @@ public class PlaceDialog extends BaseRecordDialog{
 		sourcePanel.save(record);
 		placeQualifiers.save(record);
 		restrictionPanel.save(record);
-		conclusionPanel.save(record);
 		modificationPanel.save(record);
+
+		conclusionPanel.save(record);
 	}
 
 

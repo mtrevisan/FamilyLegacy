@@ -171,7 +171,6 @@ public class RelationshipDialog extends JDialog{
 			}
 		}
 		pack();
-		setMinimumSize(new Dimension(600, 550));
 		setLocationRelativeTo(parent);
 	}
 
@@ -565,8 +564,7 @@ public class RelationshipDialog extends JDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 

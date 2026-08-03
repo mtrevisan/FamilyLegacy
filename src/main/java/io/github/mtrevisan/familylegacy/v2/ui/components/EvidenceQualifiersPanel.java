@@ -12,19 +12,23 @@ import javax.swing.JPanel;
 import javax.swing.ToolTipManager;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 
 
 /**
  * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol:
- * certainty, source_type, information_type, and evidence_type.
+ * source_type, information_type, and evidence_type.
  * All combos are optional (empty selection allowed).
  */
 public class EvidenceQualifiersPanel extends JPanel{
 
+	@Serial
+	private static final long serialVersionUID = 2385077249573544559L;
+
+
 	private static final String DOT = ".";
 
 	// Values for each combo (empty first for "not set")
-	private static final String[] CERTAINTY_VALUES = {StringUtils.EMPTY, "proven", "challenged", "disproven"};
 	private static final String[] SOURCE_TYPE_VALUES = {StringUtils.EMPTY, "original", "derived"};
 	private static final String[] INFORMATION_TYPE_VALUES = {StringUtils.EMPTY, "primary", "secondary", "undetermined"};
 	private static final String[] EVIDENCE_TYPE_VALUES = {StringUtils.EMPTY, "direct", "indirect", "negative"};
@@ -32,7 +36,6 @@ public class EvidenceQualifiersPanel extends JPanel{
 
 	private final String path;
 
-	private final JComboBox<String> certaintyCombo;
 	private final JComboBox<String> sourceTypeCombo;
 	private final JComboBox<String> informationTypeCombo;
 	private final JComboBox<String> evidenceTypeCombo;
@@ -50,21 +53,16 @@ public class EvidenceQualifiersPanel extends JPanel{
 		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]")); // we'll add 4 rows, each on new line
 		setBorder(BorderFactory.createTitledBorder(title));
 
-		certaintyCombo = new JComboBox<>(CERTAINTY_VALUES);
 		sourceTypeCombo = new JComboBox<>(SOURCE_TYPE_VALUES);
 		informationTypeCombo = new JComboBox<>(INFORMATION_TYPE_VALUES);
 		evidenceTypeCombo = new JComboBox<>(EVIDENCE_TYPE_VALUES);
 
 		// Tooltips
-		certaintyCombo.setToolTipText("Confidence in the assertion itself: " +
-													"proven (sufficient evidence and accepted), challenged (questioned by conflicting evidence), disproven (demonstrated incorrect)");
 		sourceTypeCombo.setToolTipText("Classification of the source itself: original (first-hand) or derived (secondary)");
 		informationTypeCombo.setToolTipText("Classification of the information provided by the source: primary, secondary, or undetermined");
 		evidenceTypeCombo.setToolTipText("Nature of the evidentiary contribution: direct, indirect, or negative");
 
 		// Layout: label + combo per row
-		add(new JLabel("Certainty:"), "align label");
-		add(certaintyCombo, "growx,wrap");
 		add(new JLabel("Source Type:"), "align label");
 		add(sourceTypeCombo, "growx,wrap");
 		add(new JLabel("Info Type:"), "align label");
@@ -73,7 +71,6 @@ public class EvidenceQualifiersPanel extends JPanel{
 		add(evidenceTypeCombo, "growx");
 
 		// Attach hover tooltip listeners
-		attachTooltipListener(certaintyCombo);
 		attachTooltipListener(sourceTypeCombo);
 		attachTooltipListener(informationTypeCombo);
 		attachTooltipListener(evidenceTypeCombo);
@@ -97,10 +94,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record the record to read from
 	 */
 	public void load(final FLEFRecord record){
-		String value = FLEFRecordHelper.getChildValue(record, path + "CERTAINTY");
-		certaintyCombo.setSelectedItem(StringUtils.defaultString(value));
-
-		value = FLEFRecordHelper.getChildValue(record, path + "SOURCE_TYPE");
+		String value = FLEFRecordHelper.getChildValue(record, path + "SOURCE_TYPE");
 		sourceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
 		value = FLEFRecordHelper.getChildValue(record, path + "INFORMATION_TYPE");
@@ -116,14 +110,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record the record to save into
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.updateChildValue(record, path + "CERTAINTY", getCertainty());
 		FLEFRecordHelper.updateChildValue(record, path + "SOURCE_TYPE", getSourceType());
 		FLEFRecordHelper.updateChildValue(record, path + "INFORMATION_TYPE", getInformationType());
 		FLEFRecordHelper.updateChildValue(record, path + "EVIDENCE_TYPE", getEvidenceType());
-	}
-
-	public String getCertainty(){
-		return (String)certaintyCombo.getSelectedItem();
 	}
 
 	public String getSourceType(){
@@ -144,8 +133,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @return true if at least one combo has a value
 	 */
 	public boolean hasData(){
-		return (!getCertainty().isEmpty() ||
-			!getSourceType().isEmpty() ||
+		return (!getSourceType().isEmpty() ||
 			!getInformationType().isEmpty() ||
 			!getEvidenceType().isEmpty());
 	}
@@ -154,7 +142,6 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * Clears all combos to the empty string.
 	 */
 	public void clear(){
-		certaintyCombo.setSelectedItem(StringUtils.EMPTY);
 		sourceTypeCombo.setSelectedItem(StringUtils.EMPTY);
 		informationTypeCombo.setSelectedItem(StringUtils.EMPTY);
 		evidenceTypeCombo.setSelectedItem(StringUtils.EMPTY);
@@ -169,7 +156,6 @@ public class EvidenceQualifiersPanel extends JPanel{
 	public void setEnabled(final boolean enabled){
 		super.setEnabled(enabled);
 
-		certaintyCombo.setEnabled(enabled);
 		sourceTypeCombo.setEnabled(enabled);
 		informationTypeCombo.setEnabled(enabled);
 		evidenceTypeCombo.setEnabled(enabled);

@@ -110,16 +110,14 @@ public class AliasDialog extends JDialog{
 	 */
 	public static class AliasEntry{
 		public String aliasId;
-		public String certainty;
 		public String sourceType;
 		public String informationTYpe;
 		public String evidenceType;
 		public List<String> noteIds;
 
-		public AliasEntry(String aliasId, String certainty, String sourceType, final String informationTYpe,
+		public AliasEntry(String aliasId, String sourceType, final String informationTYpe,
 				final String evidenceType, List<String> noteIds){
 			this.aliasId = aliasId;
-			this.certainty = certainty;
 			this.sourceType = sourceType;
 			this.informationTYpe = informationTYpe;
 			this.evidenceType = evidenceType;
@@ -128,7 +126,7 @@ public class AliasDialog extends JDialog{
 
 		@Override
 		public String toString(){
-			return aliasId + (certainty != null && !certainty.isEmpty()? " (" + certainty + ")": StringUtils.EMPTY);
+			return aliasId;
 		}
 	}
 
@@ -161,13 +159,12 @@ public class AliasDialog extends JDialog{
 
 		this.model = model;
 		this.parentFrame = parent;
-		this.existingEntry = existingEntry != null? existingEntry: new AliasEntry(StringUtils.EMPTY, null, null, null, null, new ArrayList<>());
+		this.existingEntry = existingEntry != null? existingEntry: new AliasEntry(StringUtils.EMPTY, null, null, null, new ArrayList<>());
 		initComponents();
 		if(existingEntry != null){
 			loadData();
 		}
 		pack();
-		setMinimumSize(new Dimension(500, 450));
 		setLocationRelativeTo(parent);
 	}
 
@@ -409,7 +406,6 @@ public class AliasDialog extends JDialog{
 		}
 		return new AliasEntry(
 			selectedAliasId,
-			qualifiersPanel.getCertainty(),
 			qualifiersPanel.getSourceType(),
 			qualifiersPanel.getInformationType(),
 			qualifiersPanel.getEvidenceType(),
@@ -426,8 +422,7 @@ public class AliasDialog extends JDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 		HandlerRegistry.register(new IndividualHandler());

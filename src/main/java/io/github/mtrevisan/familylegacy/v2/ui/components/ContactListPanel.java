@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
@@ -103,13 +104,16 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(final FLEFRecord item){
-		if(item == null){
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parentDialog, "Contact not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
 			return null;
 		}
 
 		final ContactStructurePanel panel = new ContactStructurePanel(model, parentDialog);
-		panel.loadFromRecord(item);
+		panel.loadFromRecord(existing);
 
 		final JDialog dialog = new JDialog(parentDialog, "Edit Contact", Dialog.ModalityType.APPLICATION_MODAL);
 		dialog.setLayout(new BorderLayout(10, 10));
@@ -125,7 +129,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
 			if(panel.validateData()){
-				final FLEFRecord contact = panel.saveToRecord(item);
+				final FLEFRecord contact = panel.saveToRecord(existing);
 				if(contact != null){
 					contact.setTag("CONTACT");
 					result[0] = contact;

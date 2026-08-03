@@ -143,7 +143,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	private final List<FLEFRecord> sourceCitationRecords = new ArrayList<>();
 
 	// Evidence Qualifiers (simplified to a combo)
-	private final JComboBox<String> certaintyCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "challenged", "disproven", "proven"});
+	private final JComboBox<String> certaintyCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "proven", "challenged", "disproven"});
 	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 	// ----- Factory methods -----
@@ -163,16 +163,15 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(550, 600));
 		pack();
 		setLocationRelativeTo(parent);
 	}
 
 	// ----- Initialisation -----
 	protected void initComponents(){
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this, model);
 		restrictionPanel = new RestrictionPanel("RESTRICTION", this);
-		conclusionPanel = new ConclusionPanel("CONCLUSION", model, this);
+		conclusionPanel = new ConclusionPanel("CONCLUSION", this, model);
 
 		JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
@@ -257,7 +256,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5,fillx,wrap 1", "[grow]", "[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]5[]"));
 		panel.add(createSourceCitationPanel(), "growx");
 		panel.add(createEvidenceQualifiersPanel(), "growx");
 		return panel;
@@ -704,8 +703,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 

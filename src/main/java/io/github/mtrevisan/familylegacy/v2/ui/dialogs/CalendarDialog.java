@@ -127,10 +127,9 @@ public class CalendarDialog extends BaseRecordDialog{
 	public CalendarDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this, model);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 650));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -138,10 +137,9 @@ public class CalendarDialog extends BaseRecordDialog{
 	public CalendarDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(CalendarHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this, model);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 650));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -624,8 +622,7 @@ public class CalendarDialog extends BaseRecordDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 

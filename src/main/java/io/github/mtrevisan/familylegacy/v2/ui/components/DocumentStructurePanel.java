@@ -71,7 +71,6 @@ import java.util.Set;
  * <pre>
  * DOCUMENT_STRUCTURE :=
  *   n FILE <DOCUMENT_FILE_REFERENCE>    {1:1}
- *     +1 SPHERICAL Y    {0:1}
  *     +1 MAPPING <MAPPING_TYPE>    {0:1}
  *     +1 DESCRIPTION <DOCUMENT_DESCRIPTION>    {0:1}
  *     +1 EXTRACT <TEXTED_TEXT_FROM_SOURCE>    {0:1}
@@ -95,8 +94,6 @@ public class DocumentStructurePanel extends JPanel{
 	private final Component parent;
 
 	private final JTextField fileField = new JTextField(30);
-
-	private final JCheckBox sphericalCheckBox = new JCheckBox("Spherical");
 
 	private final JComboBox<String> mappingCombo = new JComboBox<>(new String[]{
 		StringUtils.EMPTY, "spherical_UV", "cylindrical_equirectangular_horizontal",
@@ -151,14 +148,11 @@ public class DocumentStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
 
 		// FILE
 		panel.add(new JLabel("File:"), "align label");
 		panel.add(fileField, "growx,wrap");
-
-		// SPHERICAL
-		panel.add(sphericalCheckBox, "span 2,wrap");
 
 		// MAPPING
 		panel.add(new JLabel("Mapping:"), "align label");
@@ -340,10 +334,6 @@ public class DocumentStructurePanel extends JPanel{
 		// FILE
 		fileField.setText(documentRecord.getValue());
 
-		// SPHERICAL
-		String spherical = FLEFRecordHelper.getChildValue(documentRecord, "SPHERICAL");
-		sphericalCheckBox.setSelected("Y".equals(spherical));
-
 		// MAPPING
 		String mapping = FLEFRecordHelper.getChildValue(documentRecord, "MAPPING");
 		mappingCombo.setSelectedItem(StringUtils.defaultString(mapping));
@@ -406,11 +396,6 @@ public class DocumentStructurePanel extends JPanel{
 			documentRecord.setValue(file);
 		}
 
-		// SPHERICAL
-		if(sphericalCheckBox.isSelected()){
-			FLEFRecordHelper.updateChildValue(documentRecord, "SPHERICAL", "Y");
-		}
-
 		// MAPPING (0:1)
 		String mapping = (String)mappingCombo.getSelectedItem();
 		FLEFRecordHelper.updateChildValue(documentRecord, "MAPPING", mapping);
@@ -461,6 +446,7 @@ public class DocumentStructurePanel extends JPanel{
 					"Please enter a file reference.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			fileField.requestFocusInWindow();
+
 			return false;
 		}
 		return true;
@@ -473,7 +459,6 @@ public class DocumentStructurePanel extends JPanel{
 	 */
 	public boolean hasData(){
 		return !StringUtils.isEmpty(fileField.getText()) ||
-			sphericalCheckBox.isSelected() ||
 			(mappingCombo.getSelectedItem() != null &&
 				!((String)mappingCombo.getSelectedItem()).isEmpty()) ||
 			!StringUtils.isEmpty(descriptionField.getText()) ||
@@ -487,7 +472,6 @@ public class DocumentStructurePanel extends JPanel{
 	 */
 	public void clear(){
 		fileField.setText(StringUtils.EMPTY);
-		sphericalCheckBox.setSelected(false);
 		mappingCombo.setSelectedItem(StringUtils.EMPTY);
 		descriptionField.setText(StringUtils.EMPTY);
 		extractArea.setText(StringUtils.EMPTY);

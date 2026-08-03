@@ -86,6 +86,7 @@ public class FamilyPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 6664809287767332824L;
 
+
 	private static final Color BORDER_COLOR = Color.BLACK;
 
 	private static final double PARTNER_PREV_NEXT_WIDTH = 12.;

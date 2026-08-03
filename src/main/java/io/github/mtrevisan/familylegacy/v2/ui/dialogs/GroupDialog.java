@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.GeneralRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MemberRelationshipListPanel;
@@ -42,7 +42,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -75,7 +74,6 @@ import java.io.Serial;
  *     crop?: CropCoord
  *   }
  *   restriction?: RestrictionStructure
- *   conclusion*: Xref&lt;ConclusionRecord&gt;
  *   modification: ModificationStructure
  * }
  * </pre>
@@ -101,7 +99,6 @@ public class GroupDialog extends BaseRecordDialog{
 	static{
 		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new RelationshipHandler());
-		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new GroupHandler());
 	}
 
@@ -115,10 +112,10 @@ public class GroupDialog extends BaseRecordDialog{
 	private final SourceCitationListPanel sourcePanel;
 	private final PreferredImagePanel preferredImagePanel;
 	private final RestrictionPanel restrictionPanel;
-	private final ConclusionPanel conclusionPanel;
 	private final ModificationPanel modificationPanel;
 
 	// Other
+	private final ConclusionListPanel conclusionPanel;
 	private final MemberRelationshipListPanel memberPanel;
 	private final GeneralRelationshipListPanel relationshipPanel;
 
@@ -147,10 +144,10 @@ public class GroupDialog extends BaseRecordDialog{
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this, model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		conclusionPanel = new ConclusionPanel(TAG_CONCLUSION, model, this);
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this, model);
 
-		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null? record.getId(): null));
+		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
+		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null ? record.getId() : null));
 		relationshipPanel = new GeneralRelationshipListPanel(TAG_RELATIONSHIP, this, model);
 
 		initComponents();
@@ -171,7 +168,6 @@ public class GroupDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Conclusion", conclusionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
@@ -201,6 +197,7 @@ public class GroupDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]5[]"));
+		panel.add(conclusionPanel, "growx");
 		panel.add(relationshipPanel, "growx");
 		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
@@ -219,9 +216,9 @@ public class GroupDialog extends BaseRecordDialog{
 		sourcePanel.load(record);
 		preferredImagePanel.load(record);
 		restrictionPanel.load(record);
-		conclusionPanel.load(record);
 		modificationPanel.load(record);
 
+		conclusionPanel.load(record);
 		memberPanel.load(record);
 		relationshipPanel.load(record);
 	}
@@ -241,9 +238,9 @@ public class GroupDialog extends BaseRecordDialog{
 		sourcePanel.save(record);
 		preferredImagePanel.save(record);
 		restrictionPanel.save(record);
-		conclusionPanel.save(record);
 		modificationPanel.save(record);
 
+		conclusionPanel.save(record);
 		memberPanel.save(record);
 		relationshipPanel.save(record);
 	}

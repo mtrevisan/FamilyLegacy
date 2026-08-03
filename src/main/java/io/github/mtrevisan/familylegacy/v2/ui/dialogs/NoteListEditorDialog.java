@@ -91,7 +91,6 @@ public class NoteListEditorDialog extends JDialog{
 		initComponents();
 		loadData();
 		pack();
-		setMinimumSize(new Dimension(400, 300));
 		setLocationRelativeTo(parent);
 	}
 

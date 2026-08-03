@@ -114,7 +114,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 		placeField = PlaceField.create(TAG_PLACE, parent, model);
 		contactPanel = new ContactListPanel(TAG_CONTACT, model, this);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this, model);
 
 		initComponents();
 

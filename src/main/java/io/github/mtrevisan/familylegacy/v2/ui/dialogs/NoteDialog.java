@@ -50,7 +50,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -128,7 +128,7 @@ public class NoteDialog extends BaseRecordDialog{
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		translationPanel = new TranslationListPanel(TAG_TRANSLATION, model, this);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this, model);
 		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 
 		initComponents();
@@ -150,9 +150,7 @@ public class NoteDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		final JPanel restrictionContainer = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
-		restrictionContainer.add(restrictionPanel, "grow");
-		tabbedPane.addTab("Restriction", restrictionContainer);
+		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
@@ -184,7 +182,7 @@ public class NoteDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
 		panel.add(translationPanel, "growx");
 		panel.add(sourceCitationPanel, "growx");
 		return panel;
@@ -204,7 +202,8 @@ public class NoteDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(valueArea.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(this, "Note VALUE is required.",
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Note VALUE is required.",
 				tabbedPane, mainPanel, valueArea);
 
 			return false;

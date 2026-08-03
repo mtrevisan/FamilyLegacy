@@ -66,6 +66,7 @@ public class ChildrenPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -1250057284416778781L;
 
+
 	private static final double UNION_HEIGHT = 12.;
 	private static final double UNION_ASPECT_RATIO = 3501. / 2662.;
 	private static final Dimension UNION_SIZE = new Dimension((int)(UNION_HEIGHT / UNION_ASPECT_RATIO), (int)UNION_HEIGHT);

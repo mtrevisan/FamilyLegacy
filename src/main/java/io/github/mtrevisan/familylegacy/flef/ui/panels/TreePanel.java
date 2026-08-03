@@ -109,6 +109,7 @@ public class TreePanel extends JPanel implements RecordListenerInterface{
 	@Serial
 	private static final long serialVersionUID = 4700955059623460223L;
 
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(TreePanel.class);
 
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);

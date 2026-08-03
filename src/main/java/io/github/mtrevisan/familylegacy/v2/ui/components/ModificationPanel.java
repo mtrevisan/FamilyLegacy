@@ -80,7 +80,7 @@ public class ModificationPanel extends JPanel{
 	 *
 	 * @param parent the parent dialog (used for showing message dialogs)
 	 */
-	public ModificationPanel(FLEFModel model, final Dialog parent){
+	public ModificationPanel(final Dialog parent, FLEFModel model){
 		this.model = model;
 		this.parentDialog = parent;
 

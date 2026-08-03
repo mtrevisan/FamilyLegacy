@@ -125,7 +125,6 @@ public class GroupCitationDialog extends JDialog{
 			loadData();
 		}
 		pack();
-		setMinimumSize(new Dimension(550, 500));
 		setLocationRelativeTo(parent);
 	}
 
@@ -420,8 +419,7 @@ public class GroupCitationDialog extends JDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 		// Register all handlers (done via static blocks)

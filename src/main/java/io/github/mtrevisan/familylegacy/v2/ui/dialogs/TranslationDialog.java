@@ -93,13 +93,12 @@ public class TranslationDialog extends JDialog{
 		super(parent, transRecord == null? "Add Translation": "Edit Translation", true);
 
 		this.transRecord = transRecord != null? transRecord: FLEFRecord.createChild("TRANSLATION");
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this, model);
 		initComponents();
 		if(transRecord != null){
 			loadData();
 		}
 		pack();
-		setMinimumSize(new Dimension(550, 500));
 		setLocationRelativeTo(parent);
 	}
 
@@ -157,12 +156,12 @@ public class TranslationDialog extends JDialog{
 	}
 
 	private boolean validateData(){
-		// VALUE
 		if(StringUtils.isEmpty(valueArea.getText())){
 			JOptionPane.showMessageDialog(this,
 				"VALUE is required for a translation.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			valueArea.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -193,8 +192,7 @@ public class TranslationDialog extends JDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 		HandlerRegistry.register(new NoteHandler());

@@ -209,8 +209,12 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
-		if(existing == null)
+		if(existing == null){
+			JOptionPane.showMessageDialog(parentDialog, "Member Relationship not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
 			return null;
+		}
 
 		final RelationshipDialog dialog = (RelationshipDialog)relationshipHandler.createEditDialog(parentDialog, model,
 			existing);

@@ -124,7 +124,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(900, 750));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -137,7 +136,6 @@ public class GroupEventDialog extends BaseRecordDialog{
 		this.eventStructurePanel = new EventStructurePanel(model, this);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(900, 750));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -359,8 +357,7 @@ public class GroupEventDialog extends BaseRecordDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 

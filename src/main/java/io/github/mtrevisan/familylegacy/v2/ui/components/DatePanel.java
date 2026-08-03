@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -54,6 +55,7 @@ import java.io.Serial;
  * <pre>
  * struct DateStructure {
  *   value: DateValue
+ *   original_text?: Text
  *   citation*: SourceCitation
  *   evidence?: EvidenceQualifiers
  * }
@@ -65,6 +67,7 @@ public class DatePanel extends JPanel{
 	private static final long serialVersionUID = 7489525613734145165L;
 
 
+	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_CERTAINTY = "CERTAINTY";
 	private static final String TAG_CREDIBILITY = "CREDIBILITY";
@@ -80,19 +83,22 @@ public class DatePanel extends JPanel{
 	private final SingleDatePanel pointDatePanel;
 	private final BoundedDatePanel boundedDatePanel;
 	private final SpanningDatePanel spanningDatePanel;
+
+	private final BoundTextField originalTextField;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final BoundComboBox<String> certaintyCombo;
 	private final BoundComboBox<String> credibilityCombo;
 
 
 	public DatePanel(final Dialog parent, final FLEFModel model){
-		this.pointDatePanel = new SingleDatePanel(parent, model);
-		this.boundedDatePanel = new BoundedDatePanel(parent, model);
-		this.spanningDatePanel = new SpanningDatePanel(parent, model);
+		pointDatePanel = new SingleDatePanel(parent, model);
+		boundedDatePanel = new BoundedDatePanel(parent, model);
+		spanningDatePanel = new SpanningDatePanel(parent, model);
 
-		this.sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
+		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 15);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
 		certaintyCombo = new BoundComboBox<>(TAG_CERTAINTY,
-			new String[]{StringUtils.EMPTY, "challenged", "disproven", "proven"});
+			new String[]{StringUtils.EMPTY, "proven", "challenged", "disproven"});
 		credibilityCombo = new BoundComboBox<>(TAG_CREDIBILITY,
 			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
@@ -101,6 +107,7 @@ public class DatePanel extends JPanel{
 
 
 	private void initComponents(){
+		bindingManager.bind(originalTextField);
 		bindingManager.bind(certaintyCombo);
 		bindingManager.bind(credibilityCombo);
 
@@ -137,6 +144,9 @@ public class DatePanel extends JPanel{
 		});
 		add(tabbedPane, "growx,wrap");
 
+		add(new JLabel("Origianl Text:"), "align label");
+		add(originalTextField, "growx");
+
 		// Source Citations
 		add(sourceCitationPanel, "growx");
 
@@ -145,7 +155,7 @@ public class DatePanel extends JPanel{
 	}
 
 	private JPanel createEvidencePanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 5,fillx", "[right]rel[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]"));
 		panel.setBorder(new TitledBorder("Qualifiers"));
 
 		panel.add(new JLabel("Certainty:"), "align label");
@@ -297,8 +307,7 @@ public class DatePanel extends JPanel{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 

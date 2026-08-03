@@ -144,7 +144,6 @@ public class AssociationDialog extends JDialog{
 			loadData();
 		}
 		pack();
-		setMinimumSize(new Dimension(550, 550));
 		setLocationRelativeTo(parent);
 	}
 
@@ -214,7 +213,7 @@ public class AssociationDialog extends JDialog{
 
 
 	private JPanel createExistingPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]"));
 
 		panel.add(new JLabel("Target Type:"), "align label");
 		panel.add(targetTypeCombo, "growx,wrap");
@@ -231,7 +230,7 @@ public class AssociationDialog extends JDialog{
 	}
 
 	private JPanel createVoidPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]"));
 
 		panel.add(new JLabel("Name:"), "align label");
 		panel.add(voidNameField, "growx,wrap");
@@ -589,8 +588,7 @@ public class AssociationDialog extends JDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 		HandlerRegistry.register(new IndividualHandler());

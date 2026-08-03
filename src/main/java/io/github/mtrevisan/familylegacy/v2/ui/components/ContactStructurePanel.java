@@ -72,7 +72,7 @@ import java.util.Set;
  * CONTACT_STRUCTURE :=
  *   n CONTACT <CONTACT_ADDRESS>    {1:1}
  *     +1 TYPE <CONTACT_TYPE>    {0:1}
- *     +1 CALLER_ID <CALLED_ID_VALUE>    {0:1}
+ *     +1 NAME <CALLED_ID_VALUE>    {0:1}
  *       +2 <<TRANSCRIBED_TEXT>>    {0:M}
  *     +1 NOTE @<XREF:NOTE>@    {0:M}
  *     +1 RESTRICTION <confidential>    {0:1}
@@ -99,7 +99,7 @@ public class ContactStructurePanel extends JPanel{
 		StringUtils.EMPTY, "work", "home", "blog", "personal", "social", "mobile", "fax"
 	});
 
-	private final JTextField callerIdField = new JTextField(20);
+	private final JTextField nameField = new JTextField(20);
 
 	private final DefaultListModel<String> transcriptionModel = new DefaultListModel<>();
 	private final JList<String> transcriptionList = new JList<>(transcriptionModel);
@@ -125,7 +125,7 @@ public class ContactStructurePanel extends JPanel{
 	public ContactStructurePanel(FLEFModel model, Component parent){
 		this.model = model;
 		this.parent = parent;
-		this.modificationPanel = new ModificationPanel(model, (Dialog)parent);
+		this.modificationPanel = new ModificationPanel((Dialog)parent, model);
 
 		initComponents();
 	}
@@ -154,7 +154,7 @@ public class ContactStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]"));
 
 		// CONTACT
 		panel.add(new JLabel("Contact:"), "align label");
@@ -164,9 +164,9 @@ public class ContactStructurePanel extends JPanel{
 		panel.add(new JLabel("Type:"), "align label");
 		panel.add(typeCombo, "growx,wrap");
 
-		// CALLER_ID
+		// NAME
 		panel.add(new JLabel("Caller ID:"), "align label");
-		panel.add(callerIdField, "growx,wrap");
+		panel.add(nameField, "growx,wrap");
 
 		// RESTRICTION
 		panel.add(restrictionCheckBox, "span 2,wrap");
@@ -277,10 +277,10 @@ public class ContactStructurePanel extends JPanel{
 	private void loadTranscriptions(){
 		transcriptionModel.clear();
 		transcriptionRecords.clear();
-		// Find the CALLER_ID child and load its TRANSCRIBED_TEXT children
-		FLEFRecord callerIdRecord = findCallerIdRecord();
-		if(callerIdRecord != null){
-			for(FLEFRecord child : callerIdRecord.getChildren()){
+		// Find the NAME child and load its TRANSCRIBED_TEXT children
+		FLEFRecord nameRecord = findNameRecord();
+		if(nameRecord != null){
+			for(FLEFRecord child : nameRecord.getChildren()){
 				if("TRANSCRIBED_TEXT".equals(child.getTag())){
 					transcriptionRecords.add(child);
 					transcriptionModel.addElement(buildTranscriptionDisplay(child));
@@ -289,22 +289,22 @@ public class ContactStructurePanel extends JPanel{
 		}
 	}
 
-	private FLEFRecord findCallerIdRecord(){
-		// This is a placeholder - the parent record will have CONTACT -> CALLER_ID
+	private FLEFRecord findNameRecord(){
+		// This is a placeholder - the parent record will have CONTACT -> NAME
 		// We need to be passed the parent record to find it
 		return null;
 	}
 
-	private FLEFRecord findOrCreateCallerIdRecord(FLEFRecord parent){
+	private FLEFRecord findOrCreateNameRecord(FLEFRecord parent){
 		if(parent == null)
 			return null;
-		// Find CALLER_ID under the parent (CONTACT)
-		FLEFRecord callerId = FLEFRecordHelper.findChild(parent, "CALLER_ID");
-		if(callerId == null){
-			callerId = FLEFRecord.createChildWithValue("CALLER_ID", callerIdField.getText().trim());
-			parent.addChild(callerId);
+		// Find NAME under the parent (CONTACT)
+		FLEFRecord name = FLEFRecordHelper.findChild(parent, "NAME");
+		if(name == null){
+			name = FLEFRecord.createChildWithValue("NAME", nameField.getText().trim());
+			parent.addChild(name);
 		}
-		return callerId;
+		return name;
 	}
 
 	private void addTranscription(){
@@ -317,7 +317,7 @@ public class ContactStructurePanel extends JPanel{
 		if(dialog.isSaved()){
 			FLEFRecord transRecord = dialog.getTranscribedTextRecord();
 			if(transRecord != null){
-				// We need the parent record to add it to CALLER_ID
+				// We need the parent record to add it to NAME
 				// This will be handled in saveToRecord
 				transcriptionRecords.add(transRecord);
 				transcriptionModel.addElement(buildTranscriptionDisplay(transRecord));
@@ -459,15 +459,15 @@ public class ContactStructurePanel extends JPanel{
 		String type = FLEFRecordHelper.getChildValue(contactRecord, "TYPE");
 		typeCombo.setSelectedItem(StringUtils.defaultString(type));
 
-		// CALLER_ID
-		FLEFRecord callerIdRecord = FLEFRecordHelper.findChild(contactRecord, "CALLER_ID");
-		if(callerIdRecord != null){
-			callerIdField.setText(callerIdRecord.getValue());
+		// NAME
+		FLEFRecord nameRecord = FLEFRecordHelper.findChild(contactRecord, "NAME");
+		if(nameRecord != null){
+			nameField.setText(nameRecord.getValue());
 
-			// CALLER_ID -> TRANSCRIBED_TEXT
+			// NAME -> TRANSCRIBED_TEXT
 			transcriptionModel.clear();
 			transcriptionRecords.clear();
-			for(FLEFRecord child : callerIdRecord.getChildren()){
+			for(FLEFRecord child : nameRecord.getChildren()){
 				if("TRANSCRIBED_TEXT".equals(child.getTag())){
 					transcriptionRecords.add(child);
 					transcriptionModel.addElement(buildTranscriptionDisplay(child));
@@ -527,16 +527,16 @@ public class ContactStructurePanel extends JPanel{
 		String type = (String)typeCombo.getSelectedItem();
 		FLEFRecordHelper.updateChildValue(contactRecord, "TYPE", type);
 
-		// CALLER_ID (0:1) with its TRANSCRIBED_TEXT children
-		String callerId = callerIdField.getText().trim();
-		if(!callerId.isEmpty() || !transcriptionRecords.isEmpty()){
-			FLEFRecord callerIdRecord = FLEFRecord.createChildWithValue("CALLER_ID", callerId);
-			contactRecord.addChild(callerIdRecord);
+		// NAME (0:1) with its TRANSCRIBED_TEXT children
+		String name = nameField.getText().trim();
+		if(!name.isEmpty() || !transcriptionRecords.isEmpty()){
+			FLEFRecord nameRecord = FLEFRecord.createChildWithValue("NAME", name);
+			contactRecord.addChild(nameRecord);
 
 			for(FLEFRecord transRecord : transcriptionRecords){
 				// Ensure the transcription has the correct level
 				transRecord.setTag("TRANSCRIBED_TEXT");
-				callerIdRecord.addChild(transRecord);
+				nameRecord.addChild(transRecord);
 			}
 		}
 
@@ -573,6 +573,7 @@ public class ContactStructurePanel extends JPanel{
 					"Please enter a contact address.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			contactField.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -588,7 +589,7 @@ public class ContactStructurePanel extends JPanel{
 		return !StringUtils.isEmpty(contactField.getText()) ||
 			(typeCombo.getSelectedItem() != null &&
 				!((String)typeCombo.getSelectedItem()).isEmpty()) ||
-			!StringUtils.isEmpty(callerIdField.getText()) ||
+			!StringUtils.isEmpty(nameField.getText()) ||
 			!transcriptionModel.isEmpty() ||
 			!noteModel.isEmpty() ||
 			restrictionCheckBox.isSelected();
@@ -600,7 +601,7 @@ public class ContactStructurePanel extends JPanel{
 	public void clear(){
 		contactField.setText(StringUtils.EMPTY);
 		typeCombo.setSelectedItem(StringUtils.EMPTY);
-		callerIdField.setText(StringUtils.EMPTY);
+		nameField.setText(StringUtils.EMPTY);
 		transcriptionModel.clear();
 		transcriptionRecords.clear();
 		noteModel.clear();

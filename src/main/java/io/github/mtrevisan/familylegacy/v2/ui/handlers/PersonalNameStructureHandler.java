@@ -1,0 +1,121 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.handlers;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialog;
+import org.apache.commons.lang3.StringUtils;
+
+import java.awt.Dialog;
+
+
+/**
+ * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.0.
+ * <p>
+ * This handler provides the necessary operations for managing name structures:
+ * creation, editing, display name generation, and type identification.
+ * <p>
+ * Structure:
+ * <pre>
+ * ???
+ * </pre>
+ */
+public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalNameStructureDialog>{
+
+	/** The record type identifier for groups. */
+	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
+	/** The ID prefix used for generating new group IDs (e.g., {@code NS}). */
+	public static final String ID_PREFIX = "PNS";
+
+
+	@Override
+	public String getLabel(){
+		return "Name Structure";
+	}
+
+	@Override
+	public String getType(){
+		return TYPE;
+	}
+
+	@Override
+	public String getIDPrefix(){
+		return ID_PREFIX;
+	}
+
+	/**
+	 * Creates a new group dialog for creating a new group record.
+	 *
+	 * @param parent the parent frame
+	 * @param model  the FLEF model
+	 * @return a new {@code NameStructureDialog} in create mode
+	 */
+	@Override
+	public PersonalNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return PersonalNameStructureDialog.createNew(parent, model);
+	}
+
+	/**
+	 * Creates a new group dialog for editing an existing group record.
+	 *
+	 * @param parent the parent frame
+	 * @param model  the FLEF model
+	 * @param record the group record to edit
+	 * @return a new {@code NameStructureDialog} in edit mode
+	 */
+	@Override
+	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return PersonalNameStructureDialog.createEdit(parent, model, record);
+	}
+
+	/**
+	 * Returns a display name for the given name structure.
+	 *
+	 * @param record the name structure record
+	 * @return a human-readable display name
+	 */
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		if(record == null){
+			return StringUtils.EMPTY;
+		}
+
+		// Find NAME_STRUCTURE -> TEXT -> VALUE
+		FLEFRecord textValue = FLEFRecordHelper.findChild(record, "TEXT");
+		if(textValue != null){
+			String value = FLEFRecordHelper.getChildValue(textValue, "VALUE");
+			if(value != null && !value.isEmpty()){
+				return value;
+			}
+		}
+
+		// Fallback to the record ID
+		return record.getId();
+	}
+
+}

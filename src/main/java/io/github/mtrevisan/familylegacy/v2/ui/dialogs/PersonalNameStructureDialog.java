@@ -1,38 +1,13 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameStructureHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -49,42 +24,62 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 
+/* ONGOING */
 /**
  * Panel for editing a list of {@code PERSONAL_NAME_STRUCTURE} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
- * PERSONAL_NAME_STRUCTURE :=
- * n NAME    {1:1}
- *   +1 TYPE <NAME_TYPE>    {0:1}
- *   +1 PART    {1:M}
- *     +2 TYPE <NAME_PART_TYPE>    {1:1}
- *     +2 VALUE <TEXT>    {1:1}
- *     +2 <<TEXT_VALUE_VARIANT>>    {0:M}
- *   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<SOURCE_CITATION>>    {0:M}
+ * struct PersonalNameStructure {
+ *   type?: enum {
+ *     official, religious, birth,
+ *     married, maiden, divorce, adoption, fostering,
+ *     legal, immigrant, adapted,
+ *     aka, nickname, artistic, professional, user,
+ *     regnal, slave_name
+ *   } | Text
+ *   part+: struct {
+ *     type: enum {
+ *       given, generation,
+ *       patronymic, matronymic, kunya,
+ *       family, family_nickname, lineage, house, clan, tribal, caste,
+ *       toponymic,
+ *       title, occupational, prefix, suffix,
+ *       nickname, regnal, religious, posthumous
+ *     } | Text
+ *     value: Text
+ *     variant*: TextValueVariant
+ *   }
+ *   cultural_norm*: Xref<CulturalNormRecord>
+ *   note*: Xref<NoteRecord>
+ *   citation*: SourceCitation
+ * }
  * </pre>
  */
-public class PersonalNamePanel extends JPanel{
+public class PersonalNameStructureDialog extends BaseRecordDialog{
+
+	@Serial
+	private static final long serialVersionUID = 6814016756734554747L;
+
 
 	static{
+		HandlerRegistry.register(new PersonalNameStructureHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
 	}
-
-	private final FLEFModel model;
-	private final Dialog parentDialog;
 
 	private final NoteHandler noteHandler = new NoteHandler();
 	private final SourceHandler sourceHandler = new SourceHandler();
@@ -93,6 +88,7 @@ public class PersonalNamePanel extends JPanel{
 	private final DefaultListModel<String> nameListModel = new DefaultListModel<>();
 	private final JList<String> nameList = new JList<>(nameListModel);
 	private final List<PersonalNameEntry> nameEntries = new ArrayList<>();
+
 
 	/**
 	 * Represents a TEXT_VALUE_VARIANT for a name part.
@@ -207,16 +203,32 @@ public class PersonalNamePanel extends JPanel{
 	}
 
 
-	public PersonalNamePanel(FLEFModel model, Dialog parent){
-		this.model = model;
-		this.parentDialog = parent;
+	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
+		return new PersonalNameStructureDialog(parent, model, null);
+	}
+
+	public static PersonalNameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+
+		return new PersonalNameStructureDialog(parent, model, record);
+	}
+
+
+	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(PersonalNameStructureHandler.TYPE));
+
 		initComponents();
+
+		loadData();
+
+		pack();
+
+		setLocationRelativeTo(parent);
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("fillx"));
-		setBorder(new TitledBorder("Names"));
-
 		nameList.setVisibleRowCount(4);
 		nameList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
@@ -231,12 +243,14 @@ public class PersonalNamePanel extends JPanel{
 				builder.selectionSensitiveItem("Delete", this::deleteName);
 			});
 
+		setLayout(new MigLayout("ins 10,fillx,top", "[grow]", "[]10[]"));
 		JScrollPane scrollPane = GUIHelper.createScrollPane(nameList);
 		add(scrollPane, "growx,wrap");
 	}
 
 
-	public void loadFromRecord(FLEFRecord record){
+	@Override
+	protected void loadData(){
 		nameEntries.clear();
 		nameListModel.clear();
 
@@ -301,7 +315,8 @@ public class PersonalNamePanel extends JPanel{
 	}
 
 
-	public void saveToRecord(FLEFRecord record){
+	@Override
+	protected void saveData(){
 		List<FLEFRecord> toRemove = record.findChildren("NAME");
 		for(FLEFRecord child : toRemove){
 			record.removeChild(child);
@@ -389,7 +404,7 @@ public class PersonalNamePanel extends JPanel{
 	private void deleteName(){
 		int idx = nameList.getSelectedIndex();
 		if(idx == -1) return;
-		if(JOptionPane.showConfirmDialog(parentDialog, "Remove this name?", "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
+		if(JOptionPane.showConfirmDialog(null, "Remove this name?", "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION){
 			nameEntries.remove(idx);
 			nameListModel.remove(idx);
 		}
@@ -397,7 +412,7 @@ public class PersonalNamePanel extends JPanel{
 
 
 	private PersonalNameEntry showNameDialog(PersonalNameEntry initial){
-		JDialog dialog = new JDialog(parentDialog, initial == null? "Add Personal Name": "Edit Personal Name", true);
+		JDialog dialog = new JDialog((Dialog)null, initial == null? "Add Personal Name": "Edit Personal Name", true);
 		dialog.setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]"));
 
 		// NAME TYPE
@@ -406,7 +421,7 @@ public class PersonalNamePanel extends JPanel{
 			"married", "maiden", "divorce", "adoption", "fostering",
 			"legal", "immigrant", "adapted",
 			"aka", "nickname", "artistic", "professional", "user",
-			"regnal", "slavename"
+			"regnal", "slave_name"
 		});
 		if(initial != null && !initial.type.isEmpty()){
 			typeCombo.setSelectedItem(initial.type);
@@ -594,7 +609,7 @@ public class PersonalNamePanel extends JPanel{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setLocationRelativeTo(parentDialog);
+
 		dialog.setVisible(true);
 
 		return result[0];
@@ -981,16 +996,18 @@ public class PersonalNamePanel extends JPanel{
 		return !nameEntries.isEmpty();
 	}
 
-	public boolean validateData(){
+	@Override
+	protected boolean validData(){
 		if(nameEntries.isEmpty()){
-			JOptionPane.showMessageDialog(parentDialog,
+			JOptionPane.showMessageDialog(null,
 				"At least one name is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
 		for(PersonalNameEntry entry : nameEntries){
 			if(entry.parts.isEmpty()){
-				JOptionPane.showMessageDialog(parentDialog,
+				JOptionPane.showMessageDialog(null,
 					"Name '" + entry.getFullName() + "' has no parts.",
 					"Validation Error", JOptionPane.ERROR_MESSAGE);
 				return false;
@@ -998,5 +1015,21 @@ public class PersonalNamePanel extends JPanel{
 		}
 		return true;
 	}
+
+
+	public static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		final FLEFModel model = new FLEFModel();
+
+		SwingUtilities.invokeLater(() -> {
+			final PersonalNameStructureDialog dialog = new PersonalNameStructureDialog(null, model, null);
+			dialog.setVisible(true);
+		});
+	}
+
 
 }

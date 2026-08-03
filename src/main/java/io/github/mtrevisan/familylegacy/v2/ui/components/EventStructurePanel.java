@@ -168,8 +168,8 @@ public class EventStructurePanel extends JPanel{
 		this.model = model;
 		this.parent = parent;
 		this.datePanel = new DatePanel(parent, model);
-		this.modificationPanel = new ModificationPanel(model, parent);
-		this.conclusionPanel = new ConclusionPanel("CONCLUSION", model, parent);
+		this.modificationPanel = new ModificationPanel(parent, model);
+		this.conclusionPanel = new ConclusionPanel("CONCLUSION", parent, model);
 
 		initComponents();
 	}
@@ -198,7 +198,7 @@ public class EventStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
+		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 
 		// DESCRIPTION (0:1)
 		panel.add(new JLabel("Description:"), "align label,top");
@@ -801,8 +801,6 @@ public class EventStructurePanel extends JPanel{
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
 			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", XRefHelper.formatXRef(selectedPlaceId));
 			eventStructure.addChild(place);
-			String placeCert = placeQualifiers.getCertainty();
-			FLEFRecordHelper.updateChildValue(place, "CERTAINTY", placeCert);
 			String placeSourceType = placeQualifiers.getSourceType();
 			FLEFRecordHelper.updateChildValue(place, "SOURCE_TYPE", placeSourceType);
 			String placeInformationType = placeQualifiers.getSourceType();
@@ -820,8 +818,6 @@ public class EventStructurePanel extends JPanel{
 		if(!causeVal.isEmpty()){
 			FLEFRecord cause = FLEFRecord.createChildWithValue("CAUSE", causeVal);
 			eventStructure.addChild(cause);
-			String causeCert = causeQualifiers.getCertainty();
-			FLEFRecordHelper.updateChildValue(cause, "CERTAINTY", causeCert);
 			String causeSourceType = causeQualifiers.getSourceType();
 			FLEFRecordHelper.updateChildValue(cause, "SOURCE_TYPE", causeSourceType);
 			String causeInformationType = causeQualifiers.getSourceType();
@@ -848,8 +844,6 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// EVENT QUALIFIERS (CERTAINTY + CREDIBILITY for the event itself)
-		String eventCert = eventQualifiers.getCertainty();
-		FLEFRecordHelper.updateChildValue(eventStructure, "CERTAINTY", eventCert);
 		String eventSourceType = eventQualifiers.getSourceType();
 		FLEFRecordHelper.updateChildValue(eventStructure, "SOURCE_TYPE", eventSourceType);
 		String eventInformationType = eventQualifiers.getSourceType();
