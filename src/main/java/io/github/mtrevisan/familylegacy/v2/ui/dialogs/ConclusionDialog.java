@@ -1,4 +1,28 @@
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -8,6 +32,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchStatusListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ResolvesListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -20,6 +48,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
@@ -31,7 +60,7 @@ import java.util.List;
 
 
 /**
- * Panel for editing a {@code CONCLUSION_STRUCTURE} according to FLEF 0.1.0.
+ * Dialog for editing a {@code CONCLUSION_RECORD} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
@@ -47,10 +76,10 @@ import java.util.List;
  *   +1 <<SOURCE_CITATION>>    {0:M}
  * </pre>
  */
-public class ConclusionPanel extends JPanel{
+public class ConclusionDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = -2652632946970438571L;
+	private static final long serialVersionUID = -4670126000119212975L;
 
 
 	static{
@@ -60,11 +89,6 @@ public class ConclusionPanel extends JPanel{
 
 
 	private final BindingManager bindingManager = new BindingManager();
-
-	private final FLEFModel model;
-	private final Dialog parentDialog;
-
-	private final String path;
 
 	// Bound fields
 	private final BoundTextField contextField = new BoundTextField("CONTEXT", 30);
@@ -89,23 +113,32 @@ public class ConclusionPanel extends JPanel{
 	private final SourceCitationListPanel sourcePanel;
 
 
-	/**
-	 * Constructs a new ConclusionPanel.
-	 *
-	 * @param parent the parent dialog (used for showing message dialogs)
-	 * @param model  the FLEF model
-	 */
-	public ConclusionPanel(final String path, Dialog parent, FLEFModel model){
-		this.parentDialog = parent;
+	public static ConclusionDialog createNew(final Dialog parent, final FLEFModel model){
+		return new ConclusionDialog(parent, model, null);
+	}
 
-		this.model = model;
-		this.path = path;
+	public static ConclusionDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+
+		return new ConclusionDialog(parent, model, record);
+	}
+
+
+	private ConclusionDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(ConclusionHandler.TYPE));
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
 		this.researchPanel = new ResearchStatusListPanel(model, parent);
 		this.sourcePanel = new SourceCitationListPanel("SOURCE", parent, model);
 
 		initComponents();
+
+		loadData();
+
+		pack();
+
+		setLocationRelativeTo(parent);
 	}
 
 	private void initComponents(){
@@ -175,7 +208,8 @@ public class ConclusionPanel extends JPanel{
 	}
 
 	private void browsePreferred(){
-		String input = JOptionPane.showInputDialog(parentDialog,
+		//FIXME parentComponent
+		String input = JOptionPane.showInputDialog(null,
 			"Enter the XREF ID of the preferred record (e.g., @E123@, @I456@):",
 			"Select Preferred Record", JOptionPane.PLAIN_MESSAGE);
 		if(!StringUtils.isEmpty(input)){
@@ -192,6 +226,42 @@ public class ConclusionPanel extends JPanel{
 	}
 
 
+	@Override
+	protected void loadData(){
+		//TODO
+//		bindingManager.load(record);
+//
+//		translationPanel.load(record);
+//		sourceCitationPanel.load(record);
+//		restrictionPanel.load(record);
+//		modificationPanel.load(record);
+	}
+
+	@Override
+	protected boolean validData(){
+		//TODO
+//		if(valueArea.isEmpty()){
+//			GUIHelper.showValidationErrorAndFocus(this,
+//				"Note VALUE is required.",
+//				tabbedPane, mainPanel, valueArea);
+//
+//			return false;
+//		}
+
+		return true;
+	}
+
+	@Override
+	protected void saveData(){
+		//TODO
+//		bindingManager.save(record);
+//
+//		translationPanel.save(record);
+//		sourceCitationPanel.save(record);
+//		restrictionPanel.save(record);
+//		modificationPanel.save(record);
+	}
+
 	/**
 	 * Loads data from a CONCLUSION record.
 	 *
@@ -200,7 +270,7 @@ public class ConclusionPanel extends JPanel{
 	public void load(FLEFRecord record){
 		clear();
 
-		final FLEFRecord conclusionRecord = FLEFRecordHelper.findChild(record, path);
+		final FLEFRecord conclusionRecord = FLEFRecordHelper.findChild(record, "CONCLUSION");
 		if(conclusionRecord == null)
 			return;
 
@@ -241,7 +311,7 @@ public class ConclusionPanel extends JPanel{
 		if(!hasData())
 			return null;
 
-		FLEFRecord record = target != null? target: FLEFRecord.createChild(path);
+		FLEFRecord record = target != null? target: FLEFRecord.createChild("CONCLUSION");
 		FLEFRecordHelper.removeAllChildren(record);
 
 		// Save bound fields
@@ -312,7 +382,8 @@ public class ConclusionPanel extends JPanel{
 	public boolean validateData(){
 		String context = contextField.getText().trim();
 		if(context.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(parentDialog,
+			//FIXME parentComponent
+			GUIHelper.showValidationErrorAndFocus(null,
 				"CONTEXT is required for a conclusion.",
 				null, null, contextField);
 
@@ -321,7 +392,8 @@ public class ConclusionPanel extends JPanel{
 
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
 		if(proofStatus == null || proofStatus.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(parentDialog,
+			//FIXME parentComponent
+			GUIHelper.showValidationErrorAndFocus(null,
 				"PROOF_STATUS is required for a conclusion.",
 				null, null, proofStatusCombo);
 
@@ -341,6 +413,21 @@ public class ConclusionPanel extends JPanel{
 
 	public List<String> getResearchIds(){
 		return researchPanel.getItems();
+	}
+
+
+	public static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		final FLEFModel model = new FLEFModel();
+
+		SwingUtilities.invokeLater(() -> {
+			final ConclusionDialog dialog = ConclusionDialog.createNew(null, model);
+			dialog.setVisible(true);
+		});
 	}
 
 }

@@ -33,9 +33,14 @@ import javax.swing.Scrollable;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.io.Serial;
 
 
 public final class ScrollableContainerHost extends JPanel implements Scrollable{
+
+	@Serial
+	private static final long serialVersionUID = 6659241413905696841L;
+
 
 	public enum ScrollType{HORIZONTAL, VERTICAL, BOTH}
 

@@ -52,6 +52,7 @@ public class TagPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 665517573169978352L;
 
+
 	public enum TagChangeType{SET, ADD, REMOVE, CLEAR}
 
 

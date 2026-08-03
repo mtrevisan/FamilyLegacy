@@ -30,9 +30,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JButton;
 import javax.swing.JPanel;
+import java.io.Serial;
 
 
 public class GenealogyNavigationPanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = 5864686817105585218L;
+
 
 	private JButton backButton;
 	private JButton forwardButton;

@@ -69,6 +69,7 @@ public abstract class CommonSearchPanel extends JPanel implements FilteredTableP
 	@Serial
 	private static final long serialVersionUID = 2064570563728935886L;
 
+
 	private static final Color GRID_COLOR = new Color(230, 230, 230);
 	protected static final int TABLE_PREFERRED_WIDTH_ID = 25;
 

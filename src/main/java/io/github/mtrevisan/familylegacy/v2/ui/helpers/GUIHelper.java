@@ -353,8 +353,10 @@ public final class GUIHelper{
 			message,
 			"Validation Error", JOptionPane.ERROR_MESSAGE);
 
-		if(tabbedPane != null && panel != null)
+		if(tabbedPane != null && panel != null){
+			tabbedPane.requestFocusInWindow();
 			tabbedPane.setSelectedComponent(panel);
+		}
 		SwingUtilities.invokeLater(component::requestFocusInWindow);
 	}
 

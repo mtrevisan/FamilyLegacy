@@ -21,12 +21,13 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
- */package io.github.mtrevisan.familylegacy.v2.ui.components;
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JOptionPane;
@@ -35,17 +36,17 @@ import java.io.Serial;
 import java.util.List;
 
 
-public class NameListPanel extends AbstractListPanel<FLEFRecord>{
+public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = -922034547054981789L;
+	private static final long serialVersionUID = 5393675791860301264L;
 
 
 	private final String path;
 
 
-	public NameListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
-		super(parentDialog, "Names*", model);
+	public PersonalNameListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
+		super(parentDialog, "Personal Names*", model);
 
 		this.path = path;
 	}
@@ -68,14 +69,14 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord name){
-		String value = FLEFRecordHelper.getChildValue(name, "TEXT");
+	protected String getDisplay(final FLEFRecord personalName){
+		String value = FLEFRecordHelper.getChildValue(personalName, "VALUE");
 		if(value != null && !value.isEmpty()){
 			// Truncate long names
 			if(value.length() > 50)
 				value = value.substring(0, 50) + "...";
 
-			final String type = FLEFRecordHelper.getChildValue(name, "TYPE");
+			final String type = FLEFRecordHelper.getChildValue(personalName, "TYPE");
 			if(type != null && !type.isEmpty())
 				value += " (" +  type + ")";
 
@@ -90,11 +91,11 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	/**
-	 * Creates a new name and adds it to the list.
+	 * Creates a new personal name and adds it to the list.
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final NameStructureDialog dialog = NameStructureDialog.createNew(parentDialog, model);
+		final PersonalNameStructureDialog dialog = PersonalNameStructureDialog.createNew(parentDialog, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -103,13 +104,13 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Name not found", "Error",
+			JOptionPane.showMessageDialog(parentDialog, "Personal Name not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final NameStructureDialog dialog = NameStructureDialog.createEdit(parentDialog, model, existing);
+		final PersonalNameStructureDialog dialog = PersonalNameStructureDialog.createEdit(parentDialog, model, existing);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

@@ -224,6 +224,7 @@ public class TranscribedTextPanel extends JPanel{
 				"Phonetic VALUE is required when PHONETIC system is provided.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			phoneticValueField.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -235,6 +236,7 @@ public class TranscribedTextPanel extends JPanel{
 				"Transcription VALUE is required when TRANSCRIPTION system is provided.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			transcriptionValueField.requestFocusInWindow();
+
 			return false;
 		}
 

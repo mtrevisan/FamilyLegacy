@@ -64,7 +64,6 @@ public class RepositoryCitationDialog extends JDialog{
 			panel.loadFromRecord(citationRecord);
 		}
 		pack();
-		setMinimumSize(new Dimension(500, 350));
 		setLocationRelativeTo(parent);
 	}
 

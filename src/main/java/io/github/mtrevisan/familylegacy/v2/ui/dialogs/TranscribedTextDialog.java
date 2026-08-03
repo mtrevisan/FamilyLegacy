@@ -77,7 +77,6 @@ public class TranscribedTextDialog extends JDialog{
 		initComponents();
 		if(existing != null) loadData();
 		pack();
-		setMinimumSize(new Dimension(400, 300));
 		setLocationRelativeTo(parent);
 	}
 

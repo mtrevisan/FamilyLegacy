@@ -88,6 +88,7 @@ public class GroupPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = 6664809287767332824L;
 
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(GroupPanel.class);
 
 	private static final Color BORDER_COLOR = Color.BLACK;

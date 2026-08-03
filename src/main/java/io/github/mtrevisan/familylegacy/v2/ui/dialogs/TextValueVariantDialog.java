@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import net.miginfocom.swing.MigLayout;
@@ -13,11 +14,31 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import java.awt.BorderLayout;
+import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Window;
 import java.io.Serial;
 
 
+/* ONGOING */
+/**
+ * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.1.
+ * <p>
+ * Structure:
+ * <pre>
+ * TextValueVariant = oneof {
+ *   phonetic: struct {
+ *     system: Text
+ *     value: Text
+ *   }
+ *   transcription: struct {
+ *     system: enum { romaji, pinyin, wadegiles } | Text
+ *     type?: enum { romanized, anglicized, cyrillized, francized, gairaigized, latinized } | Text
+ *     value: Text
+ *   }
+ * }
+ * </pre>
+ */
 public class TextValueVariantDialog extends JDialog{
 
 	@Serial
@@ -38,7 +59,17 @@ public class TextValueVariantDialog extends JDialog{
 	private FLEFRecord variantRecord;
 	private boolean saved;
 
-	TextValueVariantDialog(final Window parent, final FLEFRecord existing){
+
+	public static TextValueVariantDialog createNew(final Dialog parent, final FLEFModel model){
+		return new TextValueVariantDialog(parent, null);
+	}
+
+	public static TextValueVariantDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord existing){
+		return new TextValueVariantDialog(parent, existing);
+	}
+
+
+	private TextValueVariantDialog(final Window parent, final FLEFRecord existing){
 		super(parent, existing == null? "Add Text Value Variant": "Edit Text Value Variant", ModalityType.APPLICATION_MODAL);
 		this.variantRecord = existing;
 		initComponents();
@@ -143,6 +174,10 @@ public class TextValueVariantDialog extends JDialog{
 	}
 
 	public FLEFRecord getVariantRecord(){
+		return variantRecord;
+	}
+
+	public FLEFRecord getRecord(){
 		return variantRecord;
 	}
 

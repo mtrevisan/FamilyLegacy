@@ -34,9 +34,14 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Dialog;
+import java.io.Serial;
 
 
 public class DateField extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = 4495716172290856838L;
+
 
 	private final Dialog parent;
 	private final String dialogTitle;
@@ -95,6 +100,8 @@ public class DateField extends JPanel{
 				builder.selectionSensitiveItem("Clear", clearAction);
 			}
 		);
+
+		updateDisplay();
 	}
 
 	public void setRecord(final FLEFRecord record){
@@ -123,10 +130,8 @@ public class DateField extends JPanel{
 	public void save(final FLEFRecord parentRecord){
 		FLEFRecordHelper.removeChildren(parentRecord, path);
 
-		if(record != null){
-			record.setTag(path);
-			parentRecord.addChild(record);
-		}
+		if(record != null)
+			FLEFRecordHelper.addChild(parentRecord, path, record);
 	}
 
 	private void createNew(){

@@ -16,6 +16,7 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.awt.Font;
+import java.io.Serial;
 
 
 /**
@@ -32,6 +33,10 @@ import java.awt.Font;
  * </p>
  */
 public class DateFieldPanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = -1546493806724946504L;
+
 
 	private final FLEFModel model;
 	private final Dialog parentDialog;

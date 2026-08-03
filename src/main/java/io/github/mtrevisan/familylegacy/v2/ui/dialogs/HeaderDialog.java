@@ -150,7 +150,6 @@ public class HeaderDialog extends JDialog{
 		this.headerRecord = headerRecord != null? headerRecord: FLEFRecord.createEmpty();
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 800));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -340,7 +339,7 @@ public class HeaderDialog extends JDialog{
 	private String getContactDisplay(FLEFRecord contact){
 		String address = contact.getValue();
 		String type = FLEFRecordHelper.getChildValue(contact, "TYPE");
-		String callerId = FLEFRecordHelper.getChildValue(contact, "CALLER_ID");
+		String name = FLEFRecordHelper.getChildValue(contact, "NAME");
 		StringBuilder sb = new StringBuilder();
 		if(address != null && !address.isEmpty()){
 			sb.append(address);
@@ -352,10 +351,10 @@ public class HeaderDialog extends JDialog{
 			if(!sb.isEmpty() && !sb.toString().endsWith("("))
 				sb.append(")");
 		}
-		if(callerId != null && !callerId.isEmpty()){
+		if(name != null && !name.isEmpty()){
 			if(!sb.isEmpty())
 				sb.append(" - ");
-			sb.append(callerId);
+			sb.append(name);
 		}
 		if(sb.isEmpty())
 			sb.append("[empty]");
@@ -628,6 +627,7 @@ public class HeaderDialog extends JDialog{
 				"Protocol Name is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			protocolNameField.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -637,6 +637,7 @@ public class HeaderDialog extends JDialog{
 				"Protocol Version is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			protocolVersionField.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -646,6 +647,7 @@ public class HeaderDialog extends JDialog{
 				"Source ID is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			sourceIdField.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -655,6 +657,7 @@ public class HeaderDialog extends JDialog{
 				"Date is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			dateField.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -664,6 +667,7 @@ public class HeaderDialog extends JDialog{
 				"Submitter Name is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 			submitterNameField.requestFocusInWindow();
+
 			return false;
 		}
 
@@ -763,8 +767,7 @@ public class HeaderDialog extends JDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 		HandlerRegistry.register(new NoteHandler());

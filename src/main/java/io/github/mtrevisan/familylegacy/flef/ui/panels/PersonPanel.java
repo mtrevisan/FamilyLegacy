@@ -113,6 +113,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	@Serial
 	private static final long serialVersionUID = -300117824230109203L;
 
+
 	private static final Logger LOGGER = LoggerFactory.getLogger(PersonPanel.class);
 
 	private static final String NO_DATA = "?";

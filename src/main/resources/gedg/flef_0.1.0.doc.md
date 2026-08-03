@@ -10,6 +10,34 @@
    Conclusions describe interpretations of evidence.
 5. Historical uncertainty is modeled explicitly, not hidden.
 
+The features that truly distinguish it from GEDCOM and many genealogical models are:
+- explicit separation between source and interpretation
+- explicit separation between evidence and conclusion
+- preservation of conflicting claims
+- management of identity hypotheses
+- structured research tracking
+- historical relationships between places
+- support for normalization and transcription of original data
+
+Architectural Evaluation
+
+Looking at the format as a whole, I now see a very clear structure:
+
+| Livello        | Record                              |
+| -------------- | ----------------------------------- |
+| Entità         | Individual, Group, Place            |
+| Eventi         | Event, EventParticipation           |
+| Relazioni      | Relationship, PlaceRelationship     |
+| Attributi      | IndividualAttribute, GroupAttribute |
+| Fonti          | Source, Repository                  |
+| Contesto       | CulturalNorm, HistoricEvent         |
+| Ricerca        | ResearchStatus, ResearchLog         |
+| Incertezza     | IdentityHypothesis                  |
+| Valutazione    | EvidenceQualifiers                  |
+| Conclusione    | Conclusion                          |
+| Documentazione | Note                                |
+
+The separation is clean and, above all, does not mix data, evidence, and interpretation, which is GEDCOM's main flaw.
 ## Abstract Data Model
 
 ### 1. Core Entities

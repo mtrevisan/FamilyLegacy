@@ -12,6 +12,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.ScalarType
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.StructType;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.UnionType;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -116,7 +117,8 @@ public final class FLEFGrammarParser{
 
 	private static List<Token> tokenize(final String content){
 		final String normalized = content.replace("\r\n", "\n").replace('\r', '\n');
-		final String[] lines = normalized.split("\n", -1);
+		final String[] lines = StringUtils.split(normalized, '\n');
+
 
 		final List<Token> result = new ArrayList<>();
 		for(int lineIdx = 0; lineIdx < lines.length; lineIdx ++){

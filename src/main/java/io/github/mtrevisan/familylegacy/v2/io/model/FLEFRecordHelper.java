@@ -28,8 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -39,17 +37,24 @@ import java.util.stream.Collectors;
  */
 public final class FLEFRecordHelper{
 
-	private static final Pattern PATH_SEGMENT = Pattern.compile("([^.\\[]+)(?:\\[(\\d+)\\])?");
-
-
 	private record Segment(String tag, int index){
 		static Segment parse(final String segment){
-			final Matcher matcher = PATH_SEGMENT.matcher(segment);
-			if(!matcher.matches())
+			final int startArrayIndex = segment.indexOf('[');
+			if(startArrayIndex < 0)
+				return new Segment(segment, 0);
+
+			final String tag = segment.substring(0, startArrayIndex);
+			final int endArrayIndex = segment.indexOf(']', startArrayIndex);
+			final int index;
+			try{
+				index = Integer.parseInt(segment.substring(startArrayIndex + 1, endArrayIndex));
+			}
+			catch(final NumberFormatException ignored){
+				return null;
+			}
+			if(index < 0)
 				return null;
 
-			final String tag = matcher.group(1);
-			final int index = (matcher.group(2) == null? 0: Integer.parseInt(matcher.group(2)));
 			return new Segment(tag, index);
 		}
 	}
@@ -70,7 +75,8 @@ public final class FLEFRecordHelper{
 			return parent;
 
 		FLEFRecord current = parent;
-		for(final String segment : path.split("\\.")){
+		final String[] segments = StringUtils.split(path, '.');
+		for(final String segment : segments){
 			if(current == null)
 				break;
 
@@ -95,7 +101,7 @@ public final class FLEFRecordHelper{
 		if(parent == null|| StringUtils.isEmpty(path))
 			return result;
 
-		final String[] segments = path.split("\\.");
+		final String[] segments = StringUtils.split(path, '.');
 		final FLEFRecord targetParent = navigateToParent(parent, segments);
 		if(targetParent == null)
 			return result;
@@ -174,17 +180,45 @@ public final class FLEFRecordHelper{
 	 * @param value	The value to set (ignored if {@code null} or empty).
 	 */
 	public static void addChild(final FLEFRecord parent, final String path, final String value){
-		if(parent == null || StringUtils.isEmpty(path) || StringUtils.isEmpty(value))
+		if(StringUtils.isEmpty(value))
 			return;
 
-		final String[] segments = path.split("\\.");
+		final FLEFRecord target = getOrCreateTargetNode(parent, path);
+		if(target != null)
+			target.setValue(value);
+	}
+
+	/**
+	 * Adds a single child with the given tag and value, if child is not empty.
+	 *
+	 * @param parent	The parent record.
+	 * @param path	The dot‑separated tag path for the new child (e.g. "ROOT.RESTRICTION[2].CODE").
+	 * @param child	The child to add (ignored if {@code null} or empty).
+	 */
+	public static void addChild(final FLEFRecord parent, final String path, final FLEFRecord child){
+		if(child == null || child.isEmpty())
+			return;
+
+		final FLEFRecord target = getOrCreateTargetNode(parent, path);
+		if(target != null)
+			target.addChild(child);
+	}
+
+	/**
+	 * Navigates the given path, creating intermediate and target nodes as necessary.
+	 */
+	private static FLEFRecord getOrCreateTargetNode(final FLEFRecord parent, final String path){
+		if(parent == null || StringUtils.isEmpty(path))
+			return null;
+
+		final String[] segments = StringUtils.split(path, '.');
 		final FLEFRecord targetParent = navigateToParentAndCreate(parent, segments);
 		if(targetParent == null)
-			return;
+			return null;
 
 		final Segment seg = Segment.parse(segments[segments.length - 1]);
 		if(seg == null)
-			return;
+			return null;
 
 		FLEFRecord target = getNthChild(targetParent, seg);
 		// Create missing occurrences up to the requested index
@@ -199,7 +233,7 @@ public final class FLEFRecordHelper{
 			}
 		}
 
-		target.setValue(value);
+		return target;
 	}
 
 	/**
@@ -213,7 +247,7 @@ public final class FLEFRecordHelper{
 		if(parent == null || StringUtils.isEmpty(path))
 			return null;
 
-		final String[] segments = path.split("\\.");
+		final String[] segments = StringUtils.split(path, '.');
 		final FLEFRecord targetParent = navigateToParent(parent, segments);
 		if(targetParent == null)
 			return null;
@@ -249,21 +283,22 @@ public final class FLEFRecordHelper{
 		if(parent == null || StringUtils.isEmpty(path))
 			return false;
 
-		final String[] segments = path.split("\\.");
-		final Matcher matcher = PATH_SEGMENT.matcher(segments[segments.length - 1]);
-		if(!matcher.matches())
+		final String[] segments = StringUtils.split(path, '.');
+		final Segment lastSegment = Segment.parse(segments[segments.length - 1]);
+		if(lastSegment == null)
 			return false;
 
-		if(matcher.group(2) != null){
+		if(lastSegment.index >= 0){
 			removeChild(parent, path);
+
 			return true;
 		}
 
 		final FLEFRecord targetParent = navigateToParent(parent, segments);
-		if(targetParent != null){
-			final String tag = matcher.group(1);
-			targetParent.getChildren().removeIf(child -> tag.equals(child.getTag()));
-		}
+		if(targetParent != null)
+			targetParent.getChildren()
+				.removeIf(child -> lastSegment.tag.equals(child.getTag()));
+
 		return true;
 	}
 

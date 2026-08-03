@@ -259,14 +259,12 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		// ---- EVIDENCE_QUALIFIERS for place ----
-		String placeCert = qualifiers.getCertainty();
 		String placeSourceType = qualifiers.getSourceType();
 		String placeInformationType = qualifiers.getInformationType();
 		String placeEvidenceType = qualifiers.getEvidenceType();
-		if((placeCert != null && !placeCert.isEmpty()) || (placeSourceType != null && !placeSourceType.isEmpty())
+		if((placeSourceType != null && !placeSourceType.isEmpty())
 				|| (placeInformationType != null && !placeInformationType.isEmpty())
 				|| (placeEvidenceType != null && !placeEvidenceType.isEmpty())){
-			FLEFRecordHelper.updateChildValue(placeRecord, "CERTAINTY", placeCert);
 			FLEFRecordHelper.updateChildValue(placeRecord, "SOURCE_TYPE", placeSourceType);
 			FLEFRecordHelper.updateChildValue(placeRecord, "INFORMATION_TYPE", placeInformationType);
 			FLEFRecordHelper.updateChildValue(placeRecord, "EVIDENCE_TYPE", placeEvidenceType);

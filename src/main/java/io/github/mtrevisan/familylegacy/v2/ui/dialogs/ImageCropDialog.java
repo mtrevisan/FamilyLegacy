@@ -16,6 +16,7 @@ import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
+import java.io.Serial;
 
 
 public class ImageCropDialog extends JDialog{
@@ -60,6 +61,10 @@ public class ImageCropDialog extends JDialog{
 	}
 
 	private static class CropPanel extends JPanel{
+
+		@Serial
+		private static final long serialVersionUID = -9217414212724791126L;
+
 		private final BufferedImage image;
 		private final int imgWidth;
 		private final int imgHeight;

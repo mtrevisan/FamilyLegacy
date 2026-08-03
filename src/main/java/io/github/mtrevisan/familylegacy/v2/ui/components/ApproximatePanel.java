@@ -22,6 +22,7 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.io.Serial;
 
 
 /**
@@ -34,6 +35,10 @@ import java.awt.FlowLayout;
  * +1 MARGIN <DURATION>    {0:1}
  */
 public class ApproximatePanel extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = 5106748907289247149L;
+
 
 	static{
 		HandlerRegistry.register(new CulturalNormHandler());

@@ -96,7 +96,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	}
 
 	private final JTextField idField = new JTextField(10);
-	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "active", "paused", "completed", "blocked"});
+	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "active", "completed", "blocked"});
 	private final JTextField questionField = new JTextField(30);
 	private final JComboBox<String> priorityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "high", "medium", "low"});
 
@@ -151,10 +151,9 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	public ResearchStatusDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this, model);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 750));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -162,10 +161,9 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 	public ResearchStatusDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this, model);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 750));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -596,8 +594,7 @@ public class ResearchStatusDialog extends BaseRecordDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 

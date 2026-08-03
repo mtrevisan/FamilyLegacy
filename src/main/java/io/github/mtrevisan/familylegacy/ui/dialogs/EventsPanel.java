@@ -52,6 +52,7 @@ public class EventsPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -7880424830738959838L;
 
+
 	/**
 	 * [ms]
 	 */

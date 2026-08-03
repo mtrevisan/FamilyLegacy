@@ -113,10 +113,9 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	public HistoricEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this, model);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 700));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -124,10 +123,9 @@ public class HistoricEventDialog extends BaseRecordDialog{
 	public HistoricEventDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(model, this);
+		this.modificationPanel = new ModificationPanel(this, model);
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(850, 700));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -502,8 +500,6 @@ public class HistoricEventDialog extends BaseRecordDialog{
 			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", selectedPlaceId);
 			record.addChild(place);
 
-			String pCert = placeQualifiers.getCertainty();
-			FLEFRecordHelper.updateChildValue(place, "CERTAINTY", pCert);
 			String pSourceType = placeQualifiers.getSourceType();
 			FLEFRecordHelper.updateChildValue(place, "SOURCE_TYPE", pSourceType);
 			String pInformationType = placeQualifiers.getSourceType();
@@ -532,8 +528,7 @@ public class HistoricEventDialog extends BaseRecordDialog{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
-		catch(Exception ignored){
-		}
+		catch(Exception ignored){}
 
 		FLEFModel model = new FLEFModel();
 

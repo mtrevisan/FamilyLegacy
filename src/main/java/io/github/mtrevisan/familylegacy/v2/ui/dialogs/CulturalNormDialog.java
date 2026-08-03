@@ -129,7 +129,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this, model);
 
 		initComponents();
 
@@ -169,14 +169,14 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		mainPanel.add(ruleTypeCombo, "growx, wrap");
 
 		// place
-		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]"));
+		final JPanel placePanel = new JPanel(new MigLayout("ins 10,fillx,top", "[grow]", "[]5[]"));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 		placePanel.add(placeField, "growx,wrap");
 		placePanel.add(placeQualifiers, "growx,wrap");
 		mainPanel.add(placePanel, "span 2,growx,wrap");
 
 		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		validityPanel.add(new JLabel("Valid From:"), "align label");
 		validityPanel.add(validFromField, "growx,wrap");

@@ -88,7 +88,6 @@ public class EventDialog extends BaseRecordDialog{
 
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(700, 600));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -105,7 +104,6 @@ public class EventDialog extends BaseRecordDialog{
 
 		initComponents();
 		loadData();
-		setMinimumSize(new Dimension(700, 600));
 		pack();
 		setLocationRelativeTo(parent);
 	}
@@ -321,10 +319,6 @@ public class EventDialog extends BaseRecordDialog{
 			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", placeVal);
 			record.addChild(place);
 
-			String pCert = placeQualifiers.getCertainty();
-			if(pCert != null && !pCert.isEmpty()){
-				addChild(place, "CERTAINTY", pCert);
-			}
 			String pSourceType = placeQualifiers.getSourceType();
 			if(pSourceType != null && !pSourceType.isEmpty()){
 				addChild(place, "SOURCE_TYPE", pSourceType);
@@ -346,10 +340,6 @@ public class EventDialog extends BaseRecordDialog{
 			FLEFRecord cause = FLEFRecord.createChildWithValue("CAUSE", causeVal);
 			record.addChild(cause);
 
-			String cCert = causeQualifiers.getCertainty();
-			if(cCert != null && !cCert.isEmpty()){
-				addChild(cause, "CERTAINTY", cCert);
-			}
 			String cSourceType = placeQualifiers.getSourceType();
 			if(cSourceType != null && !cSourceType.isEmpty()){
 				addChild(cause, "SOURCE_TYPE", cSourceType);
@@ -364,10 +354,6 @@ public class EventDialog extends BaseRecordDialog{
 			}
 		}
 
-		String eCert = eventQualifiers.getCertainty();
-		if(eCert != null && !eCert.isEmpty()){
-			addChild("CERTAINTY", eCert);
-		}
 		String eSourceType = placeQualifiers.getSourceType();
 		if(eSourceType != null && !eSourceType.isEmpty()){
 			addChild("SOURCE_TYPE", eSourceType);
@@ -408,8 +394,7 @@ public class EventDialog extends BaseRecordDialog{
 			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
 			UIManager.setLookAndFeel(lookAndFeelName);
 		}
-		catch(final Exception ignored){
-		}
+		catch(final Exception ignored){}
 
 		SwingUtilities.invokeLater(() -> {
 			JFrame frame = new JFrame("Test Event Dialog");

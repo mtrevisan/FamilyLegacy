@@ -92,27 +92,29 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(FLEFRecord existing){
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
 			JOptionPane.showMessageDialog(parentDialog, "Update entry not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
+
 			return null;
 		}
+
 		return showUpdateDialog(existing);
 	}
 
 	/**
 	 * Shows a dialog to create or edit an update entry.
 	 *
-	 * @param initial the existing update record, or {@code null} for a new one
+	 * @param existing the existing update record, or {@code null} for a new one
 	 * @return the (possibly updated) record, or {@code null} if cancelled
 	 */
-	private FLEFRecord showUpdateDialog(FLEFRecord initial){
-		JDialog dialog = new JDialog(parentDialog, initial == null? "Add Update": "Edit Update", true);
+	private FLEFRecord showUpdateDialog(FLEFRecord existing){
+		JDialog dialog = new JDialog(parentDialog, (existing == null? "Add Update": "Edit Update"), true);
 		dialog.setLayout(new MigLayout("ins 10, fillx", "[grow]", "[]10[]"));
 
 		// Comment field
-		String initialComment = (initial != null)? FLEFRecordHelper.getChildValue(initial, TAG_COMMENT): "";
+		String initialComment = (existing != null)? FLEFRecordHelper.getChildValue(existing, TAG_COMMENT): "";
 		JTextArea commentArea = new JTextArea(StringUtils.defaultString(initialComment), 3, 25);
 		commentArea.setLineWrap(true);
 		commentArea.setWrapStyleWord(true);
@@ -134,11 +136,9 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 			String comment = commentArea.getText().trim();
 
 			// If editing, keep the original date; for new entries, use current date.
-			String finalDate = (initial != null)?
-										 FLEFRecordHelper.getChildValue(initial, TAG_DATE):
-																											  date;
+			String finalDate = (existing != null? FLEFRecordHelper.getChildValue(existing, TAG_DATE): date);
 
-			FLEFRecord updateRecord = (initial != null)? initial: FLEFRecord.createEmpty();
+			FLEFRecord updateRecord = (existing != null? existing: FLEFRecord.createEmpty());
 			updateRecord.setTag(TAG_UPDATE);
 			FLEFRecordHelper.updateChildValue(updateRecord, TAG_DATE, finalDate);
 			FLEFRecordHelper.updateChildValue(updateRecord, TAG_COMMENT, comment);

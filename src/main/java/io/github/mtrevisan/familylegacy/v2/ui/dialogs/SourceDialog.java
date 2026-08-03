@@ -162,7 +162,7 @@ public class SourceDialog extends BaseRecordDialog{
 		placeField = PlaceField.create("PLACE", parent, model);
 		dateField = DateField.createWithWrapperTag("DATE", this, "Valid Date", model);
 		documentPanel = new DocumentStructurePanel(model, this);
-		modificationPanel = new ModificationPanel(model, this);
+		modificationPanel = new ModificationPanel(this, model);
 		sourceCitationPanel = new SourceCitationListPanel("SOURCE", this, model);
 
 		initComponents();
@@ -216,7 +216,7 @@ public class SourceDialog extends BaseRecordDialog{
 	private JPanel createPlaceDatePanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]"));
 
-		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]"));
+		final JPanel placePanel = new JPanel(new MigLayout("ins 10,fillx,top", "[grow]", "[]5[]"));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 		placePanel.add(placeField, "growx,wrap");
 		placePanel.add(placeQualifiers, "growx,wrap");

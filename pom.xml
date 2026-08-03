@@ -67,7 +67,7 @@
 		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->
 		<apache.commons-lang3.version>3.20.0</apache.commons-lang3.version>
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
-		<apache.commons-validator.version>1.10.1</apache.commons-validator.version>
+		<apache.commons-validator.version>1.11.0</apache.commons-validator.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
 		<apache.tika-core.version>3.3.1</apache.tika-core.version>
 
@@ -79,7 +79,7 @@
 
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.3.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.5.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->
@@ -106,7 +106,7 @@
 
 		<!-- JSON -->
 		<!-- https://mvnrepository.com/artifact/tools.jackson.core/jackson-databind -->
-<!--		<fasterxml.jackson-databind.version>3.2.0</fasterxml.jackson-databind.version>-->
+<!--		<fasterxml.jackson-databind.version>3.2.1</fasterxml.jackson-databind.version>-->
 		<!-- https://mvnrepository.com/artifact/com.jayway.jsonpath/json-path -->
 <!--		<jayway.json-path.version>3.0.0</jayway.json-path.version>-->
 		<!-- https://mvnrepository.com/artifact/com.github.fge/jackson-coreutils -->
@@ -123,11 +123,11 @@
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<slf4j.slf4j-api.version>2.0.18</slf4j.slf4j-api.version>
 		<!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-		<logback.logback-classic.version>1.5.37</logback.logback-classic.version>
+		<logback.logback-classic.version>1.5.38</logback.logback-classic.version>
 
 		<!-- JUnit -->
 		<!-- https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine -->
-		<junit.junit-jupiter-engine.version>6.1.1</junit.junit-jupiter-engine.version>
+		<junit.junit-jupiter-engine.version>6.1.2</junit.junit-jupiter-engine.version>
 	</properties>
 
 	<profiles>

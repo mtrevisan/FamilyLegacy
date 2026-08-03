@@ -39,10 +39,15 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Dialog;
+import java.io.Serial;
 
 
 /* DONE */
 public class PlaceField extends JPanel{
+
+	@Serial
+	private static final long serialVersionUID = -4552674609094385732L;
+
 
 	static{
 		HandlerRegistry.register(new PlaceHandler());
@@ -112,6 +117,8 @@ public class PlaceField extends JPanel{
 				builder.selectionSensitiveItem("Clear", clearAction);
 			}
 		);
+
+		updateDisplay();
 	}
 
 	public void setRecord(final FLEFRecord record){
