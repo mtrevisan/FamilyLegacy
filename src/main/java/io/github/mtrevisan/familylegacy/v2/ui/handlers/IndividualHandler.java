@@ -41,7 +41,9 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	private static final String TAG_PART = "PART";
 	private static final String TAG_VALUE = "VALUE";
 
+	/** The record type identifier for groups. */
 	public static final String TYPE = "INDIVIDUAL";
+	/** The ID prefix used for generating new group IDs (e.g., {@code G}). */
 	public static final String ID_PREFIX = "I";
 
 
@@ -58,6 +60,16 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	@Override
 	public String getIDPrefix(){
 		return ID_PREFIX;
+	}
+
+	@Override
+	public IndividualDialog createNewDialog(Dialog parent, FLEFModel model){
+		return IndividualDialog.createNew(parent, model);
+	}
+
+	@Override
+	public IndividualDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return IndividualDialog.createEdit(parent, model, record);
 	}
 
 	@Override
@@ -78,7 +90,8 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 		if(StringUtils.isNotEmpty(formattedName))
 			return formattedName + (StringUtils.isNotEmpty(id) ? " (" + id + ")" : StringUtils.EMPTY);
 
-		return StringUtils.defaultString(id);
+		// Fallback to the record ID
+		return id;
 	}
 
 	/**
@@ -106,16 +119,6 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 					return val.trim();
 			}
 		return null;
-	}
-
-	@Override
-	public IndividualDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return IndividualDialog.createEdit(parent, model, record);
-	}
-
-	@Override
-	public IndividualDialog createNewDialog(Dialog parent, FLEFModel model){
-		return IndividualDialog.createNew(parent, model);
 	}
 
 }

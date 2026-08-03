@@ -271,7 +271,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 		if(newItems != null)
 			for(final T item : newItems)
-				addElement(item);
+				if(item != null)
+					addElement(item);
 
 		GUIHelper.updatePlaceholder(list);
 	}

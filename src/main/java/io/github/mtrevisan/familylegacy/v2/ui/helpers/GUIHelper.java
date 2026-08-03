@@ -348,14 +348,14 @@ public final class GUIHelper{
 
 
 	public static void showValidationErrorAndFocus(final Component parentComponent, final String message,
-			final JTabbedPane tabbedPane, final JPanel panel, final JComponent component){
+			final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
 		JOptionPane.showMessageDialog(parentComponent,
 			message,
 			"Validation Error", JOptionPane.ERROR_MESSAGE);
 
-		if(tabbedPane != null && panel != null){
+		if(tabbedPane != null && tabbedPanel != null){
 			tabbedPane.requestFocusInWindow();
-			tabbedPane.setSelectedComponent(panel);
+			tabbedPane.setSelectedComponent(tabbedPanel);
 		}
 		SwingUtilities.invokeLater(component::requestFocusInWindow);
 	}

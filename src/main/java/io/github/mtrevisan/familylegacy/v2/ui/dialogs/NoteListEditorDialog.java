@@ -42,7 +42,6 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -95,7 +94,7 @@ public class NoteListEditorDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("fillx"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		JPanel panel = new JPanel(new MigLayout("ins 10,fillx"));
 

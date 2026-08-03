@@ -227,7 +227,7 @@ public class GroupPanel extends JPanel{
 		arrowPersonPanel2.add(partner2Panel, "left");
 		arrowPersonPanel2.setOpaque(false);
 
-		setLayout(new MigLayout("insets 0",
+		setLayout(new MigLayout("ins 0",
 			"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
 			"[bottom]"));
 		add(arrowPersonPanel1, "right,grow");

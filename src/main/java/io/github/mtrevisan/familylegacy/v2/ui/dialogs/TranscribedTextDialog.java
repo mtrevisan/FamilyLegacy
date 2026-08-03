@@ -35,7 +35,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import javax.swing.JTextField;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.Serial;
 

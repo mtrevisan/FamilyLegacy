@@ -48,6 +48,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	private static final long serialVersionUID = 6460878052412992481L;
 
 
+	protected final RecordTypeHandler<?> handler;
 	protected final FLEFModel model;
 	protected final FLEFRecord record;
 	protected final boolean isNew;
@@ -58,8 +59,9 @@ public abstract class BaseRecordDialog extends JDialog{
 			final RecordTypeHandler<?> handler){
 		super(parent, buildTitle(handler, record), true);
 
+		this.handler = handler;
 		this.model = model;
-		this.record = (record != null? record: createNewRecord(handler));
+		this.record = (record != null? record: createNewRecord());
 		this.isNew = (record == null);
 	}
 
@@ -81,7 +83,7 @@ public abstract class BaseRecordDialog extends JDialog{
 
 			saveData();
 
-			if(isNew)
+			if(isNew && handler.isTopLevelEntity())
 				model.addRecord(record);
 			isSaved = true;
 
@@ -105,11 +107,14 @@ System.out.println(FLEFWriter.create().writeToString(model));
 	 */
 	protected abstract void saveData();
 
-	private FLEFRecord createNewRecord(final RecordTypeHandler<?> handler){
-		return FLEFRecord.createMainRecord(generateNewId(handler), handler.getType());
+	private FLEFRecord createNewRecord(){
+		if(!handler.isTopLevelEntity())
+			return FLEFRecord.createEmpty();
+
+		return FLEFRecord.createMainRecord(generateNewId(), handler.getType());
 	}
 
-	private String generateNewId(final RecordTypeHandler<?> handler){
+	private String generateNewId(){
 		return XRefHelper.generateNewId(model, handler.getType(), handler.getIDPrefix());
 	}
 

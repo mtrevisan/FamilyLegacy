@@ -86,7 +86,6 @@ public class RestrictionPanel extends JPanel{
 
 		this.path = path;
 
-		// Initialize bound components
 		levelCombo = new BoundComboBox<>(path + ".LEVEL", new String[]{StringUtils.EMPTY, "public", "restricted", "confidential"});
 		rationaleArea = new BoundTextArea(path + ".RATIONALE", 3, 30);
 		expiresField = new BoundTextField(path + ".EXPIRES", 15);

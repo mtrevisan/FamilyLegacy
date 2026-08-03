@@ -126,7 +126,7 @@ public class RepositoryDialog extends BaseRecordDialog{
 	}
 
 	protected void initComponents(){
-		setLayout(new MigLayout("fillx,top"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());

@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -52,6 +51,11 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 	/** The ID prefix used for generating new group IDs (e.g., {@code NS}). */
 	public static final String ID_PREFIX = "PNS";
 
+
+	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
 
 	@Override
 	public String getLabel(){

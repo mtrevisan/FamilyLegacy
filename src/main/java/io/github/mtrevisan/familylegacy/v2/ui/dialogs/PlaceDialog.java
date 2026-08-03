@@ -70,7 +70,7 @@ import java.io.Serial;
  *     coordinates: Coord
  *     evidence?: EvidenceQualifiers
  *   }
- *   citation*: SourceCitation
+ *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
  *   restriction?: RestrictionStructure
  *   modification: ModificationStructure
@@ -161,7 +161,7 @@ public class PlaceDialog extends BaseRecordDialog{
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(mapCoordinatesField);
 
-		setLayout(new MigLayout("fillx,top"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());

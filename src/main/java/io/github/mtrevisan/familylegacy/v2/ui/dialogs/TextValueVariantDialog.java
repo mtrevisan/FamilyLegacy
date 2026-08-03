@@ -1,26 +1,53 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JTextField;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
-import java.awt.Window;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.1.
  * <p>
@@ -39,46 +66,71 @@ import java.io.Serial;
  * }
  * </pre>
  */
-public class TextValueVariantDialog extends JDialog{
+public class TextValueVariantDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = -4887775439277994973L;
 
 
+	private static final String DOT = ".";
+
+	private static final String TAG_PHONETIC = "PHONETIC";
+	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+	private static final String TAG_SYSTEM = "SYSTEM";
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_VALUE = "VALUE";
+
+
+	static{
+		HandlerRegistry.register(new TextValueVariantHandler());
+	}
+
+
+	private final BindingManager bindingManager = new BindingManager();
+
 	private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
 	private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");
-
-	private final JTextField systemField = new JTextField(15);
-	private final JTextField typeField = new JTextField(15);
-	private final JTextField valueField = new JTextField(20);
-
 	private final JLabel systemLabel = new JLabel("System*:");
+	private final BoundTextField systemField;
 	private final JLabel typeLabel = new JLabel("Type:");
+	private final BoundComboBox<String> typeField;
 	private final JLabel valueLabel = new JLabel("Value*:");
-
-	private FLEFRecord variantRecord;
-	private boolean saved;
+	private final BoundTextField valueField;
 
 
 	public static TextValueVariantDialog createNew(final Dialog parent, final FLEFModel model){
-		return new TextValueVariantDialog(parent, null);
+		return new TextValueVariantDialog(parent, model, null);
 	}
 
-	public static TextValueVariantDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord existing){
-		return new TextValueVariantDialog(parent, existing);
+	public static TextValueVariantDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new TextValueVariantDialog(parent, model, record);
 	}
 
 
-	private TextValueVariantDialog(final Window parent, final FLEFRecord existing){
-		super(parent, existing == null? "Add Text Value Variant": "Edit Text Value Variant", ModalityType.APPLICATION_MODAL);
-		this.variantRecord = existing;
+	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(TextValueVariantHandler.TYPE));
+
+		systemField = new BoundTextField(TAG_SYSTEM, 15);
+		systemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
+		typeField = new BoundComboBox<>(TAG_TYPE,
+			new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
+		valueField = new BoundTextField(TAG_VALUE, 20);
+
+
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
-	private void initComponents(){
+	protected void initComponents(){
+		bindingManager.bind(systemField);
+		bindingManager.bind(typeField);
+		bindingManager.bind(valueField);
+
 		final ButtonGroup group = new ButtonGroup();
 		group.add(phoneticRadio);
 		group.add(transcriptionRadio);
@@ -89,16 +141,16 @@ public class TextValueVariantDialog extends JDialog{
 
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]5[]5[]"));
 		panel.add(new JLabel("Variant Kind:"), "align label");
-		panel.add(radioPanel, "growx, wrap");
+		panel.add(radioPanel, "growx,wrap");
 
 		panel.add(systemLabel, "align label");
-		panel.add(systemField, "growx, wrap");
+		panel.add(systemField, "growx,wrap");
 
 		panel.add(typeLabel, "align label");
-		panel.add(typeField, "growx, wrap");
+		panel.add(typeField, "growx,wrap");
 
 		panel.add(valueLabel, "align label");
-		panel.add(valueField, "growx, wrap");
+		panel.add(valueField, "growx,wrap");
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());
@@ -112,9 +164,29 @@ public class TextValueVariantDialog extends JDialog{
 		buttonPanel.add(okBtn);
 		buttonPanel.add(cancelBtn);
 
-		setLayout(new BorderLayout());
+		setLayout(new MigLayout("ins 10,fillx,top"));
 		add(panel, BorderLayout.CENTER);
 		add(buttonPanel, BorderLayout.SOUTH);
+
+		updateFieldsState();
+	}
+
+	@Override
+	public void loadData(){
+		if(record.findChild(TAG_PHONETIC) != null){
+			systemField.setPath(TAG_PHONETIC + DOT + TAG_SYSTEM);
+			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
+
+			phoneticRadio.setSelected(true);
+		}
+		else if(record.findChild(TAG_TRANSCRIPTION) != null){
+			systemField.setPath(TAG_TRANSCRIPTION + DOT + TAG_SYSTEM);
+			typeField.setPath(TAG_TRANSCRIPTION + DOT + TAG_TYPE);
+			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
+
+			transcriptionRadio.setSelected(true);
+		}
+		bindingManager.load(record);
 
 		updateFieldsState();
 	}
@@ -126,59 +198,40 @@ public class TextValueVariantDialog extends JDialog{
 		systemLabel.setText("System*:");
 	}
 
-	private void loadData(){
-		if(variantRecord == null) return;
+	@Override
+	protected boolean validData(){
+		if(systemField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this, "System field is required.",
+				null, null, systemField);
 
-		if("TRANSCRIPTION".equals(variantRecord.getTag())){
-			transcriptionRadio.setSelected(true);
-			systemField.setText(variantRecord.getValue());
-			typeField.setText(FLEFRecordHelper.getChildValue(variantRecord, "TYPE"));
-			valueField.setText(FLEFRecordHelper.getChildValue(variantRecord, "VALUE"));
+			return false;
 		}
-		else{
-			phoneticRadio.setSelected(true);
-			systemField.setText(variantRecord.getValue());
-			valueField.setText(FLEFRecordHelper.getChildValue(variantRecord, "VALUE"));
+
+		if(valueField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this, "Value field is required.",
+				null, null, valueField);
+
+			return false;
 		}
-		updateFieldsState();
+
+		return true;
 	}
 
-	private void save(){
-		final String system = systemField.getText().trim();
-		final String value = valueField.getText().trim();
-
-		if(system.isEmpty() || value.isEmpty()){
-			JOptionPane.showMessageDialog(this, "System and Value fields are required.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-			return;
-		}
-
+	@Override
+	public void saveData(){
+		FLEFRecordHelper.removeAllChildren(record);
 		if(phoneticRadio.isSelected()){
-			variantRecord = FLEFRecord.createChildWithValue("PHONETIC", system);
-			variantRecord.addChild(FLEFRecord.createChildWithValue("VALUE", value));
+			systemField.setPath(TAG_PHONETIC + DOT + TAG_SYSTEM);
+			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
+
+			phoneticRadio.setSelected(true);
 		}
-		else{
-			variantRecord = FLEFRecord.createChildWithValue("TRANSCRIPTION", system);
-			final String type = typeField.getText().trim();
-			if(!type.isEmpty()){
-				variantRecord.addChild(FLEFRecord.createChildWithValue("TYPE", type));
-			}
-			variantRecord.addChild(FLEFRecord.createChildWithValue("VALUE", value));
+		else if(transcriptionRadio.isSelected()){
+			systemField.setPath(TAG_TRANSCRIPTION + DOT + TAG_SYSTEM);
+			typeField.setPath(TAG_TRANSCRIPTION + DOT + TAG_TYPE);
+			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
 		}
-
-		saved = true;
-		dispose();
-	}
-
-	public boolean isSaved(){
-		return saved;
-	}
-
-	public FLEFRecord getVariantRecord(){
-		return variantRecord;
-	}
-
-	public FLEFRecord getRecord(){
-		return variantRecord;
+		bindingManager.save(record);
 	}
 
 }

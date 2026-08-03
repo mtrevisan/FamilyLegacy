@@ -21,7 +21,8 @@
  * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
- */package io.github.mtrevisan.familylegacy.v2.ui.components;
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -39,6 +40,11 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -922034547054981789L;
+
+
+	private static final String TAG_TEXT = "TEXT";
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_NAME = "NAME";
 
 
 	private final String path;
@@ -69,13 +75,13 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplay(final FLEFRecord name){
-		String value = FLEFRecordHelper.getChildValue(name, "TEXT");
+		String value = FLEFRecordHelper.getChildValue(name, TAG_TEXT);
 		if(value != null && !value.isEmpty()){
 			// Truncate long names
 			if(value.length() > 50)
 				value = value.substring(0, 50) + "...";
 
-			final String type = FLEFRecordHelper.getChildValue(name, "TYPE");
+			final String type = FLEFRecordHelper.getChildValue(name, TAG_TYPE);
 			if(type != null && !type.isEmpty())
 				value += " (" +  type + ")";
 
@@ -124,7 +130,7 @@ public class NameListPanel extends AbstractListPanel<FLEFRecord>{
 		FLEFRecordHelper.removeChildren(record, path);
 
 		for(final FLEFRecord name : getItems()){
-			name.setTag("NAME");
+			name.setTag(TAG_NAME);
 			record.addChild(name);
 		}
 	}

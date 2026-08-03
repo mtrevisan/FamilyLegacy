@@ -39,6 +39,10 @@ import java.awt.Dialog;
  */
 public interface RecordTypeHandler<T extends JDialog>{
 
+	default boolean isTopLevelEntity(){
+		return true;
+	}
+
 	/**
 	 * Returns the label for printing.
 	 */

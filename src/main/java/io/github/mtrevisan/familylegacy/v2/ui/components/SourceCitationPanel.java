@@ -128,7 +128,6 @@ public class SourceCitationPanel extends JPanel{
 		this.model = model;
 		this.parent = parent;
 
-		// Initialize bound components
 		outcomeCombo = new BoundComboBox<>("SEARCH_OUTCOME",
 			new String[]{StringUtils.EMPTY, "found", "not_found", "partially_found", "unreadable", "destroyed"});
 		scopeField = new BoundTextField("SEARCH_SCOPE", 20);
@@ -308,8 +307,6 @@ public class SourceCitationPanel extends JPanel{
 
 		// ---- Load bound simple fields ----
 		bindingManager.load(citationRecord);
-
-		// ---- Load manual fields ----
 
 		// NOTE (0:M)
 		for(FLEFRecord child : citationRecord.getChildren()){

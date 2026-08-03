@@ -150,7 +150,6 @@ public class SourceDialog extends BaseRecordDialog{
 	private SourceDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(SourceHandler.TYPE));
 
-		// Initialize bound components
 		titleField = new BoundTextField("TITLE.VALUE", 30);
 		authorField = new BoundTextField("AUTHOR", 30);
 		publisherField = new BoundTextField("PUBLISHER", 30);
@@ -180,7 +179,7 @@ public class SourceDialog extends BaseRecordDialog{
 		bindingManager.bind(publisherField);
 		bindingManager.bind(mediaTypeCombo);
 
-		setLayout(new MigLayout("fillx,top"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
@@ -503,8 +502,6 @@ public class SourceDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		bindingManager.load(record);
-
-		// ---- Load manual fields ----
 
 		// Restriction (checkbox)
 		String restriction = FLEFRecordHelper.getChildValue(record, "RESTRICTION");

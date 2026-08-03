@@ -27,32 +27,25 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-/**
- * Handler for {@code NAME_STRUCTURE} entities according to FLEF 0.1.0.
- * <p>
- * This handler provides the necessary operations for managing name structures:
- * creation, editing, display name generation, and type identification.
- * <p>
- * Structure:
- * <pre>
- * struct NameStructure {
- *   text: TextValue
- *   type?: enum { official, colonial, indigenous } | Text
- * }
- * </pre>
- */
-public class NameStructureHandler implements RecordTypeHandler<NameStructureDialog>{
+public class TextValueVariantHandler implements RecordTypeHandler<TextValueVariantDialog>{
 
 	/** The record type identifier for groups. */
-	public static final String TYPE = "NAME_STRUCTURE";
+	public static final String TYPE = "TEXT_VALUE_VARIANT";
 	/** The ID prefix used for generating new group IDs (e.g., {@code NS}). */
-	public static final String ID_PREFIX = "NS";
+	public static final String ID_PREFIX = "TVV";
+
+
+	private static final String TAG_PHONETIC = "PHONETIC";
+	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+	private static final String TAG_SYSTEM = "SYSTEM";
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override
@@ -62,7 +55,7 @@ public class NameStructureHandler implements RecordTypeHandler<NameStructureDial
 
 	@Override
 	public String getLabel(){
-		return "Name Structure";
+		return "Text Value Variant";
 	}
 
 	@Override
@@ -80,11 +73,11 @@ public class NameStructureHandler implements RecordTypeHandler<NameStructureDial
 	 *
 	 * @param parent the parent frame
 	 * @param model  the FLEF model
-	 * @return a new {@code NameStructureDialog} in create mode
+	 * @return a new {@code TextValueVariantDialog} in create mode
 	 */
 	@Override
-	public NameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return NameStructureDialog.createNew(parent, model);
+	public TextValueVariantDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return TextValueVariantDialog.createNew(parent, model);
 	}
 
 	/**
@@ -93,17 +86,18 @@ public class NameStructureHandler implements RecordTypeHandler<NameStructureDial
 	 * @param parent the parent frame
 	 * @param model  the FLEF model
 	 * @param record the group record to edit
-	 * @return a new {@code NameStructureDialog} in edit mode
+	 * @return a new {@code TextValueVariantDialog} in edit mode
 	 */
 	@Override
-	public NameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return NameStructureDialog.createEdit(parent, model, record);
+	public TextValueVariantDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return TextValueVariantDialog.createEdit(parent, model, record);
 	}
 
 	/**
-	 * Returns a display name for the given name structure.
+	 * Returns a display name for the given text value variant structure.
 	 *
-	 * @param record the name structure record
+	 * @param record the text value variant structure record (phonetic or transcription)
+	 * @param model  the FLEF model
 	 * @return a human-readable display name
 	 */
 	@Override
@@ -111,13 +105,35 @@ public class NameStructureHandler implements RecordTypeHandler<NameStructureDial
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		// Find NAME_STRUCTURE -> TEXT -> VALUE
-		FLEFRecord textValue = FLEFRecordHelper.findChild(record, "TEXT");
-		if(textValue != null){
-			String value = FLEFRecordHelper.getChildValue(textValue, "VALUE");
-			if(value != null && !value.isEmpty()){
-				return value;
+		FLEFRecord variant = record.findChild(TAG_PHONETIC);
+		if(variant != null){
+			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
+			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
+
+			final StringBuilder details = new StringBuilder();
+			if(StringUtils.isNotEmpty(system))
+				details.append(system);
+			if(!details.isEmpty())
+				return String.format("%s [%s: %s]", value, TAG_PHONETIC, details);
+			return String.format("%s [%s]", value, TAG_PHONETIC);
+		}
+		variant = record.findChild(TAG_TRANSCRIPTION);
+		if(variant != null){
+			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
+			final String type = FLEFRecordHelper.getChildValue(variant, TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
+
+			final StringBuilder details = new StringBuilder();
+			if(StringUtils.isNotEmpty(system))
+				details.append(system);
+			if(StringUtils.isNotEmpty(type)){
+				if(!details.isEmpty())
+					details.append(", ");
+				details.append(type);
 			}
+			if(!details.isEmpty())
+				return String.format("%s [%s: %s]", value, TAG_TRANSCRIPTION, details);
+			return String.format("%s [%s]", value, TAG_TRANSCRIPTION);
 		}
 
 		// Fallback to the record ID

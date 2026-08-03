@@ -56,7 +56,7 @@ import java.io.Serial;
  * struct DateStructure {
  *   value: DateValue
  *   original_text?: Text
- *   citation*: SourceCitation
+ *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
  * }
  * </pre>

@@ -69,6 +69,11 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 
 
 	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
 	public String getLabel(){
 		return "Group Attribute";
 	}

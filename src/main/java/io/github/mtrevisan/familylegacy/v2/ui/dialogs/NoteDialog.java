@@ -66,7 +66,7 @@ import java.io.Serial;
  *     value: Text
  *     locale?: LocaleCode
  *   }
- *   citation*: SourceCitation
+ *   source*: SourceCitation
  *   restriction?: RestrictionStructure
  *   modification: ModificationStructure
  * }
@@ -83,7 +83,7 @@ public class NoteDialog extends BaseRecordDialog{
 	private static final String TAG_MIME = "MIME";
 	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_TRANSLATION = "TRANSLATION";
-	private static final String TAG_CITATION = "CITATION";
+	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 	private static final String TAG_MODIFICATION = "MODIFICATION";
 
@@ -146,7 +146,7 @@ public class NoteDialog extends BaseRecordDialog{
 		bindingManager.bind(mimeCombo);
 		bindingManager.bind(localeCombo);
 
-		setLayout(new MigLayout("fillx,top"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());

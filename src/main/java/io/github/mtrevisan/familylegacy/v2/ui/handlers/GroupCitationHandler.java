@@ -46,6 +46,11 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 
 
 	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
 	public String getLabel(){
 		return "Group Citation";
 	}

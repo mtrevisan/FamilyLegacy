@@ -28,7 +28,6 @@ import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.event.ItemEvent;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -82,7 +81,6 @@ public class EventDialog extends BaseRecordDialog{
 	public EventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
-		// Initialize bound components before using them
 		typeCombo = new BoundComboBox("TYPE", new String[]{});
 		initTypeCombo();
 
@@ -98,7 +96,6 @@ public class EventDialog extends BaseRecordDialog{
 	public EventDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(IndividualEventHandler.TYPE));
 
-		// Initialize bound components before using them
 		typeCombo = new BoundComboBox("TYPE", new String[]{});
 		initTypeCombo();
 

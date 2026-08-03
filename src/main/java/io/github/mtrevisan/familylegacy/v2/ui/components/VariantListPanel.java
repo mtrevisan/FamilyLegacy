@@ -1,25 +1,46 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
 import java.awt.Dialog;
-import java.awt.FlowLayout;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 
 
+/* DONE */
 /**
  * Panel for managing a list of TEXT_VALUE_VARIANT entries (PHONETIC/TRANSCRIPTION).
  * <p>
@@ -36,12 +57,23 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -298718064629353117L;
 
 
+	private static final String TAG_PHONETIC = "PHONETIC";
+	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+
+
+	private final RecordTypeHandler<?> variantHandler;
+
+
 	public VariantListPanel(final Dialog parentDialog, final FLEFModel model){
 		super(parentDialog, "Variants", model);
+
+		variantHandler = HandlerRegistry.getHandler(TextValueVariantHandler.TYPE);
 	}
 
 	public VariantListPanel(final Dialog parentDialog, final String borderTitle, final FLEFModel model){
 		super(parentDialog, borderTitle, model);
+
+		variantHandler = HandlerRegistry.getHandler(TextValueVariantHandler.TYPE);
 	}
 
 
@@ -62,8 +94,11 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord item){
-		return item.toString();
+	protected String getDisplay(final FLEFRecord variant){
+		if(variant != null)
+			return variantHandler.getDisplayText(variant, model);
+
+		return "--";
 	}
 
 	@Override
@@ -116,111 +151,18 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 		return existing;
 	}
 
-	/**
-	 * Shows a dialog to add or edit a variant.
-	 *
-	 * @param initial the existing variant, or {@code null} for a new one
-	 * @return the updated variant, or {@code null} if canceled
-	 */
-	private VariantEntry showVariantDialog(final VariantEntry initial){
-		final JDialog dialog = new JDialog(parentDialog,
-			initial == null? "Add Variant": "Edit Variant", true);
-		dialog.setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]5[]"));
-
-		final JComboBox<String> typeCombo = new JComboBox<>(new String[]{"PHONETIC", "TRANSCRIPTION"});
-		if(initial != null)
-			typeCombo.setSelectedItem(initial.getType());
-
-		final JTextField systemField = new JTextField(20);
-		if(initial != null)
-			systemField.setText(initial.getSystem());
-		systemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
-
-		final JComboBox<String> transTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
-		if(initial != null && "TRANSCRIPTION".equals(initial.getType()) && initial.getTranscriptionType() != null)
-			transTypeCombo.setSelectedItem(initial.getTranscriptionType());
-		transTypeCombo.setEnabled("TRANSCRIPTION".equals(typeCombo.getSelectedItem()));
-
-		typeCombo.addActionListener(e -> {
-			transTypeCombo.setEnabled("TRANSCRIPTION".equals(typeCombo.getSelectedItem()));
-		});
-
-		final JTextField valueField = new JTextField(20);
-		if(initial != null)
-			valueField.setText(initial.getValue());
-
-		dialog.add(new JLabel("Type:"), "align label");
-		dialog.add(typeCombo, "growx,wrap");
-
-		dialog.add(new JLabel("System:"), "align label");
-		dialog.add(systemField, "growx,wrap");
-
-		dialog.add(new JLabel("Transcription Type:"), "align label");
-		dialog.add(transTypeCombo, "growx,wrap");
-
-		dialog.add(new JLabel("Value:"), "align label");
-		dialog.add(valueField, "growx,wrap");
-
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okBtn = new JButton("OK");
-		JButton cancelBtn = new JButton("Cancel");
-		btnPanel.add(okBtn);
-		btnPanel.add(cancelBtn);
-		dialog.add(btnPanel, "span 2,growx");
-
-		final VariantEntry[] result = {null};
-		okBtn.addActionListener(e -> {
-			final String type = (String)typeCombo.getSelectedItem();
-			final String system = systemField.getText().trim();
-			final String value = valueField.getText().trim();
-			if(system.isEmpty() || value.isEmpty()){
-				JOptionPane.showMessageDialog(dialog,
-					"System and Value are required.",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-				return;
-			}
-
-			final String transType = "TRANSCRIPTION".equals(type)? (String)transTypeCombo.getSelectedItem(): null;
-			result[0] = new VariantEntry(type, system,
-				(transType != null && !transType.isEmpty()? transType: null),
-				value);
-			dialog.dispose();
-		});
-		cancelBtn.addActionListener(e -> dialog.dispose());
-
-		dialog.pack();
-		dialog.setLocationRelativeTo(parentDialog);
-		dialog.setVisible(true);
-
-		return result[0];
-	}
-
-	//TODO
 	public void load(final FLEFRecord record){
-		clear();
-//		for(final FLEFRecord child : record.getChildren()){
-//			if("PHONETIC".equals(child.getTag()) || "TRANSCRIPTION".equals(child.getTag())){
-//				variantRecords.add(child);
-//				variantListModel.addElement(getVariantDisplay(child));
-//			}
-//		}
+		final FLEFRecord variantPhonetic = record.findChild(TAG_PHONETIC);
+		final FLEFRecord variantTranscription = record.findChild(TAG_TRANSCRIPTION);
+		List<FLEFRecord> items = new ArrayList<>();
+		items.add(variantPhonetic);
+		items.add(variantTranscription);
+		setItems(items);
 	}
 
-	//TODO
 	public void save(final FLEFRecord record){
-//		for(final VariantEntry variant : variantPanel.getVariants()){
-//			record.addChild(variant);
-//		}
-	}
-
-	/**
-	 * Returns the list of variants.
-	 *
-	 * @return the variants
-	 */
-	public List<FLEFRecord> getVariants(){
-		return getItems();
+		for(final FLEFRecord variant : getItems())
+			record.addChild(variant);
 	}
 
 }

@@ -59,7 +59,6 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -180,7 +179,7 @@ public class GroupAttributeDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Conclusion", conclusionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
 
-		setLayout(new MigLayout("fillx"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 		add(tabbedPane, "growx,push");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);

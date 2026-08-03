@@ -105,7 +105,7 @@ record IndividualRecord {
   sex?: enum { male, female, unknown }       // Biological sex as recorded in sources or inferred from evidence. This field represents a genealogical research assertion.
   cultural_norm*: Xref<CulturalNormRecord>   // cultural norms that apply to this individual (e.g., naming conventions, age of majority)
   note*: Xref<NoteRecord>                    // free-text notes about this individual
-  citation*: SourceCitation                  // source citations supporting facts about this individual
+  source*: SourceCitation                  // source citations supporting facts about this individual
   preferred_image?: struct {
     uri: Uri           // resource URI pointing to a preferred image of this individual
     crop?: CropCoord   // specifies the portion of the image that should be displayed as the preferred representation
@@ -152,7 +152,7 @@ struct PersonalNameStructure {
   }
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
 }
 
 
@@ -192,7 +192,7 @@ struct EventStructure {
   }
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers   // evidence qualifiers for the event
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -253,7 +253,7 @@ record IndividualAttributeRecord {
   valid_from?: DateStructure   // the date from which this attribute is known or believed to have been valid
   valid_to?: DateStructure     // the date until which this attribute is known or believed to have been valid
   place?: PlaceStructure
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -275,7 +275,7 @@ record EventParticipationRecord {
   participant: EntityParticipant   // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
   role?: enum { CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, WITNESS, OFFICIANT, INFORMANT, EXECUTOR, GRANTOR, GRANTEE, LANDLORD, TENANT, SOLDIER, COMMANDER, VICTIM, SURVIVOR, ACCUSED, JUDGE } | Text   // optional because the role may be unknown or not applicable
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -297,7 +297,7 @@ record GroupRecord {
   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
   preferred_image?: struct {
     uri: Uri
     crop?: CropCoord   // specifies the portion of the image that should be displayed as the preferred representation
@@ -327,7 +327,7 @@ record GroupAttributeRecord {
   valid_from?: DateStructure
   valid_to?: DateStructure
   place?: PlaceStructure
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -356,7 +356,7 @@ struct TextValue {
   valid_from?: DateStructure   // the date from which this name was known to be in use
   valid_to?: DateStructure     // the date until which this name was known to be in use
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
 }
 
 // embedded
@@ -413,7 +413,7 @@ record RelationshipRecord {
   valid_from?: DateStructure   // the date from which this relationship was known to be in effect
   valid_to?: DateStructure     // the date until which this relationship was known to be in effect
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -444,7 +444,7 @@ record PlaceRecord {
     coordinates: Coord   // geographic coordinates of the place
     evidence?: EvidenceQualifiers
   }
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -455,7 +455,7 @@ record PlaceRecord {
 struct PlaceStructure {
   place: Xref<PlaceRecord>
   original_text?: Text    // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
 }
 
@@ -479,7 +479,7 @@ record PlaceRelationshipRecord {
   valid_from?: DateStructure   // the date from which this place relationship is known or believed to have been valid
   valid_to?: DateStructure     // the date until which this place relationship is known or believed to have been valid
   note*: Text                  // a note containing commentary, interpretation, or discussion related to this place relationship
-  citation*: SourceCitation    // a list of source citations supporting the existence, interpretation, or dating of this place relationship
+  source*: SourceCitation    // a list of source citations supporting the existence, interpretation, or dating of this place relationship
   modification: ModificationStructure
 }
 
@@ -499,7 +499,7 @@ record NoteRecord {
     value: Text   // a translated version of the note
     locale?: LocaleCode
   }
-  citation*: SourceCitation
+  source*: SourceCitation
   restriction?: RestrictionStructure
   modification: ModificationStructure
 }
@@ -567,7 +567,7 @@ record CulturalNormRecord {
   valid_from?: DateStructure   // the date from which this cultural norm was in effect
   valid_to?: DateStructure     // the date until which this cultural norm was in effect
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
   modification: ModificationStructure
 }
@@ -599,7 +599,7 @@ record SourceRecord {
   media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
   document*: DocumentStructure   // a document reference to the auxiliary data to be linked to this context
   note*: Xref<NoteRecord>        // may contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
-  citation*: SourceCitation
+  source*: SourceCitation
   restriction?: RestrictionStructure
   modification: ModificationStructure
 }
@@ -649,7 +649,7 @@ struct DocumentStructure {
 struct DateStructure {
   value: DateValue       // contains the normalized date assertion according to the conventions of this protocol. The normalized value MAY be derived from a source expression, calendar conversion, date normalization, abbreviation expansion, calculation, or researcher interpretation.
   original_text?: Text   // preserves the date expression exactly as found in the source, when available
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
 }
 
@@ -748,7 +748,7 @@ record HistoricEventRecord {
   date?: DateStructure     // the date on which this historic event happened
   place?: PlaceStructure   // the place in which this historic event happened
   note*: Xref<NoteRecord>
-  citation*: SourceCitation
+  source*: SourceCitation
   modification: ModificationStructure
 }
 
@@ -853,7 +853,7 @@ record ConclusionRecord {
   narrative?: Text                        // a discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen
   research*: Xref<ResearchStatusRecord>   // references to research questions that led to this conclusion
   date?: Date                             // the date the researcher made this conclusion
-  citation*: SourceCitation               // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
+  source*: SourceCitation                 // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
 }
 
 ConclusionTarget = oneof {
@@ -881,7 +881,7 @@ record IdentityHypothesisRecord {
   subject: IdentityCandidate     // the first record in the identity hypothesis
   candidate: IdentityCandidate   // the second record in the identity hypothesis
   comment?: Text                 // a note explaining the basis for the possible duplicate hypothesis
-  citation*: SourceCitation
+  source*: SourceCitation
   evidence?: EvidenceQualifiers
   modification: ModificationStructure
 }

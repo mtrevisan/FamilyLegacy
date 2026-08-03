@@ -65,7 +65,7 @@ import java.io.Serial;
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
  *   note*: Xref&lt;NoteRecord&gt;
- *   citation*: SourceCitation
+ *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
  *   modification: ModificationStructure
  * }
@@ -144,7 +144,7 @@ public class CulturalNormDialog extends BaseRecordDialog{
 		bindingManager.bind(titleField);
 		bindingManager.bind(ruleTypeCombo);
 
-		setLayout(new MigLayout("fillx,top"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());

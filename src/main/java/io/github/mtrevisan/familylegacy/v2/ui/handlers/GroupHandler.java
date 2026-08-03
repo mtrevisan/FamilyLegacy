@@ -33,28 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-/**
- * Handler for {@code GROUP_RECORD} entities according to FLEF 0.1.0.
- * <p>
- * This handler provides the necessary operations for managing group records:
- * creation, editing, display name generation, and type identification.
- * <p>
- * Structure:
- * <pre>
- * GROUP_RECORD :=
- * n @<XREF:GROUP>@ GROUP    {1:1}
- *   +1 <<NAME_STRUCTURE>>    {0:M}
- *   +1 TYPE <GROUP_TYPE>    {0:1}
- *   +1 CULTURAL_NORM @<XREF:CULTURAL_NORM>@    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 PREFERRED_IMAGE <RESOURCE_URI>    {0:1}
- *     +2 CROP <CROP_COORDINATES>    {0:1}
- *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
- *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
- * </pre>
- */
 public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 
 	/** The record type identifier for groups. */
@@ -115,9 +93,8 @@ public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null){
+		if(record == null)
 			return StringUtils.EMPTY;
-		}
 
 		// Find NAME_STRUCTURE -> TEXT_VALUE -> VALUE
 		FLEFRecord nameStruct = FLEFRecordHelper.findChild(record, "NAME_STRUCTURE");

@@ -42,6 +42,11 @@ public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = 5393675791860301264L;
 
 
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_NAME = "NAME";
+
+
 	private final String path;
 
 
@@ -70,13 +75,13 @@ public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplay(final FLEFRecord personalName){
-		String value = FLEFRecordHelper.getChildValue(personalName, "VALUE");
+		String value = FLEFRecordHelper.getChildValue(personalName, TAG_VALUE);
 		if(value != null && !value.isEmpty()){
 			// Truncate long names
 			if(value.length() > 50)
 				value = value.substring(0, 50) + "...";
 
-			final String type = FLEFRecordHelper.getChildValue(personalName, "TYPE");
+			final String type = FLEFRecordHelper.getChildValue(personalName, TAG_TYPE);
 			if(type != null && !type.isEmpty())
 				value += " (" +  type + ")";
 
@@ -125,7 +130,7 @@ public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 		FLEFRecordHelper.removeChildren(record, path);
 
 		for(final FLEFRecord name : getItems()){
-			name.setTag("NAME");
+			name.setTag(TAG_NAME);
 			record.addChild(name);
 		}
 	}

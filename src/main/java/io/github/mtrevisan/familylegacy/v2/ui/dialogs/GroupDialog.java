@@ -68,7 +68,7 @@ import java.io.Serial;
  *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   note*: Xref&lt;NoteRecord&gt;
- *   citation*: SourceCitation
+ *   source*: SourceCitation
  *   preferred_image?: struct {
  *     uri: Uri
  *     crop?: CropCoord
@@ -162,7 +162,7 @@ public class GroupDialog extends BaseRecordDialog{
 	protected void initComponents(){
 		bindingManager.bind(typeCombo);
 
-		setLayout(new MigLayout("fillx,top"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());

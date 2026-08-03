@@ -67,7 +67,7 @@ import java.io.Serial;
  *   sex?: enum { male, female, unknown }
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   note*: Xref&lt;NoteRecord&gt;
- *   citation*: SourceCitation
+ *   source*: SourceCitation
  *   preferred_image?: struct {
  *     uri: Uri
  *     crop?: CropCoord
@@ -159,7 +159,7 @@ public class IndividualDialog extends BaseRecordDialog{
 	protected void initComponents(){
 		bindingManager.bind(sexCombo);
 
-		setLayout(new MigLayout("fillx,top"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());

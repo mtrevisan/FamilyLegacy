@@ -31,7 +31,6 @@ import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -143,7 +142,6 @@ public class RelationshipDialog extends JDialog{
 		this.prefilledSubjectId = prefilledSubjectId;
 		this.prefilledObjectId = prefilledObjectId;
 
-		// Initialize bound components before using them
 		typeField = new BoundTextField("TYPE", 15);
 		roleField = new BoundTextField("ROLE", 15);
 		credibilityCombo = new BoundComboBox("CREDIBILITY",
