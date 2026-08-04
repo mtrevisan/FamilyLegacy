@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs._SourceCitationDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs._SourceDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -164,22 +164,24 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final _SourceDialog newSourceDialog = (_SourceDialog)sourceHandler.createNewDialog(parent, model);
+		final SourceRecordDialog newSourceDialog = (SourceRecordDialog)sourceHandler.createNewDialog(parent, model);
 		newSourceDialog.setVisible(true);
 
 		FLEFRecord newSourceCitation = null;
-		final FLEFRecord newSource = newSourceDialog.getRecord();
-		if(newSource != null){
-			final String newSourceId = newSource.getId();
-			final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
-			FLEFRecordHelper.updateChildValue(sourceCitation, TAG_SOURCE, XRefHelper.formatXRef(newSourceId));
-			final _SourceCitationDialog citationDialog = _SourceCitationDialog.createEdit(parent, model, sourceCitation);
-			citationDialog.setVisible(true);
+		if(newSourceDialog.isSaved()){
+			final FLEFRecord newSource = newSourceDialog.getRecord();
+			if(newSource != null){
+				final String newSourceId = newSource.getId();
+				final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
+				FLEFRecordHelper.updateChildValue(sourceCitation, TAG_SOURCE, XRefHelper.formatXRef(newSourceId));
+				final _SourceCitationDialog citationDialog = _SourceCitationDialog.createEdit(parent, model, sourceCitation);
+				citationDialog.setVisible(true);
 
-			if(citationDialog.isSaved())
-				newSourceCitation = citationDialog.getRecord();
-			else
-				model.removeRecord(newSourceId);
+				if(citationDialog.isSaved())
+					newSourceCitation = citationDialog.getRecord();
+				else
+					model.removeRecord(newSourceId);
+			}
 		}
 		return newSourceCitation;
 	}
@@ -209,7 +211,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		final String sourceId = findRecordSourceId(sourceCitation);
 		if(sourceId != null){
 			final FLEFRecord source = model.getRecordById(sourceId);
-			final _SourceDialog dialog = _SourceDialog.createEdit(parent, model, source);
+			final SourceRecordDialog dialog = SourceRecordDialog.createEdit(parent, model, source);
 			dialog.setVisible(true);
 
 			if(dialog.isSaved())

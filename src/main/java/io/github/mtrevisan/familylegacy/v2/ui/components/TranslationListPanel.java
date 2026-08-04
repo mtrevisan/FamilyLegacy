@@ -109,7 +109,7 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 	}
 
 	private TranslationEntry showTranslationDialog(TranslationEntry initial){
-		JDialog dialog = new JDialog(parent, initial == null ? "Add Translation" : "Edit Translation", true);
+		JDialog dialog = new JDialog(parent, initial == null? "Add Translation": "Edit Translation", true);
 		dialog.setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]10[]"));
 
 		BoundTextArea valueArea = new BoundTextArea("VALUE", 5, 25);
@@ -144,7 +144,7 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 				JOptionPane.showMessageDialog(dialog, "Translation value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
 				return;
 			}
-			result[0] = new TranslationEntry(value, locale != null && !locale.isEmpty() ? locale : null);
+			result[0] = new TranslationEntry(value, locale != null && !locale.isEmpty()? locale: null);
 			dialog.dispose();
 		});
 		cancelBtn.addActionListener(e -> dialog.dispose());

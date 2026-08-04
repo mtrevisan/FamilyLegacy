@@ -33,8 +33,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.VariantListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameStructureHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
@@ -87,7 +87,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 
 	static{
-		HandlerRegistry.register(new NameStructureHandler());
+		HandlerRegistry.register(new ClassifiedNameHandler());
 		HandlerRegistry.register(new VariantHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
@@ -119,7 +119,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 
 	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(NameStructureHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
 
 		valueField = new BoundTextField(TAG_VALUE, 30);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, model);
@@ -139,6 +139,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 		setLocationRelativeTo(parent);
 	}
+
 
 	private void initComponents(){
 		bindingManager.bind(valueField);

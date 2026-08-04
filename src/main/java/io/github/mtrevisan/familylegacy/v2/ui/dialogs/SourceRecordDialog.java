@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DocumentStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -76,31 +76,30 @@ import java.util.Map;
 import java.util.Set;
 
 
+/* ONGOING */
 /**
- * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.0.
+ * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * SOURCE_RECORD :=
- * n @<XREF:SOURCE>@ SOURCE    {1:1}
- *   +1 TITLE    {1:M}
- *     +2 <<TEXT_VALUE>>    {1:1}
- *   +1 AUTHOR <SOURCE_ORIGINATOR>    {0:1}
- *   +1 DATE    {0:1}
- *     +2 <<DATE_STRUCTURE>>    {1:1}
- *   +1 <<PLACE_STRUCTURE>>    {0:1}
- *   +1 PUBLISHER <SOURCE_PUBLISHER>    {0:1}
- *   +1 <<REPOSITORY_CITATION>>    {0:M}
- *   +1 MEDIA_TYPE <SOURCE_MEDIA_TYPE>    {0:1}
- *   +1 <<DOCUMENT_STRUCTURE>>    {0:M}
- *   +1 NOTE @<XREF:NOTE>@    {0:M}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 <<RESTRICTION_STRUCTURE>>    {0:1}
- *   +1 <<CONCLUSION_STRUCTURE>>    {0:M}
- *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
+ * record SourceRecord {
+ *   id: LocalID
+ *   title+: NameStructure
+ *   author?: Text
+ *   date?: DateStructure
+ *   place?: PlaceCitation
+ *   publisher?: Text
+ *   repository*: RepositoryCitation
+ *   media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
+ *   document*: DocumentStructure
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   source*: SourceCitation
+ *   restriction?: RestrictionStructure
+ *   modification: ModificationStructure
+ * }
  * </pre>
  */
-public class _SourceDialog extends BaseRecordDialog{
+public class SourceRecordDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = 8722200901398839002L;
@@ -114,6 +113,7 @@ public class _SourceDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new CalendarHandler());
 	}
 
+
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField titleField;
@@ -121,33 +121,38 @@ public class _SourceDialog extends BaseRecordDialog{
 	private final BoundTextField publisherField;
 	private final BoundComboBox<String> mediaTypeCombo;
 	private final JCheckBox restrictionCheckBox = new JCheckBox("Confidential");
-	private final PlaceField placeField;
+	private final PlaceCitationField placeCitationField;
 	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Place Evidence");
 	private final DateField dateField;
 	private final DefaultListModel<String> repositoryListModel = new DefaultListModel<>();
+
 	private final JList<String> repositoryList = new JList<>(repositoryListModel);
 	private final List<FLEFRecord> repositoryRecords = new ArrayList<>();
+
 	private final DocumentStructurePanel documentPanel;
 	private final SourceCitationListPanel sourceCitationPanel;
+
 	private final DefaultListModel<String> noteListModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteListModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
+
 	private final ModificationPanel modificationPanel;
 
 
-	public static _SourceDialog createNew(final Dialog parent, final FLEFModel model){
-		return new _SourceDialog(parent, model, null);
+	public static SourceRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return new SourceRecordDialog(parent, model, null);
 	}
 
-	public static _SourceDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static SourceRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new _SourceDialog(parent, model, record);
+		return new SourceRecordDialog(parent, model, record);
 	}
 
-	private _SourceDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+
+	private SourceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(SourceHandler.TYPE));
 
 		titleField = new BoundTextField("TITLE.VALUE", 30);
@@ -157,8 +162,9 @@ public class _SourceDialog extends BaseRecordDialog{
 			new String[]{StringUtils.EMPTY, "audio", "book", "card", "electronic", "fiche", "film",
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
+		mediaTypeCombo.setEditable(true);
 
-		placeField = PlaceField.create("PLACE", parent, model);
+		placeCitationField = PlaceCitationField.create("PLACE", parent, model);
 		dateField = DateField.createWithWrapperTag("DATE", this, "Valid Date", model);
 		documentPanel = new DocumentStructurePanel(this, model);
 		modificationPanel = new ModificationPanel(this, model);
@@ -172,6 +178,7 @@ public class _SourceDialog extends BaseRecordDialog{
 
 		setLocationRelativeTo(parent);
 	}
+
 
 	protected void initComponents(){
 		bindingManager.bind(titleField);
@@ -197,7 +204,6 @@ public class _SourceDialog extends BaseRecordDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
-
 	private JPanel createMainPanel(){
 		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 
@@ -219,7 +225,7 @@ public class _SourceDialog extends BaseRecordDialog{
 
 		final JPanel placePanel = new JPanel(new MigLayout("ins 10,fillx,top", "[grow]", "[]5[]"));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
-		placePanel.add(placeField, "growx,wrap");
+		placePanel.add(placeCitationField, "growx,wrap");
 		placePanel.add(placeQualifiers, "growx,wrap");
 		panel.add(placePanel, "span 2,growx,wrap");
 
@@ -509,10 +515,7 @@ public class _SourceDialog extends BaseRecordDialog{
 		String restriction = FLEFRecordHelper.getChildValue(record, "RESTRICTION");
 		restrictionCheckBox.setSelected("confidential".equals(restriction));
 
-		// PLACE_STRUCTURE
-		placeField.load(record);
-
-		// Date
+		placeCitationField.load(record);
 		dateField.load(record);
 
 		// Repository Citations
@@ -522,13 +525,11 @@ public class _SourceDialog extends BaseRecordDialog{
 		FLEFRecord doc = FLEFRecordHelper.findChild(record, "DOCUMENT_STRUCTURE");
 		documentPanel.loadFromRecord(doc);
 
-		// SOURCE_CITATION
 		sourceCitationPanel.load(record);
 
 		// Notes
 		loadNotes();
 
-		// Modification
 		modificationPanel.load(record);
 	}
 
@@ -539,19 +540,13 @@ public class _SourceDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		// ---- Save bound simple fields ----
 		bindingManager.save(record);
-
-		// ---- Save manual fields ----
 
 		// Restriction
 		FLEFRecordHelper.updateChildValue(record, "RESTRICTION",
 			(restrictionCheckBox.isSelected()? "confidential": null));
 
-		// PLACE
-		placeField.save(record);
-
-		// DATE
+		placeCitationField.save(record);
 		dateField.save(record);
 
 		// Repository Citations
@@ -591,7 +586,7 @@ public class _SourceDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final _SourceDialog dialog = _SourceDialog.createNew(null, model);
+			final SourceRecordDialog dialog = SourceRecordDialog.createNew(null, model);
 			dialog.setVisible(true);
 		});
 	}

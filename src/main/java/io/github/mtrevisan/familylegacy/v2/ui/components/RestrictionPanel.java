@@ -93,6 +93,7 @@ public class RestrictionPanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
 

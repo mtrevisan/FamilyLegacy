@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -48,10 +47,13 @@ import java.awt.Dialog;
  * }
  * </pre>
  */
-public class NameStructureHandler implements RecordTypeHandler<NameStructureDialog>{
+public class ClassifiedNameHandler implements RecordTypeHandler<NameStructureDialog>{
 
 	/** The record type identifier for groups. */
 	public static final String TYPE = "NAME_STRUCTURE";
+
+	private static final String TAG_TEXT = "TEXT";
+	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override
@@ -96,16 +98,13 @@ public class NameStructureHandler implements RecordTypeHandler<NameStructureDial
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		// Find NAME_STRUCTURE -> TEXT -> VALUE
-		FLEFRecord textValue = FLEFRecordHelper.findChild(record, "TEXT");
+		FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
 		if(textValue != null){
-			String value = FLEFRecordHelper.getChildValue(textValue, "VALUE");
-			if(value != null && !value.isEmpty()){
+			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
+			if(value != null && !value.isEmpty())
 				return value;
-			}
 		}
 
-		// Fallback to the record ID
 		return record.getId();
 	}
 

@@ -81,6 +81,7 @@ public class TranscribedTextPanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]"));
 		setBorder(new TitledBorder("Trasncribed Text"));

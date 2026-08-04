@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;

@@ -27,11 +27,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs._PlaceStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -42,15 +43,18 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING FIXME popupmenu is always `selected` */
-public class PlaceField extends JPanel{
+/* DONE */
+public class PlaceCitationField extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -4552674609094385732L;
 
 
+	private static final String TAG_PLACE = "PLACE";
+
+
 	static{
-		HandlerRegistry.register(new PlaceHandler());
+		HandlerRegistry.register(new PlaceCitationHandler());
 	}
 
 
@@ -63,19 +67,19 @@ public class PlaceField extends JPanel{
 
 	private final JTextField displayField = new JTextField(20);
 
-	private final RecordTypeHandler<?> placeHandler;
+	private final RecordTypeHandler<?> placeCitationHandler;
 
 
-	public static PlaceField create(final String path, final Dialog parent, final FLEFModel model){
-		return new PlaceField(path, parent, model);
+	public static PlaceCitationField create(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceCitationField(path, parent, model);
 	}
 
-	public static PlaceField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
-		return new PlaceField(path, parent, model);
+	public static PlaceCitationField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceCitationField(path, parent, model);
 	}
 
 
-	private PlaceField(final String path, final Dialog parent, final FLEFModel model){
+	private PlaceCitationField(final String path, final Dialog parent, final FLEFModel model){
 		super(new MigLayout("ins 0,fillx", "[grow]"));
 
 		this.parent = parent;
@@ -83,7 +87,7 @@ public class PlaceField extends JPanel{
 		this.path = path;
 		this.model = model;
 
-		placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
 
 		initComponents();
 	}
@@ -151,17 +155,37 @@ public class PlaceField extends JPanel{
 			FLEFRecordHelper.updateChildValue(parentRecord, path, record.getFormattedId());
 	}
 
-	private void createNew(){
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
-		dialog.setVisible(true);
+	/**
+	 * Creates a new place and adds a citation for it.
+	 */
+	protected FLEFRecord createNew(){
+		final PlaceRecordDialog placeDialog = PlaceRecordDialog.createNew(parent, model);
+		placeDialog.setVisible(true);
 
-		if(dialog.isSaved())
-			setRecord(dialog.getRecord());
+		FLEFRecord newPlaceCitation = null;
+		if(placeDialog.isSaved()){
+			final FLEFRecord newPlace = placeDialog.getRecord();
+			if(newPlace != null){
+				final String newPlaceId = newPlace.getId();
+				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
+				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
+				final PlaceCitationDialog citationDialog = PlaceCitationDialog.create(parent, model, placeCitation);
+				citationDialog.setVisible(true);
+
+				if(citationDialog.isSaved())
+					newPlaceCitation = citationDialog.getRecord();
+				else
+					model.removeRecord(newPlaceId);
+			}
+		}
+		setRecord(newPlaceCitation);
+
+		return newPlaceCitation;
 	}
 
 	private void add(){
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, placeHandler,
+			parent, model, placeCitationHandler,
 			selectedId -> {
 				if(selectedId != null){
 					final FLEFRecord record = model.getRecordById(selectedId);
@@ -175,10 +199,13 @@ public class PlaceField extends JPanel{
 	private void edit(){
 		if(record == null){
 			add();
+
 			return;
 		}
 
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, record);
+		final String placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
+		final FLEFRecord place = model.getRecordById(placeId);
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, place);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -189,7 +216,7 @@ public class PlaceField extends JPanel{
 		if(record == null)
 			return;
 
-		final _PlaceStructureDialog dialog = new _PlaceStructureDialog(parent, model, record);
+		final PlaceCitationDialog dialog = PlaceCitationDialog.create(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -199,7 +226,7 @@ public class PlaceField extends JPanel{
 	private void updateDisplay(){
 		GUIHelper.updateDisplay(displayField,
 			() -> (record != null && record.hasData()),
-			() -> placeHandler.getDisplayText(record, model));
+			() -> placeCitationHandler.getDisplayText(record, model));
 	}
 
 }

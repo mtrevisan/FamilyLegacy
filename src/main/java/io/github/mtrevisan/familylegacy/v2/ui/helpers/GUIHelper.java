@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
@@ -178,7 +180,10 @@ public final class GUIHelper{
 			};
 
 		if(component instanceof JTextComponent textComp)
-			return () -> !textComp.getText().isEmpty();
+			return () -> {
+				final String text = textComp.getText();
+				return (!StringUtils.isBlank(text) && !PLACEHOLDER_TEXT.equals(text));
+			};
 
 		if(component instanceof JButton button)
 			return () -> (button.getIcon() != null);

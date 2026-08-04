@@ -47,6 +47,7 @@ import java.awt.FlowLayout;
 import java.io.Serial;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.1.
  * <p>
@@ -88,9 +89,12 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
 	private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");
 	private final JLabel systemLabel = new JLabel("System*:");
+	//FIXME for phonetic
 	private final BoundTextField systemField;
+	//FIXME for transcription
+//	private final BoundComboBox<String> systemField;
 	private final JLabel typeLabel = new JLabel("Type:");
-	private final BoundComboBox<String> typeField;
+	private final BoundComboBox<String> typeCombo;
 	private final JLabel valueLabel = new JLabel("Value*:");
 	private final BoundTextField valueField;
 
@@ -109,8 +113,9 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 		systemField = new BoundTextField(TAG_SYSTEM, 15);
 		systemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
-		typeField = new BoundComboBox<>(TAG_TYPE,
+		typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
+		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE, 20);
 
 		initComponents();
@@ -122,9 +127,10 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
+
 	protected void initComponents(){
 		bindingManager.bind(systemField);
-		bindingManager.bind(typeField);
+		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);
 
 		final ButtonGroup group = new ButtonGroup();
@@ -143,7 +149,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		panel.add(systemField, "growx,wrap");
 
 		panel.add(typeLabel, "align label");
-		panel.add(typeField, "growx,wrap");
+		panel.add(typeCombo, "growx,wrap");
 
 		panel.add(valueLabel, "align label");
 		panel.add(valueField, "growx,wrap");
@@ -183,7 +189,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private void updateFieldsState(){
 		final boolean isTranscription = transcriptionRadio.isSelected();
 		typeLabel.setEnabled(isTranscription);
-		typeField.setEnabled(isTranscription);
+		typeCombo.setEnabled(isTranscription);
 	}
 
 	@Override

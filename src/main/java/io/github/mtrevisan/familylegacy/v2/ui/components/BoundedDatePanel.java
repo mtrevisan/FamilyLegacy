@@ -72,6 +72,7 @@ public class BoundedDatePanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		setLayout(new MigLayout("ins 0,fillx,top", "[grow,fill][grow,fill]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));

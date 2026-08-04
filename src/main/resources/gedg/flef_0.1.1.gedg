@@ -182,7 +182,7 @@ record EventRecord {
 struct EventStructure {
   description?: Text       // text describing a particular event pertaining to the individual or group, or the value of an attribute
   date?: DateStructure     // the date of the event
-  place?: PlaceStructure   // the location of the event
+  place?: PlaceCitation    // the location of the event
   agency?: Text            // Organization, institution, authority, corporation, or person responsible for the associated context (e.g., an employer, a church that administered rites, an archiving organization)
   cause?: struct {
     value: Text   // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
@@ -250,7 +250,7 @@ record IndividualAttributeRecord {
   date?: DateStructure         // the date on which the attribute was observed, recorded, reported, or otherwise documented
   valid_from?: DateStructure   // the date from which this attribute is known or believed to have been valid
   valid_to?: DateStructure     // the date until which this attribute is known or believed to have been valid
-  place?: PlaceStructure
+  place?: PlaceCitation
   source*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
@@ -324,7 +324,7 @@ record GroupAttributeRecord {
   date?: DateStructure
   valid_from?: DateStructure
   valid_to?: DateStructure
-  place?: PlaceStructure
+  place?: PlaceCitation
   source*: SourceCitation
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
@@ -450,7 +450,7 @@ record PlaceRecord {
 
 // embedded
 // Reference to a PLACE record together with location-specific citations and evidence qualifiers.
-struct PlaceStructure {
+struct PlaceCitation {
   place: Xref<PlaceRecord>
   original_text?: Text    // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
   source*: SourceCitation
@@ -513,7 +513,7 @@ record RepositoryRecord {
   id: LocalID
   name+: ClassifiedName                // the official name of the archive in which the stated source material is stored
   custodian?: Xref<IndividualRecord>   // the individual acting as custodian of the repository or its source material
-  place?: PlaceStructure               // the location of the repository
+  place?: PlaceCitation                // the location of the repository
   contact*: ContactStructure
   note*: Xref<NoteRecord>
   restriction?: RestrictionStructure
@@ -561,7 +561,7 @@ record CulturalNormRecord {
   id: LocalID
   title?: Text                 // the title of the rule
   rule_type?: enum { age_of_majority, naming_convention, inheritance_rule, marriage_minimum_age } | Text   // Broad category of cultural rule. Detailed interpretation and parameters are expressed through notes, citations, and external documentation.
-  place?: PlaceStructure       // the location in which this cultural norm was in effect
+  place?: PlaceCitation        // the location in which this cultural norm was in effect
   valid_from?: DateStructure   // the date from which this cultural norm was in effect
   valid_to?: DateStructure     // the date until which this cultural norm was in effect
   note*: Xref<NoteRecord>
@@ -582,6 +582,7 @@ record CulturalNormRecord {
 // Source
 // ============================================================
 
+// FIXME title? instead of title+?
 // primary record
 // A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral
 // testimony, database entry, image, audio recording, or any other evidence-bearing artifact.
@@ -591,7 +592,7 @@ record SourceRecord {
   title+: NameStructure          // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
   author?: Text                  // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
   date?: DateStructure           // the date this source was created
-  place?: PlaceStructure         // the place this source was created
+  place?: PlaceCitation          // the place this source was created
   publisher?: Text               // name of the publisher of the publication
   repository*: RepositoryCitation
   media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
@@ -748,7 +749,7 @@ record HistoricEventRecord {
   id: LocalID
   title?: Text             // the title of the event
   date?: DateStructure     // the date on which this historic event happened
-  place?: PlaceStructure   // the place in which this historic event happened
+  place?: PlaceCitation    // the place in which this historic event happened
   note*: Xref<NoteRecord>
   source*: SourceCitation
   modification: ModificationStructure

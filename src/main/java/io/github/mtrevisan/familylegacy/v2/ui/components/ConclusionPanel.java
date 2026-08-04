@@ -108,6 +108,7 @@ public class ConclusionPanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		bindingManager.bind(contextField);
 		bindingManager.bind(proofStatusCombo);

@@ -88,7 +88,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualRecordDial
 
 		final String id = record.getId();
 		if(StringUtils.isNotEmpty(formattedName))
-			return formattedName + (StringUtils.isNotEmpty(id) ? " (" + id + ")" : StringUtils.EMPTY);
+			return formattedName + (StringUtils.isNotEmpty(id)? " (" + id + ")": StringUtils.EMPTY);
 
 		// Fallback to the record ID
 		return id;

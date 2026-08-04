@@ -3,7 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs._DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._DateDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,6 +62,7 @@ public class DateFieldPanel extends JPanel{
 
 		initComponents();
 	}
+
 
 	private void initComponents(){
 		setLayout(new MigLayout("ins 0, fillx", "[right]rel[grow][][][]"));

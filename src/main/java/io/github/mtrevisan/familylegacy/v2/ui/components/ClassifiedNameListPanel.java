@@ -138,8 +138,8 @@ public class ClassifiedNameListPanel extends AbstractListPanel<FLEFRecord>{
 
 		for(final FLEFRecord name : getItems()){
 			final FLEFRecord child = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-			for(final FLEFRecord childChild : name.getChildren())
-				child.addChild(childChild);
+			for(final FLEFRecord grandchild : name.getChildren())
+				child.addChild(grandchild);
 		}
 	}
 

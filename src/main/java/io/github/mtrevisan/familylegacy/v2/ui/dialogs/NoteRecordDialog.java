@@ -50,6 +50,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -138,6 +139,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 		setLocationRelativeTo(parent);
 	}
+
 
 	protected void initComponents(){
 		bindingManager.bind(titleField);

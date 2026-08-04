@@ -143,8 +143,11 @@ public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);
 
-		for(final FLEFRecord name : getItems())
-			record.addChild(name);
+		for(final FLEFRecord name : getItems()){
+			final FLEFRecord child = FLEFRecordHelper.getOrCreateTargetNode(record, path);
+			for(final FLEFRecord grandchild : name.getChildren())
+				child.addChild(grandchild);
+		}
 	}
 
 	public boolean hasData(){

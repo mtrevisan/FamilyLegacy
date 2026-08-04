@@ -68,6 +68,7 @@ public class ApproximatePanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));

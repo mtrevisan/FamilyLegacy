@@ -28,12 +28,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.GeneralRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
@@ -56,7 +56,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -139,6 +139,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY, "family", "household",
 			"neighbourhood", "fraternity", "club", "research group", "literary society", "association", "organisation",
 			"tribe"});
+		typeCombo.setEditable(true);
 		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
@@ -147,7 +148,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		modificationPanel = new ModificationPanel(this, model);
 
 		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
-		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null ? record.getId() : null));
+		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null? record.getId(): null));
 		relationshipPanel = new GeneralRelationshipListPanel(TAG_RELATIONSHIP, this, model);
 
 		initComponents();
@@ -158,6 +159,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		setLocationRelativeTo(parent);
 	}
+
 
 	protected void initComponents(){
 		bindingManager.bind(typeCombo);

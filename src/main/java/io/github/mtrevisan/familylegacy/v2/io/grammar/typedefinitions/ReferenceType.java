@@ -7,7 +7,7 @@ import java.util.List;
 
 
 /**
- * {@code Xref<Target>} or {@code XrefOrVoid<Target>}.
+ * {@code Xref&lt;Target&gt;} or {@code XrefOrVoid&lt;Target&gt;}.
  */
 public final class ReferenceType extends TypeDefinition{
 

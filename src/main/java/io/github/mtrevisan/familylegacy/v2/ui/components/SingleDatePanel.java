@@ -120,6 +120,7 @@ public class SingleDatePanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		bindingManager.bind(fullDateField);
 		bindingManager.bind(decadeField);
@@ -222,7 +223,7 @@ public class SingleDatePanel extends JPanel{
 
 		approxPanel.saveToRecord(record);
 
-		return (record.hasData() ? record : FLEFRecord.createEmpty());
+		return (record.hasData()? record: FLEFRecord.createEmpty());
 	}
 
 	public void clear(){

@@ -33,8 +33,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.VariantListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameStructureHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
@@ -56,7 +56,7 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Dialog for editing a {@code NAME_STRUCTURE} according to FLEF 0.1.1.
+ * Dialog for editing a {@code CLASSIFIED_NAME} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
@@ -92,7 +92,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 
 	static{
-		HandlerRegistry.register(new NameStructureHandler());
+		HandlerRegistry.register(new ClassifiedNameHandler());
 		HandlerRegistry.register(new VariantHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
@@ -125,12 +125,13 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 
 	private ClassifiedNameDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(NameStructureHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
 
 		valueField = new BoundTextField(TAG_VALUE, 30);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY, "official", "colonial", "indigenous"
 		});
+		typeCombo.setEditable(true);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, model);
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
@@ -148,6 +149,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 		setLocationRelativeTo(parent);
 	}
+
 
 	private void initComponents(){
 		bindingManager.bind(valueField);

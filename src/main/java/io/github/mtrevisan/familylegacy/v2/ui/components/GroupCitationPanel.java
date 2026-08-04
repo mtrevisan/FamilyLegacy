@@ -118,6 +118,7 @@ public class GroupCitationPanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]"));
 		setBorder(new TitledBorder("Group Citation"));
@@ -197,7 +198,7 @@ public class GroupCitationPanel extends JPanel{
 
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Dialog ? (Dialog)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, groupHandler, selectedId -> {
 			if(selectedId != null){
 				selectedGroupId = selectedId;

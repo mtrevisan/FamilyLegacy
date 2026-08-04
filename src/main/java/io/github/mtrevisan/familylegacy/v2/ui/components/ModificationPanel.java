@@ -90,6 +90,7 @@ public class ModificationPanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		setLayout(new MigLayout("ins 10,fillx", "[grow]"));
 

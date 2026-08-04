@@ -53,7 +53,9 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	protected String getDisplay(FLEFRecord contact){
 		String address = contact.getValue();
 		String type = contact.getTag();
-		return (address != null ? address : StringUtils.EMPTY) + (type != null ? " (" + type + ")" : StringUtils.EMPTY);
+		return (address != null
+			? address
+			: StringUtils.EMPTY) + (type != null? " (" + type + ")": StringUtils.EMPTY);
 	}
 
 	@Override

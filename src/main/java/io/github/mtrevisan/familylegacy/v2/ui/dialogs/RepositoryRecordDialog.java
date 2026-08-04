@@ -26,12 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ContactListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.IndividualField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -57,7 +57,7 @@ import java.io.Serial;
  *   id: LocalID
  *   name+: ClassifiedName
  *   custodian?: Xref&lt;IndividualRecord&gt;
- *   place?: PlaceStructure
+ *   place?: PlaceCitation
  *   contact*: ContactStructure
  *   note*: Xref&lt;NoteRecord&gt;
  *   restriction?: RestrictionStructure
@@ -88,7 +88,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 	private final ClassifiedNameListPanel namePanel;
 	private final IndividualField custodianField;
-	private final PlaceField placeField;
+	private final PlaceCitationField placeCitationField;
 	private final ContactListPanel contactPanel;
 	private final NoteListPanel notePanel;
 	private final ModificationPanel modificationPanel;
@@ -111,7 +111,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		namePanel = new ClassifiedNameListPanel(TAG_NAME, this, "Names*", model);
 		custodianField = IndividualField.create(TAG_CUSTODIAN, parent, model);
-		placeField = PlaceField.create(TAG_PLACE, parent, model);
+		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
 		contactPanel = new ContactListPanel(TAG_CONTACT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		modificationPanel = new ModificationPanel(this, model);
@@ -124,6 +124,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		setLocationRelativeTo(parent);
 	}
+
 
 	protected void initComponents(){
 		setLayout(new MigLayout("ins 10,fillx,top"));
@@ -149,7 +150,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		// place structure
 		mainPanel.add(new JLabel("Place:"), "align label");
-		mainPanel.add(placeField, "growx");
+		mainPanel.add(placeCitationField, "growx");
 
 		return mainPanel;
 	}
@@ -166,7 +167,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		namePanel.load(record);
 		custodianField.load(record);
-		placeField.load(record);
+		placeCitationField.load(record);
 		contactPanel.load(record);
 		notePanel.load(record);
 		modificationPanel.load(record);
@@ -189,7 +190,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		namePanel.save(record);
 		custodianField.save(record);
-		placeField.save(record);
+		placeCitationField.save(record);
 		contactPanel.save(record);
 		notePanel.save(record);
 		modificationPanel.save(record);

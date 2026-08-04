@@ -70,7 +70,7 @@ public class PartHandler implements RecordTypeHandler<PartDialog>{
 			sb.append(" (")
 				.append(variantCount)
 				.append(" variant")
-				.append(variantCount > 1 ? "s" : StringUtils.EMPTY)
+				.append(variantCount > 1? "s": StringUtils.EMPTY)
 				.append(")");
 		else if(StringUtils.isNotEmpty(record.getId())){
 			sb.append(" (")

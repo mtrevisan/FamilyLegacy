@@ -127,6 +127,7 @@ public class DocumentStructurePanel extends JPanel{
 		initComponents();
 	}
 
+
 	private void initComponents(){
 		setLayout(new BorderLayout(5, 5));
 
@@ -251,7 +252,7 @@ public class DocumentStructurePanel extends JPanel{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Dialog ? (Dialog)parent: null),
+			(parent instanceof Dialog? (Dialog)parent: null),
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);

@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs._DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._DateDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -131,7 +131,8 @@ public class DateField extends JPanel{
 		FLEFRecordHelper.removeChildren(parentRecord, path);
 
 		if(record != null)
-			FLEFRecordHelper.addChild(parentRecord, path, record);
+			for(final FLEFRecord child : record.getChildren())
+				parentRecord.addChild(child);
 	}
 
 	private void createNew(){

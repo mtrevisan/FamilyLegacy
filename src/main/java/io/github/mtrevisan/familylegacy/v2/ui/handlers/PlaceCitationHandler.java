@@ -27,23 +27,35 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
 /**
- * Handler for SOURCE records.
+ * Handler for {@code PLACE_STRUCTURE} entities according to FLEF 0.1.1.
  */
-public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
+public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDialog>{
 
-	public static final String TYPE = "SOURCE";
-	public static final String ID_PREFIX = "S";
+	/** The record type identifier for groups. */
+	public static final String TYPE = "PLACE_STRUCTURE";
+
+	private static final String TAG_PLACE = "PLACE";
+
+
+	private final PlaceHandler placeHandle = new PlaceHandler();
 
 
 	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
 	public String getLabel(){
-		return "Source";
+		return "Place Structure";
 	}
 
 	@Override
@@ -53,27 +65,34 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 
 	@Override
 	public String getIDPrefix(){
-		return ID_PREFIX;
+		return null;
 	}
 
+	@Override
+	public PlaceCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return PlaceCitationDialog.create(parent, model, null);
+	}
+
+	@Override
+	public PlaceCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return PlaceCitationDialog.create(parent, model, record);
+	}
+
+	/**
+	 * Returns a display name for the given place structure.
+	 *
+	 * @param record the place structure record
+	 * @return a human-readable display name
+	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String title = FLEFRecordHelper.getChildValue(record, "TITLE.VALUE");
-		String id = record.getId();
-		if(title != null && !title.isEmpty()){
-			return title + " (" + id + ")";
-		}
-		return id;
-	}
+		if(record == null)
+			return StringUtils.EMPTY;
 
-	@Override
-	public SourceRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return SourceRecordDialog.createEdit(parent, model, record);
-	}
-
-	@Override
-	public SourceRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return SourceRecordDialog.createNew(parent, model);
+		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_PLACE));
+		final FLEFRecord place = model.getRecordById(xref);
+		return placeHandle.getDisplayText(place, model);
 	}
 
 }

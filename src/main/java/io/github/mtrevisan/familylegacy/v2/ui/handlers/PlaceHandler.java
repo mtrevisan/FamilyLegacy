@@ -41,6 +41,12 @@ public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 	public static final String TYPE = "PLACE";
 	public static final String ID_PREFIX = "P";
 
+	private static final String DOT = ".";
+
+	private static final String TAG_NAME = "NAME";
+	private static final String TAG_TEXT = "TEXT";
+	private static final String TAG_VALUE = "VALUE";
+
 
 	@Override
 	public String getLabel(){
@@ -59,13 +65,10 @@ public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final FLEFRecord name = FLEFRecordHelper.findChild(record, "NAME");
-		if(name != null){
-			final String value = FLEFRecordHelper.getChildValue(name, "VALUE");
-			if(value != null && !value.isEmpty()){
-				final String id = record.getId();
-				return value + " (" + id + ")";
-			}
+		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME + DOT + TAG_TEXT + DOT + TAG_VALUE);
+		if(value != null && !value.isEmpty()){
+			final String id = record.getId();
+			return value + " (" + id + ")";
 		}
 		return StringUtils.EMPTY;
 	}

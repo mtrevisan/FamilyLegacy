@@ -22,83 +22,54 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationPanel;
-import net.miginfocom.swing.MigLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RepositoryCitationPanel;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.io.Serial;
 
 
 /**
- * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.0.9.
- * Wraps the SourceCitationPanel in a dialog.
+ * Dialog for editing a {@code REPOSITORY_CITATION} according to FLEF 0.0.9.
+ * Wraps the RepositoryCitationPanel in a dialog.
  */
-public class _SourceCitationDialog extends JDialog{
+public class _RepositoryCitationDialog extends JDialog{
 
 	@Serial
-	private static final long serialVersionUID = -7024588390352183760L;
-
-
-	private static final String PARAM_SOURCE = "SOURCE";
+	private static final long serialVersionUID = 5084034247069196652L;
 
 
 	private final FLEFRecord citationRecord;
 	private boolean saved = false;
 
-	private final SourceCitationPanel panel;
+	private final RepositoryCitationPanel panel;
 
 
-	public static _SourceCitationDialog createNew(final Dialog parent, final FLEFModel model){
-		return new _SourceCitationDialog(parent, model, null);
-	}
+	public _RepositoryCitationDialog(Frame parent, FLEFModel model, FLEFRecord citationRecord){
+		super(parent, citationRecord == null? "Add Repository Citation": "Edit Repository Citation", true);
 
-	public static _SourceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new _SourceCitationDialog(parent, model, record);
-	}
-
-
-	private _SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord citationRecord){
-		super(parent, citationRecord == null? "Add Source Citation": "Edit Source Citation", true);
-
-		this.citationRecord = (citationRecord != null? citationRecord: FLEFRecord.createEmpty());
-		panel = new SourceCitationPanel(this, model, findRecordSourceId(citationRecord));
-		panel.load(citationRecord);
-
+		this.citationRecord = citationRecord != null? citationRecord: FLEFRecord.createEmpty();
+		this.panel = new RepositoryCitationPanel(this, model);
 		initComponents();
-
+		if(citationRecord != null){
+			panel.loadFromRecord(citationRecord);
+		}
 		pack();
-
 		setLocationRelativeTo(parent);
 	}
 
-	public String findRecordSourceId(final FLEFRecord sourceCitation){
-		String id = null;
-		for(final FLEFRecord child : sourceCitation.getChildren())
-			if(PARAM_SOURCE.equals(child.getTag()))
-				id = XRefHelper.extractXRef(child.getValue());
-		return id;
-	}
 
 	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
-
-		// Wrap the panel in a container with top alignment to ensure content is at the top
-		JPanel wrapper = new JPanel(new MigLayout("top", "[grow]", "[grow]"));
-		wrapper.add(panel, "grow");
-		add(wrapper, BorderLayout.CENTER);
+		add(panel, BorderLayout.CENTER);
 
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		JButton saveBtn = new JButton("Save");
@@ -120,10 +91,11 @@ public class _SourceCitationDialog extends JDialog{
 		return saved;
 	}
 
-	public FLEFRecord getRecord(){
-		if(!saved)
+	public FLEFRecord getCitationRecord(){
+		if(!saved){
 			return null;
-		return panel.save(citationRecord);
+		}
+		return panel.saveToRecord(citationRecord);
 	}
 
 }

@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs._SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -173,6 +173,7 @@ public class EventStructurePanel extends JPanel{
 
 		initComponents();
 	}
+
 
 	private void initComponents(){
 		setLayout(new BorderLayout(5, 5));

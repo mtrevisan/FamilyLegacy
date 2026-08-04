@@ -143,7 +143,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		modificationPanel = new ModificationPanel(this, model);
 
 		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
-		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null ? record.getId() : null));
+		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null? record.getId(): null));
 		relationshipPanel = new GeneralRelationshipListPanel(TAG_RELATIONSHIP, this, model);
 
 		initComponents();
@@ -154,6 +154,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		setLocationRelativeTo(parent);
 	}
+
 
 	protected void initComponents(){
 		bindingManager.bind(sexCombo);
