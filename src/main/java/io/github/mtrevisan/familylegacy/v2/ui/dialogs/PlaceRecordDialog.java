@@ -60,7 +60,7 @@ import java.io.Serial;
  * <pre>
  * record PlaceRecord {
  *   id: LocalID
- *   name+: 3ClassifiedName
+ *   name+: ClassifiedName
  *   type?: enum {
  *     address, building, street, hamlet, village, town, municipality, city,
  *     metropolitan_area, county, province, department, district, region,
@@ -206,6 +206,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		return panel;
 	}
 
+
 	@Override
 	protected void loadData(){
 		bindingManager.load(record);
@@ -238,6 +239,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		namePanel.save(record);
 
 		bindingManager.save(record);
+
 		mapQualifiers.save(record);
 		sourcePanel.save(record);
 		placeQualifiers.save(record);

@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._PlaceStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -189,7 +189,7 @@ public class PlaceField extends JPanel{
 		if(record == null)
 			return;
 
-		final PlaceStructureDialog dialog = new PlaceStructureDialog(parent, model, record);
+		final _PlaceStructureDialog dialog = new _PlaceStructureDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

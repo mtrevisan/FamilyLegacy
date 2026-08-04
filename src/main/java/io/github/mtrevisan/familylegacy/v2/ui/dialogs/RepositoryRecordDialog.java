@@ -47,6 +47,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -54,7 +55,7 @@ import java.io.Serial;
  * <pre>
  * record RepositoryRecord {
  *   id: LocalID
- *   name+: NameStructure
+ *   name+: ClassifiedName
  *   custodian?: Xref&lt;IndividualRecord&gt;
  *   place?: PlaceStructure
  *   contact*: ContactStructure

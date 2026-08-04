@@ -44,7 +44,7 @@ import java.util.Set;
  * }
  * </pre>
  */
-public class PlaceStructureDialog extends JDialog{
+public class _PlaceStructureDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6489523892351201199L;
@@ -65,7 +65,7 @@ public class PlaceStructureDialog extends JDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 
-	public PlaceStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord existingRecord){
+	public _PlaceStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord existingRecord){
 		super(parent, "Edit Place Structure", true);
 
 		this.model = model;

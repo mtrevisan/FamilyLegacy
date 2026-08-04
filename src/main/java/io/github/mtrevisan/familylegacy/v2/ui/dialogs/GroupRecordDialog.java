@@ -56,6 +56,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* ONGOING */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -63,7 +64,7 @@ import java.io.Serial;
  * <pre>
  * record GroupRecord {
  *   id: LocalID
- *   name*: NameStructure
+ *   name*: ClassifiedName
  *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   note*: Xref&lt;NoteRecord&gt;
