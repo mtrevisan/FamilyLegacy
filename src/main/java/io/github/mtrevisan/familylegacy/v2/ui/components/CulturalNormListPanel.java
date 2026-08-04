@@ -3,7 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CulturalNormDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CulturalNormRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -36,8 +36,8 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	private final RecordTypeHandler<?> culturalNormHandler;
 
 
-	public CulturalNormListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
-		super(parentDialog, "Cultural Norms", model);
+	public CulturalNormListPanel(final String path, final Dialog parent, final FLEFModel model){
+		super(parent, "Cultural Norms", model);
 
 		this.path = path;
 
@@ -74,7 +74,7 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, culturalNormHandler, selectedId -> {
+			parent, model, culturalNormHandler, selectedId -> {
 			final FLEFRecord culturalNorm = model.getRecordById(selectedId);
 			if(culturalNorm != null && !items.contains(culturalNorm))
 				result[0] = culturalNorm;
@@ -90,7 +90,7 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final CulturalNormDialog dialog = (CulturalNormDialog)culturalNormHandler.createNewDialog(parentDialog, model);
+		final CulturalNormRecordDialog dialog = (CulturalNormRecordDialog)culturalNormHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -99,7 +99,7 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Cultural norm not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Cultural norm not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;

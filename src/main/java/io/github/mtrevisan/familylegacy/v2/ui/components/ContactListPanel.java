@@ -26,8 +26,8 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	private final String path;
 
 
-	public ContactListPanel(final String path, FLEFModel model, Dialog parentDialog){
-		super(parentDialog, "Contact", model);
+	public ContactListPanel(final String path, Dialog parent, FLEFModel model){
+		super(parent, "Contact", model);
 
 		this.path = path;
 	}
@@ -58,8 +58,8 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		final ContactStructurePanel panel = new ContactStructurePanel(model, parentDialog);
-		final JDialog dialog = new JDialog(parentDialog, "Add Contact", Dialog.ModalityType.APPLICATION_MODAL);
+		final ContactStructurePanel panel = new ContactStructurePanel(parent, model);
+		final JDialog dialog = new JDialog(parent, "Add Contact", Dialog.ModalityType.APPLICATION_MODAL);
 		dialog.setLayout(new BorderLayout(10, 10));
 		dialog.add(panel, BorderLayout.CENTER);
 
@@ -84,7 +84,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setLocationRelativeTo(parentDialog);
+		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
 
 		return result[0];
@@ -96,7 +96,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
 		//TODO
-//		final ContactDialog dialog = new ContactDialog(parentDialog, model, null);
+//		final ContactDialog dialog = new ContactDialog(parent, model, null);
 //		dialog.setVisible(true);
 //
 //		return dialog.getRecord();
@@ -106,16 +106,16 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Contact not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Contact not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final ContactStructurePanel panel = new ContactStructurePanel(model, parentDialog);
+		final ContactStructurePanel panel = new ContactStructurePanel(parent, model);
 		panel.loadFromRecord(existing);
 
-		final JDialog dialog = new JDialog(parentDialog, "Edit Contact", Dialog.ModalityType.APPLICATION_MODAL);
+		final JDialog dialog = new JDialog(parent, "Edit Contact", Dialog.ModalityType.APPLICATION_MODAL);
 		dialog.setLayout(new BorderLayout(10, 10));
 		dialog.add(panel, BorderLayout.CENTER);
 
@@ -140,7 +140,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setLocationRelativeTo(parentDialog);
+		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
 
 		return result[0];

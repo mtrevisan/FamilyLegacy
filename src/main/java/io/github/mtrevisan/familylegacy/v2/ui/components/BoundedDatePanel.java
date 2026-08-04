@@ -43,7 +43,7 @@ import java.io.Serial;
  * <p>
  * Structure:
  * <pre>
- * struct Bounded {
+ * struct BoundedDate {
  *   not_before?: QualifiedDate
  *   not_after?: QualifiedDate
  *   // At least one of NOT_BEFORE or NOT_AFTER is required. An omitted bound represents an open-ended limit.

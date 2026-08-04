@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public final class OneOfConstraint extends Constraint{
 	public void validate(final String contextPath, final FLEFRecord record, final List<String> errors){
 		int count = 0;
 		for(final String fieldName : fields)
-			if(record.findChild(fieldName) != null)
+			if(FLEFRecordHelper.findChild(record, fieldName) != null)
 				count ++;
 
 		if(count != 1)

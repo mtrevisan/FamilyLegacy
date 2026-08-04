@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
 
 /* DONE */
@@ -62,7 +63,7 @@ public enum DateType{
 
 	public static DateType fromNode(final FLEFRecord record){
 		for(final DateType type : values())
-			if(record.findChild(type.tagName) != null)
+			if(FLEFRecordHelper.findChild(record, type.tagName) != null)
 				return type;
 		return FULL_DATE;
 	}

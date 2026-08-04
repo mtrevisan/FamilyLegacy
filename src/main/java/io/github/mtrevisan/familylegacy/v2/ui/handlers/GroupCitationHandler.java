@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._GroupCitationDialog;
 
 import java.awt.Dialog;
 
@@ -39,10 +39,9 @@ import java.awt.Dialog;
  * references a GROUP record. This handler provides dialog creation for
  * editing GROUP_CITATION structures.
  */
-public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDialog>{
+public class GroupCitationHandler implements RecordTypeHandler<_GroupCitationDialog>{
 
 	public static final String TYPE = "GROUP_CITATION";
-	public static final String ID_PREFIX = "GC";
 
 
 	@Override
@@ -62,7 +61,7 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 
 	@Override
 	public String getIDPrefix(){
-		return ID_PREFIX;
+		return null;
 	}
 
 	@Override
@@ -78,13 +77,13 @@ public class GroupCitationHandler implements RecordTypeHandler<GroupCitationDial
 	}
 
 	@Override
-	public GroupCitationDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new GroupCitationDialog(parent, model, record);
+	public _GroupCitationDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return new _GroupCitationDialog(parent, model, record);
 	}
 
 	@Override
-	public GroupCitationDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new GroupCitationDialog(parent, model, null);
+	public _GroupCitationDialog createNewDialog(Dialog parent, FLEFModel model){
+		return new _GroupCitationDialog(parent, model, null);
 	}
 
 }

@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._GroupAttributeDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -59,13 +59,10 @@ import java.awt.Dialog;
  *   +1 <<MODIFICATION_STRUCTURE>>    {1:1}
  * </pre>
  */
-public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDialog>{
+public class GroupAttributeHandler implements RecordTypeHandler<_GroupAttributeDialog>{
 
 	/** The record type identifier for group attributes. */
 	public static final String TYPE = "GROUP_ATTRIBUTE";
-
-	/** The ID prefix used for generating new group attribute IDs (e.g., {@code GA}). */
-	public static final String ID_PREFIX = "GA";
 
 
 	@Override
@@ -85,7 +82,7 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 
 	@Override
 	public String getIDPrefix(){
-		return ID_PREFIX;
+		return null;
 	}
 
 	/**
@@ -96,8 +93,8 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 	 * @return a new {@code GroupAttributeDialog} in create mode
 	 */
 	@Override
-	public GroupAttributeDialog createNewDialog(Dialog parent, FLEFModel model){
-		return GroupAttributeDialog.createNew(parent, model);
+	public _GroupAttributeDialog createNewDialog(Dialog parent, FLEFModel model){
+		return _GroupAttributeDialog.createNew(parent, model);
 	}
 
 	/**
@@ -109,8 +106,8 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeDi
 	 * @return a new {@code GroupAttributeDialog} in edit mode
 	 */
 	@Override
-	public GroupAttributeDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return GroupAttributeDialog.createEdit(parent, model, record);
+	public _GroupAttributeDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return _GroupAttributeDialog.createEdit(parent, model, record);
 	}
 
 	/**

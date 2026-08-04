@@ -30,8 +30,8 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 	private final PlaceHandler placeHandler = new PlaceHandler();
 
 
-	public PlaceListPanel(final Dialog parentDialog, final FLEFModel model){
-		super(parentDialog, "Places", model);
+	public PlaceListPanel(final Dialog parent, final FLEFModel model){
+		super(parent, "Places", model);
 	}
 
 
@@ -63,7 +63,7 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 		final String[] result = {null};
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, handler, selectedId -> {
+			parent, model, handler, selectedId -> {
 			if(selectedId != null)
 				result[0] = selectedId;
 		});
@@ -85,7 +85,7 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 	protected String showEditDialog(final String existing){
 		final FLEFRecord rec = model.getRecordById(existing);
 		if(rec == null){
-			JOptionPane.showMessageDialog(parentDialog, "Place record not found: " + existing,
+			JOptionPane.showMessageDialog(parent, "Place record not found: " + existing,
 				"Error", JOptionPane.ERROR_MESSAGE);
 
 			return null;

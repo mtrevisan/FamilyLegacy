@@ -13,7 +13,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameStructureHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -28,9 +28,8 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
 /**
- * Dialog for editing a {@code PERSONAL_NAME_STRUCTURE} according to FLEF 0.1.0.
+ * Dialog for editing a {@code PERSONAL_NAME_STRUCTURE} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
@@ -67,6 +66,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 
 	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_PART = "PART";
 	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
@@ -74,7 +74,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new PersonalNameStructureHandler());
-		HandlerRegistry.register(new TextValueVariantHandler());
+		HandlerRegistry.register(new VariantHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
@@ -111,7 +111,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY, "official", "colonial", "indigenous"
 		});
-		partPanel = new PartListPanel(this, model);
+		partPanel = new PartListPanel(TAG_PART, this, model);
 		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
@@ -134,7 +134,9 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		tabbedPane.addTab("References", createReferencesPanel());
 		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			this::save,
+			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 

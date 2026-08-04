@@ -27,13 +27,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class GroupHandler implements RecordTypeHandler<GroupDialog>{
+public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
 
 	/** The record type identifier for groups. */
 	public static final String TYPE = "GROUP";
@@ -64,8 +64,8 @@ public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 	 * @return a new {@code GroupDialog} in create mode
 	 */
 	@Override
-	public GroupDialog createNewDialog(Dialog parent, FLEFModel model){
-		return GroupDialog.createNew(parent, model);
+	public GroupRecordDialog createNewDialog(Dialog parent, FLEFModel model){
+		return GroupRecordDialog.createNew(parent, model);
 	}
 
 	/**
@@ -77,8 +77,8 @@ public class GroupHandler implements RecordTypeHandler<GroupDialog>{
 	 * @return a new {@code GroupDialog} in edit mode
 	 */
 	@Override
-	public GroupDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return GroupDialog.createEdit(parent, model, record);
+	public GroupRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return GroupRecordDialog.createEdit(parent, model, record);
 	}
 
 	/**

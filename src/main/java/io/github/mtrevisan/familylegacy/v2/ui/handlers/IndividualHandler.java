@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -35,7 +35,7 @@ import java.util.List;
 
 
 /* DONE */
-public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
+public class IndividualHandler implements RecordTypeHandler<IndividualRecordDialog>{
 
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_PART = "PART";
@@ -63,13 +63,13 @@ public class IndividualHandler implements RecordTypeHandler<IndividualDialog>{
 	}
 
 	@Override
-	public IndividualDialog createNewDialog(Dialog parent, FLEFModel model){
-		return IndividualDialog.createNew(parent, model);
+	public IndividualRecordDialog createNewDialog(Dialog parent, FLEFModel model){
+		return IndividualRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public IndividualDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return IndividualDialog.createEdit(parent, model, record);
+	public IndividualRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return IndividualRecordDialog.createEdit(parent, model, record);
 	}
 
 	@Override

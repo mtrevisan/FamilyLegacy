@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchStatusDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._ResearchStatusDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -36,7 +36,7 @@ import java.awt.Dialog;
 /**
  * Handler for RESEARCH_STATUS records.
  */
-public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDialog>{
+public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusDialog>{
 
 	public static final String TYPE = "RESEARCH_STATUS";
 	public static final String ID_PREFIX = "RS";
@@ -92,13 +92,13 @@ public class ResearchStatusHandler implements RecordTypeHandler<ResearchStatusDi
 	}
 
 	@Override
-	public ResearchStatusDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new ResearchStatusDialog(parent, model, record);
+	public _ResearchStatusDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return new _ResearchStatusDialog(parent, model, record);
 	}
 
 	@Override
-	public ResearchStatusDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new ResearchStatusDialog(parent, model);
+	public _ResearchStatusDialog createNewDialog(Dialog parent, FLEFModel model){
+		return new _ResearchStatusDialog(parent, model);
 	}
 
 }

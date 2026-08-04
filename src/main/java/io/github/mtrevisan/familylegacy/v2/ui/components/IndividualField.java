@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -144,14 +144,12 @@ public class IndividualField extends JPanel{
 	public void save(final FLEFRecord parentRecord){
 		FLEFRecordHelper.removeChildren(parentRecord, path);
 
-		if(record != null){
-			final FLEFRecord wrapper = FLEFRecord.createChildWithValue(path, record.getFormattedId());
-			parentRecord.addChild(wrapper);
-		}
+		if(record != null)
+			FLEFRecordHelper.updateChildValue(parentRecord, path, record.getFormattedId());
 	}
 
 	private void createNew(){
-		final IndividualDialog dialog = IndividualDialog.createNew(parent, model);
+		final IndividualRecordDialog dialog = IndividualRecordDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -177,7 +175,7 @@ public class IndividualField extends JPanel{
 			return;
 		}
 
-		final IndividualDialog dialog = IndividualDialog.createEdit(parent, model, record);
+		final IndividualRecordDialog dialog = IndividualRecordDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

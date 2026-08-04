@@ -3,7 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._DateDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,7 +29,7 @@ import java.io.Serial;
  * </p>
  * <p>
  * This panel shows a summary of the date and provides "Edit..." and "Clear" buttons.
- * The full editing is delegated to {@link DateDialog}.
+ * The full editing is delegated to {@link _DateDialog}.
  * </p>
  */
 public class DateFieldPanel extends JPanel{
@@ -39,7 +39,7 @@ public class DateFieldPanel extends JPanel{
 
 
 	private final FLEFModel model;
-	private final Dialog parentDialog;
+	private final Dialog parent;
 	private final String label;
 
 	private FLEFRecord dateRecord; // the DATE node (wrapper)
@@ -50,13 +50,13 @@ public class DateFieldPanel extends JPanel{
 	/**
 	 * Constructs a new DateFieldPanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent dialog
 	 * @param label  the label to display (e.g., "Valid From")
+	 * @param model  the FLEF model
 	 */
-	public DateFieldPanel(FLEFModel model, Dialog parent, String label){
+	public DateFieldPanel(Dialog parent, String label, FLEFModel model){
 		this.model = model;
-		this.parentDialog = parent;
+		this.parent = parent;
 
 		this.label = label;
 
@@ -85,7 +85,7 @@ public class DateFieldPanel extends JPanel{
 	}
 
 	private void editDate(){
-		FLEFRecord result = DateDialog.showDateDialog(parentDialog, model, "Edit " + label, dateRecord);
+		FLEFRecord result = _DateDialog.showDateDialog(parent, model, "Edit " + label, dateRecord);
 		if(result != null){
 			dateRecord = result;
 			updateSummary();
@@ -93,7 +93,7 @@ public class DateFieldPanel extends JPanel{
 	}
 
 	private void clearDate(){
-		if(dateRecord != null && !(JOptionPane.showConfirmDialog(parentDialog,
+		if(dateRecord != null && !(JOptionPane.showConfirmDialog(parent,
 			"Clear " + label + "?", "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)){
 			return;
 		}
@@ -274,7 +274,7 @@ public class DateFieldPanel extends JPanel{
 			return true;
 		}
 		// Delegate full validation to DatePanel (which knows the structure)
-		DatePanel tempPanel = new DatePanel(parentDialog, model);
+		DatePanel tempPanel = new DatePanel(parent, model);
 		tempPanel.load(dateRecord);
 		return tempPanel.validateData();
 	}

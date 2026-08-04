@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.1.1
-// PROTOCOL_DATE = 2026-08-03
+// PROTOCOL_DATE = 2026-08-04
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -14,8 +14,6 @@
 // - blocked_by relationships SHOULD form a DAG.
 // - follow_up relationships SHOULD be acyclic.
 
-// TODO:
-//  - QualifiedDate è il caso che contenga sia la "data interpretata", sia "la data così come è scritta nel documento"?
 
 // ============================================================
 // Base scalar types
@@ -108,7 +106,7 @@ record IndividualRecord {
   source*: SourceCitation                  // source citations supporting facts about this individual
   preferred_image?: struct {
     uri: Uri           // resource URI pointing to a preferred image of this individual
-    crop?: CropCoord   // specifies the portion of the image that should be displayed as the preferred representation
+    crop?: CropRect    // specifies the portion of the image that should be displayed as the preferred representation
   }
   restriction?: RestrictionStructure         // privacy and distribution restrictions for this individual
   modification: ModificationStructure        // creation and update metadata for this record
@@ -293,14 +291,14 @@ record EventParticipationRecord {
 // relationship with its own properties (dates, evidence, conclusions).
 record GroupRecord {
   id: LocalID
-  name*: NameStructure   // names associated with the group. For a family in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
+  name*: ClassifiedName   // names associated with the group. For a family in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
   source*: SourceCitation
   preferred_image?: struct {
     uri: Uri
-    crop?: CropCoord   // specifies the portion of the image that should be displayed as the preferred representation
+    crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
   }
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -339,17 +337,17 @@ record GroupAttributeRecord {
 // ============================================================
 
 // embedded
-// A generic naming structure used for places, organizations, repositories, groups, and other non-person entities. Unlike PersonalNameStructure, this
-// structure does not decompose the name into culturally-specific components.
-struct NameStructure {
-  text: TextValue
+struct ClassifiedName {
   type?: enum { official, colonial, indigenous } | Text   // geographical/institutional
+  text: NameStructure
 }
 
 // embedded
-// A textual value representing a name, address, title, label, or other historically relevant text associated with an entity. Multiple TextValue
-// structures may be recorded when the same entity is known by different historical, linguistic, official, or customary names.
-struct TextValue {
+// A textual designation associated with an entity, source, place, organization, repository, group, or other object.
+// This structure represents a complete textual expression and may be used for names, titles, labels, or similar identifying text.
+// Unlike PersonalNameStructure, this structure does not decompose the text into culturally-specific components such as given names, family names,
+// patronymics, titles, or lineage elements.
+struct NameStructure {
   value: Text                  // the primary textual value
   variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations
   locale?: LocaleCode
@@ -434,7 +432,7 @@ EntityParticipant = oneof {
 // records in order to model changing jurisdictions and historical geography.
 record PlaceRecord {
   id: LocalID
-  name+: NameStructure   // the name of the place formatted for display and address generation
+  name+: ClassifiedName   // the name of the place formatted for display and address generation
   type?: enum {
     address, building, street, hamlet, village, town, municipality, city,
     metropolitan_area, county, province, department, district, region,
@@ -513,7 +511,7 @@ record NoteRecord {
 // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
 record RepositoryRecord {
   id: LocalID
-  name+: NameStructure                 // the official name of the archive in which the stated source material is stored
+  name+: ClassifiedName                // the official name of the archive in which the stated source material is stored
   custodian?: Xref<IndividualRecord>   // the individual acting as custodian of the repository or its source material
   place?: PlaceStructure               // the location of the repository
   contact*: ContactStructure
@@ -590,7 +588,7 @@ record CulturalNormRecord {
 // Citation relationships SHOULD NOT form cycles.
 record SourceRecord {
   id: LocalID
-  title+: TextValue              // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
+  title+: NameStructure          // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
   author?: Text                  // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
   date?: DateStructure           // the date this source was created
   place?: PlaceStructure         // the place this source was created
@@ -609,16 +607,20 @@ record SourceRecord {
 struct SourceCitation {
   source: Xref<SourceRecord>
   location?: Text          // specific location within the information referenced, in the form of a label and value pair (e.g., 'Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'line', 'image', etc.)
-  crop?: CropCoord         // Used when the citation refers to a specific region of an image rather than the entire image.
+  crop?: CropRect          // Used when the citation refers to a specific region of an image rather than the entire image.
   note*: Text
   evidence?: EvidenceQualifiers
 }
 
-// Top-left and bottom-right coordinates (expressed in image pixels) of the enclosing box inside an image.
-// TOP_LEFT.x MUST be <= BOTTOM_RIGHT.x, TOP_LEFT.y MUST be <= BOTTOM_RIGHT.y.
-struct CropCoord {
-  top_left: struct { x: Int, y: Int }
-  bottom_right: struct { x: Int, y: Int }
+// Cropping rectangle expressed in image pixels.
+struct CropRect {
+  x: Int
+  y: Int
+  width: Int
+  height: Int
+
+  require width > 0
+  require height > 0
 }
 
 // embedded
@@ -656,20 +658,20 @@ struct DateStructure {
 // embedded
 // Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time.
 DateValue = oneof {
-  point: QualifiedDate   // a single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence.
-  bounded: Bounded       // the exact date is unknown but is known to fall within the specified interval. The interval represents uncertainty about the date itself, not the duration of the fact.
-  spanning: Spanning     // the fact itself extends across the specified interval. Unlike BOUNDED, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition.
+  point: QualifiedDate     // a single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence.
+  bounded: BoundedDate     // the exact date is unknown but is known to fall within the specified interval. The interval represents uncertainty about the date itself, not the duration of the fact.
+  spanning: SpanningDate   // the fact itself extends across the specified interval. Unlike BoundedDate, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition.
 }
 
 // embedded
-struct Bounded {
+struct BoundedDate {
   not_before?: QualifiedDate
   not_after?: QualifiedDate
   require one_of(not_before, not_after)   // At least one of NOT_BEFORE or NOT_AFTER is required. An omitted bound represents an open-ended limit. When both bounds are present, NOT_BEFORE MUST be <= NOT_AFTER.
 }
 
 // embedded
-struct Spanning {
+struct SpanningDate {
   from?: QualifiedDate
   to?: QualifiedDate
   require one_of(from, to)   // At least one of FROM or TO is required. An omitted bound represents an open-ended limit. When both bounds are present, FROM MUST be <= TO.
@@ -896,13 +898,6 @@ IdentityCandidate = oneof {
 // Qualifiers describing the evidentiary assessment of a specific assertion.
 // These qualifiers apply to the assertion being cited and do not express the reliability, authority, or quality of the source as a whole.
 struct EvidenceQualifiers {
-  certainty?: enum {
-    // Measures confidence in the assertion itself: whether the asserted fact, event, relationship, attribute, or association is believed to be
-    // correct, after evaluating the available evidence.
-    proven,      // supported by sufficient evidence and accepted as correct
-    challenged,  // questioned by conflicting, incomplete, or uncertain evidence
-    disproven    // demonstrated to be incorrect based on available evidence
-  }
   source_type?: enum { original, derived }                      // Classification of the source itself.
   information_type?: enum { primary, secondary, undetermined }  // Classification of the information provided by the source.
   evidence_type?: enum { direct, indirect, negative }           // Nature of the evidentiary contribution toward the assertion.

@@ -109,10 +109,10 @@ public class GroupCitationPanel extends JPanel{
 	/**
 	 * Creates a new GroupCitationPanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
+	 * @param model  the FLEF model
 	 */
-	public GroupCitationPanel(FLEFModel model, Component parent){
+	public GroupCitationPanel(Component parent, FLEFModel model){
 		this.model = model;
 		this.parent = parent;
 		initComponents();

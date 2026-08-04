@@ -30,15 +30,18 @@ import java.util.List;
 import java.util.Set;
 
 
+/* ONGOING */
 /**
- * Dialog for editing a {@code PLACE_STRUCTURE} according to FLEF 0.0.9.
+ * Dialog for editing a {@code PLACE_STRUCTURE} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * PLACE_STRUCTURE :=
- * n PLACE @<XREF:PLACE>@    {1:1}
- *   +1 <<SOURCE_CITATION>>    {0:M}
- *   +1 <<EVIDENCE_QUALIFIERS>>    {0:1}
+ * struct PlaceStructure {
+ *   place: Xref<PlaceRecord>
+ *   original_text?: Text
+ *   source*: SourceCitation
+ *   evidence?: EvidenceQualifiers
+ * }
  * </pre>
  */
 public class PlaceStructureDialog extends JDialog{
@@ -156,7 +159,7 @@ public class PlaceStructureDialog extends JDialog{
 
 		if(newSourceId != null){
 			final FLEFRecord citationRecord = FLEFRecord.createChildWithValue("SOURCE", XRefHelper.formatXRef(newSourceId));
-			final SourceCitationDialog citationDialog = SourceCitationDialog.createEdit(this, model, citationRecord);
+			final _SourceCitationDialog citationDialog = _SourceCitationDialog.createEdit(this, model, citationRecord);
 			citationDialog.setVisible(true);
 
 			if(citationDialog.isSaved()){
@@ -198,7 +201,7 @@ public class PlaceStructureDialog extends JDialog{
 		}
 
 		final FLEFRecord existing = sourceCitations.get(idx);
-		final SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
+		final _SourceCitationDialog dialog = _SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

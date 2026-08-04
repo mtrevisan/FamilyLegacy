@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TranscribedTextDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._TranscribedTextDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -119,10 +119,10 @@ public class ContactStructurePanel extends JPanel{
 	/**
 	 * Creates a new ContactStructurePanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
+	 * @param model  the FLEF model
 	 */
-	public ContactStructurePanel(FLEFModel model, Component parent){
+	public ContactStructurePanel(Component parent, FLEFModel model){
 		this.model = model;
 		this.parent = parent;
 		this.modificationPanel = new ModificationPanel((Dialog)parent, model);
@@ -295,20 +295,12 @@ public class ContactStructurePanel extends JPanel{
 		return null;
 	}
 
-	private FLEFRecord findOrCreateNameRecord(FLEFRecord parent){
-		if(parent == null)
-			return null;
-		// Find NAME under the parent (CONTACT)
-		FLEFRecord name = FLEFRecordHelper.findChild(parent, "NAME");
-		if(name == null){
-			name = FLEFRecord.createChildWithValue("NAME", nameField.getText().trim());
-			parent.addChild(name);
-		}
-		return name;
+	private void findOrCreateNameRecord(FLEFRecord parent){
+		FLEFRecordHelper.updateChildValue(parent, "NAME", nameField.getText().trim());
 	}
 
 	private void addTranscription(){
-		TranscribedTextDialog dialog = new TranscribedTextDialog(
+		_TranscribedTextDialog dialog = new _TranscribedTextDialog(
 			(parent instanceof JDialog? (JDialog)parent: null),
 			null
 		);
@@ -330,7 +322,7 @@ public class ContactStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		FLEFRecord transRecord = transcriptionRecords.get(idx);
-		TranscribedTextDialog dialog = new TranscribedTextDialog(
+		_TranscribedTextDialog dialog = new _TranscribedTextDialog(
 			(parent instanceof JDialog? (JDialog)parent: null),
 			transRecord
 		);

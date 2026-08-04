@@ -53,8 +53,8 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 	private final String path;
 
 
-	public TranslationListPanel(final String path, FLEFModel model, Dialog parentDialog){
-		super(parentDialog, "Translations", model);
+	public TranslationListPanel(final String path, Dialog parent, FLEFModel model){
+		super(parent, "Translations", model);
 
 		this.path = path;
 	}
@@ -109,7 +109,7 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 	}
 
 	private TranslationEntry showTranslationDialog(TranslationEntry initial){
-		JDialog dialog = new JDialog(parentDialog, initial == null ? "Add Translation" : "Edit Translation", true);
+		JDialog dialog = new JDialog(parent, initial == null ? "Add Translation" : "Edit Translation", true);
 		dialog.setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]10[]"));
 
 		BoundTextArea valueArea = new BoundTextArea("VALUE", 5, 25);
@@ -150,7 +150,7 @@ public class TranslationListPanel extends AbstractListPanel<TranslationListPanel
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setLocationRelativeTo(parentDialog);
+		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
 
 		return result[0];

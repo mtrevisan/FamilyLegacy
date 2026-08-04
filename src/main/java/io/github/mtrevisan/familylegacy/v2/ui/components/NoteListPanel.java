@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -72,22 +72,22 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Constructs a NoteListPanel without a border.
 	 *
-	 * @param parentDialog the parent dialog
+	 * @param parent the parent dialog
 	 * @param model        the FLEF model
 	 */
-	public NoteListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
-		this(path, parentDialog, "Notes", model);
+	public NoteListPanel(final String path, final Dialog parent, final FLEFModel model){
+		this(path, parent, "Notes", model);
 	}
 
 	/**
 	 * Constructs a NoteListPanel with a titled border.
 	 *
-	 * @param parentDialog the parent dialog
+	 * @param parent the parent dialog
 	 * @param borderTitle  the border title, or {@code null} for no border
 	 * @param model        the FLEF model
 	 */
-	public NoteListPanel(final String path, final Dialog parentDialog, final String borderTitle, final FLEFModel model){
-		super(parentDialog, borderTitle, model);
+	public NoteListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
+		super(parent, borderTitle, model);
 
 		this.path = path;
 
@@ -125,7 +125,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, noteHandler, selectedId -> {
+			parent, model, noteHandler, selectedId -> {
 				final FLEFRecord note = model.getRecordById(selectedId);
 				if(note != null && !items.contains(note))
 					result[0] = note;
@@ -141,7 +141,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final NoteDialog dialog = (NoteDialog)noteHandler.createNewDialog(parentDialog, model);
+		final NoteRecordDialog dialog = (NoteRecordDialog)noteHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -150,13 +150,13 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Note not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Note not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final JDialog dialog = noteHandler.createEditDialog(parentDialog, model, existing);
+		final JDialog dialog = noteHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

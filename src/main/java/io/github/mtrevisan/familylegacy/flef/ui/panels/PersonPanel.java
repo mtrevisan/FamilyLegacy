@@ -24,13 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui.panels;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.AbstractCalendarParser;
 import io.github.mtrevisan.familylegacy.flef.helpers.parsers.DateParser;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.LabelAutoToolTip;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.PopupMouseAdapter;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import net.miginfocom.swing.MigLayout;

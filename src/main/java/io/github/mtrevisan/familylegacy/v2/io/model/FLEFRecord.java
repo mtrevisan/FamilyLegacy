@@ -163,44 +163,6 @@ public class FLEFRecord{
 	}
 
 	/**
-	 * Find the first child with a given tag.
-	 */
-	public FLEFRecord findChild(final String tag){
-		for(final FLEFRecord child : children){
-			if(tag.equals(child.getTag())){
-				return child;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Find all children with a given tag.
-	 */
-	public List<FLEFRecord> findChildren(final String tag){
-		final List<FLEFRecord> result = new ArrayList<>();
-		for(final FLEFRecord child : children){
-			if(tag.equals(child.getTag())){
-				result.add(child);
-			}
-		}
-		return result;
-	}
-
-	/**
-	 * Returns the value of a child with a given tag, or null.
-	 */
-	public String getChildValue(final String tag){
-		final FLEFRecord child = findChild(tag);
-		return child != null? child.getValue(): null;
-	}
-
-	public void copyChildrenFrom(final FLEFRecord record){
-		for(final FLEFRecord child : record.getChildren())
-			addChild(child);
-	}
-
-	/**
 	 * Checks whether this record's value is a reference to another record
 	 * (i.e. wrapped in @...@, but not the special @VOID@ constant).
 	 */
@@ -213,14 +175,6 @@ public class FLEFRecord{
 	 */
 	public boolean isVoid(){
 		return XRefHelper.isVoidReference(value);
-	}
-
-	/**
-	 * If this record's value is a reference, returns the referenced ID
-	 * (without the surrounding @ symbols). Otherwise returns {@code null}.
-	 */
-	public String getReferenceId(){
-		return XRefHelper.extractXRef(value);
 	}
 
 	public boolean isEmpty(){

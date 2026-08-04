@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._RelationshipDialog;
 
 import java.awt.Dialog;
 
@@ -39,7 +39,7 @@ import java.awt.Dialog;
  * references a RELATIONSHIP record. This handler provides dialog creation for
  * editing Relationship structures.
  */
-public class RelationshipHandler implements RecordTypeHandler<RelationshipDialog>{
+public class RelationshipHandler implements RecordTypeHandler<_RelationshipDialog>{
 
 	public static final String TYPE = "Relationship";
 	public static final String ID_PREFIX = "REL";
@@ -85,13 +85,13 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipDialog
 	}
 
 	@Override
-	public RelationshipDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return new RelationshipDialog(parent, model, record);
+	public _RelationshipDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _RelationshipDialog(parent, model, record);
 	}
 
 	@Override
-	public RelationshipDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return new RelationshipDialog(parent, model, null);
+	public _RelationshipDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _RelationshipDialog(parent, model, null);
 	}
 
 }

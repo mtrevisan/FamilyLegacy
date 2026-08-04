@@ -69,6 +69,15 @@ public interface RecordTypeHandler<T extends JDialog>{
 	String getDisplayText(FLEFRecord record, FLEFModel model);
 
 	/**
+	 * Creates a dialog to create a new record.
+	 *
+	 * @param parent the parent frame
+	 * @param model  the FLEF model
+	 * @return the dialog (already configured but not shown)
+	 */
+	T createNewDialog(Dialog parent, FLEFModel model);
+
+	/**
 	 * Creates a dialog to edit an existing record.
 	 *
 	 * @param parent the parent frame
@@ -77,14 +86,5 @@ public interface RecordTypeHandler<T extends JDialog>{
 	 * @return the dialog (already configured but not shown)
 	 */
 	T createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record);
-
-	/**
-	 * Creates a dialog to create a new record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @return the dialog (already configured but not shown)
-	 */
-	T createNewDialog(Dialog parent, FLEFModel model);
 
 }

@@ -4,7 +4,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._RelationshipDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -41,8 +41,8 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	private final RecordTypeHandler<?> relationshipHandler;
 
 
-	public GeneralRelationshipListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
-		super(parentDialog, "Relationships", model);
+	public GeneralRelationshipListPanel(final String path, final Dialog parent, final FLEFModel model){
+		super(parent, "Relationships", model);
 
 		this.path = path;
 
@@ -79,7 +79,7 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, relationshipHandler, selectedId -> {
+			parent, model, relationshipHandler, selectedId -> {
 				final FLEFRecord relationship = model.getRecordById(selectedId);
 				if(relationship != null && !items.contains(relationship))
 					result[0] = relationship;
@@ -92,7 +92,7 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final RelationshipDialog dialog = (RelationshipDialog)relationshipHandler.createNewDialog(parentDialog, model);
+		final _RelationshipDialog dialog = (_RelationshipDialog)relationshipHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getCitationRecord(): null);
@@ -101,13 +101,13 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Relationship not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Relationship not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final RelationshipDialog dialog = (RelationshipDialog)relationshipHandler.createEditDialog(parentDialog, model, existing);
+		final _RelationshipDialog dialog = (_RelationshipDialog)relationshipHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

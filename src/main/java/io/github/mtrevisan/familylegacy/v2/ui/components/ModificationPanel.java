@@ -65,7 +65,7 @@ public class ModificationPanel extends JPanel{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final FLEFModel model;
-	private final Dialog parentDialog;
+	private final Dialog parent;
 
 	// UI components
 	// Creation fields
@@ -82,7 +82,7 @@ public class ModificationPanel extends JPanel{
 	 */
 	public ModificationPanel(final Dialog parent, FLEFModel model){
 		this.model = model;
-		this.parentDialog = parent;
+		this.parent = parent;
 
 		creationCommentArea = new BoundTextArea("CREATION.COMMENT", 2, 30);
 		updateListPanel = new UpdateListPanel(parent, model);

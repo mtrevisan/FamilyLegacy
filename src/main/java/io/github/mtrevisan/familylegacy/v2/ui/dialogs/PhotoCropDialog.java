@@ -24,36 +24,25 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
-import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
-import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ScaledImage;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.images.ScaledImage;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JComponent;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.UIManager;
-import java.awt.Container;
-import java.awt.EventQueue;
-import java.awt.Frame;
+import java.awt.BorderLayout;
+import java.awt.Cursor;
+import java.awt.Dialog;
+import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.function.Consumer;
 
 
 public final class PhotoCropDialog extends JDialog{
@@ -62,102 +51,73 @@ public final class PhotoCropDialog extends JDialog{
 	private static final long serialVersionUID = 3777867436237271707L;
 
 
-	//record components:
-	private final JPanel recordPanel = new JPanel();
-
+	private BufferedImage image;
 	private ScaledImage imageHolder;
 
-	private final Map<String, TreeMap<Integer, Map<String, Object>>> store;
-	private Map<String, Object> selectedRecord;
-
-	private Consumer<Map<String, Object>> onCloseGracefully;
+	private boolean isSaved;
 
 
-	public static PhotoCropDialog create(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PhotoCropDialog dialog = new PhotoCropDialog(store, parent);
-		dialog.initialize(false);
+	public static PhotoCropDialog create(final Dialog parent){
+		final PhotoCropDialog dialog = new PhotoCropDialog(parent);
+		dialog.initialize(parent, false);
 		return dialog;
 	}
 
-	public static PhotoCropDialog createSelectOnly(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
-		final PhotoCropDialog dialog = new PhotoCropDialog(store, parent);
-		dialog.initialize(true);
+	public static PhotoCropDialog createViewOnly(final Dialog parent){
+		final PhotoCropDialog dialog = new PhotoCropDialog(parent);
+		dialog.initialize(parent, true);
 		return dialog;
 	}
 
 
-	private PhotoCropDialog(final Map<String, TreeMap<Integer, Map<String, Object>>> store, final Frame parent){
+	private PhotoCropDialog(final Dialog parent){
 		super(parent, true);
-
-		this.store = store;
 	}
 
 
-	public PhotoCropDialog withOnCloseGracefully(final Consumer<Map<String, Object>> onCloseGracefully){
-		this.onCloseGracefully = onCloseGracefully;
-
-		return this;
-	}
-
-	private void initialize(final boolean viewOnly){
-		initRecordComponents(viewOnly);
+	private void initialize(final Dialog parent, final boolean viewOnly){
+		initComponents(viewOnly);
 
 		initLayout();
+
+		pack();
+
+		// Calculate dialog size dynamically based on screen bounds (e.g. 60% width, 70% height)
+		final Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment()
+			.getMaximumWindowBounds();
+		final int width = (int)(screenBounds.width * 0.3 * (4. / 3.));
+		final int height = (int)(screenBounds.height * 0.3);
+		setSize(width, height);
+
+		setLocationRelativeTo(parent);
 	}
 
-	private void initRecordComponents(final boolean viewOnly){
+	private void initComponents(final boolean viewOnly){
 		setTitle("Define crop");
 
-		imageHolder = (viewOnly
-			? ScaledImage.createViewOnly()
-			: ScaledImage.create());
+		if(viewOnly)
+			imageHolder = ScaledImage.createViewOnly();
+		else{
+			imageHolder = ScaledImage.create();
+
+			imageHolder.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+		}
 	}
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
-		initRecordLayout(recordPanel);
-
-		getRootPane().registerKeyboardAction(this::closeAction, GUIHelper.ESCAPE_STROKE, JComponent.WHEN_IN_FOCUSED_WINDOW);
-
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow]"));
-		add(recordPanel, "grow");
-	}
-
-	private void initRecordLayout(final Container recordPanel){
+		final JPanel recordPanel = new JPanel();
 		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow,fill]"));
 
 		recordPanel.add(imageHolder, "grow");
-	}
 
-	private void closeAction(final ActionEvent evt){
-		if(closeAction())
-			setVisible(false);
-	}
+		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow]"));
+		add(recordPanel, "grow");
 
-	private boolean closeAction(){
-		if(onCloseGracefully != null)
-			onCloseGracefully.accept(selectedRecord);
-
-		return true;
-	}
-
-	public void loadData(final int photoID, final String photoCrop) throws IOException{
-		final Map<String, Object> record = store.get(EntityManager.TABLE_NAME_MEDIA)
-			.get(photoID);
-		selectedRecord = (record != null? new HashMap<>(record): null);
-		if(selectedRecord != null){
-			final String filePath = EntityManager.extractRecordIdentifier(selectedRecord);
-
-			loadData(filePath);
-
-			if(photoCrop != null){
-				//draw crop box
-				final String[] crop = StringUtils.split(photoCrop);
-				final Rectangle rect = new Rectangle(Integer.parseInt(crop[0]), Integer.parseInt(crop[1]),
-					Integer.parseInt(crop[2]), Integer.parseInt(crop[3]));
-				imageHolder.setCrop(rect);
-			}
-		}
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			this::save,
+			() -> setVisible(false));
+		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
 	public void loadData(final String filename) throws IOException{
@@ -169,79 +129,36 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 	public void loadData(final File file) throws IOException{
-		imageHolder.setRectangularImage(ResourceHelper.readImage(file));
+		final BufferedImage newImage = ResourceHelper.readImage(file);
+		if(newImage == null){
+			JOptionPane.showMessageDialog(getParent(),
+				"Could not load image from the current source.",
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return;
+		}
+
+		isSaved = false;
+		image = newImage;
+		imageHolder.setRectangularImage(image);
+	}
+
+	public void save(){
+		isSaved = true;
+
+		setVisible(false);
+	}
+
+	public boolean isSaved(){
+		return isSaved;
+	}
+
+	public BufferedImage getImage(){
+		return image;
 	}
 
 	public Rectangle getCrop(){
 		return imageHolder.getCrop();
-	}
-
-	public void showDialog(){
-		setLocationRelativeTo(getParent());
-		setVisible(true);
-	}
-
-
-
-	public static void main(final String[] args){
-		try{
-			final String lookAndFeelName = UIManager.getSystemLookAndFeelClassName();
-			UIManager.setLookAndFeel(lookAndFeelName);
-		}
-		catch(final Exception ignored){}
-
-		final Map<String, TreeMap<Integer, Map<String, Object>>> store = new HashMap<>();
-
-		final TreeMap<Integer, Map<String, Object>> media = new TreeMap<>();
-		store.put("media", media);
-		final Map<String, Object> media1 = new HashMap<>();
-		media1.put("id", 1);
-		media1.put("identifier", "media 1");
-		media1.put("title", "title 1");
-		media1.put("type", "photo");
-		media1.put("photo_projection", "rectangular");
-		media.put((Integer)media1.get("id"), media1);
-
-
-		EventQueue.invokeLater(() -> {
-			final JFrame parent = new JFrame();
-			final PhotoCropDialog dialog = create(store, parent);
-//			final PhotoCropDialog dialog = createSelectOnly(store, parent);
-			try{
-				dialog.loadData("/images/addPhoto.boy.jpg");
-			}
-			catch(final IOException e){
-				e.printStackTrace();
-			}
-
-			final Object listener = new Object(){
-				@EventHandler
-				public void error(final BusExceptionEvent exceptionEvent){
-					final Throwable cause = exceptionEvent.getCause();
-					JOptionPane.showMessageDialog(parent, cause.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-				}
-
-				@EventHandler
-				public void refresh(final EditEvent editCommand){}
-			};
-			EventBusService.subscribe(listener);
-
-			dialog.addWindowListener(new java.awt.event.WindowAdapter(){
-				@Override
-				public void windowClosing(final java.awt.event.WindowEvent e){
-					System.out.println(store);
-					System.exit(0);
-				}
-			});
-			dialog.setSize(420, 295);
-			dialog.addComponentListener(new java.awt.event.ComponentAdapter() {
-				@Override
-				public void componentResized(final java.awt.event.ComponentEvent e) {
-					System.out.println("Resized to " + e.getComponent().getSize());
-				}
-			});
-			dialog.showDialog();
-		});
 	}
 
 }

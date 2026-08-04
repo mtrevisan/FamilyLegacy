@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
-import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
@@ -36,7 +36,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.images.ImagePreview;
+import io.github.mtrevisan.familylegacy.v2.ui.images.ImagePreview;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

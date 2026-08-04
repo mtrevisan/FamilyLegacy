@@ -15,6 +15,7 @@ import java.awt.event.MouseEvent;
 import java.io.Serial;
 
 
+/* DONE */
 /**
  * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol:
  * source_type, information_type, and evidence_type.

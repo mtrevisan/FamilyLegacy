@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ConclusionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._ConclusionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -64,22 +64,22 @@ public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Constructs a ConclusionListPanel without a border.
 	 *
-	 * @param parentDialog the parent dialog
+	 * @param parent the parent dialog
 	 * @param model        the FLEF model
 	 */
-	public ConclusionListPanel(final String path, final Dialog parentDialog, final FLEFModel model){
-		this(path, parentDialog, "Conclusions", model);
+	public ConclusionListPanel(final String path, final Dialog parent, final FLEFModel model){
+		this(path, parent, "Conclusions", model);
 	}
 
 	/**
 	 * Constructs a ConclusionListPanel with a titled border.
 	 *
-	 * @param parentDialog the parent dialog
+	 * @param parent the parent dialog
 	 * @param borderTitle  the border title, or {@code null} for no border
 	 * @param model        the FLEF model
 	 */
-	public ConclusionListPanel(final String path, final Dialog parentDialog, final String borderTitle, final FLEFModel model){
-		super(parentDialog, borderTitle, model);
+	public ConclusionListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
+		super(parent, borderTitle, model);
 
 		this.path = path;
 
@@ -117,7 +117,7 @@ public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, conclusionHandler, selectedId -> {
+			parent, model, conclusionHandler, selectedId -> {
 				final FLEFRecord conclusion = model.getRecordById(selectedId);
 				if(conclusion != null && !items.contains(conclusion))
 					result[0] = conclusion;
@@ -133,7 +133,7 @@ public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final ConclusionDialog dialog = (ConclusionDialog)conclusionHandler.createNewDialog(parentDialog, model);
+		final _ConclusionDialog dialog = (_ConclusionDialog)conclusionHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -142,13 +142,13 @@ public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Conclusion not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Conclusion not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final JDialog dialog = conclusionHandler.createEditDialog(parentDialog, model, existing);
+		final JDialog dialog = conclusionHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

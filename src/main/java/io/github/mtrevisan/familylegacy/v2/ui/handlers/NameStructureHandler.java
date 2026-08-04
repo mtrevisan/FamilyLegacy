@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -51,8 +52,6 @@ public class NameStructureHandler implements RecordTypeHandler<NameStructureDial
 
 	/** The record type identifier for groups. */
 	public static final String TYPE = "NAME_STRUCTURE";
-	/** The ID prefix used for generating new group IDs (e.g., {@code NS}). */
-	public static final String ID_PREFIX = "NS";
 
 
 	@Override
@@ -72,31 +71,17 @@ public class NameStructureHandler implements RecordTypeHandler<NameStructureDial
 
 	@Override
 	public String getIDPrefix(){
-		return ID_PREFIX;
+		return null;
 	}
 
-	/**
-	 * Creates a new group dialog for creating a new group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @return a new {@code NameStructureDialog} in create mode
-	 */
 	@Override
 	public NameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
 		return NameStructureDialog.createNew(parent, model);
 	}
 
-	/**
-	 * Creates a new group dialog for editing an existing group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @param record the group record to edit
-	 * @return a new {@code NameStructureDialog} in edit mode
-	 */
 	@Override
-	public NameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public NameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
 		return NameStructureDialog.createEdit(parent, model, record);
 	}
 

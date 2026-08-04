@@ -2,13 +2,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.EventDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._EventDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class EventHandler implements RecordTypeHandler<EventDialog>{
+public class EventHandler implements RecordTypeHandler<_EventDialog>{
 
 	public static final String TYPE = "EVENT";
 	public static final String ID_PREFIX = "E";
@@ -62,13 +62,13 @@ public class EventHandler implements RecordTypeHandler<EventDialog>{
 	}
 
 	@Override
-	public EventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new EventDialog(parent, model, record);
+	public _EventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return new _EventDialog(parent, model, record);
 	}
 
 	@Override
-	public EventDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new EventDialog(parent, model);
+	public _EventDialog createNewDialog(Dialog parent, FLEFModel model){
+		return new _EventDialog(parent, model);
 	}
 
 }

@@ -43,7 +43,7 @@ import java.io.Serial;
  * <p>
  * Structure:
  * <pre>
- * struct Spanning {
+ * struct SpanningDate {
  *   from?: QualifiedDate
  *   to?: QualifiedDate
  *   require one_of(from, to)

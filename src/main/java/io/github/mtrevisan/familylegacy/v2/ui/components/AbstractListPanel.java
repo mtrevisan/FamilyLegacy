@@ -60,7 +60,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	private static final long serialVersionUID = -2135553287905371181L;
 
 
-	protected final Dialog parentDialog;
+	protected final Dialog parent;
 	private final String title;
 
 	protected final FLEFModel model;
@@ -73,12 +73,12 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Constructs an AbstractListPanel.
 	 *
-	 * @param parentDialog the parent dialog (for showing modal dialogs)
+	 * @param parent the parent dialog (for showing modal dialogs)
 	 * @param title        the title for the TitledBorder, or {@code null} for no border
 	 * @param model        the FLEF model
 	 */
-	protected AbstractListPanel(final Dialog parentDialog, final String title, final FLEFModel model){
-		this.parentDialog = parentDialog;
+	protected AbstractListPanel(final Dialog parent, final String title, final FLEFModel model){
+		this.parent = parent;
 		this.title = title;
 
 		this.model = model;
@@ -89,8 +89,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Constructs an AbstractListPanel without a border.
 	 */
-	protected AbstractListPanel(final FLEFModel model, final Dialog parentDialog){
-		this(parentDialog, null, model);
+	protected AbstractListPanel(final Dialog parent, final FLEFModel model){
+		this(parent, null, model);
 	}
 
 
@@ -170,7 +170,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(idx == -1)
 			return;
 
-		final int confirm = JOptionPane.showConfirmDialog(parentDialog,
+		final int confirm = JOptionPane.showConfirmDialog(parent,
 			"Remove this item?", "Confirm",
 			JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){

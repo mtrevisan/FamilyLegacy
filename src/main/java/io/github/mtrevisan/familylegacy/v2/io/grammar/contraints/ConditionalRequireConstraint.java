@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
 import java.util.List;
 import java.util.Objects;
@@ -38,7 +39,7 @@ public final class ConditionalRequireConstraint extends Constraint{
 
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final List<String> errors){
-		final FLEFRecord condChild = record.findChild(conditionField);
+		final FLEFRecord condChild = FLEFRecordHelper.findChild(record, conditionField);
 
 		// Skip validation if condition field is missing or value does not match
 		if(condChild == null || !Objects.equals(condChild.getValue(), conditionValue))
@@ -46,7 +47,7 @@ public final class ConditionalRequireConstraint extends Constraint{
 
 		// Validate mandatory presence of required fields when condition evaluates to true
 		for(final String reqField : requiredFields)
-			if(record.findChild(reqField) == null)
+			if(FLEFRecordHelper.findChild(record, reqField) == null)
 				errors.add(String.format(
 					"Constraint violation at '%s': field '%s' is required because '%s' is '%s'",
 					contextPath, reqField, conditionField, conditionValue

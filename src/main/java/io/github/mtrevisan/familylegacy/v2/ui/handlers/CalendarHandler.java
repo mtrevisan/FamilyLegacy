@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CalendarDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._CalendarDialog;
 
 import java.awt.Dialog;
 
@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for CALENDAR records.
  */
-public class CalendarHandler implements RecordTypeHandler<CalendarDialog>{
+public class CalendarHandler implements RecordTypeHandler<_CalendarDialog>{
 
 	public static final String TYPE = "CALENDAR";
 	public static final String ID_PREFIX = "C";
@@ -67,13 +67,13 @@ public class CalendarHandler implements RecordTypeHandler<CalendarDialog>{
 	}
 
 	@Override
-	public CalendarDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new CalendarDialog(parent, model, record);
+	public _CalendarDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return new _CalendarDialog(parent, model, record);
 	}
 
 	@Override
-	public CalendarDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new CalendarDialog(parent, model);
+	public _CalendarDialog createNewDialog(Dialog parent, FLEFModel model){
+		return new _CalendarDialog(parent, model);
 	}
 
 }

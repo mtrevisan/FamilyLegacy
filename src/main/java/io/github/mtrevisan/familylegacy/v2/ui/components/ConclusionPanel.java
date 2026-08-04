@@ -62,7 +62,7 @@ public class ConclusionPanel extends JPanel{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final FLEFModel model;
-	private final Dialog parentDialog;
+	private final Dialog parent;
 
 	private final String path;
 
@@ -96,13 +96,13 @@ public class ConclusionPanel extends JPanel{
 	 * @param model  the FLEF model
 	 */
 	public ConclusionPanel(final String path, Dialog parent, FLEFModel model){
-		this.parentDialog = parent;
+		this.parent = parent;
 
 		this.model = model;
 		this.path = path;
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
-		this.researchPanel = new ResearchStatusListPanel(model, parent);
+		this.researchPanel = new ResearchStatusListPanel(parent, model);
 		this.sourcePanel = new SourceCitationListPanel("SOURCE", parent, model);
 
 		initComponents();
@@ -175,7 +175,7 @@ public class ConclusionPanel extends JPanel{
 	}
 
 	private void browsePreferred(){
-		String input = JOptionPane.showInputDialog(parentDialog,
+		String input = JOptionPane.showInputDialog(parent,
 			"Enter the XREF ID of the preferred record (e.g., @E123@, @I456@):",
 			"Select Preferred Record", JOptionPane.PLAIN_MESSAGE);
 		if(!StringUtils.isEmpty(input)){
@@ -248,19 +248,16 @@ public class ConclusionPanel extends JPanel{
 		bindingManager.save(record);
 
 		// Save RESOLVES
-		for(String id : resolvesPanel.getItems()){
-			record.addChild(FLEFRecord.createChildWithValue("RESOLVES", XRefHelper.formatXRef(id)));
-		}
+		for(String id : resolvesPanel.getItems())
+			FLEFRecordHelper.updateChildValue(record, "RESOLVES", XRefHelper.formatXRef(id));
 
 		// Save PREFERRED
-		if(preferredId != null && !preferredId.isEmpty()){
-			record.addChild(FLEFRecord.createChildWithValue("PREFERRED", preferredId));
-		}
+		if(preferredId != null && !preferredId.isEmpty())
+			FLEFRecordHelper.updateChildValue(record, "PREFERRED", preferredId);
 
 		// Save RESEARCH
-		for(String id : researchPanel.getItems()){
-			record.addChild(FLEFRecord.createChildWithValue("RESEARCH", XRefHelper.formatXRef(id)));
-		}
+		for(String id : researchPanel.getItems())
+			FLEFRecordHelper.updateChildValue(record, "RESEARCH", XRefHelper.formatXRef(id));
 
 		// Save SOURCE_CITATION
 		for(FLEFRecord citation : sourcePanel.getItems()){
@@ -312,7 +309,7 @@ public class ConclusionPanel extends JPanel{
 	public boolean validateData(){
 		String context = contextField.getText().trim();
 		if(context.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(parentDialog,
+			GUIHelper.showValidationErrorAndFocus(parent,
 				"CONTEXT is required for a conclusion.",
 				null, null, contextField);
 
@@ -321,7 +318,7 @@ public class ConclusionPanel extends JPanel{
 
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
 		if(proofStatus == null || proofStatus.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(parentDialog,
+			GUIHelper.showValidationErrorAndFocus(parent,
 				"PROOF_STATUS is required for a conclusion.",
 				null, null, proofStatusCombo);
 

@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.CredibilityComboBoxModel;
-import io.github.mtrevisan.familylegacy.services.ResourceHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;

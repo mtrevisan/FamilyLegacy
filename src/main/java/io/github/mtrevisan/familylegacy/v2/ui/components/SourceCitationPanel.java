@@ -119,10 +119,10 @@ public class SourceCitationPanel extends JPanel{
 	 *
 	 * Creates a new SourceCitationPanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
+	 * @param model  the FLEF model
 	 */
-	public SourceCitationPanel(final String sourceId, final FLEFModel model, final Dialog parent){
+	public SourceCitationPanel(final Dialog parent, final FLEFModel model, final String sourceId){
 		this.sourceId = sourceId;
 
 		this.model = model;
@@ -346,9 +346,8 @@ public class SourceCitationPanel extends JPanel{
 		// ---- Save manual fields ----
 
 		// SOURCE
-		if(sourceId != null && !sourceId.isEmpty()){
-			citationRecord.addChild(FLEFRecord.createChildWithValue(PARAM_SOURCE, XRefHelper.formatXRef(sourceId)));
-		}
+		if(sourceId != null && !sourceId.isEmpty())
+			FLEFRecordHelper.updateChildValue(citationRecord, PARAM_SOURCE, XRefHelper.formatXRef(sourceId));
 
 		// NOTE (0:M) – manual
 		for(String id : noteIds){

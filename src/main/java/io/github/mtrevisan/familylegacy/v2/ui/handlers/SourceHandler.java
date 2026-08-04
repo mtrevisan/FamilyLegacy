@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._SourceDialog;
 
 import java.awt.Dialog;
 
@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for SOURCE records.
  */
-public class SourceHandler implements RecordTypeHandler<SourceDialog>{
+public class SourceHandler implements RecordTypeHandler<_SourceDialog>{
 
 	public static final String TYPE = "SOURCE";
 	public static final String ID_PREFIX = "S";
@@ -67,13 +67,13 @@ public class SourceHandler implements RecordTypeHandler<SourceDialog>{
 	}
 
 	@Override
-	public SourceDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return SourceDialog.createEdit(parent, model, record);
+	public _SourceDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return _SourceDialog.createEdit(parent, model, record);
 	}
 
 	@Override
-	public SourceDialog createNewDialog(Dialog parent, FLEFModel model){
-		return SourceDialog.createNew(parent, model);
+	public _SourceDialog createNewDialog(Dialog parent, FLEFModel model){
+		return _SourceDialog.createNew(parent, model);
 	}
 
 }

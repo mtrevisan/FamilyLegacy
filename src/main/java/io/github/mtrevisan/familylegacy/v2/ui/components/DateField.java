@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._DateDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -54,13 +54,13 @@ public class DateField extends JPanel{
 	private final JTextField displayField = new JTextField(20);
 
 
-	public static DateField create(final Dialog parentDialog, final String dialogTitle, final FLEFModel model){
-		return new DateField(null, parentDialog, dialogTitle, model);
+	public static DateField create(final Dialog parent, final String dialogTitle, final FLEFModel model){
+		return new DateField(null, parent, dialogTitle, model);
 	}
 
-	public static DateField createWithWrapperTag(final String path, final Dialog parentDialog, final String dialogTitle,
+	public static DateField createWithWrapperTag(final String path, final Dialog parent, final String dialogTitle,
 			final FLEFModel model){
-		return new DateField(path, parentDialog, dialogTitle, model);
+		return new DateField(path, parent, dialogTitle, model);
 	}
 
 
@@ -135,7 +135,7 @@ public class DateField extends JPanel{
 	}
 
 	private void createNew(){
-		final DateDialog dialog = DateDialog.createNew(parent, model, dialogTitle);
+		final _DateDialog dialog = _DateDialog.createNew(parent, model, dialogTitle);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -148,7 +148,7 @@ public class DateField extends JPanel{
 			return;
 		}
 
-		final DateDialog dialog = DateDialog.createEdit(parent, model, dialogTitle, record);
+		final _DateDialog dialog = _DateDialog.createEdit(parent, model, dialogTitle, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

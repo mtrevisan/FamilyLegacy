@@ -48,8 +48,9 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 
 	/** The record type identifier for groups. */
 	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
-	/** The ID prefix used for generating new group IDs (e.g., {@code NS}). */
-	public static final String ID_PREFIX = "PNS";
+
+	private static final String TAG_TEXT = "TEXT";
+	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override
@@ -59,7 +60,7 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 
 	@Override
 	public String getLabel(){
-		return "Name Structure";
+		return "Personal Name Structure";
 	}
 
 	@Override
@@ -69,7 +70,7 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 
 	@Override
 	public String getIDPrefix(){
-		return ID_PREFIX;
+		return null;
 	}
 
 	/**
@@ -105,17 +106,14 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null){
+		if(record == null)
 			return StringUtils.EMPTY;
-		}
 
-		// Find NAME_STRUCTURE -> TEXT -> VALUE
-		FLEFRecord textValue = FLEFRecordHelper.findChild(record, "TEXT");
+		FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
 		if(textValue != null){
-			String value = FLEFRecordHelper.getChildValue(textValue, "VALUE");
-			if(value != null && !value.isEmpty()){
+			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
+			if(value != null && !value.isEmpty())
 				return value;
-			}
 		}
 
 		// Fallback to the record ID

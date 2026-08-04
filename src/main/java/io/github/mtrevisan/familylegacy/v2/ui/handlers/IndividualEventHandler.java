@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualEventDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._IndividualEventDialog;
 
 import java.awt.Dialog;
 
@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for INDIVIDUAL_EVENT records.
  */
-public class IndividualEventHandler implements RecordTypeHandler<IndividualEventDialog>{
+public class IndividualEventHandler implements RecordTypeHandler<_IndividualEventDialog>{
 
 	public static final String TYPE = "INDIVIDUAL_EVENT";
 	public static final String ID_PREFIX = "IE";
@@ -67,13 +67,13 @@ public class IndividualEventHandler implements RecordTypeHandler<IndividualEvent
 	}
 
 	@Override
-	public IndividualEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new IndividualEventDialog(parent, model, record);
+	public _IndividualEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return new _IndividualEventDialog(parent, model, record);
 	}
 
 	@Override
-	public IndividualEventDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new IndividualEventDialog(parent, model);
+	public _IndividualEventDialog createNewDialog(Dialog parent, FLEFModel model){
+		return new _IndividualEventDialog(parent, model);
 	}
 
 }

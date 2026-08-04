@@ -4,8 +4,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteListEditorDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._NoteListEditorDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._RelationshipDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -52,9 +52,9 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	private final RecordTypeHandler<?> relationshipHandler;
 
 
-	public MemberRelationshipListPanel(final Dialog parentDialog, final FLEFModel model,
+	public MemberRelationshipListPanel(final Dialog parent, final FLEFModel model,
 			final Supplier<String> groupIdSupplier){
-		super(parentDialog, "Members", model);
+		super(parent, "Members", model);
 
 		this.groupIdSupplier = groupIdSupplier;
 
@@ -140,7 +140,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final String[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, individualHandler, id -> result[0] = id);
+			parent, model, individualHandler, id -> result[0] = id);
 		dialog.setVisible(true);
 
 		final String individualId = result[0];
@@ -149,13 +149,13 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final String groupId = groupIdSupplier.get();
 		if(groupId == null){
-			JOptionPane.showMessageDialog(parentDialog, "Group ID not available.", "Error",
+			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final RelationshipDialog relDialog = new RelationshipDialog(parentDialog, model, null, groupId,
+		final _RelationshipDialog relDialog = new _RelationshipDialog(parent, model, null, groupId,
 			individualId);
 		relDialog.setVisible(true);
 
@@ -174,7 +174,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 				before.add(id);
 		}
 
-		final JDialog createDialog = individualHandler.createNewDialog(parentDialog, model);
+		final JDialog createDialog = individualHandler.createNewDialog(parent, model);
 		createDialog.setVisible(true);
 
 		String newIndividualId = null;
@@ -191,13 +191,13 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final String groupId = groupIdSupplier.get();
 		if(groupId == null){
-			JOptionPane.showMessageDialog(parentDialog, "Group ID not available.", "Error",
+			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final RelationshipDialog relDialog = new RelationshipDialog(parentDialog, model, null, groupId,
+		final _RelationshipDialog relDialog = new _RelationshipDialog(parent, model, null, groupId,
 			newIndividualId);
 		relDialog.setVisible(true);
 
@@ -210,13 +210,13 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Member Relationship not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Member Relationship not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final RelationshipDialog dialog = (RelationshipDialog)relationshipHandler.createEditDialog(parentDialog, model,
+		final _RelationshipDialog dialog = (_RelationshipDialog)relationshipHandler.createEditDialog(parent, model,
 			existing);
 		dialog.setVisible(true);
 		return (dialog.isSaved()? dialog.getCitationRecord(): existing);
@@ -243,13 +243,13 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final FLEFRecord individual = model.getRecordById(otherId);
 		if(individual == null){
-			JOptionPane.showMessageDialog(parentDialog, "Individual not found: " + otherId, "Error",
+			JOptionPane.showMessageDialog(parent, "Individual not found: " + otherId, "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return;
 		}
 
-		final JDialog editDialog = individualHandler.createEditDialog(parentDialog, model, individual);
+		final JDialog editDialog = individualHandler.createEditDialog(parent, model, individual);
 		editDialog.setVisible(true);
 
 		final int pos = list.getSelectedIndex();
@@ -266,7 +266,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		if(relationship == null)
 			return;
 
-		final NoteListEditorDialog dialog = new NoteListEditorDialog(parentDialog, model, relationship);
+		final _NoteListEditorDialog dialog = new _NoteListEditorDialog(parent, model, relationship);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
 			final int pos = list.getSelectedIndex();

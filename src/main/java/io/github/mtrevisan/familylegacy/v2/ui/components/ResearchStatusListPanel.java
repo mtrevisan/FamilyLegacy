@@ -30,8 +30,8 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	private final ResearchStatusHandler researchHandler = new ResearchStatusHandler();
 
 
-	public ResearchStatusListPanel(FLEFModel model, Dialog parentDialog){
-		super(parentDialog, "Research References", model);
+	public ResearchStatusListPanel(Dialog parent, FLEFModel model){
+		super(parent, "Research References", model);
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 		final String[] result = {null};
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ResearchStatusHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, handler, selectedId -> {
+			parent, model, handler, selectedId -> {
 			if(selectedId != null){
 				result[0] = selectedId;
 			}
@@ -87,12 +87,12 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	protected String showEditDialog(String existing){
 		FLEFRecord rec = model.getRecordById(existing);
 		if(rec == null){
-			JOptionPane.showMessageDialog(parentDialog, "Research record not found: " + existing,
+			JOptionPane.showMessageDialog(parent, "Research record not found: " + existing,
 				"Error", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ResearchStatusHandler.TYPE);
-		JDialog dialog = handler.createEditDialog(parentDialog, model, rec);
+		JDialog dialog = handler.createEditDialog(parent, model, rec);
 		dialog.setVisible(true);
 
 		// Return the same ID (the record was edited in place)
@@ -102,7 +102,7 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	@Override
 	protected boolean validateItem(String item){
 		if(items.contains(item)){
-			JOptionPane.showMessageDialog(parentDialog,
+			JOptionPane.showMessageDialog(parent,
 				"This research reference is already in the list.", "Duplicate", JOptionPane.WARNING_MESSAGE);
 			return false;
 		}

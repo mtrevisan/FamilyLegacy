@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.ui;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.GroupDialog;
 import io.github.mtrevisan.familylegacy.flef.ui.dialogs.MediaDialog;

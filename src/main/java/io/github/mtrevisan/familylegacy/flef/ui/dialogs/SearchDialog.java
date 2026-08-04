@@ -25,7 +25,7 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
-import io.github.mtrevisan.familylegacy.flef.helpers.FileHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;

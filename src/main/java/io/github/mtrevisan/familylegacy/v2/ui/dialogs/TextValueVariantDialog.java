@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +47,6 @@ import java.awt.FlowLayout;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.1.
  * <p>
@@ -72,8 +71,6 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -4887775439277994973L;
 
 
-	private static final String DOT = ".";
-
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 	private static final String TAG_SYSTEM = "SYSTEM";
@@ -82,7 +79,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 
 	static{
-		HandlerRegistry.register(new TextValueVariantHandler());
+		HandlerRegistry.register(new VariantHandler());
 	}
 
 
@@ -108,14 +105,13 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 
 	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(TextValueVariantHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(VariantHandler.TYPE));
 
 		systemField = new BoundTextField(TAG_SYSTEM, 15);
 		systemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
 		typeField = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
 		valueField = new BoundTextField(TAG_VALUE, 20);
-
 
 		initComponents();
 
@@ -173,20 +169,13 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	@Override
 	public void loadData(){
-		if(record.findChild(TAG_PHONETIC) != null){
-			systemField.setPath(TAG_PHONETIC + DOT + TAG_SYSTEM);
-			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
-
-			phoneticRadio.setSelected(true);
-		}
-		else if(record.findChild(TAG_TRANSCRIPTION) != null){
-			systemField.setPath(TAG_TRANSCRIPTION + DOT + TAG_SYSTEM);
-			typeField.setPath(TAG_TRANSCRIPTION + DOT + TAG_TYPE);
-			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
-
-			transcriptionRadio.setSelected(true);
-		}
 		bindingManager.load(record);
+
+		String tag = record.getTag();
+		if(TAG_PHONETIC.equals(tag))
+			phoneticRadio.setSelected(true);
+		else if(TAG_TRANSCRIPTION.equals(tag))
+			transcriptionRadio.setSelected(true);
 
 		updateFieldsState();
 	}
@@ -195,7 +184,6 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		final boolean isTranscription = transcriptionRadio.isSelected();
 		typeLabel.setEnabled(isTranscription);
 		typeField.setEnabled(isTranscription);
-		systemLabel.setText("System*:");
 	}
 
 	@Override
@@ -220,17 +208,10 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	@Override
 	public void saveData(){
 		FLEFRecordHelper.removeAllChildren(record);
-		if(phoneticRadio.isSelected()){
-			systemField.setPath(TAG_PHONETIC + DOT + TAG_SYSTEM);
-			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
-
-			phoneticRadio.setSelected(true);
-		}
-		else if(transcriptionRadio.isSelected()){
-			systemField.setPath(TAG_TRANSCRIPTION + DOT + TAG_SYSTEM);
-			typeField.setPath(TAG_TRANSCRIPTION + DOT + TAG_TYPE);
-			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
-		}
+		if(phoneticRadio.isSelected())
+			record.setTag(TAG_PHONETIC);
+		else if(transcriptionRadio.isSelected())
+			record.setTag(TAG_TRANSCRIPTION);
 		bindingManager.save(record);
 	}
 

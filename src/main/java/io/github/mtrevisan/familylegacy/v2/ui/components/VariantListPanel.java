@@ -26,10 +26,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
@@ -57,23 +58,23 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -298718064629353117L;
 
 
+	private static final String DOT = ".";
+
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 
 
+	private final String path;
+
 	private final RecordTypeHandler<?> variantHandler;
 
 
-	public VariantListPanel(final Dialog parentDialog, final FLEFModel model){
-		super(parentDialog, "Variants", model);
+	public VariantListPanel(final String path, final Dialog parent, final FLEFModel model){
+		super(parent, "Variants", model);
 
-		variantHandler = HandlerRegistry.getHandler(TextValueVariantHandler.TYPE);
-	}
+		this.path = path;
 
-	public VariantListPanel(final Dialog parentDialog, final String borderTitle, final FLEFModel model){
-		super(parentDialog, borderTitle, model);
-
-		variantHandler = HandlerRegistry.getHandler(TextValueVariantHandler.TYPE);
+		variantHandler = HandlerRegistry.getHandler(VariantHandler.TYPE);
 	}
 
 
@@ -103,8 +104,7 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		// For text variants, "Add" is the same as "Create New"
-		return showCreateNewDialog();
+		return null;
 	}
 
 	/**
@@ -112,7 +112,7 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final TextValueVariantDialog dialog = TextValueVariantDialog.createNew(parentDialog, model);
+		final TextValueVariantDialog dialog = TextValueVariantDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -121,7 +121,7 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Text Variant entry not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Text Variant entry not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -138,13 +138,13 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	private FLEFRecord showTextVariantDialog(FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Text Variant not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Text Variant not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final JDialog dialog = TextValueVariantDialog.createEdit(parentDialog, model, existing);
+		final JDialog dialog = TextValueVariantDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
@@ -152,8 +152,8 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void load(final FLEFRecord record){
-		final FLEFRecord variantPhonetic = record.findChild(TAG_PHONETIC);
-		final FLEFRecord variantTranscription = record.findChild(TAG_TRANSCRIPTION);
+		final FLEFRecord variantPhonetic = FLEFRecordHelper.findChild(record, path + DOT + TAG_PHONETIC);
+		final FLEFRecord variantTranscription = FLEFRecordHelper.findChild(record, path + DOT + TAG_TRANSCRIPTION);
 		List<FLEFRecord> items = new ArrayList<>();
 		items.add(variantPhonetic);
 		items.add(variantTranscription);
@@ -161,8 +161,12 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		for(final FLEFRecord variant : getItems())
-			record.addChild(variant);
+		List<FLEFRecord> items = getItems();
+		if(!items.isEmpty()){
+			final FLEFRecord variant = FLEFRecordHelper.getOrCreateTargetNode(record, path);
+			for(final FLEFRecord item : items)
+				variant.addChild(item);
+		}
 	}
 
 }

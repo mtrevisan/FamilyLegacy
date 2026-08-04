@@ -106,10 +106,10 @@ public class RepositoryCitationPanel extends JPanel{
 	/**
 	 * Creates a new RepositoryCitationPanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
+	 * @param model  the FLEF model
 	 */
-	public RepositoryCitationPanel(FLEFModel model, Component parent){
+	public RepositoryCitationPanel(Component parent, FLEFModel model){
 		this.model = model;
 		this.parent = parent;
 		initComponents();

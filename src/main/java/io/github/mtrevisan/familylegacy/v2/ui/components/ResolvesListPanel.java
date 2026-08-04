@@ -18,8 +18,8 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 	private static final long serialVersionUID = 4468567692587615182L;
 
 
-	public ResolvesListPanel(FLEFModel model, Dialog parentDialog){
-		super(parentDialog, "Resolves (Conflicting Events/Associations)", model);
+	public ResolvesListPanel(FLEFModel model, Dialog parent){
+		super(parent, "Resolves (Conflicting Events/Associations)", model);
 	}
 
 
@@ -46,7 +46,7 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 
 	@Override
 	protected String showAddDialog(){
-		String input = JOptionPane.showInputDialog(parentDialog,
+		String input = JOptionPane.showInputDialog(parent,
 			"Enter the XREF ID of the conflicting event or association (e.g., @E123@):",
 			"Add Resolves", JOptionPane.PLAIN_MESSAGE);
 		if(!StringUtils.isEmpty(input)){
@@ -66,7 +66,7 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 
 	@Override
 	protected String showEditDialog(String existing){
-		String input = JOptionPane.showInputDialog(parentDialog,
+		String input = JOptionPane.showInputDialog(parent,
 			"Edit XREF ID:", "Edit Resolves", JOptionPane.PLAIN_MESSAGE);
 		if(!StringUtils.isEmpty(input)){
 			return input.trim();
@@ -78,7 +78,7 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 	protected boolean validateItem(String item){
 		// Check for duplicates
 		if(items.contains(item)){
-			JOptionPane.showMessageDialog(parentDialog,
+			JOptionPane.showMessageDialog(parent,
 				"This ID is already in the list.", "Duplicate", JOptionPane.WARNING_MESSAGE);
 			return false;
 		}

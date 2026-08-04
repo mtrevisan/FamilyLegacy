@@ -118,10 +118,10 @@ public class DocumentStructurePanel extends JPanel{
 	/**
 	 * Creates a new DocumentStructurePanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
+	 * @param model  the FLEF model
 	 */
-	public DocumentStructurePanel(FLEFModel model, Component parent){
+	public DocumentStructurePanel(Component parent, FLEFModel model){
 		this.model = model;
 		this.parent = parent;
 		initComponents();

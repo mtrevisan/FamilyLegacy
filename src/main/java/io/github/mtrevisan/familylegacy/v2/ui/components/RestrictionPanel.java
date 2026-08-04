@@ -64,7 +64,7 @@ public class RestrictionPanel extends JPanel{
 	private static final long serialVersionUID = -8538135290834556765L;
 
 
-	private final Dialog parentDialog;
+	private final Dialog parent;
 
 	private final String path;
 
@@ -82,7 +82,7 @@ public class RestrictionPanel extends JPanel{
 	 * @param parent the parent dialog (used for showing message dialogs)
 	 */
 	public RestrictionPanel(final String path, final Dialog parent){
-		this.parentDialog = parent;
+		this.parent = parent;
 
 		this.path = path;
 
@@ -215,8 +215,8 @@ public class RestrictionPanel extends JPanel{
 	 * @param message the error message
 	 */
 	private void showError(final String message){
-		if(parentDialog != null)
-			JOptionPane.showMessageDialog(parentDialog, message, "Validation Error", JOptionPane.ERROR_MESSAGE);
+		if(parent != null)
+			JOptionPane.showMessageDialog(parent, message, "Validation Error", JOptionPane.ERROR_MESSAGE);
 		else
 			System.err.println("Validation Error: " + message);
 	}

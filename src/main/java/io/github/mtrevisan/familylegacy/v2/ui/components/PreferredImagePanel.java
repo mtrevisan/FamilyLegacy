@@ -1,37 +1,32 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PhotoCropDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serial;
 
 
+/* DONE */
 /**
  * Panel for selecting and managing a preferred image associated with a record.
  * The image is referenced via a Source record, and can be cropped.
@@ -42,34 +37,41 @@ public class PreferredImagePanel extends JPanel{
 	private static final long serialVersionUID = 6086547520717314054L;
 
 
+	private static final String DOT = ".";
+
 	private static final String TAG_URI = "URI";
 	private static final String TAG_CROP = "CROP";
-	private static final String SPACE = " ";
+	private static final String TAG_CROP_X = TAG_CROP + DOT + "X";
+	private static final String TAG_CROP_Y = TAG_CROP + DOT + "Y";
+	private static final String TAG_CROP_WIDTH = TAG_CROP + DOT + "WIDTH";
+	private static final String TAG_CROP_HEIGHT = TAG_CROP + DOT + "HEIGHT";
 
+
+	private final PhotoCropDialog cropDialog;
 
 	private final Dialog parent;
-	private final FLEFModel model;
 
 	private final String path;
 
 	private final JButton imageButton;
-	private String imageId;
-	private String cropString;
+
+	private String imageUri;
+	private Rectangle cropRect;
 
 
 	/**
 	 * Constructs a PreferredImagePanel.
 	 *
 	 * @param parent the parent dialog (for showing modal dialogs)
-	 * @param model  the FLEF model
 	 */
-	public PreferredImagePanel(final String path, final Dialog parent, final FLEFModel model){
+	public PreferredImagePanel(final String path, final Dialog parent){
 		this.parent = parent;
-		this.model = model;
 
 		this.path = path;
 
 		this.imageButton = new JButton();
+
+		cropDialog = PhotoCropDialog.create(parent);
 
 		initComponents();
 	}
@@ -82,28 +84,16 @@ public class PreferredImagePanel extends JPanel{
 		imageButton.setIcon(createPlaceholderIcon());
 		imageButton.setToolTipText("Left-click to select an image, right-click for options");
 
-		// Left click: select and crop
-		imageButton.addActionListener(e -> selectAndCropImage());
-
-		// Right click: popup menu with "Clear"
-		final JPopupMenu popup = new JPopupMenu();
-		final JMenuItem clearItem = new JMenuItem("Clear");
-		clearItem.addActionListener(e -> clearImage());
-		popup.add(clearItem);
-
-		imageButton.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mousePressed(final MouseEvent e){
-				if(e.isPopupTrigger())
-					popup.show(imageButton, e.getX(), e.getY());
-			}
-
-			@Override
-			public void mouseReleased(final MouseEvent e){
-				if(e.isPopupTrigger())
-					popup.show(imageButton, e.getX(), e.getY());
-			}
-		});
+		GUIHelper.installBehavior(imageButton,
+			this::editCrop,
+			this::createNewItem,
+			this::removeItem,
+			builder -> {
+				builder.item("Create New...", this::createNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Edit Crop...", this::editCrop);
+				builder.selectionSensitiveItem("Remove", this::removeItem);
+			});
 
 		add(imageButton, "growx");
 	}
@@ -114,14 +104,30 @@ public class PreferredImagePanel extends JPanel{
 	 * @param record the record containing the PREFERRED_IMAGE child
 	 */
 	public void load(final FLEFRecord record){
-		final FLEFRecord pref = FLEFRecordHelper.findChild(record, path);
-		if(pref != null){
-			imageId = pref.getValue();
-			cropString = FLEFRecordHelper.getChildValue(pref, TAG_CROP);
-			updateImageButton(imageId);
+		final FLEFRecord preferredImage = FLEFRecordHelper.findChild(record, path);
+		if(preferredImage != null){
+			imageUri = FLEFRecordHelper.findChild(preferredImage, TAG_URI)
+				.getValue();
+			loadCropRectangle(preferredImage);
+
+			updatePreferredImage();
 		}
 		else
 			clearImage();
+	}
+
+	@SuppressWarnings("DataFlowIssue")
+	private void loadCropRectangle(final FLEFRecord preferredImage){
+		cropRect = null;
+		try{
+			final int x = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_X));
+			final int y = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_Y));
+			final int width = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_WIDTH));
+			final int height = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_HEIGHT));
+			if(x >= 0 && y >= 0 && width >= 0 && height >= 0)
+				cropRect = new Rectangle(x, y,  width, height);
+		}
+		catch(Exception ignored){}
 	}
 
 	/**
@@ -133,13 +139,15 @@ public class PreferredImagePanel extends JPanel{
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);
 
-		if(imageId != null && !imageId.isEmpty()){
-			final FLEFRecord pref = FLEFRecordHelper.findChild(record, path);
-			pref.setValue(imageId);
-			if(cropString != null && !cropString.isEmpty())
-				FLEFRecordHelper.updateChildValue(pref, TAG_CROP, cropString);
-
-			record.addChild(pref);
+		if(imageUri != null && !imageUri.isEmpty()){
+			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
+			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, imageUri);
+			if(cropRect != null && !cropRect.isEmpty()){
+				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_X, String.valueOf(cropRect.x));
+				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_Y, String.valueOf(cropRect.y));
+				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_WIDTH, String.valueOf(cropRect.width));
+				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_HEIGHT, String.valueOf(cropRect.height));
+			}
 		}
 	}
 
@@ -149,76 +157,121 @@ public class PreferredImagePanel extends JPanel{
 	 * @return {@code true} if an image is selected, {@code false} otherwise
 	 */
 	public boolean hasImage(){
-		return (imageId != null && !imageId.isEmpty());
+		return (imageUri != null && !imageUri.isEmpty());
 	}
 
-	private void selectAndCropImage(){
-		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
-		final String[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, sourceHandler, selectedId -> result[0] = selectedId);
-		dialog.setVisible(true);
+	/**
+	 * Edits the crop rectangle for the currently selected image.
+	 */
+	private void editCrop(){
+		if(!hasImage()){
+			createNewItem();
 
-		final String sourceId = result[0];
-		if(sourceId == null)
+			return;
+		}
+
+		try{
+			final File imageFile = new File(imageUri);
+			cropDialog.loadData(imageFile);
+			cropDialog.setVisible(true);
+
+			if(cropDialog.isSaved()){
+				cropRect = cropDialog.getCrop();
+
+				updatePreferredImage();
+			}
+		}
+		catch(final IOException ioe){
+			ioe.printStackTrace();
+
+			JOptionPane.showMessageDialog(parent,
+				"Error loading image for cropping: " + ioe.getMessage(),
+				"Error", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	/**
+	 * Opens a system file chooser to pick an image file and displays the {@link PhotoCropDialog} to set the crop.
+	 */
+	private void createNewItem(){
+		final String[] extensions = ImageIO.getReaderFileSuffixes();
+		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
+
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setDialogTitle("Select Image File");
+		fileChooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
+		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
+
+		final int userSelection = fileChooser.showOpenDialog(parent);
+		if(userSelection != JFileChooser.APPROVE_OPTION)
 			return;
 
-		final BufferedImage image = loadImageFromSource(sourceId);
-		if(image == null){
+		final File selectedFile = fileChooser.getSelectedFile();
+		if(selectedFile == null || !selectedFile.exists()){
 			JOptionPane.showMessageDialog(parent,
-				"Could not load image from the selected source.",
+				"Selected file does not exist.",
 				"Error", JOptionPane.ERROR_MESSAGE);
 
 			return;
 		}
 
-		final ImageCropDialog cropDialog = new ImageCropDialog(parent, image);
-		cropDialog.setVisible(true);
-
-		final Rectangle cropRect = cropDialog.getCrop();
-		if(cropRect != null){
-			imageId = sourceId;
-			cropString = cropRect.x + SPACE + cropRect.y + SPACE + cropRect.width + SPACE + cropRect.height;
-			updateImageButton(sourceId);
-		}
-	}
-
-	private BufferedImage loadImageFromSource(final String sourceId){
-		final FLEFRecord source = model.getRecordById(sourceId);
-		if(source == null)
-			return null;
-
-		final String filePath = FLEFRecordHelper.getChildValue(source, TAG_URI);
-		if(filePath == null || filePath.isEmpty())
-			return null;
-
 		try{
-			final File file = new File(filePath);
-			if(!file.exists())
-				return null;
+			cropDialog.loadData(selectedFile);
+			cropDialog.setVisible(true);
 
-			return ImageIO.read(file);
+			if(cropDialog.isSaved()){
+				imageUri = selectedFile.getAbsolutePath();
+				cropRect = cropDialog.getCrop();
+
+				updatePreferredImage();
+			}
 		}
 		catch(final IOException ioe){
 			ioe.printStackTrace();
 
-			return null;
+			JOptionPane.showMessageDialog(parent,
+				"Failed to load selected image: " + ioe.getMessage(),
+				"Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
-	private void updateImageButton(final String sourceId){
-		final BufferedImage img = loadImageFromSource(sourceId);
+	private void updatePreferredImage(){
+		final BufferedImage img = cropDialog.getImage();
 		if(img != null){
-			final Image scaled = img.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+			BufferedImage source = img;
+			if(cropRect != null){
+				// Intersect rectangle with image bounds to prevent RasterFormatException
+				final Rectangle imgBounds = new Rectangle(0, 0, img.getWidth(), img.getHeight());
+				final Rectangle validCrop = cropRect.intersection(imgBounds);
+
+				if(!validCrop.isEmpty())
+					source = img.getSubimage(validCrop.x, validCrop.y, validCrop.width, validCrop.height);
+			}
+			final Image scaled = source.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
 			imageButton.setIcon(new ImageIcon(scaled));
 		}
 		else
 			imageButton.setIcon(createPlaceholderIcon());
 	}
 
+	/**
+	 * Removes the selected image after user confirmation.
+	 */
+	private void removeItem(){
+		if(hasImage()){
+			final int response = JOptionPane.showConfirmDialog(parent,
+				"Are you sure you want to remove the preferred image?",
+				"Confirm Removal",
+				JOptionPane.YES_NO_OPTION);
+			if(response == JOptionPane.YES_OPTION){
+				clearImage();
+			}
+		}
+	}
+
 	private void clearImage(){
-		imageId = null;
-		cropString = null;
+		imageUri = null;
+		cropRect = null;
 		imageButton.setIcon(createPlaceholderIcon());
 	}
 

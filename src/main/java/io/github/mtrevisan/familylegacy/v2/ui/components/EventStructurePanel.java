@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -161,10 +161,10 @@ public class EventStructurePanel extends JPanel{
 	/**
 	 * Creates a new EventStructurePanel.
 	 *
-	 * @param model  the FLEF model
 	 * @param parent the parent component (for showing dialogs)
+	 * @param model  the FLEF model
 	 */
-	public EventStructurePanel(FLEFModel model, Dialog parent){
+	public EventStructurePanel(Dialog parent, FLEFModel model){
 		this.model = model;
 		this.parent = parent;
 		this.datePanel = new DatePanel(parent, model);
@@ -392,7 +392,7 @@ public class EventStructurePanel extends JPanel{
 
 	private void addSourceCitation(){
 		// Show a dialog to select a source and create a citation
-		SourceCitationDialog dialog = SourceCitationDialog.createEdit(
+		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			null // new citation
@@ -413,7 +413,7 @@ public class EventStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		FLEFRecord citation = sourceRecords.get(idx);
-		SourceCitationDialog dialog = SourceCitationDialog.createEdit(
+		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			citation
@@ -486,7 +486,7 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// Open the PlaceDialog in new mode
-		PlaceDialog dialog = PlaceDialog.createNew(
+		PlaceRecordDialog dialog = PlaceRecordDialog.createNew(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model
 		);

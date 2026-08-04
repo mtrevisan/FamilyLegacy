@@ -207,7 +207,7 @@ public final class FLEFRecordHelper{
 	/**
 	 * Navigates the given path, creating intermediate and target nodes as necessary.
 	 */
-	private static FLEFRecord getOrCreateTargetNode(final FLEFRecord parent, final String path){
+	public static FLEFRecord getOrCreateTargetNode(final FLEFRecord parent, final String path){
 		if(parent == null || StringUtils.isEmpty(path))
 			return null;
 
@@ -314,13 +314,18 @@ public final class FLEFRecordHelper{
 	}
 
 	private static FLEFRecord getNthChild(FLEFRecord current, final Segment segment){
-		if(segment.index == 0)
+		final List<FLEFRecord> children = current.getChildren();
+		if(segment.index == 0){
 			// find the first child with that tag
-			current = current.findChild(segment.tag);
+			current = null;
+			for(final FLEFRecord child : children)
+				if(segment.tag.equals(child.getTag()))
+					current = child;
+		}
 		else{
 			int occurrence = 0;
 			FLEFRecord found = null;
-			for(final FLEFRecord child : current.getChildren())
+			for(final FLEFRecord child : children)
 				if(segment.tag.equals(child.getTag())){
 					if(occurrence == segment.index){
 						found = child;

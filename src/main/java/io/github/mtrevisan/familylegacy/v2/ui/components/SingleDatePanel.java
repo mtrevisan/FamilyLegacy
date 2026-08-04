@@ -101,7 +101,7 @@ public class SingleDatePanel extends JPanel{
 	private final Map<DateType, BoundTextField> fieldMap = new EnumMap<>(DateType.class);
 
 
-	public SingleDatePanel(final Dialog parentDialog, final FLEFModel model){
+	public SingleDatePanel(final Dialog parent, final FLEFModel model){
 		fullDateField = new BoundTextField(TAG_FULL_DATE, 15);
 		decadeField = new BoundTextField(TAG_DECADE, 5);
 		centuryField = new BoundTextField(TAG_CENTURY, 5);
@@ -111,7 +111,7 @@ public class SingleDatePanel extends JPanel{
 			"early", "mid", "late"});
 		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{"gregorian", "julian", "islamic", "hebrew",
 			"chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
-		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parentDialog, model);
+		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parent, model);
 
 		fieldMap.put(DateType.FULL_DATE, fullDateField);
 		fieldMap.put(DateType.DECADE, decadeField);

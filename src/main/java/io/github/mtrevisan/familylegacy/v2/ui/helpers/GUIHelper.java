@@ -42,12 +42,16 @@ import java.util.function.Supplier;
  */
 public final class GUIHelper{
 
+	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
+	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
 	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
 	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
 
 
-	public static final String PLACEHOLDER_ITEM = "___PLACEHOLDER___";
+	private static final String PLACEHOLDER_ITEM = "___PLACEHOLDER___";
 	private static final String PLACEHOLDER_LIST = "(no items)";
 	private static final String PLACEHOLDER_TEXT = "(right-click to set)";
 	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
@@ -175,6 +179,9 @@ public final class GUIHelper{
 
 		if(component instanceof JTextComponent textComp)
 			return () -> !textComp.getText().isEmpty();
+
+		if(component instanceof JButton button)
+			return () -> (button.getIcon() != null);
 
 		// For other components, no meaningful selection; default to false
 		return () -> false;

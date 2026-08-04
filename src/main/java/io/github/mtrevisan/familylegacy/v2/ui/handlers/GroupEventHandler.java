@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupEventDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._GroupEventDialog;
 
 import java.awt.Dialog;
 
@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for GROUP_EVENT records.
  */
-public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
+public class GroupEventHandler implements RecordTypeHandler<_GroupEventDialog>{
 
 	public static final String TYPE = "GROUP_EVENT";
 	public static final String ID_PREFIX = "GE";
@@ -69,13 +69,13 @@ public class GroupEventHandler implements RecordTypeHandler<GroupEventDialog>{
 	}
 
 	@Override
-	public GroupEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new GroupEventDialog(parent, model, record);
+	public _GroupEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return new _GroupEventDialog(parent, model, record);
 	}
 
 	@Override
-	public GroupEventDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new GroupEventDialog(parent, model);
+	public _GroupEventDialog createNewDialog(Dialog parent, FLEFModel model){
+		return new _GroupEventDialog(parent, model);
 	}
 
 }

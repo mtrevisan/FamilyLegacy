@@ -3,12 +3,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ConclusionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs._ConclusionDialog;
 
 import java.awt.Dialog;
 
 
-public class ConclusionHandler implements RecordTypeHandler<ConclusionDialog>{
+public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
 
 	public static final String TYPE = "CONCLUSION";
 	public static final String ID_PREFIX = "N";
@@ -46,13 +46,13 @@ public class ConclusionHandler implements RecordTypeHandler<ConclusionDialog>{
 	}
 
 	@Override
-	public ConclusionDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return ConclusionDialog.createEdit(parent, model, record);
+	public _ConclusionDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return _ConclusionDialog.createEdit(parent, model, record);
 	}
 
 	@Override
-	public ConclusionDialog createNewDialog(Dialog parent, FLEFModel model){
-		return ConclusionDialog.createNew(parent, model);
+	public _ConclusionDialog createNewDialog(Dialog parent, FLEFModel model){
+		return _ConclusionDialog.createNew(parent, model);
 	}
 
 }

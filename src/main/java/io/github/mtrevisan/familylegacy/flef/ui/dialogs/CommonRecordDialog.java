@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.MandatoryComboBoxEditor;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.ResourceHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.ValidDataListenerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import net.miginfocom.swing.MigLayout;

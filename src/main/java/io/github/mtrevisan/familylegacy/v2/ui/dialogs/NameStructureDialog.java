@@ -37,7 +37,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameStructureHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -61,8 +61,13 @@ import java.io.Serial;
  * Structure:
  * <pre>
  * struct NameStructure {
- *   text: TextValue
- *   type?: enum { official, colonial, indigenous } | Text
+ *   value: Text
+ *   variant*: TextValueVariant
+ *   locale?: LocaleCode
+ *   valid_from?: DateStructure
+ *   valid_to?: DateStructure
+ *   note*: Xref&lt;NoteRecord&gt;
+ *   source*: SourceCitation
  * }
  * </pre>
  */
@@ -72,10 +77,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 7526263144620538539L;
 
 
-	private static final String DOT = ".";
-
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_TYPE = "TYPE";
+	public static final String TAG_VALUE = "VALUE";
+	private static final String TAG_VARIANT = "VARIANT";
 	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
@@ -85,7 +88,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new NameStructureHandler());
-		HandlerRegistry.register(new TextValueVariantHandler());
+		HandlerRegistry.register(new VariantHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
 	}
@@ -94,7 +97,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField valueField;
-	private final BoundComboBox<String> typeCombo;
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
 	private final DateField validFromField;
@@ -107,7 +109,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 		return new NameStructureDialog(parent, model, null);
 	}
 
-	public static NameStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static NameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
@@ -119,16 +122,13 @@ public class NameStructureDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(NameStructureHandler.TYPE));
 
 		valueField = new BoundTextField(TAG_VALUE, 30);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
-			StringUtils.EMPTY, "official", "colonial", "indigenous"
-		});
-		variantPanel = new VariantListPanel(this, model);
-		localeCombo = new BoundComboBox<>(TAG_VALUE + DOT + TAG_LOCALE, new String[]{
+		variantPanel = new VariantListPanel(TAG_VARIANT, this, model);
+		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
-		validFromField = DateField.createWithWrapperTag(TAG_VALUE + DOT + TAG_VALID_FROM, this, "Valid From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALUE + DOT + TAG_VALID_TO, this, "Valid To Date", model);
-		notePanel = new NoteListPanel(TAG_VALUE + DOT + TAG_NOTE, this, model);
+		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From Date", model);
+		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To Date", model);
+		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 
 		initComponents();
@@ -142,7 +142,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 	private void initComponents(){
 		bindingManager.bind(valueField);
-		bindingManager.bind(typeCombo);
 		bindingManager.bind(localeCombo);
 
 		setLayout(new MigLayout("ins 10,fillx,top", "[grow]", "[]10[]"));
@@ -153,7 +152,9 @@ public class NameStructureDialog extends BaseRecordDialog{
 		tabbedPane.addTab("References", createReferencesPanel());
 		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			this::save,
+			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
@@ -163,10 +164,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 		// value
 		panel.add(new JLabel("Name Value*:"), "align label");
 		panel.add(valueField, "growx, wrap");
-
-		// type
-		panel.add(new JLabel("Type:"), "align label");
-		panel.add(typeCombo, "growx, wrap");
 
 		// locale
 		localeCombo.setEditable(true);

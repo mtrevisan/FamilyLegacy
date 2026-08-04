@@ -38,8 +38,8 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_COMMENT = "COMMENT";
 
 
-	public UpdateListPanel(Dialog parentDialog, FLEFModel model){
-		super(parentDialog, "Updates", model);
+	public UpdateListPanel(Dialog parent, FLEFModel model){
+		super(parent, "Updates", model);
 	}
 
 
@@ -82,8 +82,7 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		// For updates, "Add" is the same as "Create New"
-		return showCreateNewDialog();
+		return null;
 	}
 
 	@Override
@@ -94,7 +93,7 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parentDialog, "Update entry not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Update entry not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -110,7 +109,7 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @return the (possibly updated) record, or {@code null} if cancelled
 	 */
 	private FLEFRecord showUpdateDialog(FLEFRecord existing){
-		JDialog dialog = new JDialog(parentDialog, (existing == null? "Add Update": "Edit Update"), true);
+		JDialog dialog = new JDialog(parent, (existing == null? "Add Update": "Edit Update"), true);
 		dialog.setLayout(new MigLayout("ins 10, fillx", "[grow]", "[]10[]"));
 
 		// Comment field
@@ -149,7 +148,7 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 		cancelBtn.addActionListener(e -> dialog.dispose());
 
 		dialog.pack();
-		dialog.setLocationRelativeTo(parentDialog);
+		dialog.setLocationRelativeTo(parent);
 		dialog.setVisible(true);
 
 		return result[0];

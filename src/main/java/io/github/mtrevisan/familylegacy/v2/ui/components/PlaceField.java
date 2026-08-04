@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -42,7 +42,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
+/* ONGOING FIXME popupmenu is always `selected` */
 public class PlaceField extends JPanel{
 
 	@Serial
@@ -147,14 +147,12 @@ public class PlaceField extends JPanel{
 	public void save(final FLEFRecord parentRecord){
 		FLEFRecordHelper.removeChildren(parentRecord, path);
 
-		if(record != null){
-			final FLEFRecord wrapper = FLEFRecord.createChildWithValue(path, record.getFormattedId());
-			parentRecord.addChild(wrapper);
-		}
+		if(record != null)
+			FLEFRecordHelper.updateChildValue(parentRecord, path, record.getFormattedId());
 	}
 
 	private void createNew(){
-		final PlaceDialog dialog = PlaceDialog.createNew(parent, model);
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -180,7 +178,7 @@ public class PlaceField extends JPanel{
 			return;
 		}
 
-		final PlaceDialog dialog = PlaceDialog.createEdit(parent, model, record);
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

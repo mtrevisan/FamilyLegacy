@@ -44,7 +44,7 @@ public class ApproximatePanel extends JPanel{
 		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
-	private final Dialog parentDialog;
+	private final Dialog parent;
 
 	private final String path;
 	private final FLEFModel model;
@@ -60,7 +60,7 @@ public class ApproximatePanel extends JPanel{
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
-		this.parentDialog = parent;
+		this.parent = parent;
 
 		this.path = path;
 		this.model = model;
@@ -125,7 +125,7 @@ public class ApproximatePanel extends JPanel{
 			return;
 		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parentDialog, model, culturalNormHandler, selectedId -> {
+			parent, model, culturalNormHandler, selectedId -> {
 			if(selectedId != null){
 				culturalNormId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -192,18 +192,15 @@ public class ApproximatePanel extends JPanel{
 		FLEFRecord approx = FLEFRecord.createChild(path);
 
 		String basis = (String)basisCombo.getSelectedItem();
-		if(basis != null && !basis.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue("BASIS", basis));
-		}
+		if(basis != null && !basis.isEmpty())
+			FLEFRecordHelper.updateChildValue(approx, "BASIS", basis);
 
-		if(culturalNormId != null && !culturalNormId.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue("CULTURAL_NORM", XRefHelper.formatXRef(culturalNormId)));
-		}
+		if(culturalNormId != null && !culturalNormId.isEmpty())
+			FLEFRecordHelper.updateChildValue(approx, "CULTURAL_NORM", XRefHelper.formatXRef(culturalNormId));
 
 		String margin = marginField.getText().trim();
-		if(!margin.isEmpty()){
-			approx.addChild(FLEFRecord.createChildWithValue("MARGIN", margin));
-		}
+		if(!margin.isEmpty())
+			FLEFRecordHelper.updateChildValue(approx, "MARGIN", margin);
 
 		// Only add if there is at least one child
 		if(approx.hasChildren()){

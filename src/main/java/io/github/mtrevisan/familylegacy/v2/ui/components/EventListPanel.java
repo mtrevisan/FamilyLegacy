@@ -28,8 +28,8 @@ public class EventListPanel extends AbstractListPanel<String>{
 	}
 
 
-	public EventListPanel(FLEFModel model, Dialog parentDialog){
-		super(parentDialog, "Events", model);
+	public EventListPanel(Dialog parent, FLEFModel model){
+		super(parent, "Events", model);
 	}
 
 	@Override
@@ -86,7 +86,7 @@ public class EventListPanel extends AbstractListPanel<String>{
 	protected String showEditDialog(String existing){
 		FLEFRecord rec = model.getRecordById(existing);
 		if(rec == null){
-			JOptionPane.showMessageDialog(parentDialog, "Event record not found: " + existing,
+			JOptionPane.showMessageDialog(parent, "Event record not found: " + existing,
 				"Error", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}

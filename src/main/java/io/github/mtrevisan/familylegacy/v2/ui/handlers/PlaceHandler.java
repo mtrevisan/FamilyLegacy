@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -36,7 +36,7 @@ import java.awt.Dialog;
 /**
  * Handler for PLACE records.
  */
-public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
+public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 
 	public static final String TYPE = "PLACE";
 	public static final String ID_PREFIX = "P";
@@ -71,13 +71,13 @@ public class PlaceHandler implements RecordTypeHandler<PlaceDialog>{
 	}
 
 	@Override
-	public PlaceDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return PlaceDialog.createEdit(parent, model, record);
+	public PlaceRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return PlaceRecordDialog.createEdit(parent, model, record);
 	}
 
 	@Override
-	public PlaceDialog createNewDialog(Dialog parent, FLEFModel model){
-		return PlaceDialog.createNew(parent, model);
+	public PlaceRecordDialog createNewDialog(Dialog parent, FLEFModel model){
+		return PlaceRecordDialog.createNew(parent, model);
 	}
 
 }

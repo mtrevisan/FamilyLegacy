@@ -24,7 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.flef.persistence.db;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.JavaHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.JavaHelper;
 
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;

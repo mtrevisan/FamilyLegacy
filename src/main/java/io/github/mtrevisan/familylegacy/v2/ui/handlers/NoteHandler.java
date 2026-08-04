@@ -3,12 +3,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteRecordDialog;
 
 import java.awt.Dialog;
 
 
-public class NoteHandler implements RecordTypeHandler<NoteDialog>{
+public class NoteHandler implements RecordTypeHandler<NoteRecordDialog>{
 
 	public static final String TYPE = "NOTE";
 	public static final String ID_PREFIX = "N";
@@ -46,13 +46,14 @@ public class NoteHandler implements RecordTypeHandler<NoteDialog>{
 	}
 
 	@Override
-	public NoteDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return NoteDialog.createEdit(parent, model, record);
+	public NoteRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return NoteRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public NoteDialog createNewDialog(Dialog parent, FLEFModel model){
-		return NoteDialog.createNew(parent, model);
+	public NoteRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return NoteRecordDialog.createEdit(parent, model, record);
 	}
 
 }
