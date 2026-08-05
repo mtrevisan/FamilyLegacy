@@ -37,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import java.awt.Dialog;
 import java.io.Serial;
 

@@ -45,14 +45,12 @@ public class PreferredImagePanel extends JPanel{
 	private static final long serialVersionUID = 6086547520717314054L;
 
 
-	private static final String DOT = ".";
-
 	private static final String TAG_URI = "URI";
 	private static final String TAG_CROP = "CROP";
-	private static final String TAG_CROP_X = TAG_CROP + DOT + "X";
-	private static final String TAG_CROP_Y = TAG_CROP + DOT + "Y";
-	private static final String TAG_CROP_WIDTH = TAG_CROP + DOT + "WIDTH";
-	private static final String TAG_CROP_HEIGHT = TAG_CROP + DOT + "HEIGHT";
+	private static final String TAG_X = "X";
+	private static final String TAG_Y = "Y";
+	private static final String TAG_WIDTH = "WIDTH";
+	private static final String TAG_HEIGHT = "HEIGHT";
 
 
 	private final PhotoCropDialog cropDialog;
@@ -129,10 +127,11 @@ public class PreferredImagePanel extends JPanel{
 	private void loadCropRectangle(final FLEFRecord preferredImage){
 		cropRect = null;
 		try{
-			final int x = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_X));
-			final int y = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_Y));
-			final int width = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_WIDTH));
-			final int height = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImage, TAG_CROP_HEIGHT));
+			final FLEFRecord crop = FLEFRecordHelper.findChild(preferredImage, TAG_CROP);
+			final int x = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
+			final int y = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
+			final int width = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
+			final int height = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
 			if(x >= 0 && y >= 0 && width >= 0 && height >= 0)
 				cropRect = new Rectangle(x, y,  width, height);
 		}
@@ -152,10 +151,11 @@ public class PreferredImagePanel extends JPanel{
 			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
 			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, uri);
 			if(cropRect != null && !cropRect.isEmpty()){
-				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_X, String.valueOf(cropRect.x));
-				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_Y, String.valueOf(cropRect.y));
-				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_WIDTH, String.valueOf(cropRect.width));
-				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_HEIGHT, String.valueOf(cropRect.height));
+				final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(preferredImage, TAG_CROP);
+				FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(cropRect.x));
+				FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(cropRect.y));
+				FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(cropRect.width));
+				FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(cropRect.height));
 			}
 		}
 	}

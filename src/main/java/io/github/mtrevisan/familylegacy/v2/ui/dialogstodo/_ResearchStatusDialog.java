@@ -121,7 +121,7 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
 	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler("EVENT");
 	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 
 
@@ -169,7 +169,8 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	protected void initComponents(){
+
+	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
 		JTabbedPane tabbedPane = new JTabbedPane();

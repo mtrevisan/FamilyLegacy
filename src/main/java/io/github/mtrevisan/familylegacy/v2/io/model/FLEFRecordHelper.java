@@ -208,8 +208,10 @@ public final class FLEFRecordHelper{
 	 * Navigates the given path, creating intermediate and target nodes as necessary.
 	 */
 	public static FLEFRecord getOrCreateTargetNode(final FLEFRecord parent, final String path){
-		if(parent == null || StringUtils.isEmpty(path))
+		if(parent == null)
 			return null;
+		if(StringUtils.isEmpty(path))
+			return parent;
 
 		final String[] segments = StringUtils.split(path, '.');
 		final FLEFRecord targetParent = navigateToParentAndCreate(parent, segments);

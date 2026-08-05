@@ -157,7 +157,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(sexCombo);
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
@@ -234,7 +234,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		personalNamePanel.save(record);
 		culturalNormPanel.save(record);
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		sourcePanel.save(record);
 		preferredImagePanel.save(record);
 		restrictionPanel.save(record);

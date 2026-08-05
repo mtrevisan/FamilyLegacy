@@ -79,7 +79,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	public final void save(){
 		if(validData()){
-			FLEFRecordHelper.removeAllChildren(record);
+			record.clear();
 
 			saveData();
 

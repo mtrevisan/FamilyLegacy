@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
+public class TranslationListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -2934528588234172844L;
@@ -39,6 +39,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 		this.path = path;
 	}
+
 
 	@Override
 	protected void initComponents(){
@@ -162,16 +163,17 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		final List<FLEFRecord> translations = getItems();
-		for(int i = 0; i < translations.size(); i ++){
-			final FLEFRecord entry = translations.get(i);
-			final String value = FLEFRecordHelper.getChildValue(entry, TAG_VALUE);
-			final String locale = FLEFRecordHelper.getChildValue(entry, TAG_LOCALE);
-
-			FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].VALUE", value);
-			if(StringUtils.isNotEmpty(locale))
-				FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].LOCALE", locale);
-		}
+		super.save(record, path);
+//		final List<FLEFRecord> translations = getItems();
+//		for(int i = 0; i < translations.size(); i ++){
+//			final FLEFRecord entry = translations.get(i);
+//			final String value = FLEFRecordHelper.getChildValue(entry, TAG_VALUE);
+//			final String locale = FLEFRecordHelper.getChildValue(entry, TAG_LOCALE);
+//
+//			FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].VALUE", value);
+//			if(StringUtils.isNotEmpty(locale))
+//				FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].LOCALE", locale);
+//		}
 	}
 
 }

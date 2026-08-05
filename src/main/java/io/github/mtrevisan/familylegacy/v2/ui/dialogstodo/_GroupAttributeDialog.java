@@ -169,8 +169,8 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	// ----- Initialisation -----
-	protected void initComponents(){
+
+	private void initComponents(){
 		modificationPanel = new ModificationPanel(this, model);
 		restrictionPanel = new RestrictionPanel("RESTRICTION", this);
 		conclusionPanel = new ConclusionPanel("CONCLUSION", this, model);
@@ -398,7 +398,7 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

@@ -88,21 +88,25 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel qualifiers;
 
 
-	public static PlaceCitationDialog create(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static PlaceCitationDialog createNew(final Dialog parent, final FLEFModel model, final String placeId){
+		return new PlaceCitationDialog(parent, model, placeId, null);
+	}
+
+	public static PlaceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new PlaceCitationDialog(parent, model, record);
+		return new PlaceCitationDialog(parent, model, null, record);
 	}
 
 
-	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final String placeId,
+			final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PlaceCitationHandler.TYPE));
 
-		if(record == null)
-			throw new IllegalArgumentException("Place Record ID cannot be null");
-
-		placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
+		this.placeId = (placeId != null
+			? placeId:
+			XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE)));
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
@@ -155,7 +159,6 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	public void loadData(){
-		placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
 		if(StringUtils.isBlank(placeId)){
 			JOptionPane.showMessageDialog(this, "Invalid Place ID: `" + placeId + "`.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -194,9 +197,10 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			FLEFRecord placeCitation = FLEFRecord.createEmpty();
-			placeCitation.addChild(FLEFRecord.createChildWithValue(TAG_PLACE, "@P1@"));
-			final PlaceCitationDialog dialog = new PlaceCitationDialog(null, model, placeCitation);
+//			FLEFRecord placeCitation = FLEFRecord.createEmpty();
+//			placeCitation.addChild(FLEFRecord.createChildWithValue(TAG_PLACE, "@P1@"));
+//			final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(null, model, placeCitation);
+			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model, "@P1@");
 			dialog.setVisible(true);
 		});
 	}

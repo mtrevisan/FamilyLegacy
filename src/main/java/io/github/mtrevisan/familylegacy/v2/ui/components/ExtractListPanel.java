@@ -3,25 +3,41 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /* ONGOING */
-public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
+public class ExtractListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -259585503419013969L;
@@ -41,7 +57,15 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_NOTE = "NOTE";
 
 
+	static{
+		HandlerRegistry.register(new NoteHandler());
+	}
+
+
 	private final String path;
+
+
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 
 	public ExtractListPanel(final String path, final Dialog parent, final FLEFModel model){
@@ -78,9 +102,10 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 				.append(locale)
 				.append("] ");
 		if(!StringUtils.isEmpty(text))
-			sb.append(text.length() > 50? text.substring(0, 47) + "...": text)
-				.append(" (")
-				.append(text)
+			sb.append(text.length() > 50? text.substring(0, 47) + "...": text);
+		if(!StringUtils.isEmpty(type))
+			sb.append(" (")
+				.append(type)
 				.append(")");
 		return sb.toString();
 	}
@@ -102,6 +127,12 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showEditDialog(FLEFRecord existing){
 		return showExtractDialog(existing);
 	}
+
+	//FIXME note:
+	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
+	private final JList<String> noteList = new JList<>(noteModel);
+	private final List<String> noteIds = new ArrayList<>();
+	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
 	private FLEFRecord showExtractDialog(FLEFRecord initial){
 		final JDialog dialog = new JDialog(parent, initial == null? "Add Extract": "Edit Extract", true);
@@ -131,6 +162,8 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			localeCombo.setSelectedItem(locale);
 		dialog.add(new JLabel("Locale:"), "align label");
 		dialog.add(localeCombo, "growx,wrap");
+
+		dialog.add(createNotePanel(), "span 2,growx,wrap");
 
 		final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		final JButton okBtn = new JButton("OK");
@@ -169,6 +202,119 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		return result[0];
 	}
 
+	private JPanel createNotePanel(){
+		JPanel panel = new JPanel(new BorderLayout(3, 3));
+
+		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
+		panel.add(scrollPane, BorderLayout.CENTER);
+
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 2));
+		JButton addBtn = new JButton("Add");
+		JButton newBtn = new JButton("New");
+		JButton editBtn = new JButton("Edit");
+		JButton deleteBtn = new JButton("Delete");
+		btnPanel.add(addBtn);
+		btnPanel.add(newBtn);
+		btnPanel.add(editBtn);
+		btnPanel.add(deleteBtn);
+		panel.add(btnPanel, BorderLayout.SOUTH);
+
+		noteList.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(MouseEvent e){
+				if(e.getClickCount() == 2){
+					editNote();
+				}
+			}
+		});
+		noteList.addListSelectionListener(e -> {
+			boolean selected = noteList.getSelectedIndex() != -1;
+			editBtn.setEnabled(selected);
+			deleteBtn.setEnabled(selected);
+		});
+		editBtn.setEnabled(false);
+		deleteBtn.setEnabled(false);
+
+		addBtn.addActionListener(e -> addNote());
+		newBtn.addActionListener(e -> createNewNote());
+		editBtn.addActionListener(e -> editNote());
+		deleteBtn.addActionListener(e -> deleteNote());
+
+		return panel;
+	}
+
+	private String getNoteDisplayName(String id){
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec != null)
+			return noteHandler.getDisplayText(rec, model);
+		return id;
+	}
+
+	private void addNote(){
+		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			null,
+			model, noteHandler, selectedId -> {
+			if(selectedId != null && !noteIds.contains(selectedId)){
+				noteIds.add(selectedId);
+				String display = getNoteDisplayName(selectedId);
+				noteDisplayMap.put(selectedId, display);
+				noteModel.addElement(display);
+			}
+		}
+		);
+		dialog.setVisible(true);
+	}
+
+	private void editNote(){
+		int idx = noteList.getSelectedIndex();
+		if(idx == -1)
+			return;
+
+		String id = noteIds.get(idx);
+		FLEFRecord rec = model.getRecordById(id);
+		if(rec == null){
+			JOptionPane.showMessageDialog(null, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
+
+			return;
+		}
+
+		JDialog dialog = noteHandler.createEditDialog(null, model, rec);
+		dialog.setVisible(true);
+
+		String newDisplay = getNoteDisplayName(id);
+		noteDisplayMap.put(id, newDisplay);
+		noteModel.set(idx, newDisplay);
+	}
+
+	private void deleteNote(){
+		int idx = noteList.getSelectedIndex();
+		if(idx == -1)
+			return;
+		int confirm = JOptionPane.showConfirmDialog(null, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
+		if(confirm == JOptionPane.YES_OPTION){
+			String removedId = noteIds.remove(idx);
+			noteDisplayMap.remove(removedId);
+			noteModel.remove(idx);
+		}
+	}
+
+	private void createNewNote(){
+		Set<String> before = new HashSet<>(noteIds);
+		JDialog dialog = noteHandler.createNewDialog(null, model);
+		dialog.setVisible(true);
+
+		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
+			String id = rec.getId();
+			if(id != null && !before.contains(id) && !noteIds.contains(id)){
+				noteIds.add(id);
+				String display = getNoteDisplayName(id);
+				noteDisplayMap.put(id, display);
+				noteModel.addElement(display);
+				break;
+			}
+		}
+	}
+
 	public void load(final FLEFRecord record){
 		final List<FLEFRecord> extracts = new ArrayList<>();
 		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, path)){
@@ -185,21 +331,30 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			}
 		}
 		setItems(extracts);
+
+
+		noteModel.clear();
+		noteIds.clear();
+		noteDisplayMap.clear();
+
+		// NOTE
+		for(FLEFRecord child : record.getChildren()){
+			if("NOTE".equals(child.getTag()) && child.getValue() != null){
+				String id = child.getValue();
+				noteIds.add(id);
+				String display = getNoteDisplayName(id);
+				noteDisplayMap.put(id, display);
+				noteModel.addElement(display);
+			}
+		}
 	}
 
 	public void save(final FLEFRecord record){
-		final List<FLEFRecord> extracts = getItems();
-		for(int i = 0; i < extracts.size(); i ++){
-			final FLEFRecord entry = extracts.get(i);
-			final String text = FLEFRecordHelper.getChildValue(entry, TAG_TEXT);
-			final String type = FLEFRecordHelper.getChildValue(entry, TAG_TYPE);
-			final String locale = FLEFRecordHelper.getChildValue(entry, TAG_LOCALE);
+		super.save(record, path);
 
-			FLEFRecordHelper.addChild(record, TAG_EXTRACT + TAG_OPEN_SQUARE_BRACKET + i + TAG_CLOSE_SQUARE_BRACKET + DOT + TAG_TEXT, text);
-			FLEFRecordHelper.addChild(record, TAG_EXTRACT + TAG_OPEN_SQUARE_BRACKET + i + TAG_CLOSE_SQUARE_BRACKET + DOT + TAG_TYPE, type);
-			if(StringUtils.isNotEmpty(locale))
-				FLEFRecordHelper.addChild(record, TAG_EXTRACT + TAG_OPEN_SQUARE_BRACKET + i + TAG_CLOSE_SQUARE_BRACKET + DOT + TAG_LOCALE, locale);
-		}
+		// NOTE
+		for(final String id : noteIds)
+			FLEFRecordHelper.addChild(record, TAG_EXTRACT + DOT + TAG_NOTE, XRefHelper.formatXRef(id));
 	}
 
 }

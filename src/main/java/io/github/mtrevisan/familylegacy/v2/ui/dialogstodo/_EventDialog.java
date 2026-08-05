@@ -106,7 +106,8 @@ public class _EventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	protected void initComponents(){
+
+	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
 		bindingManager.bind(typeCombo);

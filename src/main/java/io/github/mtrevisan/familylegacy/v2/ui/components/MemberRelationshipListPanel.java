@@ -16,7 +16,6 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,7 +26,7 @@ import java.util.function.Supplier;
  * Panel that displays only member relationships (group ↔ Individual).
  * Provides extra actions: "Add Existing", "Create New", "Edit Member Individual", "Notes".
  */
-public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
+public class MemberRelationshipListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = 4913602704327077030L;
@@ -127,14 +126,15 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		return (other != null && TAG_INDIVIDUAL.equals(other.getTag()));
 	}
 
-	@Override
-	public void setItems(final List<FLEFRecord> items){
-		final List<FLEFRecord> members = new ArrayList<>();
-		for(final FLEFRecord rel : items)
-			if(isMemberRelationship(rel))
-				members.add(rel);
-		super.setItems(members);
-	}
+	//FIXME
+//	@Override
+//	public void setItems(final List<FLEFRecord> items){
+//		final List<FLEFRecord> members = new ArrayList<>();
+//		for(final FLEFRecord rel : items)
+//			if(isMemberRelationship(rel))
+//				members.add(rel);
+//		super.setItems(members);
+//	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){

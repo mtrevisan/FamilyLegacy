@@ -142,7 +142,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(titleField);
 		bindingManager.bind(ruleTypeCombo);
 
@@ -228,7 +228,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		placeQualifiers.save(record);
 		validFromField.save(record);
 		validToField.save(record);
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		sourceCitationPanel.save(record);
 		qualifiers.save(record);
 		modificationPanel.save(record);

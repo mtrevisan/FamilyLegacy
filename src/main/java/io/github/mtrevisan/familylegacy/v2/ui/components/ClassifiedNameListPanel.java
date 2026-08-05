@@ -47,7 +47,7 @@ import java.util.List;
  * name*: ClassifiedName
  * </pre>
  */
-public class ClassifiedNameListPanel extends AbstractListPanel<FLEFRecord>{
+public class ClassifiedNameListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -922034547054981789L;
@@ -135,13 +135,7 @@ public class ClassifiedNameListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
-		for(final FLEFRecord name : getItems()){
-			final FLEFRecord child = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-			for(final FLEFRecord grandchild : name.getChildren())
-				child.addChild(grandchild);
-		}
+		super.save(record, path);
 	}
 
 	public boolean hasData(){

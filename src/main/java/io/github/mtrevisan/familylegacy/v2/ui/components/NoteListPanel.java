@@ -53,7 +53,7 @@ import java.util.List;
  *   <li>Remove note reference</li>
  * </ul>
  */
-public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
+public class NoteListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -5638163012098890098L;
@@ -66,7 +66,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> noteHandler;
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 
 	/**
@@ -90,8 +90,6 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		super(parent, borderTitle, model);
 
 		this.path = path;
-
-		noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 	}
 
 
@@ -168,9 +166,7 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 		setItems(notes);
 	}
 
-	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
+	public void saveReferences(final FLEFRecord record){
 		for(final FLEFRecord note : getItems())
 			FLEFRecordHelper.addChild(record, path, note.getFormattedId());
 	}

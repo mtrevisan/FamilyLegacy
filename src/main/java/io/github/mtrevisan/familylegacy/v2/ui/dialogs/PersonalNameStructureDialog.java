@@ -219,7 +219,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		partPanel.save(record);
 		culturalNormPanel.save(record);
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		sourcePanel.save(record);
 	}
 

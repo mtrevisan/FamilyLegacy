@@ -160,7 +160,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(mapCoordinatesField);
 

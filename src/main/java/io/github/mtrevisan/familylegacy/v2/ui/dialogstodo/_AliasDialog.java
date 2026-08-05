@@ -103,7 +103,7 @@ public class _AliasDialog extends JDialog{
 	private final JButton cancelButton = new JButton("Cancel");
 
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 	/**
 	 * Inner class representing an Alias entry.

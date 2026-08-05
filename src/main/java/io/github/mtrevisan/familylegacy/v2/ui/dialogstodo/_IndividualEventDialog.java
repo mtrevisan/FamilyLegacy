@@ -139,7 +139,8 @@ public class _IndividualEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	protected void initComponents(){
+
+	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
 		// Initialize type combo with all possible values

@@ -109,7 +109,7 @@ public class _GroupCitationDialog extends JDialog{
 	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 	private final JButton saveButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");

@@ -27,7 +27,7 @@ import java.util.List;
  * Extends {@link AbstractListPanel} with {@link FLEFRecord} items.
  * Follows the same pattern as {@link CulturalNormListPanel} and {@link NoteListPanel}.
  */
-public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
+public class UpdateListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -6236872036080417379L;

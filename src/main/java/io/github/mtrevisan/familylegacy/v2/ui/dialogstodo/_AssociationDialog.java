@@ -118,7 +118,7 @@ public class _AssociationDialog extends JDialog{
 
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
 	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
 
 

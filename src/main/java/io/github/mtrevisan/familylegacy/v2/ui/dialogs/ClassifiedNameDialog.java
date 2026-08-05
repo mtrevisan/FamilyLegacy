@@ -42,7 +42,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -232,7 +231,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 		dateField.save(record);
 		variantPanel.save(record);
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		sourcePanel.save(record);
 	}
 

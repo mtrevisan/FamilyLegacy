@@ -162,6 +162,11 @@ public class FLEFRecord{
 		return !children.isEmpty();
 	}
 
+	public void clear(){
+		value = null;
+		children.clear();
+	}
+
 	public boolean hasData(){
 		return (id != null && !id.isEmpty() || value != null && !value.isEmpty() || !children.isEmpty());
 	}

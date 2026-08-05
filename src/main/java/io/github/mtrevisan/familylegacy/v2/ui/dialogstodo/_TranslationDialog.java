@@ -79,7 +79,8 @@ public class _TranslationDialog extends JDialog{
 	private final JButton okButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");
 
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+
 
 	/**
 	 * Creates a dialog to edit an existing translation.

@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Panel for managing a list of CULTURAL_NORM references.
  */
-public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
+public class CulturalNormListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -4182038208327584807L;
@@ -117,8 +117,9 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		for(final FLEFRecord culturalNorm : getItems())
-			FLEFRecordHelper.addChild(record, path, culturalNorm.getFormattedId());
+		super.save(record, path);
+//		for(final FLEFRecord culturalNorm : getItems())
+//			FLEFRecordHelper.addChild(record, path, culturalNorm.getFormattedId());
 	}
 
 }

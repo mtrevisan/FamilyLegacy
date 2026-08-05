@@ -17,7 +17,7 @@ import java.io.Serial;
 import java.util.List;
 
 
-public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
+public class ContactListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = 2648904511050688880L;
@@ -154,12 +154,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
-		for(final FLEFRecord contact : getItems()){
-			contact.setTag("CONTACT");
-			record.addChild(contact);
-		}
+		super.save(record, path);
 	}
 
 	public boolean hasData(){

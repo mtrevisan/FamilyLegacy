@@ -52,7 +52,7 @@ import java.util.List;
  *   <li>Remove a variant</li>
  * </ul>
  */
-public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
+public class VariantListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -298718064629353117L;
@@ -161,12 +161,13 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		List<FLEFRecord> items = getItems();
-		if(!items.isEmpty()){
-			final FLEFRecord variant = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-			for(final FLEFRecord item : items)
-				variant.addChild(item);
-		}
+		super.save(record, path);
+//		List<FLEFRecord> items = getItems();
+//		if(!items.isEmpty()){
+//			final FLEFRecord variant = FLEFRecordHelper.getOrCreateTargetNode(record, path);
+//			for(final FLEFRecord item : items)
+//				variant.addChild(item);
+//		}
 	}
 
 }

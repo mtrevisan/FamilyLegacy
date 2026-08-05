@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -411,7 +410,7 @@ public class EventStructurePanel extends JPanel{
 
 	private void addSourceCitation(){
 		// Show a dialog to select a source and create a citation
-		SourceCitationDialog dialog = SourceCitationDialog.create(
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			null // new citation
@@ -432,7 +431,7 @@ public class EventStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		FLEFRecord citation = sourceRecords.get(idx);
-		SourceCitationDialog dialog = SourceCitationDialog.create(
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			citation

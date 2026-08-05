@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -128,7 +127,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(systemField);
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);

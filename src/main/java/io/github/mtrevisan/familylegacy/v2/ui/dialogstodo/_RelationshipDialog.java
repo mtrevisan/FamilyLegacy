@@ -114,7 +114,7 @@ public class _RelationshipDialog extends JDialog{
 
 	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 	private final JButton saveButton = new JButton("OK");
 	private final JButton cancelButton = new JButton("Cancel");

@@ -34,7 +34,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.io.Serial;

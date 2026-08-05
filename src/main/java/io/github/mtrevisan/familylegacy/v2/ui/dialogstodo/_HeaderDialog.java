@@ -138,7 +138,7 @@ public class _HeaderDialog extends JDialog{
 
 	private final JTextArea headerNoteArea = new JTextArea(3, 30);
 
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 
 	public _HeaderDialog(Dialog parent, FLEFModel model, FLEFRecord headerRecord){

@@ -56,7 +56,7 @@ import java.util.List;
  *   <li>Remove citation</li>
  * </ul>
  */
-public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
+public class SourceCitationListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -764509672344287269L;
@@ -174,7 +174,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 				final String newSourceId = newSource.getId();
 				final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
 				FLEFRecordHelper.updateChildValue(sourceCitation, TAG_SOURCE, XRefHelper.formatXRef(newSourceId));
-				final SourceCitationDialog citationDialog = SourceCitationDialog.create(parent, model, sourceCitation);
+				final SourceCitationDialog citationDialog = SourceCitationDialog.createEdit(parent, model, sourceCitation);
 				citationDialog.setVisible(true);
 
 				if(citationDialog.isSaved())
@@ -195,7 +195,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final JDialog dialog = SourceCitationDialog.create(parent, model, existing);
+		final JDialog dialog = SourceCitationDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
@@ -233,8 +233,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		for(final FLEFRecord sourceCitation : getItems())
-			record.addChild(sourceCitation);
+		super.save(record, path);
 	}
 
 }

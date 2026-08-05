@@ -27,11 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DocumentRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * Panel for managing a list of {@code DOCUMENT} references according to FLEF 0.1.1.
  */
-public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
+public class DocumentListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = 6678882576554492478L;
@@ -161,10 +161,9 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
-		for(final FLEFRecord document : getItems())
-			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
+		super.save(record, path);
+//		for(final FLEFRecord document : getItems())
+//			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
 	}
 
 }

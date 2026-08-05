@@ -143,7 +143,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(titleField);
 		bindingManager.bind(valueArea);
 		bindingManager.bind(mimeCombo);

@@ -34,6 +34,7 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 		super(parent, "Research References", model);
 	}
 
+
 	@Override
 	protected void initComponents(){
 		super.initComponents();

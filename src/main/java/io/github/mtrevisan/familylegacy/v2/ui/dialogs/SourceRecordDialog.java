@@ -161,7 +161,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(titleField);
 		bindingManager.bind(authorField);
 		bindingManager.bind(publisherField);
@@ -249,7 +249,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		placeCitationField.save(record);
 		repositoryPanel.save(record);
 		documentPanel.save(record);
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}

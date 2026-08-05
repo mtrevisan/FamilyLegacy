@@ -70,13 +70,13 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 
 	@Override
 	public SourceCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return SourceCitationDialog.create(parent, model, null);
+		return SourceCitationDialog.createEdit(parent, model, null);
 	}
 
 	@Override
 	public SourceCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return SourceCitationDialog.create(parent, model, record);
+		return SourceCitationDialog.createEdit(parent, model, record);
 	}
 
 	/**

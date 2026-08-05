@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * Panel for managing a list of {@code CONCLUSION} according to FLEF 0.1.1.
  */
-public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
+public class ConclusionListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = -2343952840615659855L;
@@ -161,10 +161,10 @@ public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
+		super.save(record, path);
 
-		for(final FLEFRecord conclusion : getItems())
-			FLEFRecordHelper.addChild(record, path, conclusion.getFormattedId());
+//		for(final FLEFRecord conclusion : getItems())
+//			FLEFRecordHelper.addChild(record, path, conclusion.getFormattedId());
 	}
 
 }

@@ -28,10 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -46,7 +44,7 @@ import java.util.List;
 /**
  * Panel for managing a list of REPOSITORY references.
  */
-public class RepositoryListPanel extends AbstractListPanel<FLEFRecord>{
+public class RepositoryListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = 6678882576554492478L;
@@ -162,10 +160,9 @@ public class RepositoryListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
-		for(final FLEFRecord repository : getItems())
-			FLEFRecordHelper.addChild(record, path, repository.getFormattedId());
+		super.save(record, path);
+//		for(final FLEFRecord repository : getItems())
+//			FLEFRecordHelper.addChild(record, path, repository.getFormattedId());
 	}
 
 }

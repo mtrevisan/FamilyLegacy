@@ -170,7 +170,7 @@ public class PlaceCitationField extends JPanel{
 				final String newPlaceId = newPlace.getId();
 				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
 				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
-				final PlaceCitationDialog citationDialog = PlaceCitationDialog.create(parent, model, placeCitation);
+				final PlaceCitationDialog citationDialog = PlaceCitationDialog.createEdit(parent, model, placeCitation);
 				citationDialog.setVisible(true);
 
 				if(citationDialog.isSaved())
@@ -217,7 +217,7 @@ public class PlaceCitationField extends JPanel{
 		if(record == null)
 			return;
 
-		final PlaceCitationDialog dialog = PlaceCitationDialog.create(parent, model, record);
+		final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

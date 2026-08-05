@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -153,7 +152,8 @@ public class _CalendarDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	protected void initComponents(){
+
+	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
 		JTabbedPane tabbedPane = new JTabbedPane();
@@ -498,7 +498,7 @@ public class _CalendarDialog extends BaseRecordDialog{
 
 
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, null);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, null);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -516,7 +516,7 @@ public class _CalendarDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

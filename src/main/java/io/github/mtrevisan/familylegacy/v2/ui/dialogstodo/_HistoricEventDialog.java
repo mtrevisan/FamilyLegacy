@@ -132,7 +132,8 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
-	protected void initComponents(){
+
+	private void initComponents(){
 		setLayout(new BorderLayout(10, 10));
 
 		JTabbedPane tabbedPane = new JTabbedPane();
@@ -387,7 +388,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 
 
 	private void addSourceCitation(){
-		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, null);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, null);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -405,7 +406,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.createEdit(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){

@@ -70,13 +70,13 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 
 	@Override
 	public PlaceCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return PlaceCitationDialog.create(parent, model, null);
+		return PlaceCitationDialog.createEdit(parent, model, null);
 	}
 
 	@Override
 	public PlaceCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return PlaceCitationDialog.create(parent, model, record);
+		return PlaceCitationDialog.createEdit(parent, model, record);
 	}
 
 	/**

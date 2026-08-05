@@ -161,7 +161,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(typeCombo);
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
@@ -238,7 +238,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		namePanel.save(record);
 		culturalNormPanel.save(record);
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		sourcePanel.save(record);
 		preferredImagePanel.save(record);
 		restrictionPanel.save(record);

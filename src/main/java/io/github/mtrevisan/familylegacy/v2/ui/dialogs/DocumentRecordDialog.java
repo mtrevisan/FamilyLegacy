@@ -132,7 +132,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		bindingManager.bind(fileField);
 		bindingManager.bind(mappingCombo);
 		bindingManager.bind(descriptionArea);
@@ -200,7 +200,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}

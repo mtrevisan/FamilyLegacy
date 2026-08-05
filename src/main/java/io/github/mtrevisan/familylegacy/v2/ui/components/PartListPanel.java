@@ -15,7 +15,7 @@ import java.util.List;
 
 
 /* DONE */
-public class PartListPanel extends AbstractListPanel<FLEFRecord>{
+public class PartListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = 2221818245328724967L;
@@ -113,10 +113,9 @@ public class PartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
-		for(final FLEFRecord part : getItems())
-			record.addChild(part);
+		super.save(record, path);
+//		for(final FLEFRecord part : getItems())
+//			record.addChild(part);
 	}
 
 	public boolean hasData(){

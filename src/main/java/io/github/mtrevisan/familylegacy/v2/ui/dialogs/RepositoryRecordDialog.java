@@ -126,7 +126,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	}
 
 
-	protected void initComponents(){
+	private void initComponents(){
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
@@ -192,7 +192,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		custodianField.save(record);
 		placeCitationField.save(record);
 		contactPanel.save(record);
-		notePanel.save(record);
+		notePanel.saveReferences(record);
 		modificationPanel.save(record);
 	}
 

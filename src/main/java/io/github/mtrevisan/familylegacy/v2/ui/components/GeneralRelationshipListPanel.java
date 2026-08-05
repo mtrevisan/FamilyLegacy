@@ -20,7 +20,7 @@ import java.util.List;
  * Panel that displays all relationship records belonging to a group.
  * Supports creating, editing and removing arbitrary relationships.
  */
-public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
+public class GeneralRelationshipListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = 8165048140355496463L;
@@ -120,12 +120,7 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, TAG_RELATIONSHIP);
-
-		for(final FLEFRecord relationship : getItems()){
-			relationship.setTag(TAG_RELATIONSHIP);
-			record.addChild(relationship);
-		}
+		super.save(record, path);
 	}
 
 }
