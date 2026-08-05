@@ -59,6 +59,12 @@ public class TranscribedTextPanel extends JPanel{
 	private static final long serialVersionUID = -6313838382210691780L;
 
 
+	private static final String TAG_PHONETIC = "PHONETIC";
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+	private static final String TAG_TYPE = "TYPE";
+
+
 	private final Component parent;
 
 	private final JTextField phoneticSystemField = new JTextField(15);
@@ -171,12 +177,12 @@ public class TranscribedTextPanel extends JPanel{
 		String phoneticVal = phoneticValueField.getText().trim();
 
 		if(!phoneticSys.isEmpty() || !phoneticVal.isEmpty()){
-			FLEFRecord phonetic = FLEFRecord.createChildWithValue("PHONETIC", phoneticSys);
+			FLEFRecord phonetic = FLEFRecord.createChildWithValue(TAG_PHONETIC, phoneticSys);
 			transRecord.addChild(phonetic);
 
 			// VALUE - required if PHONETIC exists
 			if(!phoneticVal.isEmpty()){
-				FLEFRecord value = FLEFRecord.createChildWithValue("VALUE", phoneticVal);
+				FLEFRecord value = FLEFRecord.createChildWithValue(TAG_VALUE, phoneticVal);
 				phonetic.addChild(value);
 			}
 		}
@@ -186,18 +192,18 @@ public class TranscribedTextPanel extends JPanel{
 		String transVal = transcriptionValueField.getText().trim();
 
 		if(!transSys.isEmpty() || !transVal.isEmpty()){
-			FLEFRecord transcription = FLEFRecord.createChildWithValue("TRANSCRIPTION", transSys);
+			FLEFRecord transcription = FLEFRecord.createChildWithValue(TAG_TRANSCRIPTION, transSys);
 			transRecord.addChild(transcription);
 
 			// TYPE (0:1)
 			if(transType != null && !transType.isEmpty()){
-				FLEFRecord type = FLEFRecord.createChildWithValue("TYPE", transType);
+				FLEFRecord type = FLEFRecord.createChildWithValue(TAG_TYPE, transType);
 				transcription.addChild(type);
 			}
 
 			// VALUE - required if TRANSCRIPTION exists
 			if(!transVal.isEmpty()){
-				FLEFRecord value = FLEFRecord.createChildWithValue("VALUE", transVal);
+				FLEFRecord value = FLEFRecord.createChildWithValue(TAG_VALUE, transVal);
 				transcription.addChild(value);
 			}
 		}

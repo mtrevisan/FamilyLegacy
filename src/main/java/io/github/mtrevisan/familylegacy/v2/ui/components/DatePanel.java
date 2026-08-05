@@ -171,28 +171,28 @@ public class DatePanel extends JPanel{
 	/**
 	 * Loads data from a DATE wrapper record.
 	 *
-	 * @param dateWrapper the DATE record (wrapper), or null
+	 * @param record the DATE record (wrapper), or null
 	 */
-	public void load(final FLEFRecord dateWrapper){
+	public void load(final FLEFRecord record){
 		clear();
 
-		if(dateWrapper == null)
+		if(record == null)
 			return;
 
 		// Load the date value: POINT, BOUNDED, or SPANNING
-		final FLEFRecord point = FLEFRecordHelper.findChild(dateWrapper, TAG_POINT);
+		final FLEFRecord point = FLEFRecordHelper.findChild(record, TAG_POINT);
 		if(point != null){
 			tabbedPane.setSelectedIndex(0);
 			pointDatePanel.load(point);
 		}
 		else{
-			final FLEFRecord bounded = FLEFRecordHelper.findChild(dateWrapper, TAG_BOUNDED);
+			final FLEFRecord bounded = FLEFRecordHelper.findChild(record, TAG_BOUNDED);
 			if(bounded != null){
 				tabbedPane.setSelectedIndex(1);
 				boundedDatePanel.load(bounded);
 			}
 			else{
-				final FLEFRecord spanning = FLEFRecordHelper.findChild(dateWrapper, TAG_SPANNING);
+				final FLEFRecord spanning = FLEFRecordHelper.findChild(record, TAG_SPANNING);
 				if(spanning != null){
 					tabbedPane.setSelectedIndex(2);
 					spanningDatePanel.load(spanning);
@@ -201,10 +201,10 @@ public class DatePanel extends JPanel{
 		}
 
 		// SOURCE_CITATION
-		sourceCitationPanel.load(dateWrapper);
+		sourceCitationPanel.load(record);
 
 		// EVIDENCE_QUALIFIERS
-		bindingManager.load(dateWrapper);
+		bindingManager.load(record);
 	}
 
 	/**
@@ -303,7 +303,7 @@ public class DatePanel extends JPanel{
 	}
 
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

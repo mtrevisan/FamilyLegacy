@@ -43,7 +43,7 @@ import java.util.List;
 
 /* DONE */
 /**
- * Panel for managing a list of CONCLUSION.
+ * Panel for managing a list of {@code CONCLUSION} according to FLEF 0.1.1.
  */
 public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 

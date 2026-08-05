@@ -17,9 +17,18 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol:
+ * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol according to FLEF 0.1.1.:
  * source_type, information_type, and evidence_type.
  * All combos are optional (empty selection allowed).
+ * <p>
+ * Structure:
+ * <pre>
+ * struct EvidenceQualifiers {
+ *   source_type?: enum { original, derived }
+ *   information_type?: enum { primary, secondary, undetermined }
+ *   evidence_type?: enum { direct, indirect, negative }
+ * }
+* </pre>
  */
 public class EvidenceQualifiersPanel extends JPanel{
 
@@ -29,10 +38,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 
 	private static final String DOT = ".";
 
-	// Values for each combo (empty first for "not set")
-	private static final String[] SOURCE_TYPE_VALUES = {StringUtils.EMPTY, "original", "derived"};
-	private static final String[] INFORMATION_TYPE_VALUES = {StringUtils.EMPTY, "primary", "secondary", "undetermined"};
-	private static final String[] EVIDENCE_TYPE_VALUES = {StringUtils.EMPTY, "direct", "indirect", "negative"};
+	private static final String TAG_SOURCE_TYPE = "SOURCE_TYPE";
+	private static final String TAG_INFORMATION_TYPE = "INFORMATION_TYPE";
+	private static final String TAG_EVIDENCE_TYPE = "EVIDENCE_TYPE";
 
 
 	private final String path;
@@ -54,9 +62,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]")); // we'll add 4 rows, each on new line
 		setBorder(BorderFactory.createTitledBorder(title));
 
-		sourceTypeCombo = new JComboBox<>(SOURCE_TYPE_VALUES);
-		informationTypeCombo = new JComboBox<>(INFORMATION_TYPE_VALUES);
-		evidenceTypeCombo = new JComboBox<>(EVIDENCE_TYPE_VALUES);
+		sourceTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "original", "derived"});
+		informationTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "primary", "secondary", "undetermined"});
+		evidenceTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "direct", "indirect", "negative"});
 
 		// Tooltips
 		sourceTypeCombo.setToolTipText("Classification of the source itself: original (first-hand) or derived (secondary)");
@@ -95,13 +103,13 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record the record to read from
 	 */
 	public void load(final FLEFRecord record){
-		String value = FLEFRecordHelper.getChildValue(record, path + "SOURCE_TYPE");
+		String value = FLEFRecordHelper.getChildValue(record, path + TAG_SOURCE_TYPE);
 		sourceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		value = FLEFRecordHelper.getChildValue(record, path + "INFORMATION_TYPE");
+		value = FLEFRecordHelper.getChildValue(record, path + TAG_INFORMATION_TYPE);
 		informationTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 
-		value = FLEFRecordHelper.getChildValue(record, path + "EVIDENCE_TYPE");
+		value = FLEFRecordHelper.getChildValue(record, path + TAG_EVIDENCE_TYPE);
 		evidenceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 	}
 
@@ -111,9 +119,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param record the record to save into
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.updateChildValue(record, path + "SOURCE_TYPE", getSourceType());
-		FLEFRecordHelper.updateChildValue(record, path + "INFORMATION_TYPE", getInformationType());
-		FLEFRecordHelper.updateChildValue(record, path + "EVIDENCE_TYPE", getEvidenceType());
+		FLEFRecordHelper.updateChildValue(record, path + TAG_SOURCE_TYPE, getSourceType());
+		FLEFRecordHelper.updateChildValue(record, path + TAG_INFORMATION_TYPE, getInformationType());
+		FLEFRecordHelper.updateChildValue(record, path + TAG_EVIDENCE_TYPE, getEvidenceType());
 	}
 
 	public String getSourceType(){

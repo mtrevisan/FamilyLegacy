@@ -213,7 +213,6 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	@Override
 	public void saveData(){
-		FLEFRecordHelper.removeAllChildren(record);
 		if(phoneticRadio.isSelected())
 			record.setTag(TAG_PHONETIC);
 		else if(transcriptionRadio.isSelected())

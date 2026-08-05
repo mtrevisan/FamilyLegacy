@@ -44,6 +44,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* DONE */
 /**
  * <pre>
  * struct {
@@ -132,10 +133,10 @@ public class PartDialog extends BaseRecordDialog{
 
 		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]"));
 
-		add(new JLabel("Part Type:"), "align label");
+		add(new JLabel("Part Type*:"), "align label");
 		add(typeCombo, "growx,wrap");
 
-		add(new JLabel("Value:"), "align label");
+		add(new JLabel("Value*:"), "align label");
 		add(valueField, "growx,wrap");
 
 		add(variantPanel, "span 2,growx,wrap");
@@ -154,7 +155,7 @@ public class PartDialog extends BaseRecordDialog{
 		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
 
 		final String val = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		valueField.setText(StringUtils.defaultString(val));
+		valueField.setValue(val);
 
 		variantPanel.load(record);
 	}

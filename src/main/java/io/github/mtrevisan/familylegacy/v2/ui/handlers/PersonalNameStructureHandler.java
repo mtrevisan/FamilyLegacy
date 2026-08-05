@@ -78,7 +78,7 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 	 *
 	 * @param parent the parent frame
 	 * @param model  the FLEF model
-	 * @return a new {@code NameStructureDialog} in create mode
+	 * @return a new {@code PersonalNameStructureDialog} in create mode
 	 */
 	@Override
 	public PersonalNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
@@ -91,7 +91,7 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 	 * @param parent the parent frame
 	 * @param model  the FLEF model
 	 * @param record the group record to edit
-	 * @return a new {@code NameStructureDialog} in edit mode
+	 * @return a new {@code PersonalNameStructureDialog} in edit mode
 	 */
 	@Override
 	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){

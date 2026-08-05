@@ -85,6 +85,13 @@ public class ContactStructurePanel extends JPanel{
 	private static final long serialVersionUID = -4578408607463890901L;
 
 
+	private static final String TAG_NAME = "NAME";
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_TRANSCRIBED_TEXT = "TRANSCRIBED_TEXT";
+	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_RESTRICTION = "RESTRICTION";
+
+
 	static{
 		HandlerRegistry.register(new NoteHandler());
 	}
@@ -114,7 +121,7 @@ public class ContactStructurePanel extends JPanel{
 
 	private final ModificationPanel modificationPanel;
 
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 	/**
 	 * Creates a new ContactStructurePanel.
@@ -297,7 +304,7 @@ public class ContactStructurePanel extends JPanel{
 	}
 
 	private void findOrCreateNameRecord(FLEFRecord parent){
-		FLEFRecordHelper.updateChildValue(parent, "NAME", nameField.getText().trim());
+		FLEFRecordHelper.updateChildValue(parent, TAG_NAME, nameField.getText().trim());
 	}
 
 	private void addTranscription(){
@@ -518,29 +525,29 @@ public class ContactStructurePanel extends JPanel{
 
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
-		FLEFRecordHelper.updateChildValue(contactRecord, "TYPE", type);
+		FLEFRecordHelper.updateChildValue(contactRecord, TAG_TYPE, type);
 
 		// NAME (0:1) with its TRANSCRIBED_TEXT children
 		String name = nameField.getText().trim();
 		if(!name.isEmpty() || !transcriptionRecords.isEmpty()){
-			FLEFRecord nameRecord = FLEFRecord.createChildWithValue("NAME", name);
+			FLEFRecord nameRecord = FLEFRecord.createChildWithValue(ContactStructurePanel.TAG_NAME, name);
 			contactRecord.addChild(nameRecord);
 
 			for(FLEFRecord transRecord : transcriptionRecords){
 				// Ensure the transcription has the correct level
-				transRecord.setTag("TRANSCRIBED_TEXT");
+				transRecord.setTag(TAG_TRANSCRIBED_TEXT);
 				nameRecord.addChild(transRecord);
 			}
 		}
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordHelper.addChild(contactRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(contactRecord, TAG_NOTE, id);
 		}
 
 		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		FLEFRecordHelper.updateChildValue(contactRecord, "RESTRICTION", restriction);
+		FLEFRecordHelper.updateChildValue(contactRecord, TAG_RESTRICTION, restriction);
 
 		// MODIFICATION_STRUCTURE
 		modificationPanel.save(contactRecord);

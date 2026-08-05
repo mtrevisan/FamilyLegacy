@@ -263,7 +263,7 @@ public class FLEFParser{
 	}
 
 
-	public static void main(String[] args) throws IOException{
+	public static void main(final String[] args) throws IOException{
 		//with errors
 		String text2 = """
 			header {

@@ -55,6 +55,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* DONE */
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -89,8 +90,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
 
+	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
 
 

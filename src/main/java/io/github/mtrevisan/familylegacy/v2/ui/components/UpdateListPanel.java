@@ -132,7 +132,8 @@ public class UpdateListPanel extends AbstractListPanel<FLEFRecord>{
 		final FLEFRecord[] result = {null};
 		okBtn.addActionListener(e -> {
 			String date = DateTimeFormatter.ISO_INSTANT.format(Instant.now());
-			String comment = commentArea.getText().trim();
+			String comment = commentArea.getText()
+				.trim();
 
 			// If editing, keep the original date; for new entries, use current date.
 			String finalDate = (existing != null? FLEFRecordHelper.getChildValue(existing, TAG_DATE): date);

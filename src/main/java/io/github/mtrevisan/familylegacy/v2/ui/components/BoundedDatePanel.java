@@ -39,7 +39,7 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Panel for BOUNDED date (uncertainty interval).
+ * Panel for BOUNDED date (uncertainty interval) according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>

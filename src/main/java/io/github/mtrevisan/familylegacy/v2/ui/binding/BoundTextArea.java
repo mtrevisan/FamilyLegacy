@@ -13,6 +13,9 @@ public class BoundTextArea extends JTextArea implements PathBound{
 	public BoundTextArea(final String path, final int rows, final int columns){
 		super(rows, columns);
 
+		setLineWrap(true);
+		setWrapStyleWord(true);
+
 		this.path = path;
 	}
 
@@ -29,7 +32,8 @@ public class BoundTextArea extends JTextArea implements PathBound{
 
 	@Override
 	public String getValue(){
-		return getText();
+		final String value = getText();
+		return (value != null? value.trim(): null);
 	}
 
 	@Override

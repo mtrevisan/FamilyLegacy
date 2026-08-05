@@ -53,6 +53,16 @@ public class ConclusionPanel extends JPanel{
 	private static final long serialVersionUID = -2652632946970438571L;
 
 
+	private static final String TAG_CONTEXT = "CONTEXT";
+	private static final String TAG_PROOF_STATUS = "PROOF_STATUS";
+	private static final String TAG_NARRATIVE = "NARRATIVE";
+	private static final String TAG_DATE = "DATE";
+	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_RESOLVES = "RESOLVES";
+	private static final String TAG_PREFERRED = "PREFERRED";
+	private static final String TAG_RESEARCH = "RESEARCH";
+
+
 	static{
 		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new ResearchStatusHandler());
@@ -67,11 +77,11 @@ public class ConclusionPanel extends JPanel{
 	private final String path;
 
 	// Bound fields
-	private final BoundTextField contextField = new BoundTextField("CONTEXT", 30);
-	private final BoundComboBox<String> proofStatusCombo = new BoundComboBox<>("PROOF_STATUS",
+	private final BoundTextField contextField = new BoundTextField(TAG_CONTEXT, 30);
+	private final BoundComboBox<String> proofStatusCombo = new BoundComboBox<>(TAG_PROOF_STATUS,
 		new String[]{StringUtils.EMPTY, "unresearched", "conflicting_evidence", "preponderance_of_evidence", "proven", "disproven"});
-	private final BoundTextArea narrativeArea = new BoundTextArea("NARRATIVE", 4, 30);
-	private final BoundTextField dateField = new BoundTextField("DATE", 15);
+	private final BoundTextArea narrativeArea = new BoundTextArea(TAG_NARRATIVE, 3, 25);
+	private final BoundTextField dateField = new BoundTextField(TAG_DATE, 15);
 
 	// RESOLVES
 	private final ResolvesListPanel resolvesPanel;
@@ -103,7 +113,7 @@ public class ConclusionPanel extends JPanel{
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
 		this.researchPanel = new ResearchStatusListPanel(parent, model);
-		this.sourcePanel = new SourceCitationListPanel("SOURCE", parent, model);
+		this.sourcePanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
 
 		initComponents();
 	}
@@ -128,8 +138,6 @@ public class ConclusionPanel extends JPanel{
 
 		// NARRATIVE
 		add(new JLabel("Narrative:"), "align label,top");
-		narrativeArea.setLineWrap(true);
-		narrativeArea.setWrapStyleWord(true);
 		add(GUIHelper.createScrollPane(narrativeArea), "growx,wrap");
 
 		// DATE
@@ -250,19 +258,19 @@ public class ConclusionPanel extends JPanel{
 
 		// Save RESOLVES
 		for(String id : resolvesPanel.getItems())
-			FLEFRecordHelper.updateChildValue(record, "RESOLVES", XRefHelper.formatXRef(id));
+			FLEFRecordHelper.updateChildValue(record, TAG_RESOLVES, XRefHelper.formatXRef(id));
 
 		// Save PREFERRED
 		if(preferredId != null && !preferredId.isEmpty())
-			FLEFRecordHelper.updateChildValue(record, "PREFERRED", preferredId);
+			FLEFRecordHelper.updateChildValue(record, TAG_PREFERRED, preferredId);
 
 		// Save RESEARCH
 		for(String id : researchPanel.getItems())
-			FLEFRecordHelper.updateChildValue(record, "RESEARCH", XRefHelper.formatXRef(id));
+			FLEFRecordHelper.updateChildValue(record, TAG_RESEARCH, XRefHelper.formatXRef(id));
 
 		// Save SOURCE_CITATION
 		for(FLEFRecord citation : sourcePanel.getItems()){
-			citation.setTag("SOURCE");
+			citation.setTag(ConclusionPanel.TAG_SOURCE);
 			record.addChild(citation);
 		}
 
@@ -295,7 +303,7 @@ public class ConclusionPanel extends JPanel{
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
 		return (!context.isEmpty()
 			|| (proofStatus != null && !proofStatus.isEmpty())
-			|| !StringUtils.isEmpty(narrativeArea.getText())
+			|| !StringUtils.isEmpty(narrativeArea.getValue())
 			|| !resolvesPanel.isEmpty()
 			|| (preferredId != null && !preferredId.isEmpty())
 			|| !researchPanel.isEmpty()

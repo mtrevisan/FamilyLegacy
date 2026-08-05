@@ -94,8 +94,10 @@ public class FLEFRecord{
 		return id;
 	}
 
-	public void setId(final String id){
+	public FLEFRecord setId(final String id){
 		this.id = XRefHelper.formatXRef(id);
+
+		return this;
 	}
 
 	public String getTag(){
@@ -112,8 +114,10 @@ public class FLEFRecord{
 		return value;
 	}
 
-	public void setValue(final String value){
+	public FLEFRecord setValue(final String value){
 		this.value = value;
+
+		return this;
 	}
 
 	public List<FLEFRecord> getChildren(){

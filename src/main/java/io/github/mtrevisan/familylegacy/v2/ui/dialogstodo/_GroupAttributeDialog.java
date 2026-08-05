@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -397,7 +398,7 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 		if(idx == -1) return;
 
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -697,7 +698,7 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

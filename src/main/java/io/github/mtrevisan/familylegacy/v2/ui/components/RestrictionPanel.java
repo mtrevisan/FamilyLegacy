@@ -42,26 +42,34 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* DONE */
 /**
- * Panel for editing a {@code RESTRICTION_STRUCTURE} according to FLEF 0.1.0.
+ * Panel for editing a {@code RESTRICTION_STRUCTURE} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * RESTRICTION_STRUCTURE :=
- * n RESTRICTION    {1:1}
- *   +1 LEVEL <RESTRICTION_LEVEL>    {1:1}
- *   +1 RATIONALE <TEXT>    {0:1}
- *   +1 EXPIRES <DATE>    {0:1}
+ * struct RestrictionStructure {
+ *   level: enum {
+ *     public,
+ *     restricted,
+ *     confidential
+ *   }
+ *   reason?: enum { living_person, privacy_law, copyright, repository_license, sensitive_information } | Text
+ *   expires?: Date
+ * }
  * </pre>
- * <p>
- * Known LEVEL values: {@code 'public'}, {@code 'restricted'}, {@code 'confidential'}.
- *
- * @see <a href="https://en.wikipedia.org/wiki/ISO_8601">ISO 8601 Date Format</a>
  */
 public class RestrictionPanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -8538135290834556765L;
+
+
+	private static final String DOT = ".";
+
+	private static final String TAG_LEVEL = "LEVEL";
+	private static final String TAG_RATIONALE = "RATIONALE";
+	private static final String TAG_EXPIRES = "EXPIRES";
 
 
 	private final Dialog parent;
@@ -70,7 +78,6 @@ public class RestrictionPanel extends JPanel{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	// UI components
 	private final BoundComboBox<String> levelCombo;
 	private final BoundTextArea rationaleArea;
 	private final BoundTextField expiresField;
@@ -86,9 +93,10 @@ public class RestrictionPanel extends JPanel{
 
 		this.path = path;
 
-		levelCombo = new BoundComboBox<>(path + ".LEVEL", new String[]{StringUtils.EMPTY, "public", "restricted", "confidential"});
-		rationaleArea = new BoundTextArea(path + ".RATIONALE", 3, 30);
-		expiresField = new BoundTextField(path + ".EXPIRES", 15);
+		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, new String[]{StringUtils.EMPTY, "public", "restricted", "confidential"});
+		rationaleArea = new BoundTextArea(path + DOT + TAG_RATIONALE, 3, 25);
+		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
+		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES, 15);
 
 		initComponents();
 	}
@@ -107,11 +115,7 @@ public class RestrictionPanel extends JPanel{
 
 		// RATIONALE
 		add(new JLabel("Rationale:"), "align label,top");
-		rationaleArea.setLineWrap(true);
-		rationaleArea.setWrapStyleWord(true);
-		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
-		final JScrollPane rationaleScrollPane = GUIHelper.createScrollPane(rationaleArea);
-		add(rationaleScrollPane, "growx,wrap");
+		add(GUIHelper.createScrollPane(rationaleArea), "growx,wrap");
 
 		// EXPIRES
 		add(new JLabel("Expires:"), "align label");
@@ -125,24 +129,13 @@ public class RestrictionPanel extends JPanel{
 	 * @param record the RESTRICTION record, or {@code null}
 	 */
 	public void load(final FLEFRecord record){
-		final FLEFRecord restrictionStruct = FLEFRecordHelper.findChild(record, path);
-		if(restrictionStruct == null){
-			clear();
+		clear();
 
+		final FLEFRecord restriction = FLEFRecordHelper.findChild(record, path);
+		if(restriction == null)
 			return;
-		}
 
-		// ---- Load bound simple fields ----
-		bindingManager.load(restrictionStruct);
-
-		final String level = FLEFRecordHelper.getChildValue(restrictionStruct, "LEVEL");
-		levelCombo.setSelectedItem(StringUtils.defaultString(level));
-
-		final String rationale = FLEFRecordHelper.getChildValue(restrictionStruct, "RATIONALE");
-		rationaleArea.setText(StringUtils.defaultString(rationale));
-
-		final String expires = FLEFRecordHelper.getChildValue(restrictionStruct, "EXPIRES");
-		expiresField.setText(StringUtils.defaultString(expires));
+		bindingManager.load(restriction);
 	}
 
 
@@ -152,13 +145,8 @@ public class RestrictionPanel extends JPanel{
 	 * @param targetRecord an existing RESTRICTION record to update, or {@code null} to create a new one
 	 */
 	public void save(final FLEFRecord targetRecord){
-		if(!hasData())
-			return;
-
-		// Remove existing child
 		FLEFRecordHelper.removeChild(targetRecord, path);
 
-		// ---- Save bound simple fields ----
 		bindingManager.save(targetRecord);
 	}
 
@@ -182,16 +170,8 @@ public class RestrictionPanel extends JPanel{
 	public boolean validateData(){
 		final String level = (String)levelCombo.getSelectedItem();
 		if(level == null || level.isEmpty()){
-			showError("Restriction LEVEL is required.");
-
-			return false;
-		}
-
-		// Validate EXPIRES format if present
-		final String expires = expiresField.getText().trim();
-		// Simple ISO 8601 date validation (YYYY-MM-DD)
-		if(!expires.isEmpty() && !expires.matches("\\d{4}-\\d{2}-\\d{2}")){
-			showError("EXPIRES must be in ISO 8601 date format (YYYY-MM-DD).");
+			JOptionPane.showMessageDialog(parent, "Restriction LEVEL is required.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
 		}
@@ -207,19 +187,6 @@ public class RestrictionPanel extends JPanel{
 		levelCombo.setSelectedIndex(0);
 		rationaleArea.setText(StringUtils.EMPTY);
 		expiresField.setText(StringUtils.EMPTY);
-	}
-
-
-	/**
-	 * Shows an error message dialog if a parent dialog is available.
-	 *
-	 * @param message the error message
-	 */
-	private void showError(final String message){
-		if(parent != null)
-			JOptionPane.showMessageDialog(parent, message, "Validation Error", JOptionPane.ERROR_MESSAGE);
-		else
-			System.err.println("Validation Error: " + message);
 	}
 
 }

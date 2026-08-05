@@ -27,35 +27,23 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DocumentRecordDialog;
 
 import java.awt.Dialog;
 
 
 /**
- * Handler for {@code PLACE_CITATION} entities according to FLEF 0.1.1.
+ * Handler for DOCUMENT records.
  */
-public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDialog>{
+public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
 
-	/** The record type identifier for groups. */
-	public static final String TYPE = "PLACE_CITATION";
+	public static final String TYPE = "DOCUMENT";
+	public static final String ID_PREFIX = "D";
 
-	private static final String TAG_PLACE = "PLACE";
-
-
-	private final PlaceHandler placeHandle = new PlaceHandler();
-
-
-	@Override
-	public boolean isTopLevelEntity(){
-		return false;
-	}
 
 	@Override
 	public String getLabel(){
-		return "Place Citation";
+		return "Document";
 	}
 
 	@Override
@@ -65,34 +53,27 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 
 	@Override
 	public String getIDPrefix(){
-		return null;
+		return ID_PREFIX;
 	}
 
-	@Override
-	public PlaceCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return PlaceCitationDialog.create(parent, model, null);
-	}
-
-	@Override
-	public PlaceCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return PlaceCitationDialog.create(parent, model, record);
-	}
-
-	/**
-	 * Returns a display name for the given place structure.
-	 *
-	 * @param record the place structure record
-	 * @return a human-readable display name
-	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return StringUtils.EMPTY;
+		String name = FLEFRecordHelper.getChildValue(record, "FILE");
+		String id = record.getId();
+		if(name != null && !name.isEmpty()){
+			return name + " (" + id + ")";
+		}
+		return id;
+	}
 
-		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_PLACE));
-		final FLEFRecord place = model.getRecordById(xref);
-		return placeHandle.getDisplayText(place, model);
+	@Override
+	public DocumentRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		return DocumentRecordDialog.createEdit(parent, model, record);
+	}
+
+	@Override
+	public DocumentRecordDialog createNewDialog(Dialog parent, FLEFModel model){
+		return DocumentRecordDialog.createNew(parent, model);
 	}
 
 }

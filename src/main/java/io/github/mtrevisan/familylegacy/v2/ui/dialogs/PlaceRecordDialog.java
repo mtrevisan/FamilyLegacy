@@ -102,8 +102,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]10[]5[]"));
 	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]10[]5[]"));
 
 	private final ClassifiedNameListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;

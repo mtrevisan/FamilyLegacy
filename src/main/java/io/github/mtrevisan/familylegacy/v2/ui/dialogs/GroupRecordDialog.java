@@ -91,8 +91,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
-	private static final String TAG_CONCLUSION = "CONCLUSION";
 
+	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
 
 

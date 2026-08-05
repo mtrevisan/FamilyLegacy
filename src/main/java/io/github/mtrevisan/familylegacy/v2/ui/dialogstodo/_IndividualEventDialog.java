@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualEventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -114,8 +115,8 @@ public class _IndividualEventDialog extends BaseRecordDialog{
 
 	private final EventStructurePanel eventStructurePanel;
 
-	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler("FAMILY");
-	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler("INDIVIDUAL");
+	private final RecordTypeHandler<?> familyHandler = HandlerRegistry.getHandler(GroupHandler.TYPE);
+	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 
 
 	public _IndividualEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
@@ -447,7 +448,7 @@ public class _IndividualEventDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

@@ -133,12 +133,13 @@ public class IndividualField extends JPanel{
 	}
 
 	public void load(final FLEFRecord parentRecord){
-		if(parentRecord != null){
-			final FLEFRecord child = FLEFRecordHelper.findChild(parentRecord, path);
-			setRecord(child);
-		}
-		else
-			clear();
+		clear();
+
+		if(parentRecord == null)
+			return;
+
+		final FLEFRecord child = FLEFRecordHelper.findChild(parentRecord, path);
+		setRecord(child);
 	}
 
 	public void save(final FLEFRecord parentRecord){

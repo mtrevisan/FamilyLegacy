@@ -102,7 +102,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		if(record == null)
 			throw new IllegalArgumentException("Place Record ID cannot be null");
 
-		this.placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
+		placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);

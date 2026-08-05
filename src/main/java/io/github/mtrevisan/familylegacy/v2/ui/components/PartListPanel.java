@@ -31,7 +31,7 @@ public class PartListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	public PartListPanel(final String path, final Dialog parent, final FLEFModel model){
-		super(parent, "Parts", model);
+		super(parent, "Parts*", model);
 
 		this.path = path;
 	}

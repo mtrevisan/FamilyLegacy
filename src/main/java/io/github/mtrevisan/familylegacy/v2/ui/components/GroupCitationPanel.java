@@ -81,6 +81,11 @@ public class GroupCitationPanel extends JPanel{
 	private static final long serialVersionUID = -6484848805034159063L;
 
 
+	private static final String TAG_ROLE = "ROLE";
+	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_CREDIBILITY = "CREDIBILITY";
+
+
 	static{
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new NoteHandler());
@@ -103,8 +108,8 @@ public class GroupCitationPanel extends JPanel{
 
 	private final JComboBox<String> credibilityCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
-	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler(GroupHandler.TYPE);
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 	/**
 	 * Creates a new GroupCitationPanel.
@@ -372,16 +377,16 @@ public class GroupCitationPanel extends JPanel{
 
 		// ROLE
 		String role = roleField.getText().trim();
-		FLEFRecordHelper.updateChildValue(citationRecord, "ROLE", role);
+		FLEFRecordHelper.updateChildValue(citationRecord, TAG_ROLE, role);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordHelper.addChild(citationRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(citationRecord, TAG_NOTE, id);
 		}
 
 		// CREDIBILITY (0:1)
 		String credibility = (String)credibilityCombo.getSelectedItem();
-		FLEFRecordHelper.updateChildValue(citationRecord, "CREDIBILITY", credibility);
+		FLEFRecordHelper.updateChildValue(citationRecord, TAG_CREDIBILITY, credibility);
 
 		return citationRecord;
 	}

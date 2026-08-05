@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -79,6 +80,10 @@ public class RepositoryCitationPanel extends JPanel{
 	private static final long serialVersionUID = -2445624581367265605L;
 
 
+	private static final String TAG_LOCATION = "LOCATION";
+	private static final String TAG_NOTE = "NOTE";
+
+
 	static{
 		HandlerRegistry.register(new RepositoryHandler());
 		HandlerRegistry.register(new NoteHandler());
@@ -100,8 +105,8 @@ public class RepositoryCitationPanel extends JPanel{
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	private final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler("REPOSITORY");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
 	/**
 	 * Creates a new RepositoryCitationPanel.
@@ -361,11 +366,11 @@ public class RepositoryCitationPanel extends JPanel{
 
 		// LOCATION (0:1)
 		String location = locationField.getText().trim();
-		FLEFRecordHelper.updateChildValue(citationRecord, "LOCATION", location);
+		FLEFRecordHelper.updateChildValue(citationRecord, TAG_LOCATION, location);
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordHelper.addChild(citationRecord, "NOTE", id);
+			FLEFRecordHelper.addChild(citationRecord, TAG_NOTE, id);
 		}
 
 		return citationRecord;

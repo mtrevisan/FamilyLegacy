@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -106,9 +107,9 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 
 	private final ModificationPanel modificationPanel;
 
-	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
+	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 
 
 	public _HistoricEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
@@ -386,7 +387,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 
 
 	private void addSourceCitation(){
-		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(this, model, null);
+		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, null);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -404,7 +405,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -527,7 +528,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

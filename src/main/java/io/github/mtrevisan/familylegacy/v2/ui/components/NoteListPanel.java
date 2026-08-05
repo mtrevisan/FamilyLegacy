@@ -43,7 +43,7 @@ import java.util.List;
 
 /* DONE */
 /**
- * Panel for managing a list of NOTE references.
+ * Panel for managing a list of {@code NOTE} references according to FLEF 0.1.1.
  * <p>
  * Provides:
  * <ul>

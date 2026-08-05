@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.1.1
-// PROTOCOL_DATE = 2026-08-04
+// PROTOCOL_DATE = 2026-08-05
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -56,6 +56,7 @@ Record = oneof {
   repository: RepositoryRecord
   cultural_norm: CulturalNormRecord
   source: SourceRecord
+  document: DocumentRecord
   conclusion: ConclusionRecord
   historic_event: HistoricEventRecord
   identity_hypothesis: IdentityHypothesisRecord
@@ -103,10 +104,10 @@ record IndividualRecord {
   sex?: enum { male, female, unknown }       // Biological sex as recorded in sources or inferred from evidence. This field represents a genealogical research assertion.
   cultural_norm*: Xref<CulturalNormRecord>   // cultural norms that apply to this individual (e.g., naming conventions, age of majority)
   note*: Xref<NoteRecord>                    // free-text notes about this individual
-  source*: SourceCitation                  // source citations supporting facts about this individual
+  source*: SourceCitation                    // source citations supporting facts about this individual
   preferred_image?: struct {
-    uri: Uri           // resource URI pointing to a preferred image of this individual
-    crop?: CropRect    // specifies the portion of the image that should be displayed as the preferred representation
+    uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
+    crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
   }
   restriction?: RestrictionStructure         // privacy and distribution restrictions for this individual
   modification: ModificationStructure        // creation and update metadata for this record
@@ -180,10 +181,10 @@ record EventRecord {
 // embedded
 // Shared descriptive structure containing the details associated with an EVENT record.
 struct EventStructure {
-  description?: Text       // text describing a particular event pertaining to the individual or group, or the value of an attribute
-  date?: DateStructure     // the date of the event
-  place?: PlaceCitation    // the location of the event
-  agency?: Text            // Organization, institution, authority, corporation, or person responsible for the associated context (e.g., an employer, a church that administered rites, an archiving organization)
+  description?: Text              // text describing a particular event pertaining to the individual or group, or the value of an attribute
+  date?: DateStructure            // the date of the event
+  place?: PlaceCitation           // the location of the event
+  agency?: Text                   // Organization, institution, authority, corporation, or person responsible for the associated context (e.g., an employer, a church that administered rites, an archiving organization)
   cause?: struct {
     value: Text   // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
     evidence?: EvidenceQualifiers
@@ -291,13 +292,13 @@ record EventParticipationRecord {
 // relationship with its own properties (dates, evidence, conclusions).
 record GroupRecord {
   id: LocalID
-  name*: ClassifiedName   // names associated with the group. For a family in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
+  name*: ClassifiedName   // names associated with the group. For a family group in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
   source*: SourceCitation
   preferred_image?: struct {
-    uri: Uri
+    uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
   }
   restriction?: RestrictionStructure
@@ -338,7 +339,7 @@ record GroupAttributeRecord {
 
 // embedded
 struct ClassifiedName {
-  type?: enum { official, colonial, indigenous } | Text   // geographical/institutional
+  type?: enum { official, colonial, indigenous } | Text
   text: NameStructure
 }
 
@@ -351,8 +352,7 @@ struct NameStructure {
   value: Text                  // the primary textual value
   variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations
   locale?: LocaleCode
-  valid_from?: DateStructure   // the date from which this name was known to be in use
-  valid_to?: DateStructure     // the date until which this name was known to be in use
+  date?: DateStructure         // date on which this form of the name is attested
   note*: Xref<NoteRecord>
   source*: SourceCitation
 }
@@ -403,9 +403,9 @@ record RelationshipRecord {
   } | Text
   role?: Text                  // the function, position, capacity or responsibility held by the subject within the relationship (e.g., 'president', 'member', 'resident', 'head of household', 'tribal leader')
   status?: enum {
-    active,     // relationship currently exists
-    ended,      // relationship no longer exists
-    unknown     // relationship status is not known
+    active,   // relationship currently exists
+    ended,    // relationship no longer exists
+    unknown   // relationship status is not known
   }
   date?: DateStructure         // the date the relationship was established, recognized, or documented
   valid_from?: DateStructure   // the date from which this relationship was known to be in effect
@@ -450,9 +450,10 @@ record PlaceRecord {
 
 // embedded
 // Reference to a PLACE record together with location-specific citations and evidence qualifiers.
+// Implementations SHOULD prevent cyclic expansion of citation metadata (PlaceCitation > SourceCitation > SourceRecord > PlaceCitation).
 struct PlaceCitation {
   place: Xref<PlaceRecord>
-  original_text?: Text    // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
+  original_text?: Text   // The place name exactly as recorded in the source. This value MAY coexist with PLACE when the source wording is preserved alongside a normalized place identification.
   source*: SourceCitation
   evidence?: EvidenceQualifiers
 }
@@ -477,7 +478,7 @@ record PlaceRelationshipRecord {
   valid_from?: DateStructure   // the date from which this place relationship is known or believed to have been valid
   valid_to?: DateStructure     // the date until which this place relationship is known or believed to have been valid
   note*: Text                  // a note containing commentary, interpretation, or discussion related to this place relationship
-  source*: SourceCitation    // a list of source citations supporting the existence, interpretation, or dating of this place relationship
+  source*: SourceCitation      // a list of source citations supporting the existence, interpretation, or dating of this place relationship
   modification: ModificationStructure
 }
 
@@ -525,7 +526,7 @@ record RepositoryRecord {
 // entry identifiers, or other retrieval information.
 struct RepositoryCitation {
   repository: Xref<RepositoryRecord>
-  location?: Text   // a note describing the location of the referenced material inside the repository (e.g. shelf mark, volume, page, entry, frame, folio, line, image, etc.)
+  location?: Text   // location of the referenced material inside the repository (e.g., 'Shelf Mark: 12, Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'image', etc.)
   note?: Text
 }
 
@@ -582,23 +583,21 @@ record CulturalNormRecord {
 // Source
 // ============================================================
 
-// FIXME title? instead of title+?
 // primary record
 // A source from which genealogical information is derived. A source may represent a document, publication, archive record, inscription, oral
 // testimony, database entry, image, audio recording, or any other evidence-bearing artifact.
 // Citation relationships SHOULD NOT form cycles.
 record SourceRecord {
   id: LocalID
-  title+: NameStructure          // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
-  author?: Text                  // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
-  date?: DateStructure           // the date this source was created
-  place?: PlaceCitation          // the place this source was created
-  publisher?: Text               // name of the publisher of the publication
-  repository*: RepositoryCitation
+  title+: NameStructure             // the title of the work, record, or item and, when appropriate, the title of the larger work or series of which it is a part
+  author?: Text                     // the person, agency, or entity who created the record. For a published work, this could be the author, compiler, transcriber, abstractor, or editor. For an unpublished source, this may be an individual, a government agency, church organization, or private organization, etc.
+  publisher?: Text                  // name of the publisher of the publication
+  date?: DateStructure              // the date this source was created
+  place?: PlaceCitation             // the place this source was created
   media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
-  document*: DocumentStructure   // a document reference to the auxiliary data to be linked to this context
-  note*: Xref<NoteRecord>        // may contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
-  source*: SourceCitation
+  repository*: RepositoryCitation
+  document*: Xref<DocumentRecord>   // a document reference to the auxiliary data to be linked to this context
+  note*: Xref<NoteRecord>           // may contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
   restriction?: RestrictionStructure
   modification: ModificationStructure
 }
@@ -607,10 +606,24 @@ record SourceRecord {
 // Reference to a SOURCE record used as evidence for an assertion, together with optional location, notes, crop coordinates, and evidence assessment.
 struct SourceCitation {
   source: Xref<SourceRecord>
-  location?: Text          // specific location within the information referenced, in the form of a label and value pair (e.g., 'Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'line', 'image', etc.)
-  crop?: CropRect          // Used when the citation refers to a specific region of an image rather than the entire image.
-  note*: Text
+  location?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
+  extract*: ExtractStructure
   evidence?: EvidenceQualifiers
+  restriction?: RestrictionStructure
+
+  require extract.document in source.document
+}
+
+// embedded
+struct ExtractStructure {
+  document: Xref<DocumentRecord>
+  crop?: CropRect   // Used when the citation refers to a specific region of an image rather than the entire image.
+  text?: Text
+  type?: enum { verbatim, summarized, translated, normalized }   // Describes how the TEXT value relates to the content of the cited source. 'verbatim': The text is reproduced exactly as it appears in the source, preserving the original wording, spelling, abbreviations, capitalization, and punctuation. No editorial changes have been made; 'summarized': The text is a researcher-created summary of the relevant source content. It conveys the meaning of the source without reproducing the wording exactly and may omit details considered irrelevant to the citation; 'translated': The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion; 'normalized': The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
+  locale?: LocaleCode
+  note*: Text
+
+  require one_of(crop, text, type, locale, note)
 }
 
 // Cropping rectangle expressed in image pixels.
@@ -624,20 +637,22 @@ struct CropRect {
   require height > 0
 }
 
-// embedded
+
+// ============================================================
+// Document
+// ============================================================
+
+// primary record
 // A digital or physical representation associated with a source, such as an image, PDF, scan, transcription, audio recording, video, or other media
 // resource.
-struct DocumentStructure {
+record DocumentRecord {
+  id: LocalID
   file: Uri
   mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
   description?: Text   // a description of the source, e.g. 'cover', 'back'
-  extract*: struct {   // A verbatim copy of any description contained within the source. This indicates notes or text that are actually contained in the source document, not the submitter's opinion about the source.
-    text: Text
-    type: enum { transcript, extract, abstract }   // 'transcript' = complete verbatim copy; 'extract' = verbatim copy of part of the document; 'abstract' = reworded summarization of the document content
-    locale?: LocaleCode
-  }
   note*: Xref<NoteRecord>
   restriction?: RestrictionStructure
+  modification: ModificationStructure
 }
 
 
@@ -747,9 +762,9 @@ enum CenturyPart {
 // exists primarily to provide historical, legal, social, environmental, or political context.
 record HistoricEventRecord {
   id: LocalID
-  title?: Text             // the title of the event
-  date?: DateStructure     // the date on which this historic event happened
-  place?: PlaceCitation    // the place in which this historic event happened
+  title?: Text            // the title of the event
+  date?: DateStructure    // the date on which this historic event happened
+  place?: PlaceCitation   // the place in which this historic event happened
   note*: Xref<NoteRecord>
   source*: SourceCitation
   modification: ModificationStructure
@@ -766,15 +781,15 @@ record HistoricEventRecord {
 record ResearchStatusRecord {
   id: LocalID
   status?: enum { active, completed, blocked }   // 'active' (currently being searched), 'completed' (the research objective has been satisfied according to the researcher), 'blocked' (further progress depends on resolving another research question)
-  question: Text                                         // the research question being investigated
+  question: Text                                 // the research question being investigated
   priority?: enum { high, medium, low }
-  association*: struct {    // Associates this research question with records for which information is missing, uncertain, conflicting, or otherwise requires investigation.
+  association*: struct {                         // Associates this research question with records for which information is missing, uncertain, conflicting, or otherwise requires investigation.
     target: XrefOrVoid<LocalID>   // an xref of a record that lacks research
     name?: Text                   // the name of the individual, only for VOID reference
   }
-  blocked_by*: Xref<ResearchStatusRecord>   // if this research is blocked by another unresolved question (blocked_by relationships SHOULD form a Directed Acyclic Graph)
-  plan?: Text                               // detailed description of what needs to be done
-  resolution?: Text                         // how the question was resolved, if completed
+  blocked_by*: Xref<ResearchStatusRecord>        // if this research is blocked by another unresolved question (blocked_by relationships SHOULD form a Directed Acyclic Graph)
+  plan?: Text                                    // detailed description of what needs to be done
+  resolution?: Text                              // how the question was resolved, if completed
   modification: ModificationStructure
 }
 
@@ -857,10 +872,13 @@ record ConclusionRecord {
   research*: Xref<ResearchStatusRecord>   // references to research questions that led to this conclusion
   date?: Date                             // the date the researcher made this conclusion
   source*: SourceCitation                 // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
+  
+  require preferred in resolves
 }
 
 ConclusionTarget = oneof {
   event: Xref<EventRecord>
+  event_participation: Xref<EventParticipationRecord>
   relationship: Xref<RelationshipRecord>
   individual: Xref<IndividualRecord>
   individual_attribute: Xref<IndividualAttributeRecord>
@@ -868,6 +886,7 @@ ConclusionTarget = oneof {
   group_attribute: Xref<GroupAttributeRecord>
   identity_hypothesis: Xref<IdentityHypothesisRecord>
   place: Xref<PlaceRecord>
+  place_relationship: Xref<PlaceRelationshipRecord>
   source: Xref<SourceRecord>
 }
 
@@ -887,6 +906,8 @@ record IdentityHypothesisRecord {
   source*: SourceCitation
   evidence?: EvidenceQualifiers
   modification: ModificationStructure
+  
+  require subject != candidate
 }
 
 IdentityCandidate = oneof {

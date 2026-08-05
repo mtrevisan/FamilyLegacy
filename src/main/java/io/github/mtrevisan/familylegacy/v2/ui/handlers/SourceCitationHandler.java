@@ -27,33 +27,25 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameDialog;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
 /**
- * Handler for {@code CLASSIFIED_NAME_STRUCTURE} entities according to FLEF 0.1.1.
- * <p>
- * This handler provides the necessary operations for managing name structures:
- * creation, editing, display name generation, and type identification.
- * <p>
- * Structure:
- * <pre>
- * struct ClassifiedName {
- *   type?: enum { official, colonial, indigenous } | Text
- *   text: NameStructure
- * }
- * </pre>
+ * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.1.
  */
-public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDialog>{
+public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDialog>{
 
 	/** The record type identifier for groups. */
-	public static final String TYPE = "CLASSIFIED_NAME";
+	public static final String TYPE = "SOURCE_CITATION";
 
-	private static final String TAG_TEXT = "TEXT";
-	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_SOURCE = "SOURCE";
+
+
+	private final SourceHandler sourceHandle = new SourceHandler();
 
 
 	@Override
@@ -63,7 +55,7 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 
 	@Override
 	public String getLabel(){
-		return "Name Structure";
+		return "Source Citation";
 	}
 
 	@Override
@@ -77,20 +69,20 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 	}
 
 	@Override
-	public ClassifiedNameDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return ClassifiedNameDialog.createNew(parent, model);
+	public SourceCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return SourceCitationDialog.create(parent, model, null);
 	}
 
 	@Override
-	public ClassifiedNameDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public SourceCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return ClassifiedNameDialog.createEdit(parent, model, record);
+		return SourceCitationDialog.create(parent, model, record);
 	}
 
 	/**
-	 * Returns a display name for the given name structure.
+	 * Returns a display name for the given source structure.
 	 *
-	 * @param record the name structure record
+	 * @param record the source structure record
 	 * @return a human-readable display name
 	 */
 	@Override
@@ -98,14 +90,9 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
-		if(textValue != null){
-			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
-			if(value != null && !value.isEmpty())
-				return value;
-		}
-
-		return record.getId();
+		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_SOURCE));
+		final FLEFRecord source = model.getRecordById(xref);
+		return sourceHandle.getDisplayText(source, model);
 	}
 
 }

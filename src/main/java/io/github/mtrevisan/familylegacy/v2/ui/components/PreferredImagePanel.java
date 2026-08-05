@@ -30,6 +30,14 @@ import java.io.Serial;
 /**
  * Panel for selecting and managing a preferred image associated with a record.
  * The image is referenced via a Source record, and can be cropped.
+ * <p>
+ * Structure:
+ * <pre>
+ * struct {
+ *   uri: Uri
+ *   crop?: CropRect
+ * }
+ * </pre>
  */
 public class PreferredImagePanel extends JPanel{
 
@@ -55,7 +63,7 @@ public class PreferredImagePanel extends JPanel{
 
 	private final JButton imageButton;
 
-	private String imageUri;
+	private String uri;
 	private Rectangle cropRect;
 
 
@@ -104,16 +112,17 @@ public class PreferredImagePanel extends JPanel{
 	 * @param record the record containing the PREFERRED_IMAGE child
 	 */
 	public void load(final FLEFRecord record){
-		final FLEFRecord preferredImage = FLEFRecordHelper.findChild(record, path);
-		if(preferredImage != null){
-			imageUri = FLEFRecordHelper.findChild(preferredImage, TAG_URI)
-				.getValue();
-			loadCropRectangle(preferredImage);
+		clearImage();
 
-			updatePreferredImage();
-		}
-		else
-			clearImage();
+		final FLEFRecord preferredImage = FLEFRecordHelper.findChild(record, path);
+		if(preferredImage == null)
+			return;
+
+		uri = FLEFRecordHelper.findChild(preferredImage, TAG_URI)
+			.getValue();
+		loadCropRectangle(preferredImage);
+
+		updatePreferredImage();
 	}
 
 	@SuppressWarnings("DataFlowIssue")
@@ -139,9 +148,9 @@ public class PreferredImagePanel extends JPanel{
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);
 
-		if(imageUri != null && !imageUri.isEmpty()){
+		if(uri != null && !uri.isEmpty()){
 			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, imageUri);
+			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, uri);
 			if(cropRect != null && !cropRect.isEmpty()){
 				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_X, String.valueOf(cropRect.x));
 				FLEFRecordHelper.updateChildValue(preferredImage, TAG_CROP_Y, String.valueOf(cropRect.y));
@@ -157,7 +166,7 @@ public class PreferredImagePanel extends JPanel{
 	 * @return {@code true} if an image is selected, {@code false} otherwise
 	 */
 	public boolean hasImage(){
-		return (imageUri != null && !imageUri.isEmpty());
+		return (uri != null && !uri.isEmpty());
 	}
 
 	/**
@@ -171,7 +180,7 @@ public class PreferredImagePanel extends JPanel{
 		}
 
 		try{
-			final File imageFile = new File(imageUri);
+			final File imageFile = new File(uri);
 			cropDialog.loadData(imageFile);
 			cropDialog.setVisible(true);
 
@@ -220,7 +229,7 @@ public class PreferredImagePanel extends JPanel{
 			cropDialog.setVisible(true);
 
 			if(cropDialog.isSaved()){
-				imageUri = selectedFile.getAbsolutePath();
+				uri = selectedFile.getAbsolutePath();
 				cropRect = cropDialog.getCrop();
 
 				updatePreferredImage();
@@ -270,7 +279,7 @@ public class PreferredImagePanel extends JPanel{
 	}
 
 	private void clearImage(){
-		imageUri = null;
+		uri = null;
 		cropRect = null;
 		imageButton.setIcon(createPlaceholderIcon());
 	}

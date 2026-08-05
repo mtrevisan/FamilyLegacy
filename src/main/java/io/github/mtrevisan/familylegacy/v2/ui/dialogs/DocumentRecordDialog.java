@@ -31,11 +31,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.TranslationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -51,87 +50,77 @@ import java.io.Serial;
 
 
 /* DONE */
+// TODO file field: open a file chooser
 /**
- * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing a {@code DOCUMENT_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * record NoteRecord {
+ * record DocumentRecord {
  *   id: LocalID
- *   title?: Text
- *   value: Text
- *   mime?: Text
- *   locale?: LocaleCode
- *   translation*: struct {
- *     value: Text
- *     locale?: LocaleCode
- *   }
- *   source*: SourceCitation
+ *   file: Uri
+ *   mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
+ *   description?: Text
+ *   note*: Xref&lt;NoteRecord&gt;
  *   restriction?: RestrictionStructure
  *   modification: ModificationStructure
  * }
  * </pre>
  */
-public class NoteRecordDialog extends BaseRecordDialog{
+public class DocumentRecordDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = -4670126000119212975L;
+	private static final long serialVersionUID = 6128827794273719284L;
 
 
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_MIME = "MIME";
-	private static final String TAG_LOCALE = "LOCALE";
-	private static final String TAG_TRANSLATION = "TRANSLATION";
-	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_FILE = "FILE";
+	private static final String TAG_MAPPING = "MAPPING";
+	private static final String TAG_DESCRIPTION = "DESCRIPTION";
+	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
-	private static final String TAG_MODIFICATION = "MODIFICATION";
 
 
 	static{
-		HandlerRegistry.register(new NoteHandler());
+		HandlerRegistry.register(new DocumentHandler());
 	}
 
 
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 
-	private final BoundTextField titleField;
-	private final BoundTextArea valueArea;
-	private final BoundComboBox<String> mimeCombo;
-	private final BoundComboBox<String> localeCombo;
-	private final TranslationListPanel translationPanel;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final BoundTextField fileField;
+	private final BoundComboBox<String> mappingCombo;
+	private final BoundTextArea descriptionArea;
+	private final NoteListPanel notePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	public static NoteRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new NoteRecordDialog(parent, model, null);
+	public static DocumentRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return new DocumentRecordDialog(parent, model, null);
 	}
 
-	public static NoteRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static DocumentRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new NoteRecordDialog(parent, model, record);
+		return new DocumentRecordDialog(parent, model, record);
 	}
 
 
-	private NoteRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
+	private DocumentRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(DocumentHandler.TYPE));
 
-		titleField = new BoundTextField(TAG_TITLE, 30);
-		valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
-		valueArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
-		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{StringUtils.EMPTY, "text/plain", "text/html", "text/markdown"});
-		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
-		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, model);
+		fileField = new BoundTextField(TAG_FILE, 50);
+		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{StringUtils.EMPTY, "spherical_UV",
+			"cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
+		mappingCombo.setEditable(true);
+		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
+		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 
 		initComponents();
 
@@ -144,10 +133,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 
 	protected void initComponents(){
-		bindingManager.bind(titleField);
-		bindingManager.bind(valueArea);
-		bindingManager.bind(mimeCombo);
-		bindingManager.bind(localeCombo);
+		bindingManager.bind(fileField);
+		bindingManager.bind(mappingCombo);
+		bindingManager.bind(descriptionArea);
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
@@ -164,29 +152,24 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		// title
-		mainPanel.add(new JLabel("Title:"), "align label");
-		mainPanel.add(titleField, "growx,wrap");
+		// name structure
+		mainPanel.add(new JLabel("File*:"), "align label");
+		mainPanel.add(fileField, "growx,wrap");
 
-		// value
-		mainPanel.add(new JLabel("Value*:"), "align label,top");
-		mainPanel.add(GUIHelper.createScrollPane(valueArea), "growx, growy, wrap");
+		// mapping
+		mainPanel.add(new JLabel("Mapping:"), "align label");
+		mainPanel.add(mappingCombo, "growx,wrap");
 
-		// mime
-		mainPanel.add(new JLabel("MIME:"), "align label");
-		mainPanel.add(mimeCombo, "growx,wrap");
-
-		// locale
-		mainPanel.add(new JLabel("Locale:"), "align label");
-		mainPanel.add(localeCombo, "growx,wrap");
+		// description
+		mainPanel.add(new JLabel("Description:"), "align label,top");
+		mainPanel.add(GUIHelper.createScrollPane(descriptionArea), "growx");
 
 		return mainPanel;
 	}
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
-		panel.add(translationPanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(notePanel, "growx");
 		return panel;
 	}
 
@@ -195,18 +178,17 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		bindingManager.load(record);
 
-		translationPanel.load(record);
-		sourceCitationPanel.load(record);
+		notePanel.load(record);
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(valueArea.isEmpty()){
+		if(fileField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Note VALUE is required.",
-				tabbedPane, mainPanel, valueArea);
+				"Document FILE is required.",
+				tabbedPane, mainPanel, fileField);
 
 			return false;
 		}
@@ -218,8 +200,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		translationPanel.save(record);
-		sourceCitationPanel.save(record);
+		notePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}
@@ -234,7 +215,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final NoteRecordDialog dialog = NoteRecordDialog.createNew(null, model);
+			final DocumentRecordDialog dialog = DocumentRecordDialog.createNew(null, model);
 			dialog.setVisible(true);
 		});
 	}

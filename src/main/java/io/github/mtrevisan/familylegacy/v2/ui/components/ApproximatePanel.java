@@ -40,6 +40,11 @@ public class ApproximatePanel extends JPanel{
 	private static final long serialVersionUID = 5106748907289247149L;
 
 
+	private static final String TAG_BASIS = "BASIS";
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+	private static final String TAG_MARGIN = "MARGIN";
+
+
 	static{
 		HandlerRegistry.register(new CulturalNormHandler());
 	}
@@ -194,14 +199,14 @@ public class ApproximatePanel extends JPanel{
 
 		String basis = (String)basisCombo.getSelectedItem();
 		if(basis != null && !basis.isEmpty())
-			FLEFRecordHelper.updateChildValue(approx, "BASIS", basis);
+			FLEFRecordHelper.updateChildValue(approx, TAG_BASIS, basis);
 
 		if(culturalNormId != null && !culturalNormId.isEmpty())
-			FLEFRecordHelper.updateChildValue(approx, "CULTURAL_NORM", XRefHelper.formatXRef(culturalNormId));
+			FLEFRecordHelper.updateChildValue(approx, TAG_CULTURAL_NORM, XRefHelper.formatXRef(culturalNormId));
 
 		String margin = marginField.getText().trim();
 		if(!margin.isEmpty())
-			FLEFRecordHelper.updateChildValue(approx, "MARGIN", margin);
+			FLEFRecordHelper.updateChildValue(approx, TAG_MARGIN, margin);
 
 		// Only add if there is at least one child
 		if(approx.hasChildren()){

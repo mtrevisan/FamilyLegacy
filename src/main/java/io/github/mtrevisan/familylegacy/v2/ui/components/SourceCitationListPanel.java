@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -46,7 +46,7 @@ import java.util.List;
 
 /* DONE */
 /**
- * Panel for managing a list of SOURCE references.
+ * Panel for managing a list of {@code SOURCE} references according to FLEF 0.1.1.
  * <p>
  * Provides:
  * <ul>
@@ -174,7 +174,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 				final String newSourceId = newSource.getId();
 				final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
 				FLEFRecordHelper.updateChildValue(sourceCitation, TAG_SOURCE, XRefHelper.formatXRef(newSourceId));
-				final _SourceCitationDialog citationDialog = _SourceCitationDialog.createEdit(parent, model, sourceCitation);
+				final SourceCitationDialog citationDialog = SourceCitationDialog.create(parent, model, sourceCitation);
 				citationDialog.setVisible(true);
 
 				if(citationDialog.isSaved())
@@ -195,7 +195,7 @@ public class SourceCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final JDialog dialog = _SourceCitationDialog.createEdit(parent, model, existing);
+		final JDialog dialog = SourceCitationDialog.create(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

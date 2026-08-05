@@ -27,54 +27,64 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 
-/* DONE */
 /**
- * Panel for managing a list of {@code TEXT_VALUE_VARIANT} entries according to FLEF 0.1.1.
- * <p>
- * Provides:
- * <ul>
- *   <li>Add a new variant</li>
- *   <li>Edit an existing variant</li>
- *   <li>Remove a variant</li>
- * </ul>
+ * Panel for managing a list of REPOSITORY references.
  */
-public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
+public class RepositoryListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = -298718064629353117L;
+	private static final long serialVersionUID = 6678882576554492478L;
 
 
-	private static final String DOT = ".";
-
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+	static{
+		HandlerRegistry.register(new RepositoryHandler());
+	}
 
 
 	private final String path;
 
-	private final RecordTypeHandler<?> variantHandler;
+	private final RecordTypeHandler<?> repositoryHandler;
 
 
-	public VariantListPanel(final String path, final Dialog parent, final FLEFModel model){
-		super(parent, "Variants", model);
+	/**
+	 * Constructs a RepositoryListPanel without a border.
+	 *
+	 * @param parent the parent dialog
+	 * @param model        the FLEF model
+	 */
+	public RepositoryListPanel(final String path, final Dialog parent, final FLEFModel model){
+		this(path, parent, "Repositories", model);
+	}
+
+	/**
+	 * Constructs a RepositoryListPanel with a titled border.
+	 *
+	 * @param parent the parent dialog
+	 * @param borderTitle  the border title, or {@code null} for no border
+	 * @param model        the FLEF model
+	 */
+	public RepositoryListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
+		super(parent, borderTitle, model);
 
 		this.path = path;
 
-		variantHandler = HandlerRegistry.getHandler(VariantHandler.TYPE);
+		repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 	}
 
 
@@ -88,31 +98,43 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 			this::removeItem,
 			builder -> {
 				builder.item("Create New...", this::createNewItem);
+				builder.item("Add Existing...", this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+			}
+		);
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord variant){
-		if(variant != null)
-			return variantHandler.getDisplayText(variant, model);
+	protected String getDisplay(final FLEFRecord repository){
+		if(repository != null)
+			return repositoryHandler.getDisplayText(repository, model);
 
 		return "--";
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		return null;
+		final FLEFRecord[] result = {null};
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			parent, model, repositoryHandler, selectedId -> {
+				final FLEFRecord repository = model.getRecordById(selectedId);
+				if(repository != null && !items.contains(repository))
+					result[0] = repository;
+			}
+		);
+		dialog.setVisible(true);
+
+		return result[0];
 	}
 
 	/**
-	 * Creates a new variant and adds it to the list.
+	 * Creates a new repository and adds it to the list.
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final TextValueVariantDialog dialog = TextValueVariantDialog.createNew(parent, model);
+		final RepositoryRecordDialog dialog = (RepositoryRecordDialog)repositoryHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -121,30 +143,13 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Text Variant entry not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Repository not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		return showTextVariantDialog(existing);
-	}
-
-	/**
-	 * Shows a dialog to create or edit a text variant entry.
-	 *
-	 * @param existing the existing text variant record, or {@code null} for a new one
-	 * @return the (possibly updated) record, or {@code null} if cancelled
-	 */
-	private FLEFRecord showTextVariantDialog(FLEFRecord existing){
-		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Text Variant not found", "Error",
-				JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
-		final JDialog dialog = TextValueVariantDialog.createEdit(parent, model, existing);
+		final JDialog dialog = repositoryHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
@@ -152,22 +157,15 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void load(final FLEFRecord record){
-		final FLEFRecord variantPhonetic = FLEFRecordHelper.findChild(record, path + DOT + TAG_PHONETIC);
-		final FLEFRecord variantTranscription = FLEFRecordHelper.findChild(record, path + DOT + TAG_TRANSCRIPTION);
-		List<FLEFRecord> items = new ArrayList<>();
-		items.add(variantPhonetic);
-		items.add(variantTranscription);
-		setItems(items);
+		final List<FLEFRecord> repositories = FLEFRecordHelper.findChildren(record, path);
+		setItems(repositories);
 	}
 
 	public void save(final FLEFRecord record){
-		List<FLEFRecord> items = getItems();
-		if(!items.isEmpty()){
-			final FLEFRecord variant = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-			for(final FLEFRecord item : items)
-				variant.addChild(item);
-		}
+		FLEFRecordHelper.removeChildren(record, path);
+
+		for(final FLEFRecord repository : getItems())
+			FLEFRecordHelper.addChild(record, path, repository.getFormattedId());
 	}
 
 }
-

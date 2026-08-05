@@ -113,8 +113,8 @@ public class _GroupEventDialog extends BaseRecordDialog{
 	private final JList<String> groupList = new JList<>(groupListModel);
 	private final List<String> groupIds = new ArrayList<>();
 
-	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler("EVENT");
-	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler("GROUP");
+	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
+	private final RecordTypeHandler<?> groupHandler = HandlerRegistry.getHandler(GroupHandler.TYPE);
 
 
 	public _GroupEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
@@ -356,7 +356,7 @@ public class _GroupEventDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

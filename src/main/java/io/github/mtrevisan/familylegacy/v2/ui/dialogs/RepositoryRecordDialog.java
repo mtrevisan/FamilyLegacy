@@ -83,8 +83,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 
 	private final ClassifiedNameListPanel namePanel;
 	private final IndividualField custodianField;

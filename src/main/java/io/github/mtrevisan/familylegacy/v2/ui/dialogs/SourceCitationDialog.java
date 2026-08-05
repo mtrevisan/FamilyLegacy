@@ -22,19 +22,21 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ExtractListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -47,9 +49,10 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.border.TitledBorder;
+import javax.swing.JTabbedPane;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
@@ -63,120 +66,137 @@ import java.util.Map;
 import java.util.Set;
 
 
+/* ONGOING */
 /**
- * Reusable panel for editing a SOURCE_CITATION structure.
+ * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * SOURCE_CITATION :=
- *   n SOURCE @<XREF:SOURCE>@    {1:1}
- *     +1 SEARCH_OUTCOME <SEARCH_OUTCOME>    {0:1}
- *     +1 SEARCH_SCOPE <SEARCH_SCOPE_DESCRIPTION>    {0:1}
- *     +1 SEARCH_DATE <DATE_STRUCTURE>    {0:1}
- *     +1 LOCATION <WHERE_WITHIN_SOURCE>    {0:1}
- *     +1 ROLE <ROLE_IN_EVENT>    {0:1}
- *     +1 CROP <CROP_COORDINATES>    {1:1}
- *     +1 NOTE @<XREF:NOTE>@    {0:M}
- *     +1 CREDIBILITY <CREDIBILITY_ASSESSMENT>    {0:1}
- * </pre>
+ * struct SourceCitation {
+ *   source: Xref&lt;SourceRecord&gt;
+ *   location?: Text
+ *   extract*: ExtractStructure
+ *   evidence?: EvidenceQualifiers
+ *   restriction?: RestrictionStructure
+ *
+ *   require extract.document in source.document
+ * }
+ * struct ExtractStructure {
+ *   document: Xref<DocumentRecord>
+ *   crop?: CropRect
+ *   text?: Text
+ *   type?: enum { verbatim, summarized, translated, normalized }
+ *   locale?: LocaleCode
+ *   note*: Text
+ *
+ *   require one_of(crop, text, type, locale, note)
+ * }
+* </pre>
  */
-public class SourceCitationPanel extends JPanel{
+public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = -8036724779224867360L;
+	private static final long serialVersionUID = -7024588390352183760L;
 
 
-	private static final String PARAM_SOURCE = "SOURCE";
+	private static final String DOT = ".";
+
+	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_LOCATION = "LOCATION";
+	private static final String TAG_EXTRACT = "EXTRACT";
+	private static final String TAG_NOTE = TAG_EXTRACT + DOT + "NOTE";
+	private static final String TAG_EVIDENCE = "EVIDENCE";
+	private static final String TAG_RESTRICTION = "RESTRICTION";
 
 
 	static{
+		HandlerRegistry.register(new SourceCitationHandler());
 		HandlerRegistry.register(new NoteHandler());
 	}
 
+
 	private final BindingManager bindingManager = new BindingManager();
 
-
-	private final FLEFModel model;
-	private final Component parent;
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]"));
 
 	private String sourceId;
-
-	private final BoundComboBox<String> outcomeCombo;
-	private final BoundTextField scopeField;
 	private final BoundTextField locationField;
-	private final BoundTextField roleField;
-	private final BoundTextField cropField;
-	private final BoundComboBox<String> credibilityCombo;
-
+	private final ExtractListPanel extractPanel;
+	//TODO extract panel (document, crop, text, type, locale)
+	//FIXME note:
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
 	private final List<String> noteIds = new ArrayList<>();
 	private final Map<String, String> noteDisplayMap = new HashMap<>();
 
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
+	private final EvidenceQualifiersPanel qualifiers;
+	private final RestrictionPanel restrictionPanel;
 
-	/**
-	 *
-	 * Creates a new SourceCitationPanel.
-	 *
-	 * @param parent the parent component (for showing dialogs)
-	 * @param model  the FLEF model
-	 */
-	public SourceCitationPanel(final Dialog parent, final FLEFModel model, final String sourceId){
-		this.sourceId = sourceId;
 
-		this.model = model;
-		this.parent = parent;
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
 
-		outcomeCombo = new BoundComboBox<>("SEARCH_OUTCOME",
-			new String[]{StringUtils.EMPTY, "found", "not_found", "partially_found", "unreadable", "destroyed"});
-		scopeField = new BoundTextField("SEARCH_SCOPE", 20);
-		locationField = new BoundTextField("LOCATION", 20);
-		roleField = new BoundTextField("ROLE", 15);
-		cropField = new BoundTextField("CROP", 20);
-		credibilityCombo = new BoundComboBox<>("CREDIBILITY",
-			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
+
+	public static SourceCitationDialog create(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+
+		return new SourceCitationDialog(parent, model, record);
+	}
+
+
+	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(SourceCitationHandler.TYPE));
+
+		if(record == null)
+			throw new IllegalArgumentException("Place Record ID cannot be null");
+
+		sourceId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_SOURCE));
+
+		locationField = new BoundTextField(TAG_LOCATION, 20);
+		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, model);
+		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 
 		initComponents();
+
+		loadData();
+
+		pack();
+
+		setLocationRelativeTo(parent);
 	}
 
 
 	private void initComponents(){
-		setLayout(new MigLayout(StringUtils.EMPTY, "[right]rel[grow]", "[]5[]5[]5[]5[]5[]5[]5[]"));
-		setBorder(new TitledBorder("Source Citation"));
-
-		bindingManager.bind(outcomeCombo);
-		bindingManager.bind(scopeField);
 		bindingManager.bind(locationField);
-		bindingManager.bind(roleField);
-		bindingManager.bind(cropField);
-		bindingManager.bind(credibilityCombo);
 
-		noteList.setVisibleRowCount(4);
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
-		add(new JLabel("Search Outcome:"), "align label");
-		add(outcomeCombo, "growx,wrap");
+		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("Notes", createNotePanel());
+		tabbedPane.addTab("Restriction", restrictionPanel);
+		add(tabbedPane, "growx");
 
-		add(new JLabel("Search Scope:"), "align label");
-		add(scopeField, "growx,wrap");
-
-		add(new JLabel("Location:"), "align label");
-		add(locationField, "growx,wrap");
-
-		add(new JLabel("Role:"), "align label");
-		add(roleField, "growx,wrap");
-
-		add(new JLabel("Crop:"), "align label");
-		add(cropField, "growx,wrap");
-
-		add(new JLabel("Notes:"), "align label,top");
-		JPanel notePanel = createNotePanel();
-		add(notePanel, "growx,wrap");
-
-		add(new JLabel("Credibility:"), "align label");
-		add(credibilityCombo, "growx");
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			this::save,
+			this::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
+	private JPanel createMainPanel(){
+		// location
+		mainPanel.add(new JLabel("Location:"), "align label");
+		mainPanel.add(locationField, "growx,wrap");
+
+		// extract
+		mainPanel.add(extractPanel, "span 2,growx,wrap");
+
+		// qualifiers
+		mainPanel.add(qualifiers, "span 2,growx");
+
+		return mainPanel;
+	}
 
 	private JPanel createNotePanel(){
 		JPanel panel = new JPanel(new BorderLayout(3, 3));
@@ -219,18 +239,16 @@ public class SourceCitationPanel extends JPanel{
 		return panel;
 	}
 
-
 	private String getNoteDisplayName(String id){
 		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null){
+		if(rec != null)
 			return noteHandler.getDisplayText(rec, model);
-		}
 		return id;
 	}
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			(parent instanceof Dialog? (Dialog)parent: null),
+			null,
 			model, noteHandler, selectedId -> {
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
@@ -247,13 +265,16 @@ public class SourceCitationPanel extends JPanel{
 		int idx = noteList.getSelectedIndex();
 		if(idx == -1)
 			return;
+
 		String id = noteIds.get(idx);
 		FLEFRecord rec = model.getRecordById(id);
 		if(rec == null){
-			JOptionPane.showMessageDialog(parent, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Note not found: " + id, "Error", JOptionPane.ERROR_MESSAGE);
+
 			return;
 		}
-		JDialog dialog = noteHandler.createEditDialog((parent instanceof Dialog? (Dialog)parent: null), model, rec);
+
+		JDialog dialog = noteHandler.createEditDialog(null, model, rec);
 		dialog.setVisible(true);
 
 		String newDisplay = getNoteDisplayName(id);
@@ -265,7 +286,7 @@ public class SourceCitationPanel extends JPanel{
 		int idx = noteList.getSelectedIndex();
 		if(idx == -1)
 			return;
-		int confirm = JOptionPane.showConfirmDialog(parent, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
+		int confirm = JOptionPane.showConfirmDialog(null, "Remove this note reference?", "Confirm", JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			String removedId = noteIds.remove(idx);
 			noteDisplayMap.remove(removedId);
@@ -275,7 +296,7 @@ public class SourceCitationPanel extends JPanel{
 
 	private void createNewNote(){
 		Set<String> before = new HashSet<>(noteIds);
-		JDialog dialog = noteHandler.createNewDialog((parent instanceof Dialog? (Dialog)parent: null), model);
+		JDialog dialog = noteHandler.createNewDialog(null, model);
 		dialog.setVisible(true);
 
 		for(FLEFRecord rec : model.getRecordsByType("NOTE")){
@@ -290,27 +311,27 @@ public class SourceCitationPanel extends JPanel{
 		}
 	}
 
+	@Override
+	protected void loadData(){
+		sourceId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_SOURCE));
+		if(StringUtils.isBlank(sourceId)){
+			JOptionPane.showMessageDialog(this, "Invalid Source ID: `" + sourceId + "`.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
-	/**
-	 * Loads data from a SOURCE_CITATION FLEFRecord.
-	 *
-	 * @param citationRecord the SOURCE_CITATION record (may be null)
-	 */
-	public void load(FLEFRecord citationRecord){
-		// Clear all manual fields
+			return;
+		}
+
 		noteModel.clear();
 		noteIds.clear();
 		noteDisplayMap.clear();
 
-		if(citationRecord == null){
+		if(record == null)
 			return;
-		}
 
-		// ---- Load bound simple fields ----
-		bindingManager.load(citationRecord);
+		bindingManager.load(record);
 
-		// NOTE (0:M)
-		for(FLEFRecord child : citationRecord.getChildren()){
+		// NOTE
+		for(FLEFRecord child : record.getChildren()){
 			if("NOTE".equals(child.getTag()) && child.getValue() != null){
 				String id = child.getValue();
 				noteIds.add(id);
@@ -319,90 +340,54 @@ public class SourceCitationPanel extends JPanel{
 				noteModel.addElement(display);
 			}
 		}
+
+		extractPanel.load(record);
+		qualifiers.load(record);
 	}
 
-	/**
-	 * Saves data to a SOURCE_CITATION FLEFRecord.
-	 * The record will be created if null.
-	 *
-	 * @param citationRecord the SOURCE_CITATION record to save into (may be null)
-	 * @return the saved record (new if null was passed), or null if validation fails
-	 */
-	public FLEFRecord save(FLEFRecord citationRecord){
-		// Validate required fields before saving
-		if(!validateData()){
-			return null;
-		}
-
-		if(citationRecord == null){
-			citationRecord = FLEFRecord.createChild("SOURCE");
-		}
-
-		// Clear existing children
-		FLEFRecordHelper.removeAllChildren(citationRecord);
-
-		// ---- Save bound simple fields ----
-		bindingManager.save(citationRecord);
-
-		// ---- Save manual fields ----
-
-		// SOURCE
-		if(sourceId != null && !sourceId.isEmpty())
-			FLEFRecordHelper.updateChildValue(citationRecord, PARAM_SOURCE, XRefHelper.formatXRef(sourceId));
-
-		// NOTE (0:M) – manual
-		for(String id : noteIds){
-			FLEFRecordHelper.addChild(citationRecord, "NOTE", id);
-		}
-
-		return citationRecord;
-	}
-
-	/**
-	 * Validates that required fields (SOURCE and CROP) are filled.
-	 *
-	 * @return true if all required fields are filled
-	 */
-	public boolean validateData(){
+	@Override
+	protected boolean validData(){
 		if(sourceId == null || sourceId.isEmpty()){
-			JOptionPane.showMessageDialog(parent,
+			JOptionPane.showMessageDialog(null,
 				"SOURCE is required for a citation.\n" +
 					"Please select a source record.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 			return false;
 		}
+
 		return true;
 	}
 
-	/**
-	 * Checks if the source citation has any data.
-	 *
-	 * @return true if any field has data
-	 */
-	public boolean hasData(){
-		return (sourceId != null && !sourceId.isEmpty()) ||
-					 outcomeCombo.getSelectedIndex() >= 0 ||
-					 !scopeField.isEmpty() ||
-					 !locationField.isEmpty() ||
-					 !roleField.isEmpty() ||
-					 !cropField.isEmpty() ||
-					 !noteModel.isEmpty() ||
-					 credibilityCombo.getSelectedIndex() >= 0;
+	@Override
+	protected void saveData(){
+		FLEFRecordHelper.updateChildValue(record, TAG_SOURCE, XRefHelper.formatXRef(sourceId));
+
+		bindingManager.save(record);
+
+		// NOTE
+		for(final String id : noteIds)
+			FLEFRecordHelper.addChild(record, TAG_NOTE, id);
+
+		extractPanel.save(record);
+		qualifiers.save(record);
 	}
 
-	/**
-	 * Clears all fields in the panel.
-	 */
-	public void clear(){
-		outcomeCombo.setSelectedItem(StringUtils.EMPTY);
-		scopeField.setText(StringUtils.EMPTY);
-		locationField.setText(StringUtils.EMPTY);
-		roleField.setText(StringUtils.EMPTY);
-		cropField.setText(StringUtils.EMPTY);
-		noteModel.clear();
-		noteIds.clear();
-		noteDisplayMap.clear();
-		credibilityCombo.setSelectedItem(StringUtils.EMPTY);
+
+	public static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		final FLEFModel model = new FLEFModel();
+
+		SwingUtilities.invokeLater(() -> {
+			FLEFRecord sourceCitation = FLEFRecord.createEmpty();
+			sourceCitation.addChild(FLEFRecord.createChildWithValue(TAG_SOURCE, "@S1@"));
+			final SourceCitationDialog dialog = SourceCitationDialog.create(null, model, sourceCitation);
+			dialog.setVisible(true);
+		});
 	}
 
 }

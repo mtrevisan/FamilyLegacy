@@ -30,8 +30,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -90,6 +92,12 @@ public class _CalendarDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 7421369052579207567L;
 
 
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_SOURCE = "SOURCE";
+
+
 	static{
 		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new NoteHandler());
@@ -120,9 +128,9 @@ public class _CalendarDialog extends BaseRecordDialog{
 
 	private final ModificationPanel modificationPanel;
 
-	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler("CULTURAL_NORM");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
+	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 
 
 	public _CalendarDialog(Dialog parent, FLEFModel model, FLEFRecord record){
@@ -490,7 +498,7 @@ public class _CalendarDialog extends BaseRecordDialog{
 
 
 	private void addSourceCitation(){
-		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(this, model, null);
+		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, null);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -508,7 +516,7 @@ public class _CalendarDialog extends BaseRecordDialog{
 		if(idx == -1)
 			return;
 		FLEFRecord existing = sourceCitationRecords.get(idx);
-		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(this, model, existing);
+		SourceCitationDialog dialog = SourceCitationDialog.create(this, model, existing);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -598,21 +606,21 @@ public class _CalendarDialog extends BaseRecordDialog{
 	protected void saveData(){
 		// TYPE
 		String type = (String)typeCombo.getSelectedItem();
-		FLEFRecordHelper.updateChildValue(record, "TYPE", type);
+		FLEFRecordHelper.updateChildValue(record, TAG_TYPE, type);
 
 		// CULTURAL_NORM
 		for(String id : culturalNormIds){
-			FLEFRecordHelper.addChild(record, "CULTURAL_NORM", id);
+			FLEFRecordHelper.addChild(record, TAG_CULTURAL_NORM, id);
 		}
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordHelper.addChild(record, "NOTE", id);
+			FLEFRecordHelper.addChild(record, TAG_NOTE, id);
 		}
 
 		// SOURCE_CITATION (0:M)
 		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setTag("SOURCE");
+			citation.setTag(TAG_SOURCE);
 			record.addChild(citation);
 		}
 
@@ -621,7 +629,7 @@ public class _CalendarDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(String[] args){
+	public static void main(final String[] args){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}

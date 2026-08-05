@@ -45,7 +45,7 @@ Possibili miglioramenti:
 //		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 //	}
 //
-//	public static void main(String[] args){
+//	public static void main(final String[] args){
 //		String imagePath = "path_to_your_image.jpg"; // Inserisci il percorso dell'immagine da analizzare
 //		Mat image = Imgcodecs.imread(imagePath);
 //

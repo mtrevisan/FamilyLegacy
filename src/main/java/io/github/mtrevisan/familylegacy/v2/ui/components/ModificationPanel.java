@@ -84,7 +84,7 @@ public class ModificationPanel extends JPanel{
 		this.model = model;
 		this.parent = parent;
 
-		creationCommentArea = new BoundTextArea("CREATION.COMMENT", 2, 30);
+		creationCommentArea = new BoundTextArea("CREATION.COMMENT", 3, 25);
 		updateListPanel = new UpdateListPanel(parent, model);
 
 		initComponents();
@@ -96,12 +96,9 @@ public class ModificationPanel extends JPanel{
 
 		bindingManager.bind(creationCommentArea);
 
-		creationCommentArea.setLineWrap(true);
-		creationCommentArea.setWrapStyleWord(true);
 		final JPanel creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 		creationPanel.setBorder(new TitledBorder("Creation Comment"));
-		final JScrollPane commentScroll = GUIHelper.createScrollPane(creationCommentArea);
-		creationPanel.add(commentScroll, "growx");
+		creationPanel.add(GUIHelper.createScrollPane(creationCommentArea), "growx");
 		add(creationPanel, "growx,wrap");
 
 		add(updateListPanel, "growx");
@@ -117,7 +114,6 @@ public class ModificationPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		// ---- Load bound simple fields ----
 		bindingManager.load(record);
 
 		// Find CREATION
@@ -127,7 +123,7 @@ public class ModificationPanel extends JPanel{
 
 			// Load creation comment if present (non-standard, but we keep it)
 			final String comment = FLEFRecordHelper.getChildValue(creation, "COMMENT");
-			creationCommentArea.setText(StringUtils.defaultString(comment));
+			creationCommentArea.setValue(comment);
 		}
 
 		updateListPanel.load(record);
@@ -154,8 +150,7 @@ public class ModificationPanel extends JPanel{
 		bindingManager.save(record);
 
 		// Save creation comment if present
-		final String creationComment = creationCommentArea.getText()
-			.trim();
+		final String creationComment = creationCommentArea.getValue();
 		FLEFRecordHelper.addChild(record, "CREATION.COMMENT", creationComment);
 
 		// UPDATE entries

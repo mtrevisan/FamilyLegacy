@@ -68,8 +68,7 @@ import java.io.Serial;
  *   value: Text
  *   variant*: TextValueVariant
  *   locale?: LocaleCode
- *   valid_from?: DateStructure
- *   valid_to?: DateStructure
+ *   date?: DateStructure
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  * }
@@ -85,8 +84,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	public static final String TAG_VALUE = "TEXT.VALUE";
 	private static final String TAG_VARIANT = "TEXT.VARIANT";
 	private static final String TAG_LOCALE = "TEXT.LOCALE";
-	private static final String TAG_VALID_FROM = "TEXT.VALID_FROM";
-	private static final String TAG_VALID_TO = "TEXT.VALID_TO";
+	private static final String TAG_DATE = "TEXT.DATE";
 	private static final String TAG_NOTE = "TEXT.NOTE";
 	private static final String TAG_SOURCE = "TEXT.SOURCE";
 
@@ -105,8 +103,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
-	private final DateField validFromField;
-	private final DateField validToField;
+	private final DateField dateField;
 	private final NoteListPanel notePanel;
 	private final SourceCitationListPanel sourcePanel;
 
@@ -136,8 +133,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To Date", model);
+		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid On", model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 
@@ -186,14 +182,9 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		panel.add(new JLabel("Locale:"), "align label");
 		panel.add(localeCombo, "growx, wrap");
 
-		// Validity Range Panel
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]"));
-		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
-		validityPanel.add(new JLabel("Valid From:"), "align label");
-		validityPanel.add(validFromField, "growx, wrap");
-		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx, wrap");
-		panel.add(validityPanel, "span 2, growx, wrap");
+		// date
+		panel.add(new JLabel("Date:"), "align label,top");
+		panel.add(dateField, "growx,wrap");
 
 		return panel;
 	}
@@ -215,8 +206,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	protected void loadData(){
 		bindingManager.load(record);
 
-		validFromField.load(record);
-		validToField.load(record);
+		dateField.load(record);
 		variantPanel.load(record);
 		notePanel.load(record);
 		sourcePanel.load(record);
@@ -240,8 +230,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		validFromField.save(record);
-		validToField.save(record);
+		dateField.save(record);
 		variantPanel.save(record);
 		notePanel.save(record);
 		sourcePanel.save(record);

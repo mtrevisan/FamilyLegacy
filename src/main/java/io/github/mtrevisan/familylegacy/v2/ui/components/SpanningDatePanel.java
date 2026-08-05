@@ -39,7 +39,7 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Panel for SPANNING date (duration).
+ * Panel for {@code SPANNING} date (duration) according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>

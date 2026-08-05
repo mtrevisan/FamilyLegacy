@@ -110,6 +110,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
+
 	private final BoundComboBox<String> typeCombo;
 	private final PartListPanel partPanel;
 	private final CulturalNormListPanel culturalNormPanel;

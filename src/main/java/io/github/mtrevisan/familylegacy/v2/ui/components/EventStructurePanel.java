@@ -30,8 +30,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._SourceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -104,6 +105,23 @@ public class EventStructurePanel extends JPanel{
 	private static final long serialVersionUID = 4957059450168606708L;
 
 
+	public static final String CONCLUSION = "CONCLUSION";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+
+
+	private static final String TAG_PLACE = "PLACE";
+	private static final String TAG_CAUSE = "CAUSE";
+	private static final String TAG_DESCRIPTION = "DESCRIPTION";
+	private static final String TAG_SOURCE_TYPE = "SOURCE_TYPE";
+	private static final String TAG_INFORMATION_TYPE = "INFORMATION_TYPE";
+	private static final String TAG_EVIDENCE_TYPE = "EVIDENCE_TYPE";
+	private static final String TAG_AGENCY = "AGENCY";
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_RESTRICTION = "RESTRICTION";
+
+
 	static{
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());
@@ -124,12 +142,12 @@ public class EventStructurePanel extends JPanel{
 	private final JButton placeNewBtn = new JButton("New");
 	private final JButton placeClearBtn = new JButton("Clear");
 	private String selectedPlaceId;
-	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel("PLACE", "Place Evidence");
+	private final EvidenceQualifiersPanel placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Place Evidence");
 
 	private final JTextField agencyField = new JTextField(20);
 
 	private final JTextField causeField = new JTextField(20);
-	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel("CAUSE", "Cause Evidence");
+	private final EvidenceQualifiersPanel causeQualifiers = new EvidenceQualifiersPanel(TAG_CAUSE, "Cause Evidence");
 
 	private final DefaultListModel<String> culturalNormModel = new DefaultListModel<>();
 	private final JList<String> culturalNormList = new JList<>(culturalNormModel);
@@ -153,10 +171,10 @@ public class EventStructurePanel extends JPanel{
 
 	private final ConclusionPanel conclusionPanel;
 
-	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler("PLACE");
-	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler("NOTE");
-	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler("SOURCE");
-	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler("CULTURAL_NORM");
+	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+	private final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
+	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
 
 	/**
 	 * Creates a new EventStructurePanel.
@@ -169,7 +187,7 @@ public class EventStructurePanel extends JPanel{
 		this.parent = parent;
 		this.datePanel = new DatePanel(parent, model);
 		this.modificationPanel = new ModificationPanel(parent, model);
-		this.conclusionPanel = new ConclusionPanel("CONCLUSION", parent, model);
+		this.conclusionPanel = new ConclusionPanel(TAG_CONCLUSION, parent, model);
 
 		initComponents();
 	}
@@ -393,7 +411,7 @@ public class EventStructurePanel extends JPanel{
 
 	private void addSourceCitation(){
 		// Show a dialog to select a source and create a citation
-		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(
+		SourceCitationDialog dialog = SourceCitationDialog.create(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			null // new citation
@@ -414,7 +432,7 @@ public class EventStructurePanel extends JPanel{
 		if(idx == -1)
 			return;
 		FLEFRecord citation = sourceRecords.get(idx);
-		_SourceCitationDialog dialog = _SourceCitationDialog.createEdit(
+		SourceCitationDialog dialog = SourceCitationDialog.create(
 			(parent instanceof Dialog? (Dialog)parent: null),
 			model,
 			citation
@@ -787,7 +805,7 @@ public class EventStructurePanel extends JPanel{
 
 		// DESCRIPTION (0:1)
 		String description = descriptionArea.getText().trim();
-		FLEFRecordHelper.updateChildValue(eventStructure, "DESCRIPTION", description);
+		FLEFRecordHelper.updateChildValue(eventStructure, TAG_DESCRIPTION, description);
 
 		// DATE_STRUCTURE (0:1)
 		if(datePanel.hasData()){
@@ -800,61 +818,61 @@ public class EventStructurePanel extends JPanel{
 
 		// PLACE (0:1) with its children
 		if(selectedPlaceId != null && !selectedPlaceId.isEmpty()){
-			FLEFRecord place = FLEFRecord.createChildWithValue("PLACE", XRefHelper.formatXRef(selectedPlaceId));
+			FLEFRecord place = FLEFRecord.createChildWithValue(EventStructurePanel.TAG_PLACE, XRefHelper.formatXRef(selectedPlaceId));
 			eventStructure.addChild(place);
 			String placeSourceType = placeQualifiers.getSourceType();
-			FLEFRecordHelper.updateChildValue(place, "SOURCE_TYPE", placeSourceType);
+			FLEFRecordHelper.updateChildValue(place, TAG_SOURCE_TYPE, placeSourceType);
 			String placeInformationType = placeQualifiers.getSourceType();
-			FLEFRecordHelper.updateChildValue(place, "INFORMATION_TYPE", placeInformationType);
+			FLEFRecordHelper.updateChildValue(place, TAG_INFORMATION_TYPE, placeInformationType);
 			String placeEvidenceType = placeQualifiers.getSourceType();
-			FLEFRecordHelper.updateChildValue(place, "EVIDENCE_TYPE", placeEvidenceType);
+			FLEFRecordHelper.updateChildValue(place, TAG_EVIDENCE_TYPE, placeEvidenceType);
 		}
 
 		// AGENCY (0:1)
 		String agency = agencyField.getText().trim();
-		FLEFRecordHelper.updateChildValue(eventStructure, "AGENCY", agency);
+		FLEFRecordHelper.updateChildValue(eventStructure, TAG_AGENCY, agency);
 
 		// CAUSE (0:1) with its children
 		String causeVal = causeField.getText().trim();
 		if(!causeVal.isEmpty()){
-			FLEFRecord cause = FLEFRecord.createChildWithValue("CAUSE", causeVal);
+			FLEFRecord cause = FLEFRecord.createChildWithValue(EventStructurePanel.TAG_CAUSE, causeVal);
 			eventStructure.addChild(cause);
 			String causeSourceType = causeQualifiers.getSourceType();
-			FLEFRecordHelper.updateChildValue(cause, "SOURCE_TYPE", causeSourceType);
+			FLEFRecordHelper.updateChildValue(cause, TAG_SOURCE_TYPE, causeSourceType);
 			String causeInformationType = causeQualifiers.getSourceType();
-			FLEFRecordHelper.updateChildValue(cause, "INFORMATION_TYPE", causeInformationType);
+			FLEFRecordHelper.updateChildValue(cause, TAG_INFORMATION_TYPE, causeInformationType);
 			String causeEvidenceType = causeQualifiers.getSourceType();
-			FLEFRecordHelper.updateChildValue(cause, "EVIDENCE_TYPE", causeEvidenceType);
+			FLEFRecordHelper.updateChildValue(cause, TAG_EVIDENCE_TYPE, causeEvidenceType);
 		}
 
 		// CULTURAL_NORM (0:M)
 		for(String id : culturalNormIds){
-			FLEFRecordHelper.addChild(eventStructure, "CULTURAL_NORM", id);
+			FLEFRecordHelper.addChild(eventStructure, TAG_CULTURAL_NORM, id);
 		}
 
 		// NOTE (0:M)
 		for(String id : noteIds){
-			FLEFRecordHelper.addChild(eventStructure, "NOTE", id);
+			FLEFRecordHelper.addChild(eventStructure, TAG_NOTE, id);
 		}
 
 		// SOURCE_CITATION (0:M)
 		for(FLEFRecord citation : sourceRecords){
 			// Ensure the citation has the correct level and tag
-			citation.setTag("SOURCE");
+			citation.setTag(TAG_SOURCE);
 			eventStructure.addChild(citation);
 		}
 
 		// EVENT QUALIFIERS (CERTAINTY + CREDIBILITY for the event itself)
 		String eventSourceType = eventQualifiers.getSourceType();
-		FLEFRecordHelper.updateChildValue(eventStructure, "SOURCE_TYPE", eventSourceType);
+		FLEFRecordHelper.updateChildValue(eventStructure, TAG_SOURCE_TYPE, eventSourceType);
 		String eventInformationType = eventQualifiers.getSourceType();
-		FLEFRecordHelper.updateChildValue(eventStructure, "INFORMATION_TYPE", eventInformationType);
+		FLEFRecordHelper.updateChildValue(eventStructure, TAG_INFORMATION_TYPE, eventInformationType);
 		String eventEvidenceType = eventQualifiers.getSourceType();
-		FLEFRecordHelper.updateChildValue(eventStructure, "EVIDENCE_TYPE", eventEvidenceType);
+		FLEFRecordHelper.updateChildValue(eventStructure, TAG_EVIDENCE_TYPE, eventEvidenceType);
 
 		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;
-		FLEFRecordHelper.updateChildValue(eventStructure, "RESTRICTION", restriction);
+		FLEFRecordHelper.updateChildValue(eventStructure, TAG_RESTRICTION, restriction);
 
 		// MODIFICATION_STRUCTURE
 		modificationPanel.save(eventStructure);
@@ -863,7 +881,7 @@ public class EventStructurePanel extends JPanel{
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.save(null);
 			if(conclusion != null){
-				conclusion.setTag("CONCLUSION");
+				conclusion.setTag(TAG_CONCLUSION);
 				eventStructure.addChild(conclusion);
 			}
 		}

@@ -45,7 +45,7 @@ import java.io.IOException;
 import java.io.Serial;
 
 
-public final class PhotoCropDialog extends JDialog{
+public class PhotoCropDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3777867436237271707L;
