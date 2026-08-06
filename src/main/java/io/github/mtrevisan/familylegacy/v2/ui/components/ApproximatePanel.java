@@ -97,7 +97,7 @@ public class ApproximatePanel extends JPanel{
 		culturalNormField.setEditable(false);
 		culturalNormField.setBackground(UIManager.getColor("TextField.background"));
 
-		normPanel.add(new JLabel("Cultural Norm:"), "align label");
+		normPanel.add(new JLabel("Cultural Norm:"), "align label,top");
 		normPanel.add(normFieldPanel, "growx");
 		add(normPanel, "growx,wrap");
 

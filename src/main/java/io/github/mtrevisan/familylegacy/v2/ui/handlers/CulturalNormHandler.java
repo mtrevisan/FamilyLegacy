@@ -52,7 +52,7 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormRecord
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -67,13 +67,14 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormRecord
 	}
 
 	@Override
-	public CulturalNormRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return CulturalNormRecordDialog.createEdit(parent, model, record);
+	public CulturalNormRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return CulturalNormRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public CulturalNormRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return CulturalNormRecordDialog.createNew(parent, model);
+	public CulturalNormRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return CulturalNormRecordDialog.createEdit(parent, model, record);
 	}
 
 }

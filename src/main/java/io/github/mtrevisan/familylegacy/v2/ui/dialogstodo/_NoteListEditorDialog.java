@@ -99,7 +99,7 @@ public class _NoteListEditorDialog extends JDialog{
 	private void initComponents(){
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
-		JPanel panel = new JPanel(new MigLayout("ins 10,fillx"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx"));
 
 		JPanel listPanel = createNoteListPanel();
 		panel.add(listPanel, "growx,wrap");
@@ -122,7 +122,7 @@ public class _NoteListEditorDialog extends JDialog{
 	}
 
 	private JPanel createNoteListPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx"));
+		final JPanel panel = new JPanel(new MigLayout("fillx"));
 		panel.setBorder(new TitledBorder("Notes"));
 		noteList.setVisibleRowCount(4);
 		noteList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);

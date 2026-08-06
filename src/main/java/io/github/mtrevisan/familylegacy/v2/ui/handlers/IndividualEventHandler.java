@@ -52,7 +52,7 @@ public class IndividualEventHandler implements RecordTypeHandler<_IndividualEven
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -67,13 +67,13 @@ public class IndividualEventHandler implements RecordTypeHandler<_IndividualEven
 	}
 
 	@Override
-	public _IndividualEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new _IndividualEventDialog(parent, model, record);
+	public _IndividualEventDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _IndividualEventDialog(parent, model);
 	}
 
 	@Override
-	public _IndividualEventDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new _IndividualEventDialog(parent, model);
+	public _IndividualEventDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _IndividualEventDialog(parent, model, record);
 	}
 
 }

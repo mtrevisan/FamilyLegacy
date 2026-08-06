@@ -25,7 +25,7 @@ public class EventHandler implements RecordTypeHandler<_EventDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -62,13 +62,13 @@ public class EventHandler implements RecordTypeHandler<_EventDialog>{
 	}
 
 	@Override
-	public _EventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new _EventDialog(parent, model, record);
+	public _EventDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _EventDialog(parent, model);
 	}
 
 	@Override
-	public _EventDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new _EventDialog(parent, model);
+	public _EventDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _EventDialog(parent, model, record);
 	}
 
 }

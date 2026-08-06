@@ -3,13 +3,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartStructureDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class PartHandler implements RecordTypeHandler<PartDialog>{
+public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 
 	public static final String TYPE = "PART";
 
@@ -34,7 +34,7 @@ public class PartHandler implements RecordTypeHandler<PartDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return null;
 	}
 
@@ -82,13 +82,13 @@ public class PartHandler implements RecordTypeHandler<PartDialog>{
 	}
 
 	@Override
-	public PartDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return PartDialog.createEdit(parent, model, record);
+	public PartStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return PartStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public PartDialog createNewDialog(Dialog parent, FLEFModel model){
-		return PartDialog.createNew(parent, model);
+	public PartStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return PartStructureDialog.createEdit(parent, model, record);
 	}
 
 }

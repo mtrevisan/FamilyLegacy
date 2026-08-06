@@ -109,7 +109,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final CulturalNormListPanel culturalNormPanel;
 	private final NoteListPanel notePanel;
-	private final SourceCitationListPanel sourcePanel;
+	private final SourceCitationListPanel sourceCitationPanel;
 	private final PreferredImagePanel preferredImagePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
@@ -142,7 +142,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this, model);
@@ -180,7 +180,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]5[]5[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]15[]10[]10[]"));
 
 		panel.add(preferredImagePanel, "growx,align center");
 
@@ -200,12 +200,12 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]10[]10[]"));
 		panel.add(conclusionPanel, "growx");
 		panel.add(relationshipPanel, "growx");
 		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+		panel.add(sourceCitationPanel, "growx");
 		return panel;
 	}
 
@@ -217,7 +217,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		namePanel.load(record);
 		culturalNormPanel.load(record);
 		notePanel.load(record);
-		sourcePanel.load(record);
+		sourceCitationPanel.load(record);
 		preferredImagePanel.load(record);
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
@@ -239,7 +239,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		namePanel.save(record);
 		culturalNormPanel.save(record);
 		notePanel.saveReferences(record);
-		sourcePanel.save(record);
+		sourceCitationPanel.save(record);
 		preferredImagePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);

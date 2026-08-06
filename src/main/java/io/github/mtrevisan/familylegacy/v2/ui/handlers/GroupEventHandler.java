@@ -52,7 +52,7 @@ public class GroupEventHandler implements RecordTypeHandler<_GroupEventDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -69,13 +69,13 @@ public class GroupEventHandler implements RecordTypeHandler<_GroupEventDialog>{
 	}
 
 	@Override
-	public _GroupEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new _GroupEventDialog(parent, model, record);
+	public _GroupEventDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _GroupEventDialog(parent, model);
 	}
 
 	@Override
-	public _GroupEventDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new _GroupEventDialog(parent, model);
+	public _GroupEventDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _GroupEventDialog(parent, model, record);
 	}
 
 }

@@ -103,13 +103,13 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]10[]5[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]"));
 
 	private final ClassifiedNameListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField mapCoordinatesField;
 	private final EvidenceQualifiersPanel mapQualifiers;
-	private final SourceCitationListPanel sourcePanel;
+	private final SourceCitationListPanel sourceCitationPanel;
 	private final EvidenceQualifiersPanel placeQualifiers;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
@@ -143,7 +143,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES, 31);
 		mapQualifiers = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, "Map Evidence");
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Place Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this, model);
@@ -188,7 +188,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		mainPanel.add(typeCombo, "growx,wrap");
 
 		// map
-		final JPanel mapPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]"));
+		final JPanel mapPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
 		mapPanel.setBorder(new TitledBorder("Map"));
 		mapPanel.add(new JLabel("Coordinates:"), "align label");
 		mapPanel.add(mapCoordinatesField, "growx,wrap");
@@ -202,9 +202,9 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(conclusionPanel, "growx");
-		panel.add(sourcePanel, "growx");
+		panel.add(sourceCitationPanel, "growx");
 		return panel;
 	}
 
@@ -215,7 +215,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		namePanel.load(record);
 		mapQualifiers.load(record);
-		sourcePanel.load(record);
+		sourceCitationPanel.load(record);
 		placeQualifiers.load(record);
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
@@ -227,7 +227,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"At least one NAME structure is required.",
+				"At least one name is required.",
 				tabbedPane, mainPanel, namePanel);
 
 			return false;
@@ -243,7 +243,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		mapQualifiers.save(record);
-		sourcePanel.save(record);
+		sourceCitationPanel.save(record);
 		placeQualifiers.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);

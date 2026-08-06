@@ -79,7 +79,7 @@ import java.io.Serial;
  *
  *   require one_of(crop, text, type, locale, note)
  * }
-* </pre>
+ * </pre>
  */
 public class SourceCitationDialog extends BaseRecordDialog{
 
@@ -102,10 +102,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]"));
-
-	private String sourceId;
+	private final String sourceId;
 	private final BoundTextField locationField;
 	private final ExtractListPanel extractPanel;
 	private final NoteListPanel notePanel;
@@ -130,8 +127,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(SourceCitationHandler.TYPE));
 
 		this.sourceId = (sourceId != null
-			? sourceId:
-			XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_SOURCE)));
+			? sourceId
+			: XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_SOURCE)));
 
 		locationField = new BoundTextField(TAG_LOCATION, 20);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, model);
@@ -154,6 +151,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
+		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Notes", notePanel);
 		tabbedPane.addTab("Restriction", restrictionPanel);
@@ -166,6 +164,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
+		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+
 		// location
 		mainPanel.add(new JLabel("Location:"), "align label");
 		mainPanel.add(locationField, "growx,wrap");

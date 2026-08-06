@@ -3,7 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -15,7 +15,7 @@ import java.util.List;
 
 
 /* DONE */
-public class PartListPanel extends AbstractListPanel2{
+public class PartStructureListPanel extends AbstractListPanel2{
 
 	@Serial
 	private static final long serialVersionUID = 2221818245328724967L;
@@ -30,7 +30,7 @@ public class PartListPanel extends AbstractListPanel2{
 	private final String path;
 
 
-	public PartListPanel(final String path, final Dialog parent, final FLEFModel model){
+	public PartStructureListPanel(final String path, final Dialog parent, final FLEFModel model){
 		super(parent, "Parts*", model);
 
 		this.path = path;
@@ -85,7 +85,7 @@ public class PartListPanel extends AbstractListPanel2{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final PartDialog dialog = PartDialog.createNew(parent, model);
+		final PartStructureDialog dialog = PartStructureDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -99,7 +99,7 @@ public class PartListPanel extends AbstractListPanel2{
 			return null;
 		}
 
-		final PartDialog dialog = PartDialog.createEdit(parent, model, existing);
+		final PartStructureDialog dialog = PartStructureDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

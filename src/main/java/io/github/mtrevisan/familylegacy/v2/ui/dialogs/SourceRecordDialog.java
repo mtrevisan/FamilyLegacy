@@ -34,7 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.DocumentListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RepositoryListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RepositoryCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -56,7 +56,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING RepositoryCitation */
+/* DONE */
 /**
  * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -113,7 +113,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> mediaTypeCombo;
 	private final DateField dateField;
 	private final PlaceCitationField placeCitationField;
-	private final RepositoryListPanel repositoryPanel;
+	private final RepositoryCitationListPanel repositoryCitationPanel;
 	private final DocumentListPanel documentPanel;
 	private final NoteListPanel notePanel;
 	private final RestrictionPanel restrictionPanel;
@@ -145,7 +145,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
 		mediaTypeCombo.setEditable(true);
-		repositoryPanel = new RepositoryListPanel(TAG_REPOSITORY, this, model);
+		repositoryCitationPanel = new RepositoryCitationListPanel(TAG_REPOSITORY, this, model);
 		documentPanel = new DocumentListPanel(TAG_DOCUMENT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
@@ -183,7 +183,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]10[]"));
 
 		// title
 		panel.add(new JLabel("Title*:"), "align label");
@@ -202,7 +202,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		panel.add(placeCitationField, "growx,wrap");
 
 		// date
-		panel.add(new JLabel("Date:"), "align label,top");
+		panel.add(new JLabel("Date:"), "align label");
 		panel.add(dateField, "growx,wrap");
 
 		// media type
@@ -216,8 +216,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
-		panel.add(repositoryPanel, "growx");
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+		panel.add(repositoryCitationPanel, "growx");
 		panel.add(notePanel, "growx");
 		return panel;
 	}
@@ -229,7 +229,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 		dateField.load(record);
 		placeCitationField.load(record);
-		repositoryPanel.load(record);
+		repositoryCitationPanel.load(record);
 		documentPanel.load(record);
 		notePanel.load(record);
 		restrictionPanel.load(record);
@@ -247,7 +247,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 		dateField.save(record);
 		placeCitationField.save(record);
-		repositoryPanel.save(record);
+		repositoryCitationPanel.save(record);
 		documentPanel.save(record);
 		notePanel.saveReferences(record);
 		restrictionPanel.save(record);

@@ -41,6 +41,7 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 
 	/** The record type identifier for groups. */
 	public static final String TYPE = "PLACE_CITATION";
+	public static final String CITED_TYPE = "PLACE";
 
 	private static final String TAG_PLACE = "PLACE";
 
@@ -64,8 +65,23 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
+	public String getIdPrefix(){
 		return null;
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		if(record == null)
+			return StringUtils.EMPTY;
+
+		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_PLACE));
+		final FLEFRecord place = model.getRecordById(xref);
+		return placeHandle.getDisplayText(place, model);
 	}
 
 	@Override
@@ -75,24 +91,8 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 
 	@Override
 	public PlaceCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+		final FLEFRecord record){
 		return PlaceCitationDialog.createEdit(parent, model, record);
-	}
-
-	/**
-	 * Returns a display name for the given place structure.
-	 *
-	 * @param record the place structure record
-	 * @return a human-readable display name
-	 */
-	@Override
-	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return StringUtils.EMPTY;
-
-		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_PLACE));
-		final FLEFRecord place = model.getRecordById(xref);
-		return placeHandle.getDisplayText(place, model);
 	}
 
 }

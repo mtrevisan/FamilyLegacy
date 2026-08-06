@@ -27,7 +27,7 @@ public class NoteHandler implements RecordTypeHandler<NoteRecordDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 

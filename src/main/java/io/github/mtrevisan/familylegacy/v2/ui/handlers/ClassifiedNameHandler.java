@@ -72,27 +72,10 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return null;
 	}
 
-	@Override
-	public ClassifiedNameDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return ClassifiedNameDialog.createNew(parent, model);
-	}
-
-	@Override
-	public ClassifiedNameDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ClassifiedNameDialog.createEdit(parent, model, record);
-	}
-
-	/**
-	 * Returns a display name for the given name structure.
-	 *
-	 * @param record the name structure record
-	 * @return a human-readable display name
-	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
@@ -106,6 +89,17 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 		}
 
 		return record.getId();
+	}
+
+	@Override
+	public ClassifiedNameDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return ClassifiedNameDialog.createNew(parent, model);
+	}
+
+	@Override
+	public ClassifiedNameDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return ClassifiedNameDialog.createEdit(parent, model, record);
 	}
 
 }

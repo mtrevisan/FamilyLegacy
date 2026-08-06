@@ -58,18 +58,8 @@ public class IndividualHandler implements RecordTypeHandler<IndividualRecordDial
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
-	}
-
-	@Override
-	public IndividualRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return IndividualRecordDialog.createNew(parent, model);
-	}
-
-	@Override
-	public IndividualRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return IndividualRecordDialog.createEdit(parent, model, record);
 	}
 
 	@Override
@@ -119,6 +109,16 @@ public class IndividualHandler implements RecordTypeHandler<IndividualRecordDial
 					return val.trim();
 			}
 		return null;
+	}
+
+	@Override
+	public IndividualRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return IndividualRecordDialog.createNew(parent, model);
+	}
+
+	@Override
+	public IndividualRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return IndividualRecordDialog.createEdit(parent, model, record);
 	}
 
 }

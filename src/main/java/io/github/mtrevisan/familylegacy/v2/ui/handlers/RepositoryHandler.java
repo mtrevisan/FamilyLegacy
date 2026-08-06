@@ -52,7 +52,7 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -67,13 +67,14 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 	}
 
 	@Override
-	public RepositoryRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return RepositoryRecordDialog.createEdit(parent, model, record);
+	public RepositoryRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return RepositoryRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public RepositoryRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return RepositoryRecordDialog.createNew(parent, model);
+	public RepositoryRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return RepositoryRecordDialog.createEdit(parent, model, record);
 	}
 
 }

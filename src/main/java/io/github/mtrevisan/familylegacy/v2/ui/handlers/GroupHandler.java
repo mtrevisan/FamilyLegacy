@@ -52,45 +52,10 @@ public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
-	/**
-	 * Creates a new group dialog for creating a new group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @return a new {@code GroupDialog} in create mode
-	 */
-	@Override
-	public GroupRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return GroupRecordDialog.createNew(parent, model);
-	}
-
-	/**
-	 * Creates a new group dialog for editing an existing group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @param record the group record to edit
-	 * @return a new {@code GroupDialog} in edit mode
-	 */
-	@Override
-	public GroupRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return GroupRecordDialog.createEdit(parent, model, record);
-	}
-
-	/**
-	 * Returns a display name for the given group record.
-	 * <p>
-	 * The display name is the first {@code VALUE} found inside
-	 * {@code NAME_STRUCTURE} → {@code TEXT_VALUE}. If no name is available,
-	 * the record ID is returned.
-	 *
-	 * @param record the group record
-	 * @return a human-readable display name
-	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
@@ -110,6 +75,16 @@ public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
 
 		// Fallback to the record ID
 		return record.getId();
+	}
+
+	@Override
+	public GroupRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return GroupRecordDialog.createNew(parent, model);
+	}
+
+	@Override
+	public GroupRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return GroupRecordDialog.createEdit(parent, model, record);
 	}
 
 }

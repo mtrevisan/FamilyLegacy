@@ -52,7 +52,7 @@ public class HistoricEventHandler implements RecordTypeHandler<_HistoricEventDia
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -67,13 +67,13 @@ public class HistoricEventHandler implements RecordTypeHandler<_HistoricEventDia
 	}
 
 	@Override
-	public _HistoricEventDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new _HistoricEventDialog(parent, model, record);
+	public _HistoricEventDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _HistoricEventDialog(parent, model);
 	}
 
 	@Override
-	public _HistoricEventDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new _HistoricEventDialog(parent, model);
+	public _HistoricEventDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _HistoricEventDialog(parent, model, record);
 	}
 
 }

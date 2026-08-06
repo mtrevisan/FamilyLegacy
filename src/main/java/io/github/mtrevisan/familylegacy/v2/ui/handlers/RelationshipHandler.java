@@ -59,7 +59,7 @@ public class RelationshipHandler implements RecordTypeHandler<_RelationshipDialo
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -85,13 +85,13 @@ public class RelationshipHandler implements RecordTypeHandler<_RelationshipDialo
 	}
 
 	@Override
-	public _RelationshipDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return new _RelationshipDialog(parent, model, record);
+	public _RelationshipDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _RelationshipDialog(parent, model, null);
 	}
 
 	@Override
-	public _RelationshipDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return new _RelationshipDialog(parent, model, null);
+	public _RelationshipDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _RelationshipDialog(parent, model, record);
 	}
 
 }

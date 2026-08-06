@@ -12,10 +12,8 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import java.awt.Dialog;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 
 
 /**

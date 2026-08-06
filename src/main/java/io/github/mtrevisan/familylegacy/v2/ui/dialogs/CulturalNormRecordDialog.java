@@ -161,7 +161,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
+		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]"));
 
 		// title
 		mainPanel.add(new JLabel("Title:"), "align label");
@@ -172,14 +172,14 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		mainPanel.add(ruleTypeCombo, "growx, wrap");
 
 		// place
-		final JPanel placePanel = new JPanel(new MigLayout("ins 10,fillx,top", "[grow]", "[]5[]"));
+		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]5[]"));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 		placePanel.add(placeCitationField, "growx,wrap");
 		placePanel.add(placeQualifiers, "growx,wrap");
 		mainPanel.add(placePanel, "span 2,growx,wrap");
 
 		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]"));
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		validityPanel.add(new JLabel("Valid From:"), "align label");
 		validityPanel.add(validFromField, "growx,wrap");
@@ -194,7 +194,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]10[]"));
 		panel.add(notePanel, "growx");
 		panel.add(sourceCitationPanel, "growx");
 		return panel;

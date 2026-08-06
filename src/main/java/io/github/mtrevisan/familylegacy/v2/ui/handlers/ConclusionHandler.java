@@ -27,7 +27,7 @@ public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -46,13 +46,13 @@ public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
 	}
 
 	@Override
-	public _ConclusionDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return _ConclusionDialog.createEdit(parent, model, record);
+	public _ConclusionDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return _ConclusionDialog.createNew(parent, model);
 	}
 
 	@Override
-	public _ConclusionDialog createNewDialog(Dialog parent, FLEFModel model){
-		return _ConclusionDialog.createNew(parent, model);
+	public _ConclusionDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return _ConclusionDialog.createEdit(parent, model, record);
 	}
 
 }

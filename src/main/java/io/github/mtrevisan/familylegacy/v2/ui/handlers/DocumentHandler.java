@@ -56,7 +56,7 @@ public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -86,13 +86,13 @@ public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
 	}
 
 	@Override
-	public DocumentRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return DocumentRecordDialog.createEdit(parent, model, record);
+	public DocumentRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return DocumentRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public DocumentRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return DocumentRecordDialog.createNew(parent, model);
+	public DocumentRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return DocumentRecordDialog.createEdit(parent, model, record);
 	}
 
 }

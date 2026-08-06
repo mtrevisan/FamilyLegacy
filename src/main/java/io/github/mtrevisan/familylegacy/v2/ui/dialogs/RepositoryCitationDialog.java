@@ -30,10 +30,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -51,66 +50,62 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Dialog for editing a {@code PLACE_CITATION} according to FLEF 0.1.1.
+ * Dialog for editing a {@code REPOSITORY_CITATION} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * struct PlaceCitation {
- *   place: Xref&lt;PlaceRecord&gt;
- *   original_text?: Text
- *   source*: SourceCitation
- *   evidence?: EvidenceQualifiers
+ * struct RepositoryCitation {
+ *   repository: Xref&lt;RepositoryRecord&gt;
+ *   location?: Text
+ *   note?: Text
  * }
  * </pre>
  */
-public class PlaceCitationDialog extends BaseRecordDialog{
+public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 6489523892351201199L;
+	private static final long serialVersionUID = 7964432114921960068L;
 
 
-	private static final String TAG_PLACE = "PLACE";
-	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
-	private static final String TAG_SOURCE = "ORIGINAL_TEXT";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
+	private static final String TAG_REPOSITORY = "REPOSITORY";
+	private static final String TAG_LOCATION = "LOCATION";
+	private static final String TAG_NOTE = "NOTE";
 
 
 	static{
-		HandlerRegistry.register(new PlaceCitationHandler());
+		HandlerRegistry.register(new RepositoryCitationHandler());
 	}
 
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final String placeId;
-	private final BoundTextField originalTextField;
-	private final SourceCitationListPanel sourceCitationPanel;
-	private final EvidenceQualifiersPanel qualifiers;
+	private final String repositoryId;
+	private final BoundTextField locationField;
+	private final NoteListPanel notePanel;
 
 
-	public static PlaceCitationDialog createNew(final Dialog parent, final FLEFModel model, final String placeId){
-		return new PlaceCitationDialog(parent, model, placeId, null);
+	public static RepositoryCitationDialog createNew(final Dialog parent, final FLEFModel model, final String repositoryId){
+		return new RepositoryCitationDialog(parent, model, repositoryId, null);
 	}
 
-	public static PlaceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static RepositoryCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new PlaceCitationDialog(parent, model, null, record);
+		return new RepositoryCitationDialog(parent, model, null, record);
 	}
 
 
-	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final String placeId,
+	private RepositoryCitationDialog(final Dialog parent, final FLEFModel model, final String repositoryId,
 			final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PlaceCitationHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(RepositoryCitationHandler.TYPE));
 
-		this.placeId = (placeId != null
-			? placeId:
-			XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE)));
+		this.repositoryId = (repositoryId != null
+			? repositoryId:
+			XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_REPOSITORY)));
 
-		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
-		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
+		locationField = new BoundTextField(TAG_LOCATION, 20);
+		notePanel = new NoteListPanel(TAG_NOTE, this, null, model);
 
 		initComponents();
 
@@ -123,13 +118,13 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
-		bindingManager.bind(originalTextField);
+		bindingManager.bind(locationField);
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
+		tabbedPane.addTab("Notes", notePanel);
 		add(tabbedPane, "growx");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
@@ -139,28 +134,19 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
+		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]"));
 
-		// original text
-		panel.add(new JLabel("Original Text*:"), "align label");
-		panel.add(originalTextField, "growx, wrap");
+		// location
+		mainPanel.add(new JLabel("Location:"), "align label");
+		mainPanel.add(locationField, "growx,wrap");
 
-		// qualifiers
-		panel.add(qualifiers, "span 2,growx");
-
-		return panel;
-	}
-
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
-		panel.add(sourceCitationPanel, "growx");
-		return panel;
+		return mainPanel;
 	}
 
 	@Override
 	protected void loadData(){
-		if(StringUtils.isBlank(placeId)){
-			JOptionPane.showMessageDialog(this, "Invalid Place ID: `" + placeId + "`.",
+		if(StringUtils.isBlank(repositoryId)){
+			JOptionPane.showMessageDialog(this, "Invalid Repository ID: `" + repositoryId + "`.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return;
@@ -171,16 +157,15 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		bindingManager.load(record);
 
-		sourceCitationPanel.load(record);
-		qualifiers.load(record);
+		notePanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(placeId == null || placeId.isEmpty()){
+		if(repositoryId == null || repositoryId.isEmpty()){
 			JOptionPane.showMessageDialog(null,
-				"PLACE is required for a citation.\n" +
-					"Please select a place record.",
+				"REPOSITORY is required for a citation.\n" +
+					"Please select a repository record.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
@@ -191,12 +176,11 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, XRefHelper.formatXRef(placeId));
+		FLEFRecordHelper.updateChildValue(record, TAG_REPOSITORY, XRefHelper.formatXRef(repositoryId));
 
 		bindingManager.save(record);
 
-		sourceCitationPanel.save(record);
-		qualifiers.save(record);
+		notePanel.saveReferences(record);
 	}
 
 
@@ -209,10 +193,10 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-//			FLEFRecord placeCitation = FLEFRecord.createEmpty();
-//			placeCitation.addChild(FLEFRecord.createChildWithValue(TAG_PLACE, "@P1@"));
-//			final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(null, model, placeCitation);
-			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model, "@P1@");
+//			FLEFRecord repositoryCitation = FLEFRecord.createEmpty();
+//			repositoryCitation.addChild(FLEFRecord.createChildWithValue(TAG_REPOSITORY, "@R1@"));
+//			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createEdit(null, model, repositoryCitation);
+			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createNew(null, model, "@R1@");
 			dialog.setVisible(true);
 		});
 	}

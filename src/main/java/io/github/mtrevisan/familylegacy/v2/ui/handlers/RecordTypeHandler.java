@@ -54,9 +54,16 @@ public interface RecordTypeHandler<T extends JDialog>{
 	String getType();
 
 	/**
+	 * For citations, returns the record's cited type name (e.g., "REPOSITORY" if it's a Repository Citation).
+	 */
+	default String getCitedType(){
+		return getType();
+	}
+
+	/**
 	 * Returns the record ID prefix (e.g., "I", "F").
 	 */
-	String getIDPrefix();
+	String getIdPrefix();
 
 	/**
 	 * Returns a human-readable display name for the given record.
@@ -71,19 +78,19 @@ public interface RecordTypeHandler<T extends JDialog>{
 	/**
 	 * Creates a dialog to create a new record.
 	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @return the dialog (already configured but not shown)
+	 * @param parent	The parent frame.
+	 * @param model	The FLEF model.
+	 * @return	The dialog (already configured but not shown).
 	 */
 	T createNewDialog(Dialog parent, FLEFModel model);
 
 	/**
 	 * Creates a dialog to edit an existing record.
 	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @param record the record to edit
-	 * @return the dialog (already configured but not shown)
+	 * @param parent	The parent frame.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit.
+	 * @return	The dialog (already configured but not shown).
 	 */
 	T createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record);
 

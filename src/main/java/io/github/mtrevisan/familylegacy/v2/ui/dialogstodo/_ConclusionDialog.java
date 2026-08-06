@@ -111,7 +111,7 @@ public class _ConclusionDialog extends BaseRecordDialog{
 	private final ResearchStatusListPanel researchPanel;
 
 	// SOURCE_CITATION
-	private final SourceCitationListPanel sourcePanel;
+	private final SourceCitationListPanel sourceCitationPanel;
 
 
 	public static _ConclusionDialog createNew(final Dialog parent, final FLEFModel model){
@@ -131,7 +131,7 @@ public class _ConclusionDialog extends BaseRecordDialog{
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
 		this.researchPanel = new ResearchStatusListPanel(parent, model);
-		this.sourcePanel = new SourceCitationListPanel("SOURCE", parent, model);
+		this.sourceCitationPanel = new SourceCitationListPanel("SOURCE", parent, model);
 
 		initComponents();
 
@@ -181,12 +181,12 @@ public class _ConclusionDialog extends BaseRecordDialog{
 		add(researchPanel, "span 2,growx,wrap");
 
 		// SOURCE_CITATION
-		add(sourcePanel, "span 2,growx,wrap");
+		add(sourceCitationPanel, "span 2,growx,wrap");
 	}
 
 
 	private JPanel createPreferredPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx,top", "[right]rel[grow]"));
+		final JPanel panel = new JPanel(new MigLayout("fillx,top", "[right]rel[grow]"));
 		panel.setBorder(new TitledBorder("Preferred Record"));
 
 		preferredDisplayField.setEditable(false);
@@ -300,7 +300,7 @@ public class _ConclusionDialog extends BaseRecordDialog{
 		researchPanel.setItems(researchIds);
 
 		// SOURCE_CITATION
-		sourcePanel.load(conclusionRecord);
+		sourceCitationPanel.load(conclusionRecord);
 	}
 
 	/**
@@ -332,7 +332,7 @@ public class _ConclusionDialog extends BaseRecordDialog{
 			FLEFRecordHelper.updateChildValue(record, "RESEARCH", XRefHelper.formatXRef(id));
 
 		// Save SOURCE_CITATION
-		for(FLEFRecord citation : sourcePanel.getItems()){
+		for(FLEFRecord citation : sourceCitationPanel.getItems()){
 			citation.setTag("SOURCE");
 			record.addChild(citation);
 		}
@@ -353,7 +353,7 @@ public class _ConclusionDialog extends BaseRecordDialog{
 		preferredDisplayField.setText(StringUtils.EMPTY);
 		clearPreferredBtn.setEnabled(false);
 		researchPanel.clear();
-		sourcePanel.clear();
+		sourceCitationPanel.clear();
 	}
 
 	/**
@@ -370,7 +370,7 @@ public class _ConclusionDialog extends BaseRecordDialog{
 			|| !resolvesPanel.isEmpty()
 			|| (preferredId != null && !preferredId.isEmpty())
 			|| !researchPanel.isEmpty()
-			|| !sourcePanel.isEmpty());
+			|| !sourceCitationPanel.isEmpty());
 	}
 
 	/**

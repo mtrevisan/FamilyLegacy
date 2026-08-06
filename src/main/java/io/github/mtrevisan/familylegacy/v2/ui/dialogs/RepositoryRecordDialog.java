@@ -84,7 +84,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]"));
 
 	private final ClassifiedNameListPanel namePanel;
 	private final IndividualField custodianField;
@@ -156,7 +156,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(contactPanel, "growx");
 		panel.add(notePanel, "growx");
 		return panel;
@@ -177,7 +177,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"At least one NAME structure is required.",
+				"At least one name is required.",
 				tabbedPane, mainPanel, namePanel);
 
 			return false;

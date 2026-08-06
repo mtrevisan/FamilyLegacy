@@ -16,8 +16,10 @@ import java.io.Serial;
 
 /**
  * Panel for managing a list of PLACE references (XREF IDs).
+ * <p>
+ * UNUSED!!!
  */
-public class PlaceListPanel extends AbstractListPanel<String>{
+public class PlaceCitationListPanel extends AbstractListPanel<String>{
 
 	@Serial
 	private static final long serialVersionUID = -5998352597761066840L;
@@ -30,7 +32,7 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 	private final PlaceHandler placeHandler = new PlaceHandler();
 
 
-	public PlaceListPanel(final Dialog parent, final FLEFModel model){
+	public PlaceCitationListPanel(final Dialog parent, final FLEFModel model){
 		super(parent, "Places", model);
 	}
 

@@ -181,7 +181,7 @@ public class _HeaderDialog extends JDialog{
 
 
 	private JPanel createMainPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]"));
 
 		// --- PROTOCOL ---
 		panel.add(new JLabel("Protocol Name*:"), "align label");
@@ -221,7 +221,7 @@ public class _HeaderDialog extends JDialog{
 	}
 
 	private JPanel createSubmitterPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]"));
 
 		// --- SUBMITTER NAME ---
 		panel.add(new JLabel("Submitter Name*:"), "align label");

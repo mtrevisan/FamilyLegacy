@@ -48,6 +48,7 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 
 	/** The record type identifier for groups. */
 	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
+	public static final String CITED_TYPE = "PERSONAL_NAME";
 
 	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_VALUE = "VALUE";
@@ -69,41 +70,15 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
+	public String getIdPrefix(){
 		return null;
 	}
 
-	/**
-	 * Creates a new group dialog for creating a new group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @return a new {@code PersonalNameStructureDialog} in create mode
-	 */
-	@Override
-	public PersonalNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return PersonalNameStructureDialog.createNew(parent, model);
-	}
-
-	/**
-	 * Creates a new group dialog for editing an existing group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @param record the group record to edit
-	 * @return a new {@code PersonalNameStructureDialog} in edit mode
-	 */
-	@Override
-	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return PersonalNameStructureDialog.createEdit(parent, model, record);
-	}
-
-	/**
-	 * Returns a display name for the given name structure.
-	 *
-	 * @param record the name structure record
-	 * @return a human-readable display name
-	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
@@ -118,6 +93,16 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 
 		// Fallback to the record ID
 		return record.getId();
+	}
+
+	@Override
+	public PersonalNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return PersonalNameStructureDialog.createNew(parent, model);
+	}
+
+	@Override
+	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return PersonalNameStructureDialog.createEdit(parent, model, record);
 	}
 
 }

@@ -161,7 +161,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]10[]10[]"));
 
 		// ID (read-only)
 		idField.setEditable(false);

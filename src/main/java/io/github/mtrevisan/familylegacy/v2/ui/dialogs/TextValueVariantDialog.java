@@ -36,10 +36,11 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ButtonGroup;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
@@ -142,7 +143,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]5[]5[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]15[]0[]5[]5[]"));
 		panel.add(new JLabel("Variant Kind:"), "align label");
 		panel.add(radioPanel, "growx,wrap");
 
@@ -159,17 +160,9 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());
 
-		final JButton okBtn = new JButton("OK");
-		final JButton cancelBtn = new JButton("Cancel");
-		okBtn.addActionListener(e -> save());
-		cancelBtn.addActionListener(e -> dispose());
-
-		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		buttonPanel.add(okBtn);
-		buttonPanel.add(cancelBtn);
-
-		setLayout(new MigLayout("ins 10,fillx,top"));
-		add(panel, BorderLayout.CENTER);
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			this::save,
+			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
 
 		updateFieldsState();
@@ -206,21 +199,24 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(phoneticRadio.isSelected() && phoneticSystemField.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(this, "System field is required.",
+			GUIHelper.showValidationErrorAndFocus(this,
+				"System is required.",
 				null, null, phoneticSystemField);
 
 			return false;
 		}
 
 		if(transcriptionRadio.isSelected() && transcriptionSystemCombo.getSelectedIndex() < 0){
-			GUIHelper.showValidationErrorAndFocus(this, "System field is required.",
+			GUIHelper.showValidationErrorAndFocus(this,
+				"System cannot be empty.",
 				null, null, transcriptionSystemCombo);
 
 			return false;
 		}
 
 		if(valueField.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(this, "Value field is required.",
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Value is required.",
 				null, null, valueField);
 
 			return false;
@@ -236,6 +232,21 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		else if(transcriptionRadio.isSelected())
 			record.setTag(TAG_TRANSCRIPTION);
 		bindingManager.save(record);
+	}
+
+
+	public static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		final FLEFModel model = new FLEFModel();
+
+		SwingUtilities.invokeLater(() -> {
+			final TextValueVariantDialog dialog = TextValueVariantDialog.createNew(null, model);
+			dialog.setVisible(true);
+		});
 	}
 
 }

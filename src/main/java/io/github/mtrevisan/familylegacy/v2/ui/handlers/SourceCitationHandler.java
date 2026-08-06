@@ -41,6 +41,7 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 
 	/** The record type identifier for groups. */
 	public static final String TYPE = "SOURCE_CITATION";
+	public static final String CITED_TYPE = "SOURCE";
 
 	private static final String TAG_SOURCE = "SOURCE";
 
@@ -64,8 +65,23 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
+	public String getIdPrefix(){
 		return null;
+	}
+
+	@Override
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		if(record == null)
+			return StringUtils.EMPTY;
+
+		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_SOURCE));
+		final FLEFRecord source = model.getRecordById(xref);
+		return sourceHandle.getDisplayText(source, model);
 	}
 
 	@Override
@@ -77,22 +93,6 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 	public SourceCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
 		return SourceCitationDialog.createEdit(parent, model, record);
-	}
-
-	/**
-	 * Returns a display name for the given source structure.
-	 *
-	 * @param record the source structure record
-	 * @return a human-readable display name
-	 */
-	@Override
-	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return StringUtils.EMPTY;
-
-		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_SOURCE));
-		final FLEFRecord source = model.getRecordById(xref);
-		return sourceHandle.getDisplayText(source, model);
 	}
 
 }

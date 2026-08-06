@@ -93,7 +93,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]"));
 
 	private final BoundTextField fileField;
 	private final BoundComboBox<String> mappingCombo;
@@ -204,7 +204,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
 		panel.add(notePanel, "growx");
 		return panel;
 	}
@@ -223,7 +223,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(fileField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Document FILE is required.",
+				"Document file is required.",
 				tabbedPane, mainPanel, fileField);
 
 			return false;

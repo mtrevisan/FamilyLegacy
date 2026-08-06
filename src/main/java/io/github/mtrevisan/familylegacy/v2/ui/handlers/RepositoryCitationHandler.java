@@ -27,30 +27,36 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryCitationDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
 /**
- * Handler for PLACE records.
+ * Handler for {@code REPOSITORY_CITATION} entities according to FLEF 0.1.1.
  */
-public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
+public class RepositoryCitationHandler implements RecordTypeHandler<RepositoryCitationDialog>{
 
-	public static final String TYPE = "PLACE";
-	public static final String ID_PREFIX = "P";
+	/** The record type identifier for groups. */
+	public static final String TYPE = "REPOSITORY_CITATION";
+	public static final String CITED_TYPE = "REPOSITORY";
 
-	private static final String DOT = ".";
+	private static final String TAG_REPOSITORY = "REPOSITORY";
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_TEXT = "TEXT";
-	private static final String TAG_VALUE = "VALUE";
+
+	private final RepositoryHandler repositoryHandle = new RepositoryHandler();
 
 
 	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
 	public String getLabel(){
-		return "Place";
+		return "Repository Citation";
 	}
 
 	@Override
@@ -59,28 +65,34 @@ public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 	}
 
 	@Override
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
 	public String getIdPrefix(){
-		return ID_PREFIX;
+		return null;
 	}
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME + DOT + TAG_TEXT + DOT + TAG_VALUE);
-		if(value != null && !value.isEmpty()){
-			final String id = record.getId();
-			return value + " (" + id + ")";
-		}
-		return StringUtils.EMPTY;
+		if(record == null)
+			return StringUtils.EMPTY;
+
+		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_REPOSITORY));
+		final FLEFRecord repository = model.getRecordById(xref);
+		return repositoryHandle.getDisplayText(repository, model);
 	}
 
 	@Override
-	public PlaceRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return PlaceRecordDialog.createNew(parent, model);
+	public RepositoryCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return RepositoryCitationDialog.createNew(parent, model, null);
 	}
 
 	@Override
-	public PlaceRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return PlaceRecordDialog.createEdit(parent, model, record);
+	public RepositoryCitationDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return RepositoryCitationDialog.createEdit(parent, model, record);
 	}
 
 }

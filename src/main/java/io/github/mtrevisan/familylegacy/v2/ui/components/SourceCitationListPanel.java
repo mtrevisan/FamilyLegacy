@@ -47,14 +47,6 @@ import java.util.List;
 /* DONE */
 /**
  * Panel for managing a list of {@code SOURCE} references according to FLEF 0.1.1.
- * <p>
- * Provides:
- * <ul>
- *   <li>Add existing source citation</li>
- *   <li>Create new source + add citation</li>
- *   <li>Edit citation</li>
- *   <li>Remove citation</li>
- * </ul>
  */
 public class SourceCitationListPanel extends AbstractListPanel2{
 

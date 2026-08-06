@@ -91,7 +91,7 @@ public class ModificationPanel extends JPanel{
 
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10,fillx", "[grow]"));
+		setLayout(new MigLayout("ins 10,fillx", "[grow]", "[]10[]"));
 
 		bindingManager.bind(creationCommentArea);
 

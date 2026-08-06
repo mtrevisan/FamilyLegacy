@@ -129,9 +129,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{StringUtils.EMPTY, "text/plain", "text/html", "text/markdown"});
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 
 		initComponents();
 
@@ -184,7 +184,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(translationPanel, "growx");
 		panel.add(sourceCitationPanel, "growx");
 		return panel;
@@ -205,7 +205,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Note VALUE is required.",
+				"Note value is required.",
 				tabbedPane, mainPanel, valueArea);
 
 			return false;

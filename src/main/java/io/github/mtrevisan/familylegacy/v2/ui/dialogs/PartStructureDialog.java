@@ -61,7 +61,7 @@ import java.io.Serial;
  *   }
  * </pre>
  */
-public class PartDialog extends BaseRecordDialog{
+public class PartStructureDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3227495851403391698L;
@@ -85,19 +85,19 @@ public class PartDialog extends BaseRecordDialog{
 	private final VariantListPanel variantPanel;
 
 
-	public static PartDialog createNew(final Dialog parent, final FLEFModel model){
-		return new PartDialog(parent, model, null);
+	public static PartStructureDialog createNew(final Dialog parent, final FLEFModel model){
+		return new PartStructureDialog(parent, model, null);
 	}
 
-	public static PartDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static PartStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new PartDialog(parent, model, record);
+		return new PartStructureDialog(parent, model, record);
 	}
 
 
-	private PartDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PartHandler.TYPE));
 
 		setTitle(record == null? "Add Part": "Edit Part");
@@ -131,7 +131,7 @@ public class PartDialog extends BaseRecordDialog{
 		bindingManager.bind(valueField);
 
 
-		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]5[]"));
+		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]10[]"));
 
 		add(new JLabel("Part Type*:"), "align label");
 		add(typeCombo, "growx,wrap");
@@ -163,7 +163,8 @@ public class PartDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(StringUtils.isBlank(valueField.getText())){
-			GUIHelper.showValidationErrorAndFocus(this, "Value cannot be empty.",
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Value cannot be empty.",
 				null, null, valueField);
 
 			return false;

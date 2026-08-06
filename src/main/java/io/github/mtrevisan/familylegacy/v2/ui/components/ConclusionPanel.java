@@ -96,7 +96,7 @@ public class ConclusionPanel extends JPanel{
 	private final ResearchStatusListPanel researchPanel;
 
 	// SOURCE_CITATION
-	private final SourceCitationListPanel sourcePanel;
+	private final SourceCitationListPanel sourceCitationPanel;
 
 
 	/**
@@ -113,7 +113,7 @@ public class ConclusionPanel extends JPanel{
 
 		this.resolvesPanel = new ResolvesListPanel(model, parent);
 		this.researchPanel = new ResearchStatusListPanel(parent, model);
-		this.sourcePanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
+		this.sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
 
 		initComponents();
 	}
@@ -155,18 +155,18 @@ public class ConclusionPanel extends JPanel{
 		add(researchPanel, "span 2,growx,wrap");
 
 		// SOURCE_CITATION
-		add(sourcePanel, "span 2,growx,wrap");
+		add(sourceCitationPanel, "span 2,growx,wrap");
 	}
 
 
 	private JPanel createPreferredPanel(){
-		JPanel panel = new JPanel(new MigLayout("fillx,top", "[right]rel[grow]"));
+		final JPanel panel = new JPanel(new MigLayout("fillx,top", "[right]rel[grow]"));
 		panel.setBorder(new TitledBorder("Preferred Record"));
 
 		preferredDisplayField.setEditable(false);
 		preferredDisplayField.setBackground(UIManager.getColor("TextField.background"));
 
-		JPanel preferredPanel = new JPanel(new BorderLayout(5, 5));
+		final JPanel preferredPanel = new JPanel(new BorderLayout(5, 5));
 		preferredPanel.add(preferredDisplayField, BorderLayout.CENTER);
 
 		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
@@ -237,7 +237,7 @@ public class ConclusionPanel extends JPanel{
 		researchPanel.setItems(researchIds);
 
 		// SOURCE_CITATION
-		sourcePanel.load(conclusionRecord);
+		sourceCitationPanel.load(conclusionRecord);
 	}
 
 	/**
@@ -269,7 +269,7 @@ public class ConclusionPanel extends JPanel{
 			FLEFRecordHelper.updateChildValue(record, TAG_RESEARCH, XRefHelper.formatXRef(id));
 
 		// Save SOURCE_CITATION
-		record.addChildrenWithTag(ConclusionPanel.TAG_SOURCE, sourcePanel.getItems());
+		record.addChildrenWithTag(ConclusionPanel.TAG_SOURCE, sourceCitationPanel.getItems());
 
 		return record;
 	}
@@ -287,7 +287,7 @@ public class ConclusionPanel extends JPanel{
 		preferredDisplayField.setText(StringUtils.EMPTY);
 		clearPreferredBtn.setEnabled(false);
 		researchPanel.clear();
-		sourcePanel.clear();
+		sourceCitationPanel.clear();
 	}
 
 	/**
@@ -304,7 +304,7 @@ public class ConclusionPanel extends JPanel{
 			|| !resolvesPanel.isEmpty()
 			|| (preferredId != null && !preferredId.isEmpty())
 			|| !researchPanel.isEmpty()
-			|| !sourcePanel.isEmpty());
+			|| !sourceCitationPanel.isEmpty());
 	}
 
 	/**

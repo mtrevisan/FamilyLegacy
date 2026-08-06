@@ -162,7 +162,7 @@ public class ContactStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]"));
 
 		// CONTACT
 		panel.add(new JLabel("Contact:"), "align label");

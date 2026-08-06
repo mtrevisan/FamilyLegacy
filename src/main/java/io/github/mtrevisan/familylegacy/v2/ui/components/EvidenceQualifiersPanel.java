@@ -59,7 +59,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	public EvidenceQualifiersPanel(final String path, final String title){
 		this.path = (path != null && !path.isEmpty())? path + DOT: StringUtils.EMPTY;
 
-		setLayout(new MigLayout("ins 4", "[right]rel[grow]", "[][]")); // we'll add 4 rows, each on new line
+		setLayout(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]"));
 		setBorder(BorderFactory.createTitledBorder(title));
 
 		sourceTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "original", "derived"});

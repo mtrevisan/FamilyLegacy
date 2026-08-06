@@ -118,7 +118,7 @@ record IndividualRecord {
 // names, family names, patronymics, matronymics, clan names, lineage names, titles, and other naming components. The order of PART elements is
 // significant and should reflect the historical or culturally appropriate representation of the name.
 struct PersonalNameStructure {
-  type?: enum {   // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
+  type?: enum {          // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
     // marital status and origins at birth
     official, religious, birth,
     // changes in marital status and family events
@@ -131,27 +131,31 @@ struct PersonalNameStructure {
     regnal, slave_name
     // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
   } | Text
-  part+: struct {   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names).
-    type: enum {
-      // personal and birth names
-      given, generation,
-      // direct family relationships (descent)
-      patronymic, matronymic, kunya,
-      // extended family and social belonging
-      family, family_nickname, lineage, house, clan, tribal, caste,
-      // geographical and territorial origin
-      toponymic,
-      // titles, roles and professions
-      title, occupational, prefix, suffix,
-      // assumed names, nicknames and contextual
-      nickname, regnal, religious, posthumous
-    } | Text
-    value: Text                  // the textual value of this individual name component
-    variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations of this name component
+  part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names).
   }
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
   source*: SourceCitation
+}
+
+// embedded
+struct PartStructure {
+  type: enum {
+    // personal and birth names
+    given, generation,
+    // direct family relationships (descent)
+    patronymic, matronymic, kunya,
+    // extended family and social belonging
+    family, family_nickname, lineage, house, clan, tribal, caste,
+    // geographical and territorial origin
+    toponymic,
+    // titles, roles and professions
+    title, occupational, prefix, suffix,
+    // assumed names, nicknames and contextual
+    nickname, regnal, religious, posthumous
+  } | Text
+  value: Text                  // the textual value of this individual name component
+  variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations of this name component
 }
 
 
@@ -317,9 +321,9 @@ record GroupAttributeRecord {
   id: LocalID
   group: Xref<GroupRecord>   // the group to which this attribute applies
   type: enum {
-    RESIDENCE,        // place where the group is known to reside
-    CHILDREN_COUNT,   // reported number of children associated with the group
-    SOCIAL_CLASS      // economic or social classification of the group
+    residence,        // place where the group is known to reside
+    children_count,   // reported number of children associated with the group
+    social_class      // economic or social classification of the group
   } | Text
   value?: Text
   date?: DateStructure

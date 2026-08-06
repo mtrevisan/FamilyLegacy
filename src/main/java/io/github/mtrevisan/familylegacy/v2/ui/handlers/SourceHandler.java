@@ -52,7 +52,7 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -67,13 +67,13 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 	}
 
 	@Override
-	public SourceRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return SourceRecordDialog.createEdit(parent, model, record);
+	public SourceRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return SourceRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public SourceRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return SourceRecordDialog.createNew(parent, model);
+	public SourceRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return SourceRecordDialog.createEdit(parent, model, record);
 	}
 
 }

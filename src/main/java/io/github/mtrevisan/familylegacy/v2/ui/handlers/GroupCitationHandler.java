@@ -42,6 +42,7 @@ import java.awt.Dialog;
 public class GroupCitationHandler implements RecordTypeHandler<_GroupCitationDialog>{
 
 	public static final String TYPE = "GROUP_CITATION";
+	public static final String CITED_TYPE = "GROUP";
 
 
 	@Override
@@ -60,7 +61,12 @@ public class GroupCitationHandler implements RecordTypeHandler<_GroupCitationDia
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
+	public String getIdPrefix(){
 		return null;
 	}
 
@@ -77,13 +83,13 @@ public class GroupCitationHandler implements RecordTypeHandler<_GroupCitationDia
 	}
 
 	@Override
-	public _GroupCitationDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new _GroupCitationDialog(parent, model, record);
+	public _GroupCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _GroupCitationDialog(parent, model, null);
 	}
 
 	@Override
-	public _GroupCitationDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new _GroupCitationDialog(parent, model, null);
+	public _GroupCitationDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _GroupCitationDialog(parent, model, record);
 	}
 
 }

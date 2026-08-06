@@ -104,7 +104,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> localeCombo;
 	private final DateField dateField;
 	private final NoteListPanel notePanel;
-	private final SourceCitationListPanel sourcePanel;
+	private final SourceCitationListPanel sourceCitationPanel;
 
 
 	public static ClassifiedNameDialog createNew(final Dialog parent, final FLEFModel model){
@@ -134,7 +134,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		});
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid On", model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 
 		initComponents();
 
@@ -151,7 +151,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(localeCombo);
 
-		setLayout(new MigLayout("ins 10,fillx,top", "[grow]", "[]10[]"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
@@ -182,22 +182,22 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		panel.add(localeCombo, "growx, wrap");
 
 		// date
-		panel.add(new JLabel("Date:"), "align label,top");
+		panel.add(new JLabel("Date:"), "align label");
 		panel.add(dateField, "growx,wrap");
 
 		return panel;
 	}
 
 	private JPanel createVariantPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
 		panel.add(variantPanel, "growx");
 		return panel;
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+		panel.add(sourceCitationPanel, "growx");
 		return panel;
 	}
 
@@ -208,7 +208,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		dateField.load(record);
 		variantPanel.load(record);
 		notePanel.load(record);
-		sourcePanel.load(record);
+		sourceCitationPanel.load(record);
 	}
 
 	@Override
@@ -232,7 +232,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		dateField.save(record);
 		variantPanel.save(record);
 		notePanel.saveReferences(record);
-		sourcePanel.save(record);
+		sourceCitationPanel.save(record);
 	}
 
 

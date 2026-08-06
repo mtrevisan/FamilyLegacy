@@ -62,42 +62,10 @@ public class VariantHandler implements RecordTypeHandler<TextValueVariantDialog>
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return null;
 	}
 
-	/**
-	 * Creates a new group dialog for creating a new group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @return a new {@code TextValueVariantDialog} in create mode
-	 */
-	@Override
-	public TextValueVariantDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return TextValueVariantDialog.createNew(parent, model);
-	}
-
-	/**
-	 * Creates a new group dialog for editing an existing group record.
-	 *
-	 * @param parent the parent frame
-	 * @param model  the FLEF model
-	 * @param record the group record to edit
-	 * @return a new {@code TextValueVariantDialog} in edit mode
-	 */
-	@Override
-	public TextValueVariantDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return TextValueVariantDialog.createEdit(parent, model, record);
-	}
-
-	/**
-	 * Returns a display name for the given text value variant structure.
-	 *
-	 * @param record the text value variant structure record (phonetic or transcription)
-	 * @param model  the FLEF model
-	 * @return a human-readable display name
-	 */
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
@@ -135,6 +103,17 @@ public class VariantHandler implements RecordTypeHandler<TextValueVariantDialog>
 
 		// Fallback to the record ID
 		return record.getId();
+	}
+
+	@Override
+	public TextValueVariantDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return TextValueVariantDialog.createNew(parent, model);
+	}
+
+	@Override
+	public TextValueVariantDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return TextValueVariantDialog.createEdit(parent, model, record);
 	}
 
 }

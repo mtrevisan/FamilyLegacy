@@ -53,7 +53,7 @@ public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusD
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -92,13 +92,14 @@ public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusD
 	}
 
 	@Override
-	public _ResearchStatusDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new _ResearchStatusDialog(parent, model, record);
+	public _ResearchStatusDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _ResearchStatusDialog(parent, model);
 	}
 
 	@Override
-	public _ResearchStatusDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new _ResearchStatusDialog(parent, model);
+	public _ResearchStatusDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return new _ResearchStatusDialog(parent, model, record);
 	}
 
 }

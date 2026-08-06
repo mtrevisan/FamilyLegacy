@@ -216,7 +216,7 @@ public class EventStructurePanel extends JPanel{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 
 		// DESCRIPTION (0:1)
 		panel.add(new JLabel("Description:"), "align label,top");

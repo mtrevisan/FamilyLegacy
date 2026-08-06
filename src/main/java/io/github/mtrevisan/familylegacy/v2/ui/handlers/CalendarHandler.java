@@ -52,7 +52,7 @@ public class CalendarHandler implements RecordTypeHandler<_CalendarDialog>{
 	}
 
 	@Override
-	public String getIDPrefix(){
+	public String getIdPrefix(){
 		return ID_PREFIX;
 	}
 
@@ -67,13 +67,13 @@ public class CalendarHandler implements RecordTypeHandler<_CalendarDialog>{
 	}
 
 	@Override
-	public _CalendarDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return new _CalendarDialog(parent, model, record);
+	public _CalendarDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return new _CalendarDialog(parent, model);
 	}
 
 	@Override
-	public _CalendarDialog createNewDialog(Dialog parent, FLEFModel model){
-		return new _CalendarDialog(parent, model);
+	public _CalendarDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new _CalendarDialog(parent, model, record);
 	}
 
 }

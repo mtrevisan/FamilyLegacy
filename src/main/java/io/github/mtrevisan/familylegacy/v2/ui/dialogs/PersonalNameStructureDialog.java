@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PartListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PartStructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -66,21 +66,22 @@ import java.io.Serial;
  *     aka, nickname, artistic, professional, user,
  *     regnal, slave_name
  *   } | Text
- *   part+: struct {
- *     type: enum {
- *       given, generation,
- *       patronymic, matronymic, kunya,
- *       family, family_nickname, lineage, house, clan, tribal, caste,
- *       toponymic,
- *       title, occupational, prefix, suffix,
- *       nickname, regnal, religious, posthumous
- *     } | Text
- *     value: Text
- *     variant*: TextValueVariant
- *   }
+ *   part+: PartStructure
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
+ * }
+ * struct PartStructure {
+ *   type: enum {
+ *     given, generation,
+ *     patronymic, matronymic, kunya,
+ *     family, family_nickname, lineage, house, clan, tribal, caste,
+ *     toponymic,
+ *     title, occupational, prefix, suffix,
+ *     nickname, regnal, religious, posthumous
+ *   } | Text
+ *   value: Text
+ *   variant*: TextValueVariant
  * }
  * </pre>
  */
@@ -109,13 +110,13 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
 
 	private final BoundComboBox<String> typeCombo;
-	private final PartListPanel partPanel;
+	private final PartStructureListPanel partPanel;
 	private final CulturalNormListPanel culturalNormPanel;
 	private final NoteListPanel notePanel;
-	private final SourceCitationListPanel sourcePanel;
+	private final SourceCitationListPanel sourceCitationPanel;
 
 
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -138,10 +139,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			StringUtils.EMPTY, "official", "colonial", "indigenous"
 		});
 		typeCombo.setEditable(true);
-		partPanel = new PartListPanel(TAG_PART, this, model);
+		partPanel = new PartStructureListPanel(TAG_PART, this, model);
 		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 
 		initComponents();
 
@@ -183,9 +184,9 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+		panel.add(sourceCitationPanel, "growx");
 		return panel;
 	}
 
@@ -197,14 +198,22 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		partPanel.load(record);
 		culturalNormPanel.load(record);
 		notePanel.load(record);
-		sourcePanel.load(record);
+		sourceCitationPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
+		if(typeCombo.getSelectedItem() == null){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Type cannot be empty.",
+				tabbedPane, mainPanel, typeCombo);
+
+			return false;
+		}
+
 		if(partPanel.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"At least one name is required.",
+				"At least one part is required.",
 				tabbedPane, mainPanel, partPanel);
 
 			return false;
@@ -220,7 +229,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		partPanel.save(record);
 		culturalNormPanel.save(record);
 		notePanel.saveReferences(record);
-		sourcePanel.save(record);
+		sourceCitationPanel.save(record);
 	}
 
 	public boolean hasData(){

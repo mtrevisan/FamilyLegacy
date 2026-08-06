@@ -167,7 +167,7 @@ public class _GroupEventDialog extends BaseRecordDialog{
 
 
 	private JPanel createBasicPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]10[]"));
 
 		// ID (read-only)
 		idField.setEditable(false);

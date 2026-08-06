@@ -67,7 +67,14 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	private static String buildTitle(final RecordTypeHandler<?> handler, final FLEFRecord record){
 		final String label = handler.getLabel();
-		return (record == null? "New " + label: "Edit " + label + " - " + record.getId());
+		if(record == null)
+			return "New " + label;
+
+		String id = record.getId();
+		if(id == null)
+			// in case of a citation
+			id = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, handler.getCitedType()));
+		return "Edit " + label + " (" + id + ")";
 	}
 
 
@@ -115,7 +122,7 @@ System.out.println(FLEFWriter.create().writeToString(model));
 	}
 
 	private String generateNewId(){
-		return XRefHelper.generateNewId(model, handler.getType(), handler.getIDPrefix());
+		return XRefHelper.generateNewId(model, handler.getType(), handler.getIdPrefix());
 	}
 
 
