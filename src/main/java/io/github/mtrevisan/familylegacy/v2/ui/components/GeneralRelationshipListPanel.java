@@ -79,8 +79,9 @@ public class GeneralRelationshipListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, relationshipHandler, selectedId -> {
-				final FLEFRecord relationship = model.getRecordById(selectedId);
+			parent, model, relationshipHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			final FLEFRecord relationship = model.getRecordById(selectedId);
 				if(relationship != null && !items.contains(relationship))
 					result[0] = relationship;
 			}

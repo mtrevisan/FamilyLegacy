@@ -286,7 +286,8 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 
 	private void browsePlace(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, placeHandler, selectedId -> {
+			this, model, placeHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectedPlaceId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -328,7 +329,8 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -519,10 +521,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 		}
 
 		// SOURCE CITATIONS (0:M)
-		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setTag("SOURCE");
-			record.addChild(citation);
-		}
+		record.addChildrenWithTag("SOURCE", sourceCitationRecords);
 
 		// MODIFICATION
 		modificationPanel.save(record);

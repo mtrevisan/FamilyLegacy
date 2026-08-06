@@ -191,12 +191,15 @@ public class _NoteListEditorDialog extends JDialog{
 
 	private void addExistingNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, noteHandler, selectedId -> {
-			if(selectedId != null && !noteIds.contains(selectedId)){
-				noteIds.add(selectedId);
-				String display = getNoteDisplayName(selectedId);
-				noteDisplayMap.put(selectedId, display);
-				noteListModel.addElement(display);
+			this, model, noteHandler, selectedItem -> {
+			if(selectedItem != null){
+				final String selectedId = selectedItem.getValue();
+				if(!noteIds.contains(selectedId)){
+					noteIds.add(selectedId);
+					String display = getNoteDisplayName(selectedId);
+					noteDisplayMap.put(selectedId, display);
+					noteListModel.addElement(display);
+				}
 			}
 		});
 		dialog.setVisible(true);

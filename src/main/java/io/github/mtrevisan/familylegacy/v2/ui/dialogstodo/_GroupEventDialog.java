@@ -252,7 +252,8 @@ public class _GroupEventDialog extends BaseRecordDialog{
 
 	private void addGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, groupHandler, selectedId -> {
+			parent, model, groupHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !groupIds.contains(selectedId)){
 				groupIds.add(selectedId);
 				groupListModel.addElement(getGroupDisplayName(selectedId));
@@ -344,10 +345,7 @@ public class _GroupEventDialog extends BaseRecordDialog{
 		// EVENT_STRUCTURE
 		if(eventStructurePanel.hasData()){
 			FLEFRecord eventStruct = eventStructurePanel.saveToRecord(null);
-			if(eventStruct != null){
-				eventStruct.setTag("EVENT_STRUCTURE");
-				record.addChild(eventStruct);
-			}
+			record.addChildWithTag("EVENT_STRUCTURE", eventStruct);
 		}
 
 		// GROUP (0:M)

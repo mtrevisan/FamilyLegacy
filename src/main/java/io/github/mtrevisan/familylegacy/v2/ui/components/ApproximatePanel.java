@@ -131,7 +131,8 @@ public class ApproximatePanel extends JPanel{
 			return;
 		}
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, culturalNormHandler, selectedId -> {
+			parent, model, culturalNormHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				culturalNormId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -208,10 +209,7 @@ public class ApproximatePanel extends JPanel{
 		if(!margin.isEmpty())
 			FLEFRecordHelper.updateChildValue(approx, TAG_MARGIN, margin);
 
-		// Only add if there is at least one child
-		if(approx.hasChildren()){
-			parent.addChild(approx);
-		}
+		parent.addChild(approx);
 	}
 
 	public void clear(){

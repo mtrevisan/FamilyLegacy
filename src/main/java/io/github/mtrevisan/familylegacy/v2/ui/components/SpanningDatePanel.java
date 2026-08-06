@@ -107,18 +107,12 @@ public class SpanningDatePanel extends JPanel{
 
 		if(fromPanel.hasData()){
 			final FLEFRecord from = fromPanel.save();
-			if(from != null && from.hasChildren()){
-				from.setTag(TAG_FROM);
-				record.addChild(from);
-			}
+			record.addChildWithTag(TAG_FROM, from);
 		}
 
 		if(toPanel.hasData()){
 			final FLEFRecord to = toPanel.save();
-			if(to != null && to.hasData()){
-				to.setTag(TAG_TO);
-				record.addChild(to);
-			}
+			record.addChildWithTag(TAG_TO, to);
 		}
 
 		return (record.hasData()? record.setTag(TAG_SPANNING): FLEFRecord.createEmpty());

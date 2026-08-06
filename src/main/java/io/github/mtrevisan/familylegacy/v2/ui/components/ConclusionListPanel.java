@@ -117,8 +117,9 @@ public class ConclusionListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, conclusionHandler, selectedId -> {
-				final FLEFRecord conclusion = model.getRecordById(selectedId);
+			parent, model, conclusionHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			final FLEFRecord conclusion = model.getRecordById(selectedId);
 				if(conclusion != null && !items.contains(conclusion))
 					result[0] = conclusion;
 			}

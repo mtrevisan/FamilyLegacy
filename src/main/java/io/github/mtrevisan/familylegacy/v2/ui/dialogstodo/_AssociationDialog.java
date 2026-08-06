@@ -330,7 +330,8 @@ public class _AssociationDialog extends JDialog{
 		}
 
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, handler, selectedId -> {
+			this, model, handler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				updateTargetDisplay(selectedId);
 			}
@@ -365,7 +366,8 @@ public class _AssociationDialog extends JDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -456,7 +458,8 @@ public class _AssociationDialog extends JDialog{
 
 	private void addSource(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, sourceHandler, selectedId -> {
+			this, model, sourceHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !sourceIds.contains(selectedId)){
 				sourceIds.add(selectedId);
 				String display = getSourceDisplayName(selectedId);

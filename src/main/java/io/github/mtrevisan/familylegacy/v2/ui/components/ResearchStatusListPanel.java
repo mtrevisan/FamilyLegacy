@@ -65,9 +65,9 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 		final String[] result = {null};
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(ResearchStatusHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, handler, selectedId -> {
-			if(selectedId != null){
-				result[0] = selectedId;
+			parent, model, handler, selectedItem -> {
+			if(selectedItem != null){
+				result[0] = selectedItem.getValue();
 			}
 		});
 		dialog.setVisible(true);

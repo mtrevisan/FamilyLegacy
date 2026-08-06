@@ -74,7 +74,8 @@ public class CulturalNormListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, culturalNormHandler, selectedId -> {
+			parent, model, culturalNormHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			final FLEFRecord culturalNorm = model.getRecordById(selectedId);
 			if(culturalNorm != null && !items.contains(culturalNorm))
 				result[0] = culturalNorm;

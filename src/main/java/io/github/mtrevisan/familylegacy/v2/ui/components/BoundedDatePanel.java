@@ -108,18 +108,12 @@ public class BoundedDatePanel extends JPanel{
 
 		if(notBeforePanel.hasData()){
 			final FLEFRecord notBefore = notBeforePanel.save();
-			if(notBefore != null && notBefore.hasData()){
-				notBefore.setTag(TAG_NOT_BEFORE);
-				record.addChild(notBefore);
-			}
+			record.addChildWithTag(TAG_NOT_BEFORE, notBefore);
 		}
 
 		if(notAfterPanel.hasData()){
 			final FLEFRecord notAfter = notAfterPanel.save();
-			if(notAfter != null && notAfter.hasData()){
-				notAfter.setTag(TAG_NOT_AFTER);
-				record.addChild(notAfter);
-			}
+			record.addChildWithTag(TAG_NOT_AFTER, notAfter);
 		}
 
 		return (record.hasData()? record.setTag(TAG_BOUNDED): FLEFRecord.createEmpty());

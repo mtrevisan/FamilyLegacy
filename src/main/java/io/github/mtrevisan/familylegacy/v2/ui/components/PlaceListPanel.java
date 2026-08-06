@@ -63,7 +63,8 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 		final String[] result = {null};
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, handler, selectedId -> {
+			parent, model, handler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null)
 				result[0] = selectedId;
 		});
@@ -77,7 +78,6 @@ public class PlaceListPanel extends AbstractListPanel<String>{
 	 */
 	@Override
 	protected String showCreateNewDialog(){
-		//TODO
 		return null;
 	}
 

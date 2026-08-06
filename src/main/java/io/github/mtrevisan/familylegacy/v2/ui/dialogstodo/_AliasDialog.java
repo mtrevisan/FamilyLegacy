@@ -264,7 +264,8 @@ public class _AliasDialog extends JDialog{
 
 	private void browseAlias(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, individualHandler, selectedId -> {
+			this, model, individualHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectedAliasId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -305,7 +306,8 @@ public class _AliasDialog extends JDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);

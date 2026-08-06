@@ -28,6 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DocumentRecordDialog;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -39,6 +41,8 @@ public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
 
 	public static final String TYPE = "DOCUMENT";
 	public static final String ID_PREFIX = "D";
+
+	private static final String TAG_FILE = "FILE";
 
 
 	@Override
@@ -58,12 +62,27 @@ public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String name = FLEFRecordHelper.getChildValue(record, "FILE");
-		String id = record.getId();
-		if(name != null && !name.isEmpty()){
-			return name + " (" + id + ")";
+		String uri = FLEFRecordHelper.getChildValue(record, TAG_FILE);
+		if(uri == null){
+			// it's a citation, extract URI from true record
+			final String documentId = record.getValue();
+			final FLEFRecord document = model.getRecordById(documentId);
+			uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
 		}
-		return id;
+
+		final StringBuilder sb = new StringBuilder();
+		if(!StringUtils.isEmpty(uri))
+			sb.append(FilenameUtils.getBaseName(uri));
+		final String id = record.getId();
+		if(!StringUtils.isEmpty(id)){
+			if(!sb.isEmpty())
+				sb.append(" (")
+					.append(id)
+					.append(")");
+			else
+				sb.append(id);
+		}
+		return sb.toString();
 	}
 
 	@Override

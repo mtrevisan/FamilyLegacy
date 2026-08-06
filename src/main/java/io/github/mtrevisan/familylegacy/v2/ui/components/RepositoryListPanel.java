@@ -116,8 +116,9 @@ public class RepositoryListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, repositoryHandler, selectedId -> {
-				final FLEFRecord repository = model.getRecordById(selectedId);
+			parent, model, repositoryHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			final FLEFRecord repository = model.getRecordById(selectedId);
 				if(repository != null && !items.contains(repository))
 					result[0] = repository;
 			}

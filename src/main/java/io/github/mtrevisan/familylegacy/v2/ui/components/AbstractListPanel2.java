@@ -31,13 +31,18 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.DefaultListModel;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
+import java.awt.event.ActionEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +110,67 @@ public abstract class AbstractListPanel2 extends JPanel{
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		add(GUIHelper.createScrollPane(list), "growx");
+
+		setupReorderingShortcuts();
 	}
+
+	private void setupReorderingShortcuts(){
+		final InputMap inputMap = list.getInputMap(JComponent.WHEN_FOCUSED);
+		final ActionMap actionMap = list.getActionMap();
+
+		// Keybindings: CTRL + UP / CTRL + DOWN
+		inputMap.put(GUIHelper.CTRL_UP_STROKE, "moveUp");
+		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, "moveDown");
+
+		actionMap.put("moveUp", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				moveSelectedItemUp();
+			}
+		});
+
+		actionMap.put("moveDown", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				moveSelectedItemDown();
+			}
+		});
+	}
+
+	/**
+	 * Moves the currently selected item up by one position.
+	 */
+	public final void moveSelectedItemUp(){
+		final int idx = list.getSelectedIndex();
+		if(idx > 0)
+			swapItems(idx, idx - 1);
+	}
+
+	/**
+	 * Moves the currently selected item down by one position.
+	 */
+	public final void moveSelectedItemDown(){
+		final int idx = list.getSelectedIndex();
+		if(idx >= 0 && idx < items.size() - 1)
+			swapItems(idx, idx + 1);
+	}
+
+	private void swapItems(final int index1, final int index2){
+		// Swap in underlying items list
+		final FLEFRecord tempRecord = items.get(index1);
+		items.set(index1, items.get(index2));
+		items.set(index2, tempRecord);
+
+		// Swap in GUI model
+		final String tempDisplay = listModel.get(index1);
+		listModel.set(index1, listModel.get(index2));
+		listModel.set(index2, tempDisplay);
+
+		// Keep the moved item selected and visible
+		list.setSelectedIndex(index2);
+		list.ensureIndexIsVisible(index2);
+	}
+
 
 	/**
 	 * Adds a new item. Called by the "Add" action.
@@ -288,8 +353,7 @@ public abstract class AbstractListPanel2 extends JPanel{
 		FLEFRecordHelper.removeChildren(record, path);
 
 		if(StringUtils.isEmpty(path)){
-			for(final FLEFRecord item : items)
-				record.addChild(item);
+			record.addChildren(items);
 
 			return;
 		}
@@ -299,10 +363,7 @@ public abstract class AbstractListPanel2 extends JPanel{
 		final String lastChildTag = (lastDotIndex >= 0? path.substring(lastDotIndex + 1): path);
 
 		final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(record, parentPath);
-		for(final FLEFRecord item : items){
-			item.setTag(lastChildTag);
-			parent.addChild(item);
-		}
+		parent.addChildrenWithTag(lastChildTag, items);
 	}
 
 }

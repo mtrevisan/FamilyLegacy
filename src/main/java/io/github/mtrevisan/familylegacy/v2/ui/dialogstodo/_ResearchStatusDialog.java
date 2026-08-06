@@ -411,7 +411,8 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 
 	private void addBlockedBy(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, researchHandler, selectedId -> {
+			this, model, researchHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !blockedByIds.contains(selectedId)){
 				blockedByIds.add(selectedId);
 				blockedByListModel.addElement(getResearchDisplayName(selectedId));

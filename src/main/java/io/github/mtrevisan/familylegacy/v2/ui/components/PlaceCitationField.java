@@ -109,9 +109,9 @@ public class PlaceCitationField extends JPanel{
 			final Runnable newAction, final Runnable addAction, final Runnable editAction,
 			final Runnable editCitationAction, final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			editAction,
-			newAction,
-			clearAction,
+			null,
+			null,
+			null,
 			builder -> {
 				builder.item("Create New...", newAction);
 				builder.item("Add Existing...", addAction);
@@ -186,9 +186,9 @@ public class PlaceCitationField extends JPanel{
 
 	private void add(){
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, placeCitationHandler,
-			selectedId -> {
-				if(selectedId != null){
+			parent, model, placeCitationHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			if(selectedId != null){
 					final FLEFRecord record = model.getRecordById(selectedId);
 					setRecord(record);
 				}

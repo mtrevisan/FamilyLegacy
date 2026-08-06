@@ -286,7 +286,8 @@ public class _IndividualEventDialog extends BaseRecordDialog{
 
 	private void browseFamily(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, familyHandler, selectedId -> {
+			this, model, familyHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectedFamilyId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -325,7 +326,8 @@ public class _IndividualEventDialog extends BaseRecordDialog{
 
 	private void addTwin(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, individualHandler, selectedId -> {
+			this, model, individualHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !twinIds.contains(selectedId)){
 				twinIds.add(selectedId);
 				twinListModel.addElement(getIndividualDisplayName(selectedId));
@@ -441,10 +443,7 @@ public class _IndividualEventDialog extends BaseRecordDialog{
 		// EVENT_STRUCTURE (0:1)
 		if(eventStructurePanel.hasData()){
 			FLEFRecord eventStruct = eventStructurePanel.saveToRecord(null);
-			if(eventStruct != null){
-				eventStruct.setTag("EVENT_STRUCTURE");
-				record.addChild(eventStruct);
-			}
+			record.addChildWithTag("EVENT_STRUCTURE", eventStruct);
 		}
 	}
 

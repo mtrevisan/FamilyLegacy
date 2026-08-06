@@ -496,7 +496,8 @@ public class _HeaderDialog extends JDialog{
 
 	private void addSubmitterNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, noteHandler, selectedId -> {
+			parent, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !submitterNoteIds.contains(selectedId)){
 				submitterNoteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -741,10 +742,7 @@ public class _HeaderDialog extends JDialog{
 		}
 
 		// CONTACT_STRUCTURE (0:M)
-		for(FLEFRecord contact : contactRecords){
-			contact.setTag("CONTACT");
-			submitter.addChild(contact);
-		}
+		submitter.addChildrenWithTag("CONTACT", contactRecords);
 
 		// SUBMITTER NOTE (0:M)
 		for(String id : submitterNoteIds){

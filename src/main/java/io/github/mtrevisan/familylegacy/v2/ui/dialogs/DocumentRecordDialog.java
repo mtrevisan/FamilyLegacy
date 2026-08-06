@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ImagePreviewAccessory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
@@ -39,18 +40,22 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.imageio.ImageIO;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.io.File;
 import java.io.Serial;
 
 
 /* DONE */
-// TODO file field: open a file chooser
 /**
  * Dialog for editing a {@code DOCUMENT_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -114,6 +119,15 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(DocumentHandler.TYPE));
 
 		fileField = new BoundTextField(TAG_FILE, 50);
+		GUIHelper.installBehavior(fileField,
+			null,
+			null,
+			null,
+			builder -> {
+				builder.item("Set...", this::setNewItem);
+				builder.separator();
+				builder.selectionSensitiveItem("Clear", () -> fileField.setValue(null));
+			});
 		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{StringUtils.EMPTY, "spherical_UV",
 			"cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
 		mappingCombo.setEditable(true);
@@ -131,6 +145,28 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		setLocationRelativeTo(parent);
 	}
 
+	private void setNewItem(){
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setDialogTitle("Select Image File");
+		final String[] extensions = ImageIO.getReaderFileSuffixes();
+		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
+		fileChooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
+		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
+		final int userSelection = fileChooser.showOpenDialog(getParent());
+		if(userSelection != JFileChooser.APPROVE_OPTION)
+			return;
+
+		final File selectedFile = fileChooser.getSelectedFile();
+		if(selectedFile == null || !selectedFile.exists()){
+			JOptionPane.showMessageDialog(getParent(),
+				"Selected file does not exist.",
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return;
+		}
+
+		fileField.setValue(selectedFile.getAbsolutePath());
+	}
 
 	private void initComponents(){
 		bindingManager.bind(fileField);

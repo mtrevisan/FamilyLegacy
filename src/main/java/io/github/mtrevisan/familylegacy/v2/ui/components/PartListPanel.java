@@ -114,8 +114,7 @@ public class PartListPanel extends AbstractListPanel2{
 
 	public void save(final FLEFRecord record){
 		super.save(record, path);
-//		for(final FLEFRecord part : getItems())
-//			record.addChild(part);
+//		record.addChildren(getItems());
 	}
 
 	public boolean hasData(){

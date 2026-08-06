@@ -124,10 +124,48 @@ public class FLEFRecord{
 		return children;
 	}
 
+	public long countChildren(final String tag){
+		return children.stream()
+			.filter(c -> tag.equals(c.getTag()))
+			.count();
+	}
+
 	public FLEFRecord addChild(final FLEFRecord child){
+		if(child == null || child.isEmpty())
+			return this;
+
+		return forceAddChild(child);
+	}
+
+	public FLEFRecord forceAddChild(final FLEFRecord child){
+		if(child == null)
+			return this;
+
 		children.add(child);
 
 		return this;
+	}
+
+	public FLEFRecord addChildren(final List<FLEFRecord> children){
+		this.children.addAll(children);
+
+		return this;
+	}
+
+	public FLEFRecord addChildWithTag(final String tag, final FLEFRecord child){
+		if(child == null || child.isEmpty())
+			return this;
+
+		child.setTag(tag);
+
+		return addChild(child);
+	}
+
+	public FLEFRecord addChildrenWithTag(final String tag, final List<FLEFRecord> children){
+		for(final FLEFRecord child : children)
+			child.setTag(tag);
+
+		return addChildren(children);
 	}
 
 	/**
@@ -168,7 +206,7 @@ public class FLEFRecord{
 	}
 
 	public boolean hasData(){
-		return (id != null && !id.isEmpty() || value != null && !value.isEmpty() || !children.isEmpty());
+		return (id != null && !id.isEmpty() || value != null && !value.isEmpty() || hasChildren());
 	}
 
 	/**
@@ -187,18 +225,20 @@ public class FLEFRecord{
 	}
 
 	public boolean isEmpty(){
-		return (StringUtils.isEmpty(value) && children.isEmpty());
+		return (StringUtils.isEmpty(id) && StringUtils.isEmpty(value) && children.isEmpty());
 	}
 
 
 	@Override
 	public String toString(){
+		final StringBuilder sb = new StringBuilder(tag != null? tag: "--");
 		if(id != null)
-			return tag + StringUtils.SPACE + id;
-		else if(tag != null)
-			return tag + (value != null? StringUtils.SPACE + value: StringUtils.EMPTY);
-		else
-			return null;
+			sb.append("[").append(id).append("]");
+		if(value != null)
+			sb.append(" = ").append(value);
+		if(hasChildren())
+			sb.append(" (").append(children.size()).append(" children)");
+		return sb.toString();
 	}
 
 }

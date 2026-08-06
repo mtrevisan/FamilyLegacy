@@ -313,7 +313,8 @@ public class _RelationshipDialog extends JDialog{
 	private void browseSubject(){
 		// For now, we assume the subject is a group (common use case).
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, groupHandler, selectedId -> {
+			this, model, groupHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectSubject(selectedId);
 			}
@@ -352,7 +353,8 @@ public class _RelationshipDialog extends JDialog{
 
 	private void browseObject(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, individualHandler, selectedId -> {
+			this, model, individualHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectObject(selectedId);
 			}
@@ -392,7 +394,8 @@ public class _RelationshipDialog extends JDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);

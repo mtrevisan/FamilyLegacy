@@ -1,11 +1,13 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -30,6 +32,7 @@ import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -47,6 +50,9 @@ public final class GUIHelper{
 	public static final KeyStroke ESCAPE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
 	public static final KeyStroke INSERT_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_INSERT, 0);
 	public static final KeyStroke DELETE_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0);
+
+	public static final KeyStroke CTRL_UP_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK);
 
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
 	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
@@ -182,14 +188,21 @@ public final class GUIHelper{
 		if(component instanceof JTextComponent textComp)
 			return () -> {
 				final String text = textComp.getText();
-				return (!StringUtils.isBlank(text) && !PLACEHOLDER_TEXT.equals(text));
+				return (!StringUtils.isBlank(text) && !isPlaceholder(textComp));
 			};
 
 		if(component instanceof JButton button)
-			return () -> (button.getIcon() != null);
+			return () -> {
+				final Icon icon = button.getIcon();
+				return (icon != null && icon != PreferredImagePanel.PLACEHOLDER_ICON);
+			};
 
 		// For other components, no meaningful selection; default to false
 		return () -> false;
+	}
+
+	public static boolean isPlaceholder(final JTextComponent component){
+		return PLACEHOLDER_TEXT.equals(component.getText());
 	}
 
 	/**

@@ -197,7 +197,8 @@ public class RepositoryCitationPanel extends JPanel{
 	private void browseRepository(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, repositoryHandler, selectedId -> {
+			model, repositoryHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectedRepositoryId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -225,7 +226,8 @@ public class RepositoryCitationPanel extends JPanel{
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, noteHandler, selectedId -> {
+			model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);

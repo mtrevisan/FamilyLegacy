@@ -474,7 +474,8 @@ public class EventStructurePanel extends JPanel{
 	private void browsePlace(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, placeHandler, selectedId -> {
+			model, placeHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectedPlaceId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -545,7 +546,8 @@ public class EventStructurePanel extends JPanel{
 	private void addCulturalNorm(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, culturalNormHandler, selectedId -> {
+			model, culturalNormHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
 				culturalNormIds.add(selectedId);
 				String display = getCulturalNormDisplayName(selectedId);
@@ -623,7 +625,8 @@ public class EventStructurePanel extends JPanel{
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, noteHandler, selectedId -> {
+			model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -809,10 +812,7 @@ public class EventStructurePanel extends JPanel{
 		// DATE_STRUCTURE (0:1)
 		if(datePanel.hasData()){
 			FLEFRecord dateRecord = datePanel.save();
-			if(dateRecord != null){
-				dateRecord.setTag("DATE");
-				eventStructure.addChild(dateRecord);
-			}
+			eventStructure.addChildWithTag("DATE", dateRecord);
 		}
 
 		// PLACE (0:1) with its children
@@ -855,11 +855,7 @@ public class EventStructurePanel extends JPanel{
 		}
 
 		// SOURCE_CITATION (0:M)
-		for(FLEFRecord citation : sourceRecords){
-			// Ensure the citation has the correct level and tag
-			citation.setTag(TAG_SOURCE);
-			eventStructure.addChild(citation);
-		}
+		eventStructure.addChildrenWithTag(TAG_SOURCE, sourceRecords);
 
 		// EVENT QUALIFIERS (CERTAINTY + CREDIBILITY for the event itself)
 		String eventSourceType = eventQualifiers.getSourceType();
@@ -879,10 +875,7 @@ public class EventStructurePanel extends JPanel{
 		// CONCLUSION
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.save(null);
-			if(conclusion != null){
-				conclusion.setTag(TAG_CONCLUSION);
-				eventStructure.addChild(conclusion);
-			}
+			eventStructure.addChildWithTag(TAG_CONCLUSION, conclusion);
 		}
 
 		return eventStructure;

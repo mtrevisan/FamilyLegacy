@@ -103,9 +103,9 @@ public class IndividualField extends JPanel{
 			final Runnable newAction, final Runnable addAction, final Runnable editAction,
 			final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			editAction,
-			newAction,
-			clearAction,
+			null,
+			null,
+			null,
 			builder -> {
 				builder.item("Create New...", newAction);
 				builder.item("Add Existing...", addAction);
@@ -159,9 +159,9 @@ public class IndividualField extends JPanel{
 
 	private void add(){
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, individualHandler,
-			selectedId -> {
-				if(selectedId != null){
+			parent, model, individualHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			if(selectedId != null){
 					final FLEFRecord record = model.getRecordById(selectedId);
 					setRecord(record);
 				}

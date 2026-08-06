@@ -53,6 +53,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 
 /**
@@ -69,7 +70,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
 	private final FLEFModel model;
 	private final RecordTypeHandler<T> handler;
-	private final Consumer<String> onSelection;
+	private final Consumer<FLEFRecord> onSelection;
 
 	private final DefaultListModel<String> listModel = new DefaultListModel<>();
 	private final JList<String> list = new JList<>(listModel);
@@ -92,7 +93,12 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	 * @param onSelection callback invoked with the selected record ID, or null if cancelled
 	 */
 	public GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
-			final Consumer<String> onSelection){
+			final Consumer<FLEFRecord> onSelection){
+		this(parent, model, handler, onSelection, null);
+	}
+
+	public GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
+			final Consumer<FLEFRecord> onSelection, final Supplier<List<FLEFRecord>> loadRecords){
 		super(parent, "Select " + handler.getLabel(), true);
 
 		this.model = model;
@@ -101,7 +107,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
 		initComponents();
 
-		loadAllRecords();
+		this.loadRecords(loadRecords);
 
 		filterRecords(StringUtils.EMPTY);
 
@@ -177,10 +183,11 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	}
 
 
-	private void loadAllRecords(){
-		allRecords = model.getRecordsByType(handler.getType());
-		if(allRecords == null)
-			allRecords = new ArrayList<>();
+	private void loadRecords(final Supplier<List<FLEFRecord>> loadRecords){
+		if(loadRecords == null)
+			allRecords = model.getRecordsByType(handler.getType());
+		else
+			allRecords = loadRecords.get();
 	}
 
 
@@ -225,9 +232,8 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	private void selectAndClose(){
 		final int idx = list.getSelectedIndex();
 		if(idx >= 0 && idx < filteredRecords.size()){
-			final String selectedId = filteredRecords.get(idx)
-				.getId();
-			onSelection.accept(selectedId);
+			final FLEFRecord selectedItem = filteredRecords.get(idx);
+			onSelection.accept(selectedItem);
 
 			dispose();
 		}

@@ -181,10 +181,7 @@ public class UpdateListPanel extends AbstractListPanel2{
 		FLEFRecordHelper.removeChildren(record, TAG_UPDATE);
 
 		// Add each update as a child
-		for(FLEFRecord update : getItems()){
-			update.setTag(TAG_UPDATE);
-			record.addChild(update);
-		}
+		record.addChildrenWithTag(TAG_UPDATE, getItems());
 	}
 
 }

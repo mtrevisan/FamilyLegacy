@@ -239,7 +239,8 @@ public class _GroupCitationDialog extends JDialog{
 
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, groupHandler, selectedId -> {
+			parent, model, groupHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectGroup(selectedId);
 			}
@@ -281,7 +282,8 @@ public class _GroupCitationDialog extends JDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, noteHandler, selectedId -> {
+			parent, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);

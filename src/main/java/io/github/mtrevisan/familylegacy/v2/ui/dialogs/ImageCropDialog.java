@@ -35,8 +35,8 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.awt.Cursor;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
@@ -45,7 +45,7 @@ import java.io.IOException;
 import java.io.Serial;
 
 
-public class PhotoCropDialog extends JDialog{
+public class ImageCropDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3777867436237271707L;
@@ -57,20 +57,20 @@ public class PhotoCropDialog extends JDialog{
 	private boolean isSaved;
 
 
-	public static PhotoCropDialog create(final Dialog parent){
-		final PhotoCropDialog dialog = new PhotoCropDialog(parent);
+	public static ImageCropDialog create(final Dialog parent){
+		final ImageCropDialog dialog = new ImageCropDialog(parent);
 		dialog.initialize(parent, false);
 		return dialog;
 	}
 
-	public static PhotoCropDialog createViewOnly(final Dialog parent){
-		final PhotoCropDialog dialog = new PhotoCropDialog(parent);
+	public static ImageCropDialog createViewOnly(final Dialog parent){
+		final ImageCropDialog dialog = new ImageCropDialog(parent);
 		dialog.initialize(parent, true);
 		return dialog;
 	}
 
 
-	private PhotoCropDialog(final Dialog parent){
+	private ImageCropDialog(final Dialog parent){
 		super(parent, true);
 	}
 
@@ -79,17 +79,6 @@ public class PhotoCropDialog extends JDialog{
 		initComponents(viewOnly);
 
 		initLayout();
-
-		pack();
-
-		// Calculate dialog size dynamically based on screen bounds (e.g. 60% width, 70% height)
-		final Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment()
-			.getMaximumWindowBounds();
-		final int width = (int)(screenBounds.width * 0.3 * (4. / 3.));
-		final int height = (int)(screenBounds.height * 0.3);
-		setSize(width, height);
-
-		setLocationRelativeTo(parent);
 	}
 
 	private void initComponents(final boolean viewOnly){
@@ -100,19 +89,18 @@ public class PhotoCropDialog extends JDialog{
 		else{
 			imageHolder = ScaledImage.create();
 
-			imageHolder.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+//			imageHolder.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 		}
 	}
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
-		final JPanel recordPanel = new JPanel();
-		recordPanel.setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow,fill]"));
-
-		recordPanel.add(imageHolder, "grow");
-
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow]"));
-		add(recordPanel, "grow");
+
+		final JPanel recordPanel = new JPanel();
+		recordPanel.setLayout(new MigLayout("ins 0,fill", "[grow,fill]", "[grow,fill]"));
+		recordPanel.add(imageHolder);
+		add(recordPanel, "grow,push");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			this::save,
@@ -120,15 +108,15 @@ public class PhotoCropDialog extends JDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
-	public void loadData(final String filename) throws IOException{
+	public void loadData(final String filename, final Rectangle crop) throws IOException{
 		final File file = FileHelper.loadFile(filename);
 		if(file == null || !file.exists())
 			throw new IOException("File does not exists");
 
-		loadData(file);
+		loadData(file, crop);
 	}
 
-	public void loadData(final File file) throws IOException{
+	public void loadData(final File file, final Rectangle crop) throws IOException{
 		final BufferedImage newImage = ResourceHelper.readImage(file);
 		if(newImage == null){
 			JOptionPane.showMessageDialog(getParent(),
@@ -141,6 +129,24 @@ public class PhotoCropDialog extends JDialog{
 		isSaved = false;
 		image = newImage;
 		imageHolder.setRectangularImage(image);
+		imageHolder.setCrop(crop);
+		imageHolder.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
+
+		fitWindowToImage();
+	}
+
+	private void fitWindowToImage(){
+		pack();
+
+		final Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment()
+			.getMaximumWindowBounds();
+		if(getWidth() > screenBounds.width || getHeight() > screenBounds.height){
+			final int maxWidth = Math.min(getWidth(), (int)(screenBounds.width * 0.3 * (4. / 3.)));
+			final int maxHeight = Math.min(getHeight(), (int)(screenBounds.height * 0.3));
+			setSize(maxWidth, maxHeight);
+		}
+
+		setLocationRelativeTo(getOwner());
 	}
 
 	public void save(){

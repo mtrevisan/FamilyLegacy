@@ -354,7 +354,8 @@ public class _CalendarDialog extends BaseRecordDialog{
 
 	private void addCulturalNorm(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, culturalNormHandler, selectedId -> {
+			this, model, culturalNormHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !culturalNormIds.contains(selectedId)){
 				culturalNormIds.add(selectedId);
 				String display = getCulturalNormDisplayName(selectedId);
@@ -438,7 +439,8 @@ public class _CalendarDialog extends BaseRecordDialog{
 
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, noteHandler, selectedId -> {
+			this, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -619,10 +621,7 @@ public class _CalendarDialog extends BaseRecordDialog{
 		}
 
 		// SOURCE_CITATION (0:M)
-		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setTag(TAG_SOURCE);
-			record.addChild(citation);
-		}
+		record.addChildrenWithTag(TAG_SOURCE, sourceCitationRecords);
 
 		// MODIFICATION
 		modificationPanel.save(record);

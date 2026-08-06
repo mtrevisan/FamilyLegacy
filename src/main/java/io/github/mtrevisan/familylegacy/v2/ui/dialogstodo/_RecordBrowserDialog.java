@@ -236,7 +236,7 @@ public class _RecordBrowserDialog<T extends JDialog> extends JDialog{
 				onSelection.accept(null);
 				dispose();
 			},
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+			GUIHelper.ESCAPE_STROKE,
 			JComponent.WHEN_IN_FOCUSED_WINDOW
 		);
 	}

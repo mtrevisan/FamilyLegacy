@@ -204,7 +204,8 @@ public class GroupCitationPanel extends JPanel{
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, groupHandler, selectedId -> {
+			model, groupHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectedGroupId = selectedId;
 				FLEFRecord rec = model.getRecordById(selectedId);
@@ -232,7 +233,8 @@ public class GroupCitationPanel extends JPanel{
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, noteHandler, selectedId -> {
+			model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);

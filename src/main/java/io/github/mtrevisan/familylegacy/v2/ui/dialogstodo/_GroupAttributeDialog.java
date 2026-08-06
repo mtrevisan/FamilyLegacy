@@ -308,7 +308,8 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 
 	private void browseGroup(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, groupHandler, selectedId -> {
+			this, model, groupHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				selectGroup(selectedId);
 			}
@@ -383,7 +384,8 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 
 	private void addSourceCitation(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, sourceHandler, selectedId -> {
+			this, model, sourceHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
 				FLEFRecord citation = FLEFRecord.createChildWithValue("SOURCE", selectedId);
 				sourceCitationRecords.add(citation);
@@ -666,10 +668,7 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 			FLEFRecordHelper.updateChildValue(record, "PLACE_STRUCTURE", selectedPlaceId);
 
 		// SOURCE_CITATION
-		for(FLEFRecord citation : sourceCitationRecords){
-			citation.setTag("SOURCE");
-			record.addChild(citation);
-		}
+		record.addChildrenWithTag("SOURCE", sourceCitationRecords);
 
 		// EVIDENCE_QUALIFIERS
 		String certainty = (String)certaintyCombo.getSelectedItem();
@@ -687,10 +686,7 @@ public class _GroupAttributeDialog extends BaseRecordDialog{
 		// CONCLUSION_STRUCTURE
 		if(conclusionPanel.hasData()){
 			FLEFRecord conclusion = conclusionPanel.save(null);
-			if(conclusion != null){
-				conclusion.setTag("CONCLUSION");
-				record.addChild(conclusion);
-			}
+			record.addChildWithTag("CONCLUSION", conclusion);
 		}
 
 		// MODIFICATION_STRUCTURE

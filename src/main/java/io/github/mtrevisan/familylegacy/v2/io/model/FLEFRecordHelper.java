@@ -165,7 +165,7 @@ public final class FLEFRecordHelper{
 			return;
 		}
 
-		final FLEFRecord existing = findChild(parent, path);
+		final FLEFRecord existing = getOrCreateTargetNode(parent, path);
 		if(existing != null)
 			existing.setValue(value);
 		else
@@ -225,13 +225,10 @@ public final class FLEFRecordHelper{
 		FLEFRecord target = getNthChild(targetParent, seg);
 		// Create missing occurrences up to the requested index
 		if(target == null){
-			final long existingCount = targetParent.getChildren().stream()
-				.filter(c -> seg.tag().equals(c.getTag()))
-				.count();
-
+			final long existingCount = targetParent.countChildren(seg.tag());
 			for(long i = existingCount; i <= seg.index(); i ++){
 				target = FLEFRecord.createChild(seg.tag());
-				targetParent.addChild(target);
+				targetParent.forceAddChild(target);
 			}
 		}
 
@@ -359,7 +356,7 @@ public final class FLEFRecordHelper{
 		if(found == null){
 			for(int i = occurrence; i <= segment.index; i ++){
 				found = FLEFRecord.createChild(segment.tag);
-				current.addChild(found);
+				current.forceAddChild(found);
 			}
 		}
 

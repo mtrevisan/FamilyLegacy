@@ -38,6 +38,7 @@ import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.Shape;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
@@ -45,10 +46,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.io.Serial;
 
 
 /* DONE */
 public class ScaledImage extends JLabel{
+
+	@Serial
+	private static final long serialVersionUID = -2951121956660972171L;
+
+
+	private static final int NO_CROP_COORD = -1;
 
 	private static final double ZOOM_MULTIPLICATION_FACTOR = 1.2;
 	private static final double MAX_ZOOM = 3.;
@@ -96,7 +104,7 @@ public class ScaledImage extends JLabel{
 	private int windowEndPointX;
 	private int windowEndPointY;
 	private volatile boolean cropDefinition;
-	private int cropStartPointX = -1;
+	private int cropStartPointX = NO_CROP_COORD;
 	private int cropStartPointY;
 	private int cropEndPointX;
 	private int cropEndPointY;
@@ -333,6 +341,21 @@ public class ScaledImage extends JLabel{
 		if(!cropDefinition && cropStartPointX >= 0){
 			final Point mousePoint = getMousePosition();
 			if(mousePoint != null){
+				// Check if mouse is within rendered image bounds using real scale
+				final int imgScreenX = (int)transformation.getTranslateX();
+				final int imgScreenY = (int)transformation.getTranslateY();
+				final int imgScreenWidth = (int)Math.round(imageWidth * transformation.getScale());
+				final int imgScreenHeight = (int)Math.round(imageHeight * transformation.getScale());
+
+				final boolean insideImage = (mousePoint.x >= imgScreenX && mousePoint.x <= imgScreenX + imgScreenWidth
+					&& mousePoint.y >= imgScreenY && mousePoint.y <= imgScreenY + imgScreenHeight);
+
+				if(!insideImage){
+					setCursor(Cursor.getDefaultCursor());
+
+					return;
+				}
+
 				final char handle = getCropHandleAt(mousePoint);
 				switch(handle){
 					case '1' -> setCursor(Cursor.getPredefinedCursor(Cursor.NW_RESIZE_CURSOR));
@@ -345,7 +368,7 @@ public class ScaledImage extends JLabel{
 					case 'W' -> setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
 					case 'M' -> setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 					default ->
-						setCursor(viewOnly? Cursor.getDefaultCursor(): Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+						setCursor(viewOnly ? Cursor.getDefaultCursor() : Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 				}
 			}
 		}
@@ -430,18 +453,32 @@ public class ScaledImage extends JLabel{
 		final int width = Math.abs(x2 - x1);
 		final int height = Math.abs(y2 - y1);
 
-		// 1. Shadow overlay (outside crop area)
-		g.setColor(OVERLAY_COLOR);
-		// Top
-		g.fillRect(0, 0, viewportWidth, y1);
-		// Bottom
-		g.fillRect(0, y2, viewportWidth, viewportHeight - y2);
-		// Left
-		g.fillRect(0, y1, x1, height);
-		// Right
-		g.fillRect(x2, y1, viewportWidth - x2, height);
+		// Calculate actual rendered image screen bounds correctly
+		final int imgScreenX = (int)transformation.getTranslateX();
+		final int imgScreenY = (int)transformation.getTranslateY();
+		final int imgScreenWidth = (int)Math.round(imageWidth * transformation.getScale());
+		final int imgScreenHeight = (int)Math.round(imageHeight * transformation.getScale());
 
-		// 2. Crop border
+		// 2. Shadow overlay (only within image bounds)
+		g.setColor(OVERLAY_COLOR);
+
+		// Clip graphics to the exact image bounds
+		final Shape oldClip = g.getClip();
+		g.clipRect(imgScreenX, imgScreenY, imgScreenWidth, imgScreenHeight);
+
+		// Top
+		g.fillRect(imgScreenX, imgScreenY, imgScreenWidth, Math.max(0, y1 - imgScreenY));
+		// Bottom
+		g.fillRect(imgScreenX, y2, imgScreenWidth, Math.max(0, (imgScreenY + imgScreenHeight) - y2));
+		// Left
+		g.fillRect(imgScreenX, y1, Math.max(0, x1 - imgScreenX), height);
+		// Right
+		g.fillRect(x2, y1, Math.max(0, (imgScreenX + imgScreenWidth) - x2), height);
+
+		// Restore original clip
+		g.setClip(oldClip);
+
+		// 3. Crop border
 		g.setColor(Color.RED);
 		g.drawRect(x1, y1, width, height);
 	}
@@ -504,7 +541,10 @@ public class ScaledImage extends JLabel{
 			: null);
 	}
 
-	public void setCrop(final Rectangle crop){
+	public void setCrop(Rectangle crop){
+		if(crop == null)
+			crop = new Rectangle(NO_CROP_COORD, 0, 0, 0);
+
 		cropStartPointX = crop.x;
 		cropStartPointY = crop.y;
 		cropEndPointX = crop.x + crop.width;
@@ -531,6 +571,16 @@ public class ScaledImage extends JLabel{
 
 			if(!cropDefinition && cropStartPointX >= 0)
 				setCropCursor();
+		}
+
+		@Override
+		public void mouseEntered(final MouseEvent evt){
+			setCropCursor();
+		}
+
+		@Override
+		public void mouseExited(final MouseEvent evt){
+			setCursor(Cursor.getDefaultCursor());
 		}
 
 		@Override
@@ -660,7 +710,7 @@ public class ScaledImage extends JLabel{
 
 				// If the created area has zero width or height, cancel the selection
 				if(cropStartPointX == cropEndPointX || cropStartPointY == cropEndPointY)
-					cropStartPointX = -1;
+					cropStartPointX = NO_CROP_COORD;
 				else if(listener != null)
 					listener.cropSelected();
 

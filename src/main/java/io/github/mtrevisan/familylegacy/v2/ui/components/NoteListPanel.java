@@ -38,6 +38,7 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -123,8 +124,9 @@ public class NoteListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, noteHandler, selectedId -> {
-				final FLEFRecord note = model.getRecordById(selectedId);
+			parent, model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			final FLEFRecord note = model.getRecordById(selectedId);
 				if(note != null && !items.contains(note))
 					result[0] = note;
 			}
@@ -162,7 +164,10 @@ public class NoteListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
-		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> noteCitations = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> notes = new ArrayList<>(noteCitations.size());
+		for(final FLEFRecord noteCitation : noteCitations)
+			notes.add(model.getRecordById(noteCitation.getValue()));
 		setItems(notes);
 	}
 

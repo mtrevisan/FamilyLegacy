@@ -269,10 +269,7 @@ public class ConclusionPanel extends JPanel{
 			FLEFRecordHelper.updateChildValue(record, TAG_RESEARCH, XRefHelper.formatXRef(id));
 
 		// Save SOURCE_CITATION
-		for(FLEFRecord citation : sourcePanel.getItems()){
-			citation.setTag(ConclusionPanel.TAG_SOURCE);
-			record.addChild(citation);
-		}
+		record.addChildrenWithTag(ConclusionPanel.TAG_SOURCE, sourcePanel.getItems());
 
 		return record;
 	}

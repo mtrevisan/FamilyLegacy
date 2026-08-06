@@ -32,6 +32,7 @@ public class EventListPanel extends AbstractListPanel<String>{
 		super(parent, "Events", model);
 	}
 
+
 	@Override
 	protected void initComponents(){
 		super.initComponents();
@@ -63,9 +64,9 @@ public class EventListPanel extends AbstractListPanel<String>{
 		final String[] result = {null};
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(EventHandler.TYPE);
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			null, model, handler, selectedId -> {
-			if(selectedId != null){
-				result[0] = selectedId;
+			null, model, handler, selectedItem -> {
+			if(selectedItem != null){
+				result[0] = selectedItem.getValue();
 			}
 		});
 		dialog.setVisible(true);

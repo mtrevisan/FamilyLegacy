@@ -51,7 +51,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.1.1.
  * <p>
@@ -68,8 +68,10 @@ import java.io.Serial;
  *   require extract.document in source.document
  * }
  * struct ExtractStructure {
- *   document: Xref&lt;DocumentRecord&gt;
- *   crop?: CropRect
+ *   document_part+: struct {
+ *     document: Xref&lt;DocumentRecord&gt;
+ *     crop?: CropRect
+ *   }
  *   text?: Text
  *   type?: enum { verbatim, summarized, translated, normalized }
  *   locale?: LocaleCode
@@ -84,8 +86,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	@Serial
 	private static final long serialVersionUID = -7024588390352183760L;
 
-
-	private static final String DOT = ".";
 
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_LOCATION = "LOCATION";

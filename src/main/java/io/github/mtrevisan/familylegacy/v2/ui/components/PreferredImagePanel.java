@@ -2,7 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PhotoCropDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -52,8 +52,10 @@ public class PreferredImagePanel extends JPanel{
 	private static final String TAG_WIDTH = "WIDTH";
 	private static final String TAG_HEIGHT = "HEIGHT";
 
+	public static final Icon PLACEHOLDER_ICON = createPlaceholderIcon();
 
-	private final PhotoCropDialog cropDialog;
+
+	private final ImageCropDialog cropDialog;
 
 	private final Dialog parent;
 
@@ -77,7 +79,7 @@ public class PreferredImagePanel extends JPanel{
 
 		this.imageButton = new JButton();
 
-		cropDialog = PhotoCropDialog.create(parent);
+		cropDialog = ImageCropDialog.create(parent);
 
 		initComponents();
 	}
@@ -87,13 +89,13 @@ public class PreferredImagePanel extends JPanel{
 		setLayout(new MigLayout("ins 0,fillx", "[grow,align center]"));
 
 		imageButton.setPreferredSize(new Dimension(80, 80));
-		imageButton.setIcon(createPlaceholderIcon());
+		imageButton.setIcon(PLACEHOLDER_ICON);
 		imageButton.setToolTipText("Left-click to select an image, right-click for options");
 
 		GUIHelper.installBehavior(imageButton,
-			this::editCrop,
-			this::createNewItem,
-			this::removeItem,
+			null,
+			null,
+			null,
 			builder -> {
 				builder.item("Create New...", this::createNewItem);
 				builder.separator();
@@ -180,8 +182,7 @@ public class PreferredImagePanel extends JPanel{
 		}
 
 		try{
-			final File imageFile = new File(uri);
-			cropDialog.loadData(imageFile);
+			cropDialog.loadData(uri, cropRect);
 			cropDialog.setVisible(true);
 
 			if(cropDialog.isSaved()){
@@ -200,17 +201,15 @@ public class PreferredImagePanel extends JPanel{
 	}
 
 	/**
-	 * Opens a system file chooser to pick an image file and displays the {@link PhotoCropDialog} to set the crop.
+	 * Opens a system file chooser to pick an image file and displays the {@link ImageCropDialog} to set the crop.
 	 */
 	private void createNewItem(){
-		final String[] extensions = ImageIO.getReaderFileSuffixes();
-		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
-
 		final JFileChooser fileChooser = new JFileChooser();
 		fileChooser.setDialogTitle("Select Image File");
+		final String[] extensions = ImageIO.getReaderFileSuffixes();
+		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
 		fileChooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
 		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
-
 		final int userSelection = fileChooser.showOpenDialog(parent);
 		if(userSelection != JFileChooser.APPROVE_OPTION)
 			return;
@@ -225,7 +224,7 @@ public class PreferredImagePanel extends JPanel{
 		}
 
 		try{
-			cropDialog.loadData(selectedFile);
+			cropDialog.loadData(selectedFile, null);
 			cropDialog.setVisible(true);
 
 			if(cropDialog.isSaved()){
@@ -239,7 +238,7 @@ public class PreferredImagePanel extends JPanel{
 			ioe.printStackTrace();
 
 			JOptionPane.showMessageDialog(parent,
-				"Failed to load selected image: " + ioe.getMessage(),
+				"Error loading image for cropping: " + ioe.getMessage(),
 				"Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
@@ -260,7 +259,7 @@ public class PreferredImagePanel extends JPanel{
 			imageButton.setIcon(new ImageIcon(scaled));
 		}
 		else
-			imageButton.setIcon(createPlaceholderIcon());
+			imageButton.setIcon(PLACEHOLDER_ICON);
 	}
 
 	/**
@@ -281,10 +280,10 @@ public class PreferredImagePanel extends JPanel{
 	private void clearImage(){
 		uri = null;
 		cropRect = null;
-		imageButton.setIcon(createPlaceholderIcon());
+		imageButton.setIcon(PLACEHOLDER_ICON);
 	}
 
-	private Icon createPlaceholderIcon(){
+	private static Icon createPlaceholderIcon(){
 		final BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_ARGB);
 		final Graphics2D g2 = img.createGraphics();
 		g2.setColor(Color.LIGHT_GRAY);

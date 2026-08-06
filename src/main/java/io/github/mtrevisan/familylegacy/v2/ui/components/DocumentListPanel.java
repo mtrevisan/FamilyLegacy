@@ -117,8 +117,9 @@ public class DocumentListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, documentHandler, selectedId -> {
-				final FLEFRecord document = model.getRecordById(selectedId);
+			parent, model, documentHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			final FLEFRecord document = model.getRecordById(selectedId);
 				if(document != null && !items.contains(document))
 					result[0] = document;
 			}
@@ -161,9 +162,10 @@ public class DocumentListPanel extends AbstractListPanel2{
 	}
 
 	public void save(final FLEFRecord record){
-		super.save(record, path);
-//		for(final FLEFRecord document : getItems())
-//			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
+		FLEFRecordHelper.removeChildren(record, path);
+
+		for(final FLEFRecord document : getItems())
+			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
 	}
 
 }

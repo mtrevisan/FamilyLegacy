@@ -272,8 +272,7 @@ public class DatePanel extends JPanel{
 			return;
 
 		final FLEFRecord pointNode = pointDatePanel.save();
-		if(pointNode.hasData())
-			parent.addChild(pointNode);
+		parent.addChild(pointNode);
 	}
 
 	/**
@@ -285,8 +284,7 @@ public class DatePanel extends JPanel{
 			return;
 
 		final FLEFRecord boundedNode = boundedDatePanel.save();
-		if(boundedNode.hasData())
-			parent.addChild(boundedNode);
+		parent.addChild(boundedNode);
 	}
 
 	/**
@@ -298,8 +296,7 @@ public class DatePanel extends JPanel{
 			return;
 
 		final FLEFRecord spanningNode = spanningDatePanel.saveToRecord();
-		if(spanningNode.hasData())
-			parent.addChild(spanningNode);
+		parent.addChild(spanningNode);
 	}
 
 

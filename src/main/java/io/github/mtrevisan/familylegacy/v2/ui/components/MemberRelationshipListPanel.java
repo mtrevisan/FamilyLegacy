@@ -140,7 +140,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final String[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, individualHandler, id -> result[0] = id);
+			parent, model, individualHandler, selectedItem -> result[0] = selectedItem.getValue());
 		dialog.setVisible(true);
 
 		final String individualId = result[0];
@@ -283,9 +283,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 	public void save(final FLEFRecord groupRecord){
 		FLEFRecordHelper.removeChildren(groupRecord, TAG_RELATIONSHIP);
 
-		for(final FLEFRecord rel : getItems()){
-			rel.setTag(TAG_RELATIONSHIP);
-			groupRecord.addChild(rel);
-		}
+		groupRecord.addChildrenWithTag(TAG_RELATIONSHIP, getItems());
 	}
 }

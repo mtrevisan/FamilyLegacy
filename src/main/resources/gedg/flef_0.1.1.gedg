@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.1.1
-// PROTOCOL_DATE = 2026-08-05
+// PROTOCOL_DATE = 2026-08-06
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -616,8 +616,10 @@ struct SourceCitation {
 
 // embedded
 struct ExtractStructure {
-  document: Xref<DocumentRecord>
-  crop?: CropRect   // Used when the citation refers to a specific region of an image rather than the entire image.
+  document_part+: struct {
+    document: Xref<DocumentRecord>
+    crop?: CropRect   // Used when the citation refers to a specific region of an image rather than the entire image.
+  }
   text?: Text
   type?: enum { verbatim, summarized, translated, normalized }   // Describes how the TEXT value relates to the content of the cited source. 'verbatim': The text is reproduced exactly as it appears in the source, preserving the original wording, spelling, abbreviations, capitalization, and punctuation. No editorial changes have been made; 'summarized': The text is a researcher-created summary of the relevant source content. It conveys the meaning of the source without reproducing the wording exactly and may omit details considered irrelevant to the citation; 'translated': The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion; 'normalized': The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
   locale?: LocaleCode

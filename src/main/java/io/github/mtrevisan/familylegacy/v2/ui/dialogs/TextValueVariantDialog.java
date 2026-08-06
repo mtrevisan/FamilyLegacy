@@ -88,10 +88,8 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
 	private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");
 	private final JLabel systemLabel = new JLabel("System*:");
-	//FIXME for phonetic
-	private final BoundTextField systemField;
-	//FIXME for transcription
-//	private final BoundComboBox<String> systemField;
+	private final BoundTextField phoneticSystemField;
+	private final BoundComboBox<String> transcriptionSystemCombo;
 	private final JLabel typeLabel = new JLabel("Type:");
 	private final BoundComboBox<String> typeCombo;
 	private final JLabel valueLabel = new JLabel("Value*:");
@@ -110,8 +108,11 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(VariantHandler.TYPE));
 
-		systemField = new BoundTextField(TAG_SYSTEM, 15);
-		systemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
+		phoneticSystemField = new BoundTextField(TAG_SYSTEM, 15);
+		phoneticSystemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
+		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM,
+			new String[]{StringUtils.EMPTY, "romaji", "pinyin", "wadegiles"});
+		transcriptionSystemCombo.setEditable(true);
 		typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
 		typeCombo.setEditable(true);
@@ -128,7 +129,8 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
-		bindingManager.bind(systemField);
+		bindingManager.bind(phoneticSystemField);
+		bindingManager.bind(transcriptionSystemCombo);
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);
 
@@ -140,12 +142,13 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]5[]5[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]5[]5[]5[]"));
 		panel.add(new JLabel("Variant Kind:"), "align label");
 		panel.add(radioPanel, "growx,wrap");
 
 		panel.add(systemLabel, "align label");
-		panel.add(systemField, "growx,wrap");
+		panel.add(phoneticSystemField, "growx,wrap");
+		panel.add(transcriptionSystemCombo, "growx,wrap");
 
 		panel.add(typeLabel, "align label");
 		panel.add(typeCombo, "growx,wrap");
@@ -186,16 +189,32 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	}
 
 	private void updateFieldsState(){
+		final boolean isPhonetic = phoneticRadio.isSelected();
 		final boolean isTranscription = transcriptionRadio.isSelected();
-		typeLabel.setEnabled(isTranscription);
-		typeCombo.setEnabled(isTranscription);
+
+		// Toggle visibility for System components
+		phoneticSystemField.setVisible(isPhonetic);
+		transcriptionSystemCombo.setVisible(isTranscription);
+
+		// Toggle visibility for Type components
+		typeLabel.setVisible(isTranscription);
+		typeCombo.setVisible(isTranscription);
+
+		pack();
 	}
 
 	@Override
 	protected boolean validData(){
-		if(systemField.isEmpty()){
+		if(phoneticRadio.isSelected() && phoneticSystemField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this, "System field is required.",
-				null, null, systemField);
+				null, null, phoneticSystemField);
+
+			return false;
+		}
+
+		if(transcriptionRadio.isSelected() && transcriptionSystemCombo.getSelectedIndex() < 0){
+			GUIHelper.showValidationErrorAndFocus(this, "System field is required.",
+				null, null, transcriptionSystemCombo);
 
 			return false;
 		}

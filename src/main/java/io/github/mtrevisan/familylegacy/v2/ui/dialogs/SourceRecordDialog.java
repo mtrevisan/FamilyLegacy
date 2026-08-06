@@ -56,7 +56,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
+/* ONGOING RepositoryCitation */
 /**
  * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.1.
  * <p>

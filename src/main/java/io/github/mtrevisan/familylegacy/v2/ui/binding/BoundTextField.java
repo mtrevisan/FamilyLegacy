@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JTextField;
@@ -34,7 +35,12 @@ public class BoundTextField extends JTextField implements PathBound{
 
 	@Override
 	public void setValue(final String value){
-		setText(StringUtils.defaultString(value));
+		if(isEditable())
+			setText(StringUtils.defaultString(value));
+		else
+			GUIHelper.updateDisplay(this,
+				() -> (value != null && (!isEmpty() || GUIHelper.isPlaceholder(this))),
+				() -> value);
 	}
 
 	public boolean isEmpty(){

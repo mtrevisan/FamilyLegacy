@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.AbstractAction;
@@ -123,7 +124,7 @@ public class _DateDialog extends JDialog{
 			}
 		};
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape");
+			GUIHelper.ESCAPE_STROKE, "escape");
 		getRootPane().getActionMap().put("escape", escapeAction);
 	}
 

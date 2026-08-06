@@ -90,9 +90,9 @@ public class DateField extends JPanel{
 	private void setupField(final JTextField field,
 			final Runnable newAction, final Runnable editAction, final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			editAction,
-			newAction,
-			clearAction,
+			null,
+			null,
+			null,
 			builder -> {
 				builder.item("Set Date...", newAction);
 				builder.separator();
@@ -132,8 +132,7 @@ public class DateField extends JPanel{
 		FLEFRecordHelper.removeChildren(parentRecord, path);
 
 		if(record != null)
-			for(final FLEFRecord child : record.getChildren())
-				parentRecord.addChild(child);
+			parentRecord.addChildren(record.getChildren());
 	}
 
 	private void createNew(){

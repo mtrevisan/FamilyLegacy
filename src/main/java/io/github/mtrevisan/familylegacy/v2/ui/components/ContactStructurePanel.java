@@ -373,7 +373,8 @@ public class ContactStructurePanel extends JPanel{
 	private void addNote(){
 		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			(parent instanceof Dialog? (Dialog)parent: null),
-			model, noteHandler, selectedId -> {
+			model, noteHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
 				noteIds.add(selectedId);
 				String display = getNoteDisplayName(selectedId);
@@ -533,17 +534,13 @@ public class ContactStructurePanel extends JPanel{
 			FLEFRecord nameRecord = FLEFRecord.createChildWithValue(ContactStructurePanel.TAG_NAME, name);
 			contactRecord.addChild(nameRecord);
 
-			for(FLEFRecord transRecord : transcriptionRecords){
-				// Ensure the transcription has the correct level
-				transRecord.setTag(TAG_TRANSCRIBED_TEXT);
-				nameRecord.addChild(transRecord);
-			}
+			// Ensure the transcription has the correct level
+			nameRecord.addChildrenWithTag(TAG_TRANSCRIBED_TEXT, transcriptionRecords);
 		}
 
 		// NOTE (0:M)
-		for(String id : noteIds){
+		for(String id : noteIds)
 			FLEFRecordHelper.addChild(contactRecord, TAG_NOTE, id);
-		}
 
 		// RESTRICTION
 		String restriction = restrictionCheckBox.isSelected()? "confidential": null;

@@ -144,8 +144,9 @@ public class SourceCitationListPanel extends AbstractListPanel2{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, sourceHandler, selectedId -> {
-				final FLEFRecord sourceCitation = model.getRecordById(selectedId);
+			parent, model, sourceHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			final FLEFRecord sourceCitation = model.getRecordById(selectedId);
 				if(sourceCitation != null && !items.contains(sourceCitation)){
 					final String sourceId = findRecordSourceId(sourceCitation);
 					final FLEFRecord source = model.getRecordById(sourceId);
