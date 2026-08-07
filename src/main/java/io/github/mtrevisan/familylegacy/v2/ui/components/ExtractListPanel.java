@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -13,6 +37,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
@@ -21,7 +46,7 @@ import java.util.List;
 
 
 /* DONE */
-public class ExtractListPanel extends AbstractListPanel2{
+public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -259585503419013969L;
@@ -104,6 +129,13 @@ public class ExtractListPanel extends AbstractListPanel2{
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parent, "Extract entry not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
 		return showExtractDialog(existing);
 	}
 
@@ -125,12 +157,12 @@ public class ExtractListPanel extends AbstractListPanel2{
 		final FLEFRecord[] result = {null};
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog.getRootPane(),
 			() -> {
-				if(!validExtractData(dialog, documentPartPanel, textArea, typeCombo))
+				if(!validExtractData(dialog, documentPartPanel, textArea))
 					return;
 
 				final FLEFRecord res = FLEFRecord.createEmpty();
 				documentPartPanel.saveReferences(res);
-				res.addChild(FLEFRecord.createChildWithValue(TAG_TEXT, textArea.getValue()));
+				res.addChild(FLEFRecord.createChildWithValue(TAG_TEXT, textArea.getText()));
 				res.addChild(FLEFRecord.createChildWithValue(TAG_TYPE, (String)typeCombo.getSelectedItem()));
 				res.addChild(FLEFRecord.createChildWithValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
 				for(final String note : basicNote.getItems())
@@ -194,22 +226,10 @@ public class ExtractListPanel extends AbstractListPanel2{
 	}
 
 	private static boolean validExtractData(final JDialog dialog, final DocumentPartListPanel documentPartPanel,
-			final BoundTextArea textArea, final BoundComboBox<String> typeCombo){
-		if(documentPartPanel.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(dialog, "Extract document parts cannot be empty.",
+			final BoundTextArea textArea){
+		if(documentPartPanel.isEmpty() && textArea.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(dialog, "Extract document parts or value cannot be both empty.",
 				null, null, documentPartPanel);
-
-			return false;
-		}
-		if(StringUtils.isEmpty(textArea.getValue())){
-			GUIHelper.showValidationErrorAndFocus(dialog, "Extract value cannot be empty.",
-				null, null, textArea);
-
-			return false;
-		}
-		if(StringUtils.isEmpty((String)typeCombo.getSelectedItem())){
-			GUIHelper.showValidationErrorAndFocus(dialog, "Extract type cannot be empty.",
-				null, null, textArea);
 
 			return false;
 		}
@@ -218,6 +238,11 @@ public class ExtractListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final String sourceId = FLEFRecordHelper.getChildValue(record, TAG_SOURCE);
 		final FLEFRecord source = model.getRecordById(sourceId);
 		sourceDocuments = FLEFRecordHelper.findChildren(source, TAG_DOCUMENT);

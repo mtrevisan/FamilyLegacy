@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RepositoryCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
@@ -101,7 +100,6 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new RepositoryHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new CalendarHandler());
 	}
 
 

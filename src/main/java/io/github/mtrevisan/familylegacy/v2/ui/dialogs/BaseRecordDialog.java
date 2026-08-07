@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -57,24 +58,50 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
 			final RecordTypeHandler<?> handler){
-		super(parent, buildTitle(handler, record), true);
+		super(parent, true);
 
 		this.handler = handler;
 		this.model = model;
 		this.record = (record != null? record: createNewRecord());
 		this.isNew = (record == null);
+
+		setTitle(buildTitle(handler, record));
 	}
 
-	private static String buildTitle(final RecordTypeHandler<?> handler, final FLEFRecord record){
+	private String buildTitle(final RecordTypeHandler<?> handler, final FLEFRecord record){
+		final String dialogType = (record == null? "New": "Edit");
 		final String label = handler.getLabel();
-		if(record == null)
-			return "New " + label;
+		final StringBuilder sb = new StringBuilder(dialogType)
+			.append(StringUtils.SPACE)
+			.append(label);
 
-		String id = record.getId();
+		String id = (record != null? record.getId(): null);
 		if(id == null)
 			// in case of a citation
 			id = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, handler.getCitedType()));
-		return "Edit " + label + " (" + id + ")";
+		if(id == null && record == null && handler.isTopLevelEntity())
+			id = generateNewId();
+
+		if(id != null)
+			sb.append(StringUtils.SPACE)
+				.append('(')
+				.append(id)
+				.append(')');
+		return sb.toString();
+	}
+
+	protected String extractReferenceId(String referenceId, final FLEFRecord record, final String tag){
+		if(referenceId == null){
+			referenceId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, tag));
+
+			if(referenceId == null){
+				referenceId = generateNewId();
+
+				if(record != null)
+					FLEFRecordHelper.addChild(record, tag, referenceId);
+			}
+		}
+		return referenceId;
 	}
 
 

@@ -50,13 +50,18 @@ public class BoundCheckBox extends JCheckBox implements PathBound{
 	}
 
 	@Override
-	public String getValue(){
+	public String getText(){
 		return Boolean.toString(isSelected());
 	}
 
 	@Override
-	public void setValue(String value){
+	public void setText(final String value){
 		setSelected(Boolean.parseBoolean(value));
+	}
+
+	@Override
+	public void clear(){
+		setSelected(false);
 	}
 
 }

@@ -213,7 +213,7 @@ public class SingleDatePanel extends JPanel{
 
 		final DateType selectedType = (DateType)dateTypeCombo.getSelectedItem();
 		if(selectedType != DateType.CENTURY)
-			centuryPartCombo.setValue(StringUtils.EMPTY);
+			centuryPartCombo.setText(StringUtils.EMPTY);
 
 		final FLEFRecord record = FLEFRecord.createChild(TAG_POINT);
 		centuryPartCombo.setPath(selectedType.getTagName() + DOT + TAG_PART);

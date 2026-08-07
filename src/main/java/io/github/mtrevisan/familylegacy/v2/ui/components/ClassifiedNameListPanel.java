@@ -47,13 +47,12 @@ import java.util.List;
  * name*: ClassifiedName
  * </pre>
  */
-public class ClassifiedNameListPanel extends AbstractListPanel2{
+public class ClassifiedNameListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -922034547054981789L;
 
 
-	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_TYPE = "TYPE";
 
 
@@ -130,6 +129,11 @@ public class ClassifiedNameListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(record, path);
 		setItems(names);
 	}

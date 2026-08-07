@@ -26,29 +26,22 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /* DONE */
 /**
  * Panel for managing a list of {@code REPOSITORY} references according to FLEF 0.1.1.
  */
-public class RepositoryCitationListPanel extends AbstractListPanel2{
+public class RepositoryCitationListPanel extends AbstractCitationListPanel{
 
 	@Serial
 	private static final long serialVersionUID = -7836305319216138743L;
@@ -62,171 +55,45 @@ public class RepositoryCitationListPanel extends AbstractListPanel2{
 	}
 
 
-	private final String path;
-
-	private final RecordTypeHandler<?> repositoryHandler;
+	private static final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 
 
-	/**
-	 * Constructs a RepositoryCitationListPanel without a border.
-	 *
-	 * @param parent the parent dialog
-	 * @param model        the FLEF model
-	 */
 	public RepositoryCitationListPanel(final String path, final Dialog parent, final FLEFModel model){
 		this(path, parent, "Repositories", model);
 	}
 
-	/**
-	 * Constructs a RepositoryCitationListPanel with a titled border.
-	 *
-	 * @param parent the parent dialog
-	 * @param borderTitle  the border title, or {@code null} for no border
-	 * @param model        the FLEF model
-	 */
 	public RepositoryCitationListPanel(final String path, final Dialog parent, final String borderTitle,
-		final FLEFModel model){
-		super(parent, borderTitle, model);
-
-		this.path = path;
-
-		repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
+			final FLEFModel model){
+		super(path, parent, borderTitle, model, TAG_REPOSITORY, RepositoryHandler.TYPE);
 	}
 
 
 	@Override
-	protected void initComponents(){
-		super.initComponents();
-
-		GUIHelper.installBehavior(list,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
-			builder -> {
-				builder.item("Create New...", this::createNewItem);
-				builder.item("Add Existing...", this::addItem);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editRepository);
-				builder.selectionSensitiveItem("Edit Citation...", this::editItem);
-				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+	protected boolean isDialogSaved(final JDialog dialog){
+		if(dialog instanceof RepositoryRecordDialog repoDialog)
+			return repoDialog.isSaved();
+		if(dialog instanceof RepositoryCitationDialog citationDialog)
+			return citationDialog.isSaved();
+		return false;
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord repositoryCitation){
-		final String repositoryId = findRecordRepositoryId(repositoryCitation);
-		if(repositoryId != null){
-			final FLEFRecord repository = model.getRecordById(repositoryId);
-			if(repository != null)
-				return repositoryHandler.getDisplayText(repository, model);
-			return repositoryId;
-		}
-		return "--";
-	}
-
-	public String findRecordRepositoryId(final FLEFRecord repositoryCitation){
-		String id = null;
-		for(final FLEFRecord child : repositoryCitation.getChildren())
-			if(TAG_REPOSITORY.equals(child.getTag()))
-				id = XRefHelper.extractXRef(child.getValue());
-		return id;
+	protected FLEFRecord getRecordFromDialog(final JDialog dialog){
+		if(dialog instanceof RepositoryRecordDialog repoDialog)
+			return repoDialog.getRecord();
+		if(dialog instanceof RepositoryCitationDialog citationDialog)
+			return citationDialog.getRecord();
+		return null;
 	}
 
 	@Override
-	protected FLEFRecord showAddDialog(){
-		final FLEFRecord[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, repositoryHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			final FLEFRecord repositoryCitation = model.getRecordById(selectedId);
-			if(repositoryCitation != null && !items.contains(repositoryCitation)){
-				final String repositoryId = findRecordRepositoryId(repositoryCitation);
-				final FLEFRecord repository = model.getRecordById(repositoryId);
-				if(repository != null)
-					result[0] = repository;
-			}
-		}
-		);
-		dialog.setVisible(true);
-
-		return result[0];
-	}
-
-	/**
-	 * Creates a new repository and adds a citation for it and adds this one to the list.
-	 */
-	@Override
-	protected FLEFRecord showCreateNewDialog(){
-		final RepositoryRecordDialog newRepositoryDialog = (RepositoryRecordDialog)repositoryHandler.createNewDialog(parent, model);
-		newRepositoryDialog.setVisible(true);
-
-		FLEFRecord newRepositoryCitation = null;
-		if(newRepositoryDialog.isSaved()){
-			final FLEFRecord newRepository = newRepositoryDialog.getRecord();
-			if(newRepository != null){
-				final String newRepositoryId = newRepository.getId();
-				final FLEFRecord repositoryCitation = FLEFRecord.createEmpty();
-				FLEFRecordHelper.updateChildValue(repositoryCitation, TAG_REPOSITORY, XRefHelper.formatXRef(newRepositoryId));
-				final RepositoryCitationDialog citationDialog = RepositoryCitationDialog.createEdit(parent, model, repositoryCitation);
-				citationDialog.setVisible(true);
-
-				if(citationDialog.isSaved())
-					newRepositoryCitation = citationDialog.getRecord();
-				else
-					model.removeRecord(newRepositoryId);
-			}
-		}
-		return newRepositoryCitation;
+	protected JDialog createCitationEditDialog(final FLEFRecord citation){
+		return RepositoryCitationDialog.createEdit(parent, model, citation);
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(final FLEFRecord existing){
-		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Repository Citation not found", "Error",
-				JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
-		final JDialog dialog = RepositoryCitationDialog.createEdit(parent, model, existing);
-		dialog.setVisible(true);
-
-		// Return the same record (it was updated in place)
-		return existing;
-	}
-
-	public final void editRepository(){
-		final int idx = list.getSelectedIndex();
-		if(idx == -1)
-			return;
-
-		final FLEFRecord repositoryCitation = items.get(idx);
-		final String repositoryId = findRecordRepositoryId(repositoryCitation);
-		if(repositoryId != null){
-			final FLEFRecord repository = model.getRecordById(repositoryId);
-			final RepositoryRecordDialog dialog = RepositoryRecordDialog.createEdit(parent, model, repository);
-			dialog.setVisible(true);
-
-			if(dialog.isSaved())
-				listModel.setElementAt(getDisplay(repositoryCitation), idx);
-		}
-	}
-
-	public void load(final FLEFRecord record){
-		final List<FLEFRecord> repositoryCitations = FLEFRecordHelper.findChildren(record, path);
-		final List<FLEFRecord> repositories = new ArrayList<>();
-		for(final FLEFRecord repositoryCitation : repositoryCitations){
-			final String repositoryId = findRecordRepositoryId(repositoryCitation);
-			if(repositoryId != null){
-				final FLEFRecord repository = model.getRecordById(repositoryId);
-				repositories.add(repository);
-			}
-		}
-		setItems(repositories);
-	}
-
-	public void save(final FLEFRecord record){
-		super.save(record, path);
+	protected JDialog createTargetEditDialog(final FLEFRecord entity){
+		return RepositoryRecordDialog.createEdit(parent, model, entity);
 	}
 
 }

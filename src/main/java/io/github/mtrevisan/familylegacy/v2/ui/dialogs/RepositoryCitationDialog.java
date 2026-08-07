@@ -100,9 +100,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryCitationHandler.TYPE));
 
-		this.repositoryId = (repositoryId != null
-			? repositoryId:
-			XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_REPOSITORY)));
+		this.repositoryId = extractReferenceId(repositoryId, record, TAG_REPOSITORY);
 
 		locationField = new BoundTextField(TAG_LOCATION, 20);
 		notePanel = new NoteListPanel(TAG_NOTE, this, null, model);
@@ -143,6 +141,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		return mainPanel;
 	}
 
+
 	@Override
 	protected void loadData(){
 		if(StringUtils.isBlank(repositoryId)){
@@ -162,7 +161,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(repositoryId == null || repositoryId.isEmpty()){
+		if(StringUtils.isEmpty(repositoryId)){
 			JOptionPane.showMessageDialog(null,
 				"REPOSITORY is required for a citation.\n" +
 					"Please select a repository record.",

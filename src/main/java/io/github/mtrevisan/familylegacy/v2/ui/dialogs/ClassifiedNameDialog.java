@@ -60,7 +60,16 @@ import java.io.Serial;
  * Structure:
  * <pre>
  * struct ClassifiedName {
- *   type?: enum { official, colonial, indigenous } | Text
+ *   type?: enum {
+ *     official, legal,
+ *     colonial, indigenous, traditional,
+ *     translated, romanized,
+ *     historic, former,
+ *     common, colloquial,
+ *     abbreviated, acronym,
+ *     religious,
+ *     administrative, archival
+ *   } | Text
  *   text: NameStructure
  * }
  * struct NameStructure {
@@ -76,16 +85,19 @@ import java.io.Serial;
 public class ClassifiedNameDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 7526263144620538539L;
+	private static final long serialVersionUID = 4890876589041527256L;
 
+
+	private static final String DOT = ".";
 
 	private static final String TAG_TYPE = "TYPE";
-	public static final String TAG_VALUE = "TEXT.VALUE";
-	private static final String TAG_VARIANT = "TEXT.VARIANT";
-	private static final String TAG_LOCALE = "TEXT.LOCALE";
-	private static final String TAG_DATE = "TEXT.DATE";
-	private static final String TAG_NOTE = "TEXT.NOTE";
-	private static final String TAG_SOURCE = "TEXT.SOURCE";
+	private static final String TAG_TEXT = "TEXT";
+	public static final String TAG_VALUE = TAG_TEXT + DOT + "VALUE";
+	private static final String TAG_VARIANT = TAG_TEXT + DOT + "VARIANT";
+	private static final String TAG_LOCALE = TAG_TEXT + DOT + "LOCALE";
+	private static final String TAG_DATE = TAG_TEXT + DOT + "DATE";
+	private static final String TAG_NOTE = TAG_TEXT + DOT + "NOTE";
+	private static final String TAG_SOURCE = TAG_TEXT + DOT + "SOURCE";
 
 
 	static{
@@ -124,8 +136,31 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
 
 		valueField = new BoundTextField(TAG_VALUE, 30);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
-			StringUtils.EMPTY, "official", "colonial", "indigenous"
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY,
+			// official and legal names
+			"official",
+			"legal",
+			// historical naming traditions
+			"colonial",
+			"indigenous",
+			"traditional",
+			// language and localization variants
+			"translated",
+			"romanized",
+			// historical variants
+			"historic",
+			"former",
+			// common usage
+			"common",
+			"colloquial",
+			// abbreviated forms
+			"abbreviated",
+			"acronym",
+			// religious and ecclesiastical forms
+			"religious",
+			// administrative and archival forms
+			"administrative",
+			"archival"
 		});
 		typeCombo.setEditable(true);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, model);
@@ -200,6 +235,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		panel.add(sourceCitationPanel, "growx");
 		return panel;
 	}
+
 
 	@Override
 	protected void loadData(){

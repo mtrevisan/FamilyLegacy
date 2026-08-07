@@ -43,7 +43,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
@@ -212,7 +211,7 @@ public final class GUIHelper{
 		if(component instanceof JTextComponent textComp)
 			return () -> {
 				final String text = textComp.getText();
-				return (!StringUtils.isBlank(text) && !isPlaceholder(textComp));
+				return (!StringUtils.isBlank(text) && !isPlaceholder(text));
 			};
 
 		if(component instanceof JButton button)
@@ -225,8 +224,8 @@ public final class GUIHelper{
 		return () -> false;
 	}
 
-	public static boolean isPlaceholder(final JTextComponent component){
-		return PLACEHOLDER_TEXT.equals(component.getText());
+	public static boolean isPlaceholder(final String text){
+		return PLACEHOLDER_TEXT.equals(text);
 	}
 
 	/**
@@ -369,7 +368,7 @@ public final class GUIHelper{
 	}
 
 
-	public static void updateDisplay(final JTextField component, final Supplier<Boolean> hasData,
+	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
 			final Supplier<String> getText){
 		if(hasData.get()){
 			component.setText(getText.get());

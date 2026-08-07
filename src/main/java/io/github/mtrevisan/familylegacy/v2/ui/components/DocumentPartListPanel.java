@@ -45,7 +45,7 @@ import java.util.List;
 
 
 /* DONE */
-public class DocumentPartListPanel extends AbstractListPanel2{
+public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -1788729052005475640L;
@@ -233,6 +233,11 @@ public class DocumentPartListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final List<FLEFRecord> noteCitations = FLEFRecordHelper.findChildren(record, path);
 		final List<FLEFRecord> notes = new ArrayList<>(noteCitations.size());
 		for(final FLEFRecord noteCitation : noteCitations)

@@ -44,11 +44,13 @@ public interface PathBound{
 	/**
 	 * Returns the current value of the component (as its natural type).
 	 */
-	String getValue();
+	String getText();
 
 	/**
 	 * Sets the component's value from the given value.
 	 */
-	void setValue(String value);
+	void setText(String value);
+
+	void clear();
 
 }

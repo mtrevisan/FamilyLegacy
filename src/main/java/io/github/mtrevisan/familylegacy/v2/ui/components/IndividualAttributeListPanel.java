@@ -27,10 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DocumentRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualAttributeRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
@@ -38,47 +39,52 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 
 
-// TODO
+/* DONE */
 /**
- * Panel for managing a list of {@code DOCUMENT} references according to FLEF 0.1.1.
+ * Panel for managing a list of {@code INDIVIDUAL_ATTRIBUTE} references according to FLEF 0.1.1.
  */
-public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
+public class IndividualAttributeListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = 6678882576554492478L;
+	private static final long serialVersionUID = -1252013604825026408L;
+
+
+	private static final String TAG_INDIVIDUAL_ATTRIBUTE = "INDIVIDUAL_ATTRIBUTE";
 
 
 	static{
-		HandlerRegistry.register(new DocumentHandler());
+		HandlerRegistry.register(new IndividualAttributeHandler());
 	}
 
 
 	private final String path;
 
-	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.TYPE);;
+	private final RecordTypeHandler<?> individualAttributeHandler = HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE);;
 
 
 	/**
-	 * Constructs a DocumentListPanel without a border.
+	 * Constructs a IndividualAttributeListPanel without a border.
 	 *
 	 * @param parent the parent dialog
 	 * @param model        the FLEF model
 	 */
-	public DocumentListPanel(final String path, final Dialog parent, final FLEFModel model){
-		this(path, parent, "Documents", model);
+	public IndividualAttributeListPanel(final String path, final Dialog parent, final FLEFModel model){
+		this(path, parent, "Individual Attributes", model);
 	}
 
 	/**
-	 * Constructs a DocumentListPanel with a titled border.
+	 * Constructs a IndividualAttributeListPanel with a titled border.
 	 *
 	 * @param parent the parent dialog
 	 * @param borderTitle  the border title, or {@code null} for no border
 	 * @param model        the FLEF model
 	 */
-	public DocumentListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
+	public IndividualAttributeListPanel(final String path, final Dialog parent, final String borderTitle,
+			final FLEFModel model){
 		super(parent, borderTitle, model);
 
 		this.path = path;
@@ -99,15 +105,13 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			}
-		);
+			});
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord document){
-		if(document != null)
-			return documentHandler.getDisplayText(document, model);
-
+	protected String getDisplay(final FLEFRecord individualAttribute){
+		if(individualAttribute != null)
+			return individualAttributeHandler.getDisplayText(individualAttribute, model);
 		return "--";
 	}
 
@@ -115,39 +119,34 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, documentHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			final FLEFRecord document = model.getRecordById(selectedId);
-				if(document != null && !items.contains(document))
-					result[0] = document;
-			}
+			parent, model, individualAttributeHandler, selectedItem -> result[0] = selectedItem
 		);
 		dialog.setVisible(true);
 
 		return result[0];
 	}
 
-	/**
-	 * Creates a new document and adds it to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final DocumentRecordDialog dialog = (DocumentRecordDialog)documentHandler.createNewDialog(parent, model);
-		dialog.setVisible(true);
+		final IndividualAttributeRecordDialog newIndividualAttributeDialog = (IndividualAttributeRecordDialog)individualAttributeHandler.createNewDialog(parent, model);
+		newIndividualAttributeDialog.setVisible(true);
 
-		return (dialog.isSaved()? dialog.getRecord(): null);
+		FLEFRecord newIndividualAttribute = null;
+		if(newIndividualAttributeDialog.isSaved())
+			newIndividualAttribute = newIndividualAttributeDialog.getRecord();
+		return newIndividualAttribute;
 	}
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Document not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Source Citation not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final JDialog dialog = documentHandler.createEditDialog(parent, model, existing);
+		final JDialog dialog = IndividualAttributeRecordDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
@@ -160,15 +159,31 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return;
 
-		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(record, path);
-		setItems(documents);
+		final List<FLEFRecord> individualAttributes = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> sources = new ArrayList<>();
+		for(final FLEFRecord individualAttribute : individualAttributes){
+			final String sourceId = findRecordIndividualAttributeId(individualAttribute);
+			if(sourceId != null){
+				final FLEFRecord source = model.getRecordById(sourceId);
+				sources.add(source);
+			}
+		}
+		setItems(sources);
+	}
+
+	public String findRecordIndividualAttributeId(final FLEFRecord individualAttribute){
+		String id = null;
+		for(final FLEFRecord child : individualAttribute.getChildren())
+			if(TAG_INDIVIDUAL_ATTRIBUTE.equals(child.getTag()))
+				id = XRefHelper.extractXRef(child.getValue());
+		return id;
 	}
 
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);
 
-		for(final FLEFRecord document : getItems())
-			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
+		for(final FLEFRecord attribute : getItems())
+			FLEFRecordHelper.addChild(record, path, attribute.getFormattedId());
 	}
 
 }

@@ -67,7 +67,7 @@ public class PlaceCitationField extends JPanel{
 
 	private final JTextField displayField = new JTextField(20);
 
-	private final RecordTypeHandler<?> placeCitationHandler;
+	private final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
 
 
 	public static PlaceCitationField create(final String path, final Dialog parent, final FLEFModel model){
@@ -86,8 +86,6 @@ public class PlaceCitationField extends JPanel{
 
 		this.path = path;
 		this.model = model;
-
-		placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
 
 		initComponents();
 	}

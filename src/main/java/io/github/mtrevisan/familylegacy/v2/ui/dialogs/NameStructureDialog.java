@@ -186,6 +186,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 		return panel;
 	}
 
+
 	@Override
 	protected void loadData(){
 		bindingManager.load(record);

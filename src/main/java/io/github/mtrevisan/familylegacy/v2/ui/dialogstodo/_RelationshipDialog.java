@@ -105,7 +105,7 @@ public class _RelationshipDialog extends JDialog{
 
 	private final BoundTextField typeField;
 	private final BoundTextField roleField;
-	private final BoundComboBox credibilityCombo;
+	private final BoundComboBox<String> credibilityCombo;
 
 	private final DefaultListModel<String> noteModel = new DefaultListModel<>();
 	private final JList<String> noteList = new JList<>(noteModel);
@@ -145,7 +145,7 @@ public class _RelationshipDialog extends JDialog{
 
 		typeField = new BoundTextField("TYPE", 15);
 		roleField = new BoundTextField("ROLE", 15);
-		credibilityCombo = new BoundComboBox("CREDIBILITY",
+		credibilityCombo = new BoundComboBox<>("CREDIBILITY",
 			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
 
 		initComponents();

@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -19,14 +43,13 @@ import java.io.Serial;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 
 /**
  * Panel that displays only member relationships (group ↔ Individual).
  * Provides extra actions: "Add Existing", "Create New", "Edit Member Individual", "Notes".
  */
-public class MemberRelationshipListPanel extends AbstractListPanel2{
+public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = 4913602704327077030L;
@@ -40,25 +63,22 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 
 
 	static{
+		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new RelationshipHandler());
 	}
 
 
-	private final Supplier<String> groupIdSupplier;
+	private final String groupId;
 	private GeneralRelationshipListPanel generalPanel;
 
-	private final RecordTypeHandler<?> individualHandler;
-	private final RecordTypeHandler<?> relationshipHandler;
+	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
 
 
-	public MemberRelationshipListPanel(final Dialog parent, final FLEFModel model,
-			final Supplier<String> groupIdSupplier){
+	public MemberRelationshipListPanel(final Dialog parent, final FLEFModel model, final String groupId){
 		super(parent, "Members", model);
 
-		this.groupIdSupplier = groupIdSupplier;
-
-		this.individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-		this.relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
+		this.groupId = groupId;
 	}
 
 
@@ -92,10 +112,8 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 		final StringBuilder display = new StringBuilder();
 		if(objectId != null){
 			final FLEFRecord obj = model.getRecordById(objectId);
-			if(obj != null){
-				final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
-				display.append(handler.getDisplayText(obj, model));
-			}
+			if(obj != null)
+				display.append(individualHandler.getDisplayText(obj, model));
 			else
 				display.append(objectId);
 		}
@@ -107,7 +125,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 	}
 
 	private boolean isMemberRelationship(final FLEFRecord relationship){
-		final String groupId = groupIdSupplier.get();
 		if(groupId == null)
 			return false;
 
@@ -147,7 +164,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 		if(individualId == null)
 			return null;
 
-		final String groupId = groupIdSupplier.get();
 		if(groupId == null){
 			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -189,7 +205,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 		if(newIndividualId == null)
 			return null;
 
-		final String groupId = groupIdSupplier.get();
 		if(groupId == null){
 			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -231,7 +246,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 		if(relationship == null)
 			return;
 
-		final String groupId = groupIdSupplier.get();
 		if(groupId == null)
 			return;
 
@@ -276,6 +290,11 @@ public class MemberRelationshipListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final List<FLEFRecord> relationships = FLEFRecordHelper.findChildren(record, TAG_RELATIONSHIP);
 		setItems(relationships);
 	}

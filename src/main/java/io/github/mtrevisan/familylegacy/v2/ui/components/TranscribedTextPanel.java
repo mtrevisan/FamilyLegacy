@@ -161,7 +161,6 @@ public class TranscribedTextPanel extends JPanel{
 	 * @return the saved record (new if null was passed), or null if validation fails
 	 */
 	public FLEFRecord saveToRecord(FLEFRecord transRecord){
-		// Validate before saving
 		if(!validateData()){
 			return null;
 		}

@@ -27,23 +27,28 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._GroupEventDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualAttributeRecordDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
+/* DONE */
 /**
- * Handler for GROUP_EVENT records.
+ * Handler for {@code INDIVIDUAL_ATTRIBUTE_RECORD} entities according to FLEF 0.1.1.
  */
-public class GroupEventHandler implements RecordTypeHandler<_GroupEventDialog>{
+public class IndividualAttributeHandler implements RecordTypeHandler<IndividualAttributeRecordDialog>{
 
-	public static final String TYPE = "GROUP_EVENT";
-	public static final String ID_PREFIX = "GE";
+	public static final String TYPE = "INDIVIDUAL_ATTRIBUTE";
+	public static final String ID_PREFIX = "IA";
+
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override
 	public String getLabel(){
-		return "Group Event";
+		return "Individual Attribute";
 	}
 
 	@Override
@@ -58,24 +63,32 @@ public class GroupEventHandler implements RecordTypeHandler<_GroupEventDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String typeId = FLEFRecordHelper.getChildValue(record, "TYPE");
-		String id = record.getId();
-		if(typeId != null && !typeId.isEmpty()){
-			// Try to get the actual event type name from the model
-			// For display name, we'll show the type ID with the event ID
-			return "Event " + typeId + " (" + id + ")";
-		}
-		return id;
+		if(record == null)
+			return StringUtils.EMPTY;
+
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		final StringBuilder sb = new StringBuilder();
+		if(type != null)
+			sb.append('(')
+				.append(type)
+				.append(')');
+		if(type != null && !StringUtils.isEmpty(value))
+			sb.append(StringUtils.SPACE);
+		if(!StringUtils.isEmpty(value))
+			sb.append(value);
+		return sb.toString();
 	}
 
 	@Override
-	public _GroupEventDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return new _GroupEventDialog(parent, model);
+	public IndividualAttributeRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return IndividualAttributeRecordDialog.createNew(parent, model, null);
 	}
 
 	@Override
-	public _GroupEventDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return new _GroupEventDialog(parent, model, record);
+	public IndividualAttributeRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return IndividualAttributeRecordDialog.createEdit(parent, model, record);
 	}
 
 }

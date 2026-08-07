@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.GeneralRelationshipListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.IndividualAttributeListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
@@ -92,6 +93,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
 	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_INDIVIDUAL_ATTRIBUTE = "INDIVIDUAL_ATTRIBUTE";
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
 
 
@@ -115,6 +117,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	// Other
 	private final ConclusionListPanel conclusionPanel;
 	private final MemberRelationshipListPanel memberPanel;
+	private final IndividualAttributeListPanel attributePanel;
 	private final GeneralRelationshipListPanel relationshipPanel;
 
 
@@ -144,7 +147,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		modificationPanel = new ModificationPanel(this, model);
 
 		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
-		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null? record.getId(): null));
+		memberPanel = new MemberRelationshipListPanel(this, model, (record != null? record.getId(): null));
+		attributePanel = new IndividualAttributeListPanel(TAG_INDIVIDUAL_ATTRIBUTE, this, model);
 		relationshipPanel = new GeneralRelationshipListPanel(TAG_RELATIONSHIP, this, model);
 
 		initComponents();
@@ -192,6 +196,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		// members
 		panel.add(memberPanel, "growx");
 
+		// attributes
+		panel.add(attributePanel, "growx");
+
 		return panel;
 	}
 
@@ -220,6 +227,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		conclusionPanel.load(record);
 		memberPanel.load(record);
+		attributePanel.load(record);
 		relationshipPanel.load(record);
 	}
 
@@ -242,6 +250,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		conclusionPanel.save(record);
 		memberPanel.save(record);
+		attributePanel.save(record);
 		relationshipPanel.save(record);
 	}
 

@@ -54,7 +54,7 @@ import java.util.List;
  *   <li>Remove note reference</li>
  * </ul>
  */
-public class NoteListPanel extends AbstractListPanel2{
+public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -5638163012098890098L;
@@ -164,6 +164,11 @@ public class NoteListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final List<FLEFRecord> noteCitations = FLEFRecordHelper.findChildren(record, path);
 		final List<FLEFRecord> notes = new ArrayList<>(noteCitations.size());
 		for(final FLEFRecord noteCitation : noteCitations)

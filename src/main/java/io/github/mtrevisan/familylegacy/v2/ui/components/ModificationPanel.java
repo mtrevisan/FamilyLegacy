@@ -113,6 +113,9 @@ public class ModificationPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
+		if(record == null)
+			return;
+
 		bindingManager.load(record);
 
 		// Find CREATION
@@ -122,7 +125,7 @@ public class ModificationPanel extends JPanel{
 
 			// Load creation comment if present (non-standard, but we keep it)
 			final String comment = FLEFRecordHelper.getChildValue(creation, "COMMENT");
-			creationCommentArea.setValue(comment);
+			creationCommentArea.setText(comment);
 		}
 
 		updateListPanel.load(record);
@@ -149,7 +152,7 @@ public class ModificationPanel extends JPanel{
 		bindingManager.save(record);
 
 		// Save creation comment if present
-		final String creationComment = creationCommentArea.getValue();
+		final String creationComment = creationCommentArea.getText();
 		FLEFRecordHelper.addChild(record, "CREATION.COMMENT", creationComment);
 
 		// UPDATE entries

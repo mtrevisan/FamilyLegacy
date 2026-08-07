@@ -68,12 +68,12 @@ public abstract class AbstractBoundComponent<C extends JComponent> implements Pa
 	}
 
 	@Override
-	public String getValue(){
+	public String getText(){
 		return toValue.apply(component);
 	}
 
 	@Override
-	public void setValue(final String value){
+	public void setText(final String value){
 		toComponent.accept(component, value);
 	}
 

@@ -104,9 +104,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PlaceCitationHandler.TYPE));
 
-		this.placeId = (placeId != null
-			? placeId:
-			XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE)));
+		this.placeId = extractReferenceId(placeId, record, TAG_PLACE);
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
@@ -157,6 +155,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		return panel;
 	}
 
+
 	@Override
 	protected void loadData(){
 		if(StringUtils.isBlank(placeId)){
@@ -177,7 +176,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(placeId == null || placeId.isEmpty()){
+		if(StringUtils.isEmpty(placeId)){
 			JOptionPane.showMessageDialog(null,
 				"PLACE is required for a citation.\n" +
 					"Please select a place record.",

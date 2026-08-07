@@ -126,7 +126,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			builder -> {
 				builder.item("Set...", this::setNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Clear", () -> fileField.setValue(null));
+				builder.selectionSensitiveItem("Clear", () -> fileField.clear());
 			});
 		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{StringUtils.EMPTY, "spherical_UV",
 			"cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
@@ -165,7 +165,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			return;
 		}
 
-		fileField.setValue(selectedFile.getAbsolutePath());
+		fileField.setText(selectedFile.getAbsolutePath());
 	}
 
 	private void initComponents(){

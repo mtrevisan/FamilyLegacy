@@ -25,8 +25,11 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -47,17 +50,18 @@ import java.util.List;
 
 /* DONE */
 /**
- * Abstract panel for managing a list of items with add/edit/remove operations.
+ * Abstract base panel managing lists of items of type {@code T}.
  * <p>
- * This panel provides a common UI pattern:
+ * This panel provides a standardized UI pattern for list management:
  * <ul>
- *   <li>A {@link JList} with a {@link DefaultListModel}</li>
- *   <li>Context menu (right-click) with Add, Edit, Remove options</li>
- *   <li>Double-click to edit</li>
- *   <li>INSERT key to add, DELETE key to remove</li>
+ *   <li>A {@link JList} backed by a {@link DefaultListModel}</li>
+ *   <li>Keyboard shortcuts for reordering items ({@code CTRL + UP} / {@code CTRL + DOWN})</li>
+ *   <li>Hooks for subclass management via {@link #showCreateNewDialog()}, {@link #showAddDialog()}, and {@link #showEditDialog(Object)}</li>
  * </ul>
+ * Standard actions (such as context menus, double-click to edit, or {@code INSERT}/{@code DELETE} keybindings)
+ * are typically attached in subclass implementations (e.g., via {@code GUIHelper.installBehavior}).
  *
- * @param <T> the type of items managed by this panel
+ * @param <T>	The type of elements managed in this list.
  */
 public abstract class AbstractListPanel<T> extends JPanel{
 
@@ -76,11 +80,11 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 
 	/**
-	 * Constructs an AbstractListPanel.
+	 * Constructs an {@code AbstractListPanel} with a title.
 	 *
-	 * @param parent the parent dialog (for showing modal dialogs)
-	 * @param title        the title for the TitledBorder, or {@code null} for no border
-	 * @param model        the FLEF model
+	 * @param parent	The parent dialog.
+	 * @param title	The border title, or {@code null} for no border.
+	 * @param model	The FLEF model.
 	 */
 	protected AbstractListPanel(final Dialog parent, final String title, final FLEFModel model){
 		this.parent = parent;
@@ -93,13 +97,16 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 	/**
 	 * Constructs an AbstractListPanel without a border.
+	 *
+	 * @param parent	The parent dialog.
+	 * @param model	The FLEF model.
 	 */
 	protected AbstractListPanel(final Dialog parent, final FLEFModel model){
 		this(parent, null, model);
 	}
 
 
-	void initComponents(){
+	protected void initComponents(){
 		setLayout(new MigLayout("fillx,wrap 1", "[grow]"));
 		if(title != null)
 			setBorder(new TitledBorder(title));
@@ -201,7 +208,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @param item the item to add
 	 */
-	protected void addItemDirectly(final T item){
+	protected final void addItemDirectly(final T item){
 		if(item != null){
 			addElement(item);
 
@@ -284,7 +291,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @param item the item to validate
 	 * @return {@code true} if valid, {@code false} otherwise
 	 */
-	protected boolean validateItem(T item){
+	protected boolean validateItem(final T item){
 		return true;
 	}
 
@@ -292,7 +299,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Clears all items from the list.
 	 */
-	public void clear(){
+	public final void clear(){
 		items.clear();
 		listModel.clear();
 
@@ -304,7 +311,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @return the item count
 	 */
-	public int getItemCount(){
+	public final int getItemCount(){
 		return items.size();
 	}
 
@@ -313,7 +320,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @return {@code true} if empty, {@code false} otherwise
 	 */
-	public boolean isEmpty(){
+	public final boolean isEmpty(){
 		return items.isEmpty();
 	}
 
@@ -322,7 +329,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @return the items
 	 */
-	public List<T> getItems(){
+	public final List<T> getItems(){
 		return items;
 	}
 
@@ -331,7 +338,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @param newItems the new items
 	 */
-	public void setItems(final List<T> newItems){
+	public final void setItems(final List<T> newItems){
 		clear();
 
 		if(newItems != null)
@@ -345,6 +352,32 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	private void addElement(final T newItem){
 		items.add(newItem);
 		listModel.addElement(getDisplay(newItem));
+	}
+
+
+	/**
+	 * Saves list elements into a target FLEFRecord path when {@code T} is {@code FLEFRecord}.
+	 */
+	public final void save(final FLEFRecord record, final String path){
+		FLEFRecordHelper.removeChildren(record, path);
+
+		if(items.isEmpty())
+			return;
+
+		@SuppressWarnings("unchecked")
+		final List<FLEFRecord> recordItems = (List<FLEFRecord>)items;
+		if(StringUtils.isEmpty(path)){
+			record.addChildren(recordItems);
+
+			return;
+		}
+
+		final int lastDotIndex = path.lastIndexOf('.');
+		final String parentPath = (lastDotIndex >= 0? path.substring(0, lastDotIndex): null);
+		final String lastChildTag = (lastDotIndex >= 0? path.substring(lastDotIndex + 1): path);
+
+		final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(record, parentPath);
+		parent.addChildrenWithTag(lastChildTag, recordItems);
 	}
 
 }

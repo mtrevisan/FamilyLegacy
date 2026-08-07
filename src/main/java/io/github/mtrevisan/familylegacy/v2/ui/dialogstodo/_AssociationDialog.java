@@ -126,11 +126,11 @@ public class _AssociationDialog extends JDialog{
 		return new _AssociationDialog(parent, model, null);
 	}
 
-	public static _AssociationDialog createEdit(JDialog parent, FLEFModel model, FLEFRecord existingEntry){
-		if(existingEntry == null)
-			throw new IllegalArgumentException("existingEntry cannot be null");
+	public static _AssociationDialog createEdit(JDialog parent, FLEFModel model, FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
 
-		return new _AssociationDialog(parent, model, existingEntry);
+		return new _AssociationDialog(parent, model, record);
 	}
 
 	private _AssociationDialog(JDialog parent, FLEFModel model, FLEFRecord existingAssociation){

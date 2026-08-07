@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._TranscribedTextDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -122,6 +121,7 @@ public class ContactStructurePanel extends JPanel{
 	private final ModificationPanel modificationPanel;
 
 	private final RecordTypeHandler<?> noteHandler = HandlerRegistry.getHandler(NoteHandler.TYPE);
+
 
 	/**
 	 * Creates a new ContactStructurePanel.
@@ -308,37 +308,37 @@ public class ContactStructurePanel extends JPanel{
 	}
 
 	private void addTranscription(){
-		_TranscribedTextDialog dialog = new _TranscribedTextDialog(
-			(parent instanceof JDialog? (JDialog)parent: null),
-			null
-		);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved()){
-			FLEFRecord transRecord = dialog.getTranscribedTextRecord();
-			if(transRecord != null){
-				// We need the parent record to add it to NAME
-				// This will be handled in saveToRecord
-				transcriptionRecords.add(transRecord);
-				transcriptionModel.addElement(buildTranscriptionDisplay(transRecord));
-			}
-		}
+//		_TranscribedTextDialog dialog = new _TranscribedTextDialog(
+//			(parent instanceof JDialog? (JDialog)parent: null),
+//			null
+//		);
+//		dialog.setVisible(true);
+//
+//		if(dialog.isSaved()){
+//			FLEFRecord transRecord = dialog.getTranscribedTextRecord();
+//			if(transRecord != null){
+//				// We need the parent record to add it to NAME
+//				// This will be handled in saveToRecord
+//				transcriptionRecords.add(transRecord);
+//				transcriptionModel.addElement(buildTranscriptionDisplay(transRecord));
+//			}
+//		}
 	}
 
 	private void editTranscription(){
-		int idx = transcriptionList.getSelectedIndex();
-		if(idx == -1)
-			return;
-		FLEFRecord transRecord = transcriptionRecords.get(idx);
-		_TranscribedTextDialog dialog = new _TranscribedTextDialog(
-			(parent instanceof JDialog? (JDialog)parent: null),
-			transRecord
-		);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved()){
-			transcriptionModel.set(idx, buildTranscriptionDisplay(transRecord));
-		}
+//		int idx = transcriptionList.getSelectedIndex();
+//		if(idx == -1)
+//			return;
+//		FLEFRecord transRecord = transcriptionRecords.get(idx);
+//		_TranscribedTextDialog dialog = new _TranscribedTextDialog(
+//			(parent instanceof JDialog? (JDialog)parent: null),
+//			transRecord
+//		);
+//		dialog.setVisible(true);
+//
+//		if(dialog.isSaved()){
+//			transcriptionModel.set(idx, buildTranscriptionDisplay(transRecord));
+//		}
 	}
 
 	private void deleteTranscription(){

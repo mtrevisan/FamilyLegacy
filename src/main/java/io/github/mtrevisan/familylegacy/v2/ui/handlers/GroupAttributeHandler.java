@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Handler for {@code GROUP_ATTRIBUTE_RECORD} entities according to FLEF 0.1.1.
  */
@@ -41,6 +41,9 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRe
 
 	public static final String TYPE = "GROUP_ATTRIBUTE";
 	public static final String ID_PREFIX = "GA";
+
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override
@@ -63,29 +66,18 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRe
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		// Get the attribute type
-		String type = FLEFRecordHelper.getChildValue(record, "TYPE");
-		String typeDisplay = (type != null && !type.isEmpty())? type: "?";
-
-		// Get the associated group
-		String groupId = FLEFRecordHelper.getChildValue(record, "GROUP");
-		String groupDisplay = groupId;
-
-		//FIXME
-//		if(groupId != null){
-//			// Try to resolve the group and get its display name
-//			FLEFModel model = FLEFModel.getInstance(); // Assumes a singleton or a way to get the model
-//			if(model != null){
-//				FLEFRecord group = model.getRecordById(groupId);
-//				if(group != null){
-//					// Use the group's display name from its handler
-//					RecordTypeHandler<?> handler = HandlerRegistry.getHandler(GroupHandler.TYPE);
-//					groupDisplay = handler.getDisplayName(group);
-//				}
-//			}
-//		}
-
-		return typeDisplay + " (" + groupDisplay + ")";
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		final StringBuilder sb = new StringBuilder();
+		if(type != null)
+			sb.append('(')
+				.append(type)
+				.append(')');
+		if(type != null && !StringUtils.isEmpty(value))
+			sb.append(StringUtils.SPACE);
+		if(!StringUtils.isEmpty(value))
+			sb.append(value);
+		return sb.toString();
 	}
 
 	@Override

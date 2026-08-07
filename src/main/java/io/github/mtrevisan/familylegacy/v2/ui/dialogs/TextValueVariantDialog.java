@@ -59,8 +59,38 @@ import java.io.Serial;
  *     value: Text
  *   }
  *   transcription: struct {
- *     system: enum { romaji, pinyin, wadegiles } | Text
- *     type?: enum { romanized, anglicized, cyrillized, francized, gairaigized, latinized } | Text
+ *     system: enum {
+ *       romaji, hepburn, kunreishiki, nihonshiki,
+ *       pinyin, wadegiles,
+ *       bgn_pcgn,
+ *       iso9,
+ *       ala_lc,
+ *       dmg,
+ *       buckwalter,
+ *       iso233,
+ *       iso259,
+ *       iast,
+ *       iso15919, hunterian,
+ *       mccune_reischauer, revised_korean,
+ *       scientific
+ *     } | Text
+ *     type?: enum {
+ *       romanized,
+ *       latinized,
+ *       anglicized,
+ *       francized,
+ *       germanized,
+ *       italianized,
+ *       hispanicized,
+ *       lusitanized,
+ *       cyrillized,
+ *       arabized,
+ *       hebraized,
+ *       hellenized,
+ *       gairaigized,
+ *       modernized,
+ *       normalized
+ *     } | Text
  *     value: Text
  *   }
  * }
@@ -102,6 +132,9 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	}
 
 	public static TextValueVariantDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+
 		return new TextValueVariantDialog(parent, model, record);
 	}
 
@@ -111,11 +144,39 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 		phoneticSystemField = new BoundTextField(TAG_SYSTEM, 15);
 		phoneticSystemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
-		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM,
-			new String[]{StringUtils.EMPTY, "romaji", "pinyin", "wadegiles"});
+		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM, new String[]{StringUtils.EMPTY,
+			"romaji", "hepburn", "kunreishiki", "nihonshiki",
+			"pinyin", "wadegiles",
+			"bgn_pcgn",
+			"iso9",
+			"ala_lc",
+			"dmg",
+			"buckwalter",
+			"iso233",
+			"iso259",
+			"iast",
+			"iso15919", "hunterian",
+			"mccune_reischauer", "revised_korean",
+			"scientific"
+		});
 		transcriptionSystemCombo.setEditable(true);
-		typeCombo = new BoundComboBox<>(TAG_TYPE,
-			new String[]{StringUtils.EMPTY, "romanized", "anglicized", "cyrillized", "francized", "gairaigized", "latinized"});
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY,
+			"romanized",
+			"latinized",
+			"anglicized",
+			"francized",
+			"germanized",
+			"italianized",
+			"hispanicized",
+			"lusitanized",
+			"cyrillized",
+			"arabized",
+			"hebraized",
+			"hellenized",
+			"gairaigized",
+			"modernized",
+			"normalized"
+		});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE, 20);
 
@@ -143,19 +204,19 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]15[]0[]5[]5[]"));
-		panel.add(new JLabel("Variant Kind:"), "align label");
-		panel.add(radioPanel, "growx,wrap");
+		setLayout(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]15[]5[]5[]5[]"));
+		add(new JLabel("Variant Kind:"), "align label");
+		add(radioPanel, "growx,wrap");
 
-		panel.add(systemLabel, "align label");
-		panel.add(phoneticSystemField, "growx,wrap");
-		panel.add(transcriptionSystemCombo, "growx,wrap");
+		add(systemLabel, "align label");
+		add(phoneticSystemField, "growx,wrap");
+		add(transcriptionSystemCombo, "growx,wrap");
 
-		panel.add(typeLabel, "align label");
-		panel.add(typeCombo, "growx,wrap");
+		add(typeLabel, "align label");
+		add(typeCombo, "growx,wrap");
 
-		panel.add(valueLabel, "align label");
-		panel.add(valueField, "growx,wrap");
+		add(valueLabel, "align label");
+		add(valueField, "growx,wrap");
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());
@@ -206,7 +267,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(transcriptionRadio.isSelected() && transcriptionSystemCombo.getSelectedIndex() < 0){
+		if(transcriptionRadio.isSelected() && !transcriptionSystemCombo.isSelected()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"System cannot be empty.",
 				null, null, transcriptionSystemCombo);

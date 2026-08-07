@@ -62,7 +62,7 @@ public class IndividualField extends JPanel{
 
 	private final JTextField displayField = new JTextField(20);
 
-	private final RecordTypeHandler<?> individualHandler;
+	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 
 
 	public static IndividualField create(final String path, final Dialog parent, final FLEFModel model){
@@ -81,8 +81,6 @@ public class IndividualField extends JPanel{
 
 		this.path = path;
 		this.model = model;
-
-		individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 
 		initComponents();
 	}

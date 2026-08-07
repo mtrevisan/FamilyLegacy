@@ -53,22 +53,31 @@ public class BoundTextField extends JTextField implements PathBound{
 	}
 
 	@Override
-	public String getValue(){
-		return getText();
+	public String getText(){
+		final String value = super.getText();
+		if(GUIHelper.isPlaceholder(value))
+			return null;
+
+		return (value != null? value.trim(): null);
 	}
 
 	@Override
-	public void setValue(final String value){
+	public void setText(final String value){
 		if(isEditable())
-			setText(StringUtils.defaultString(value));
+			super.setText(StringUtils.defaultString(value));
 		else
 			GUIHelper.updateDisplay(this,
-				() -> (value != null && (!isEmpty() || GUIHelper.isPlaceholder(this))),
+				() -> (value != null && (!isEmpty() || GUIHelper.isPlaceholder(super.getText()))),
 				() -> value);
 	}
 
+	@Override
+	public void clear(){
+		setText(null);
+	}
+
 	public boolean isEmpty(){
-		return StringUtils.isEmpty(getValue());
+		return StringUtils.isEmpty(getText());
 	}
 
 }

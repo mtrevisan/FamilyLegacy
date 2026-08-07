@@ -147,6 +147,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
+
 	@Override
 	protected void loadData(){
 		bindingManager.load(record);
@@ -155,14 +156,14 @@ public class PartStructureDialog extends BaseRecordDialog{
 		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
 
 		final String val = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		valueField.setValue(val);
+		valueField.setText(val);
 
 		variantPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isBlank(valueField.getText())){
+		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Value cannot be empty.",
 				null, null, valueField);

@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -136,7 +136,7 @@ public class DateField extends JPanel{
 	}
 
 	private void createNew(){
-		final _DateDialog dialog = _DateDialog.createNew(parent, model, dialogTitle);
+		final DateDialog dialog = DateDialog.createNew(parent, model, dialogTitle);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -149,7 +149,7 @@ public class DateField extends JPanel{
 			return;
 		}
 
-		final _DateDialog dialog = _DateDialog.createEdit(parent, model, dialogTitle, record);
+		final DateDialog dialog = DateDialog.createEdit(parent, model, dialogTitle, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

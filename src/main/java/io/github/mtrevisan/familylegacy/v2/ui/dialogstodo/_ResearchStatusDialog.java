@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CalendarHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -92,7 +91,6 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new RepositoryHandler());
-		HandlerRegistry.register(new CalendarHandler());
 		HandlerRegistry.register(new ResearchStatusHandler());
 	}
 

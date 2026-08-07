@@ -65,7 +65,7 @@ public class BindingManager{
 				continue;
 
 			final String value = FLEFRecordHelper.getChildValuesAsString(record, path);
-			comp.setValue(value);
+			comp.setText(value);
 		}
 	}
 
@@ -81,7 +81,7 @@ public class BindingManager{
 			if(path == null || path.isEmpty())
 				continue;
 
-			final String value = comp.getValue();
+			final String value = comp.getText();
 			if(value != null && !value.isEmpty())
 				FLEFRecordHelper.updateChildValue(record, path, value);
 		}

@@ -362,11 +362,11 @@ public class _ConclusionDialog extends BaseRecordDialog{
 	 * @return true if there is data, false otherwise
 	 */
 	public boolean hasData(){
-		String context = contextField.getText().trim();
+		String context = contextField.getText();
 		String proofStatus = (String)proofStatusCombo.getSelectedItem();
 		return (!context.isEmpty()
 			|| (proofStatus != null && !proofStatus.isEmpty())
-			|| !StringUtils.isEmpty(narrativeArea.getText())
+			|| !narrativeArea.isEmpty()
 			|| !resolvesPanel.isEmpty()
 			|| (preferredId != null && !preferredId.isEmpty())
 			|| !researchPanel.isEmpty()
@@ -379,7 +379,7 @@ public class _ConclusionDialog extends BaseRecordDialog{
 	 * @return true if valid, false otherwise
 	 */
 	public boolean validateData(){
-		String context = contextField.getText().trim();
+		String context = contextField.getText();
 		if(context.isEmpty()){
 			//FIXME parentComponent
 			GUIHelper.showValidationErrorAndFocus(null,

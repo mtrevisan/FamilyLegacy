@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * Panel for managing a list of {@code CONCLUSION} according to FLEF 0.1.1.
  */
-public class ConclusionListPanel extends AbstractListPanel2{
+public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -2343952840615659855L;
@@ -58,7 +58,7 @@ public class ConclusionListPanel extends AbstractListPanel2{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> conclusionHandler;
+	private final RecordTypeHandler<?> conclusionHandler = HandlerRegistry.getHandler(ConclusionHandler.TYPE);;
 
 
 	/**
@@ -82,8 +82,6 @@ public class ConclusionListPanel extends AbstractListPanel2{
 		super(parent, borderTitle, model);
 
 		this.path = path;
-
-		conclusionHandler = HandlerRegistry.getHandler(ConclusionHandler.TYPE);
 	}
 
 
@@ -157,15 +155,20 @@ public class ConclusionListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final List<FLEFRecord> conclusions = FLEFRecordHelper.findChildren(record, path);
 		setItems(conclusions);
 	}
 
 	public void save(final FLEFRecord record){
-		super.save(record, path);
+		FLEFRecordHelper.removeChildren(record, path);
 
-//		for(final FLEFRecord conclusion : getItems())
-//			FLEFRecordHelper.addChild(record, path, conclusion.getFormattedId());
+		for(final FLEFRecord document : getItems())
+			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
 	}
 
 }

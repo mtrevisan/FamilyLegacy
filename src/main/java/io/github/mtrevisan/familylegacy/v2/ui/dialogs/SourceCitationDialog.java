@@ -65,10 +65,10 @@ import java.io.Serial;
  *   evidence?: EvidenceQualifiers
  *   restriction?: RestrictionStructure
  *
- *   require extract.document in source.document
+ *   require extract.document_part.document in source.document
  * }
  * struct ExtractStructure {
- *   document_part+: struct {
+ *   document_part*: struct {
  *     document: Xref&lt;DocumentRecord&gt;
  *     crop?: CropRect
  *   }
@@ -77,7 +77,7 @@ import java.io.Serial;
  *   locale?: LocaleCode
  *   note*: Text
  *
- *   require one_of(crop, text, type, locale, note)
+ *   require one_of(document_part, text)
  * }
  * </pre>
  */
@@ -126,9 +126,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(SourceCitationHandler.TYPE));
 
-		this.sourceId = (sourceId != null
-			? sourceId
-			: XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_SOURCE)));
+		this.sourceId = extractReferenceId(sourceId, record, TAG_SOURCE);
 
 		locationField = new BoundTextField(TAG_LOCATION, 20);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, model);
@@ -179,6 +177,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		return mainPanel;
 	}
 
+
 	@Override
 	protected void loadData(){
 		if(StringUtils.isBlank(sourceId)){
@@ -200,7 +199,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(sourceId == null || sourceId.isEmpty()){
+		if(StringUtils.isEmpty(sourceId)){
 			JOptionPane.showMessageDialog(null,
 				"SOURCE is required for a citation.\n" +
 					"Please select a source record.",

@@ -488,7 +488,7 @@ public class AnimatedGifEncoder{
 		else
 			// specify normal LCT
 			out.write(0x80
-				| // 1 local color table  1=yes
+				| // 1 local color table - 1=yes
 				0
 				| // 2 interlace - 0=no
 				0

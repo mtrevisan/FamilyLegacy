@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.1.1
-// PROTOCOL_DATE = 2026-08-06
+// PROTOCOL_DATE = 2026-08-07
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -55,10 +55,12 @@ Record = oneof {
   note: NoteRecord
   repository: RepositoryRecord
   cultural_norm: CulturalNormRecord
+  cultural_norm_impact: CulturalNormImpactRecord
   source: SourceRecord
   document: DocumentRecord
   conclusion: ConclusionRecord
   historic_event: HistoricEventRecord
+  historic_event_impact: HistoricEventImpactRecord
   identity_hypothesis: IdentityHypothesisRecord
   research_status: ResearchStatusRecord
   research_log: ResearchLogRecord
@@ -101,15 +103,16 @@ struct Header {
 record IndividualRecord {
   id: LocalID
   name*: PersonalNameStructure               // names associated with this individual (birth name, married name, alias, etc.)
-  sex?: enum { male, female, unknown }       // Biological sex as recorded in sources or inferred from evidence. This field represents a genealogical research assertion.
-  cultural_norm*: Xref<CulturalNormRecord>   // cultural norms that apply to this individual (e.g., naming conventions, age of majority)
+  sex?: enum {                               // Biological sex as recorded in sources or inferred from evidence. This field represents a genealogical research assertion.
+    male, female, unknown
+  }
   note*: Xref<NoteRecord>                    // free-text notes about this individual
   source*: SourceCitation                    // source citations supporting facts about this individual
   preferred_image?: struct {
     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
   }
-  restriction?: RestrictionStructure         // privacy and distribution restrictions for this individual
+  restriction?: RestrictionStructure
   modification: ModificationStructure        // creation and update metadata for this record
 }
 
@@ -132,7 +135,6 @@ struct PersonalNameStructure {
     // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
   } | Text
   part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names).
-  }
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
   source*: SourceCitation
@@ -168,23 +170,17 @@ struct PartStructure {
 // happened. Persistent associations resulting from an event SHOULD be represented separately using RELATIONSHIP records.
 record EventRecord {
   id: LocalID
-  type: enum {   // The type of event. Custom types are permitted. See the note below for the complete list of known types.
-    BIRTH, DEATH, ADOPTION, GRADUATION, IMMIGRATION, NATURALIZATION, BANKRUPTCY,
-    GUARDIANSHIP, CORONER_REPORT, CREMATION, BURIAL, EDUCATION, RETIREMENT,
-    MILITARY_INDUCTION, MILITARY_MUSTER_ROLL, MILITARY_SERVICE, MILITARY_AWARD,
-    MILITARY_RELEASE, MILITARY_DISCHARGE, MILITARY_RESIGNATION, MILITARY_RETIREMENT,
-    PRISON, PARDON, JURY_DUTY, ILLNESS, HOSPITALIZATION, MEDICAL_PROCEDURE, HONOR,
-    DEPORTATION, INTERNMENT, LIBERATION, EMANCIPATION, RELOCATION, EMIGRATION,
-    CENSUS, DEED, ESCROW, CHANCERY, WILL, PROBATE,
-    ENGAGEMENT, MARRIAGE_BANN, MARRIAGE_CONTRACT, MARRIAGE_LICENCE, MARRIAGE_SETTLEMENT,
-    MARRIAGE, DIVORCE_FILED, DIVORCE_DECREE, DIVORCE, ANNULMENT
+  type: enum {             // The type of event. Custom types are permitted. See the note below for the complete list of known types.
+    birth, death, adoption, graduation, immigration, naturalization, bankruptcy,
+    guardianship, coroner_report, cremation, burial, education, retirement,
+    military_induction, military_muster_roll, military_service, military_award,
+    military_release, military_discharge, military_resignation, military_retirement,
+    prison, pardon, jury_duty, illness, hospitalization, medical_procedure, honor,
+    deportation, internment, liberation, emancipation, relocation, emigration,
+    census, deed, escrow, chancery, will, probate,
+    engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement,
+    marriage, divorce_filed, divorce_decree, divorce, annulment
   } | Text
-  detail: EventStructure   // details of the event: date, place, agency, cause, cultural norms, notes, source citations, evidence qualifiers, restriction, conclusion, and modification metadata
-}
-
-// embedded
-// Shared descriptive structure containing the details associated with an EVENT record.
-struct EventStructure {
   description?: Text              // text describing a particular event pertaining to the individual or group, or the value of an attribute
   date?: DateStructure            // the date of the event
   place?: PlaceCitation           // the location of the event
@@ -193,7 +189,6 @@ struct EventStructure {
     value: Text   // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
     evidence?: EvidenceQualifiers
   }
-  cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
   source*: SourceCitation
   evidence?: EvidenceQualifiers   // evidence qualifiers for the event
@@ -213,7 +208,7 @@ struct EventStructure {
 // with marks of suspicion), BURIAL (the depositing of the body (in whole or in part) of the deceased), CREMATION (the burning of the body (in whole or in
 // part) of the deceased).
 // Family related types are: ENGAGEMENT (the agreement of a couple to enter into a marriage in the future), MARRIAGE_BANN (a public notice of an intent to
-// marry), MARRIAGE_CONTRACT (a formal contractual agreement to marry), MARRIAGE_LICENCE (obtaining a legal license to marry), MARRIAGE_SETTLEMENT (a
+// marry), MARRIAGE_CONTRACT (a formal contractual agreement to marry), MARRIAGE_LICENSE (obtaining a legal license to marry), MARRIAGE_SETTLEMENT (a
 // legal arrangement to modify property rights upon marriage), MARRIAGE (the creation of a family unit via a legal, religious, customary, common-law, or
 // other form of union), DIVORCE_FILED (the legal action expressing intent to divorce), DIVORCE_DECREE (an individual's participation in a decree of a
 // court marking the legal separation of a man and woman, totally dissolving the marriage relation), DIVORCE (the ending of a marriage between still-living
@@ -244,20 +239,38 @@ struct EventStructure {
 // entity-owned record
 // A characteristic, condition, status, classification, or descriptive property attributed to an individual. Attributes may be directly recorded
 // in sources, derived from evidence, inferred from research, or reported through oral tradition.
+// Individual attributes describe enduring or observable characteristics of a person rather than discrete events. Events such as birth,
+// marriage, military service, education, immigration, or death SHOULD normally be represented using EVENT records.
 record IndividualAttributeRecord {
   id: LocalID
-  individual: Xref<IndividualRecord>   // the individual to whom this attribute applies
-  type: enum {
-    CHARACTERISTIC, RESIDENCE, OCCUPATION, POSSESSION, MILITARY_RANK, CASTE,
-    ETHNICITY, CITIZENSHIP, SSN, TITLE, CHILDREN_COUNT, MARRIAGES_COUNT, RELIGION
+  individual: Xref<IndividualRecord>   // The individual to whom this attribute applies.
+  type: enum {                         // The type of attribute being asserted.
+    characteristic,  // Physical, behavioral, medical, or descriptive characteristic (e.g "blue eyes", "blind", "left-handed", "scar on forehead").
+    residence,       // Place where the individual is known to have lived, resided, or maintained a household.
+    occupation,      // Occupation, profession, trade, office, or vocation (e.g. "farmer", "blacksmith", "teacher").
+    possession,      // Property, assets, land, livestock, tools, money, or other possessions associated with the individual.
+    military_rank,   // Military rank or grade held by the individual (e.g. "captain", "sergeant", "colonel").
+    caste,           // Social, hereditary, religious, or legal caste classification associated with the individual.
+    social_class,    // Social, economic, or societal classification associated with the individual (e.g. "nobility", "bourgeoisie", "peasant").
+    ethnicity,       // Ethnic, tribal, cultural, or ancestral identity.
+    citizenship,     // Citizenship, nationality, or legal political allegiance.
+    nationality,     // National identity, ethnic-national affiliation, or nationality associated with the individual. Unlike CITIZENSHIP, nationality may reflect cultural or historical identity rather than legal status.
+    ssn,             // Government-issued personal identification number (e.g. Social Security Number, Tax Code, National ID).
+    title,           // Noble, honorific, professional, hereditary, religious, or administrative title associated with the individual (e.g. "Count", "Doctor", "Bishop", "Sir").
+    children_count,  // Reported number of children associated with the individual.
+    marriages_count, // Reported number of marriages associated with the individual.
+    religion,        // Religion, denomination, faith, or spiritual affiliation.
+    language,        // Language spoken, written, understood, or otherwise associated with the individual.
+    literacy,        // Ability to read and/or write (e.g. "illiterate", "literate", "signature only").
+    education        // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
   } | Text
-  value?: Text                 // the value of the attribute (optional if the attribute type implies its own value, e.g., "BURIAL" implies the person was buried)
-  date?: DateStructure         // the date on which the attribute was observed, recorded, reported, or otherwise documented
-  valid_from?: DateStructure   // the date from which this attribute is known or believed to have been valid
-  valid_to?: DateStructure     // the date until which this attribute is known or believed to have been valid
-  place?: PlaceCitation
-  source*: SourceCitation
-  evidence?: EvidenceQualifiers
+  value?: Text                         // The value of the attribute.
+  valid_on?: DateStructure             // A date on which the attribute is known, attested, observed, reported, or documented to have existed.
+  valid_from?: DateStructure           // The date from which this attribute is known or believed to have been valid.
+  valid_to?: DateStructure             // The date until which this attribute is known or believed to have been valid.
+  place?: PlaceCitation                // Place specifically associated with this attribute.
+  source*: SourceCitation              // Sources supporting this attribute.
+  evidence?: EvidenceQualifiers        // Evidentiary assessment of this assertion.
   restriction?: RestrictionStructure
   modification: ModificationStructure
 }
@@ -276,7 +289,10 @@ record EventParticipationRecord {
   id: LocalID
   event: Xref<EventRecord>         // the event in which the entity participated
   participant: EntityParticipant   // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
-  role?: enum { CHILD, PARENT, SPOUSE, POWER_OF_ATTORNEY, PRISONER, WITNESS, OFFICIANT, INFORMANT, EXECUTOR, GRANTOR, GRANTEE, LANDLORD, TENANT, SOLDIER, COMMANDER, VICTIM, SURVIVOR, ACCUSED, JUDGE } | Text   // optional because the role may be unknown or not applicable
+  role?: enum {                    // optional because the role may be unknown or not applicable
+    child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
+    landlord, tenant, soldier, commander, victim, survivor, accused, judge
+  } | Text
   note*: Xref<NoteRecord>
   source*: SourceCitation
   evidence?: EvidenceQualifiers
@@ -297,8 +313,9 @@ record EventParticipationRecord {
 record GroupRecord {
   id: LocalID
   name*: ClassifiedName   // names associated with the group. For a family group in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
-  type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
-  cultural_norm*: Xref<CulturalNormRecord>
+  type?: enum {
+    family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe
+  } | Text
   note*: Xref<NoteRecord>
   source*: SourceCitation
   preferred_image?: struct {
@@ -317,21 +334,30 @@ record GroupRecord {
 // entity-owned record
 // A characteristic, condition, status, classification, or descriptive property attributed to a group. Attributes may be directly recorded in
 // sources, derived from evidence, inferred from research, or reported through oral tradition.
+// Group attributes describe the group itself as a collective entity rather than the individual members who compose it. Events that occur at a specific
+// point in time (such as founding, migration, merger, or dissolution) SHOULD be represented using EVENT records instead.
 record GroupAttributeRecord {
-  id: LocalID
-  group: Xref<GroupRecord>   // the group to which this attribute applies
-  type: enum {
-    residence,        // place where the group is known to reside
-    children_count,   // reported number of children associated with the group
-    social_class      // economic or social classification of the group
+  id: LocalID                     // The group to which this attribute applies.
+  group: Xref<GroupRecord>        // The group to which this attribute applies.
+  type: enum {                    // The type of attribute being asserted.
+    residence,              // Place where the group is known to reside or be established.
+    member_count,           // Total reported number of members belonging to the group.
+    children_count,         // Reported number of children associated with the group. Particularly useful for family or household groups when the complete membership is unknown.
+    social_class,           // Economic or social classification of the group (e.g. "peasant", "middle_class", "nobility").
+    ethnicity,              // Ethnic, tribal, cultural, or ancestral identity associated with the group as a whole.
+    religion,               // Religion practiced or associated with the group.
+    language,               // Language primarily spoken or associated with the group.
+    wealth,                 // Description of the group's wealth, economic standing, or reported financial condition.
+    land_holding,           // Description or quantity of land owned, occupied, or controlled by the group.
+    primary_income_source   // Principal economic activity or source of income associated with the group.
   } | Text
-  value?: Text
-  date?: DateStructure
-  valid_from?: DateStructure
-  valid_to?: DateStructure
-  place?: PlaceCitation
-  source*: SourceCitation
-  evidence?: EvidenceQualifiers
+  value?: Text                    // The value of the attribute.
+  valid_on?: DateStructure        // A date on which the attribute is known, attested, observed, reported, or documented to have existed.
+  valid_from?: DateStructure      // The date from which this attribute is known or believed to have been valid.
+  valid_to?: DateStructure        // The date until which this attribute is known or believed to have been valid.
+  place?: PlaceCitation           // Place specifically associated with this attribute, when different from the group's general residence.
+  source*: SourceCitation         // Sources supporting this attribute.
+  evidence?: EvidenceQualifiers   // Evidentiary assessment of this assertion.
   restriction?: RestrictionStructure
   modification: ModificationStructure
 }
@@ -343,7 +369,32 @@ record GroupAttributeRecord {
 
 // embedded
 struct ClassifiedName {
-  type?: enum { official, colonial, indigenous } | Text
+  type?: enum {
+    // official and legal names
+    official,
+    legal,
+    // historical naming traditions
+    colonial,
+    indigenous,
+    traditional,
+    // language and localization variants
+    translated,
+    romanized,
+    // historical variants
+    historic,
+    former,
+    // common usage
+    common,
+    colloquial,
+    // abbreviated forms
+    abbreviated,
+    acronym,
+    // religious and ecclesiastical forms
+    religious,
+    // administrative and archival forms
+    administrative,
+    archival
+  } | Text
   text: NameStructure
 }
 
@@ -370,9 +421,39 @@ TextValueVariant = oneof {
     value: Text    // phonetic/phonematic component
   }
   transcription: struct {
-    system: enum { romaji, pinyin, wadegiles } | Text   // indicates the system used to transcribe the text to the romanized variation
-    type?: enum { romanized, anglicized, cyrillized, francized, gairaigized, latinized } | Text
-    value: Text   // transcribed component
+    system: enum {   // indicates the system used to transcribe the text to the romanized variation
+      romaji, hepburn, kunreishiki, nihonshiki,   // Japanese
+      pinyin, wadegiles,                          // Chinese
+      bgn_pcgn,                                   // various geographic standards
+      iso9,                                       // Cyrillic -> Latin
+      ala_lc,                                     // Library of Congress
+      dmg,                                        // Arabic/Persian scholarly
+      buckwalter,                                 // Arabic
+      iso233,                                     // Arabic
+      iso259,                                     // Hebrew
+      iast,                                       // Sanskrit
+      iso15919, hunterian,                        // Indic scripts
+      mccune_reischauer, revised_korean,          // Korean
+      scientific                                  // generic scholarly transliteration
+    } | Text
+    type?: enum {
+      romanized,      // converted to Latin script
+      latinized,      // converted to Latinized scholarly form
+      anglicized,     // adapted to English
+      francized,      // adapted to French
+      germanized,     // adapted to German
+      italianized,    // adapted to Italian
+      hispanicized,   // adapted to Spanish
+      lusitanized,    // adapted to Portuguese
+      cyrillized,     // converted to Cyrillic
+      arabized,       // converted to Arabic script
+      hebraized,      // converted to Hebrew script
+      hellenized,     // converted to Greek script
+      gairaigized,    // adapted to Japanese loanword form
+      modernized,     // historic spelling modernized
+      normalized      // orthography normalized
+    } | Text
+    value: Text      // transcribed component
   }
 }
 
@@ -411,7 +492,7 @@ record RelationshipRecord {
     ended,    // relationship no longer exists
     unknown   // relationship status is not known
   }
-  date?: DateStructure         // the date the relationship was established, recognized, or documented
+  valid_on?: DateStructure     // a date on which this relationship is known, attested, recognized, or documented to have existed
   valid_from?: DateStructure   // the date from which this relationship was known to be in effect
   valid_to?: DateStructure     // the date until which this relationship was known to be in effect
   note*: Xref<NoteRecord>
@@ -543,7 +624,17 @@ struct RepositoryCitation {
 // Machine-readable contact information for a person, organization, repository, submitter, or other entity.
 struct ContactStructure {
   address: Text   // a phone number, an electronic address such as an email (RFC 5322), a web page address (RFC 3986), or any other type of contact address
-  type?: enum { work, home, blog, personal, social } | Text
+  type?: enum {
+    email,      // Email address.
+    phone,      // Voice telephone number.
+    mobile,     // Mobile telephone number.
+    fax,        // Fax number.
+    website,    // Website or homepage.
+    blog,       // Blog or personal publication site.
+    social,     // Social media profile or account.
+    postal,     // Postal or physical address.
+    messaging   // Messaging application endpoint (e.g. WhatsApp, Signal, Telegram).
+  } | Text
   name?: struct {
     value: Text   // the name of the person associated with this contact
     variant*: TextValueVariant
@@ -565,7 +656,44 @@ struct ContactStructure {
 record CulturalNormRecord {
   id: LocalID
   title?: Text                 // the title of the rule
-  rule_type?: enum { age_of_majority, naming_convention, inheritance_rule, marriage_minimum_age } | Text   // Broad category of cultural rule. Detailed interpretation and parameters are expressed through notes, citations, and external documentation.
+  rule_type?: enum {           // Broad category of cultural rule. Detailed interpretation and parameters are expressed through notes, citations, and external documentation.
+    // lifecycle and age-related customs
+    age_of_majority,
+    marriage_minimum_age,
+    baptism_age,
+    confirmation_age,
+    military_service_age,
+    retirement_age,
+    // naming practices
+    naming_convention,
+    surname_transmission,
+    patronymic_system,
+    matronymic_system,
+    title_usage,
+    // family and household customs
+    inheritance_rule,
+    succession_rule,
+    dowry_practice,
+    guardianship_rule,
+    adoption_practice,
+    // marriage customs
+    marriage_practice,
+    marriage_prohibited_degree,
+    widowhood_rule,
+    // residence and social organization
+    residence_pattern,
+    household_structure,
+    social_classification,
+    // religious and ecclesiastical customs
+    religious_practice,
+    burial_practice,
+    // legal and citizenship rules
+    citizenship_rule,
+    legitimacy_rule,
+    // genealogical inference rules
+    age_difference_convention,
+    generational_interval
+  } | Text
   place?: PlaceCitation        // the location in which this cultural norm was in effect
   valid_from?: DateStructure   // the date from which this cultural norm was in effect
   valid_to?: DateStructure     // the date until which this cultural norm was in effect
@@ -573,6 +701,24 @@ record CulturalNormRecord {
   source*: SourceCitation
   evidence?: EvidenceQualifiers
   modification: ModificationStructure
+}
+
+record CulturalNormImpactRecord {
+  id: LocalID
+  cultural_norm: Xref<CulturalNormRecord>
+  target: CulturalNormImpactTarget
+
+  significance?: Text
+}
+
+CulturalNormImpactTarget = oneof {
+  individual: Xref<IndividualRecord>
+  group: Xref<GroupRecord>
+  event: Xref<EventRecord>
+  relationship: Xref<RelationshipRecord>
+  individual_attribute: Xref<IndividualAttributeRecord>
+  group_attribute: Xref<GroupAttributeRecord>
+  conclusion: Xref<ConclusionRecord>
 }
 
 // --- Examples ---
@@ -598,7 +744,9 @@ record SourceRecord {
   publisher?: Text                  // name of the publisher of the publication
   date?: DateStructure              // the date this source was created
   place?: PlaceCitation             // the place this source was created
-  media_type?: enum { audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video } | Text
+  media_type?: enum {
+    audio, book, card, electronic, fiche, film, magazine, manuscript, map, newspaper, photo, tombstone, video
+  } | Text
   repository*: RepositoryCitation
   document*: Xref<DocumentRecord>   // a document reference to the auxiliary data to be linked to this context
   note*: Xref<NoteRecord>           // may contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
@@ -615,21 +763,26 @@ struct SourceCitation {
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
 
-  require extract.document in source.document
+  require extract.document_part.document in source.document
 }
 
 // embedded
 struct ExtractStructure {
-  document_part+: struct {
+  document_part*: struct {
     document: Xref<DocumentRecord>
     crop?: CropRect   // Used when the citation refers to a specific region of an image rather than the entire image.
   }
   text?: Text
-  type?: enum { verbatim, summarized, translated, normalized }   // Describes how the TEXT value relates to the content of the cited source. 'verbatim': The text is reproduced exactly as it appears in the source, preserving the original wording, spelling, abbreviations, capitalization, and punctuation. No editorial changes have been made; 'summarized': The text is a researcher-created summary of the relevant source content. It conveys the meaning of the source without reproducing the wording exactly and may omit details considered irrelevant to the citation; 'translated': The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion; 'normalized': The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
+  type?: enum {   // Describes how the TEXT value relates to the content of the cited source.
+    verbatim,     // The text is reproduced exactly as it appears in the source, preserving the original wording, spelling, abbreviations, capitalization, and punctuation. No editorial changes have been made.
+    summarized,   // The text is a researcher-created summary of the relevant source content. It conveys the meaning of the source without reproducing the wording exactly and may omit details considered irrelevant to the citation.
+    translated,   // The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion.
+    normalized    // The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
+  }
   locale?: LocaleCode
   note*: Text
 
-  require one_of(crop, text, type, locale, note)
+  require one_of(document_part, text)
 }
 
 // Cropping rectangle expressed in image pixels.
@@ -653,9 +806,16 @@ struct CropRect {
 // resource.
 record DocumentRecord {
   id: LocalID
-  file: Uri
-  mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
-  description?: Text   // a description of the source, e.g. 'cover', 'back'
+  file: Uri            // URI identifying the underlying resource.
+  mapping?: enum {     // Describes how visual image data should be interpreted and rendered.
+    planar,                                   // Standard two-dimensional image with no panoramic or 3D projection.
+    spherical_equirectangular,                // Full spherical panorama stored using an equirectangular projection, typically with a 2:1 aspect ratio and intended for 360° viewing.
+    spherical_uv,                             // Image mapped directly onto a sphere using UV texture coordinates.
+    cubemap,                                  // Image represented as six cube faces forming a complete panoramic view.
+    cylindrical_equirectangular_horizontal,   // Cylindrical panorama wrapped horizontally around a cylinder.
+    cylindrical_equirectangular_vertical      // Cylindrical panorama wrapped vertically around a cylinder.
+  } | Text
+  description?: Text   // Optional description of the document or media (e.g. "cover", "back", "page 3", "index", "cemetery entrance").
   note*: Xref<NoteRecord>
   restriction?: RestrictionStructure
   modification: ModificationStructure
@@ -689,6 +849,7 @@ DateValue = oneof {
 struct BoundedDate {
   not_before?: QualifiedDate
   not_after?: QualifiedDate
+
   require one_of(not_before, not_after)   // At least one of NOT_BEFORE or NOT_AFTER is required. An omitted bound represents an open-ended limit. When both bounds are present, NOT_BEFORE MUST be <= NOT_AFTER.
 }
 
@@ -696,6 +857,7 @@ struct BoundedDate {
 struct SpanningDate {
   from?: QualifiedDate
   to?: QualifiedDate
+
   require one_of(from, to)   // At least one of FROM or TO is required. An omitted bound represents an open-ended limit. When both bounds are present, FROM MUST be <= TO.
 }
 
@@ -719,6 +881,7 @@ struct Approximate {
   }
   cultural_norm?: Xref<CulturalNormRecord>   // mandatory in practice when basis = 'conventional': it is the record that justifies the estimate
   margin?: Duration                          // e.g., 'P2Y' = plus/minus 2 years, when the margin is quantifiable
+
   require if basis == conventional: cultural_norm
 }
 
@@ -776,6 +939,23 @@ record HistoricEventRecord {
   modification: ModificationStructure
 }
 
+// Links a historical event to a genealogical entity or event that was influenced, explained, triggered, constrained, or otherwise affected
+// by the historical context. This structure allows researchers to explicitly document the impact of broader historical developments
+// (such as wars, epidemics, legal reforms, migrations, or natural disasters) on specific genealogical records.
+record HistoricEventImpactRecord {
+  id: LocalID
+  historic_event: Xref<HistoricEventRecord>   // The historical event that provides context or exerted an influence.
+  target: ImpactTarget                        // The genealogical entity or event affected by the historical event.
+  significance?: Text                         // Description of the nature, significance, or consequences of the historical event on the target.
+}
+
+ImpactTarget = oneof {
+  individual: Xref<IndividualRecord>
+  group: Xref<GroupRecord>
+  place: Xref<PlaceRecord>
+  event: Xref<EventRecord>
+}
+
 
 // ============================================================
 // Research
@@ -786,16 +966,22 @@ record HistoricEventRecord {
 // Multiple logs may contribute to a single status, and a single log may contribute to multiple statuses (via RESEARCH references).
 record ResearchStatusRecord {
   id: LocalID
-  status?: enum { active, completed, blocked }   // 'active' (currently being searched), 'completed' (the research objective has been satisfied according to the researcher), 'blocked' (further progress depends on resolving another research question)
-  question: Text                                 // the research question being investigated
-  priority?: enum { high, medium, low }
-  association*: struct {                         // Associates this research question with records for which information is missing, uncertain, conflicting, or otherwise requires investigation.
+  status?: enum {
+    active,      // currently being searched
+    completed,   // the research objective has been satisfied according to the researcher
+    blocked      // further progress depends on resolving another research question
+  }
+  question: Text                            // the research question being investigated
+  priority?: enum {
+    high, medium, low
+  }
+  association*: struct {                    // Associates this research question with records for which information is missing, uncertain, conflicting, or otherwise requires investigation.
     target: XrefOrVoid<LocalID>   // an xref of a record that lacks research
     name?: Text                   // the name of the individual, only for VOID reference
   }
-  blocked_by*: Xref<ResearchStatusRecord>        // if this research is blocked by another unresolved question (blocked_by relationships SHOULD form a Directed Acyclic Graph)
-  plan?: Text                                    // detailed description of what needs to be done
-  resolution?: Text                              // how the question was resolved, if completed
+  blocked_by*: Xref<ResearchStatusRecord>   // if this research is blocked by another unresolved question (blocked_by relationships SHOULD form a Directed Acyclic Graph)
+  plan?: Text                               // detailed description of what needs to be done
+  resolution?: Text                         // how the question was resolved, if completed
   modification: ModificationStructure
 }
 
@@ -808,10 +994,14 @@ record ResearchLogRecord {
   target?: XrefOrVoid<LocalID>            // the record that was the subject of the research activity. If the target is not represented elsewhere in the file, the VOID marker may be used.
   source*: Xref<SourceRecord>             // a source record that was consulted, reviewed, searched, or discovered during the research activity
   search_scope?: struct {                 // what was searched
-    type: enum { entire_source, index_only, partial_source, selected_entries }
+    type: enum {
+      entire_source, index_only, partial_source, selected_entries
+    }
     detail?: Text
   }
-  search_outcome?: enum { found, not_found, partially_found, unreadable, destroyed }
+  search_outcome?: enum {
+    found, not_found, partially_found, unreadable, destroyed
+  }
   finding?: Text                          // a note describing the outcome, findings, observations, or conclusions of the research activity
   next_step?: Text                        // what to do next as a result of this research activity
   follow_up*: Xref<ResearchLogRecord>     // References subsequent research activities that were performed as a consequence of the findings recorded in this log entry (follow_up SHOULD be acyclic)
@@ -835,8 +1025,10 @@ struct RestrictionStructure {
     restricted,    // information should be treated with caution and may be omitted from public reports, exports, or distributions
     confidential   // information should not normally be displayed, exported, or included in public distributions
   }
-  reason?: enum { living_person, privacy_law, copyright, repository_license, sensitive_information } | Text  // Standardized reason for the restriction. Custom values MAY be supplied for application-specific needs. REASON SHOULD be omitted when LEVEL is public.
-  expires?: Date   // the date this restriction expires
+  reason?: enum {   // Standardized reason for the restriction. Custom values MAY be supplied for application-specific needs. REASON SHOULD be omitted when LEVEL is public.
+    living_person, privacy_law, copyright, repository_license, sensitive_information
+  } | Text
+  expires?: Date    // the date this restriction expires
 }
 
 // embedded
@@ -926,7 +1118,13 @@ IdentityCandidate = oneof {
 // Qualifiers describing the evidentiary assessment of a specific assertion.
 // These qualifiers apply to the assertion being cited and do not express the reliability, authority, or quality of the source as a whole.
 struct EvidenceQualifiers {
-  source_type?: enum { original, derived }                      // Classification of the source itself.
-  information_type?: enum { primary, secondary, undetermined }  // Classification of the information provided by the source.
-  evidence_type?: enum { direct, indirect, negative }           // Nature of the evidentiary contribution toward the assertion.
+  source_type?: enum {        // Classification of the source itself.
+    original, derived
+  }
+  information_type?: enum {   // Classification of the information provided by the source.
+    primary, secondary, undetermined
+  }
+  evidence_type?: enum {      // Nature of the evidentiary contribution toward the assertion.
+    direct, indirect, negative
+  }
 }

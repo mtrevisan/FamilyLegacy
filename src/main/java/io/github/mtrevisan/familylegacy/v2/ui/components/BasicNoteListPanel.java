@@ -150,6 +150,11 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final List<FLEFRecord> noteRecords = FLEFRecordHelper.findChildren(record, path);
 		final List<String> notes = new ArrayList<>(noteRecords.size());
 		for(final FLEFRecord noteRecord : noteRecords)

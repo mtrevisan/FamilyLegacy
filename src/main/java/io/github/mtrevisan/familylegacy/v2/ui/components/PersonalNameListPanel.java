@@ -37,7 +37,7 @@ import java.io.Serial;
 import java.util.List;
 
 
-public class PersonalNameListPanel extends AbstractListPanel2{
+public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = 5393675791860301264L;
@@ -136,6 +136,11 @@ public class PersonalNameListPanel extends AbstractListPanel2{
 	}
 
 	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
 		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(record, path);
 		setItems(names);
 	}

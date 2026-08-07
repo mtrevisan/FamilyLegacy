@@ -135,8 +135,17 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PersonalNameStructureHandler.TYPE));
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
-			StringUtils.EMPTY, "official", "colonial", "indigenous"
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY,
+			// marital status and origins at birth
+			"official", "religious", "birth",
+			// changes in marital status and family events
+			"married", "maiden", "divorce", "adoption", "fostering",
+			// legal, immigration, and naturalization changes
+			"legal", "immigrant", "adapted",
+			// informal, stage, and social names
+			"aka", "nickname", "artistic", "professional", "user",
+			// historical and dynastic contexts
+			"regnal", "slave_name"
 		});
 		typeCombo.setEditable(true);
 		partPanel = new PartStructureListPanel(TAG_PART, this, model);
@@ -203,14 +212,6 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(typeCombo.getSelectedItem() == null){
-			GUIHelper.showValidationErrorAndFocus(this,
-				"Type cannot be empty.",
-				tabbedPane, mainPanel, typeCombo);
-
-			return false;
-		}
-
 		if(partPanel.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"At least one part is required.",

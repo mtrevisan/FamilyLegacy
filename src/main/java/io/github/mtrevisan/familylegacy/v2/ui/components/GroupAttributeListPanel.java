@@ -29,8 +29,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -43,11 +43,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Panel for managing a list of {@code GROUP_ATTRIBUTE} references according to FLEF 0.1.1.
  */
-public class GroupAttributeListPanel extends AbstractListPanel2{
+public class GroupAttributeListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -7728901182938867416L;
@@ -63,7 +63,7 @@ public class GroupAttributeListPanel extends AbstractListPanel2{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> groupAttributeHandler;
+	private final RecordTypeHandler<?> groupAttributeHandler = HandlerRegistry.getHandler(GroupAttributeHandler.TYPE);;
 
 
 	/**
@@ -88,8 +88,6 @@ public class GroupAttributeListPanel extends AbstractListPanel2{
 		super(parent, borderTitle, model);
 
 		this.path = path;
-
-		groupAttributeHandler = HandlerRegistry.getHandler(GroupAttributeHandler.TYPE);
 	}
 
 
@@ -105,76 +103,37 @@ public class GroupAttributeListPanel extends AbstractListPanel2{
 				builder.item("Create New...", this::createNewItem);
 				builder.item("Add Existing...", this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editGroupAttribute);
-				builder.selectionSensitiveItem("Edit Citation...", this::editItem);
+				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			});
 	}
 
 	@Override
 	protected String getDisplay(final FLEFRecord groupAttribute){
-		final String sourceId = findRecordGroupAttributeId(groupAttribute);
-		if(sourceId != null){
-			final FLEFRecord source = model.getRecordById(sourceId);
-			if(source != null)
-				return groupAttributeHandler.getDisplayText(source, model);
-			return sourceId;
-		}
+		if(groupAttribute != null)
+			return groupAttributeHandler.getDisplayText(groupAttribute, model);
 		return "--";
-	}
-
-	public String findRecordGroupAttributeId(final FLEFRecord groupAttribute){
-		String id = null;
-		for(final FLEFRecord child : groupAttribute.getChildren())
-			if(TAG_GROUP_ATTRIBUTE.equals(child.getTag()))
-				id = XRefHelper.extractXRef(child.getValue());
-		return id;
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, groupAttributeHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			final FLEFRecord groupAttribute = model.getRecordById(selectedId);
-				if(groupAttribute != null && !items.contains(groupAttribute)){
-					final String sourceId = findRecordGroupAttributeId(groupAttribute);
-					final FLEFRecord source = model.getRecordById(sourceId);
-					if(source != null)
-						result[0] = source;
-				}
-			}
+			parent, model, groupAttributeHandler, selectedItem -> result[0] = selectedItem
 		);
 		dialog.setVisible(true);
 
 		return result[0];
 	}
 
-	/**
-	 * Creates a new source and adds a citation for it and adds this one to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final SourceRecordDialog newSourceDialog = (SourceRecordDialog)groupAttributeHandler.createNewDialog(parent, model);
-		newSourceDialog.setVisible(true);
+		final GroupAttributeRecordDialog newGroupAttributeDialog = (GroupAttributeRecordDialog)groupAttributeHandler.createNewDialog(parent, model);
+		newGroupAttributeDialog.setVisible(true);
 
 		FLEFRecord newGroupAttribute = null;
-		if(newSourceDialog.isSaved()){
-			final FLEFRecord newSource = newSourceDialog.getRecord();
-			if(newSource != null){
-				final String newSourceId = newSource.getId();
-				final FLEFRecord groupAttribute = FLEFRecord.createEmpty();
-				FLEFRecordHelper.updateChildValue(groupAttribute, TAG_GROUP_ATTRIBUTE, XRefHelper.formatXRef(newSourceId));
-				final GroupAttributeDialog citationDialog = GroupAttributeDialog.createEdit(parent, model, groupAttribute);
-				citationDialog.setVisible(true);
-
-				if(citationDialog.isSaved())
-					newGroupAttribute = citationDialog.getRecord();
-				else
-					model.removeRecord(newSourceId);
-			}
-		}
+		if(newGroupAttributeDialog.isSaved())
+			newGroupAttribute = newGroupAttributeDialog.getRecord();
 		return newGroupAttribute;
 	}
 
@@ -187,31 +146,19 @@ public class GroupAttributeListPanel extends AbstractListPanel2{
 			return null;
 		}
 
-		final JDialog dialog = GroupAttributeDialog.createEdit(parent, model, existing);
+		final JDialog dialog = GroupAttributeRecordDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
 		return existing;
 	}
 
-	public final void editGroupAttribute(){
-		final int idx = list.getSelectedIndex();
-		if(idx == -1)
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
 			return;
 
-		final FLEFRecord groupAttribute = items.get(idx);
-		final String groupAttributeId = findRecordGroupAttributeId(groupAttribute);
-		if(groupAttributeId != null){
-			final FLEFRecord source = model.getRecordById(groupAttributeId);
-			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createEdit(parent, model, source);
-			dialog.setVisible(true);
-
-			if(dialog.isSaved())
-				listModel.setElementAt(getDisplay(groupAttribute), idx);
-		}
-	}
-
-	public void load(final FLEFRecord record){
 		final List<FLEFRecord> groupAttributes = FLEFRecordHelper.findChildren(record, path);
 		final List<FLEFRecord> sources = new ArrayList<>();
 		for(final FLEFRecord groupAttribute : groupAttributes){
@@ -224,8 +171,19 @@ public class GroupAttributeListPanel extends AbstractListPanel2{
 		setItems(sources);
 	}
 
+	public String findRecordGroupAttributeId(final FLEFRecord groupAttribute){
+		String id = null;
+		for(final FLEFRecord child : groupAttribute.getChildren())
+			if(TAG_GROUP_ATTRIBUTE.equals(child.getTag()))
+				id = XRefHelper.extractXRef(child.getValue());
+		return id;
+	}
+
 	public void save(final FLEFRecord record){
-		super.save(record, path);
+		FLEFRecordHelper.removeChildren(record, path);
+
+		for(final FLEFRecord attribute : getItems())
+			FLEFRecordHelper.addChild(record, path, attribute.getFormattedId());
 	}
 
 }

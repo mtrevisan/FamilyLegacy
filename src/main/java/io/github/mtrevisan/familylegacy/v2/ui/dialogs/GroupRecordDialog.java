@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.GeneralRelationshipListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.GroupAttributeListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
@@ -56,7 +57,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING attributes */
+/* DONE */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -93,6 +94,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
 	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_GROUP_ATTRIBUTE = "GROUP_ATTRIBUTE";
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
 
 
@@ -149,7 +151,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		modificationPanel = new ModificationPanel(this, model);
 
 		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
-		memberPanel = new MemberRelationshipListPanel(this, model, () -> (record != null? record.getId(): null));
+		memberPanel = new MemberRelationshipListPanel(this, model, (record != null? record.getId(): null));
+		attributePanel = new GroupAttributeListPanel(TAG_GROUP_ATTRIBUTE, this, model);
 		relationshipPanel = new GeneralRelationshipListPanel(TAG_RELATIONSHIP, this, model);
 
 		initComponents();
@@ -181,7 +184,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]15[]10[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]15[]10[]10[]10[]"));
 
 		panel.add(preferredImagePanel, "growx,align center");
 
@@ -196,6 +199,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		// members
 		panel.add(memberPanel, "growx");
+
+		// attributes
+		panel.add(attributePanel, "growx");
 
 		return panel;
 	}
@@ -225,6 +231,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		conclusionPanel.load(record);
 		memberPanel.load(record);
+		attributePanel.load(record);
 		relationshipPanel.load(record);
 	}
 
@@ -247,6 +254,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		conclusionPanel.save(record);
 		memberPanel.save(record);
+		attributePanel.save(record);
 		relationshipPanel.save(record);
 	}
 

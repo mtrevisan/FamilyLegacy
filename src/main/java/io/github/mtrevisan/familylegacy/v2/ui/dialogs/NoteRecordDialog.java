@@ -50,7 +50,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
+/* ONGOING TODO translation (at least) */
 /**
  * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -85,7 +85,6 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	private static final String TAG_TRANSLATION = "TRANSLATION";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
-	private static final String TAG_MODIFICATION = "MODIFICATION";
 
 
 	static{

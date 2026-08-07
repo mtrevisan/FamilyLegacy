@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 
 
@@ -34,6 +36,8 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 
 	public BoundFilteredComboBox(final String path, final List<E> items){
 		super(items);
+
+		clear();
 
 		this.path = path;
 	}
@@ -50,14 +54,24 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 	}
 
 	@Override
-	public String getValue(){
+	public String getText(){
 		final Object selectedItem = getSelectedItem();
 		return (selectedItem != null? selectedItem.toString(): null);
 	}
 
 	@Override
-	public void setValue(final String value){
+	public void setText(final String value){
 		setSelectedItem(value);
+	}
+
+	@Override
+	public void clear(){
+		setSelectedIndex(-1);
+	}
+
+	public boolean isSelected(){
+		final Object item = getSelectedItem();
+		return (getSelectedIndex() >= 0 && (item instanceof String str? !StringUtils.isEmpty(str): item != null));
 	}
 
 }

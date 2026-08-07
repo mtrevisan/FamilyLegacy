@@ -60,7 +60,16 @@ import java.io.Serial;
  * record CulturalNormRecord {
  *   id: LocalID
  *   title?: Text
- *   rule_type?: enum { age_of_majority, naming_convention, inheritance_rule, marriage_minimum_age } | Text
+ *   rule_type?: enum {
+ *     age_of_majority, marriage_minimum_age, baptism_age, confirmation_age, military_service_age, retirement_age,
+ *     naming_convention, surname_transmission, patronymic_system, matronymic_system, title_usage,
+ *     inheritance_rule, succession_rule, dowry_practice, guardianship_rule, adoption_practice,
+ *     marriage_practice, marriage_prohibited_degree, widowhood_rule,
+ *     residence_pattern, household_structure, social_classification,
+ *     religious_practice, burial_practice,
+ *     citizenship_rule, legitimacy_rule,
+ *     age_difference_convention, generational_interval
+ *   } | Text
  *   place?: PlaceCitation
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
@@ -121,7 +130,44 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
 
 		titleField = new BoundTextField(TAG_TITLE, 30);
-		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{"age_of_majority", "naming_convention", "inheritance_rule", "marriage_minimum_age"});
+		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{
+			// Lifecycle and age-related customs:
+			"age_of_majority",
+			"marriage_minimum_age",
+			"baptism_age",
+			"confirmation_age",
+			"military_service_age",
+			"retirement_age",
+			// Naming practices:
+			"naming_convention",
+			"surname_transmission",
+			"patronymic_system",
+			"matronymic_system",
+			"title_usage",
+			// Family and household customs:
+			"inheritance_rule",
+			"succession_rule",
+			"dowry_practice",
+			"guardianship_rule",
+			"adoption_practice",
+			// Marriage customs:
+			"marriage_practice",
+			"marriage_prohibited_degree",
+			"widowhood_rule",
+			// Residence and social organization:
+			"residence_pattern",
+			"household_structure",
+			"social_classification",
+			// Religious and ecclesiastical customs:
+			"religious_practice",
+			"burial_practice",
+			// Legal and citizenship rules:
+			"citizenship_rule",
+			"legitimacy_rule",
+			// Genealogical inference rules:
+			"age_difference_convention",
+			"generational_interval"
+		});
 		ruleTypeCombo.setEditable(true);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Evidence");

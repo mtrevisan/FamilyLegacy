@@ -37,8 +37,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -56,24 +56,16 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing a {@code INDIVIDUAL_ATTRIBUTE_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * record GroupAttributeRecord {
+ * record IndividualAttributeRecord {
  *   id: LocalID
- *   group: Xref&lt;GroupRecord&gt;
+ *   individual: Xref&lt;IndividualRecord&gt;
  *   type: enum {
- *     residence,
- *     member_count,
- *     children_count,
- *     social_class,
- *     ethnicity,
- *     religion,
- *     language,
- *     wealth,
- *     land_holding,
- *     primary_income_source
+ *     characteristic, residence, occupation, possession, military_rank, caste, social_class, ethnicity, citizenship,
+ *     nationality, ssn, title, children_count, marriages_count, religion, language, literacy, education
  *   } | Text
  *   value?: Text
  *   valid_on?: DateStructure
@@ -87,13 +79,13 @@ import java.io.Serial;
  * }
  * </pre>
  */
-public class GroupAttributeRecordDialog extends BaseRecordDialog{
+public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = -5939902730413020982L;
+	private static final long serialVersionUID = 4220284900986598102L;
 
 
-	private static final String TAG_GROUP = "GROUP";
+	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VALID_ON = "VALID_ON";
@@ -106,7 +98,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 
 	static{
-		HandlerRegistry.register(new GroupAttributeHandler());
+		HandlerRegistry.register(new IndividualAttributeHandler());
 	}
 
 
@@ -115,7 +107,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]5[]10[]10[]"));
 
-	private final String groupId;
+	private final String individualId;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
 	private final DateField dateField;
@@ -128,27 +120,31 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	public static GroupAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model, final String groupId){
-		return new GroupAttributeRecordDialog(parent, model, groupId, null);
+	public static IndividualAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model, final String individualId){
+		return new IndividualAttributeRecordDialog(parent, model, individualId, null);
 	}
 
-	public static GroupAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static IndividualAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new GroupAttributeRecordDialog(parent, model, null, record);
+		return new IndividualAttributeRecordDialog(parent, model, null, record);
 	}
 
 
-	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final String groupId,
+	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final String individualId,
 			final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE));
 
-		this.groupId = extractReferenceId(groupId, record, TAG_GROUP);
+		this.individualId = extractReferenceId(individualId, record, TAG_INDIVIDUAL);
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE,
-			new String[]{StringUtils.EMPTY, "residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language", "wealth", "land_holding", "primary_income_source"});
+			new String[]{StringUtils.EMPTY,
+				"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
+				"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count", "religion",
+				"language", "literacy", "education"
+			});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE, 20);
 		dateField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
@@ -228,8 +224,8 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(StringUtils.isBlank(groupId)){
-			JOptionPane.showMessageDialog(this, "Invalid Group ID: `" + groupId + "`.",
+		if(StringUtils.isBlank(individualId)){
+			JOptionPane.showMessageDialog(this, "Invalid Individual ID: `" + individualId + "`.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return;
@@ -252,10 +248,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(groupId)){
+		if(StringUtils.isEmpty(individualId)){
 			JOptionPane.showMessageDialog(null,
-				"GROUP is required for an attribute.\n" +
-					"Please select a group record.",
+				"INDIVIDUAL is required for an attribute.\n" +
+					"Please select a individual record.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
@@ -274,7 +270,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_GROUP, XRefHelper.formatXRef(groupId));
+		FLEFRecordHelper.updateChildValue(record, TAG_INDIVIDUAL, XRefHelper.formatXRef(individualId));
 
 		bindingManager.save(record);
 
@@ -298,10 +294,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-//			FLEFRecord groupAttribute = FLEFRecord.createEmpty();
-//			groupAttribute.addChild(FLEFRecord.createChildWithValue(TAG_GROUP, "@G1@"));
-//			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createEdit(null, model, groupAttribute);
-			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createNew(null, model, "@G1@");
+//			FLEFRecord individualAttribute = FLEFRecord.createEmpty();
+//			individualAttribute.addChild(FLEFRecord.createChildWithValue(TAG_INDIVIDUAL, "@I1@"));
+//			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createEdit(null, model, individualAttribute);
+			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createNew(null, model, "@I1@");
 			dialog.setVisible(true);
 		});
 	}
