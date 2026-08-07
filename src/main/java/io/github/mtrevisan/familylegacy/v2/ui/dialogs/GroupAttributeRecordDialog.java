@@ -196,7 +196,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		mainPanel.add(typeCombo, "growx,wrap");
 
 		// value
-		mainPanel.add(new JLabel("Name Value*:"), "align label");
+		mainPanel.add(new JLabel("Value*:"), "align label");
 		mainPanel.add(valueField, "growx, wrap");
 
 		// date

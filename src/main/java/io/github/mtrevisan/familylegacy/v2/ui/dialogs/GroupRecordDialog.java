@@ -56,7 +56,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
+/* ONGOING attributes */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -117,6 +117,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	// Other
 	private final ConclusionListPanel conclusionPanel;
 	private final MemberRelationshipListPanel memberPanel;
+	private final GroupAttributeListPanel attributePanel;
 	private final GeneralRelationshipListPanel relationshipPanel;
 
 
