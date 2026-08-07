@@ -59,15 +59,6 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 
 
 	/**
-	 * Constructs a BasicNoteListPanel without a border.
-	 *
-	 * @param parent the parent dialog
-	 */
-	public BasicNoteListPanel(final String path, final Dialog parent){
-		this(path, parent, "Notes");
-	}
-
-	/**
 	 * Constructs a BasicNoteListPanel with a titled border.
 	 *
 	 * @param parent the parent dialog
@@ -125,7 +116,7 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 		);
 
 		final String text = textArea.getText().trim();
-		return (result == JOptionPane.OK_OPTION && !StringUtils.isEmpty(text)? text: null);
+		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? text: null);
 	}
 
 	@Override
@@ -146,7 +137,7 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 		);
 
 		final String text = textArea.getText().trim();
-		return (result == JOptionPane.OK_OPTION && !StringUtils.isEmpty(text)? text: null);
+		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? text: null);
 	}
 
 	public void load(final FLEFRecord record){

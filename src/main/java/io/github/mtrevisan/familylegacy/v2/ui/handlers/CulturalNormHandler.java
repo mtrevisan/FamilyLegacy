@@ -40,6 +40,8 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormRecord
 	public static final String TYPE = "CULTURAL_NORM";
 	public static final String ID_PREFIX = "CN";
 
+	private static final String TAG_TITLE = "TITLE";
+
 
 	@Override
 	public String getLabel(){
@@ -58,7 +60,7 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormRecord
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String title = FLEFRecordHelper.getChildValue(record, "TITLE");
+		String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){
 			return title + " (" + id + ")";

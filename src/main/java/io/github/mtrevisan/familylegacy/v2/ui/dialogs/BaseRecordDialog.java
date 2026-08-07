@@ -58,7 +58,7 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
 			final RecordTypeHandler<?> handler){
-		super(parent, true);
+		super(parent, ModalityType.APPLICATION_MODAL);
 
 		this.handler = handler;
 		this.model = model;

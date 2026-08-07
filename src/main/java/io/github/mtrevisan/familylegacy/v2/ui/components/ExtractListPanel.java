@@ -101,13 +101,13 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
 
 		final StringBuilder sb = new StringBuilder();
-		if(!StringUtils.isEmpty(locale))
+		if(StringUtils.isNotEmpty(locale))
 			sb.append("[")
 				.append(locale)
 				.append("] ");
-		if(!StringUtils.isEmpty(text))
+		if(StringUtils.isNotEmpty(text))
 			sb.append(text.length() > 50? text.substring(0, 47) + "...": text);
-		if(!StringUtils.isEmpty(type))
+		if(StringUtils.isNotEmpty(type))
 			sb.append(" (")
 				.append(type)
 				.append(")");
@@ -147,7 +147,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE,
 			new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
-		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent);
+		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes");
 
 		loadExtractData(initial, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
@@ -217,9 +217,9 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		for(final FLEFRecord documentPart : documentParts)
 			documentPartPanel.addItemDirectly(documentPart);
 		textArea.setText(text);
-		if(!StringUtils.isEmpty(type))
+		if(StringUtils.isNotEmpty(type))
 			typeCombo.setSelectedItem(type);
-		if(!StringUtils.isEmpty(locale))
+		if(StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
 		for(final String note : notes)
 			basicNote.addItemDirectly(note);

@@ -13,9 +13,6 @@ import java.util.Set;
  */
 public class FLEFModel{
 
-	private static final String PARAM_ID = "id";
-
-
 	private FLEFRecord header;
 	private final List<FLEFRecord> records = new ArrayList<>();
 
@@ -24,9 +21,14 @@ public class FLEFModel{
 
 
 	public FLEFRecord getHeader(){
+		if(header == null)
+			header = FLEFRecord.createEmpty();
 		return header;
 	}
 
+	/**
+	 * NOTE: Used by {@link io.github.mtrevisan.familylegacy.v2.io.FLEFParser#parse(String)} only.
+	 */
 	public void setHeader(final FLEFRecord header){
 		this.header = header;
 	}
@@ -104,10 +106,10 @@ public class FLEFModel{
 
 	@Override
 	public String toString(){
-		return "FLEFModel{" +
-			"header=" + (header != null? header.getTag(): "null") +
-			", records=" + records.size() +
-			'}';
+		return "FLEFModel{"
+			+ "header=" + (header != null? header.getTag(): "null")
+			+ ", records=" + records.size()
+			+ '}';
 	}
 
 }

@@ -99,7 +99,7 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 
 	public GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
 			final Consumer<FLEFRecord> onSelection, final Supplier<List<FLEFRecord>> loadRecords){
-		super(parent, "Select " + handler.getLabel(), true);
+		super(parent, "Select " + handler.getLabel(), ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
 		this.handler = handler;

@@ -84,6 +84,15 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showAddDialog(){
+		return null;
+	}
+
+	/**
+	 * Creates a new contact and adds it to the list.
+	 */
+	@Override
+	protected FLEFRecord showCreateNewDialog(){
+		//TODO
 		final ContactStructurePanel panel = new ContactStructurePanel(parent, model);
 		final JDialog dialog = new JDialog(parent, "Add Contact", Dialog.ModalityType.APPLICATION_MODAL);
 		dialog.setLayout(new BorderLayout(10, 10));
@@ -114,19 +123,6 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		dialog.setVisible(true);
 
 		return result[0];
-	}
-
-	/**
-	 * Creates a new contact and adds it to the list.
-	 */
-	@Override
-	protected FLEFRecord showCreateNewDialog(){
-		//TODO
-//		final ContactDialog dialog = new ContactDialog(parent, model, null);
-//		dialog.setVisible(true);
-//
-//		return dialog.getRecord();
-		return null;
 	}
 
 	@Override

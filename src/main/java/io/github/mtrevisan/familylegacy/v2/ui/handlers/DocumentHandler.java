@@ -71,10 +71,10 @@ public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
 		}
 
 		final StringBuilder sb = new StringBuilder();
-		if(!StringUtils.isEmpty(uri))
+		if(StringUtils.isNotEmpty(uri))
 			sb.append(FilenameUtils.getBaseName(uri));
 		final String id = record.getId();
-		if(!StringUtils.isEmpty(id)){
+		if(StringUtils.isNotEmpty(id)){
 			if(!sb.isEmpty())
 				sb.append(" (")
 					.append(id)

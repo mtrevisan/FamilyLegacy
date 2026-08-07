@@ -255,12 +255,12 @@ public class TranscribedTextPanel extends JPanel{
 	 * @return true if any field has data
 	 */
 	public boolean hasData(){
-		return !StringUtils.isEmpty(phoneticSystemField.getText()) ||
-			!StringUtils.isEmpty(phoneticValueField.getText()) ||
-			!StringUtils.isEmpty(transcriptionSystemField.getText()) ||
+		return StringUtils.isNotEmpty(phoneticSystemField.getText()) ||
+			StringUtils.isNotEmpty(phoneticValueField.getText()) ||
+			StringUtils.isNotEmpty(transcriptionSystemField.getText()) ||
 			(transcriptionTypeCombo.getSelectedItem() != null &&
 				!((String)transcriptionTypeCombo.getSelectedItem()).isEmpty()) ||
-			!StringUtils.isEmpty(transcriptionValueField.getText());
+			StringUtils.isNotEmpty(transcriptionValueField.getText());
 	}
 
 	/**

@@ -58,7 +58,7 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.TYPE);;
+	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.TYPE);
 
 
 	/**

@@ -62,7 +62,7 @@ public class GeneralRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);;
+	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
 
 
 	public GeneralRelationshipListPanel(final String path, final Dialog parent, final FLEFModel model){

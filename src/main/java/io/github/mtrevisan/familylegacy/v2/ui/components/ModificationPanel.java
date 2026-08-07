@@ -71,7 +71,7 @@ public class ModificationPanel extends JPanel{
 	private String creationDate;
 	private final BoundTextArea creationCommentArea;
 
-	private final UpdateListPanel updateListPanel;
+	private final BasicNoteListPanel updateListPanel;
 
 
 	/**
@@ -84,7 +84,7 @@ public class ModificationPanel extends JPanel{
 		this.parent = parent;
 
 		creationCommentArea = new BoundTextArea("CREATION.COMMENT", 3, 25);
-		updateListPanel = new UpdateListPanel(parent, model);
+		updateListPanel = new BasicNoteListPanel("UPDATE", parent, "Updates");
 
 		initComponents();
 	}

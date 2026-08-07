@@ -73,9 +73,8 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 		String input = JOptionPane.showInputDialog(parent,
 			"Enter the XREF ID of the conflicting event or association (e.g., @E123@):",
 			"Add Resolves", JOptionPane.PLAIN_MESSAGE);
-		if(!StringUtils.isEmpty(input)){
+		if(StringUtils.isNotEmpty(input))
 			return input.trim();
-		}
 		return null;
 	}
 
@@ -92,9 +91,8 @@ public class ResolvesListPanel extends AbstractListPanel<String>{
 	protected String showEditDialog(String existing){
 		String input = JOptionPane.showInputDialog(parent,
 			"Edit XREF ID:", "Edit Resolves", JOptionPane.PLAIN_MESSAGE);
-		if(!StringUtils.isEmpty(input)){
+		if(StringUtils.isNotEmpty(input))
 			return input.trim();
-		}
 		return null;
 	}
 

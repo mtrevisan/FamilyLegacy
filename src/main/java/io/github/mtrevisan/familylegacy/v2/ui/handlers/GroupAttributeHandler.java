@@ -73,9 +73,9 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRe
 			sb.append('(')
 				.append(type)
 				.append(')');
-		if(type != null && !StringUtils.isEmpty(value))
+		if(type != null && StringUtils.isNotEmpty(value))
 			sb.append(StringUtils.SPACE);
-		if(!StringUtils.isEmpty(value))
+		if(StringUtils.isNotEmpty(value))
 			sb.append(value);
 		return sb.toString();
 	}

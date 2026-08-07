@@ -50,7 +50,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING TODO translation (at least) */
+/* DONE */
 /**
  * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
  * <p>

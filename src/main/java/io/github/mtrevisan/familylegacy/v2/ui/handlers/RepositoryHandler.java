@@ -40,6 +40,8 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 	public static final String TYPE = "REPOSITORY";
 	public static final String ID_PREFIX = "R";
 
+	private static final String TAG_NAME = "NAME";
+
 
 	@Override
 	public String getLabel(){
@@ -58,7 +60,7 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String name = FLEFRecordHelper.getChildValue(record, "NAME");
+		String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 		String id = record.getId();
 		if(name != null && !name.isEmpty()){
 			return name + " (" + id + ")";

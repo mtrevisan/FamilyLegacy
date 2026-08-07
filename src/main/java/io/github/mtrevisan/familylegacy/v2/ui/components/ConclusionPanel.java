@@ -211,7 +211,7 @@ public class ConclusionPanel extends JPanel{
 		String input = JOptionPane.showInputDialog(parent,
 			"Enter the XREF ID of the preferred record (e.g., @E123@, @I456@):",
 			"Select Preferred Record", JOptionPane.PLAIN_MESSAGE);
-		if(!StringUtils.isEmpty(input)){
+		if(StringUtils.isNotEmpty(input)){
 			preferredId = input.trim();
 			preferredDisplayField.setText(preferredId);
 			clearPreferredBtn.setEnabled(true);

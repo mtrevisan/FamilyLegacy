@@ -292,6 +292,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 			record.setTag(TAG_PHONETIC);
 		else if(transcriptionRadio.isSelected())
 			record.setTag(TAG_TRANSCRIPTION);
+
 		bindingManager.save(record);
 	}
 

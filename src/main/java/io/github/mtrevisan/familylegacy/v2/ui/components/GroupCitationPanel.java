@@ -422,7 +422,7 @@ public class GroupCitationPanel extends JPanel{
 	 */
 	public boolean hasData(){
 		return (selectedGroupId != null && !selectedGroupId.isEmpty()) ||
-			!StringUtils.isEmpty(roleField.getText()) ||
+			StringUtils.isNotEmpty(roleField.getText()) ||
 			!noteModel.isEmpty() ||
 			(credibilityCombo.getSelectedItem() != null &&
 				!((String)credibilityCombo.getSelectedItem()).isEmpty());

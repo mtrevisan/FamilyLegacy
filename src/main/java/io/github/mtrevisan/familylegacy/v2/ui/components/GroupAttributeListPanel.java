@@ -63,7 +63,7 @@ public class GroupAttributeListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> groupAttributeHandler = HandlerRegistry.getHandler(GroupAttributeHandler.TYPE);;
+	private final RecordTypeHandler<?> groupAttributeHandler = HandlerRegistry.getHandler(GroupAttributeHandler.TYPE);
 
 
 	/**

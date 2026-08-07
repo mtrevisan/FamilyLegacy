@@ -49,7 +49,7 @@ public class DateDialog extends JDialog{
 
 
 	private DateDialog(final Dialog parent, final FLEFModel model, final String title, final FLEFRecord initialDate){
-		super(parent, title, true);
+		super(parent, title, ModalityType.APPLICATION_MODAL);
 
 		datePanel = new DatePanel(this, model);
 		datePanel.load(initialDate);

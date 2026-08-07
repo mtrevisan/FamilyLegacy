@@ -178,6 +178,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 		record.setTag(TAG_PART);
 
 		bindingManager.save(record);
+
 		variantPanel.save(record);
 	}
 

@@ -63,7 +63,7 @@ public class IndividualAttributeListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> individualAttributeHandler = HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE);;
+	private final RecordTypeHandler<?> individualAttributeHandler = HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE);
 
 
 	/**

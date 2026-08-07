@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.CauseStructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -46,7 +47,6 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -54,7 +54,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -73,7 +73,19 @@ import java.io.Serial;
  *     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement,
  *     marriage, divorce_filed, divorce_decree, divorce, annulment
  *   } | Text
- *   detail: EventStructure
+ *   description?: Text
+ *   date?: DateStructure
+ *   place?: PlaceCitation
+ *   agency?: Text
+ *   cause?: struct {
+ *     value: Text
+ *     evidence?: EvidenceQualifiers
+ *   }
+ *   note*: Xref<NoteRecord>
+ *   source*: SourceCitation
+ *   evidence?: EvidenceQualifiers
+ *   restriction?: RestrictionStructure
+ *   modification: ModificationStructure
  * }
  * </pre>
  */
@@ -111,10 +123,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final DateField dateField;
 	private final PlaceCitationField placeCitationField;
 	private final BoundTextField agencyField;
-// *   cause?: struct {
-// *     value: Text
-//	*     evidence?: EvidenceQualifiers
-//	*   }
+	private final CauseStructureListPanel causePanel;
 	private final CulturalNormListPanel culturalNormPanel;
 	private final NoteListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
@@ -150,16 +159,16 @@ public class EventRecordDialog extends BaseRecordDialog{
 		});
 		typeCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, parent, "Date", model);
-		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
+		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
+		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		agencyField = new BoundTextField(TAG_AGENCY, 30);
-		//TODO cause
-		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, parent, model);
-		notePanel = new NoteListPanel(TAG_NOTE, parent, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
+		causePanel = new CauseStructureListPanel(TAG_CAUSE, this, model);
+		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, this, model);
+		notePanel = new NoteListPanel(TAG_NOTE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, parent);
-		modificationPanel = new ModificationPanel(parent, model);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		modificationPanel = new ModificationPanel(this, model);
 
 		initComponents();
 
@@ -192,11 +201,11 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		// type
-		mainPanel.add(new JLabel("Type:"), "align label");
+		mainPanel.add(new JLabel("Type*:"), "align label");
 		mainPanel.add(typeCombo, "growx,wrap");
 
 		// description
-		mainPanel.add(new JLabel("Description:"), "align label");
+		mainPanel.add(new JLabel("Description*:"), "align label");
 		mainPanel.add(descriptionArea, "growx,wrap");
 
 		// date
@@ -212,9 +221,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		mainPanel.add(agencyField, "growx,wrap");
 
 		// cause
-		mainPanel.add(new JLabel("Cause:"), "align label");
-		//TODO
-		mainPanel.add(new JTextField(), "growx,wrap");
+		mainPanel.add(causePanel, "span 2,growx,wrap");
 
 		// qualifiers
 		mainPanel.add(qualifiers, "span 2,growx,wrap");
@@ -237,7 +244,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		dateField.load(record);
 		placeCitationField.load(record);
-		//TODO cause
+		causePanel.load(record);
 		culturalNormPanel.load(record);
 		notePanel.load(record);
 		sourceCitationPanel.load(record);
@@ -248,13 +255,21 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-//		if(typeCombo.isEmpty()){
-//			GUIHelper.showValidationErrorAndFocus(this,
-//				"Note value is required.",
-//				tabbedPane, mainPanel, valueArea);
-//
-//			return false;
-//		}
+		if(!typeCombo.isSelected()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Type is required.",
+				tabbedPane, mainPanel, typeCombo);
+
+			return false;
+		}
+
+		if(descriptionArea.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Description is required.",
+				tabbedPane, mainPanel, descriptionArea);
+
+			return false;
+		}
 
 		return true;
 	}
@@ -265,7 +280,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		dateField.save(record);
 		placeCitationField.save(record);
-		//TODO cause
+		causePanel.save(record);
 		culturalNormPanel.save(record);
 		notePanel.saveReferences(record);
 		sourceCitationPanel.save(record);

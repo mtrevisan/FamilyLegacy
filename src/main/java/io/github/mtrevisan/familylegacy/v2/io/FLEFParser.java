@@ -37,14 +37,16 @@ public class FLEFParser{
 
 		while(!eof()){
 			final FLEFRecord record = parseRecord();
-			if(FIELD_HEADER.equalsIgnoreCase(record.getTag()))
+
+			final String tag = record.getTag();
+			if(FIELD_HEADER.equalsIgnoreCase(tag))
 				root.setHeader(record);
-			else if(FIELD_RECORDS.equalsIgnoreCase(record.getTag())){
+			else if(FIELD_RECORDS.equalsIgnoreCase(tag)){
 				for(final FLEFRecord child : record.getChildren())
 					root.addRecord(child);
 			}
 			else
-				throw new RuntimeException("Unexpected tag: " + record.getTag() + " at position " + position);
+				throw new RuntimeException("Unexpected tag: " + tag + " at position " + position);
 
 			skipIgnored();
 		}

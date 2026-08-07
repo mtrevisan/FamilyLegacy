@@ -87,10 +87,11 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
 
 		StringBuilder sb = new StringBuilder();
-		if(!StringUtils.isEmpty(locale)){
-			sb.append("[").append(locale).append("] ");
-		}
-		if(!StringUtils.isEmpty(value)){
+		if(StringUtils.isNotEmpty(locale))
+			sb.append("[")
+				.append(locale)
+				.append("] ");
+		if(StringUtils.isNotEmpty(value)){
 			String display = value;
 			if(display.length() > 50){
 				display = display.substring(0, 47) + "...";
@@ -110,8 +111,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		//TODO
-		return null;
+		return showTranslationDialog(null);
 	}
 
 	@Override
@@ -135,7 +135,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 		BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
-		if(initial != null && !StringUtils.isEmpty(locale)){
+		if(initial != null && StringUtils.isNotEmpty(locale)){
 			localeCombo.setSelectedItem(locale);
 		}
 		dialog.add(new JLabel("Locale:"), "align label");

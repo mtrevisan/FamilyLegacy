@@ -71,7 +71,7 @@ public class ImageCropDialog extends JDialog{
 
 
 	private ImageCropDialog(final Dialog parent){
-		super(parent, true);
+		super(parent, ModalityType.APPLICATION_MODAL);
 	}
 
 

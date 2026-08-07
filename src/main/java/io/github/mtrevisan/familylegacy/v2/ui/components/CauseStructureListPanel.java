@@ -27,41 +27,34 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CulturalNormRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CauseStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.List;
 
 
-/**
- * Panel for managing a list of CULTURAL_NORM references.
- */
-public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
+/* DONE */
+public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = -4182038208327584807L;
+	private static final long serialVersionUID = 4430543872221786213L;
 
 
-	static{
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_PHONETIC = "PHONETIC";
+	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 
 
 	private final String path;
 
-	private final RecordTypeHandler<?> culturalNormHandler = HandlerRegistry.getHandler(CulturalNormHandler.TYPE);
 
-
-	public CulturalNormListPanel(final String path, final Dialog parent, final FLEFModel model){
-		super(parent, "Cultural Norms", model);
+	public CauseStructureListPanel(final String path, final Dialog parent, final FLEFModel model){
+		super(parent, "Causes", model);
 
 		this.path = path;
 	}
@@ -77,7 +70,6 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 			this::removeItem,
 			builder -> {
 				builder.item("Create New...", this::createNewItem);
-				builder.item("Add Existing...", this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
@@ -85,35 +77,38 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord culturalNorm){
-		if(culturalNorm != null)
-			return culturalNormHandler.getDisplayText(culturalNorm, model);
+	protected String getDisplay(final FLEFRecord cause){
+		if(cause == null)
+			return "--";
 
-		return "--";
+		final String type = FLEFRecordHelper.getChildValue(cause, TAG_TYPE);
+		final String value = FLEFRecordHelper.getChildValue(cause, TAG_VALUE);
+		final StringBuilder sb = new StringBuilder();
+
+		if(StringUtils.isNotEmpty(type))
+			sb.append("[")
+				.append(type)
+				.append("] ");
+		sb.append(StringUtils.defaultString(value));
+
+		final List<FLEFRecord> phonetics = FLEFRecordHelper.findChildren(cause, TAG_PHONETIC);
+		final List<FLEFRecord> transcriptions = FLEFRecordHelper.findChildren(cause, TAG_TRANSCRIPTION);
+		final int variantCount = phonetics.size() + transcriptions.size();
+		if(variantCount > 0)
+			sb.append(" (")
+				.append(variantCount)
+				.append(" variants)");
+		return sb.toString();
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		final FLEFRecord[] result = {null};
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, culturalNormHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			final FLEFRecord culturalNorm = model.getRecordById(selectedId);
-			if(culturalNorm != null && !items.contains(culturalNorm))
-				result[0] = culturalNorm;
-		}
-		);
-		dialog.setVisible(true);
-
-		return result[0];
+		return null;
 	}
 
-	/**
-	 * Creates a new cultural norm and adds it to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final CulturalNormRecordDialog dialog = (CulturalNormRecordDialog)culturalNormHandler.createNewDialog(parent, model);
+		final CauseStructureDialog dialog = CauseStructureDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -122,16 +117,15 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Cultural norm not found", "Error",
-				JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parent, "Cause not found", "Error", JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
-		JDialog dialog = culturalNormHandler.createEditDialog(null, model, existing);
+
+		final CauseStructureDialog dialog = CauseStructureDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
 
-		// Return the same record (it was updated in place)
-		return existing;
+		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
 	public void load(final FLEFRecord record){
@@ -140,15 +134,31 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return;
 
-		final List<FLEFRecord> culturalNorms = FLEFRecordHelper.findChildren(record, path);
-		setItems(culturalNorms);
+		final List<FLEFRecord> causes = FLEFRecordHelper.findChildren(record, path);
+		setItems(causes);
 	}
 
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
+		super.save(record, path);
+//		record.addChildren(getItems());
+	}
 
-		for(final FLEFRecord document : getItems())
-			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
+	public boolean hasData(){
+		return !isEmpty();
+	}
+
+	public boolean validateData(){
+		for(final FLEFRecord cause : getItems()){
+			final String value = FLEFRecordHelper.getChildValue(cause, TAG_VALUE);
+			if(StringUtils.isEmpty(value)){
+				JOptionPane.showMessageDialog(parent,
+					"Cause has no value.",
+					"Validation Error", JOptionPane.ERROR_MESSAGE);
+
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

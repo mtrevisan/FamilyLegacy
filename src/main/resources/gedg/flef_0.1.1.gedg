@@ -85,7 +85,7 @@ struct Header {
   }
   date: Date         // the date this source was created
   copyright?: Text   // a copyright statement needed to protect the copyrights of the submitter of this file
-  submitter: struct {
+  submitter?: struct {
     name: Text                   // the name of the submitter formatted for display and address generation
     contact*: ContactStructure   // contact information for the submitter (phone, email, web, etc.)
     note*: Text                  // any notes related to the submitter
@@ -170,7 +170,7 @@ struct PartStructure {
 // happened. Persistent associations resulting from an event SHOULD be represented separately using RELATIONSHIP records.
 record EventRecord {
   id: LocalID
-  type: enum {             // The type of event. Custom types are permitted. See the note below for the complete list of known types.
+  type: enum {             // The type of event. Custom types are permitted.
     birth, death, adoption, graduation, immigration, naturalization, bankruptcy,
     guardianship, coroner_report, cremation, burial, education, retirement,
     military_induction, military_muster_roll, military_service, military_award,

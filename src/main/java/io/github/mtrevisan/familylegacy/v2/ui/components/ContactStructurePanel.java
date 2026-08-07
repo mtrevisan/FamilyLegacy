@@ -583,10 +583,10 @@ public class ContactStructurePanel extends JPanel{
 	 * @return true if any field has data
 	 */
 	public boolean hasData(){
-		return !StringUtils.isEmpty(contactField.getText()) ||
+		return StringUtils.isNotEmpty(contactField.getText()) ||
 			(typeCombo.getSelectedItem() != null &&
 				!((String)typeCombo.getSelectedItem()).isEmpty()) ||
-			!StringUtils.isEmpty(nameField.getText()) ||
+			StringUtils.isNotEmpty(nameField.getText()) ||
 			!transcriptionModel.isEmpty() ||
 			!noteModel.isEmpty() ||
 			restrictionCheckBox.isSelected();

@@ -40,6 +40,11 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 	public static final String TYPE = "SOURCE";
 	public static final String ID_PREFIX = "S";
 
+	private static final String DOT = ".";
+
+	private static final String TAG_TITLE = "TITLE";
+	private static final String TAG_VALUE = TAG_TITLE + DOT + "VALUE";
+
 
 	@Override
 	public String getLabel(){
@@ -58,7 +63,7 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String title = FLEFRecordHelper.getChildValue(record, "TITLE.VALUE");
+		String title = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){
 			return title + " (" + id + ")";

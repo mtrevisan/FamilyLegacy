@@ -41,6 +41,9 @@ public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusD
 	public static final String TYPE = "RESEARCH_STATUS";
 	public static final String ID_PREFIX = "RS";
 
+	private static final String TAG_QUESTION = "QUESTION";
+	private static final String TAG_STATUS = "STATUS";
+
 
 	@Override
 	public String getLabel(){
@@ -60,8 +63,8 @@ public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusD
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		// Try to get the QUESTION field as display name
-		String question = FLEFRecordHelper.getChildValue(record, "QUESTION");
-		String status = FLEFRecordHelper.getChildValue(record, "STATUS");
+		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
+		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
 		String id = record.getId();
 
 		StringBuilder sb = new StringBuilder();

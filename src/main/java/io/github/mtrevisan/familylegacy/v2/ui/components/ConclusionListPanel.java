@@ -58,7 +58,7 @@ public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> conclusionHandler = HandlerRegistry.getHandler(ConclusionHandler.TYPE);;
+	private final RecordTypeHandler<?> conclusionHandler = HandlerRegistry.getHandler(ConclusionHandler.TYPE);
 
 
 	/**
