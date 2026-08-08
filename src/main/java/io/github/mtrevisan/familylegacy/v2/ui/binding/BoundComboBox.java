@@ -33,6 +33,8 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	private String path;
 
+	private final boolean readOnly;
+
 
 	public BoundComboBox(final String path, final E[] items){
 		super(items);
@@ -40,6 +42,20 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		clear();
 
 		this.path = path;
+
+		readOnly = false;
+	}
+
+	public BoundComboBox(final String path, final E[] items, final E readOnlyItem){
+		super(items);
+
+		clear();
+
+		this.path = path;
+
+		setSelectedItem(readOnlyItem);
+
+		readOnly = true;
 	}
 
 
@@ -59,14 +75,52 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		return (selectedItem != null? selectedItem.toString(): null);
 	}
 
+	/**
+	 * Selects the item whose string representation equals the given text.
+	 * If no item matches, the selection is left unchanged.
+	 *
+	 * @param value	The display text to search for (case‑sensitive).
+	 */
 	@Override
 	public void setText(final String value){
-		setSelectedItem(value);
+		if(readOnly)
+			throw new IllegalStateException("Cannot set item on a read-only BoundFilteredComboBox");
+
+		if(value == null){
+			setSelectedItem(null);
+
+			return;
+		}
+
+		for(int i = 0; i < getItemCount(); i ++){
+			final E item = getItemAt(i);
+
+			final String display = (item != null? item.toString(): StringUtils.EMPTY);
+			if(display.equals(value)){
+				setSelectedIndex(i);
+
+				return;
+			}
+		}
+		// no match: do not change selection
+	}
+
+	@Override
+	public void setSelectedItem(final Object item){
+		if(readOnly)
+			throw new IllegalStateException("Cannot set item on a read-only BoundComboBox");
+
+		super.setSelectedItem(item);
 	}
 
 	@Override
 	public void clear(){
 		setSelectedIndex(-1);
+	}
+
+	@Override
+	public boolean isReadOnly(){
+		return readOnly;
 	}
 
 	public boolean isSelected(){

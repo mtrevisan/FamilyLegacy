@@ -147,7 +147,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		documentPanel = new DocumentListPanel(TAG_DOCUMENT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this, model);
+		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
 

@@ -44,6 +44,9 @@ import java.io.Serial;
 
 
 /* DONE */
+/**
+ * Component for selecting and displaying place citations.
+ */
 public class PlaceCitationField extends JPanel{
 
 	@Serial
@@ -107,7 +110,7 @@ public class PlaceCitationField extends JPanel{
 			final Runnable newAction, final Runnable addAction, final Runnable editAction,
 			final Runnable editCitationAction, final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			null,
+			editAction,
 			null,
 			null,
 			builder -> {
@@ -123,6 +126,9 @@ public class PlaceCitationField extends JPanel{
 		updateDisplay();
 	}
 
+	/**
+	 * Updates the underlying record and automatically refreshes the display.
+	 */
 	public void setRecord(final FLEFRecord record){
 		this.record = record;
 
@@ -134,59 +140,61 @@ public class PlaceCitationField extends JPanel{
 	}
 
 	public boolean hasData(){
-		return (record != null);
+		return (record != null && record.hasData());
 	}
 
-	public void load(final FLEFRecord parentRecord){
+	public void load(final FLEFRecord targetRecord){
 		clear();
 
-		if(parentRecord == null)
+		if(targetRecord == null)
 			return;
 
-		final FLEFRecord child = FLEFRecordHelper.findChild(parentRecord, path);
+		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
 		setRecord(child);
 	}
 
-	public void save(final FLEFRecord parentRecord){
-		FLEFRecordHelper.removeChildren(parentRecord, path);
+	public void save(final FLEFRecord targetRecord){
+		FLEFRecordHelper.removeChildren(targetRecord, path);
 
 		if(record != null)
-			FLEFRecordHelper.updateChildValue(parentRecord, path, record.getFormattedId());
+			FLEFRecordHelper.updateChildValue(targetRecord, path, record.getFormattedId());
 	}
 
 	/**
 	 * Creates a new place and adds a citation for it.
 	 */
-	protected FLEFRecord createNew(){
-		final PlaceRecordDialog placeDialog = PlaceRecordDialog.createNew(parent, model);
-		placeDialog.setVisible(true);
+	private FLEFRecord createNew(){
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
+		dialog.setVisible(true);
 
-		FLEFRecord newPlaceCitation = null;
-		if(placeDialog.isSaved()){
-			final FLEFRecord newPlace = placeDialog.getRecord();
-			if(newPlace != null){
-				final String newPlaceId = newPlace.getId();
+		if(dialog.isSaved()){
+			final FLEFRecord newRecord = dialog.getRecord();
+			if(newRecord != null){
+				final String newPlaceId = newRecord.getId();
 				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
 				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
 				final PlaceCitationDialog citationDialog = PlaceCitationDialog.createEdit(parent, model, placeCitation);
 				citationDialog.setVisible(true);
 
-				if(citationDialog.isSaved())
-					newPlaceCitation = citationDialog.getRecord();
+				if(citationDialog.isSaved()){
+					final FLEFRecord newCitationRecord = citationDialog.getRecord();
+					setRecord(newCitationRecord);
+
+					return newCitationRecord;
+				}
 				else
 					model.removeRecord(newPlaceId);
 			}
 		}
-		setRecord(newPlaceCitation);
 
-		return newPlaceCitation;
+		return null;
 	}
 
 	private void add(){
 		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
 			parent, model, placeCitationHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			if(selectedId != null){
+				final String selectedId = selectedItem.getValue();
+				if(selectedId != null){
 					final FLEFRecord record = model.getRecordById(selectedId);
 					setRecord(record);
 				}
@@ -197,7 +205,7 @@ public class PlaceCitationField extends JPanel{
 
 	private void edit(){
 		if(record == null){
-			add();
+			createNew();
 
 			return;
 		}
@@ -208,6 +216,7 @@ public class PlaceCitationField extends JPanel{
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
+			// Only needed here because the reference to 'record' doesn't change, but the internal data does.
 			updateDisplay();
 	}
 
@@ -219,12 +228,13 @@ public class PlaceCitationField extends JPanel{
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
+			// Only necessary here if changes are in-place
 			updateDisplay();
 	}
 
 	private void updateDisplay(){
 		GUIHelper.updateDisplay(displayField,
-			() -> (record != null && record.hasData()),
+			this::hasData,
 			() -> placeCitationHandler.getDisplayText(record, model));
 	}
 

@@ -34,6 +34,8 @@ public class BoundTextArea extends JTextArea implements PathBound{
 
 	private String path;
 
+	private final boolean readOnly;
+
 
 	public BoundTextArea(final String path, final int rows, final int columns){
 		super(rows, columns);
@@ -42,6 +44,21 @@ public class BoundTextArea extends JTextArea implements PathBound{
 		setWrapStyleWord(true);
 
 		this.path = path;
+
+		readOnly = false;
+	}
+
+	public BoundTextArea(final String path, final int rows, final int columns, final String readOnlyText){
+		super(rows, columns);
+
+		setLineWrap(true);
+		setWrapStyleWord(true);
+
+		this.path = path;
+
+		setText(readOnlyText);
+
+		readOnly = true;
 	}
 
 
@@ -66,17 +83,29 @@ public class BoundTextArea extends JTextArea implements PathBound{
 
 	@Override
 	public void setText(final String value){
+		if(readOnly)
+			throw new IllegalStateException("Cannot set text on a read-only BoundTextArea");
+
 		if(isEditable())
-			super.setText(StringUtils.defaultString(value));
+			super.setText(value);
 		else
 			GUIHelper.updateDisplay(this,
-				() -> (value != null && (!isEmpty() || GUIHelper.isPlaceholder(super.getText()))),
-				() -> value);
+				() -> {
+					final String text = super.getText();
+					return (value != null && (StringUtils.isNotEmpty(text) || GUIHelper.isPlaceholder(text)));
+				},
+				() -> value,
+				super::setText);
 	}
 
 	@Override
 	public void clear(){
 		setText(null);
+	}
+
+	@Override
+	public boolean isReadOnly(){
+		return readOnly;
 	}
 
 	public boolean isEmpty(){

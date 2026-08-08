@@ -97,6 +97,7 @@ public class ApproximatePanel extends JPanel{
 
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
+
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
 		this.parent = parent;
 
@@ -213,7 +214,7 @@ public class ApproximatePanel extends JPanel{
 		}
 
 		String margin = FLEFRecordHelper.getChildValue(approxRecord, "MARGIN");
-		marginField.setText(StringUtils.defaultString(margin));
+		marginField.setText(margin);
 
 		updateEnabled();
 	}
@@ -238,7 +239,8 @@ public class ApproximatePanel extends JPanel{
 		if(culturalNormId != null && !culturalNormId.isEmpty())
 			FLEFRecordHelper.updateChildValue(approx, TAG_CULTURAL_NORM, XRefHelper.formatXRef(culturalNormId));
 
-		String margin = marginField.getText().trim();
+		String margin = marginField.getText()
+			.trim();
 		if(!margin.isEmpty())
 			FLEFRecordHelper.updateChildValue(approx, TAG_MARGIN, margin);
 

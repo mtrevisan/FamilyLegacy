@@ -144,12 +144,12 @@ public class RestrictionPanel extends JPanel{
 	/**
 	 * Saves the panel data into a RESTRICTION record.
 	 *
-	 * @param targetRecord an existing RESTRICTION record to update, or {@code null} to create a new one
+	 * @param record an existing RESTRICTION record to update, or {@code null} to create a new one
 	 */
-	public void save(final FLEFRecord targetRecord){
-		FLEFRecordHelper.removeChild(targetRecord, path);
+	public void save(final FLEFRecord record){
+		FLEFRecordHelper.removeChild(record, path);
 
-		bindingManager.save(targetRecord);
+		bindingManager.save(record);
 	}
 
 

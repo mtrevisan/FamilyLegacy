@@ -27,7 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -37,17 +41,21 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* DONE */
 /**
- * Component for selecting and displaying dates.
- */
-public class DateField extends JPanel{
+ * Component for selecting and displaying places.
+ */public class PlaceField extends JPanel{
 
 	@Serial
-	private static final long serialVersionUID = 4495716172290856838L;
+	private static final long serialVersionUID = -3019762064903963378L;
+
+
+	static{
+		HandlerRegistry.register(new PlaceHandler());
+	}
 
 
 	private final Dialog parent;
-	private final String dialogTitle;
 
 	private final String path;
 	private final FLEFModel model;
@@ -56,22 +64,22 @@ public class DateField extends JPanel{
 
 	private final JTextField displayField = new JTextField(20);
 
+	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 
-	public static DateField create(final Dialog parent, final String dialogTitle, final FLEFModel model){
-		return new DateField(null, parent, dialogTitle, model);
+
+	public static PlaceField create(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceField(path, parent, model);
 	}
 
-	public static DateField createWithWrapperTag(final String path, final Dialog parent, final String dialogTitle,
-		final FLEFModel model){
-		return new DateField(path, parent, dialogTitle, model);
+	public static PlaceField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceField(path, parent, model);
 	}
 
 
-	private DateField(final String path, final Dialog parent, final String dialogTitle, final FLEFModel model){
+	private PlaceField(final String path, final Dialog parent, final FLEFModel model){
 		super(new MigLayout("ins 0,fillx", "[grow]"));
 
 		this.parent = parent;
-		this.dialogTitle = dialogTitle;
 
 		this.path = path;
 		this.model = model;
@@ -83,6 +91,7 @@ public class DateField extends JPanel{
 	private void initComponents(){
 		setupField(displayField,
 			this::createNew,
+			this::add,
 			this::edit,
 			this::clear
 		);
@@ -91,13 +100,15 @@ public class DateField extends JPanel{
 	}
 
 	private void setupField(final JTextField field,
-		final Runnable newAction, final Runnable editAction, final Runnable clearAction){
+			final Runnable newAction, final Runnable addAction, final Runnable editAction,
+			final Runnable clearAction){
 		GUIHelper.installBehavior(field,
 			editAction,
 			null,
 			null,
 			builder -> {
-				builder.item("Set Date...", newAction);
+				builder.item("Create New...", newAction);
+				builder.item("Add Existing...", addAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", editAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
@@ -107,9 +118,6 @@ public class DateField extends JPanel{
 		updateDisplay();
 	}
 
-	/**
-	 * Updates the underlying record and automatically refreshes the display.
-	 */
 	public void setRecord(final FLEFRecord record){
 		this.record = record;
 
@@ -124,51 +132,61 @@ public class DateField extends JPanel{
 		return (record != null && record.hasData());
 	}
 
-	public void load(final FLEFRecord targetRecord){
+	public void load(final FLEFRecord record){
 		clear();
 
-		if(targetRecord == null)
+		if(record == null)
 			return;
 
-		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
+		final FLEFRecord child = FLEFRecordHelper.findChild(record, path);
 		setRecord(child);
 	}
 
-	public void save(final FLEFRecord targetRecord){
-		FLEFRecordHelper.removeChildren(targetRecord, path);
+	public void save(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, path);
 
-		if(record != null){
-			final FLEFRecord targetNode = FLEFRecordHelper.getOrCreateTargetNode(targetRecord, path);
-			targetNode.addChildren(record.getChildren());
-		}
+		if(this.record != null)
+			FLEFRecordHelper.updateChildValue(record, path, this.record.getFormattedId());
 	}
 
 	private void createNew(){
-		final DateDialog dialog = DateDialog.createNew(parent, model, dialogTitle);
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
 			setRecord(dialog.getRecord());
 	}
 
+	private void add(){
+		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+			parent, model, placeHandler, selectedItem -> {
+			final String selectedId = selectedItem.getValue();
+			if(selectedId != null){
+					final FLEFRecord record = model.getRecordById(selectedId);
+					setRecord(record);
+				}
+			}
+		);
+		dialog.setVisible(true);
+	}
+
 	private void edit(){
 		if(record == null){
-			createNew();
+			add();
 			return;
 		}
 
-		final DateDialog dialog = DateDialog.createEdit(parent, model, dialogTitle, record);
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
-			// Only necessary here if changes are in-place
 			updateDisplay();
 	}
 
 	private void updateDisplay(){
 		GUIHelper.updateDisplay(displayField,
-			this::hasData,
-			() -> DateFieldPanel.extractDateSummary(record));
+			() -> (record != null && record.hasData()),
+			() -> placeHandler.getDisplayText(record, model));
 	}
 
 }

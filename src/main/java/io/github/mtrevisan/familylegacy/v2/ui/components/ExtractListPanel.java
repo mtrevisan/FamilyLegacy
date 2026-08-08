@@ -59,6 +59,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_COMMENT = "COMMENT";
 
 
 	static{
@@ -147,7 +148,8 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE,
 			new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
-		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes");
+		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes",
+			false, TAG_NOTE);
 
 		loadExtractData(initial, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
@@ -165,8 +167,8 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 				res.addChild(FLEFRecord.createChildWithValue(TAG_TEXT, textArea.getText()));
 				res.addChild(FLEFRecord.createChildWithValue(TAG_TYPE, (String)typeCombo.getSelectedItem()));
 				res.addChild(FLEFRecord.createChildWithValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
-				for(final String note : basicNote.getItems())
-					res.addChild(FLEFRecord.createChildWithValue(TAG_NOTE, note));
+				for(final FLEFRecord note : basicNote.getItems())
+					res.addChild(FLEFRecord.createChildWithValue(TAG_NOTE, FLEFRecordHelper.getChildValuesAsString(note, TAG_COMMENT)));
 				result[0] = res;
 
 				dialog.dispose();
@@ -222,7 +224,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		if(StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
 		for(final String note : notes)
-			basicNote.addItemDirectly(note);
+			basicNote.addItemDirectly(FLEFRecord.createChildWithValue(TAG_COMMENT, note));
 	}
 
 	private static boolean validExtractData(final JDialog dialog, final DocumentPartListPanel documentPartPanel,

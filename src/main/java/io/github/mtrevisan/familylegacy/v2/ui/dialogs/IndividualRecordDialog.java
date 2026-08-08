@@ -144,7 +144,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this, model);
+		modificationPanel = new ModificationPanel(this);
 
 		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
 		memberPanel = new MemberRelationshipListPanel(this, model, (record != null? record.getId(): null));

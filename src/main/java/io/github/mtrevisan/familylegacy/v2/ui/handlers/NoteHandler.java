@@ -47,7 +47,7 @@ public class NoteHandler implements RecordTypeHandler<NoteRecordDialog>{
 
 	@Override
 	public String getType(){
-		return TYPE	;
+		return TYPE;
 	}
 
 	@Override

@@ -641,6 +641,7 @@ struct ContactStructure {
   }
   note?: Text
   restriction?: RestrictionStructure
+  modification: ModificationStructure
 }
 
 
@@ -966,12 +967,12 @@ ImpactTarget = oneof {
 // Multiple logs may contribute to a single status, and a single log may contribute to multiple statuses (via RESEARCH references).
 record ResearchStatusRecord {
   id: LocalID
+  question: Text                            // the research question being investigated
   status?: enum {
     active,      // currently being searched
     completed,   // the research objective has been satisfied according to the researcher
     blocked      // further progress depends on resolving another research question
   }
-  question: Text                            // the research question being investigated
   priority?: enum {
     high, medium, low
   }

@@ -223,8 +223,10 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		else{
 			list.setEnabled(true);
 			selectButton.setEnabled(true);
-			for(final FLEFRecord record : filteredRecords)
-				listModel.addElement(handler.getDisplayText(record, model));
+			for(final FLEFRecord record : filteredRecords){
+				final String displayText = handler.getDisplayText(record, model);
+				listModel.addElement(displayText);
+			}
 		}
 	}
 
@@ -239,7 +241,8 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 		}
 		else
 			// If nothing selected, show a message
-			JOptionPane.showMessageDialog(this, "Please select a record first.", "No Selection", JOptionPane.INFORMATION_MESSAGE);
+			JOptionPane.showMessageDialog(this, "Please select a record first.",
+				"No Selection", JOptionPane.INFORMATION_MESSAGE);
 	}
 
 }

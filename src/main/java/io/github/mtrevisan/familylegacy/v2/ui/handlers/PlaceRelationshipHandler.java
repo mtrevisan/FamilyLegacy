@@ -27,22 +27,27 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._ConclusionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRelationshipRecordDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
+public class PlaceRelationshipHandler implements RecordTypeHandler<PlaceRelationshipRecordDialog>{
 
-	public static final String TYPE = "CONCLUSION";
-	public static final String ID_PREFIX = "CNC";
+	public static final String TYPE = "PLACE_RELATIONSHIP";
+	public static final String ID_PREFIX = "PR";
 
+	private static final String DOT = ".";
+
+	private static final String TAG_NAME = "NAME";
+	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override
 	public String getLabel(){
-		return "Conclusion";
+		return "Place Relationship";
 	}
 
 	@Override
@@ -57,26 +62,22 @@ public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		String id = record.getId();
+		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME + DOT + TAG_TEXT + DOT + TAG_VALUE);
 		if(value != null && !value.isEmpty()){
-			// Truncate long conclusions
-			if(value.length() > 50){
-				value = value.substring(0, 50) + "...";
-			}
+			final String id = record.getId();
 			return value + " (" + id + ")";
 		}
-		return id;
+		return StringUtils.EMPTY;
 	}
 
 	@Override
-	public _ConclusionDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return _ConclusionDialog.createNew(parent, model);
+	public PlaceRelationshipRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return PlaceRelationshipRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public _ConclusionDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return _ConclusionDialog.createEdit(parent, model, record);
+	public PlaceRelationshipRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return PlaceRelationshipRecordDialog.createEdit(parent, model, record);
 	}
 
 }

@@ -36,7 +36,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 
@@ -44,10 +46,13 @@ import java.util.List;
 /**
  * Panel for managing a list of a simple {@code NOTE} references according to FLEF 0.1.1.
  */
-public class BasicNoteListPanel extends AbstractListPanel<String>{
+public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = 4276649156298328979L;
+
+
+	private static final String TAG_DATE = "DATE";
 
 
 	static{
@@ -57,6 +62,9 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 
 	private final String path;
 
+	private final boolean saveDate;
+	private final String noteTag;
+
 
 	/**
 	 * Constructs a BasicNoteListPanel with a titled border.
@@ -64,10 +72,14 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 	 * @param parent the parent dialog
 	 * @param borderTitle  the border title, or {@code null} for no border
 	 */
-	public BasicNoteListPanel(final String path, final Dialog parent, final String borderTitle){
+	public BasicNoteListPanel(final String path, final Dialog parent, final String borderTitle,
+			final boolean saveDate, final String noteTag){
 		super(parent, borderTitle, null);
 
 		this.path = path;
+
+		this.saveDate = saveDate;
+		this.noteTag = noteTag;
 	}
 
 
@@ -89,12 +101,13 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 	}
 
 	@Override
-	protected String getDisplay(final String note){
-		return (note != null? note : "--");
+	protected String getDisplay(final FLEFRecord note){
+		final String comment = FLEFRecordHelper.getChildValuesAsString(note, noteTag);
+		return (comment != null? comment : "--");
 	}
 
 	@Override
-	protected String showAddDialog(){
+	protected FLEFRecord showAddDialog(){
 		return null;
 	}
 
@@ -102,7 +115,7 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 	 * Creates a new note and adds it to the list.
 	 */
 	@Override
-	protected String showCreateNewDialog(){
+	protected FLEFRecord showCreateNewDialog(){
 		final JTextArea textArea = new JTextArea(10, 50);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -115,16 +128,21 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 			JOptionPane.PLAIN_MESSAGE
 		);
 
-		final String text = textArea.getText().trim();
-		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? text: null);
+		final String text = textArea.getText()
+			.trim();
+		final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path);
+		final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+		newNote.addChild(FLEFRecord.createChildWithValue(TAG_DATE, creationDate));
+		newNote.addChild(FLEFRecord.createChildWithValue(noteTag, text));
+		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? newNote: null);
 	}
 
 	@Override
-	protected String showEditDialog(final String existing){
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null)
 			return null;
 
-		final JTextArea textArea = new JTextArea(existing, 10, 50);
+		final JTextArea textArea = new JTextArea(getDisplay(existing), 10, 50);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 
@@ -136,8 +154,10 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 			JOptionPane.PLAIN_MESSAGE
 		);
 
-		final String text = textArea.getText().trim();
-		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? text: null);
+		final String text = textArea.getText()
+			.trim();
+		FLEFRecordHelper.updateChildValue(existing, noteTag, text);
+		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? existing: null);
 	}
 
 	public void load(final FLEFRecord record){
@@ -146,18 +166,21 @@ public class BasicNoteListPanel extends AbstractListPanel<String>{
 		if(record == null)
 			return;
 
-		final List<FLEFRecord> noteRecords = FLEFRecordHelper.findChildren(record, path);
-		final List<String> notes = new ArrayList<>(noteRecords.size());
-		for(final FLEFRecord noteRecord : noteRecords)
-			notes.add(noteRecord.getValue());
+		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(record, path);
 		setItems(notes);
 	}
 
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);
 
-		for(final String note : getItems())
-			FLEFRecordHelper.addChild(record, path, note);
+		final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, path);
+		for(final FLEFRecord item : getItems()){
+			final FLEFRecord date = FLEFRecordHelper.findChild(item, TAG_DATE);
+			final FLEFRecord text = FLEFRecordHelper.findChild(item, noteTag);
+			if(saveDate)
+				parentRecord.addChild(date);
+			parentRecord.addChild(text);
+		}
 	}
 
 }

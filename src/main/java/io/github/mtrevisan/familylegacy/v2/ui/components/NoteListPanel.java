@@ -45,14 +45,6 @@ import java.util.List;
 /* DONE */
 /**
  * Panel for managing a list of {@code NOTE} references according to FLEF 0.1.1.
- * <p>
- * Provides:
- * <ul>
- *   <li>Add existing note</li>
- *   <li>Create new note</li>
- *   <li>Edit note</li>
- *   <li>Remove note reference</li>
- * </ul>
  */
 public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 

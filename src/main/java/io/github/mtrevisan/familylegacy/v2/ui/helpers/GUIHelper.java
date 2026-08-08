@@ -29,12 +29,9 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -44,6 +41,7 @@ import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -53,12 +51,17 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
+import java.awt.FontMetrics;
 import java.awt.Frame;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -82,7 +85,6 @@ public final class GUIHelper{
 	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
 
 
-	private static final String PLACEHOLDER_ITEM = "___PLACEHOLDER___";
 	private static final String PLACEHOLDER_LIST = "(no items)";
 	private static final String PLACEHOLDER_TEXT = "(right-click to set)";
 	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
@@ -107,6 +109,37 @@ public final class GUIHelper{
 			ScrollableContainerHost.ScrollType.VERTICAL));
 	}
 
+	/**
+	 * Decorates or creates a JList that paints a placeholder when empty.
+	 */
+	public static <E> JList<E> createList(final ListModel<E> model){
+		return new JList<>(model){
+			@Serial
+			private static final long serialVersionUID = 1004864634885107966L;
+
+			@Override
+			protected void paintComponent(final Graphics g){
+				super.paintComponent(g);
+
+				// If the list is empty, draw the placeholder text directly on the JList graph.
+				if(getModel().getSize() == 0){
+					final Graphics2D g2 = (Graphics2D)g.create();
+					try{
+						g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+						g2.setColor(COLOR_FOREGROUND_DISABLED);
+						g2.setFont(getFont());
+
+						final FontMetrics fm = g2.getFontMetrics();
+						g2.drawString(PLACEHOLDER_LIST, 2, fm.getAscent() + 3);
+					}
+					finally{
+						g2.dispose();
+					}
+				}
+			}
+		};
+	}
+
 
 	/**
 	 * Installs behavior with full control over the popup menu structure.
@@ -122,29 +155,14 @@ public final class GUIHelper{
 	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
 	public static void installBehavior(final JComponent component,
-			final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
-			final Consumer<MenuBuilder> menuBuilder){
+		final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
+		final Consumer<MenuBuilder> menuBuilder){
 		if(component instanceof JTextComponent field)
 			field.setEditable(false);
 		component.setBackground(COLOR_BACKGROUND);
 		component.setToolTipText(TOOLTIP_TEXT);
-		if(component instanceof JList<?> list){
+		if(component instanceof JList<?> list)
 			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-			list.setCellRenderer(new DefaultListCellRenderer(){
-				@Override
-				public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
-						final boolean isSelected, final boolean cellHasFocus){
-					final DefaultListModel<?> model = (DefaultListModel<?>)list.getModel();
-					if(model.isEmpty() || PLACEHOLDER_ITEM.equals(value)){
-						final JLabel label = (JLabel)super.getListCellRendererComponent(list, null, index, false, false);
-						label.setText(PLACEHOLDER_LIST);
-						label.setForeground(COLOR_FOREGROUND_DISABLED);
-						return label;
-					}
-					return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-				}
-			});
-		}
 
 		// Collect the menu entries from the builder
 		final Supplier<Boolean> hasSelection = buildSelectionSupplier(component);
@@ -156,8 +174,7 @@ public final class GUIHelper{
 		component.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent me){
-				if(me.getClickCount() == 2 && doubleClickAction != null
-						&& (!(component instanceof JList<?> list) || list.getSelectedIndex() >= 0))
+				if(me.getClickCount() == 2 && doubleClickAction != null && hasSelection.get())
 					doubleClickAction.run();
 			}
 
@@ -199,20 +216,10 @@ public final class GUIHelper{
 
 	private static Supplier<Boolean> buildSelectionSupplier(final JComponent component){
 		if(component instanceof JList<?> list)
-			return () -> {
-				final int idx = list.getSelectedIndex();
-				if(idx == -1)
-					return false;
-
-				final Object value = list.getModel().getElementAt(idx);
-				return !PLACEHOLDER_ITEM.equals(value);
-			};
+			return () -> (list.getSelectedIndex() != -1);
 
 		if(component instanceof JTextComponent textComp)
-			return () -> {
-				final String text = textComp.getText();
-				return (!StringUtils.isBlank(text) && !isPlaceholder(text));
-			};
+			return () -> (StringUtils.isNotBlank(textComp.getText()) && !isPlaceholder(textComp.getText()));
 
 		if(component instanceof JButton button)
 			return () -> {
@@ -228,26 +235,40 @@ public final class GUIHelper{
 		return PLACEHOLDER_TEXT.equals(text);
 	}
 
-	/**
-	 * Ensures that a placeholder item is present in the list model if the list is empty.
-	 * If the list is not empty, the placeholder is removed.
-	 */
-	@SuppressWarnings("unchecked")
-	public static void updatePlaceholder(final JList<?> list){
-		@SuppressWarnings("rawtypes")
-		final DefaultListModel model = (DefaultListModel)list.getModel();
-		if(model.isEmpty())
-			model.addElement(PLACEHOLDER_ITEM);
-		else if(model.getSize() > 1 && model.contains(PLACEHOLDER_ITEM))
-			model.removeElement(PLACEHOLDER_ITEM);
+
+	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
+		final Supplier<String> getText, final Consumer<String> setText){
+		if(hasData.get()){
+			setText.accept(getText.get());
+			component.setForeground(COLOR_FOREGROUND_ENABLED);
+		}
+		else{
+			setText.accept(PLACEHOLDER_TEXT);
+			component.setForeground(COLOR_FOREGROUND_DISABLED);
+		}
+	}
+
+	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
+		final Supplier<String> getText){
+		if(hasData.get()){
+			component.setText(getText.get());
+			component.setForeground(COLOR_FOREGROUND_ENABLED);
+		}
+		else{
+			component.setText(PLACEHOLDER_TEXT);
+			component.setForeground(COLOR_FOREGROUND_DISABLED);
+		}
 	}
 
 	private static void addKeyboardShortcut(final JComponent component, final int virtualKey, final String actionMapKey,
-			final Runnable action){
+		final Runnable action){
 		component.getInputMap()
 			.put(KeyStroke.getKeyStroke(virtualKey, 0), actionMapKey);
 		component.getActionMap()
 			.put(actionMapKey, new AbstractAction(){
+				@Serial
+				private static final long serialVersionUID = 3859254441434336995L;
+
 				@Override
 				public void actionPerformed(final ActionEvent ae){
 					action.run();
@@ -270,6 +291,30 @@ public final class GUIHelper{
 		return popup;
 	}
 
+
+	/**
+	 * Returns the parent frame of this panel.
+	 *
+	 * @return the parent frame, or {@code null} if not found
+	 */
+	public static Frame getParentFrame(final Dialog dialog){
+		Container parent = dialog.getParent();
+		while(parent != null && !(parent instanceof Frame))
+			parent = parent.getParent();
+		return (Frame)parent;
+	}
+
+
+	/**
+	 * Displays the JPopupMenu associated with the specified component, positioning it directly beneath its lower edge.
+	 *
+	 * @param component	The component source.
+	 */
+	private static void showPopupMenu(final JComponent component){
+		if(component != null)
+			showPopupMenu(component, 0, component.getHeight());
+	}
+
 	/**
 	 * Displays the JPopupMenu associated with the specified component.
 	 *
@@ -284,16 +329,6 @@ public final class GUIHelper{
 		final JPopupMenu popup = component.getComponentPopupMenu();
 		if(popup != null)
 			popup.show(component, x, y);
-	}
-
-	/**
-	 * Displays the JPopupMenu associated with the specified component, positioning it directly beneath its lower edge.
-	 *
-	 * @param component	The component source.
-	 */
-	private static void showPopupMenu(final JComponent component){
-		if(component != null)
-			showPopupMenu(component, 0, component.getHeight());
 	}
 
 
@@ -368,35 +403,8 @@ public final class GUIHelper{
 	}
 
 
-	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
-			final Supplier<String> getText){
-		if(hasData.get()){
-			component.setText(getText.get());
-			component.setForeground(COLOR_FOREGROUND_ENABLED);
-		}
-		else{
-			component.setText(PLACEHOLDER_TEXT);
-			component.setForeground(COLOR_FOREGROUND_DISABLED);
-		}
-	}
-
-
-
-	/**
-	 * Returns the parent frame of this panel.
-	 *
-	 * @return the parent frame, or {@code null} if not found
-	 */
-	public static Frame getParentFrame(final Dialog dialog){
-		Container parent = dialog.getParent();
-		while(parent != null && !(parent instanceof Frame))
-			parent = parent.getParent();
-		return (Frame)parent;
-	}
-
-
 	public static void showValidationErrorAndFocus(final Component parentComponent, final String message,
-			final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
+		final JTabbedPane tabbedPane, final JPanel tabbedPanel, final JComponent component){
 		JOptionPane.showMessageDialog(parentComponent,
 			message,
 			"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -422,6 +430,9 @@ public final class GUIHelper{
 		rootPane.setDefaultButton(saveButton);
 
 		final Action escapeAction = new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = 8267350842047854519L;
+
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				cancel.run();
@@ -441,7 +452,7 @@ public final class GUIHelper{
 	 */
 	private record MenuEntry(String label, Runnable action, Supplier<Boolean> enabledCondition, boolean isSeparator){
 		private static MenuEntry createEntry(final String label, final Runnable action,
-				final Supplier<Boolean> enabledCondition){
+			final Supplier<Boolean> enabledCondition){
 			return new MenuEntry(label, action, enabledCondition, false);
 		}
 

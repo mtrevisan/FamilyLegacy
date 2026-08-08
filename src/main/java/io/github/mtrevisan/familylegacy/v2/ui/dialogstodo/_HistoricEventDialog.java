@@ -115,7 +115,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 	public _HistoricEventDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this, model);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		pack();
@@ -125,7 +125,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 	public _HistoricEventDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this, model);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		pack();
@@ -499,7 +499,8 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		// TITLE (0:1)
-		String title = titleField.getText().trim();
+		String title = titleField.getText()
+			.trim();
 		FLEFRecordHelper.updateChildValue(record, "TITLE", title);
 
 		// PLACE (0:1) with CERTAINTY and CREDIBILITY

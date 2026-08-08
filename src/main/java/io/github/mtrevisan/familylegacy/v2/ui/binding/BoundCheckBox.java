@@ -60,6 +60,11 @@ public class BoundCheckBox extends JCheckBox implements PathBound{
 	}
 
 	@Override
+	public boolean isReadOnly(){
+		return false;
+	}
+
+	@Override
 	public void clear(){
 		setSelected(false);
 	}

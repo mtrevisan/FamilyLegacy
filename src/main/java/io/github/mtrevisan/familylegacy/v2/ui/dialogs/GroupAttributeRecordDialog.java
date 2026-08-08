@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -113,7 +114,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]5[]10[]10[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]"));
 
 	private final String groupId;
 	private final BoundComboBox<String> typeCombo;
@@ -158,7 +159,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this, model);
+		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
 
@@ -197,17 +198,19 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		mainPanel.add(new JLabel("Value:"), "align label");
 		mainPanel.add(valueField, "growx, wrap");
 
-		// date
-		mainPanel.add(new JLabel("Valid On:"), "align label");
-		mainPanel.add(dateField, "growx,wrap");
-
-		// valid from date
-		mainPanel.add(new JLabel("Valid From:"), "align label");
-		mainPanel.add(validFromField, "growx,wrap");
-
-		// valid to date
-		mainPanel.add(new JLabel("Valid To:"), "align label");
-		mainPanel.add(validToField, "growx,wrap");
+		// validity range
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
+		// valid on
+		validityPanel.add(new JLabel("Valid On:"), "align label");
+		validityPanel.add(dateField, "growx,wrap");
+		// valid from
+		validityPanel.add(new JLabel("Valid From:"), "align label");
+		validityPanel.add(validFromField, "growx,wrap");
+		// valid to
+		validityPanel.add(new JLabel("Valid To:"), "align label");
+		validityPanel.add(validToField, "growx,wrap");
+		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		// place
 		mainPanel.add(new JLabel("Place:"), "align label");

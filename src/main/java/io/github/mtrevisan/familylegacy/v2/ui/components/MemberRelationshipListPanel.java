@@ -299,9 +299,9 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		setItems(relationships);
 	}
 
-	public void save(final FLEFRecord groupRecord){
-		FLEFRecordHelper.removeChildren(groupRecord, TAG_RELATIONSHIP);
+	public void save(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, TAG_RELATIONSHIP);
 
-		groupRecord.addChildrenWithTag(TAG_RELATIONSHIP, getItems());
+		record.addChildrenWithTag(TAG_RELATIONSHIP, getItems());
 	}
 }

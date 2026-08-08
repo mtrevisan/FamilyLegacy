@@ -34,11 +34,25 @@ public class BoundTextField extends JTextField implements PathBound{
 
 	private String path;
 
+	private final boolean readOnly;
 
-	public BoundTextField(final String path, int columns){
+
+	public BoundTextField(final String path, final int columns){
 		super(columns);
 
 		this.path = path;
+
+		readOnly = false;
+	}
+
+	public BoundTextField(final String path, final String readOnlyText){
+		super(readOnlyText.length());
+
+		this.path = path;
+
+		setText(readOnlyText);
+
+		readOnly = true;
 	}
 
 
@@ -63,17 +77,29 @@ public class BoundTextField extends JTextField implements PathBound{
 
 	@Override
 	public void setText(final String value){
+		if(readOnly)
+			throw new IllegalStateException("Cannot set text on a read-only BoundTextField");
+
 		if(isEditable())
-			super.setText(StringUtils.defaultString(value));
+			super.setText(value);
 		else
 			GUIHelper.updateDisplay(this,
-				() -> (value != null && (!isEmpty() || GUIHelper.isPlaceholder(super.getText()))),
-				() -> value);
+				() -> {
+					final String text = super.getText();
+					return (value != null && (StringUtils.isNotEmpty(text) || GUIHelper.isPlaceholder(text)));
+				},
+				() -> value,
+				super::setText);
 	}
 
 	@Override
 	public void clear(){
 		setText(null);
+	}
+
+	@Override
+	public boolean isReadOnly(){
+		return readOnly;
 	}
 
 	public boolean isEmpty(){

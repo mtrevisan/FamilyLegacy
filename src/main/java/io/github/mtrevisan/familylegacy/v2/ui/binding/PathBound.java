@@ -53,4 +53,6 @@ public interface PathBound{
 
 	void clear();
 
+	boolean isReadOnly();
+
 }

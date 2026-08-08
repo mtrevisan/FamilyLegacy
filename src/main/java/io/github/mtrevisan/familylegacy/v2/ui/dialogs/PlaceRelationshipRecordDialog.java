@@ -26,19 +26,19 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -51,44 +51,31 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
+/* ONGOING */
 /**
- * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.1.
- * <p>
- * Structure:
  * <pre>
- * record CulturalNormRecord {
+ * record PlaceRelationshipRecord {
  *   id: LocalID
- *   title?: Text
- *   rule_type?: enum {
- *     age_of_majority, marriage_minimum_age, baptism_age, confirmation_age, military_service_age, retirement_age,
- *     naming_convention, surname_transmission, patronymic_system, matronymic_system, title_usage,
- *     inheritance_rule, succession_rule, dowry_practice, guardianship_rule, adoption_practice,
- *     marriage_practice, marriage_prohibited_degree, widowhood_rule,
- *     residence_pattern, household_structure, social_classification,
- *     religious_practice, burial_practice,
- *     citizenship_rule, legitimacy_rule,
- *     age_difference_convention, generational_interval
- *   } | Text
- *   place?: PlaceCitation
+ *   subject: Xref&lt;PlaceRecord&gt;
+ *   object: Xref&lt;PlaceRecord&gt;
+ *   type: enum { administrative_part_of, geographic_part_of, ecclesiastical_part_of, judicial_part_of, cadastral_part_of } | Text
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
- *   note*: Xref&lt;NoteRecord&gt;
+ *   note*: Text
  *   source*: SourceCitation
- *   evidence?: EvidenceQualifiers
  *   modification: ModificationStructure
  * }
  * </pre>
  */
-public class CulturalNormRecordDialog extends BaseRecordDialog{
+public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 950729006569948384L;
+	private static final long serialVersionUID = -4588274864438851179L;
 
 
-	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_RULE_TYPE = "RULE_TYPE";
-	private static final String TAG_PLACE = "PLACE";
+	private static final String TAG_SUBJECT = "SUBJECT";
+	private static final String TAG_OBJECT = "OBJECT";
+	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
 	private static final String TAG_NOTE = "NOTE";
@@ -96,87 +83,57 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 
 	static{
-		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new PlaceRelationshipHandler());
 	}
 
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final BoundTextField titleField;
-	private final BoundComboBox<String> ruleTypeCombo;
-	private final PlaceCitationField placeCitationField;
-	private final EvidenceQualifiersPanel placeQualifiers;
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]"));
+
+	private final PlaceField subjectField;
+	private final PlaceField objectField;
+	private final BoundComboBox<String> typeCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final NoteListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
-	private final EvidenceQualifiersPanel qualifiers;
 	private final ModificationPanel modificationPanel;
 
 
-	public static CulturalNormRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new CulturalNormRecordDialog(parent, model, null);
+	public static PlaceRelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return new PlaceRelationshipRecordDialog(parent, model, null);
 	}
 
-	public static CulturalNormRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public static PlaceRelationshipRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new CulturalNormRecordDialog(parent, model, record);
+		return new PlaceRelationshipRecordDialog(parent, model, record);
 	}
 
 
-	private CulturalNormRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
+	private PlaceRelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, HandlerRegistry.getHandler(PlaceRelationshipHandler.TYPE));
 
-		titleField = new BoundTextField(TAG_TITLE, 30);
-		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{
-			// Lifecycle and age-related customs:
-			"age_of_majority",
-			"marriage_minimum_age",
-			"baptism_age",
-			"confirmation_age",
-			"military_service_age",
-			"retirement_age",
-			// Naming practices:
-			"naming_convention",
-			"surname_transmission",
-			"patronymic_system",
-			"matronymic_system",
-			"title_usage",
-			// Family and household customs:
-			"inheritance_rule",
-			"succession_rule",
-			"dowry_practice",
-			"guardianship_rule",
-			"adoption_practice",
-			// Marriage customs:
-			"marriage_practice",
-			"marriage_prohibited_degree",
-			"widowhood_rule",
-			// Residence and social organization:
-			"residence_pattern",
-			"household_structure",
-			"social_classification",
-			// Religious and ecclesiastical customs:
-			"religious_practice",
-			"burial_practice",
-			// Legal and citizenship rules:
-			"citizenship_rule",
-			"legitimacy_rule",
-			// Genealogical inference rules:
-			"age_difference_convention",
-			"generational_interval"
+		setTitle(record == null? "Add Place Relationship": "Edit Place Relationship");
+
+		subjectField = PlaceField.create(TAG_SUBJECT, parent, model);
+		objectField = PlaceField.create(TAG_OBJECT, parent, model);
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
+			"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
+			"cadastral_part_of"
 		});
-		ruleTypeCombo.setEditable(true);
-		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
-		placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Evidence");
+		typeCombo.setEditable(true);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
-		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 		modificationPanel = new ModificationPanel(this);
+
 
 		initComponents();
 
@@ -189,12 +146,10 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
-		bindingManager.bind(titleField);
-		bindingManager.bind(ruleTypeCombo);
+		bindingManager.bind(typeCombo);
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
-		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Modification", modificationPanel);
@@ -207,22 +162,17 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]"));
+		// subject
+		mainPanel.add(new JLabel("Subject:"), "align label");
+		mainPanel.add(subjectField, "growx,wrap");
 
-		// title
-		mainPanel.add(new JLabel("Title:"), "align label");
-		mainPanel.add(titleField, "growx,wrap");
+		// object
+		mainPanel.add(new JLabel("Object:"), "align label");
+		mainPanel.add(objectField, "growx,wrap");
 
-		// rule type
-		mainPanel.add(new JLabel("Rule Type:"), "align label");
-		mainPanel.add(ruleTypeCombo, "growx, wrap");
-
-		// place
-		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]5[]"));
-		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
-		placePanel.add(placeCitationField, "growx,wrap");
-		placePanel.add(placeQualifiers, "growx,wrap");
-		mainPanel.add(placePanel, "span 2,growx,wrap");
+		// type
+		mainPanel.add(new JLabel("Part Type*:"), "align label");
+		mainPanel.add(typeCombo, "growx,wrap");
 
 		// validity range
 		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
@@ -233,16 +183,13 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		// valid to
 		validityPanel.add(new JLabel("Valid To:"), "align label");
 		validityPanel.add(validToField, "growx,wrap");
-		mainPanel.add(validityPanel, "span 2,growx,wrap");
-
-		// qualifiers
-		mainPanel.add(qualifiers, "span 2,growx");
+		mainPanel.add(validityPanel, "span 2,growx");
 
 		return mainPanel;
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(notePanel, "growx");
 		panel.add(sourceCitationPanel, "growx");
 		return panel;
@@ -251,34 +198,58 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
+		subjectField.load(record);
+		objectField.load(record);
+
 		bindingManager.load(record);
 
-		placeCitationField.load(record);
-		placeQualifiers.load(record);
 		validFromField.load(record);
 		validToField.load(record);
 		notePanel.load(record);
 		sourceCitationPanel.load(record);
-		qualifiers.load(record);
 		modificationPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
+		if(!subjectField.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Subject cannot be empty.",
+				tabbedPane, mainPanel, subjectField);
+
+			return false;
+		}
+
+		if(!objectField.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Object cannot be empty.",
+				tabbedPane, mainPanel, objectField);
+
+			return false;
+		}
+
+		if(!typeCombo.isSelected()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Type cannot be empty.",
+				tabbedPane, mainPanel, typeCombo);
+
+			return false;
+		}
+
 		return true;
 	}
 
 	@Override
 	protected void saveData(){
+		subjectField.save(record);
+		objectField.save(record);
+
 		bindingManager.save(record);
 
-		placeCitationField.save(record);
-		placeQualifiers.save(record);
 		validFromField.save(record);
 		validToField.save(record);
 		notePanel.saveReferences(record);
 		sourceCitationPanel.save(record);
-		qualifiers.save(record);
 		modificationPanel.save(record);
 	}
 
@@ -292,7 +263,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final CulturalNormRecordDialog dialog = CulturalNormRecordDialog.createNew(null, model);
+			final PlaceRelationshipRecordDialog dialog = PlaceRelationshipRecordDialog.createNew(null, model);
 			dialog.setVisible(true);
 		});
 	}

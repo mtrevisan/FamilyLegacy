@@ -555,13 +555,15 @@ public class _AssociationDialog extends JDialog{
 		if(isVoidSelected){
 			record.setId("VOID");
 			record.setValue(null);
-			String name = voidNameField.getText().trim();
+			String name = voidNameField.getText()
+				.trim();
 			FLEFRecordHelper.removeChildren(record, "NAME");
 			if(!name.isEmpty())
 				FLEFRecordHelper.updateChildValue(record, "NAME", name);
 		}
 		else{
-			String targetId = targetDisplayField.getText().trim();
+			String targetId = targetDisplayField.getText()
+				.trim();
 			record.setId(null);
 			record.setValue(targetId);
 			record.getChildren().removeIf(c -> "NAME".equals(c.getTag()));

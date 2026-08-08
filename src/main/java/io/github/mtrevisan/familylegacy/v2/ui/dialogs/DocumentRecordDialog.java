@@ -126,7 +126,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			builder -> {
 				builder.item("Set...", this::setNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Clear", () -> fileField.clear());
+				builder.selectionSensitiveItem("Clear", fileField::clear);
 			});
 		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{StringUtils.EMPTY, "spherical_UV",
 			"cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
@@ -134,7 +134,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this, model);
+		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
 

@@ -146,7 +146,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Place Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this, model);
+		modificationPanel = new ModificationPanel(this);
 
 		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
 

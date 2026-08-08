@@ -52,7 +52,7 @@ public class CauseHandler implements RecordTypeHandler<CauseStructureDialog>{
 
 	@Override
 	public String getType(){
-		return TYPE	;
+		return TYPE;
 	}
 
 	@Override

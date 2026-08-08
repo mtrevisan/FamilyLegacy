@@ -27,20 +27,19 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ContactStructureDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
+public class ContactHandler implements RecordTypeHandler<ContactStructureDialog>{
 
-	public static final String TYPE = "PART";
+	public static final String TYPE = "CONTACT";
 
+	private static final String TAG_ADDRESS = "ADDRESS";
 	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+	private static final String TAG_NAME = "NAME";
 
 
 	@Override
@@ -50,7 +49,7 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Part";
+		return "Contact";
 	}
 
 	@Override
@@ -65,55 +64,34 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return "--";
-
+		final String address = FLEFRecordHelper.getChildValue(record, TAG_ADDRESS);
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-
+		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 		final StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotEmpty(type))
-			sb.append("[")
+		if(StringUtils.isNotBlank(name))
+			sb.append(name)
+				.append(':')
+				.append(StringUtils.SPACE);
+		if(StringUtils.isNotBlank(address))
+			sb.append(address);
+		if(StringUtils.isNotBlank(type)){
+			if(!sb.isEmpty())
+				sb.append(StringUtils.SPACE);
+			sb.append('(')
 				.append(type)
-				.append("] ");
-		if(StringUtils.isNotEmpty(value)){
-			String val = value;
-			if(val.length() > 50)
-				val = val.substring(0, 50) + "...";
-			sb.append(val);
+				.append(')');
 		}
-		else
-			sb.append("--");
-
-		// If it is a low-level element with no meaningful ID, the variant count is shown
-		int variantCount = 0;
-		for(final FLEFRecord child : record.getChildren())
-			if(TAG_PHONETIC.equals(child.getTag()) || TAG_TRANSCRIPTION.equals(child.getTag()))
-				variantCount++;
-
-		if(variantCount > 0)
-			sb.append(" (")
-				.append(variantCount)
-				.append(" variant")
-				.append(variantCount > 1? "s": StringUtils.EMPTY)
-				.append(")");
-		else if(StringUtils.isNotEmpty(record.getId())){
-			sb.append(" (")
-				.append(record.getId())
-				.append(")");
-		}
-
 		return sb.toString();
 	}
 
 	@Override
-	public PartStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return PartStructureDialog.createNew(parent, model);
+	public ContactStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return ContactStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public PartStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return PartStructureDialog.createEdit(parent, model, record);
+	public ContactStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return ContactStructureDialog.createEdit(parent, model, record);
 	}
 
 }

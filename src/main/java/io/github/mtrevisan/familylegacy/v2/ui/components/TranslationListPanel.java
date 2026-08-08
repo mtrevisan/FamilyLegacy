@@ -33,13 +33,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.FlowLayout;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -141,26 +140,21 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		dialog.add(new JLabel("Locale:"), "align label");
 		dialog.add(localeCombo, "growx,wrap");
 
-		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		JButton okBtn = new JButton("OK");
-		JButton cancelBtn = new JButton("Cancel");
-		btnPanel.add(okBtn);
-		btnPanel.add(cancelBtn);
-		dialog.add(btnPanel, "span 2,growx");
-
 		final FLEFRecord[] result = {null};
-		okBtn.addActionListener(e -> {
-			if(valueArea.isEmpty()){
-				JOptionPane.showMessageDialog(dialog, "Translation value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
-				return;
-			}
-			final FLEFRecord res = FLEFRecord.createEmpty();
-			res.addChild(FLEFRecord.createChildWithValue(TAG_VALUE, valueArea.getText()));
-			res.addChild(FLEFRecord.createChildWithValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
-			result[0] = res;
-			dialog.dispose();
-		});
-		cancelBtn.addActionListener(e -> dialog.dispose());
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			() -> {
+				if(valueArea.isEmpty()){
+					JOptionPane.showMessageDialog(dialog, "Translation value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+					return;
+				}
+				final FLEFRecord res = FLEFRecord.createEmpty();
+				res.addChild(FLEFRecord.createChildWithValue(TAG_VALUE, valueArea.getText()));
+				res.addChild(FLEFRecord.createChildWithValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
+				result[0] = res;
+				dialog.dispose();
+			},
+			dialog::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
 
 		dialog.pack();
 		dialog.setLocationRelativeTo(parent);

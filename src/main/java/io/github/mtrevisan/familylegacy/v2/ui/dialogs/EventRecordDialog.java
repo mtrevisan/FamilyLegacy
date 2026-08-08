@@ -81,7 +81,7 @@ import java.io.Serial;
  *     value: Text
  *     evidence?: EvidenceQualifiers
  *   }
- *   note*: Xref<NoteRecord>
+ *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
  *   restriction?: RestrictionStructure
@@ -168,7 +168,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this, model);
+		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
 

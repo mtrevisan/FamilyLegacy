@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
@@ -42,17 +41,22 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 
+/* DONE */
 /**
- * Panel for editing a {@code MODIFICATION_STRUCTURE} according to FLEF 0.1.0.
+ * Panel for editing a {@code MODIFICATION_STRUCTURE} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * MODIFICATION_STRUCTURE :=
- * n CREATION    {1:1}
- *   +1 DATE <DATE>    {1:1}
- * n UPDATE    {0:M}
- *   +1 DATE <DATE>    {1:1}
- *   +1 COMMENT <TEXT>    {0:1}
+ * struct ModificationStructure {
+ *   creation: struct {
+ *     date: Date
+ *     comment?: Text
+ *   }
+ *   update*: struct {
+ *     date: Date
+ *     comment?: Text
+ *   }
+ * }
  * </pre>
  */
 public class ModificationPanel extends JPanel{
@@ -60,17 +64,18 @@ public class ModificationPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -8538135290834556766L;
 
+	public static final String DOT = ".";
+
+	public static final String TAG_CREATION = "CREATION";
+	public static final String TAG_COMMENT = "COMMENT";
+	public static final String TAG_UPDATE = "UPDATE";
+	public static final String TAG_DATE = "DATE";
+
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final FLEFModel model;
-	private final Dialog parent;
-
-	// UI components
-	// Creation fields
 	private String creationDate;
 	private final BoundTextArea creationCommentArea;
-
 	private final BasicNoteListPanel updateListPanel;
 
 
@@ -79,21 +84,19 @@ public class ModificationPanel extends JPanel{
 	 *
 	 * @param parent the parent dialog (used for showing message dialogs)
 	 */
-	public ModificationPanel(final Dialog parent, FLEFModel model){
-		this.model = model;
-		this.parent = parent;
-
-		creationCommentArea = new BoundTextArea("CREATION.COMMENT", 3, 25);
-		updateListPanel = new BasicNoteListPanel("UPDATE", parent, "Updates");
+	public ModificationPanel(final Dialog parent){
+		creationCommentArea = new BoundTextArea(TAG_CREATION + DOT + TAG_COMMENT, 3, 25);
+		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates",
+			true, TAG_COMMENT);
 
 		initComponents();
 	}
 
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10,fillx", "[grow]", "[]10[]"));
-
 		bindingManager.bind(creationCommentArea);
+
+		setLayout(new MigLayout("ins 10,fillx", "[grow]", "[]10[]"));
 
 		final JPanel creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 		creationPanel.setBorder(new TitledBorder("Creation Comment"));
@@ -102,7 +105,6 @@ public class ModificationPanel extends JPanel{
 
 		add(updateListPanel, "growx");
 	}
-
 
 
 	/**
@@ -116,46 +118,34 @@ public class ModificationPanel extends JPanel{
 		if(record == null)
 			return;
 
+		// creation.date
+		final FLEFRecord creation = FLEFRecordHelper.findChild(record, TAG_CREATION);
+		creationDate = FLEFRecordHelper.getChildValue(creation, TAG_DATE);
+
 		bindingManager.load(record);
 
-		// Find CREATION
-		final FLEFRecord creation = FLEFRecordHelper.findChild(record, "CREATION");
-		if(creation != null){
-			creationDate = FLEFRecordHelper.getChildValue(creation, "DATE");
-
-			// Load creation comment if present (non-standard, but we keep it)
-			final String comment = FLEFRecordHelper.getChildValue(creation, "COMMENT");
-			creationCommentArea.setText(comment);
-		}
-
+		// update
 		updateListPanel.load(record);
 	}
 
 	/**
 	 * Saves the panel data into the parent's record.
 	 *
-	 * @param targetRecord the record to save into
+	 * @param record the record to save into
 	 */
-	public void save(final FLEFRecord targetRecord){
-		final FLEFRecord record = (targetRecord != null? targetRecord: FLEFRecord.createEmpty());
+	public void save(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, TAG_CREATION);
+		FLEFRecordHelper.removeChildren(record, TAG_UPDATE);
 
-		// Remove existing children
-		FLEFRecordHelper.removeChildren(record, "CREATION");
-		FLEFRecordHelper.removeChildren(record, "UPDATE");
-
-		// CREATION
-		if(creationDate == null || creationDate.isEmpty())
+		// creation.date
+		final FLEFRecord creation = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_CREATION);
+		if(StringUtils.isBlank(creationDate))
 			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-		FLEFRecordHelper.addChild(record, "CREATION.DATE", creationDate);
+		FLEFRecordHelper.addChild(creation, TAG_DATE, creationDate);
 
-		// ---- Save bound simple fields ----
 		bindingManager.save(record);
 
-		// Save creation comment if present
-		final String creationComment = creationCommentArea.getText();
-		FLEFRecordHelper.addChild(record, "CREATION.COMMENT", creationComment);
-
-		// UPDATE entries
+		// update
 		updateListPanel.save(record);
 	}
 

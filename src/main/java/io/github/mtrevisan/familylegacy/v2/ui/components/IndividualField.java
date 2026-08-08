@@ -42,6 +42,9 @@ import java.io.Serial;
 
 
 /* DONE */
+/**
+ * Component for selecting and displaying individuals.
+ */
 public class IndividualField extends JPanel{
 
 	@Serial
@@ -98,10 +101,10 @@ public class IndividualField extends JPanel{
 	}
 
 	private void setupField(final JTextField field,
-			final Runnable newAction, final Runnable addAction, final Runnable editAction,
-			final Runnable clearAction){
+		final Runnable newAction, final Runnable addAction, final Runnable editAction,
+		final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			null,
+			editAction,
 			null,
 			null,
 			builder -> {
@@ -116,6 +119,9 @@ public class IndividualField extends JPanel{
 		updateDisplay();
 	}
 
+	/**
+	 * Updates the underlying record and automatically refreshes the display.
+	 */
 	public void setRecord(final FLEFRecord record){
 		this.record = record;
 
@@ -127,32 +133,41 @@ public class IndividualField extends JPanel{
 	}
 
 	public boolean hasData(){
-		return (record != null);
+		return (record != null && record.hasData());
 	}
 
-	public void load(final FLEFRecord parentRecord){
+	public void load(final FLEFRecord targetRecord){
 		clear();
 
-		if(parentRecord == null)
+		if(targetRecord == null)
 			return;
 
-		final FLEFRecord child = FLEFRecordHelper.findChild(parentRecord, path);
+		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
 		setRecord(child);
 	}
 
-	public void save(final FLEFRecord parentRecord){
-		FLEFRecordHelper.removeChildren(parentRecord, path);
+	public void save(final FLEFRecord targetRecord){
+		FLEFRecordHelper.removeChildren(targetRecord, path);
 
 		if(record != null)
-			FLEFRecordHelper.updateChildValue(parentRecord, path, record.getFormattedId());
+			FLEFRecordHelper.updateChildValue(targetRecord, path, record.getFormattedId());
 	}
 
-	private void createNew(){
+	/**
+	 * Creates a new place and adds a citation for it.
+	 */
+	private FLEFRecord createNew(){
 		final IndividualRecordDialog dialog = IndividualRecordDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
-		if(dialog.isSaved())
-			setRecord(dialog.getRecord());
+		if(dialog.isSaved()){
+			final FLEFRecord newRecord = dialog.getRecord();
+			setRecord(newRecord);
+
+			return newRecord;
+		}
+
+		return null;
 	}
 
 	private void add(){
@@ -160,17 +175,18 @@ public class IndividualField extends JPanel{
 			parent, model, individualHandler, selectedItem -> {
 			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
-					final FLEFRecord record = model.getRecordById(selectedId);
-					setRecord(record);
-				}
+				final FLEFRecord record = model.getRecordById(selectedId);
+				setRecord(record);
 			}
+		}
 		);
 		dialog.setVisible(true);
 	}
 
 	private void edit(){
 		if(record == null){
-			add();
+			createNew();
+
 			return;
 		}
 
@@ -178,12 +194,13 @@ public class IndividualField extends JPanel{
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
+			// Only necessary here if changes are in-place
 			updateDisplay();
 	}
 
 	private void updateDisplay(){
 		GUIHelper.updateDisplay(displayField,
-			() -> (record != null && record.hasData()),
+			this::hasData,
 			() -> individualHandler.getDisplayText(record, model));
 	}
 

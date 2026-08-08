@@ -75,7 +75,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	protected final FLEFModel model;
 
 	protected final DefaultListModel<String> listModel = new DefaultListModel<>();
-	protected final JList<String> list = new JList<>(listModel);
+	protected final JList<String> list = GUIHelper.createList(listModel);
 	protected final List<T> items = new ArrayList<>();
 
 
@@ -128,6 +128,9 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, "moveDown");
 
 		actionMap.put("moveUp", new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = 1557398991645410075L;
+
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				moveSelectedItemUp();
@@ -135,6 +138,9 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		});
 
 		actionMap.put("moveDown", new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -8473405355379714143L;
+
 			@Override
 			public void actionPerformed(final ActionEvent e){
 				moveSelectedItemDown();
@@ -183,11 +189,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 */
 	public final void createNewItem(){
 		final T newItem = showCreateNewDialog();
-		if(newItem != null){
+		if(newItem != null)
 			addElement(newItem);
-
-			GUIHelper.updatePlaceholder(list);
-		}
 	}
 
 	/**
@@ -196,11 +199,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 */
 	public final void addItem(){
 		final T newItem = showAddDialog();
-		if(newItem != null){
+		if(newItem != null)
 			addElement(newItem);
-
-			GUIHelper.updatePlaceholder(list);
-		}
 	}
 
 	/**
@@ -209,11 +209,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @param item the item to add
 	 */
 	protected final void addItemDirectly(final T item){
-		if(item != null){
+		if(item != null)
 			addElement(item);
-
-			GUIHelper.updatePlaceholder(list);
-		}
 	}
 
 	/**
@@ -248,8 +245,6 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(confirm == JOptionPane.YES_OPTION){
 			items.remove(idx);
 			listModel.remove(idx);
-
-			GUIHelper.updatePlaceholder(list);
 		}
 	}
 
@@ -302,8 +297,6 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	public final void clear(){
 		items.clear();
 		listModel.clear();
-
-		GUIHelper.updatePlaceholder(list);
 	}
 
 	/**
@@ -345,8 +338,6 @@ public abstract class AbstractListPanel<T> extends JPanel{
 			for(final T item : newItems)
 				if(item != null)
 					addElement(item);
-
-		GUIHelper.updatePlaceholder(list);
 	}
 
 	private void addElement(final T newItem){

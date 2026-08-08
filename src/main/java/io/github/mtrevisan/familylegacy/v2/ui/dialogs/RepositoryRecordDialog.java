@@ -114,7 +114,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
 		contactPanel = new ContactListPanel(TAG_CONTACT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		modificationPanel = new ModificationPanel(this, model);
+		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
 

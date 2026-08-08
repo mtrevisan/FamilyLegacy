@@ -150,7 +150,7 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 	public _ResearchStatusDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this, model);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		pack();
@@ -160,7 +160,7 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 	public _ResearchStatusDialog(Dialog parent, FLEFModel model){
 		super(parent, model, null, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
-		this.modificationPanel = new ModificationPanel(this, model);
+		this.modificationPanel = new ModificationPanel(this);
 		initComponents();
 		loadData();
 		pack();
@@ -542,7 +542,8 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 		FLEFRecordHelper.updateChildValue(record, "STATUS", status);
 
 		// QUESTION
-		String question = questionField.getText().trim();
+		String question = questionField.getText()
+			.trim();
 		FLEFRecordHelper.updateChildValue(record, "QUESTION", question);
 
 		// PRIORITY
@@ -550,11 +551,13 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 		FLEFRecordHelper.updateChildValue(record, "PRIORITY", priority);
 
 		// DESCRIPTION
-		String description = descriptionArea.getText().trim();
+		String description = descriptionArea.getText()
+			.trim();
 		FLEFRecordHelper.updateChildValue(record, "DESCRIPTION", description);
 
 		// RESOLUTION (0:1)
-		String resolution = resolutionArea.getText().trim();
+		String resolution = resolutionArea.getText()
+			.trim();
 		FLEFRecordHelper.updateChildValue(record, "RESOLUTION", resolution);
 
 		// ASSOCIATION (0:M)

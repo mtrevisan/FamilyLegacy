@@ -27,16 +27,14 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ContactStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.FlowLayout;
 import java.io.Serial;
 import java.util.List;
 
@@ -47,11 +45,22 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = 2648904511050688880L;
 
 
+	static{
+		HandlerRegistry.register(new ContactHandler());
+	}
+
+
 	private final String path;
 
+	private final RecordTypeHandler<?> contactHandler = HandlerRegistry.getHandler(ContactHandler.TYPE);
 
-	public ContactListPanel(final String path, Dialog parent, FLEFModel model){
-		super(parent, "Contact", model);
+
+	public ContactListPanel(final String path, final Dialog parent, final FLEFModel model){
+		this(path, parent, "Contacts", model);
+	}
+
+	public ContactListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
+		super(parent, borderTitle, model);
 
 		this.path = path;
 	}
@@ -75,11 +84,10 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplay(FLEFRecord contact){
-		String address = contact.getValue();
-		String type = contact.getTag();
-		return (address != null
-			? address
-			: StringUtils.EMPTY) + (type != null? " (" + type + ")": StringUtils.EMPTY);
+		if(contact != null)
+			return contactHandler.getDisplayText(contact, model);
+
+		return "--";
 	}
 
 	@Override
@@ -92,37 +100,10 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		//TODO
-		final ContactStructurePanel panel = new ContactStructurePanel(parent, model);
-		final JDialog dialog = new JDialog(parent, "Add Contact", Dialog.ModalityType.APPLICATION_MODAL);
-		dialog.setLayout(new BorderLayout(10, 10));
-		dialog.add(panel, BorderLayout.CENTER);
-
-		final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		final JButton okBtn = new JButton("OK");
-		final JButton cancelBtn = new JButton("Cancel");
-		btnPanel.add(okBtn);
-		btnPanel.add(cancelBtn);
-		dialog.add(btnPanel, BorderLayout.SOUTH);
-
-		final FLEFRecord[] result = {null};
-		okBtn.addActionListener(e -> {
-			if(panel.validateData()){
-				final FLEFRecord contact = panel.saveToRecord(null);
-				if(contact != null){
-					contact.setTag("CONTACT");
-					result[0] = contact;
-					dialog.dispose();
-				}
-			}
-		});
-		cancelBtn.addActionListener(e -> dialog.dispose());
-
-		dialog.pack();
-		dialog.setLocationRelativeTo(parent);
+		final ContactStructureDialog dialog = ContactStructureDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
-		return result[0];
+		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
 	@Override
@@ -134,38 +115,11 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final ContactStructurePanel panel = new ContactStructurePanel(parent, model);
-		panel.loadFromRecord(existing);
-
-		final JDialog dialog = new JDialog(parent, "Edit Contact", Dialog.ModalityType.APPLICATION_MODAL);
-		dialog.setLayout(new BorderLayout(10, 10));
-		dialog.add(panel, BorderLayout.CENTER);
-
-		final JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-		final JButton okBtn = new JButton("OK");
-		final JButton cancelBtn = new JButton("Cancel");
-		btnPanel.add(okBtn);
-		btnPanel.add(cancelBtn);
-		dialog.add(btnPanel, BorderLayout.SOUTH);
-
-		final FLEFRecord[] result = {null};
-		okBtn.addActionListener(e -> {
-			if(panel.validateData()){
-				final FLEFRecord contact = panel.saveToRecord(existing);
-				if(contact != null){
-					contact.setTag("CONTACT");
-					result[0] = contact;
-					dialog.dispose();
-				}
-			}
-		});
-		cancelBtn.addActionListener(e -> dialog.dispose());
-
-		dialog.pack();
-		dialog.setLocationRelativeTo(parent);
+		final ContactStructureDialog dialog = ContactStructureDialog.createEdit(parent, model, existing);
 		dialog.setVisible(true);
 
-		return result[0];
+		// Return the same record (it was updated in place)
+		return existing;
 	}
 
 	public void load(final FLEFRecord record){
@@ -174,7 +128,7 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return;
 
-		final List<FLEFRecord> contacts = FLEFRecordHelper.findChildren(record, "CONTACT");
+		final List<FLEFRecord> contacts = FLEFRecordHelper.findChildren(record, path);
 		setItems(contacts);
 	}
 
