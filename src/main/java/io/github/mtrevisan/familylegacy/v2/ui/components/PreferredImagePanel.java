@@ -105,6 +105,7 @@ public class PreferredImagePanel extends JPanel{
 
 		cropDialog = ImageCropDialog.create(parent);
 
+
 		initComponents();
 	}
 

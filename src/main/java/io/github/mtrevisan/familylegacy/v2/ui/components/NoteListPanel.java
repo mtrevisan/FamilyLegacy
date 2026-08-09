@@ -27,10 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
@@ -115,13 +116,9 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, noteHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			final FLEFRecord note = model.getRecordById(selectedId);
-				if(note != null && !items.contains(note))
-					result[0] = note;
-			}
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			PlaceHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord
 		);
 		dialog.setVisible(true);
 

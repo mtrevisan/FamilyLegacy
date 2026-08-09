@@ -89,6 +89,7 @@ public class ModificationPanel extends JPanel{
 		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates",
 			true, TAG_COMMENT);
 
+
 		initComponents();
 	}
 
@@ -96,7 +97,8 @@ public class ModificationPanel extends JPanel{
 	private void initComponents(){
 		bindingManager.bind(creationCommentArea);
 
-		setLayout(new MigLayout("ins 10,fillx", "[grow]", "[]10[]"));
+
+		setLayout(new MigLayout("ins 10,fillx,top", "[grow]", "[]10[]"));
 
 		final JPanel creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 		creationPanel.setBorder(new TitledBorder("Creation Comment"));

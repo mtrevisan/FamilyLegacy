@@ -69,6 +69,7 @@ public class BoundedDatePanel extends JPanel{
 		this.notBeforePanel = new SingleDatePanel(parent, model);
 		this.notAfterPanel = new SingleDatePanel(parent, model);
 
+
 		initComponents();
 	}
 

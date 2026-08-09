@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -118,8 +118,9 @@ public class GroupAttributeListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, groupAttributeHandler, selectedItem -> result[0] = selectedItem
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			GroupAttributeHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord
 		);
 		dialog.setVisible(true);
 

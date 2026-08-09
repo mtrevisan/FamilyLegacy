@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
@@ -116,9 +115,14 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
+
+
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -126,9 +130,14 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 		super(parent, model, null, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
+
+
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -285,7 +294,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 
 
 	private void browsePlace(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		_GenericSelectionDialog<?> dialog = new _GenericSelectionDialog<>(
 			this, model, placeHandler, selectedItem -> {
 			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
@@ -328,7 +337,7 @@ public class _HistoricEventDialog extends BaseRecordDialog{
 	}
 
 	private void addNote(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		_GenericSelectionDialog<?> dialog = new _GenericSelectionDialog<>(
 			this, model, noteHandler, selectedItem -> {
 			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){

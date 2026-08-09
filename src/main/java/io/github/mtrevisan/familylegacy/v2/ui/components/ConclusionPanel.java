@@ -139,6 +139,7 @@ public class ConclusionPanel extends JPanel{
 		this.researchPanel = new ResearchStatusListPanel(parent, model);
 		this.sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
 
+
 		initComponents();
 	}
 
@@ -148,6 +149,7 @@ public class ConclusionPanel extends JPanel{
 		bindingManager.bind(proofStatusCombo);
 		bindingManager.bind(narrativeArea);
 		bindingManager.bind(dateField);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]5[]5[]"));
 

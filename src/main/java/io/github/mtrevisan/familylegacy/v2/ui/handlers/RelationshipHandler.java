@@ -27,19 +27,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._RelationshipDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 
 import java.awt.Dialog;
 
 
-/**
- * Handler for Relationship structures.
- * <p>
- * Note: Relationship is not a top-level record type, but a structure that
- * references a RELATIONSHIP record. This handler provides dialog creation for
- * editing Relationship structures.
- */
-public class RelationshipHandler implements RecordTypeHandler<_RelationshipDialog>{
+/* ONGOING */
+public class RelationshipHandler implements RecordTypeHandler<RelationshipRecordDialog>{
 
 	public static final String TYPE = "Relationship";
 	public static final String ID_PREFIX = "REL";
@@ -65,6 +59,7 @@ public class RelationshipHandler implements RecordTypeHandler<_RelationshipDialo
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		//TODO
 		final String objectId = FLEFRecordHelper.getChildValue(record, TAG_OBJECT);
 		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
 		final StringBuilder display = new StringBuilder();
@@ -85,13 +80,13 @@ public class RelationshipHandler implements RecordTypeHandler<_RelationshipDialo
 	}
 
 	@Override
-	public _RelationshipDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return new _RelationshipDialog(parent, model, null);
+	public RelationshipRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return RelationshipRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public _RelationshipDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return new _RelationshipDialog(parent, model, record);
+	public RelationshipRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return RelationshipRecordDialog.createEdit(parent, model, record);
 	}
 
 }

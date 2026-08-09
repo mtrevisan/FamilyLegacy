@@ -82,16 +82,31 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final String placeId;
+	private final BoundTextField place;
 	private final BoundTextField originalTextField;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final EvidenceQualifiersPanel qualifiers;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static PlaceCitationDialog createNew(final Dialog parent, final FLEFModel model, final String placeId){
 		return new PlaceCitationDialog(parent, model, placeId, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static PlaceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
@@ -104,11 +119,13 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PlaceCitationHandler.TYPE));
 
-		this.placeId = extractReferenceId(placeId, record, TAG_PLACE);
-
+		place = new BoundTextField(TAG_PLACE, 20);
+		if(StringUtils.isNoneEmpty(placeId))
+			place.setText(placeId);
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
+
 
 		initComponents();
 
@@ -121,7 +138,9 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
+		bindingManager.bind(place);
 		bindingManager.bind(originalTextField);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
@@ -158,13 +177,6 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(StringUtils.isBlank(placeId)){
-			JOptionPane.showMessageDialog(this, "Invalid Place ID: `" + placeId + "`.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
 		if(record == null)
 			return;
 
@@ -176,7 +188,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(placeId)){
+		if(StringUtils.isEmpty(place.getText())){
 			JOptionPane.showMessageDialog(null,
 				"PLACE is required for a citation.\n" +
 					"Please select a place record.",
@@ -190,7 +202,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, XRefHelper.formatXRef(placeId));
+		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, XRefHelper.formatXRef(place.getText()));
 
 		bindingManager.save(record);
 

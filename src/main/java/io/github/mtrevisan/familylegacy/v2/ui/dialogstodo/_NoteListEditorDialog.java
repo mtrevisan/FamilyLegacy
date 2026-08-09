@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -89,9 +88,13 @@ public class _NoteListEditorDialog extends JDialog{
 		this.ownerRecord = ownerRecord;
 		this.noteHandler = new NoteHandler();
 
+
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -145,6 +148,7 @@ public class _NoteListEditorDialog extends JDialog{
 		return panel;
 	}
 
+
 	private void loadData(){
 		noteIds.clear();
 		noteListModel.clear();
@@ -190,7 +194,7 @@ public class _NoteListEditorDialog extends JDialog{
 	}
 
 	private void addExistingNote(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		_GenericSelectionDialog<?> dialog = new _GenericSelectionDialog<>(
 			this, model, noteHandler, selectedItem -> {
 			if(selectedItem != null){
 				final String selectedId = selectedItem.getValue();

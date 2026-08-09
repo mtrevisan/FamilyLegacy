@@ -56,10 +56,9 @@ public class FLEFParser{
 
 	private FLEFRecord parseRecord(){
 		final String tag = readIdentifier();
+		final FLEFRecord record = FLEFRecord.createChild(tag);
 
 		skipSpaces();
-
-		final FLEFRecord record = FLEFRecord.createChild(tag);
 
 		// Block
 		if(!eof()){
@@ -320,6 +319,11 @@ public class FLEFParser{
 			    contact {
 			      address mario.rossi@example.com
 			      type personal
+			      modification {
+			        creation {
+			          date 2026-07-31
+			        }
+			      }
 			    }
 			  }
 			  scope Example family
@@ -376,6 +380,11 @@ public class FLEFParser{
 			        creation {
 			          date 2026-07-31
 			        }
+			      }
+			    }
+			    modification {
+			      creation {
+			        date 2026-07-31
 			      }
 			    }
 			  }

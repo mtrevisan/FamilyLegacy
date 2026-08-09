@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -72,7 +73,7 @@ import java.util.function.Consumer;
  *
  * @param <T> the specific dialog type (used for edit dialogs)
  */
-public class _RecordBrowserDialog<T extends JDialog> extends JDialog{
+public class _RecordBrowserDialog<T extends BaseRecordDialog> extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = -1546248199171435881L;
@@ -98,7 +99,7 @@ public class _RecordBrowserDialog<T extends JDialog> extends JDialog{
 	 * @param parent      the parent frame
 	 * @param model       the FLEF model
 	 * @param handler     the handler for the record type
-	 * @param onSelection callback invoked with the selected record ID, or null if cancelled
+	 * @param onSelection callback invoked with the selected record ID, or null if canceled
 	 */
 	public _RecordBrowserDialog(Frame parent, FLEFModel model, RecordTypeHandler<T> handler,
 			Consumer<String> onSelection){
@@ -108,10 +109,15 @@ public class _RecordBrowserDialog<T extends JDialog> extends JDialog{
 		this.handler = handler;
 		this.onSelection = onSelection;
 
+
 		initComponents();
+
 		loadAllRecords();
+
 		filterRecords(StringUtils.EMPTY);
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 

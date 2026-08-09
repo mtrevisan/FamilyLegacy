@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
@@ -87,12 +87,10 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	@Override
 	protected String showAddDialog(){
 		final String[] result = {null};
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, researchStatusHandler, selectedItem -> {
-			if(selectedItem != null){
-				result[0] = selectedItem.getValue();
-			}
-		});
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			ResearchStatusHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord.getValue()
+		);
 		dialog.setVisible(true);
 
 		return result[0];

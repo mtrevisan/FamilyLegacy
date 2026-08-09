@@ -119,10 +119,25 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final SourceCitationListPanel sourceCitationPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
 		return new PersonalNameStructureDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static PersonalNameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
 		if(record == null)
@@ -153,6 +168,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 
+
 		initComponents();
 
 		loadData();
@@ -165,6 +181,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	private void initComponents(){
 		bindingManager.bind(typeCombo);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 

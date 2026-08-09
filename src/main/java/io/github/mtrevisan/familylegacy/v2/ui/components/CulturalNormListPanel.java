@@ -28,7 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CulturalNormRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -95,13 +95,9 @@ public class CulturalNormListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, culturalNormHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			final FLEFRecord culturalNorm = model.getRecordById(selectedId);
-			if(culturalNorm != null && !items.contains(culturalNorm))
-				result[0] = culturalNorm;
-		}
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			CulturalNormHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord
 		);
 		dialog.setVisible(true);
 

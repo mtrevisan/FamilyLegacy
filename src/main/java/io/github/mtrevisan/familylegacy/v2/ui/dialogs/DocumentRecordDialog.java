@@ -103,10 +103,25 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static DocumentRecordDialog createNew(final Dialog parent, final FLEFModel model){
 		return new DocumentRecordDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static DocumentRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
@@ -135,6 +150,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
+
 
 		initComponents();
 
@@ -172,6 +188,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(fileField);
 		bindingManager.bind(mappingCombo);
 		bindingManager.bind(descriptionArea);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 

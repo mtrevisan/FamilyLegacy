@@ -133,7 +133,7 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	 * Shows a dialog to create or edit a text variant entry.
 	 *
 	 * @param existing the existing text variant record, or {@code null} for a new one
-	 * @return the (possibly updated) record, or {@code null} if cancelled
+	 * @return the (possibly updated) record, or {@code null} if canceled
 	 */
 	private FLEFRecord showTextVariantDialog(FLEFRecord existing){
 		if(existing == null){

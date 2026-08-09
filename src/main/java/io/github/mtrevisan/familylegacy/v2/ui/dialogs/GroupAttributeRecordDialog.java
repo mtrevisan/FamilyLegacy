@@ -31,12 +31,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -116,7 +116,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]"));
 
-	private final String groupId;
+	private final BoundTextField group;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
 	private final DateField dateField;
@@ -129,10 +129,25 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static GroupAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model, final String groupId){
 		return new GroupAttributeRecordDialog(parent, model, groupId, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static GroupAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
 		if(record == null)
@@ -146,8 +161,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 			final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
 
-		this.groupId = extractReferenceId(groupId, record, TAG_GROUP);
-
+		group = new BoundTextField(TAG_GROUP, 20);
+		if(StringUtils.isNotEmpty(groupId))
+			group.setText(groupId);
 		typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY, "residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language", "wealth", "land_holding", "primary_income_source"});
 		typeCombo.setEditable(true);
@@ -161,6 +177,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
+
 		initComponents();
 
 		loadData();
@@ -172,8 +189,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
+		bindingManager.bind(group);
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
@@ -231,17 +250,17 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(StringUtils.isBlank(groupId)){
-			JOptionPane.showMessageDialog(this, "Invalid Group ID: `" + groupId + "`.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
 		if(record == null)
 			return;
 
 		bindingManager.load(record);
+
+		if(StringUtils.isBlank(group.getText())){
+			JOptionPane.showMessageDialog(this, "Invalid Group ID: `" + group.getText() + "`.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
+			return;
+		}
 
 		dateField.load(record);
 		validFromField.load(record);
@@ -255,7 +274,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(groupId)){
+		if(StringUtils.isEmpty(group.getText())){
 			JOptionPane.showMessageDialog(null,
 				"GROUP is required for an attribute.\n" +
 					"Please select a group record.",
@@ -277,7 +296,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_GROUP, XRefHelper.formatXRef(groupId));
+		FLEFRecordHelper.updateChildValue(record, TAG_GROUP, XRefHelper.formatXRef(group.getText()));
 
 		bindingManager.save(record);
 

@@ -27,9 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._NoteListEditorDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._RelationshipDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -69,7 +68,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private final String groupId;
-	private GeneralRelationshipListPanel generalPanel;
+	private RelationshipListPanel generalPanel;
 
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
@@ -156,8 +155,10 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final String[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, individualHandler, selectedItem -> result[0] = selectedItem.getValue());
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			IndividualHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord.getValue()
+		);
 		dialog.setVisible(true);
 
 		final String individualId = result[0];
@@ -171,14 +172,16 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final _RelationshipDialog relDialog = new _RelationshipDialog(parent, model, null, groupId,
-			individualId);
-		relDialog.setVisible(true);
-
-		final FLEFRecord rel = (relDialog.isSaved()? relDialog.getCitationRecord(): null);
-		if(rel != null && generalPanel != null && !generalPanel.getItems().contains(rel))
-			generalPanel.addItemDirectly(rel);
-		return rel;
+		//TODO
+//		final RelationshipRecordDialog relDialog = RelationshipRecordDialog(parent, model, null, groupId,
+//			individualId);
+//		relDialog.setVisible(true);
+//
+//		final FLEFRecord rel = (relDialog.isSaved()? relDialog.getCitationRecord(): null);
+//		if(rel != null && generalPanel != null && !generalPanel.getItems().contains(rel))
+//			generalPanel.addItemDirectly(rel);
+//		return rel;
+		return null;
 	}
 
 	@Override
@@ -212,14 +215,16 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final _RelationshipDialog relDialog = new _RelationshipDialog(parent, model, null, groupId,
-			newIndividualId);
-		relDialog.setVisible(true);
-
-		final FLEFRecord rel = relDialog.isSaved()? relDialog.getCitationRecord(): null;
-		if(rel != null && generalPanel != null && !generalPanel.getItems().contains(rel))
-			generalPanel.addItemDirectly(rel);
-		return rel;
+		//TODO
+//		final RelationshipRecordDialog relDialog = new RelationshipRecordDialog(parent, model, null, groupId,
+//			newIndividualId);
+//		relDialog.setVisible(true);
+//
+//		final FLEFRecord rel = relDialog.isSaved()? relDialog.getCitationRecord(): null;
+//		if(rel != null && generalPanel != null && !generalPanel.getItems().contains(rel))
+//			generalPanel.addItemDirectly(rel);
+//		return rel;
+		return null;
 	}
 
 	@Override
@@ -231,10 +236,12 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final _RelationshipDialog dialog = (_RelationshipDialog)relationshipHandler.createEditDialog(parent, model,
-			existing);
-		dialog.setVisible(true);
-		return (dialog.isSaved()? dialog.getCitationRecord(): existing);
+		//TODO
+//		final RelationshipRecordDialog dialog = (RelationshipRecordDialog)relationshipHandler.createEditDialog(parent, model,
+//			existing);
+//		dialog.setVisible(true);
+//		return (dialog.isSaved()? dialog.getCitationRecord(): existing);
+		return null;
 	}
 
 	private void editMemberIndividual(){

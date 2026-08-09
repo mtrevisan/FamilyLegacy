@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._ConclusionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -114,13 +114,9 @@ public class ConclusionListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, conclusionHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			final FLEFRecord conclusion = model.getRecordById(selectedId);
-				if(conclusion != null && !items.contains(conclusion))
-					result[0] = conclusion;
-			}
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			ConclusionHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord
 		);
 		dialog.setVisible(true);
 

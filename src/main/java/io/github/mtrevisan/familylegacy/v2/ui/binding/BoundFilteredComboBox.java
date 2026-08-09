@@ -125,7 +125,7 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 
 	public boolean isSelected(){
 		final Object item = getSelectedItem();
-		return (getSelectedIndex() >= 0 && (item instanceof String str? StringUtils.isNotEmpty(str): item != null));
+		return ((isEditable() || getSelectedIndex() >= 0) && (item instanceof String str? StringUtils.isNotEmpty(str): item != null));
 	}
 
 }

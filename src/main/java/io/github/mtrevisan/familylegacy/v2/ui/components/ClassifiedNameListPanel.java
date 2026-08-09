@@ -39,6 +39,7 @@ import java.util.List;
 /* DONE */
 /**
  * According to FLEF 0.1.1.
+ * Structure:
  * <pre>
  * name+: ClassifiedName
  * </pre>

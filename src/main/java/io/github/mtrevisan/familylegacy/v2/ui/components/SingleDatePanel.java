@@ -117,6 +117,7 @@ public class SingleDatePanel extends JPanel{
 		fieldMap.put(DateType.DECADE, decadeField);
 		fieldMap.put(DateType.CENTURY, centuryField);
 
+
 		initComponents();
 	}
 
@@ -127,6 +128,7 @@ public class SingleDatePanel extends JPanel{
 		bindingManager.bind(centuryField);
 		bindingManager.bind(centuryPartCombo);
 		bindingManager.bind(calendarCombo);
+
 
 		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));

@@ -22,15 +22,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.fields;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -43,16 +44,19 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Component for selecting and displaying individuals.
+ * Component for selecting and displaying place citations.
  */
-public class IndividualField extends JPanel{
+public class PlaceCitationField extends JPanel{
 
 	@Serial
-	private static final long serialVersionUID = -406821028241563963L;
+	private static final long serialVersionUID = -4552674609094385732L;
+
+
+	private static final String TAG_PLACE = "PLACE";
 
 
 	static{
-		HandlerRegistry.register(new IndividualHandler());
+		HandlerRegistry.register(new PlaceCitationHandler());
 	}
 
 
@@ -65,25 +69,26 @@ public class IndividualField extends JPanel{
 
 	private final JTextField displayField = new JTextField(20);
 
-	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+	private final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
 
 
-	public static IndividualField create(final String path, final Dialog parent, final FLEFModel model){
-		return new IndividualField(path, parent, model);
+	public static PlaceCitationField create(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceCitationField(path, parent, model);
 	}
 
-	public static IndividualField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
-		return new IndividualField(path, parent, model);
+	public static PlaceCitationField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
+		return new PlaceCitationField(path, parent, model);
 	}
 
 
-	private IndividualField(final String path, final Dialog parent, final FLEFModel model){
+	private PlaceCitationField(final String path, final Dialog parent, final FLEFModel model){
 		super(new MigLayout("ins 0,fillx", "[grow]"));
 
 		this.parent = parent;
 
 		this.path = path;
 		this.model = model;
+
 
 		initComponents();
 	}
@@ -92,8 +97,8 @@ public class IndividualField extends JPanel{
 	private void initComponents(){
 		setupField(displayField,
 			this::createNew,
-			this::add,
 			this::edit,
+			this::editCitation,
 			this::clear
 		);
 
@@ -101,17 +106,17 @@ public class IndividualField extends JPanel{
 	}
 
 	private void setupField(final JTextField field,
-		final Runnable newAction, final Runnable addAction, final Runnable editAction,
-		final Runnable clearAction){
+			final Runnable newAction, final Runnable editAction,
+			final Runnable editCitationAction, final Runnable clearAction){
 		GUIHelper.installBehavior(field,
 			editAction,
 			null,
 			null,
 			builder -> {
 				builder.item("Create New...", newAction);
-				builder.item("Add Existing...", addAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", editAction);
+				builder.selectionSensitiveItem("Edit Citation...", editCitationAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
 			}
 		);
@@ -157,40 +162,54 @@ public class IndividualField extends JPanel{
 	 * Creates a new place and adds a citation for it.
 	 */
 	private FLEFRecord createNew(){
-		final IndividualRecordDialog dialog = IndividualRecordDialog.createNew(parent, model);
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
 			final FLEFRecord newRecord = dialog.getRecord();
-			setRecord(newRecord);
+			if(newRecord != null){
+				final String newPlaceId = newRecord.getId();
+				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
+				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
+				final PlaceCitationDialog citationDialog = PlaceCitationDialog.createEdit(parent, model, placeCitation);
+				citationDialog.setVisible(true);
 
-			return newRecord;
+				if(citationDialog.isSaved()){
+					final FLEFRecord newCitationRecord = citationDialog.getRecord();
+					setRecord(newCitationRecord);
+
+					return newCitationRecord;
+				}
+				else
+					model.removeRecord(newPlaceId);
+			}
 		}
 
 		return null;
 	}
 
-	private void add(){
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, individualHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			if(selectedId != null){
-				final FLEFRecord record = model.getRecordById(selectedId);
-				setRecord(record);
-			}
-		}
-		);
-		dialog.setVisible(true);
-	}
-
 	private void edit(){
-		if(record == null){
+		if(!hasData()){
 			createNew();
 
 			return;
 		}
 
-		final IndividualRecordDialog dialog = IndividualRecordDialog.createEdit(parent, model, record);
+		final String placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
+		final FLEFRecord place = model.getRecordById(placeId);
+		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, place);
+		dialog.setVisible(true);
+
+		if(dialog.isSaved())
+			// Only needed here because the reference to 'record' doesn't change, but the internal data does.
+			updateDisplay();
+	}
+
+	private void editCitation(){
+		if(record == null)
+			return;
+
+		final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -201,7 +220,7 @@ public class IndividualField extends JPanel{
 	private void updateDisplay(){
 		GUIHelper.updateDisplay(displayField,
 			this::hasData,
-			() -> individualHandler.getDisplayText(record, model));
+			() -> placeCitationHandler.getDisplayText(record, model));
 	}
 
 }

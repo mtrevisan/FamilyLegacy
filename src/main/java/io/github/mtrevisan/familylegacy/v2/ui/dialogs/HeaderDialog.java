@@ -140,12 +140,14 @@ public class HeaderDialog extends JDialog{
 		sourceVersionField = new BoundTextField(TAG_SOURCE_VERSION, "0.1");
 		sourceCorporateField = new BoundTextField(TAG_SOURCE_CORPORATE, "(c) Mauro Trevisan");
 		dateField = new BoundTextField(TAG_DATE, 20);
+		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
 		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME, 20);
 		submitterContactListPanel = new ContactListPanel(TAG_SUBMITTER_CONTACT, this, model);
 		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER, this, "Notes",
 			false, TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
+
 
 		initComponents();
 
@@ -169,7 +171,6 @@ public class HeaderDialog extends JDialog{
 		bindingManager.bind(submitterNameField);
 		bindingManager.bind(scopeArea);
 
-		dateField.setEnabled(false);
 
 		setLayout(new MigLayout("ins 10,fillx", "[grow]"));
 
@@ -218,6 +219,7 @@ public class HeaderDialog extends JDialog{
 
 		return panel;
 	}
+
 
 	private void loadData(){
 		String date = FLEFRecordHelper.getChildValuesAsString(headerRecord, TAG_DATE);

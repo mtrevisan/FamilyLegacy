@@ -92,6 +92,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 		this.model = model;
 
+
 		initComponents();
 	}
 

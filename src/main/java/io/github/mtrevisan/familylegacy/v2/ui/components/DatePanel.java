@@ -51,7 +51,7 @@ import java.io.Serial;
 /**
  * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.1.
  * <p>
- * The actual structure (real tags):
+ * Structure:
  * <pre>
  * struct DateStructure {
  *   value: DateValue
@@ -101,6 +101,7 @@ public class DatePanel extends JPanel{
 			new String[]{StringUtils.EMPTY, "proven", "challenged", "disproven"});
 		credibilityCombo = new BoundComboBox<>(TAG_CREDIBILITY,
 			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
+
 
 		initComponents();
 	}

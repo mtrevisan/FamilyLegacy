@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.GeneralRelationshipListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.IndividualAttributeListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
@@ -118,13 +118,28 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private final ConclusionListPanel conclusionPanel;
 	private final MemberRelationshipListPanel memberPanel;
 	private final IndividualAttributeListPanel attributePanel;
-	private final GeneralRelationshipListPanel relationshipPanel;
+	private final RelationshipListPanel relationshipPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static IndividualRecordDialog createNew(final Dialog parent, final FLEFModel model){
 		return new IndividualRecordDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static IndividualRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
@@ -149,7 +164,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
 		memberPanel = new MemberRelationshipListPanel(this, model, (record != null? record.getId(): null));
 		attributePanel = new IndividualAttributeListPanel(TAG_INDIVIDUAL_ATTRIBUTE, this, model);
-		relationshipPanel = new GeneralRelationshipListPanel(TAG_RELATIONSHIP, this, model);
+		relationshipPanel = new RelationshipListPanel(TAG_RELATIONSHIP, this, model);
+
 
 		initComponents();
 
@@ -163,6 +179,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	private void initComponents(){
 		bindingManager.bind(sexCombo);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 

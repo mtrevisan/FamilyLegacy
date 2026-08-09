@@ -84,6 +84,7 @@ public class DateFieldPanel extends JPanel{
 
 		this.label = label;
 
+
 		initComponents();
 	}
 

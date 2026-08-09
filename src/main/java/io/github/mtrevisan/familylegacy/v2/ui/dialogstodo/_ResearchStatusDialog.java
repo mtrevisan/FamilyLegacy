@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -151,9 +151,14 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
+
+
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -161,9 +166,14 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 		super(parent, model, null, HandlerRegistry.getHandler(ResearchStatusHandler.TYPE));
 
 		this.modificationPanel = new ModificationPanel(this);
+
+
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -408,14 +418,15 @@ public class _ResearchStatusDialog extends BaseRecordDialog{
 
 
 	private void addBlockedBy(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			this, model, researchHandler, selectedItem -> {
-			final String selectedId = selectedItem.getValue();
-			if(selectedId != null && !blockedByIds.contains(selectedId)){
-				blockedByIds.add(selectedId);
-				blockedByListModel.addElement(getResearchDisplayName(selectedId));
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(this, model,
+			ResearchStatusHandler.TYPE,
+			(handlerType, selectedRecord) -> {
+				final String selectedId = selectedRecord.getValue();
+				if(selectedId != null && !blockedByIds.contains(selectedId)){
+					blockedByIds.add(selectedId);
+					blockedByListModel.addElement(getResearchDisplayName(selectedId));
+				}
 			}
-		}
 		);
 		dialog.setVisible(true);
 	}

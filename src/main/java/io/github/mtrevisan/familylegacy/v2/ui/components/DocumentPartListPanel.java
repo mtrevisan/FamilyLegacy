@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -171,9 +171,10 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, documentHandler, selectedItem -> {
-				final FLEFRecord document = model.getRecordById(selectedItem.getValue());
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			DocumentHandler.TYPE,
+			(handlerType, selectedRecord) -> {
+				final FLEFRecord document = model.getRecordById(selectedRecord.getValue());
 				if(document != null && !items.contains(document)){
 					final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
 
@@ -185,7 +186,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 							final Rectangle documentCropRect = cropDialog.getCrop();
 							if(documentCropRect != null && !documentCropRect.isEmpty()){
 								// temporarily save under DOCUMENT
-								final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(selectedItem, TAG_CROP);
+								final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(selectedRecord, TAG_CROP);
 								FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
 								FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
 								FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
@@ -203,8 +204,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 					result[0] = document;
 				}
-			},
-			() -> records
+			}
 		);
 		dialog.setVisible(true);
 

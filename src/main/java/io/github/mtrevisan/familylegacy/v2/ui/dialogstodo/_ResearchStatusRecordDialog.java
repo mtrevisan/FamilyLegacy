@@ -47,7 +47,7 @@ import java.io.Serial;
 
 /* ONGOING */
 /**
- * Dialog for editing a {@code RESEARCH_STATUS_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing a {@code RESEARCH_STATUS_RECORD} according to FLEF 0.1.0.
  * <p>
  * Structure:
  * <pre>
@@ -73,7 +73,7 @@ import java.io.Serial;
  * }
  * </pre>
  */
-public class ResearchStatusRecordDialog extends BaseRecordDialog{
+public class _ResearchStatusRecordDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = -3379415124738380266L;
@@ -114,19 +114,34 @@ public class ResearchStatusRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	public static ResearchStatusRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new ResearchStatusRecordDialog(parent, model, null);
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
+	public static _ResearchStatusRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return new _ResearchStatusRecordDialog(parent, model, null);
 	}
 
-	public static ResearchStatusRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
+	public static _ResearchStatusRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new ResearchStatusRecordDialog(parent, model, record);
+		return new _ResearchStatusRecordDialog(parent, model, record);
 	}
 
 
-	private ResearchStatusRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private _ResearchStatusRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
 
 		questionField = new BoundTextField(TAG_QUESTION, 30);
@@ -138,6 +153,7 @@ public class ResearchStatusRecordDialog extends BaseRecordDialog{
 //		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 //		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
+
 
 		initComponents();
 
@@ -154,6 +170,7 @@ public class ResearchStatusRecordDialog extends BaseRecordDialog{
 //		bindingManager.bind(valueArea);
 //		bindingManager.bind(mimeCombo);
 //		bindingManager.bind(localeCombo);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
@@ -239,7 +256,7 @@ public class ResearchStatusRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final ResearchStatusRecordDialog dialog = ResearchStatusRecordDialog.createNew(null, model);
+			final _ResearchStatusRecordDialog dialog = _ResearchStatusRecordDialog.createNew(null, model);
 			dialog.setVisible(true);
 		});
 	}

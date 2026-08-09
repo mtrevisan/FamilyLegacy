@@ -22,10 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -62,7 +63,7 @@ import java.util.function.Supplier;
  *
  * @param <T> the specific dialog type (used for edit dialogs)
  */
-public class GenericSelectionDialog<T extends JDialog> extends JDialog{
+public class _GenericSelectionDialog<T extends BaseRecordDialog> extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 5675310282486257639L;
@@ -90,20 +91,21 @@ public class GenericSelectionDialog<T extends JDialog> extends JDialog{
 	 * @param parent      the parent frame
 	 * @param model       the FLEF model
 	 * @param handler     the handler for the record type
-	 * @param onSelection callback invoked with the selected record ID, or null if cancelled
+	 * @param onSelection callback invoked with the selected record ID, or null if canceled
 	 */
-	public GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
+	public _GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
 			final Consumer<FLEFRecord> onSelection){
 		this(parent, model, handler, onSelection, null);
 	}
 
-	public GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
+	public _GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
 			final Consumer<FLEFRecord> onSelection, final Supplier<List<FLEFRecord>> loadRecords){
 		super(parent, "Select " + handler.getLabel(), ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
 		this.handler = handler;
 		this.onSelection = onSelection;
+
 
 		initComponents();
 

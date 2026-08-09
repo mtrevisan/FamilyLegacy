@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._ConclusionDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -57,16 +58,17 @@ public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		String id = record.getId();
-		if(value != null && !value.isEmpty()){
-			// Truncate long conclusions
-			if(value.length() > 50){
-				value = value.substring(0, 50) + "...";
+		if(record == null) return "--";
+		String context = FLEFRecordHelper.getChildValue(record, "CONTEXT");
+		String proofStatus = FLEFRecordHelper.getChildValue(record, "PROOF_STATUS");
+		if(StringUtils.isNotEmpty(context)){
+			String display = context.length() > 40? context.substring(0, 37) + "...": context;
+			if(StringUtils.isNotEmpty(proofStatus)){
+				display += " [" + proofStatus + "]";
 			}
-			return value + " (" + id + ")";
+			return display;
 		}
-		return id;
+		return record.getId() != null? record.getId(): "(unnamed)";
 	}
 
 	@Override

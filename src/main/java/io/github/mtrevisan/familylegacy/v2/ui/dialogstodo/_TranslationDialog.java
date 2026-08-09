@@ -94,11 +94,15 @@ public class _TranslationDialog extends JDialog{
 
 		this.transRecord = transRecord != null? transRecord: FLEFRecord.createChild("TRANSLATION");
 		this.modificationPanel = new ModificationPanel(this);
+
+
 		initComponents();
-		if(transRecord != null){
+
+		if(transRecord != null)
 			loadData();
-		}
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -147,6 +151,7 @@ public class _TranslationDialog extends JDialog{
 		});
 		cancelButton.addActionListener(e -> dispose());
 	}
+
 
 	private void loadData(){
 		localeField.setText(FLEFRecordHelper.getChildValue(transRecord, "LOCALE"));

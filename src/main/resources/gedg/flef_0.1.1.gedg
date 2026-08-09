@@ -300,6 +300,11 @@ record EventParticipationRecord {
   modification: ModificationStructure
 }
 
+EntityParticipant = oneof {
+  individual: Xref<IndividualRecord>
+  group: Xref<GroupRecord>
+}
+
 
 // ============================================================
 // Group
@@ -500,11 +505,6 @@ record RelationshipRecord {
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
   modification: ModificationStructure
-}
-
-EntityParticipant = oneof {
-  individual: Xref<IndividualRecord>
-  group: Xref<GroupRecord>
 }
 
 

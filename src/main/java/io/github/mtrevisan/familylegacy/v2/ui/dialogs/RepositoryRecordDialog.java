@@ -28,10 +28,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ContactListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.IndividualField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.IndividualField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -94,10 +94,25 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static RepositoryRecordDialog createNew(final Dialog parent, final FLEFModel model){
 		return new RepositoryRecordDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static RepositoryRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
@@ -115,6 +130,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		contactPanel = new ContactListPanel(TAG_CONTACT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		modificationPanel = new ModificationPanel(this);
+
 
 		initComponents();
 

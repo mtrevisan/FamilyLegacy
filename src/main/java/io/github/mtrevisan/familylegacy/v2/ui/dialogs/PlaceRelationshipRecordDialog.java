@@ -26,14 +26,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -51,8 +50,9 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
+ * Structure:
  * <pre>
  * record PlaceRelationshipRecord {
  *   id: LocalID
@@ -102,10 +102,25 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static PlaceRelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
 		return new PlaceRelationshipRecordDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static PlaceRelationshipRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
 		if(record == null)
@@ -147,6 +162,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	private void initComponents(){
 		bindingManager.bind(typeCombo);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 

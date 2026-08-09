@@ -40,6 +40,8 @@ public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
 	/** The ID prefix used for generating new group IDs (e.g., {@code G}). */
 	public static final String ID_PREFIX = "G";
 
+	private static final String TAG_NAME = "NAME";
+
 
 	@Override
 	public String getLabel(){
@@ -61,20 +63,15 @@ public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		// Find NAME_STRUCTURE -> TEXT_VALUE -> VALUE
-		FLEFRecord nameStruct = FLEFRecordHelper.findChild(record, "NAME_STRUCTURE");
-		if(nameStruct != null){
-			FLEFRecord textValue = FLEFRecordHelper.findChild(nameStruct, "TEXT_VALUE");
-			if(textValue != null){
-				String value = FLEFRecordHelper.getChildValue(textValue, "VALUE");
-				if(value != null && !value.isEmpty()){
-					return value;
-				}
-			}
-		}
+		// Locate the first populated NAME structure
+		final String formattedName = FLEFRecordHelper.getChildValue(record, "NAME.TEXT.VALUE");
+
+		final String id = record.getId();
+		if(StringUtils.isNotEmpty(formattedName))
+			return formattedName + (StringUtils.isNotEmpty(id)? " (" + id + ")": StringUtils.EMPTY);
 
 		// Fallback to the record ID
-		return record.getId();
+		return id;
 	}
 
 	@Override

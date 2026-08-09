@@ -97,16 +97,19 @@ public class RestrictionPanel extends JPanel{
 		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
 		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES, 15);
 
+
 		initComponents();
 	}
 
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
-
 		bindingManager.bind(levelCombo);
 		bindingManager.bind(rationaleArea);
 		bindingManager.bind(expiresField);
+
+
+
+		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
 
 		// LEVEL
 		add(new JLabel("Level*:"), "align label");

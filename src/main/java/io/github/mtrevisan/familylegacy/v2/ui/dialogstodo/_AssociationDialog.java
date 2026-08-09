@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -126,6 +125,14 @@ public class _AssociationDialog extends JDialog{
 		return new _AssociationDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static _AssociationDialog createEdit(JDialog parent, FLEFModel model, FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
@@ -139,11 +146,15 @@ public class _AssociationDialog extends JDialog{
 		this.model = model;
 		this.parentFrame = getParentFrame(parent);
 		this.existingAssociation = existingAssociation;
+
+
 		initComponents();
-		if(existingAssociation != null){
+
+		if(existingAssociation != null)
 			loadData();
-		}
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -329,7 +340,7 @@ public class _AssociationDialog extends JDialog{
 			return;
 		}
 
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		_GenericSelectionDialog<?> dialog = new _GenericSelectionDialog<>(
 			this, model, handler, selectedItem -> {
 			final String selectedId = selectedItem.getValue();
 			if(selectedId != null){
@@ -365,7 +376,7 @@ public class _AssociationDialog extends JDialog{
 	}
 
 	private void addNote(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		_GenericSelectionDialog<?> dialog = new _GenericSelectionDialog<>(
 			this, model, noteHandler, selectedItem -> {
 			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !noteIds.contains(selectedId)){
@@ -457,7 +468,7 @@ public class _AssociationDialog extends JDialog{
 	}
 
 	private void addSource(){
-		GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
+		_GenericSelectionDialog<?> dialog = new _GenericSelectionDialog<>(
 			this, model, sourceHandler, selectedItem -> {
 			final String selectedId = selectedItem.getValue();
 			if(selectedId != null && !sourceIds.contains(selectedId)){

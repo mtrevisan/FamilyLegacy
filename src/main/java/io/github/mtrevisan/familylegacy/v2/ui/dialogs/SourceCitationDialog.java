@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
@@ -102,7 +100,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final String sourceId;
+	private final BoundTextField source;
 	private final BoundTextField locationField;
 	private final ExtractListPanel extractPanel;
 	private final NoteListPanel notePanel;
@@ -110,10 +108,25 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private final RestrictionPanel restrictionPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model, final String sourceId){
 		return new SourceCitationDialog(parent, model, sourceId, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static SourceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
@@ -126,13 +139,15 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(SourceCitationHandler.TYPE));
 
-		this.sourceId = extractReferenceId(sourceId, record, TAG_SOURCE);
-
+		source = new BoundTextField(TAG_SOURCE, 20);
+		if(StringUtils.isNoneEmpty(sourceId))
+			source.setText(sourceId);
 		locationField = new BoundTextField(TAG_LOCATION, 20);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, null, model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+
 
 		initComponents();
 
@@ -145,7 +160,9 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
+		bindingManager.bind(source);
 		bindingManager.bind(locationField);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
@@ -180,17 +197,17 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(StringUtils.isBlank(sourceId)){
-			JOptionPane.showMessageDialog(this, "Invalid Source ID: `" + sourceId + "`.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
 		if(record == null)
 			return;
 
 		bindingManager.load(record);
+
+		if(StringUtils.isBlank(source.getText())){
+			JOptionPane.showMessageDialog(this, "Invalid Source ID: `" + source.getText() + "`.",
+				"Validation Error", JOptionPane.ERROR_MESSAGE);
+
+			return;
+		}
 
 		notePanel.load(record);
 		extractPanel.load(record);
@@ -199,7 +216,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(sourceId)){
+		if(StringUtils.isEmpty(source.getText())){
 			JOptionPane.showMessageDialog(null,
 				"SOURCE is required for a citation.\n" +
 					"Please select a source record.",
@@ -213,8 +230,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_SOURCE, XRefHelper.formatXRef(sourceId));
-
 		bindingManager.save(record);
 
 		notePanel.saveReferences(record);

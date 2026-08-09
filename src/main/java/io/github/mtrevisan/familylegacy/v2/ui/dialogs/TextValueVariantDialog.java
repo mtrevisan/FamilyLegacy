@@ -127,10 +127,25 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private final BoundTextField valueField;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static TextValueVariantDialog createNew(final Dialog parent, final FLEFModel model){
 		return new TextValueVariantDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static TextValueVariantDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
@@ -180,6 +195,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE, 20);
 
+
 		initComponents();
 
 		loadData();
@@ -196,6 +212,9 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);
 
+
+		setLayout(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]15[]5[]5[]5[]"));
+
 		final ButtonGroup group = new ButtonGroup();
 		group.add(phoneticRadio);
 		group.add(transcriptionRadio);
@@ -204,7 +223,6 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		setLayout(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]15[]5[]5[]5[]"));
 		add(new JLabel("Variant Kind:"), "align label");
 		add(radioPanel, "growx,wrap");
 
@@ -229,8 +247,9 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		updateFieldsState();
 	}
 
+
 	@Override
-	public void loadData(){
+	protected void loadData(){
 		bindingManager.load(record);
 
 		String tag = record.getTag();

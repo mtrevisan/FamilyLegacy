@@ -26,8 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 
-import javax.swing.JDialog;
 import java.awt.Dialog;
 
 
@@ -37,7 +37,7 @@ import java.awt.Dialog;
  *
  * @param <T> the specific dialog type that extends JDialog
  */
-public interface RecordTypeHandler<T extends JDialog>{
+public interface RecordTypeHandler<T extends BaseRecordDialog>{
 
 	default boolean isTopLevelEntity(){
 		return true;

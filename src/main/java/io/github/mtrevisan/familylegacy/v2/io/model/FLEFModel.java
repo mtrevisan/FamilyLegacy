@@ -41,13 +41,14 @@ public class FLEFModel{
 		if(record == null)
 			return;
 
-		final String id = record.getId();
+		final String id = FLEFRecordHelper.getChildValue(record, "id");
 		if(id != null){
 			if(recordsById.containsKey(id))
 				// Optionally remove existing record to allow replacement/update
 				removeRecord(id);
 
-			recordsById.put(id, record);
+			final String cleanId = XRefHelper.extractXRef(id);
+			recordsById.put(cleanId, record);
 		}
 
 		records.add(record);

@@ -62,36 +62,17 @@ public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusD
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		// Try to get the QUESTION field as display name
+		if(record == null) return "--";
 		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
 		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
-		String id = record.getId();
-
-		StringBuilder sb = new StringBuilder();
-		if(question != null && !question.isEmpty()){
-			// Truncate long questions
-			if(question.length() > 40){
-				question = question.substring(0, 40) + "...";
+		if(StringUtils.isNotEmpty(question)){
+			String display = question.length() > 40? question.substring(0, 37) + "...": question;
+			if(StringUtils.isNotEmpty(status)){
+				display += " [" + status + "]";
 			}
-			sb.append(question);
+			return display;
 		}
-
-		if(status != null && !status.isEmpty()){
-			if(!sb.isEmpty())
-				sb.append(StringUtils.SPACE);
-			sb.append("(")
-				.append(status)
-				.append(")");
-		}
-
-		if(sb.isEmpty()){
-			sb.append("Research Status ");
-		}
-
-		sb.append(" (")
-			.append(id)
-			.append(")");
-		return sb.toString();
+		return record.getId() != null? record.getId(): "(unnamed)";
 	}
 
 	@Override

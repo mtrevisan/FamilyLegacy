@@ -28,8 +28,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
@@ -120,9 +121,10 @@ public abstract class AbstractCitationListPanel extends AbstractListPanel<FLEFRe
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, targetHandler, selectedItem -> {
-				final String selectedId = selectedItem.getValue();
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			PlaceHandler.TYPE,
+			(handlerType, selectedRecord) -> {
+				final String selectedId = selectedRecord.getValue();
 				final FLEFRecord citation = model.getRecordById(selectedId);
 				if(citation != null && !items.contains(citation)){
 					final String entityId = findTargetEntityId(citation);
@@ -133,6 +135,7 @@ public abstract class AbstractCitationListPanel extends AbstractListPanel<FLEFRe
 			}
 		);
 		dialog.setVisible(true);
+
 		return result[0];
 	}
 

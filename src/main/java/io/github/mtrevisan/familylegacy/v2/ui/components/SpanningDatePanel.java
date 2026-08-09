@@ -68,6 +68,7 @@ public class SpanningDatePanel extends JPanel{
 		this.fromPanel = new SingleDatePanel(parent, model);
 		this.toPanel = new SingleDatePanel(parent, model);
 
+
 		initComponents();
 	}
 

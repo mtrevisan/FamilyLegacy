@@ -34,7 +34,7 @@ import java.awt.Dialog;
 
 
 /**
- * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.0.
+ * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.1.
  * <p>
  * This handler provides the necessary operations for managing name structures:
  * creation, editing, display name generation, and type identification.

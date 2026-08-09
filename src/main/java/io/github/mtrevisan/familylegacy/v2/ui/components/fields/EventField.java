@@ -22,17 +22,15 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.fields;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GenericSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.EventRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -45,19 +43,16 @@ import java.io.Serial;
 
 /* DONE */
 /**
- * Component for selecting and displaying place citations.
+ * Component for selecting and displaying events.
  */
-public class PlaceCitationField extends JPanel{
+public class EventField extends JPanel{
 
 	@Serial
-	private static final long serialVersionUID = -4552674609094385732L;
-
-
-	private static final String TAG_PLACE = "PLACE";
+	private static final long serialVersionUID = 5888430347868386145L;
 
 
 	static{
-		HandlerRegistry.register(new PlaceCitationHandler());
+		HandlerRegistry.register(new EventHandler());
 	}
 
 
@@ -70,25 +65,26 @@ public class PlaceCitationField extends JPanel{
 
 	private final JTextField displayField = new JTextField(20);
 
-	private final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
+	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
 
 
-	public static PlaceCitationField create(final String path, final Dialog parent, final FLEFModel model){
-		return new PlaceCitationField(path, parent, model);
+	public static EventField create(final String path, final Dialog parent, final FLEFModel model){
+		return new EventField(path, parent, model);
 	}
 
-	public static PlaceCitationField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
-		return new PlaceCitationField(path, parent, model);
+	public static EventField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
+		return new EventField(path, parent, model);
 	}
 
 
-	private PlaceCitationField(final String path, final Dialog parent, final FLEFModel model){
+	private EventField(final String path, final Dialog parent, final FLEFModel model){
 		super(new MigLayout("ins 0,fillx", "[grow]"));
 
 		this.parent = parent;
 
 		this.path = path;
 		this.model = model;
+
 
 		initComponents();
 	}
@@ -99,7 +95,6 @@ public class PlaceCitationField extends JPanel{
 			this::createNew,
 			this::add,
 			this::edit,
-			this::editCitation,
 			this::clear
 		);
 
@@ -108,7 +103,7 @@ public class PlaceCitationField extends JPanel{
 
 	private void setupField(final JTextField field,
 			final Runnable newAction, final Runnable addAction, final Runnable editAction,
-			final Runnable editCitationAction, final Runnable clearAction){
+			final Runnable clearAction){
 		GUIHelper.installBehavior(field,
 			editAction,
 			null,
@@ -118,7 +113,6 @@ public class PlaceCitationField extends JPanel{
 				builder.item("Add Existing...", addAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", editAction);
-				builder.selectionSensitiveItem("Edit Citation...", editCitationAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
 			}
 		);
@@ -164,67 +158,35 @@ public class PlaceCitationField extends JPanel{
 	 * Creates a new place and adds a citation for it.
 	 */
 	private FLEFRecord createNew(){
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
+		final EventRecordDialog dialog = EventRecordDialog.createNew(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
 			final FLEFRecord newRecord = dialog.getRecord();
-			if(newRecord != null){
-				final String newPlaceId = newRecord.getId();
-				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
-				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
-				final PlaceCitationDialog citationDialog = PlaceCitationDialog.createEdit(parent, model, placeCitation);
-				citationDialog.setVisible(true);
+			setRecord(newRecord);
 
-				if(citationDialog.isSaved()){
-					final FLEFRecord newCitationRecord = citationDialog.getRecord();
-					setRecord(newCitationRecord);
-
-					return newCitationRecord;
-				}
-				else
-					model.removeRecord(newPlaceId);
-			}
+			return newRecord;
 		}
 
 		return null;
 	}
 
 	private void add(){
-		final GenericSelectionDialog<?> dialog = new GenericSelectionDialog<>(
-			parent, model, placeCitationHandler, selectedItem -> {
-				final String selectedId = selectedItem.getValue();
-				if(selectedId != null){
-					final FLEFRecord record = model.getRecordById(selectedId);
-					setRecord(record);
-				}
-			}
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			EventHandler.TYPE,
+			(handlerType, selectedRecord) -> setRecord(selectedRecord)
 		);
 		dialog.setVisible(true);
 	}
 
 	private void edit(){
-		if(record == null){
+		if(!hasData()){
 			createNew();
 
 			return;
 		}
 
-		final String placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
-		final FLEFRecord place = model.getRecordById(placeId);
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, place);
-		dialog.setVisible(true);
-
-		if(dialog.isSaved())
-			// Only needed here because the reference to 'record' doesn't change, but the internal data does.
-			updateDisplay();
-	}
-
-	private void editCitation(){
-		if(record == null)
-			return;
-
-		final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(parent, model, record);
+		final EventRecordDialog dialog = EventRecordDialog.createEdit(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -235,7 +197,7 @@ public class PlaceCitationField extends JPanel{
 	private void updateDisplay(){
 		GUIHelper.updateDisplay(displayField,
 			this::hasData,
-			() -> placeCitationHandler.getDisplayText(record, model));
+			() -> eventHandler.getDisplayText(record, model));
 	}
 
 }

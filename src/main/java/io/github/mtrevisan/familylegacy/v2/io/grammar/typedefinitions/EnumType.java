@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import java.util.List;
+import java.util.Locale;
 
 
 public final class EnumType extends TypeDefinition{
@@ -35,7 +36,7 @@ public final class EnumType extends TypeDefinition{
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar,
 			final List<String> errors){
 		final String val = record.getValue();
-		if(val != null && !values.contains(val) && !allowCustomText)
+		if(val != null && !values.contains(val.toLowerCase(Locale.ROOT)) && !allowCustomText)
 			errors.add(String.format("Invalid enum value '%s' at '%s'. Allowed: %s", val, contextPath, values));
 	}
 

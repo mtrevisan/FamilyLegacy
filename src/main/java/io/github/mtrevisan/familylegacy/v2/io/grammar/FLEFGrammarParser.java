@@ -1,7 +1,9 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar;
 
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ComparisonConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ConditionalRequireConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.InConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.AlternationType;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.Cardinality;
@@ -21,6 +23,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 
@@ -40,6 +43,8 @@ import java.util.Map;
  * field        := IDENT ('?' | '*' | '+')? ':' type
  * require      := 'require' 'one_of' '(' identList ')'
  *               | 'require' 'if' IDENT '==' IDENT ':' identList
+ *               | 'require' IDENT 'in' IDENT
+ *               | 'require' IDENT ('!=' | '==' | '>' | '>=' | '<' | '<=') IDENT
  * type         := atomicType ('|' atomicType)*
  * atomicType   := ('Xref' | 'XrefOrVoid') '&lt;' IDENT '&gt;'
  *               | 'struct' structBody
@@ -61,6 +66,12 @@ public final class FLEFGrammarParser{
 	private static final String TAG_CARDINALITY_ZERO_OR_ONE = "?";
 	private static final String TAG_CARDINALITY_ZERO_OR_MORE = "*";
 	private static final String TAG_CARDINALITY_ONE_OR_MORE = "+";
+	private static final String NOT_EQUALS = "!=";
+	private static final String EQUALS = "==";
+	private static final String GREATER_THAN = ">";
+	private static final String LESS_THAN = "<";
+	private static final String GREATER_THAN_OR_EQUALS = ">=";
+	private static final String LESS_THAN_OR_EQUALS = "<=";
 
 	private static final String TAG_FILE = "file";
 	private static final String TAG_ALIAS = "alias";
@@ -71,6 +82,7 @@ public final class FLEFGrammarParser{
 	private static final String TAG_REQUIRE = "require";
 	private static final String TAG_ONE_OF_FN = "one_of";
 	private static final String TAG_IF = "if";
+	private static final String TAG_IN = "in";
 	private static final String TAG_XREF = "Xref";
 	private static final String TAG_XREF_OR_VOID = TAG_XREF + "OrVoid";
 
@@ -113,7 +125,8 @@ public final class FLEFGrammarParser{
 	// Lexer
 	// ------------------------------------------------------------------
 
-	private static final String SINGLE_CHAR_TOKENS = "{}[]:,=<>()?*+|";
+	private static final String SINGLE_CHAR_TOKENS = "{}[]:,=<>()?*+|!";
+
 
 	private static List<Token> tokenize(final String content){
 		final String normalized = content.replace("\r\n", "\n").replace('\r', '\n');
@@ -135,15 +148,26 @@ public final class FLEFGrammarParser{
 				if(Character.isWhitespace(c)){
 					i ++;
 				}
-				else if(Character.isLetterOrDigit(c) || c == '_'){
+				else if(Character.isLetterOrDigit(c) || c == '_' || c == '.'){
 					final int start = i;
-					while(i < length && (Character.isLetterOrDigit(line.charAt(i)) || line.charAt(i) == '_'))
+					while(i < length && (Character.isLetterOrDigit(line.charAt(i)) || line.charAt(i) == '_'
+							|| line.charAt(i) == '.'))
 						i ++;
 					result.add(new Token(line.substring(start, i), lineNumber));
 				}
 				else if(SINGLE_CHAR_TOKENS.indexOf(c) != -1){
-					result.add(new Token(String.valueOf(c), lineNumber));
-					i ++;
+					final String twoChars = line.substring(i, Math.min(i + 2, length));
+					if(twoChars.equals(NOT_EQUALS) || twoChars.equals(GREATER_THAN_OR_EQUALS)
+							|| twoChars.equals(LESS_THAN_OR_EQUALS) || twoChars.equals(EQUALS)){
+						result.add(new Token(twoChars, lineNumber));
+
+						i += 2;
+					}
+					else{
+						result.add(new Token(String.valueOf(c), lineNumber));
+
+						i ++;
+					}
 				}
 				else
 					throw new FLEFGrammarParseException("Unexpected character '" + c + "'", lineNumber);
@@ -365,6 +389,8 @@ public final class FLEFGrammarParser{
 
 	private Constraint parseConstraint(){
 		expect(TAG_REQUIRE);
+
+		// 1. require one_of(fieldA, fieldB, ...)
 		if(peekIs(TAG_ONE_OF_FN)){
 			next();
 			expect("(");
@@ -372,18 +398,39 @@ public final class FLEFGrammarParser{
 			expect(")");
 			return new OneOfConstraint(fields);
 		}
+
+		// 2. require if conditionField == conditionValue : requiredField, ...
 		if(peekIs(TAG_IF)){
 			next();
 			final String conditionField = next();
-			expect(TAG_EQUALS);
-			expect(TAG_EQUALS);
+			if(!peekIs(EQUALS))
+				throw new FLEFGrammarParseException("Expected '==' after field in 'require if'", peekToken().line());
+			next();
 			final String conditionValue = next();
 			expect(TAG_COLON);
 			final List<String> requiredFields = parseCommaSeparatedIdents();
 			return new ConditionalRequireConstraint(conditionField, conditionValue, requiredFields);
 		}
 
-		throw new FLEFGrammarParseException("Expected 'one_of' or 'if' after 'require', found '" + peek() + "'",
+		// 3. require field in container
+		final String firstToken = next();
+		if(peekIs(TAG_IN)){
+			next();
+			final String container = next();
+			return new InConstraint(firstToken, container);
+		}
+
+		// 4. require left operator right (operators: !=, ==, >, >=, <, <=)
+		final String left = firstToken;
+		final String op = peek();
+		if(op.equals(NOT_EQUALS) || op.equals(EQUALS) || op.equals(GREATER_THAN) || op.equals(GREATER_THAN_OR_EQUALS)
+			|| op.equals(LESS_THAN) || op.equals(LESS_THAN_OR_EQUALS)){
+			next();
+			final String right = next();
+			return new ComparisonConstraint(left, op, right);
+		}
+
+		throw new FLEFGrammarParseException("Expected 'one_of', 'if', 'in', or comparison after 'require', found '" + peek() + "'",
 			(peekToken() != null? peekToken().line(): 0));
 	}
 
@@ -419,7 +466,7 @@ public final class FLEFGrammarParser{
 		expect(TAG_OPEN_CURLY_BRACE);
 		final List<String> values = new ArrayList<>();
 		while(!peekIs(TAG_CLOSE_CURLY_BRACE)){
-			values.add(next());
+			values.add(next().toLowerCase(Locale.ROOT));
 
 			if(peekIs(TAG_COMMA))
 				next();

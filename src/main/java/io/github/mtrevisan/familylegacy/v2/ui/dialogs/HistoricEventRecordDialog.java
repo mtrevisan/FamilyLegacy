@@ -26,22 +26,18 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -52,8 +48,9 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
+ * Structure:
  * <pre>
  * record HistoricEventRecord {
  *   id: LocalID
@@ -86,20 +83,33 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final PlaceField subjectField;
-	private final PlaceField objectField;
-	private final BoundComboBox<String> typeCombo;
-	private final DateField validFromField;
-	private final DateField validToField;
+	private final BoundTextField titleField;
+	private final DateField dateField;
+	private final PlaceField placeField;
 	private final NoteListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final ModificationPanel modificationPanel;
 
 
+	/**
+	 * Creates a new dialog to create a new record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @return	A new dialog instance.
+	 */
 	public static HistoricEventRecordDialog createNew(final Dialog parent, final FLEFModel model){
 		return new HistoricEventRecordDialog(parent, model, null);
 	}
 
+	/**
+	 * Creates a new dialog to edit an existing record.
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @return	A new dialog instance.
+	 */
 	public static HistoricEventRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
 		if(record == null)
@@ -110,21 +120,14 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 
 	private HistoricEventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PlaceRelationshipHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
 
-		setTitle(record == null? "Add Place Relationship": "Edit Place Relationship");
+		setTitle(record == null? "Add Historic Event": "Edit Historic Event");
 
-		subjectField = PlaceField.create(TAG_SUBJECT, parent, model);
-		objectField = PlaceField.create(TAG_OBJECT, parent, model);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
-			"cadastral_part_of"
-		});
-		typeCombo.setEditable(true);
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
+		titleField = new BoundTextField(TAG_TITLE, 30);
+		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
+		placeField = PlaceField.create(TAG_PLACE, parent, model);
+		notePanel = new NoteListPanel(TAG_NOTE, this, "Notes", model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		modificationPanel = new ModificationPanel(this);
 
@@ -140,7 +143,8 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
-		bindingManager.bind(typeCombo);
+		bindingManager.bind(titleField);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
@@ -157,30 +161,19 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]"));
+		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
 
-		// subject
-		mainPanel.add(new JLabel("Subject:"), "align label");
-		mainPanel.add(subjectField, "growx,wrap");
+		// title
+		mainPanel.add(new JLabel("Title:"), "align label");
+		mainPanel.add(titleField, "growx,wrap");
 
-		// object
-		mainPanel.add(new JLabel("Object:"), "align label");
-		mainPanel.add(objectField, "growx,wrap");
+		// date
+		mainPanel.add(new JLabel("Date:"), "align label");
+		mainPanel.add(dateField, "growx,wrap");
 
-		// type
-		mainPanel.add(new JLabel("Part Type*:"), "align label");
-		mainPanel.add(typeCombo, "growx,wrap");
-
-		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
-		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
-		// valid from
-		validityPanel.add(new JLabel("Valid From:"), "align label");
-		validityPanel.add(validFromField, "growx,wrap");
-		// valid to
-		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx,wrap");
-		mainPanel.add(validityPanel, "span 2,growx");
+		// place
+		mainPanel.add(new JLabel("Place:"), "align label");
+		mainPanel.add(placeField, "growx");
 
 		return mainPanel;
 	}
@@ -195,59 +188,29 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-//		subjectField.load(record);
-//		objectField.load(record);
-//
-//		bindingManager.load(record);
-//
-//		validFromField.load(record);
-//		validToField.load(record);
-//		notePanel.load(record);
-//		sourceCitationPanel.load(record);
-//		modificationPanel.load(record);
+		bindingManager.load(record);
+
+		dateField.load(record);
+		placeField.load(record);
+		notePanel.load(record);
+		sourceCitationPanel.load(record);
+		modificationPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-//		if(!subjectField.hasData()){
-//			GUIHelper.showValidationErrorAndFocus(this,
-//				"Subject cannot be empty.",
-//				tabbedPane, mainPanel, subjectField);
-//
-//			return false;
-//		}
-//
-//		if(!objectField.hasData()){
-//			GUIHelper.showValidationErrorAndFocus(this,
-//				"Object cannot be empty.",
-//				tabbedPane, mainPanel, objectField);
-//
-//			return false;
-//		}
-//
-//		if(!typeCombo.isSelected()){
-//			GUIHelper.showValidationErrorAndFocus(this,
-//				"Type cannot be empty.",
-//				tabbedPane, mainPanel, typeCombo);
-//
-//			return false;
-//		}
-
 		return true;
 	}
 
 	@Override
 	protected void saveData(){
-//		subjectField.save(record);
-//		objectField.save(record);
-//
-//		bindingManager.save(record);
-//
-//		validFromField.save(record);
-//		validToField.save(record);
-//		notePanel.saveReferences(record);
-//		sourceCitationPanel.save(record);
-//		modificationPanel.save(record);
+		bindingManager.save(record);
+
+		dateField.save(record);
+		placeField.save(record);
+		notePanel.saveReferences(record);
+		sourceCitationPanel.save(record);
+		modificationPanel.save(record);
 	}
 
 
