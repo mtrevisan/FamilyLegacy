@@ -184,7 +184,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 			"generational_interval"
 		});
 		ruleTypeCombo.setEditable(true);
-		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
+		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Evidence");
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
@@ -238,7 +238,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]5[]"));
 		placePanel.setBorder(BorderFactory.createTitledBorder("Place"));
 		placePanel.add(placeCitationField, "growx,wrap");
-		placePanel.add(placeQualifiers, "growx,wrap");
+		placePanel.add(placeQualifiers, "growx");
 		mainPanel.add(placePanel, "span 2,growx,wrap");
 
 		// validity range
@@ -249,7 +249,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		validityPanel.add(validFromField, "growx,wrap");
 		// valid to
 		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx,wrap");
+		validityPanel.add(validToField, "growx");
 		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		// qualifiers

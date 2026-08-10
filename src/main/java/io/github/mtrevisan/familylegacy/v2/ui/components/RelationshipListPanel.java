@@ -124,9 +124,8 @@ public class RelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		//TODO
-//		final RelationshipRecordDialog dialog = (RelationshipRecordDialog)relationshipHandler.createEditDialog(parent, model, existing);
-//		dialog.setVisible(true);
+		final RelationshipRecordDialog dialog = (RelationshipRecordDialog)relationshipHandler.createEditDialog(parent, model, existing);
+		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
 		return existing;

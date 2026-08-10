@@ -168,7 +168,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		dateField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
+		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
@@ -225,7 +225,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		validityPanel.add(validFromField, "growx,wrap");
 		// valid to
 		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx,wrap");
+		validityPanel.add(validToField, "growx");
 		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		// place

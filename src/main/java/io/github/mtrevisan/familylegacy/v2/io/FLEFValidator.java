@@ -80,10 +80,10 @@ public class FLEFValidator{
 		if(fileDef.headerField() != null && model.getHeader() != null){
 			final TypeDefinition headerType = grammar.getType(fileDef.headerField().type().getName());
 			if(headerType != null){
-				headerType.validate(FIELD_HEADER, model.getHeader(), grammar, errors);
+				headerType.validate(FIELD_HEADER, model.getHeader(), model, grammar, errors);
 
 				// Validate constraints on the header
-				validateConstraints(FIELD_HEADER, model.getHeader(), grammar, errors);
+				validateConstraints(FIELD_HEADER, model.getHeader(), model, grammar, errors);
 			}
 		}
 
@@ -93,10 +93,10 @@ public class FLEFValidator{
 			if(recordsType != null)
 				for(final FLEFRecord record : model.getRecords()){
 					final String contextPath = "records." + record.getTag();
-					recordsType.validate(contextPath, record, grammar, errors);
+					recordsType.validate(contextPath, record, model, grammar, errors);
 
 					// Validate constraints on each record
-					validateConstraints(contextPath, record, grammar, errors);
+					validateConstraints(contextPath, record, model, grammar, errors);
 				}
 		}
 
@@ -108,8 +108,8 @@ public class FLEFValidator{
 	/**
 	 * Validates all {@code require} constraints on a record and its descendants.
 	 */
-	private void validateConstraints(final String contextPath, final FLEFRecord root, final FLEFGrammar grammar,
-			final List<String> errors){
+	private void validateConstraints(final String contextPath, final FLEFRecord root, final FLEFModel model,
+			final FLEFGrammar grammar, final List<String> errors){
 		final Deque<RecordContext> stack = new ArrayDeque<>();
 		stack.push(new RecordContext(root, contextPath));
 
@@ -121,7 +121,7 @@ public class FLEFValidator{
 			final TypeDefinition typeDef = grammar.getType(record.getTag());
 			if(typeDef instanceof StructType structType)
 				for(final Constraint constraint : structType.getConstraints())
-					constraint.validate(path, record, errors);
+					constraint.validate(path, record, model, errors);
 
 			final List<FLEFRecord> children = record.getChildren();
 			for(int i = children.size() - 1; i >= 0; i --){

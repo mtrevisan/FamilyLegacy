@@ -204,6 +204,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
+		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);

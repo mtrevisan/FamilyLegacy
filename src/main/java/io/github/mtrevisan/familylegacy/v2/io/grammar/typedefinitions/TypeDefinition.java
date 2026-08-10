@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import java.util.List;
@@ -34,6 +35,7 @@ public abstract class TypeDefinition{
 	/**
 	 * Validates the current model node against this type definition.
 	 */
-	public abstract void validate(String contextPath, FLEFRecord record, FLEFGrammar grammar, List<String> errors);
+	public abstract void validate(String contextPath, FLEFRecord record, FLEFModel model, FLEFGrammar grammar,
+		List<String> errors);
 
 }

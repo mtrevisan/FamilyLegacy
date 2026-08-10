@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import java.util.Collections;
@@ -29,7 +30,8 @@ public final class UnionType extends TypeDefinition{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar, final List<String> errors){
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final FLEFGrammar grammar, final List<String> errors){
 		String tag = record.getTag();
 		FLEFRecord targetRecord = record;
 
@@ -61,7 +63,7 @@ public final class UnionType extends TypeDefinition{
 		}
 
 		// Delegate validation to the underlying choice record
-		targetType.validate(contextPath, targetRecord, grammar, errors);
+		targetType.validate(contextPath, targetRecord, model, grammar, errors);
 	}
 
 	@Override

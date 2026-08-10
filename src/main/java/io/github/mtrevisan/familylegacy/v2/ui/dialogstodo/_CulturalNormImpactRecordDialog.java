@@ -137,8 +137,8 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 		significanceArea.setWrapStyleWord(true);
 
 		// Restriction and Modification
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, parent);
-		modificationPanel = new ModificationPanel(parent);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		modificationPanel = new ModificationPanel(this);
 
 		// Listeners
 		culturalNormButton.addActionListener(e -> selectCulturalNorm());
@@ -170,7 +170,7 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		// Cultural Norm
-		JPanel normPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow][shrink 0]"));
+		final JPanel normPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow][shrink 0]"));
 		normPanel.add(culturalNormField, "growx");
 		normPanel.add(culturalNormButton, "width 30!");
 		mainPanel.add(new JLabel("Cultural Norm*:"), "align label");

@@ -125,8 +125,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
 		namePanel = new ClassifiedNameListPanel(TAG_NAME, this, "Names*", model);
-		custodianField = IndividualField.create(TAG_CUSTODIAN, parent, model);
-		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
+		custodianField = IndividualField.create(TAG_CUSTODIAN, this, model);
+		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		contactPanel = new ContactListPanel(TAG_CONTACT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, model);
 		modificationPanel = new ModificationPanel(this);

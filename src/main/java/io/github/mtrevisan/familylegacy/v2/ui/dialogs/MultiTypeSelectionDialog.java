@@ -234,7 +234,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 		if(defaultType != null)
 			return defaultType;
 
-		return (RecordTypeHandler<?>)typeCombo.getSelectedItem();
+		return (typeCombo != null? (RecordTypeHandler<?>)typeCombo.getSelectedItem(): null);
 	}
 
 	private void loadRecordsForType(final RecordTypeHandler<?> desc){

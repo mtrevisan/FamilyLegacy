@@ -202,11 +202,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = new NoteListPanel(TAG_NOTE, parent, model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
+		notePanel = new NoteListPanel(TAG_NOTE, this, model);
+		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, parent);
-		modificationPanel = new ModificationPanel(parent);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		modificationPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -301,7 +301,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validityPanel.add(validFromField, "growx,wrap");
 		// valid to
 		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx,wrap");
+		validityPanel.add(validToField, "growx");
 		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		// evidence

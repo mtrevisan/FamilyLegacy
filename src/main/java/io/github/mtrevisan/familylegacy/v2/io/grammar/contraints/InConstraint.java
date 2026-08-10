@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
@@ -32,7 +33,8 @@ public final class InConstraint extends Constraint{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final List<String> errors){
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final List<String> errors){
 		final FLEFRecord fieldChild = FLEFRecordHelper.findChild(record, field);
 		if(fieldChild == null)
 			return;

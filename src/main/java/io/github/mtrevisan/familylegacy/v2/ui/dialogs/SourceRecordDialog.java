@@ -152,7 +152,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		authorField = new BoundTextField(TAG_AUTHOR, 30);
 		publisherField = new BoundTextField(TAG_PUBLISHER, 30);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid Date", model);
-		placeCitationField = PlaceCitationField.create(TAG_PLACE, parent, model);
+		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		mediaTypeCombo = new BoundComboBox<>(TAG_MEDIA_TYPE,
 			new String[]{StringUtils.EMPTY, "audio", "book", "card", "electronic", "fiche", "film",
 				"magazine", "manuscript", "map", "newspaper", "photo",

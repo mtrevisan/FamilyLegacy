@@ -126,7 +126,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 		titleField = new BoundTextField(TAG_TITLE, 30);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
-		placeField = PlaceField.create(TAG_PLACE, parent, model);
+		placeField = PlaceField.create(TAG_PLACE, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, "Notes", model);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		modificationPanel = new ModificationPanel(this);

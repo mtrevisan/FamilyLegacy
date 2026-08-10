@@ -42,7 +42,7 @@ import java.io.Serial;
  *   preferred?: ConclusionTarget
  *   proof_status: enum { unresearched, conflicting_evidence, supported, proven, disproven }
  *   narrative?: Text
- *   research*: Xref&lt;ResearchStatusRecord&gt;
+ *   research*: Xref&lt;ResearchQuestionRecord&gt;
  *   date?: Date
  *   source*: SourceCitation
  *   restriction?: RestrictionStructure
@@ -130,11 +130,11 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 			"unresearched", "conflicting_evidence", "supported", "proven", "disproven"
 		});
 		narrativeArea = new BoundTextArea(TAG_NARRATIVE, 5, 30);
-		researchPanel = new ResearchQuestionListPanel(TAG_RESEARCH, parent, model);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, parent, "Conclusion Date", model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, parent);
-		modificationPanel = new ModificationPanel(parent);
+		researchPanel = new ResearchQuestionListPanel(TAG_RESEARCH, this, model);
+		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Conclusion Date", model);
+		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		modificationPanel = new ModificationPanel(this);
 
 
 		initComponents();

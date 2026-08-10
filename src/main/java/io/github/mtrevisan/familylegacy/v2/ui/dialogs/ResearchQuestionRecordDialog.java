@@ -31,15 +31,29 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.AssociationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchQuestionStatusPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -48,26 +62,30 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 
 /* DONE */
 /**
- * Dialog for editing a {@code RESEARCH_STATUS_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing a {@code RESEARCH_QUESTION_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * record ResearchStatusRecord {
+ * record ResearchQuestionRecord {
  *   id: LocalID
+ *   title: Text
  *   question: Text
- *   status?: enum { active, completed, blocked }
- *   priority?: enum { high, medium, low }
- *   association*: struct {
- *     target: ResearchTarget
- *     name?: Text
- *   }
- *   blocked_by*: Xref&lt;ResearchStatusRecord&gt;
- *   plan?: Text
- *   resolution?: Text
+ *   target*: ResearchTarget
+ *   status: enum { open, on_hold, resolved, disproven }
+ *   conclusion?: Text
+ *   conclusion_confidence?: enum { low, medium, high }
+ *   rationale?: Text
+ *   created: Date
+ *   closed?: Date
+ *   restriction?: RestrictionStructure
  *   modification: ModificationStructure
  * }
  *
@@ -86,7 +104,7 @@ import java.io.Serial;
  *   identity_hypothesis: Xref&lt;IdentityHypothesisRecord&gt;
  *   cultural_norm: Xref&lt;CulturalNormRecord&gt;
  *   historic_event: Xref&lt;HistoricEventRecord&gt;
- *   void: struct { }
+ *   void: struct {}
  * }
  * </pre>
  */
@@ -96,36 +114,47 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 4693851314612375503L;
 
 
+	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_QUESTION = "QUESTION";
 	private static final String TAG_TARGET = "TARGET";
-	private static final String TAG_STATUS = "STATUS";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
 	private static final String TAG_RATIONALE = "RATIONALE";
 	private static final String TAG_CREATED = "CREATED";
-	private static final String TAG_CLOSED = "CLOSED";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
 
 	static{
 		HandlerRegistry.register(new ResearchQuestionHandler());
+		HandlerRegistry.register(new IndividualHandler());
+		HandlerRegistry.register(new GroupHandler());
+		HandlerRegistry.register(new EventHandler());
+		HandlerRegistry.register(new EventParticipationHandler());
+		HandlerRegistry.register(new RelationshipHandler());
+		HandlerRegistry.register(new IndividualAttributeHandler());
+		HandlerRegistry.register(new GroupAttributeHandler());
+		HandlerRegistry.register(new PlaceRelationshipHandler());
+		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new DocumentHandler());
+		HandlerRegistry.register(new IdentityHypothesisHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new HistoricEventHandler());
 	}
 
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]10[]"));
-	private final JPanel referencesPanel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]10[]"));
 
 	private final BindingManager bindingManager = new BindingManager();
 
+	private final BoundTextField titleField;
 	private final BoundTextArea questionArea;
-	private final BoundTextField targetField;
-	private final BoundComboBox<String> statusCombo;
+	private final ParticipantField targetField;
+	private final ResearchQuestionStatusPanel statusPanel;
 	private final BoundTextArea conclusionArea;
 	private final BoundComboBox<String> conclusionConfidenceCombo;
 	private final BoundTextArea rationaleArea;
-	private final DateField createdField;
-	private final DateField closedField;
+	private final BoundTextField createdField;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
@@ -161,14 +190,21 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private ResearchQuestionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchQuestionHandler.TYPE));
 
+		titleField = new BoundTextField(TAG_TITLE, 20);
 		questionArea = new BoundTextArea(TAG_QUESTION, 3, 30);
-		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{StringUtils.EMPTY,
-			"active", "completed", "blocked"});
-		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{StringUtils.EMPTY,
-			"high", "medium", "low"});
-		associationPanel = new AssociationListPanel(TAG_ASSOCIATION, this, model);
-		planArea = new BoundTextArea(TAG_PLAN, 3, 30);
-		resolutionArea = new BoundTextArea(TAG_RESOLUTION, 3, 30);
+		targetField = ParticipantField.create(TAG_TARGET, this, model);
+		targetField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE, EventHandler.TYPE,
+			EventParticipationHandler.TYPE, RelationshipHandler.TYPE, IndividualAttributeHandler.TYPE,
+			GroupAttributeHandler.TYPE, PlaceRelationshipHandler.TYPE, SourceHandler.TYPE, DocumentHandler.TYPE,
+			IdentityHypothesisHandler.TYPE, CulturalNormHandler.TYPE, HistoricEventHandler.TYPE));
+		statusPanel = new ResearchQuestionStatusPanel();
+		conclusionArea = new BoundTextArea(TAG_CONCLUSION, 3, 30);
+		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{StringUtils.EMPTY,
+			"low", "medium", "high"});
+		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
+		createdField = new BoundTextField(TAG_CREATED, 20);
+		createdField.setEditable(false);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
 
@@ -183,16 +219,18 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
+		bindingManager.bind(titleField);
 		bindingManager.bind(questionArea);
-		bindingManager.bind(statusCombo);
-		bindingManager.bind(priorityCombo);
-		bindingManager.bind(planArea);
-		bindingManager.bind(resolutionArea);
+		bindingManager.bind(conclusionArea);
+		bindingManager.bind(conclusionConfidenceCombo);
+		bindingManager.bind(rationaleArea);
+		bindingManager.bind(createdField);
+
 
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
+		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
 		add(tabbedPane, "growx");
 
@@ -203,45 +241,59 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
+		// title
+		mainPanel.add(new JLabel("Title*:"), "align label");
+		mainPanel.add(titleField, "growx,wrap");
+
 		// question
 		mainPanel.add(new JLabel("Question*:"), "align label");
 		mainPanel.add(questionArea, "growx,wrap");
 
+		// target
+		mainPanel.add(new JLabel("Target:"), "align label");
+		mainPanel.add(targetField, "growx,wrap");
+
 		// status
-		mainPanel.add(new JLabel("Status:"), "align label");
-		mainPanel.add(statusCombo, "growx,wrap");
+		mainPanel.add(new JLabel("Status*:"), "align label");
+		mainPanel.add(statusPanel, "growx,wrap");
 
-		// priority
-		mainPanel.add(new JLabel("Priority:"), "align label");
-		mainPanel.add(priorityCombo, "growx,wrap");
+		// conclusion panel
+		final JPanel conclusionPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+		conclusionPanel.setBorder(BorderFactory.createTitledBorder("Conclusion"));
+		// conclusion
+		conclusionPanel.add(conclusionArea, "span 2,growx,wrap");
+		// confidence
+		conclusionPanel.add(new JLabel("Confidence:"), "align label");
+		conclusionPanel.add(conclusionConfidenceCombo, "growx");
+		mainPanel.add(conclusionPanel, "span 2,growx,wrap");
 
-		// plan
-		mainPanel.add(new JLabel("Plan:"), "align label");
-		mainPanel.add(planArea, "growx,wrap");
-
-		// resolution
-		mainPanel.add(new JLabel("Resolution:"), "align label");
-		mainPanel.add(resolutionArea, "growx,wrap");
+		// rationale
+		mainPanel.add(new JLabel("Rationale:"), "align label");
+		mainPanel.add(rationaleArea, "growx,wrap");
 
 		return mainPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		referencesPanel.add(associationPanel, "growx");
-		return referencesPanel;
-	}
 
 	@Override
 	protected void loadData(){
 		bindingManager.load(record);
 
-		associationPanel.load(record);
-
+		targetField.load(record);
+		statusPanel.load(record);
+		restrictionPanel.load(record);
 		modificationPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
+		if(titleField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Title is required.",
+				tabbedPane, mainPanel, titleField);
+			return false;
+		}
+
 		if(questionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Question is required.",
@@ -249,28 +301,21 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		// Check for circular blocked_by references (basic check)
-		// A more thorough check would require full graph analysis
-//		final String currentId = (record != null? record.getId(): null);
-//		if(StringUtils.isNotEmpty(currentId))
-//			for(String blockedId : blockedByPanel.getBlockedByIds())
-//				if(currentId.equals(blockedId)){
-//					GUIHelper.showValidationErrorAndFocus(this,
-//						"A research status cannot be blocked by itself.",
-//						tabbedPane, referencesPanel, blockedByPanel);
-//
-//					return false;
-//				}
-
 		return true;
 	}
 
 	@Override
 	protected void saveData(){
+		if(createdField.isEmpty()){
+			final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+			createdField.setText(creationDate);
+		}
+
 		bindingManager.save(record);
 
-		associationPanel.save(record);
-
+		targetField.save(record);
+		statusPanel.save(record);
+		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}
 

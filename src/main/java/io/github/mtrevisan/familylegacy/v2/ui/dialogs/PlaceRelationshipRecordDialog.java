@@ -138,8 +138,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		setTitle(record == null? "Add Place Relationship": "Edit Place Relationship");
 
 		subjectLabel = new JLabel("Subject*:");
-		subjectField = PlaceField.create(TAG_SUBJECT, parent, model);
-		objectField = PlaceField.create(TAG_OBJECT, parent, model);
+		subjectField = PlaceField.create(TAG_SUBJECT, this, model);
+		objectField = PlaceField.create(TAG_OBJECT, this, model);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
@@ -201,7 +201,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		validityPanel.add(validFromField, "growx,wrap");
 		// valid to
 		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx,wrap");
+		validityPanel.add(validToField, "growx");
 		mainPanel.add(validityPanel, "span 2,growx");
 
 		return mainPanel;

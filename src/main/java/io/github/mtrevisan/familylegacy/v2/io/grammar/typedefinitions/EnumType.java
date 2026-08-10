@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,8 +35,8 @@ public final class EnumType extends TypeDefinition{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar,
-			final List<String> errors){
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final FLEFGrammar grammar, final List<String> errors){
 		final String val = record.getValue();
 		if(val != null && !values.contains(val.toLowerCase(Locale.ROOT)) && !allowCustomText)
 			errors.add(String.format("Invalid enum value '%s' at '%s'. Allowed: %s", val, contextPath, values));

@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import java.util.List;
@@ -26,17 +27,17 @@ import java.util.List;
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar,
-			final List<String> errors){
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final FLEFGrammar grammar, final List<String> errors){
 		boolean matchesAny = true;
 		for(final TypeDefinition alternative : alternatives)
 			switch(alternative){
-				case StructType structType -> structType.validate(contextPath, record, grammar, errors);
-				case EnumType enumType -> enumType.validate(contextPath, record, grammar, errors);
-				case UnionType unionType -> unionType.validate(contextPath, record, grammar, errors);
-				case AlternationType alternationType -> alternationType.validate(contextPath, record, grammar, errors);
-				case ReferenceType refType -> refType.validate(contextPath, record, grammar, errors);
-				case ScalarType scalarType -> scalarType.validate(contextPath, record, grammar, errors);
+				case StructType structType -> structType.validate(contextPath, record, model, grammar, errors);
+				case EnumType enumType -> enumType.validate(contextPath, record, model, grammar, errors);
+				case UnionType unionType -> unionType.validate(contextPath, record, model, grammar, errors);
+				case AlternationType alternationType -> alternationType.validate(contextPath, record, model, grammar, errors);
+				case ReferenceType refType -> refType.validate(contextPath, record, model, grammar, errors);
+				case ScalarType scalarType -> scalarType.validate(contextPath, record, model, grammar, errors);
 				default -> matchesAny = false;
 			}
 

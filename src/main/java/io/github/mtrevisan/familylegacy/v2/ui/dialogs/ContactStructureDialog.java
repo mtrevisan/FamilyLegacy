@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -129,10 +130,10 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
 			StringUtils.EMPTY, "email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
-		nameListPanel = new VariantListPanel(TAG_NAME, parent, model);
-		notePanel = new NoteListPanel(TAG_NOTE, parent, model);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, parent);
-		modificationPanel = new ModificationPanel(parent);
+		nameListPanel = new VariantListPanel(TAG_NAME, this, model);
+		notePanel = new NoteListPanel(TAG_NOTE, this, model);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		modificationPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -150,22 +151,34 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		bindingManager.bind(typeCombo);
 
 
-		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]10[]"));
+		setLayout(new MigLayout("ins 10,fillx,top"));
 
-		add(new JLabel("Address*:"), "align label");
-		add(addressField, "growx,wrap");
-
-		add(new JLabel("Type:"), "align label");
-		add(typeCombo, "growx,wrap");
-
-		add(nameListPanel, "span 2,growx,wrap");
-
-		add(notePanel, "span 2,growx,wrap");
+		final JTabbedPane tabbedPane = new JTabbedPane();
+		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("Restriction", restrictionPanel);
+		tabbedPane.addTab("Modification", modificationPanel);
+		add(tabbedPane, "growx");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			this::save,
 			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
+	}
+
+	private JPanel createMainPanel(){
+		final JPanel panel = new JPanel(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]10[]"));
+
+		panel.add(new JLabel("Address*:"), "align label");
+		panel.add(addressField, "growx,wrap");
+
+		panel.add(new JLabel("Type:"), "align label");
+		panel.add(typeCombo, "growx,wrap");
+
+		panel.add(nameListPanel, "span 2,growx,wrap");
+
+		panel.add(notePanel, "span 2,growx,wrap");
+
+		return panel;
 	}
 
 

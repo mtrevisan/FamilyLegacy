@@ -145,6 +145,17 @@ public class ParticipantField extends JPanel{
 	}
 
 	public void setHandlerTypes(final List<String> handlerTypes){
+		for(final String handlerType : handlerTypes){
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
+			if(handler == null){
+				JOptionPane.showMessageDialog(this, "Handler for " + handlerType
+						+ " not loaded.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+		}
+
 		this.handlerTypes = handlerTypes;
 	}
 

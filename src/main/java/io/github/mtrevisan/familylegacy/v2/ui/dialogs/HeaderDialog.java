@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.BasicNoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ContactListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -222,11 +221,6 @@ public class HeaderDialog extends JDialog{
 
 
 	private void loadData(){
-		String date = FLEFRecordHelper.getChildValuesAsString(headerRecord, TAG_DATE);
-		if(StringUtils.isBlank(date))
-			date = "--";
-		dateField.setText(date);
-
 		bindingManager.load(headerRecord);
 
 		submitterContactListPanel.load(headerRecord);
@@ -236,7 +230,8 @@ public class HeaderDialog extends JDialog{
 	private void save(){
 		FLEFRecordHelper.removeAllChildren(headerRecord);
 
-		dateField.setText(LocalDate.now(ZoneOffset.UTC).toString());
+		if(dateField.isEmpty())
+			dateField.setText(LocalDate.now(ZoneOffset.UTC).toString());
 
 		bindingManager.save(headerRecord);
 

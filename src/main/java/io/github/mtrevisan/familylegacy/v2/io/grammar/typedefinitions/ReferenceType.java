@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import java.util.List;
@@ -32,8 +33,8 @@ public final class ReferenceType extends TypeDefinition{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar,
-			final List<String> errors){
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final FLEFGrammar grammar, final List<String> errors){
 		// 1. Syntactic validation: Check if node is a reference format
 		if(!record.isReference()){
 			errors.add(String.format("Expected cross-reference at '%s'", contextPath));

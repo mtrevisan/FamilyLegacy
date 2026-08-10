@@ -113,11 +113,11 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(IdentityHypothesisHandler.TYPE));
 
 		subject = new BoundTextField(TAG_SUBJECT);
-		candidateField = ParticipantField.create(TAG_CANDIDATE, parent, model);
+		candidateField = ParticipantField.create(TAG_CANDIDATE, this, model);
 		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
+		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		modificationPanel = new ModificationPanel(parent);
+		modificationPanel = new ModificationPanel(this);
 
 
 		initComponents();

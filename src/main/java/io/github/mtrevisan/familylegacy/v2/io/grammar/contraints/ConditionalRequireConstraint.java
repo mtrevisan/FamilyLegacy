@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
@@ -38,7 +39,8 @@ public final class ConditionalRequireConstraint extends Constraint{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final List<String> errors){
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final List<String> errors){
 		final FLEFRecord condChild = FLEFRecordHelper.findChild(record, conditionField);
 
 		// Skip validation if condition field is missing or value does not match

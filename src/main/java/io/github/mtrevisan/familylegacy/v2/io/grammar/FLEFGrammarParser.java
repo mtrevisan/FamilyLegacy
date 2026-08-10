@@ -398,6 +398,7 @@ public final class FLEFGrammarParser{
 		// 1. require one_of(fieldA, fieldB, ...)
 		if(peekIs(TAG_ONE_OF_FN)){
 			next();
+
 			expect("(");
 			final List<String> fields = parseIdentListUntil(")");
 			expect(")");
@@ -407,6 +408,7 @@ public final class FLEFGrammarParser{
 		// 2. require at_least_one(fieldA, fieldB, ...)
 		if(peekIs(TAG_AT_LEAST_ONE_FN)){
 			next();
+
 			expect("(");
 			final List<String> fields = parseIdentListUntil(")");
 			expect(")");
@@ -416,36 +418,42 @@ public final class FLEFGrammarParser{
 		// 3. require type(fieldA) == type(fieldB)
 		if(peekIs(TAG_TYPE_FN)){
 			next();
+
 			expect("(");
-			final List<String> fields = parseIdentListUntil(")");
-			if(fields.size() != 1){
+			final List<String> firstFields = parseIdentListUntil(")");
+			if(firstFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
-					"Expected one field on first type but found [" + StringUtils.join(fields, ", ") + "]",
+					"Expected one field in type(...), found [" + StringUtils.join(firstFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
 			expect(")");
 			expect(EQUALS);
 			expect(TAG_TYPE_FN);
 			expect("(");
-			fields.addAll(parseIdentListUntil(")"));
-			if(fields.size() != 2){
+			final List<String> secondFields = parseIdentListUntil(")");
+			if(secondFields.size() != 2){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
-					"Expected one field on second type but found [" + StringUtils.join(new ArrayList<>(fields).removeFirst(), ", ") + "]",
+					"Expected one field in second type(...), found [" + StringUtils.join(secondFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
 			expect(")");
-			return new EqualTypeConstraint(fields);
+
+			firstFields.addAll(secondFields);
+			return new EqualTypeConstraint(firstFields);
 		}
 
 		// 4. require if conditionField == conditionValue : requiredField, ...
 		if(peekIs(TAG_IF)){
 			next();
+
 			final String conditionField = next();
 			if(!peekIs(EQUALS))
 				throw new FLEFGrammarParseException("Expected '==' after field in 'require if'", peekToken().line());
+
 			next();
+
 			final String conditionValue = next();
 			expect(TAG_COLON);
 			final List<String> requiredFields = parseCommaSeparatedIdents();

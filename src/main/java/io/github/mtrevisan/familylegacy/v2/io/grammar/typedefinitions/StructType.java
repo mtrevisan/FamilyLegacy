@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,8 +46,8 @@ public class StructType extends TypeDefinition{
 	}
 
 	@Override
-	public void validate(final String contextPath, final FLEFRecord record, final FLEFGrammar grammar,
-			final List<String> errors){
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final FLEFGrammar grammar, final List<String> errors){
 		// Check all fields defined for this structure
 		for(final FieldDefinition fieldDef : fields){
 			final String fieldName = fieldDef.name();
@@ -76,12 +77,12 @@ public class StructType extends TypeDefinition{
 
 			// 3. Delegate recursive validation of child records to the resolved type
 			for(final FLEFRecord child : children)
-				fieldType.validate(currentPath, child, grammar, errors);
+				fieldType.validate(currentPath, child, model, grammar, errors);
 		}
 
 		// Validate structural constraints (e.g., require one_of, require if)
 		for(final Constraint constraint : constraints)
-			constraint.validate(contextPath, record, errors);
+			constraint.validate(contextPath, record, model, errors);
 	}
 
 	@Override
