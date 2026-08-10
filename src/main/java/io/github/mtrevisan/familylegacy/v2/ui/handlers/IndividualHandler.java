@@ -37,14 +37,14 @@ import java.util.List;
 /* DONE */
 public class IndividualHandler implements RecordTypeHandler<IndividualRecordDialog>{
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_PART = "PART";
-	private static final String TAG_VALUE = "VALUE";
-
 	/** The record type identifier for groups. */
 	public static final String TYPE = "INDIVIDUAL";
 	/** The ID prefix used for generating new group IDs (e.g., {@code G}). */
 	public static final String ID_PREFIX = "I";
+
+	private static final String TAG_NAME = "NAME";
+	private static final String TAG_PART = "PART";
+	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override

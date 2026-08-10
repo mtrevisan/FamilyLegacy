@@ -259,7 +259,7 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		String context = contextField.getText().trim();
+		String context = contextField.getText();
 		if(context.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Context is required.",
@@ -298,9 +298,9 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		// Simple fields
-		FLEFRecordHelper.updateChildValue(record, TAG_CONTEXT, contextField.getText().trim());
+		FLEFRecordHelper.updateChildValue(record, TAG_CONTEXT, contextField.getText());
 		FLEFRecordHelper.updateChildValue(record, TAG_PROOF_STATUS, (String)proofStatusCombo.getSelectedItem());
-		FLEFRecordHelper.updateChildValue(record, TAG_NARRATIVE, narrativeArea.getText().trim());
+		FLEFRecordHelper.updateChildValue(record, TAG_NARRATIVE, narrativeArea.getText());
 
 		dateField.save(record);
 		//TODO
