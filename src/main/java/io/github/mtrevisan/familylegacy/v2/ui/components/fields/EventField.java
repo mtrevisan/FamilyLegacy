@@ -63,6 +63,7 @@ public class EventField extends JPanel{
 
 	private FLEFRecord record;
 
+
 	private final JTextField displayField = new JTextField(20);
 
 	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
@@ -158,7 +159,8 @@ public class EventField extends JPanel{
 	 * Creates a new place and adds a citation for it.
 	 */
 	private FLEFRecord createNew(){
-		final EventRecordDialog dialog = EventRecordDialog.createNew(parent, model);
+		final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
+		final EventRecordDialog dialog = (EventRecordDialog)eventHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -186,7 +188,8 @@ public class EventField extends JPanel{
 			return;
 		}
 
-		final EventRecordDialog dialog = EventRecordDialog.createEdit(parent, model, record);
+		final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
+		final EventRecordDialog dialog = (EventRecordDialog)eventHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

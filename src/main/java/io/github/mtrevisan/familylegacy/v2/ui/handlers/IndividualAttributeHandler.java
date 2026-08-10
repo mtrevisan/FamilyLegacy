@@ -82,7 +82,7 @@ public class IndividualAttributeHandler implements RecordTypeHandler<IndividualA
 
 	@Override
 	public IndividualAttributeRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return IndividualAttributeRecordDialog.createNew(parent, model, null);
+		return IndividualAttributeRecordDialog.createNew(parent, model);
 	}
 
 	@Override

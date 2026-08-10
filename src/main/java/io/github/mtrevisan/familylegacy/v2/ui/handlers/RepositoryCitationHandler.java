@@ -86,7 +86,7 @@ public class RepositoryCitationHandler implements RecordTypeHandler<RepositoryCi
 
 	@Override
 	public RepositoryCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return RepositoryCitationDialog.createNew(parent, model, null);
+		return RepositoryCitationDialog.createNew(parent, model);
 	}
 
 	@Override

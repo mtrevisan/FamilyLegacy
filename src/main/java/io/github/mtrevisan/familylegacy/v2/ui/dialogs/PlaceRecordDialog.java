@@ -100,10 +100,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private final BindingManager bindingManager = new BindingManager();
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
 
 	private final ClassifiedNameListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
@@ -196,7 +196,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		// name structure
+		// name
 		mainPanel.add(namePanel, "span 2,growx,wrap");
 
 		// type

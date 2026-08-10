@@ -78,10 +78,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private final BindingManager bindingManager = new BindingManager();
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField subject;
 	private final ParticipantField candidateField;
@@ -94,31 +94,26 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	/**
 	 * Creates a new dialog to create a new record.
 	 */
-	public static IdentityHypothesisRecordDialog createNew(final Dialog parent, final FLEFModel model,
-			final String subjectId, final String subjectHandlerType){
-		return new IdentityHypothesisRecordDialog(parent, model, null, subjectId, subjectHandlerType);
+	public static IdentityHypothesisRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return new IdentityHypothesisRecordDialog(parent, model, null);
 	}
 
 	/**
 	 * Creates a new dialog to edit an existing record.
 	 */
 	public static IdentityHypothesisRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record, final String subjectId, final String subjectHandlerType){
+			final FLEFRecord record){
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new IdentityHypothesisRecordDialog(parent, model, record, subjectId, subjectHandlerType);
+		return new IdentityHypothesisRecordDialog(parent, model, record);
 	}
 
-	private IdentityHypothesisRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final String subjectId, final String subjectHandlerType){
+	private IdentityHypothesisRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(IdentityHypothesisHandler.TYPE));
 
-		subject = new BoundTextField(TAG_SUBJECT, 20);
-		if(StringUtils.isNotEmpty(subjectId))
-			subject.setText(subjectId);
-
-		candidateField = ParticipantField.create(TAG_CANDIDATE, parent, model, subjectHandlerType);
+		subject = new BoundTextField(TAG_SUBJECT);
+		candidateField = ParticipantField.create(TAG_CANDIDATE, parent, model);
 		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
 		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, parent, model);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
@@ -170,6 +165,16 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		panel.add(sourcePanel, "growx");
 		return panel;
 	}
+
+
+	public void setSubject(final String subjectId, final String subjectHandlerType){
+		if(StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(subjectHandlerType)){
+			subject.setText(subjectId);
+
+			candidateField.setHandlerType(subjectHandlerType);
+		}
+	}
+
 
 	@Override
 	protected void loadData(){
@@ -236,8 +241,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final IdentityHypothesisRecordDialog dialog = IdentityHypothesisRecordDialog.createNew(null, model,
-				"$I1$", IndividualHandler.TYPE);
+			final IdentityHypothesisRecordDialog dialog = IdentityHypothesisRecordDialog.createNew(null, model);
+			dialog.setSubject("$I1$", IndividualHandler.TYPE);
 			dialog.setVisible(true);
 		});
 	}

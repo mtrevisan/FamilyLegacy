@@ -35,7 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameStructureHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -99,7 +99,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 
 	static{
-		HandlerRegistry.register(new PersonalNameStructureHandler());
+		HandlerRegistry.register(new PersonalNameHandler());
 		HandlerRegistry.register(new VariantHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
@@ -107,10 +107,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	}
 
 
-	private final BindingManager bindingManager = new BindingManager();
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundComboBox<String> typeCombo;
 	private final PartStructureListPanel partPanel;
@@ -148,7 +148,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 
 	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PersonalNameStructureHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(PersonalNameHandler.TYPE));
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY,
 			// marital status and origins at birth

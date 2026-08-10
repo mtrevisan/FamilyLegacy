@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ContactStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -100,7 +102,8 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final ContactStructureDialog dialog = ContactStructureDialog.createNew(parent, model);
+		final RecordTypeHandler<?> contactHandler = HandlerRegistry.getHandler(ContactHandler.TYPE);
+		final ContactStructureDialog dialog = (ContactStructureDialog)contactHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -115,7 +118,8 @@ public class ContactListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final ContactStructureDialog dialog = ContactStructureDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> contactHandler = HandlerRegistry.getHandler(ContactHandler.TYPE);
+		final ContactStructureDialog dialog = (ContactStructureDialog)contactHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

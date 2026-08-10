@@ -155,7 +155,8 @@ public class PlaceField extends JPanel{
 	}
 
 	private FLEFRecord createNew(){
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -183,7 +184,8 @@ public class PlaceField extends JPanel{
 			return;
 		}
 
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, record);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

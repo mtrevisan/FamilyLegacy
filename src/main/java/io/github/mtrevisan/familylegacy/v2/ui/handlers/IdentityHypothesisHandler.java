@@ -66,12 +66,12 @@ public class IdentityHypothesisHandler implements RecordTypeHandler<IdentityHypo
 
 	@Override
 	public IdentityHypothesisRecordDialog createNewDialog(Dialog parent, FLEFModel model){
-		return null;
+		return IdentityHypothesisRecordDialog.createNew(parent, model);
 	}
 
 	@Override
 	public IdentityHypothesisRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		return null;
+		return IdentityHypothesisRecordDialog.createEdit(parent, model, record);
 	}
 
 }

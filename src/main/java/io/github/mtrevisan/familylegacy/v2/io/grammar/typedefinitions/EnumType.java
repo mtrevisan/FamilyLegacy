@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Locale;
@@ -42,7 +43,7 @@ public final class EnumType extends TypeDefinition{
 
 	@Override
 	public String toString(){
-		return "enum{" + values + (allowCustomText? " | Text": "") + "}";
+		return "enum{" + values + (allowCustomText? " | Text": StringUtils.EMPTY) + "}";
 	}
 
 }

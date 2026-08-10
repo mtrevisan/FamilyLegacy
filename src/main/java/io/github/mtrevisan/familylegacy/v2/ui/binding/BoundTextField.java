@@ -37,6 +37,14 @@ public class BoundTextField extends JTextField implements PathBound{
 	private final boolean readOnly;
 
 
+	public BoundTextField(final String path){
+		super();
+
+		this.path = path;
+
+		readOnly = false;
+	}
+
 	public BoundTextField(final String path, final int columns){
 		super(columns);
 

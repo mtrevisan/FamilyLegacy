@@ -26,8 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.AssociationStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.AssociationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -36,27 +37,41 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.List;
 
 
+/* DONE */
 /**
- * Panel for managing a list of EVENT references (XREF IDs).
+ * Panel for managing a list of association structures.
+ * Each association has a target (Xref or VOID) and an optional name.
+ * <p>
+ * Structure:
+ * <pre>
+ * association: struct {
+ *   target: XrefOrVoid&lt;LocalID&gt;
+ *   name?: Text
+ * }
+ * </pre>
  */
-public class EventListPanel extends AbstractListPanel<String>{
+public class AssociationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = 4727208227799748736L;
+	private static final long serialVersionUID = 5201318669653810012L;
 
 
 	static{
-		HandlerRegistry.register(new EventHandler());
+		HandlerRegistry.register(new AssociationHandler());
 	}
 
+	private final String path;
 
-	private static final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
+	private final RecordTypeHandler<?> associationHandler = HandlerRegistry.getHandler(AssociationHandler.TYPE);
 
 
-	public EventListPanel(Dialog parent, FLEFModel model){
-		super(parent, "Events", model);
+	public AssociationListPanel(final String path, final Dialog parent, final FLEFModel model){
+		super(parent, "Associations", model);
+
+		this.path = path;
 	}
 
 
@@ -73,50 +88,63 @@ public class EventListPanel extends AbstractListPanel<String>{
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
-	}
-
-	@Override
-	protected String getDisplay(String id){
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null)
-			return eventHandler.getDisplayText(rec, model);
-		return id;
-	}
-
-	@Override
-	protected String showAddDialog(){
-		final String[] result = {null};
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			EventHandler.TYPE,
-			(handlerType, selectedRecord) -> result[0] = selectedRecord.getValue()
+			}
 		);
-		dialog.setVisible(true);
-
-		return result[0];
 	}
 
-	/**
-	 * Creates a new event and adds it to the list.
-	 */
 	@Override
-	protected String showCreateNewDialog(){
-		//TODO
+	protected String getDisplay(final FLEFRecord association){
+		if(association != null)
+			return associationHandler.getDisplayText(association, model);
+
+		return "--";
+	}
+
+	@Override
+	protected FLEFRecord showAddDialog(){
 		return null;
 	}
 
 	@Override
-	protected String showEditDialog(String existing){
-		FLEFRecord rec = model.getRecordById(existing);
-		if(rec == null){
-			JOptionPane.showMessageDialog(parent, "Event record not found: " + existing,
-				"Error", JOptionPane.ERROR_MESSAGE);
-			return null;
-		}
-		JDialog dialog = eventHandler.createEditDialog(null, model, rec);
+	protected FLEFRecord showCreateNewDialog(){
+		final AssociationStructureDialog dialog = (AssociationStructureDialog)associationHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
+		return (dialog.isSaved()? dialog.getRecord(): null);
+	}
+
+	@Override
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
+			JOptionPane.showMessageDialog(parent, "Association not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		final JDialog dialog = associationHandler.createEditDialog(parent, model, existing);
+		dialog.setVisible(true);
+
+		// Return the same record (it was updated in place)
 		return existing;
+	}
+
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
+		final List<FLEFRecord> associations = FLEFRecordHelper.findChildren(record, path);
+		setItems(associations);
+	}
+
+	public void save(final FLEFRecord record){
+		super.save(record, path);
+	}
+
+	public boolean hasData(){
+		return !items.isEmpty();
 	}
 
 }

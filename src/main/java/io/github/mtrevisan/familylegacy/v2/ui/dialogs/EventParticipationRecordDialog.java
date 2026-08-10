@@ -41,11 +41,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -103,16 +106,19 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new EventHandler());
 		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new GroupHandler());
+		HandlerRegistry.register(new PlaceHandler());
 
 	}
 
 
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top,hidemode 3", "[right]rel[grow]", "[]5[]10[]"));
+
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]"));
-
+	private final JLabel eventLabel;
 	private final EventField eventField;
+	private final JLabel participantLabel;
 	private final ParticipantField participantField;
 	private final BoundComboBox<String> roleCombo;
 	private final NoteListPanel notePanel;
@@ -153,9 +159,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private EventParticipationRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(EventParticipationHandler.TYPE));
 
+		eventLabel = new JLabel("Event*:");
 		eventField = EventField.create(TAG_EVENT, this, model);
-		participantField = ParticipantField.create(TAG_PARTICIPANT, this, model,
-			List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
+		participantLabel = new JLabel("Participant*:");
+		participantField = ParticipantField.create(TAG_PARTICIPANT, this, model);
+		participantField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE, PlaceHandler.TYPE));
 		roleCombo = new BoundComboBox<>(TAG_ROLE, new String[]{
 			StringUtils.EMPTY,
 			"child", "parent", "spouse", "power_of_attorney", "prisoner", "witness",
@@ -200,11 +208,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		// event
-		mainPanel.add(new JLabel("Event*:"), "align label");
+		mainPanel.add(eventLabel, "align label");
 		mainPanel.add(eventField, "growx,wrap");
 
 		// participant
-		mainPanel.add(new JLabel("Participant*:"), "align label");
+		mainPanel.add(participantLabel, "align label");
 		mainPanel.add(participantField, "growx,wrap");
 
 		// role
@@ -225,6 +233,57 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	}
 
 
+	public void setEvent(final String eventId){
+		if(StringUtils.isNotEmpty(eventId)){
+			if(model.getRecordById(eventId) == null){
+				JOptionPane.showMessageDialog(this, "Unknown Event ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			eventField.setRecord(FLEFRecord.createMainRecord(eventId, null));
+			eventLabel.setVisible(false);
+			eventField.setVisible(false);
+
+			participantField.setParticipant(null, null);
+			participantLabel.setVisible(true);
+			participantField.setVisible(true);
+
+			refreshLayout();
+		}
+	}
+
+	public void setParticipant(final String participantId, final String participantHandlerType){
+		if(StringUtils.isNotEmpty(participantId)){
+			if(model.getRecordById(participantId) == null){
+				final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerType);
+				JOptionPane.showMessageDialog(this, "Unknown " + participantHandler.getLabel() + " ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			eventField.setRecord(FLEFRecord.createEmpty());
+			eventLabel.setVisible(true);
+			eventField.setVisible(true);
+
+			participantField.setParticipant(participantHandlerType, FLEFRecord.createMainRecord(participantId, null));
+			participantLabel.setVisible(false);
+			participantField.setVisible(false);
+
+			refreshLayout();
+		}
+	}
+
+	private void refreshLayout(){
+		mainPanel.revalidate();
+		mainPanel.repaint();
+
+		pack();
+	}
+
+
 	@Override
 	protected void loadData(){
 		eventField.load(record);
@@ -241,8 +300,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		final String eventId = (String)eventField.getClientProperty("selectedId");
-		if(StringUtils.isEmpty(eventId)){
+		if(!eventField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Event is required.",
 				tabbedPane, mainPanel, eventField);
@@ -287,7 +345,14 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord event = FLEFRecord.createMainRecord("E1", "EVENT");
+			model.addRecord(event);
+			final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+			model.addRecord(individual);
+
 			final EventParticipationRecordDialog dialog = EventParticipationRecordDialog.createNew(null, model);
+//			dialog.setEvent("E1");
+//			dialog.setParticipant("I1", IndividualHandler.TYPE);
 			dialog.setVisible(true);
 		});
 	}

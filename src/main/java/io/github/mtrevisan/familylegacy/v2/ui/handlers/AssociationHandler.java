@@ -27,31 +27,18 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.AssociationStructureDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-/**
- * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.1.
- * <p>
- * This handler provides the necessary operations for managing name structures:
- * creation, editing, display name generation, and type identification.
- * <p>
- * Structure:
- * <pre>
- * ???
- * </pre>
- */
-public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalNameStructureDialog>{
+public class AssociationHandler implements RecordTypeHandler<AssociationStructureDialog>{
 
-	/** The record type identifier for groups. */
-	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
-	public static final String CITED_TYPE = "PERSONAL_NAME";
+	public static final String TYPE = "ASSOCIATION";
 
-	private static final String TAG_TEXT = "TEXT";
-	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TARGET = "TARGET";
+	private static final String TAG_NAME = "NAME";
 
 
 	@Override
@@ -61,17 +48,12 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 
 	@Override
 	public String getLabel(){
-		return "Personal Name Structure";
+		return "Cause";
 	}
 
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getCitedType(){
-		return (!isTopLevelEntity()? CITED_TYPE: null);
 	}
 
 	@Override
@@ -82,27 +64,30 @@ public class PersonalNameStructureHandler implements RecordTypeHandler<PersonalN
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
-			return StringUtils.EMPTY;
+			return "--";
 
-		FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
-		if(textValue != null){
-			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
-			if(value != null && !value.isEmpty())
-				return value;
-		}
+		final FLEFRecord target = FLEFRecordHelper.findChild(record, TAG_TARGET);
+		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 
-		// Fallback to the record ID
-		return record.getId();
+		if(StringUtils.isNotEmpty(name))
+			return (StringUtils.isNotEmpty(name)? name: "[VOID]");
+
+		final FLEFRecord child = target.getChildren().getFirst();
+		final String handlerType = child.getTag();
+		final String xref = child.getValue();
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
+		final FLEFRecord targetRecord = model.getRecordById(xref);
+		return handler.getDisplayText(targetRecord, model);
 	}
 
 	@Override
-	public PersonalNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return PersonalNameStructureDialog.createNew(parent, model);
+	public AssociationStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return AssociationStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return PersonalNameStructureDialog.createEdit(parent, model, record);
+	public AssociationStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return AssociationStructureDialog.createEdit(parent, model, record);
 	}
 
 }

@@ -27,16 +27,16 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._ConclusionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._ConclusionRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
+public class ConclusionHandler implements RecordTypeHandler<_ConclusionRecordDialog>{
 
 	public static final String TYPE = "CONCLUSION";
-	public static final String ID_PREFIX = "CNC";
+	public static final String ID_PREFIX = "CC";
 
 	private static final String TAG_VALUE = "VALUE";
 
@@ -72,13 +72,13 @@ public class ConclusionHandler implements RecordTypeHandler<_ConclusionDialog>{
 	}
 
 	@Override
-	public _ConclusionDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return _ConclusionDialog.createNew(parent, model);
+	public _ConclusionRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return _ConclusionRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public _ConclusionDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return _ConclusionDialog.createEdit(parent, model, record);
+	public _ConclusionRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return _ConclusionRecordDialog.createEdit(parent, model, record);
 	}
 
 }

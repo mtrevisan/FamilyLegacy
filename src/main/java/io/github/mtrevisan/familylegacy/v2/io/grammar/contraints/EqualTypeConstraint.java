@@ -7,14 +7,14 @@ import java.util.List;
 
 
 /**
- * {@code require one_of(fieldA, fieldB, ...)}: one and only one of the listed fields MUST be present.
+ * {@code require at_least_one(fieldA, fieldB, ...)}: at least one of the listed fields MUST be present.
  */
-public final class OneOfConstraint extends Constraint{
+public final class EqualTypeConstraint extends Constraint{
 
 	private final List<String> fields;
 
 
-	public OneOfConstraint(final List<String> fields){
+	public EqualTypeConstraint(final List<String> fields){
 		this.fields = List.copyOf(fields);
 	}
 
@@ -30,7 +30,7 @@ public final class OneOfConstraint extends Constraint{
 			if(FLEFRecordHelper.findChild(record, fieldName) != null)
 				count ++;
 
-		if(count != 1)
+		if(count == 0)
 			errors.add(String.format(
 				"Constraint violation at '%s': expected exactly one of %s, but found %d",
 				contextPath, fields, count
@@ -39,7 +39,7 @@ public final class OneOfConstraint extends Constraint{
 
 	@Override
 	public String toString(){
-		return "require one_of(" + String.join(", ", fields) + ")";
+		return "require at_least_one(" + String.join(", ", fields) + ")";
 	}
 
 }

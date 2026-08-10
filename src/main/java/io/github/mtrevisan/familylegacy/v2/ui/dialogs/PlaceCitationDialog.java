@@ -80,6 +80,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	}
 
 
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
+
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField place;
@@ -95,8 +97,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	 * @param model	The FLEF model.
 	 * @return	A new dialog instance.
 	 */
-	public static PlaceCitationDialog createNew(final Dialog parent, final FLEFModel model, final String placeId){
-		return new PlaceCitationDialog(parent, model, placeId, null);
+	public static PlaceCitationDialog createNew(final Dialog parent, final FLEFModel model){
+		return new PlaceCitationDialog(parent, model, null);
 	}
 
 	/**
@@ -111,17 +113,14 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new PlaceCitationDialog(parent, model, null, record);
+		return new PlaceCitationDialog(parent, model, record);
 	}
 
 
-	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final String placeId,
-			final FLEFRecord record){
+	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PlaceCitationHandler.TYPE));
 
-		place = new BoundTextField(TAG_PLACE, 20);
-		if(StringUtils.isNoneEmpty(placeId))
-			place.setText(placeId);
+		place = new BoundTextField(TAG_PLACE);
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
 		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
@@ -156,22 +155,43 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
-
 		// original text
-		panel.add(new JLabel("Original Text*:"), "align label");
-		panel.add(originalTextField, "growx, wrap");
+		mainPanel.add(new JLabel("Original Text*:"), "align label");
+		mainPanel.add(originalTextField, "growx, wrap");
 
 		// qualifiers
-		panel.add(qualifiers, "span 2,growx");
+		mainPanel.add(qualifiers, "span 2,growx");
 
-		return panel;
+		return mainPanel;
 	}
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
 		panel.add(sourceCitationPanel, "growx");
 		return panel;
+	}
+
+
+	public void setPlace(final String placeId){
+		if(StringUtils.isNotEmpty(placeId)){
+			if(model.getRecordById(placeId) == null){
+				JOptionPane.showMessageDialog(this, "Unknown Place ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			place.setText(placeId);
+
+			refreshLayout();
+		}
+	}
+
+	private void refreshLayout(){
+		mainPanel.revalidate();
+		mainPanel.repaint();
+
+		pack();
 	}
 
 
@@ -220,10 +240,14 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord place = FLEFRecord.createMainRecord("P1", TAG_PLACE);
+			model.addRecord(place);
+
 //			FLEFRecord placeCitation = FLEFRecord.createEmpty();
-//			placeCitation.addChild(FLEFRecord.createChildWithValue(TAG_PLACE, "@P1@"));
+//			placeCitation.addChild(FLEFRecord.createChildWithValue(TAG_PLACE, "P1"));
 //			final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(null, model, placeCitation);
-			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model, "@P1@");
+			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model);
+			dialog.setPlace("P1");
 			dialog.setVisible(true);
 		});
 	}

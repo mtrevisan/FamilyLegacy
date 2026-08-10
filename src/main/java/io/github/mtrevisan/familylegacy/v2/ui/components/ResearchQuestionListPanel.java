@@ -29,7 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchStatusHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
@@ -39,23 +39,32 @@ import java.io.Serial;
 
 
 /**
- * Panel for managing a list of RESEARCH references (XREF IDs of RESEARCH_STATUS records).
+ * Panel for managing a list of {@code RESEARCH_STATUS} references according to FLEF 0.1.1.
  */
-public class ResearchStatusListPanel extends AbstractListPanel<String>{
+public class ResearchQuestionListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = 8660802930133158028L;
 
 
 	static{
-		HandlerRegistry.register(new ResearchStatusHandler());
+		HandlerRegistry.register(new ResearchQuestionHandler());
 	}
 
-	private final RecordTypeHandler<?> researchStatusHandler = HandlerRegistry.getHandler(ResearchStatusHandler.TYPE);
+
+	private final String path;
+
+	private final RecordTypeHandler<?> researchQuestionHandler = HandlerRegistry.getHandler(ResearchQuestionHandler.TYPE);
 
 
-	public ResearchStatusListPanel(Dialog parent, FLEFModel model){
-		super(parent, "Research References", model);
+	public ResearchQuestionListPanel(final String path, final Dialog parent, final FLEFModel model){
+		this(path, parent, "Researches", model);
+	}
+
+	public ResearchQuestionListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
+		super(parent, borderTitle, model);
+
+		this.path = path;
 	}
 
 
@@ -69,27 +78,28 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 			this::removeItem,
 			builder -> {
 				builder.item("Create New...", this::createNewItem);
+				builder.item("Add Existing...", this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+			}
+		);
 	}
 
 	@Override
-	protected String getDisplay(String id){
-		FLEFRecord rec = model.getRecordById(id);
-		if(rec != null){
-			return researchStatusHandler.getDisplayText(rec, model);
-		}
-		return id;
+	protected String getDisplay(final FLEFRecord researchQuestion){
+		if(researchQuestion != null)
+			return researchQuestionHandler.getDisplayText(researchQuestion, model);
+
+		return "--";
 	}
 
 	@Override
-	protected String showAddDialog(){
-		final String[] result = {null};
+	protected FLEFRecord showAddDialog(){
+		final FLEFRecord[] result = {null};
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			ResearchStatusHandler.TYPE,
-			(handlerType, selectedRecord) -> result[0] = selectedRecord.getValue()
+			ResearchQuestionHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord
 		);
 		dialog.setVisible(true);
 
@@ -100,20 +110,22 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	 * Creates a new research status and adds it to the list.
 	 */
 	@Override
-	protected String showCreateNewDialog(){
-		//TODO
+	protected FLEFRecord showCreateNewDialog(){
+//		final ResearchLogRecordDialog dialog = (ResearchLogRecordDialog)researchQuestionHandler.createNewDialog(parent, model);
+//		dialog.setVisible(true);
+//
+//		return (dialog.isSaved()? dialog.getRecord(): null);
 		return null;
 	}
 
 	@Override
-	protected String showEditDialog(String existing){
-		FLEFRecord rec = model.getRecordById(existing);
-		if(rec == null){
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
+		if(existing == null){
 			JOptionPane.showMessageDialog(parent, "Research record not found: " + existing,
 				"Error", JOptionPane.ERROR_MESSAGE);
 			return null;
 		}
-		JDialog dialog = researchStatusHandler.createEditDialog(parent, model, rec);
+		JDialog dialog = researchQuestionHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same ID (the record was edited in place)
@@ -121,7 +133,7 @@ public class ResearchStatusListPanel extends AbstractListPanel<String>{
 	}
 
 	@Override
-	protected boolean validateItem(String item){
+	protected boolean validateItem(FLEFRecord item){
 		if(items.contains(item)){
 			JOptionPane.showMessageDialog(parent,
 				"This research reference is already in the list.", "Duplicate", JOptionPane.WARNING_MESSAGE);

@@ -92,10 +92,10 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private final BindingManager bindingManager = new BindingManager();
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField titleField;
 	private final BoundTextArea valueArea;

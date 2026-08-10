@@ -36,10 +36,15 @@ import java.awt.Dialog;
 public class RelationshipHandler implements RecordTypeHandler<RelationshipRecordDialog>{
 
 	public static final String TYPE = "Relationship";
-	public static final String ID_PREFIX = "REL";
+	public static final String ID_PREFIX = "RL";
 
 	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_ROLE = "ROLE";
+
+
+	static{
+		HandlerRegistry.register(new IndividualHandler());
+	}
 
 
 	@Override

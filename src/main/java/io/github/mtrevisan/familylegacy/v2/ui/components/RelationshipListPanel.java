@@ -40,7 +40,6 @@ import java.io.Serial;
 import java.util.List;
 
 
-/* ONGOING */
 /**
  * Panel that displays all relationship records belonging to a group.
  * Supports creating, editing, and removing arbitrary relationships.
@@ -52,8 +51,6 @@ public class RelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
-	private static final String TAG_OBJECT = "OBJECT";
-	private static final String TAG_ROLE = "ROLE";
 
 
 	static{

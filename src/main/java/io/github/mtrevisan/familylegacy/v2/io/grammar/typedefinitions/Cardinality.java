@@ -1,6 +1,9 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
 
+import org.apache.commons.lang3.StringUtils;
+
+
 public enum Cardinality{
 	REQUIRED,		// no suffix
 	OPTIONAL,		// ?
@@ -12,7 +15,7 @@ public enum Cardinality{
 			case OPTIONAL -> "?";
 			case ZERO_OR_MORE -> "*";
 			case ONE_OR_MORE -> "+";
-			default -> "";
+			default -> StringUtils.EMPTY;
 		};
 	}
 

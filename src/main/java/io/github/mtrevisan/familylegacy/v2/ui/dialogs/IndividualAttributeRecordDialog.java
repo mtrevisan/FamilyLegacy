@@ -103,12 +103,12 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private final BindingManager bindingManager = new BindingManager();
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]"));
 
-	private final String individualId;
+	private final BindingManager bindingManager = new BindingManager();
+
+	private final BoundTextField individual;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
 	private final DateField validOnField;
@@ -128,8 +128,8 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	 * @param model	The FLEF model.
 	 * @return	A new dialog instance.
 	 */
-	public static IndividualAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model, final String individualId){
-		return new IndividualAttributeRecordDialog(parent, model, individualId, null);
+	public static IndividualAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return new IndividualAttributeRecordDialog(parent, model, null);
 	}
 
 	/**
@@ -145,16 +145,14 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new IndividualAttributeRecordDialog(parent, model, null, record);
+		return new IndividualAttributeRecordDialog(parent, model, record);
 	}
 
 
-	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final String individualId,
-			final FLEFRecord record){
+	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE));
 
-		this.individualId = extractReferenceId(individualId, record, TAG_INDIVIDUAL);
-
+		individual = new BoundTextField(TAG_INDIVIDUAL);
 		typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY,
 				"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
@@ -184,6 +182,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
+		bindingManager.bind(individual);
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);
 
@@ -242,15 +241,31 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
+	public void setIndividual(final String individualId){
+		if(StringUtils.isNotEmpty(individualId)){
+			if(model.getRecordById(individualId) == null){
+				JOptionPane.showMessageDialog(this, "Unknown Individual ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			individual.setText(individualId);
+
+			refreshLayout();
+		}
+	}
+
+	private void refreshLayout(){
+		mainPanel.revalidate();
+		mainPanel.repaint();
+
+		pack();
+	}
+
+
 	@Override
 	protected void loadData(){
-		if(StringUtils.isBlank(individualId)){
-			JOptionPane.showMessageDialog(this, "Invalid Individual ID: `" + individualId + "`.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
 		if(record == null)
 			return;
 
@@ -268,10 +283,9 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(individualId)){
+		if(individual.isEmpty()){
 			JOptionPane.showMessageDialog(null,
-				"INDIVIDUAL is required for an attribute.\n" +
-					"Please select a individual record.",
+				"Individual is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
@@ -290,7 +304,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_INDIVIDUAL, XRefHelper.formatXRef(individualId));
+		FLEFRecordHelper.updateChildValue(record, TAG_INDIVIDUAL, XRefHelper.formatXRef(individual.getText()));
 
 		bindingManager.save(record);
 
@@ -314,10 +328,14 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord individual = FLEFRecord.createMainRecord("I1", TAG_INDIVIDUAL);
+			model.addRecord(individual);
+
 //			FLEFRecord individualAttribute = FLEFRecord.createEmpty();
-//			individualAttribute.addChild(FLEFRecord.createChildWithValue(TAG_INDIVIDUAL, "@I1@"));
+//			individualAttribute.addChild(FLEFRecord.createChildWithValue(TAG_INDIVIDUAL, "I1"));
 //			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createEdit(null, model, individualAttribute);
-			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createNew(null, model, "@I1@");
+			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createNew(null, model);
+			dialog.setIndividual("I1");
 			dialog.setVisible(true);
 		});
 	}

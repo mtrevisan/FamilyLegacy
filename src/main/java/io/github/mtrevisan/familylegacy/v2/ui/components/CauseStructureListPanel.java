@@ -28,6 +28,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CauseStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CauseHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,6 +52,11 @@ public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+
+
+	static{
+		HandlerRegistry.register(new CauseHandler());
+	}
 
 
 	private final String path;
@@ -108,7 +117,8 @@ public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final CauseStructureDialog dialog = CauseStructureDialog.createNew(parent, model);
+		final RecordTypeHandler<?> causeHandler = HandlerRegistry.getHandler(CauseHandler.TYPE);
+		final CauseStructureDialog dialog = (CauseStructureDialog)causeHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -117,12 +127,13 @@ public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Cause not found", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parent, "Cause not found.", "Error", JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final CauseStructureDialog dialog = CauseStructureDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> causeHandler = HandlerRegistry.getHandler(CauseHandler.TYPE);
+		final CauseStructureDialog dialog = (CauseStructureDialog)causeHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

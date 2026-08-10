@@ -28,6 +28,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JOptionPane;
@@ -55,6 +59,11 @@ public class ClassifiedNameListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private static final String TAG_TYPE = "TYPE";
+
+
+	static{
+		HandlerRegistry.register(new ClassifiedNameHandler());
+	}
 
 
 	private final String path;
@@ -108,7 +117,8 @@ public class ClassifiedNameListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final ClassifiedNameDialog dialog = ClassifiedNameDialog.createNew(parent, model);
+		final RecordTypeHandler<?> classifiedNameHandler = HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE);
+		final ClassifiedNameDialog dialog = (ClassifiedNameDialog)classifiedNameHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -123,7 +133,8 @@ public class ClassifiedNameListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final ClassifiedNameDialog dialog = ClassifiedNameDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> classifiedNameHandler = HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE);
+		final ClassifiedNameDialog dialog = (ClassifiedNameDialog)classifiedNameHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

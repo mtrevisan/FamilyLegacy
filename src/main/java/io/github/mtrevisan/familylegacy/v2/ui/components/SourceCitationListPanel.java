@@ -29,6 +29,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 
 import javax.swing.JDialog;
@@ -50,6 +54,7 @@ public class SourceCitationListPanel extends AbstractCitationListPanel{
 
 
 	static{
+		HandlerRegistry.register(new SourceCitationHandler());
 		HandlerRegistry.register(new SourceHandler());
 	}
 
@@ -84,12 +89,14 @@ public class SourceCitationListPanel extends AbstractCitationListPanel{
 
 	@Override
 	protected JDialog createCitationEditDialog(final FLEFRecord citation){
-		return SourceCitationDialog.createEdit(parent, model, citation);
+		final RecordTypeHandler<?> sourceCitationHandler = HandlerRegistry.getHandler(SourceCitationHandler.TYPE);
+		return sourceCitationHandler.createEditDialog(parent, model, citation);
 	}
 
 	@Override
 	protected JDialog createTargetEditDialog(final FLEFRecord entity){
-		return SourceRecordDialog.createEdit(parent, model, entity);
+		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
+		return sourceHandler.createEditDialog(parent, model, entity);
 	}
 
 }

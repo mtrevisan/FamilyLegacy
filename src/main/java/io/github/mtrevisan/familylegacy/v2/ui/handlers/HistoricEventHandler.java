@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._HistoricEventDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.HistoricEventRecordDialog;
 
 import java.awt.Dialog;
 
@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for HISTORIC_EVENT records.
  */
-public class HistoricEventHandler implements RecordTypeHandler<_HistoricEventDialog>{
+public class HistoricEventHandler implements RecordTypeHandler<HistoricEventRecordDialog>{
 
 	public static final String TYPE = "HISTORIC_EVENT";
 	public static final String ID_PREFIX = "HE";
@@ -68,13 +68,13 @@ public class HistoricEventHandler implements RecordTypeHandler<_HistoricEventDia
 	}
 
 	@Override
-	public _HistoricEventDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return new _HistoricEventDialog(parent, model);
+	public HistoricEventRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return HistoricEventRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public _HistoricEventDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return new _HistoricEventDialog(parent, model, record);
+	public HistoricEventRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return HistoricEventRecordDialog.createEdit(parent, model, record);
 	}
 
 }

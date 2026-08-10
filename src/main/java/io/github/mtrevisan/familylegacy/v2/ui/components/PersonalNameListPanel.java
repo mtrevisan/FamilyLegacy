@@ -28,6 +28,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,6 +49,11 @@ public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_PART = "PART";
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_TYPE = "TYPE";
+
+
+	static{
+		HandlerRegistry.register(new PersonalNameHandler());
+	}
 
 
 	private final String path;
@@ -114,7 +122,8 @@ public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final PersonalNameStructureDialog dialog = PersonalNameStructureDialog.createNew(parent, model);
+		final RecordTypeHandler<?> personalNameHandler = HandlerRegistry.getHandler(PersonalNameHandler.TYPE);
+		final PersonalNameStructureDialog dialog = (PersonalNameStructureDialog)personalNameHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -129,7 +138,8 @@ public class PersonalNameListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final PersonalNameStructureDialog dialog = PersonalNameStructureDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> personalNameHandler = HandlerRegistry.getHandler(PersonalNameHandler.TYPE);
+		final PersonalNameStructureDialog dialog = (PersonalNameStructureDialog)personalNameHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

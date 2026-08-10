@@ -73,9 +73,10 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new ConclusionHandler());
 	}
 
-	private final BindingManager bindingManager = new BindingManager();
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
 
 	// Cultural Norm selection
 	private final JTextField culturalNormField;
@@ -219,7 +220,7 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 			}
 		}
 		else{
-			culturalNormField.setText("");
+			culturalNormField.setText(StringUtils.EMPTY);
 			culturalNormField.putClientProperty("selectedId", null);
 		}
 

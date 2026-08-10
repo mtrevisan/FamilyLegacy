@@ -35,10 +35,15 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.EventListenerList;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -59,47 +64,36 @@ public class ParticipantField extends JPanel{
 	private final String path;
 	private final FLEFModel model;
 
-	private final List<String> handlerTypes;
+	private List<String> handlerTypes;
 
 	private final JTextField displayField;
 	private String participantType;
 	private FLEFRecord participantRecord;
 
+	private final EventListenerList listenerList = new EventListenerList();
+
 
 	/**
-	 * Constructs a ParticipantField with custom participant types.
+	 * Constructs a ParticipantField.
 	 *
+	 * @param path   the path in the record structure
 	 * @param parent the parent dialog
 	 * @param model  the FLEF model
-	 * @param handlerTypes  the list of supported participant types
+	 * @return a new ParticipantField instance
 	 */
-	public static ParticipantField create(final String path, final Dialog parent, final FLEFModel model,
-			final List<String> handlerTypes){
-		return new ParticipantField(path, parent, model, handlerTypes);
-	}
-
-	/**
-	 * Constructs a ParticipantField with custom participant types.
-	 *
-	 * @param parent the parent dialog
-	 * @param model  the FLEF model
-	 * @param handlerType  the supported participant type
-	 */
-	public static ParticipantField create(final String path, final Dialog parent, final FLEFModel model,
-			final String handlerType){
-		return new ParticipantField(path, parent, model, List.of(handlerType));
+	public static ParticipantField create(final String path, final Dialog parent, final FLEFModel model){
+		return new ParticipantField(path, parent, model);
 	}
 
 
-	private ParticipantField(final String path, final Dialog parent, final FLEFModel model,
-			final List<String> handlerTypes){
+	private ParticipantField(final String path, final Dialog parent, final FLEFModel model){
 		super(new MigLayout("ins 0,fillx", "[grow]"));
 
 		this.parent = parent;
 
 		this.path = path;
 		this.model = model;
-		this.handlerTypes = handlerTypes;
+		this.handlerTypes = Collections.emptyList();
 		this.displayField = new JTextField(20);
 
 
@@ -126,6 +120,34 @@ public class ParticipantField extends JPanel{
 		updateDisplay();
 	}
 
+	public void addChangeListener(final ChangeListener listener){
+		listenerList.add(ChangeListener.class, listener);
+	}
+
+	public void removeChangeListener(final ChangeListener listener){
+		listenerList.remove(ChangeListener.class, listener);
+	}
+
+	protected void fireStateChanged(){
+		final Object[] listeners = listenerList.getListenerList();
+		ChangeEvent e = null;
+		for(int i = listeners.length - 2; i >= 0; i -= 2)
+			if(listeners[i] == ChangeListener.class){
+				if(e == null)
+					e = new ChangeEvent(this);
+
+				((ChangeListener)listeners[i + 1]).stateChanged(e);
+			}
+	}
+
+	public void setHandlerType(final String handlerType){
+		setHandlerTypes(List.of(handlerType));
+	}
+
+	public void setHandlerTypes(final List<String> handlerTypes){
+		this.handlerTypes = handlerTypes;
+	}
+
 	/**
 	 * Sets the current participant.
 	 *
@@ -139,6 +161,8 @@ public class ParticipantField extends JPanel{
 		updateDisplay();
 
 		firePropertyChange(PROPERTY_PARTICIPANT, null, null);
+
+		fireStateChanged();
 	}
 
 	/**
@@ -150,6 +174,8 @@ public class ParticipantField extends JPanel{
 
 	/**
 	 * Returns whether a participant is selected.
+	 *
+	 * @return	Whether a participant is set.
 	 */
 	public boolean hasData(){
 		return (participantRecord != null && participantType != null);
@@ -157,6 +183,8 @@ public class ParticipantField extends JPanel{
 
 	/**
 	 * Returns the selected participant type.
+	 *
+	 * @return the participant type
 	 */
 	public String getParticipantType(){
 		return participantType;
@@ -164,6 +192,8 @@ public class ParticipantField extends JPanel{
 
 	/**
 	 * Returns the selected participant record.
+	 *
+	 * @return the participant record
 	 */
 	public FLEFRecord getParticipantRecord(){
 		return participantRecord;
@@ -192,11 +222,9 @@ public class ParticipantField extends JPanel{
 			return;
 
 		final FLEFRecord rec = model.getRecordById(ref);
-		if(rec != null){
+		if(rec != null)
 			// Optionally verify that the record's tag matches the expected type
-			participantType = type;
-			participantRecord = rec;
-		}
+			setParticipant(type, rec);
 
 		updateDisplay();
 	}
@@ -219,6 +247,14 @@ public class ParticipantField extends JPanel{
 	}
 
 	private void add(){
+		if(handlerTypes.isEmpty()){
+			JOptionPane.showMessageDialog(this, "Empty handler types.\n"
+					+ "Cannot show dialog.",
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return;
+		}
+
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
 			handlerTypes,
 			this::setParticipant
@@ -240,9 +276,12 @@ public class ParticipantField extends JPanel{
 		final BaseRecordDialog editDialog = handler.createEditDialog(parent, model, participantRecord);
 		editDialog.setVisible(true);
 
-		if(editDialog.isSaved())
+		if(editDialog.isSaved()){
 			// Only needed here because the reference to 'record' doesn't change, but the internal data does.
 			updateDisplay();
+
+			fireStateChanged();
+		}
 	}
 
 	private void updateDisplay(){
@@ -252,10 +291,10 @@ public class ParticipantField extends JPanel{
 			() -> (handler != null? handler.getDisplayText(participantRecord, model): null));
 	}
 
-	private RecordTypeHandler<?> findHandler(String type){
+	private RecordTypeHandler<?> findHandler(final String type){
 		for(final String desc : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(desc);
-			if(handler.getType().equalsIgnoreCase(type))
+			if(handler != null && handler.getType().equalsIgnoreCase(type))
 				return handler;
 		}
 		return null;

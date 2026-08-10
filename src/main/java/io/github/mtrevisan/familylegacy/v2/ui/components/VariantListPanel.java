@@ -28,12 +28,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -62,6 +62,11 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+
+
+	static{
+		HandlerRegistry.register(new VariantHandler());
+	}
 
 
 	private final String path;
@@ -111,7 +116,8 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final TextValueVariantDialog dialog = TextValueVariantDialog.createNew(parent, model);
+		final RecordTypeHandler<?> variantHandler = HandlerRegistry.getHandler(VariantHandler.TYPE);
+		final TextValueVariantDialog dialog = (TextValueVariantDialog)variantHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -126,24 +132,8 @@ public class VariantListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		return showTextVariantDialog(existing);
-	}
-
-	/**
-	 * Shows a dialog to create or edit a text variant entry.
-	 *
-	 * @param existing the existing text variant record, or {@code null} for a new one
-	 * @return the (possibly updated) record, or {@code null} if canceled
-	 */
-	private FLEFRecord showTextVariantDialog(FLEFRecord existing){
-		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Text Variant not found", "Error",
-				JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
-		final JDialog dialog = TextValueVariantDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> variantHandler = HandlerRegistry.getHandler(VariantHandler.TYPE);
+		final TextValueVariantDialog dialog = (TextValueVariantDialog)variantHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

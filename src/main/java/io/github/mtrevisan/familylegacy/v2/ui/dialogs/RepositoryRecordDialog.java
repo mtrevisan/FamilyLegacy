@@ -157,7 +157,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		// name structure
+		// name
 		mainPanel.add(namePanel, "span 2,growx,wrap");
 
 		// custodian

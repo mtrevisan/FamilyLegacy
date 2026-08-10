@@ -27,23 +27,30 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-//TODO
-public class TargetHandler implements RecordTypeHandler<TextValueVariantDialog>{
+/**
+ * Handler for {@code PERSONAL_NAME_STRUCTURE} entities according to FLEF 0.1.1.
+ * <p>
+ * This handler provides the necessary operations for managing name structures:
+ * creation, editing, display name generation, and type identification.
+ * <p>
+ * Structure:
+ * <pre>
+ * ???
+ * </pre>
+ */
+public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStructureDialog>{
 
 	/** The record type identifier for groups. */
-	public static final String TYPE = "TARGET";
+	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
+	public static final String CITED_TYPE = "PERSONAL_NAME";
 
-
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
-	private static final String TAG_SYSTEM = "SYSTEM";
-	private static final String TAG_TYPE = "TYPE";
+	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_VALUE = "VALUE";
 
 
@@ -54,12 +61,17 @@ public class TargetHandler implements RecordTypeHandler<TextValueVariantDialog>{
 
 	@Override
 	public String getLabel(){
-		return "Target";
+		return "Personal Name Structure";
 	}
 
 	@Override
 	public String getType(){
 		return TYPE;
+	}
+
+	@Override
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
 	}
 
 	@Override
@@ -72,34 +84,11 @@ public class TargetHandler implements RecordTypeHandler<TextValueVariantDialog>{
 		if(record == null)
 			return StringUtils.EMPTY;
 
-		String tag = record.getTag();
-		if(TAG_PHONETIC.equals(tag)){
-			final String system = FLEFRecordHelper.getChildValue(record, TAG_SYSTEM);
-			final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-
-			final StringBuilder details = new StringBuilder();
-			if(StringUtils.isNotEmpty(system))
-				details.append(system);
-			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, TAG_PHONETIC, details);
-			return String.format("%s [%s]", value, TAG_PHONETIC);
-		}
-		else if(TAG_TRANSCRIPTION.equals(tag)){
-			final String system = FLEFRecordHelper.getChildValue(record, TAG_SYSTEM);
-			final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-
-			final StringBuilder details = new StringBuilder();
-			if(StringUtils.isNotEmpty(system))
-				details.append(system);
-			if(StringUtils.isNotEmpty(type)){
-				if(!details.isEmpty())
-					details.append(", ");
-				details.append(type);
-			}
-			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, TAG_TRANSCRIPTION, details);
-			return String.format("%s [%s]", value, TAG_TRANSCRIPTION);
+		FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
+		if(textValue != null){
+			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
+			if(value != null && !value.isEmpty())
+				return value;
 		}
 
 		// Fallback to the record ID
@@ -107,14 +96,13 @@ public class TargetHandler implements RecordTypeHandler<TextValueVariantDialog>{
 	}
 
 	@Override
-	public TextValueVariantDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return TextValueVariantDialog.createNew(parent, model);
+	public PersonalNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return PersonalNameStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public TextValueVariantDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return TextValueVariantDialog.createEdit(parent, model, record);
+	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return PersonalNameStructureDialog.createEdit(parent, model, record);
 	}
 
 }

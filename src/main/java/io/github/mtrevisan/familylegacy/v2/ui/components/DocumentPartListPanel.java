@@ -69,24 +69,20 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final List<FLEFRecord> records;
 	private final ImageCropDialog cropDialog;
 
 	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.TYPE);
 
 
-	public DocumentPartListPanel(final String path, final Dialog parent, final FLEFModel model,
-			final List<FLEFRecord> records){
-		this(path, parent, "Documents", model, records);
+	public DocumentPartListPanel(final String path, final Dialog parent, final FLEFModel model){
+		this(path, parent, "Documents", model);
 	}
 
-	public DocumentPartListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model,
-			final List<FLEFRecord> records){
+	public DocumentPartListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
 		super(parent, borderTitle, model);
 
 		this.path = path;
 
-		this.records = records;
 		cropDialog = ImageCropDialog.create(parent);
 	}
 
@@ -114,7 +110,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private void editCrop(){
 		final int itemIndex = list.getSelectedIndex();
 		if(itemIndex >= 0){
-			final FLEFRecord documentPart = records.get(itemIndex);
+			final FLEFRecord documentPart = items.get(itemIndex);
 			final FLEFRecord imageCrop = FLEFRecordHelper.findChild(documentPart, TAG_CROP);
 			Rectangle imageCropRect = null;
 			try{
@@ -125,7 +121,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 				imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 			}
 			catch(final NumberFormatException ignored){}
-			final FLEFRecord document = model.getRecordById(documentPart.getValue());
+			final String documentId = FLEFRecordHelper.getChildValuesAsString(documentPart, TAG_DOCUMENT);
+			final FLEFRecord document = model.getRecordById(documentId);
 			final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
 
 			try{
@@ -174,7 +171,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
 			DocumentHandler.TYPE,
 			(handlerType, selectedRecord) -> {
-				final FLEFRecord document = model.getRecordById(selectedRecord.getValue());
+				final FLEFRecord document = model.getRecordById(selectedRecord.getId());
 				if(document != null && !items.contains(document)){
 					final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
 
@@ -246,9 +243,11 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void saveReferences(final FLEFRecord record){
-		for(final FLEFRecord documentPart : records){
+		FLEFRecordHelper.removeChildren(record, TAG_DOCUMENT);
+
+		for(final FLEFRecord documentPart : getItems()){
 			final FLEFRecord part = FLEFRecord.createChild(TAG_DOCUMENT_PART);
-			part.addChild(FLEFRecord.createChildWithValue(TAG_DOCUMENT, documentPart.getValue()));
+			part.addChild(FLEFRecord.createChildWithValue(TAG_DOCUMENT, documentPart.getId()));
 			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, TAG_CROP);
 			part.addChild(crop);
 			record.addChild(part);

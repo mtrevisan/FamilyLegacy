@@ -28,6 +28,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -48,6 +52,11 @@ public class PartStructureListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+
+
+	static{
+		HandlerRegistry.register(new PartHandler());
+	}
 
 
 	private final String path;
@@ -108,7 +117,8 @@ public class PartStructureListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final PartStructureDialog dialog = PartStructureDialog.createNew(parent, model);
+		final RecordTypeHandler<?> partHandler = HandlerRegistry.getHandler(PartHandler.TYPE);
+		final PartStructureDialog dialog = (PartStructureDialog)partHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -122,7 +132,8 @@ public class PartStructureListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final PartStructureDialog dialog = PartStructureDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> partHandler = HandlerRegistry.getHandler(PartHandler.TYPE);
+		final PartStructureDialog dialog = (PartStructureDialog)partHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

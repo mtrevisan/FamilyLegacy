@@ -39,13 +39,16 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -57,7 +60,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code RELATIONSHIP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -78,6 +81,11 @@ import java.util.List;
  *   evidence?: EvidenceQualifiers
  *   restriction?: RestrictionStructure
  *   modification: ModificationStructure
+ * }
+ *
+ * EntityParticipant = oneof {
+ *   individual: Xref&lt;IndividualRecord&gt;
+ *   group: Xref&lt;GroupRecord&gt;
  * }
  * </pre>
  */
@@ -121,11 +129,12 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top,hidemode 3", "[right]rel[grow]", "[]5[]10[]5[]10[]10[]10[]"));
+
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]10[]10[]5[]5[]10[]"));
-
+	private final JLabel subjectLabel;
 	private final ParticipantField subjectField;
 	private final ParticipantField objectField;
 	private final BoundComboBox<String> subjectTypeCombo;
@@ -171,18 +180,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private RelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RelationshipHandler.TYPE));
 
-		subjectField = ParticipantField.create(TAG_SUBJECT, this, model,
-			List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
-		subjectField.addPropertyChangeListener(e -> {
-			if(ParticipantField.PROPERTY_PARTICIPANT.equals(e.getPropertyName()))
-				updateTypeCombo();
-		});
-		objectField = ParticipantField.create(TAG_OBJECT, this, model,
-			List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
-		objectField.addPropertyChangeListener(e -> {
-			if(ParticipantField.PROPERTY_PARTICIPANT.equals(e.getPropertyName()))
-				updateTypeCombo();
-		});
+		subjectLabel = new JLabel("Subject*:");
+		subjectField = ParticipantField.create(TAG_SUBJECT, this, model);
+		subjectField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
+		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> updateTypeCombo());
+		objectField = ParticipantField.create(TAG_OBJECT, this, model);
+		objectField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
+		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> updateTypeCombo());
 		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
@@ -267,7 +271,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		// subject
-		mainPanel.add(new JLabel("Subject*:"), "align label");
+		mainPanel.add(subjectLabel, "align label");
 		mainPanel.add(subjectField, "growx,wrap");
 
 		// object
@@ -286,17 +290,19 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		mainPanel.add(new JLabel("Status:"), "align label");
 		mainPanel.add(statusCombo, "growx,wrap");
 
+		// validity range
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		// valid on
-		mainPanel.add(new JLabel("Valid On:"), "align label");
-		mainPanel.add(validOnField, "growx,wrap");
-
+		validityPanel.add(new JLabel("Valid On:"), "align label");
+		validityPanel.add(validOnField, "growx,wrap");
 		// valid from
-		mainPanel.add(new JLabel("Valid From:"), "align label");
-		mainPanel.add(validFromField, "growx,wrap");
-
+		validityPanel.add(new JLabel("Valid From:"), "align label");
+		validityPanel.add(validFromField, "growx,wrap");
 		// valid to
-		mainPanel.add(new JLabel("Valid To:"), "align label");
-		mainPanel.add(validToField, "growx,wrap");
+		validityPanel.add(new JLabel("Valid To:"), "align label");
+		validityPanel.add(validToField, "growx,wrap");
+		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		// evidence
 		mainPanel.add(evidencePanel, "span 2,growx,wrap");
@@ -309,6 +315,32 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		panel.add(notePanel, "growx");
 		panel.add(sourcePanel, "growx");
 		return panel;
+	}
+
+
+	public void setSubject(final String subjectId, final String subjectHandlerType){
+		if(StringUtils.isNotEmpty(subjectId)){
+			if(model.getRecordById(subjectId) == null){
+				final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subjectHandlerType);
+				JOptionPane.showMessageDialog(this, "Unknown " + subjectHandler.getLabel() + " ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			subjectField.setParticipant(subjectHandlerType, FLEFRecord.createMainRecord(subjectId, null));
+			subjectLabel.setVisible(false);
+			subjectField.setVisible(false);
+
+			refreshLayout();
+		}
+	}
+
+	private void refreshLayout(){
+		mainPanel.revalidate();
+		mainPanel.repaint();
+
+		pack();
 	}
 
 
@@ -385,7 +417,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+			model.addRecord(individual);
+
 			final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model);
+//			dialog.setSubject("I1", IndividualHandler.TYPE);
 			dialog.setVisible(true);
 		});
 	}

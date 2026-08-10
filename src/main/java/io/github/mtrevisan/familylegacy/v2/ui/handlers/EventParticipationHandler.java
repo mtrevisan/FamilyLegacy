@@ -41,7 +41,7 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 
 	@Override
 	public String getLabel(){
-		return "Event";
+		return "Event Participation";
 	}
 
 	@Override

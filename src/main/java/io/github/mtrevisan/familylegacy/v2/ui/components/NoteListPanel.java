@@ -166,6 +166,8 @@ public class NoteListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void saveReferences(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, path);
+
 		for(final FLEFRecord note : getItems())
 			FLEFRecordHelper.addChild(record, path, note.getFormattedId());
 	}

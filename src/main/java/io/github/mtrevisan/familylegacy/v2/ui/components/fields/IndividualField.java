@@ -158,7 +158,8 @@ public class IndividualField extends JPanel{
 	 * Creates a new place and adds a citation for it.
 	 */
 	private FLEFRecord createNew(){
-		final IndividualRecordDialog dialog = IndividualRecordDialog.createNew(parent, model);
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+		final IndividualRecordDialog dialog = (IndividualRecordDialog)individualHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -186,7 +187,8 @@ public class IndividualField extends JPanel{
 			return;
 		}
 
-		final IndividualRecordDialog dialog = IndividualRecordDialog.createEdit(parent, model, record);
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+		final IndividualRecordDialog dialog = (IndividualRecordDialog)individualHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

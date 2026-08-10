@@ -82,7 +82,7 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRe
 
 	@Override
 	public GroupAttributeRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return GroupAttributeRecordDialog.createNew(parent, model, null);
+		return GroupAttributeRecordDialog.createNew(parent, model);
 	}
 
 	@Override

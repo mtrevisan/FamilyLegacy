@@ -41,7 +41,6 @@ import java.io.Serial;
 import java.util.List;
 
 
-// TODO
 /**
  * Panel for managing a list of {@code DOCUMENT} references according to FLEF 0.1.1.
  */

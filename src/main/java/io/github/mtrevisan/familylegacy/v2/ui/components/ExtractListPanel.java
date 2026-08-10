@@ -141,7 +141,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private FLEFRecord showExtractDialog(final FLEFRecord initial){
-		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, model, sourceDocuments);
+		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, model);
 		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{"transcript", "extract", "abstract"});

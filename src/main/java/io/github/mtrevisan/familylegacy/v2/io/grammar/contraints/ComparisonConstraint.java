@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -92,7 +93,7 @@ public final class ComparisonConstraint extends Constraint{
 
 	@Override
 	public String toString(){
-		return ("require " + left + " " + operator + " " + right);
+		return ("require " + left + StringUtils.SPACE + operator + StringUtils.SPACE + right);
 	}
 
 }

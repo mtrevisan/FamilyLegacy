@@ -111,10 +111,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private final BindingManager bindingManager = new BindingManager();
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField group;
 	private final BoundComboBox<String> typeCombo;
@@ -136,8 +136,8 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	 * @param model	The FLEF model.
 	 * @return	A new dialog instance.
 	 */
-	public static GroupAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model, final String groupId){
-		return new GroupAttributeRecordDialog(parent, model, groupId, null);
+	public static GroupAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return new GroupAttributeRecordDialog(parent, model, null);
 	}
 
 	/**
@@ -153,17 +153,14 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new GroupAttributeRecordDialog(parent, model, null, record);
+		return new GroupAttributeRecordDialog(parent, model, record);
 	}
 
 
-	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final String groupId,
-			final FLEFRecord record){
+	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
 
-		group = new BoundTextField(TAG_GROUP, 20);
-		if(StringUtils.isNotEmpty(groupId))
-			group.setText(groupId);
+		group = new BoundTextField(TAG_GROUP);
 		typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY, "residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language", "wealth", "land_holding", "primary_income_source"});
 		typeCombo.setEditable(true);
@@ -248,19 +245,35 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
+	public void setGroup(final String groupId){
+		if(StringUtils.isNotEmpty(groupId)){
+			if(model.getRecordById(groupId) == null){
+				JOptionPane.showMessageDialog(this, "Unknown Group ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			group.setText(groupId);
+
+			refreshLayout();
+		}
+	}
+
+	private void refreshLayout(){
+		mainPanel.revalidate();
+		mainPanel.repaint();
+
+		pack();
+	}
+
+
 	@Override
 	protected void loadData(){
 		if(record == null)
 			return;
 
 		bindingManager.load(record);
-
-		if(StringUtils.isBlank(group.getText())){
-			JOptionPane.showMessageDialog(this, "Invalid Group ID: `" + group.getText() + "`.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
 
 		dateField.load(record);
 		validFromField.load(record);
@@ -274,9 +287,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(group.getText())){
+		if(group.isEmpty()){
 			JOptionPane.showMessageDialog(null,
-				"GROUP is required for an attribute.\n" +
+				"Group is required for an attribute.\n" +
 					"Please select a group record.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
@@ -320,10 +333,14 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord group = FLEFRecord.createMainRecord("G1", TAG_GROUP);
+			model.addRecord(group);
+
 //			FLEFRecord groupAttribute = FLEFRecord.createEmpty();
-//			groupAttribute.addChild(FLEFRecord.createChildWithValue(TAG_GROUP, "@G1@"));
+//			groupAttribute.addChild(FLEFRecord.createChildWithValue(TAG_GROUP, "G1"));
 //			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createEdit(null, model, groupAttribute);
-			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createNew(null, model, "@G1@");
+			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createNew(null, model);
+			dialog.setGroup("G1");
 			dialog.setVisible(true);
 		});
 	}

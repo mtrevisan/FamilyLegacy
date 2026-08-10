@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
@@ -85,7 +86,7 @@ public class StructType extends TypeDefinition{
 
 	@Override
 	public String toString(){
-		return "struct" + (getName() != null? " " + getName(): "") + fields;
+		return "struct" + (getName() != null? StringUtils.SPACE + getName(): StringUtils.EMPTY) + fields;
 	}
 
 }

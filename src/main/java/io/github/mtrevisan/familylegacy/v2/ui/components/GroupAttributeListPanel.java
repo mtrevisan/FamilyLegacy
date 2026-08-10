@@ -147,7 +147,8 @@ public class GroupAttributeListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final JDialog dialog = GroupAttributeRecordDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> groupAttributeHandler = HandlerRegistry.getHandler(GroupAttributeHandler.TYPE);
+		final JDialog dialog = groupAttributeHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

@@ -27,18 +27,18 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._ResearchStatusDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchQuestionRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
 /**
- * Handler for RESEARCH_STATUS records.
+ * Handler for RESEARCH_QUESTION records.
  */
-public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusDialog>{
+public class ResearchQuestionHandler implements RecordTypeHandler<ResearchQuestionRecordDialog>{
 
-	public static final String TYPE = "RESEARCH_STATUS";
+	public static final String TYPE = "RESEARCH_QUESTION";
 	public static final String ID_PREFIX = "RS";
 
 	private static final String TAG_QUESTION = "QUESTION";
@@ -76,14 +76,14 @@ public class ResearchStatusHandler implements RecordTypeHandler<_ResearchStatusD
 	}
 
 	@Override
-	public _ResearchStatusDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return new _ResearchStatusDialog(parent, model);
+	public ResearchQuestionRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return ResearchQuestionRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public _ResearchStatusDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public ResearchQuestionRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return new _ResearchStatusDialog(parent, model, record);
+		return ResearchQuestionRecordDialog.createEdit(parent, model, record);
 	}
 
 }

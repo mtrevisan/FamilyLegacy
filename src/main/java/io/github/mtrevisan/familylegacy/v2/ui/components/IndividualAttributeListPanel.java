@@ -147,7 +147,8 @@ public class IndividualAttributeListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final JDialog dialog = IndividualAttributeRecordDialog.createEdit(parent, model, existing);
+		final RecordTypeHandler<?> individualAttributeHandler = HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE);
+		final JDialog dialog = individualAttributeHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)

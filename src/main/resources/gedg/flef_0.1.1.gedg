@@ -1,5 +1,5 @@
 // PROTOCOL_VERSION = 0.1.1
-// PROTOCOL_DATE = 2026-08-07
+// PROTOCOL_DATE = 2026-08-10
 // PROTOCOL_DESCRIPTION = Family LEgacy Format - DRAFT Release
 
 // ## Global Validation Rules
@@ -13,6 +13,9 @@
 // - Identity hypotheses SHOULD be unique per unordered pair.
 // - blocked_by relationships SHOULD form a DAG.
 // - follow_up relationships SHOULD be acyclic.
+
+// FIXME Xref<CulturalNormRecord> vs CulturalNormImpactRecord
+// FIXME added "require type(subject) == type(candidate)", validate EqualTypeConstraint
 
 
 // ============================================================
@@ -63,7 +66,9 @@ Record = oneof {
   historic_event_impact: HistoricEventImpactRecord
   identity_hypothesis: IdentityHypothesisRecord
   research_status: ResearchStatusRecord
-  research_log: ResearchLogRecord
+  research_question: ResearchQuestion
+  research_activity: ResearchActivity
+  research_task: ResearchTask
 }
 
 
@@ -288,7 +293,7 @@ record IndividualAttributeRecord {
 record EventParticipationRecord {
   id: LocalID
   event: Xref<EventRecord>         // the event in which the entity participated
-  participant: EntityParticipant   // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
+  participant: EventParticipant    // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
   role?: enum {                    // optional because the role may be unknown or not applicable
     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
     landlord, tenant, soldier, commander, victim, survivor, accused, judge
@@ -300,9 +305,10 @@ record EventParticipationRecord {
   modification: ModificationStructure
 }
 
-EntityParticipant = oneof {
+EventParticipant = oneof {
   individual: Xref<IndividualRecord>
   group: Xref<GroupRecord>
+  place: Xref<PlaceRecord>
 }
 
 
@@ -475,8 +481,8 @@ TextValueVariant = oneof {
 // Implementations SHOULD validate the allowed SUBJECT and OBJECT types according to the relationship TYPE.
 record RelationshipRecord {
   id: LocalID
-  subject: EntityParticipant   // The entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the OBJECT. Example: `biological_child(Alice -> John)` means that Alice is the biological child of John.
-  object: EntityParticipant    // the entity to which the subject is related
+  subject: RelationshipParticipant   // The entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the OBJECT. Example: `biological_child(Alice -> John)` means that Alice is the biological child of John.
+  object: RelationshipParticipant    // the entity to which the subject is related
   type: enum {
     biological_child,     // (Individual -> Individual) relationship exists through birth
     adoptive_child,       // (Individual -> Individual) relationship created through legal adoption
@@ -505,6 +511,11 @@ record RelationshipRecord {
   evidence?: EvidenceQualifiers
   restriction?: RestrictionStructure
   modification: ModificationStructure
+}
+
+RelationshipParticipant = oneof {
+  individual: Xref<IndividualRecord>
+  group: Xref<GroupRecord>
 }
 
 
@@ -783,7 +794,7 @@ struct ExtractStructure {
   locale?: LocaleCode
   note*: Text
 
-  require one_of(document_part, text)
+  require at_least_one(document_part, text)
 }
 
 // Cropping rectangle expressed in image pixels.
@@ -963,59 +974,162 @@ ImpactTarget = oneof {
 // ============================================================
 
 // primary record
-// Defines a research question and its overall status. RESEARCH_LOG_RECORD entries document the activities performed to answer this question.
-// Multiple logs may contribute to a single status, and a single log may contribute to multiple statuses (via RESEARCH references).
-record ResearchStatusRecord {
-  id: LocalID
-  question: Text                            // the research question being investigated
-  status?: enum {
-    active,      // currently being searched
-    completed,   // the research objective has been satisfied according to the researcher
-    blocked      // further progress depends on resolving another research question
+// Represents a research objective, question, hypothesis, or problem that requires investigation. Multiple research activities may contribute to
+// answering the same question.
+record ResearchQuestion {
+  id: LocalID title: Text             // short human-readable summary of the research objective
+  question: Text                      // the actual research question or hypothesis being investigated
+  target*: ResearchTarget            // people, families, events, places, or records involved in the question
+  status: enum {
+    open,       // investigation is ongoing
+    on_hold,    // temporarily suspended
+    resolved,   // sufficient evidence has been gathered
+    disproven   // the underlying hypothesis was shown to be incorrect
   }
-  priority?: enum {
-    high, medium, low
-  }
-  association*: struct {                    // Associates this research question with records for which information is missing, uncertain, conflicting, or otherwise requires investigation.
-    target: XrefOrVoid<LocalID>   // an xref of a record that lacks research
-    name?: Text                   // the name of the individual, only for VOID reference
-  }
-  blocked_by*: Xref<ResearchStatusRecord>   // if this research is blocked by another unresolved question (blocked_by relationships SHOULD form a Directed Acyclic Graph)
-  plan?: Text                               // detailed description of what needs to be done
-  resolution?: Text                         // how the question was resolved, if completed
-  modification: ModificationStructure
-}
-
-// primary record
-// Documents a specific research activity performed to answer one or more research questions. Each log entry is a point-in-time record of what was
-// done, what was found, and what the next steps are.
-record ResearchLogRecord {
-  id: LocalID
-  action: Text                            // description of the research activity performed (e.g., a repository search, source review, correspondence, or archive consultation)
-  target?: XrefOrVoid<LocalID>            // the record that was the subject of the research activity. If the target is not represented elsewhere in the file, the VOID marker may be used.
-  source*: Xref<SourceRecord>             // a source record that was consulted, reviewed, searched, or discovered during the research activity
-  search_scope?: struct {                 // what was searched
-    type: enum {
-      entire_source, index_only, partial_source, selected_entries
-    }
-    detail?: Text
-  }
-  search_outcome?: enum {
-    found, not_found, partially_found, unreadable, destroyed
-  }
-  finding?: Text                          // a note describing the outcome, findings, observations, or conclusions of the research activity
-  next_step?: Text                        // what to do next as a result of this research activity
-  follow_up*: Xref<ResearchLogRecord>     // References subsequent research activities that were performed as a consequence of the findings recorded in this log entry (follow_up SHOULD be acyclic)
-  research*: Xref<ResearchStatusRecord>   // a research question or objective to which this activity contributes
-  date: Date                              // the date the search was performed
+  conclusion?: Text                   // current conclusion or answer based on available evidence
+  conclusion_confidence?: enum { low, medium, high }
+  rationale?: Text                    // explanation supporting the conclusion
+  created: Date
+  closed?: Date                       // date the question was resolved or disproven
   restriction?: RestrictionStructure
   modification: ModificationStructure
 }
 
+ResearchTarget = oneof {
+  individual: Xref<IndividualRecord>
+  group: Xref<GroupRecord>
+  event: Xref<EventRecord>
+  event_participation: Xref<EventParticipationRecord>
+  relationship: Xref<RelationshipRecord>
+  individual_attribute: Xref<IndividualAttributeRecord>
+  group_attribute: Xref<GroupAttributeRecord>
+  place: Xref<PlaceRecord>
+  place_relationship: Xref<PlaceRelationshipRecord>
+  source: Xref<SourceRecord>
+  document: Xref<DocumentRecord>
+  identity_hypothesis: Xref<IdentityHypothesisRecord>
+  cultural_norm: Xref<CulturalNormRecord>
+  historic_event: Xref<HistoricEventRecord>
+  void: struct {}
+}
 
-// ============================================================
-// Restriction, modification, conclusion, identity, evidence
-// ============================================================
+// primary record
+// Documents a single research action performed at a specific point in time.
+// Activities represent the work of the researcher rather than genealogical facts themselves.
+record ResearchActivity {
+  id: LocalID
+  question*: Xref<ResearchQuestion>   // research questions to which this activity contributes
+  date: Date                          // when the activity was performed
+  activity_type: enum {
+    search,           // searched a repository, index, catalog, or collection
+    review,           // examined a specific source or record
+    analysis,         // analyzed evidence or correlations
+    correspondence,   // exchanged messages with archives, institutions, or individuals
+    interview,        // interviewed a person
+    hypothesis        // formulated or refined a research hypothesis
+  }
+  status: enum {
+    planned,
+    in_progress,
+    completed,
+    abandoned
+  }
+  action: Text                        // description of the work performed
+  target?: ResearchTarget             // person, family, event, place, or record being investigated
+  source*: Xref<SourceRecord>         // sources consulted, examined, or discovered
+  search_scope?: struct {             // primarily applicable to search and review activities
+    type: enum {
+      entire_source,     // complete source reviewed
+      index_only,        // only the index was examined
+      partial_source,    // a limited portion of the source was examined
+      selected_entries   // specific entries were reviewed
+    }
+    detail?: Text                       // details about pages, years, volumes, entries, etc.
+  }
+  result?: enum {
+    positive,       // relevant information was found
+    negative,       // search completed with no relevant findings
+    inconclusive,   // findings exist but do not answer the question
+    conflicting,    // findings conflict with other evidence
+    unavailable     // source was inaccessible, unreadable, lost, etc.
+  }
+  observation?: Text                    // objective notes describing what was observed
+  conclusion?: Text                     // interpretation or conclusion drawn from the observations
+  conclusion_confidence?: enum { low, medium, high }
+  parent?: Xref<ResearchActivity>       // previous activity from which this activity originated
+  task*: Xref<ResearchTask>             // follow-up tasks generated by this activity
+  restriction?: RestrictionStructure
+  modification: ModificationStructure
+}
+
+// primary record
+// Represents a planned or actionable follow-up item resulting from one or more research activities or research questions.
+record ResearchTask {
+  id: LocalID
+  description: Text                     // work that should be performed
+  question*: Xref<ResearchQuestion>     // research questions supported by this task
+  created_by?: Xref<ResearchActivity>   // activity that generated the task
+  status: enum {
+   open,          // not yet started
+   in_progress,   // currently being worked on
+   completed,     // successfully completed
+   abandoned      // intentionally discontinued
+  }
+  priority?: enum { low, normal, high }
+  due_date?: Date                       // optional target completion date
+  outcome?: Text                        // notes describing the result once completed
+  restriction?: RestrictionStructure
+  modification: ModificationStructure
+}
+
+// primary record
+// A formal statement that resolves a conflict between conflicting evidence by selecting the hypothesis deemed most truthful based on a critical
+// analysis of the sources.
+// Conclusions are research outcomes rather than source assertions. A conclusion records the researcher’s evaluation of competing
+// evidence and is separate from the underlying records it analyzes.
+// A conclusion does not modify, invalidate, or delete the records it evaluates. All competing assertions remain preserved so that the reasoning process
+// remains transparent and auditable.
+// Conclusions never replace evidence. The protocol preserves source assertions, competing hypotheses,
+// and researcher conclusions simultaneously.
+record ConclusionRecord {
+  id: LocalID
+  context: Text                  // the specific context that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
+  resolves*: ConclusionTarget    // a pointer to one or more conflicting assertions or hypotheses. When PROOF_STATUS is DISPROVEN, RESOLVES SHOULD normally contain at least two targets.
+  preferred?: ConclusionTarget   // the assertion or hypothesis judged most likely to be correct. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. When present, PREFERRED MUST be one of the records listed in RESOLVES. When PROOF_STATUS is DISPROVEN, PREFERRED SHOULD normally be omitted.
+  proof_status: enum {
+    conflicting_evidence,   // the evidence is conflicting, none prevails
+    supported,              // preponderance of evidence, but not absolute certainty
+    proven,                 // proven according to the Genealogical Proof Standard
+    disproven               // proven false
+  }
+  narrative?: Text                    // a discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen
+  research*: Xref<ResearchQuestion>   // references to research questions that led to this conclusion
+  date?: Date                         // the date the researcher made this conclusion
+  source*: SourceCitation             // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
+  
+  require preferred in resolves
+}
+
+ConclusionTarget = oneof {
+  event: Xref<EventRecord>
+  event_participation: Xref<EventParticipationRecord>
+  relationship: Xref<RelationshipRecord>
+  individual: Xref<IndividualRecord>
+  individual_attribute: Xref<IndividualAttributeRecord>
+  group: Xref<GroupRecord>
+  group_attribute: Xref<GroupAttributeRecord>
+  identity_hypothesis: Xref<IdentityHypothesisRecord>
+  place: Xref<PlaceRecord>
+  place_relationship: Xref<PlaceRelationshipRecord>
+  source: Xref<SourceRecord>
+  cultural_norm: Xref<CulturalNormRecord>
+  historic_event: Xref<HistoricEventRecord>
+}
+
+
+// ================================================
+// Restriction, modification, identity, evidence
+// ================================================
 
 // embedded
 // Specifies how this structure may be displayed, exported, or distributed. The restriction expresses the intent of the data contributor and should be
@@ -1046,49 +1160,6 @@ struct ModificationStructure {
   }
 }
 
-// primary record
-// A formal statement that resolves a conflict between conflicting evidence by selecting the hypothesis deemed most truthful based on a critical
-// analysis of the sources.
-// Conclusions are research outcomes rather than source assertions. A conclusion records the researcher’s evaluation of competing
-// evidence and is separate from the underlying records it analyzes.
-// A conclusion does not modify, invalidate, or delete the records it evaluates. All competing assertions remain preserved so that the reasoning process
-// remains transparent and auditable.
-// Conclusions never replace evidence. The protocol preserves source assertions, competing hypotheses,
-// and researcher conclusions simultaneously.
-record ConclusionRecord {
-  id: LocalID
-  context: Text                  // the specific context that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
-  resolves*: ConclusionTarget    // a pointer to one or more conflicting assertions or hypotheses. When PROOF_STATUS is DISPROVEN, RESOLVES SHOULD normally contain at least two targets.
-  preferred?: ConclusionTarget   // the assertion or hypothesis judged most likely to be correct. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. When present, PREFERRED MUST be one of the records listed in RESOLVES. When PROOF_STATUS is DISPROVEN, PREFERRED SHOULD normally be omitted.
-  proof_status: enum {
-    unresearched,           // not yet sought
-    conflicting_evidence,   // the evidence is conflicting, none prevails
-    supported,              // preponderance of evidence, but not absolute certainty
-    proven,                 // proven according to the Genealogical Proof Standard
-    disproven               // proven false
-  }
-  narrative?: Text                        // a discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen
-  research*: Xref<ResearchStatusRecord>   // references to research questions that led to this conclusion
-  date?: Date                             // the date the researcher made this conclusion
-  source*: SourceCitation                 // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
-  
-  require preferred in resolves
-}
-
-ConclusionTarget = oneof {
-  event: Xref<EventRecord>
-  event_participation: Xref<EventParticipationRecord>
-  relationship: Xref<RelationshipRecord>
-  individual: Xref<IndividualRecord>
-  individual_attribute: Xref<IndividualAttributeRecord>
-  group: Xref<GroupRecord>
-  group_attribute: Xref<GroupAttributeRecord>
-  identity_hypothesis: Xref<IdentityHypothesisRecord>
-  place: Xref<PlaceRecord>
-  place_relationship: Xref<PlaceRelationshipRecord>
-  source: Xref<SourceRecord>
-}
-
 // association record
 // Represents the possibility that two records describe the same real-world entity. The hypothesis itself carries no acceptance
 // or rejection status. Evaluation of the hypothesis is expressed through one or more ConclusionRecord instances.
@@ -1107,6 +1178,7 @@ record IdentityHypothesisRecord {
   modification: ModificationStructure
   
   require subject != candidate
+  require type(subject) == type(candidate)
 }
 
 IdentityCandidate = oneof {

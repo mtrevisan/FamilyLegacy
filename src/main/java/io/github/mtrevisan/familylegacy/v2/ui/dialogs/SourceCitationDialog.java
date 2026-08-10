@@ -98,6 +98,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	}
 
 
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextField source;
@@ -115,8 +117,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	 * @param model	The FLEF model.
 	 * @return	A new dialog instance.
 	 */
-	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model, final String sourceId){
-		return new SourceCitationDialog(parent, model, sourceId, null);
+	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model){
+		return new SourceCitationDialog(parent, model, null);
 	}
 
 	/**
@@ -131,17 +133,14 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		if(record == null)
 			throw new IllegalArgumentException("Record cannot be null");
 
-		return new SourceCitationDialog(parent, model, null, record);
+		return new SourceCitationDialog(parent, model, record);
 	}
 
 
-	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final String sourceId,
-			final FLEFRecord record){
+	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(SourceCitationHandler.TYPE));
 
-		source = new BoundTextField(TAG_SOURCE, 20);
-		if(StringUtils.isNoneEmpty(sourceId))
-			source.setText(sourceId);
+		source = new BoundTextField(TAG_SOURCE);
 		locationField = new BoundTextField(TAG_LOCATION, 20);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, model);
 		notePanel = new NoteListPanel(TAG_NOTE, this, null, model);
@@ -179,8 +178,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
-
 		// location
 		mainPanel.add(new JLabel("Location:"), "align label");
 		mainPanel.add(locationField, "growx,wrap");
@@ -195,19 +192,35 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	}
 
 
+	public void setSource(final String sourceId){
+		if(StringUtils.isNotEmpty(sourceId)){
+			if(model.getRecordById(sourceId) == null){
+				JOptionPane.showMessageDialog(this, "Unknown Source ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			source.setText(sourceId);
+
+			refreshLayout();
+		}
+	}
+
+	private void refreshLayout(){
+		mainPanel.revalidate();
+		mainPanel.repaint();
+
+		pack();
+	}
+
+
 	@Override
 	protected void loadData(){
 		if(record == null)
 			return;
 
 		bindingManager.load(record);
-
-		if(StringUtils.isBlank(source.getText())){
-			JOptionPane.showMessageDialog(this, "Invalid Source ID: `" + source.getText() + "`.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
 
 		notePanel.load(record);
 		extractPanel.load(record);
@@ -218,7 +231,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(StringUtils.isEmpty(source.getText())){
 			JOptionPane.showMessageDialog(null,
-				"SOURCE is required for a citation.\n" +
+				"Source is required for a citation.\n" +
 					"Please select a source record.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
@@ -247,10 +260,14 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord source = FLEFRecord.createMainRecord("S1", TAG_SOURCE);
+			model.addRecord(source);
+
 //			FLEFRecord sourceCitation = FLEFRecord.createEmpty();
-//			sourceCitation.addChild(FLEFRecord.createChildWithValue(TAG_SOURCE, "@S1@"));
+//			sourceCitation.addChild(FLEFRecord.createChildWithValue(TAG_SOURCE, "S1"));
 //			final SourceCitationDialog dialog = SourceCitationDialog.createEdit(null, model, sourceCitation);
-			final SourceCitationDialog dialog = SourceCitationDialog.createNew(null, model, "@S1@");
+			final SourceCitationDialog dialog = SourceCitationDialog.createNew(null, model);
+			dialog.setSource("S1");
 			dialog.setVisible(true);
 		});
 	}

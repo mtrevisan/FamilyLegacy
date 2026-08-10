@@ -41,6 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -87,11 +88,12 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top,hidemode 3", "[right]rel[grow]", "[]5[]10[]10[]"));
+
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]"));
-
+	private final JLabel subjectLabel;
 	private final PlaceField subjectField;
 	private final PlaceField objectField;
 	private final BoundComboBox<String> typeCombo;
@@ -135,6 +137,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		setTitle(record == null? "Add Place Relationship": "Edit Place Relationship");
 
+		subjectLabel = new JLabel("Subject*:");
 		subjectField = PlaceField.create(TAG_SUBJECT, parent, model);
 		objectField = PlaceField.create(TAG_OBJECT, parent, model);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
@@ -179,11 +182,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	private JPanel createMainPanel(){
 		// subject
-		mainPanel.add(new JLabel("Subject:"), "align label");
+		mainPanel.add(subjectLabel, "align label");
 		mainPanel.add(subjectField, "growx,wrap");
 
 		// object
-		mainPanel.add(new JLabel("Object:"), "align label");
+		mainPanel.add(new JLabel("Object*:"), "align label");
 		mainPanel.add(objectField, "growx,wrap");
 
 		// type
@@ -209,6 +212,31 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		panel.add(notePanel, "growx");
 		panel.add(sourceCitationPanel, "growx");
 		return panel;
+	}
+
+
+	public void setSubject(final String placeId){
+		if(StringUtils.isNotEmpty(placeId)){
+			if(model.getRecordById(placeId) == null){
+				JOptionPane.showMessageDialog(this, "Unknown Place ID.",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return;
+			}
+
+			subjectField.setRecord(FLEFRecord.createMainRecord(placeId, null));
+			subjectLabel.setVisible(false);
+			subjectField.setVisible(false);
+
+			refreshLayout();
+		}
+	}
+
+	private void refreshLayout(){
+		mainPanel.revalidate();
+		mainPanel.repaint();
+
+		pack();
 	}
 
 
@@ -279,7 +307,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
+			final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
+			model.addRecord(place);
+
 			final PlaceRelationshipRecordDialog dialog = PlaceRelationshipRecordDialog.createNew(null, model);
+//			dialog.setSubject("P1");
 			dialog.setVisible(true);
 		});
 	}

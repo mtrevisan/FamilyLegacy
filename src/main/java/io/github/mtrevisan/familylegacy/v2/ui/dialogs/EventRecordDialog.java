@@ -113,10 +113,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private final BindingManager bindingManager = new BindingManager();
-
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]10[]10[]10[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextArea descriptionArea;

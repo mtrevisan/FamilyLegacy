@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -57,6 +58,7 @@ public class PlaceCitationField extends JPanel{
 
 	static{
 		HandlerRegistry.register(new PlaceCitationHandler());
+		HandlerRegistry.register(new PlaceHandler());
 	}
 
 
@@ -162,7 +164,8 @@ public class PlaceCitationField extends JPanel{
 	 * Creates a new place and adds a citation for it.
 	 */
 	private FLEFRecord createNew(){
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(parent, model);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
@@ -171,7 +174,9 @@ public class PlaceCitationField extends JPanel{
 				final String newPlaceId = newRecord.getId();
 				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
 				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
-				final PlaceCitationDialog citationDialog = PlaceCitationDialog.createEdit(parent, model, placeCitation);
+
+				final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
+				final PlaceCitationDialog citationDialog = (PlaceCitationDialog)placeCitationHandler.createEditDialog(parent, model, placeCitation);
 				citationDialog.setVisible(true);
 
 				if(citationDialog.isSaved()){
@@ -197,7 +202,9 @@ public class PlaceCitationField extends JPanel{
 
 		final String placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
 		final FLEFRecord place = model.getRecordById(placeId);
-		final PlaceRecordDialog dialog = PlaceRecordDialog.createEdit(parent, model, place);
+
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createEditDialog(parent, model, place);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -209,7 +216,8 @@ public class PlaceCitationField extends JPanel{
 		if(record == null)
 			return;
 
-		final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(parent, model, record);
+		final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
+		final PlaceCitationDialog dialog = (PlaceCitationDialog)placeCitationHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
