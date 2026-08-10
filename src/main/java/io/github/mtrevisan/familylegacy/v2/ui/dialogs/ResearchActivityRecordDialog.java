@@ -53,7 +53,8 @@ import java.util.List;
 public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -3243743327195324702L;
+
 
 	private static final String DOT = ".";
 
@@ -77,9 +78,21 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new ResearchActivityHandler());
-		HandlerRegistry.register(new ResearchQuestionHandler());
-		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new ResearchTaskHandler());
+		HandlerRegistry.register(new ResearchQuestionHandler());
+		HandlerRegistry.register(new IndividualHandler());
+		HandlerRegistry.register(new GroupHandler());
+		HandlerRegistry.register(new EventHandler());
+		HandlerRegistry.register(new EventParticipationHandler());
+		HandlerRegistry.register(new RelationshipHandler());
+		HandlerRegistry.register(new IndividualAttributeHandler());
+		HandlerRegistry.register(new GroupAttributeHandler());
+		HandlerRegistry.register(new PlaceRelationshipHandler());
+		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new DocumentHandler());
+		HandlerRegistry.register(new IdentityHypothesisHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new HistoricEventHandler());
 	}
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -131,7 +144,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchActivityHandler.TYPE));
 
 		// Initialize components
-		questionPanel = new ResearchQuestionListPanel(model, parent);
+		questionPanel = new ResearchQuestionListPanel(TAG_QUESTION, parent, model);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, parent, "Activity Date", model);
 		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
 			"", "search", "review", "analysis", "correspondence", "interview", "hypothesis"
@@ -153,9 +166,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			"selected_entries"
 		});
 		searchScopeDetailArea = new BoundTextArea(TAG_SEARCH_SCOPE_DETAIL, 3, 30);
-
-		detailField = new JTextField(20);
-		detailField.setToolTipText("Optional detail about the search scope");
 		resultCombo = new BoundComboBox<>(TAG_RESULT, new String[]{
 			"", "positive", "negative", "inconclusive", "conflicting", "unavailable"
 		});
@@ -210,19 +220,17 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		// Action
 		mainPanel.add(new JLabel("Action*:"), "align label");
-		JScrollPane actionScroll = GUIHelper.createScrollPane(actionArea);
-		actionScroll.setPreferredSize(new Dimension(200, 80));
-		mainPanel.add(actionScroll, "growx,wrap");
+		mainPanel.add(actionArea, "growx,wrap");
 
 		// Target
 		mainPanel.add(new JLabel("Target:"), "align label");
 		mainPanel.add(targetField, "growx,wrap");
 
 		// Search Scope
-		add(new JLabel("Type:"), "align label");
-		add(searchScopeTypeCombo, "growx,wrap");
-		add(new JLabel("Detail:"), "align label");
-		add(searchScopeDetailArea, "growx");
+		mainPanel.add(new JLabel("Type:"), "align label");
+		mainPanel.add(searchScopeTypeCombo, "growx,wrap");
+		mainPanel.add(new JLabel("Detail:"), "align label");
+		mainPanel.add(searchScopeDetailArea, "growx,wrap");
 
 		// Result
 		mainPanel.add(new JLabel("Result:"), "align label");
@@ -230,15 +238,11 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		// Observation
 		mainPanel.add(new JLabel("Observation:"), "align label");
-		JScrollPane observationScroll = GUIHelper.createScrollPane(observationArea);
-		observationScroll.setPreferredSize(new Dimension(200, 80));
-		mainPanel.add(observationScroll, "growx,wrap");
+		mainPanel.add(observationArea, "growx,wrap");
 
 		// Conclusion
 		mainPanel.add(new JLabel("Conclusion:"), "align label");
-		JScrollPane conclusionScroll = GUIHelper.createScrollPane(conclusionArea);
-		conclusionScroll.setPreferredSize(new Dimension(200, 80));
-		mainPanel.add(conclusionScroll, "growx,wrap");
+		mainPanel.add(conclusionArea, "growx,wrap");
 
 		// Conclusion Confidence
 		mainPanel.add(new JLabel("Conclusion Confidence:"), "align label");
@@ -283,7 +287,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		parentField.load(record);
 
 		// Load questions
-		questionPanel.load(record);
+//		questionPanel.load(record);
 
 		// Load tasks
 		taskPanel.load(record);
@@ -374,7 +378,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		parentField.save(record);
 
 		// Save questions (removes existing children with TAG_QUESTION)
-		questionPanel.save(record);
+//		questionPanel.save(record);
 
 		// Save tasks (removes existing children with TAG_TASK)
 		taskPanel.save(record);

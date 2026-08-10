@@ -8,7 +8,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.*;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -42,7 +44,8 @@ import java.io.Serial;
 public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = -9146822186086957943L;
+
 
 	private static final String TAG_DESCRIPTION = "DESCRIPTION";
 	private static final String TAG_QUESTION = "QUESTION";
@@ -53,18 +56,21 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private static final String TAG_OUTCOME = "OUTCOME";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
+
 	static{
 		HandlerRegistry.register(new ResearchTaskHandler());
 	}
 
+
 	private final BindingManager bindingManager = new BindingManager();
+
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]5[]5[]"));
 
 	// Fields
 	private final BoundTextArea descriptionArea;
 	private final ResearchQuestionListPanel questionPanel;
-	private final ResearchActivityParentField createdByField;
+	private final ParticipantField createdByField;
 	private final BoundComboBox<String> statusCombo;
 	private final BoundComboBox<String> priorityCombo;
 	private final DateField dueDateField;
@@ -94,8 +100,9 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 		// Initialize components
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 30);
-		questionPanel = new ResearchQuestionListPanel(model, parent);
-		createdByField = new ResearchActivityParentField(parent, model);
+		questionPanel = new ResearchQuestionListPanel(TAG_QUESTION, parent, model);
+		createdByField = ParticipantField.create(TAG_CREATED_BY, this, model);
+		createdByField.setHandlerType(ResearchActivityHandler.TYPE);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{"", "open", "in_progress", "completed", "abandoned"});
 		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{"", "low", "normal", "high"});
 		dueDateField = DateField.createWithWrapperTag(TAG_DUE_DATE, parent, "Due Date", model);
@@ -176,7 +183,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		dueDateField.load(record);
 
 		// Load questions
-		questionPanel.load(record);
+//		questionPanel.load(record);
 
 		// Load created_by
 		createdByField.load(record);
@@ -231,7 +238,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		dueDateField.save(record);
 
 		// Save questions
-		questionPanel.save(record);
+//		questionPanel.save(record);
 
 		// Save created_by
 		createdByField.save(record);
