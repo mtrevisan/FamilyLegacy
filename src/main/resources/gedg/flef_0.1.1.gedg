@@ -979,7 +979,7 @@ ImpactTarget = oneof {
 record ResearchQuestion {
   id: LocalID title: Text             // short human-readable summary of the research objective
   question: Text                      // the actual research question or hypothesis being investigated
-  target*: ResearchTarget            // people, families, events, places, or records involved in the question
+  target*: ResearchTarget             // people, families, events, places, or records involved in the question
   status: enum {
     open,       // investigation is ongoing
     on_hold,    // temporarily suspended

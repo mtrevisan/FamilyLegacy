@@ -29,8 +29,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.AssociationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -94,12 +97,14 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 
 	private static final String TAG_QUESTION = "QUESTION";
+	private static final String TAG_TARGET = "TARGET";
 	private static final String TAG_STATUS = "STATUS";
-	private static final String TAG_PRIORITY = "PRIORITY";
-	private static final String TAG_ASSOCIATION = "ASSOCIATION";
-	private static final String TAG_BLOCKED_BY = "BLOCKED_BY";
-	private static final String TAG_PLAN = "PLAN";
-	private static final String TAG_RESOLUTION = "RESOLUTION";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
+	private static final String TAG_RATIONALE = "RATIONALE";
+	private static final String TAG_CREATED = "CREATED";
+	private static final String TAG_CLOSED = "CLOSED";
+	private static final String TAG_RESTRICTION = "RESTRICTION";
 
 
 	static{
@@ -114,11 +119,14 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundTextArea questionArea;
+	private final BoundTextField targetField;
 	private final BoundComboBox<String> statusCombo;
-	private final BoundComboBox<String> priorityCombo;
-	private final AssociationListPanel associationPanel;
-	private final BoundTextArea planArea;
-	private final BoundTextArea resolutionArea;
+	private final BoundTextArea conclusionArea;
+	private final BoundComboBox<String> conclusionConfidenceCombo;
+	private final BoundTextArea rationaleArea;
+	private final DateField createdField;
+	private final DateField closedField;
+	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
 
