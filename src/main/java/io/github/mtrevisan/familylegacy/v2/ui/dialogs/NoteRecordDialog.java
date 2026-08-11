@@ -32,10 +32,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TranslationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -99,7 +100,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> mimeCombo;
 	private final BoundComboBox<String> localeCombo;
 	private final TranslationListPanel translationPanel;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
@@ -126,7 +127,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations", model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 

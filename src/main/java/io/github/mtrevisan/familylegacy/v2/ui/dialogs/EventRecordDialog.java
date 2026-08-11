@@ -35,14 +35,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CauseHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -124,10 +124,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final DateField dateField;
 	private final PlaceCitationField placeCitationField;
 	private final BoundTextField agencyField;
-	private final StructureListPanel causePanel;
+	private final EntityReferenceListPanel causePanel;
 	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 	private final EvidenceQualifiersPanel qualifiers;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
@@ -160,12 +160,12 @@ public class EventRecordDialog extends BaseRecordDialog{
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		agencyField = new BoundTextField(TAG_AGENCY, 30);
-		causePanel = new StructureListPanel(TAG_CAUSE, this, "Causes", model, CauseHandler.TYPE);
-		culturalNormPanel = new EntityReferenceListPanel(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+		causePanel = EntityReferenceListPanel.createForStructure(TAG_CAUSE, this, "Causes", model, CauseHandler.TYPE);
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
 			.withParentEntity(this.record.getId(), EventHandler.TYPE);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), EventHandler.TYPE);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -277,8 +277,8 @@ public class EventRecordDialog extends BaseRecordDialog{
 		dateField.save(record);
 		placeCitationField.saveReferences(record);
 		causePanel.save(record);
-		culturalNormPanel.saveReferences(record);
-		notePanel.saveReferences(record);
+		culturalNormPanel.save(record);
+		notePanel.save(record);
 		sourceCitationPanel.save(record);
 		qualifiers.save(record);
 		restrictionPanel.save(record);

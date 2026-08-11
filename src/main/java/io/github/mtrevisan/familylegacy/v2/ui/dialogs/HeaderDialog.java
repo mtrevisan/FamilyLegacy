@@ -31,10 +31,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.BasicNoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -127,7 +126,7 @@ public class HeaderDialog extends JDialog{
 	private final BoundTextArea copyrightArea;
 
 	private final BoundTextField submitterNameField;
-	private final StructureListPanel submitterContactListPanel;
+	private final EntityReferenceListPanel submitterContactListPanel;
 	private final BasicNoteListPanel submitterNotePanel;
 
 	private final BoundTextArea scopeArea;
@@ -148,7 +147,7 @@ public class HeaderDialog extends JDialog{
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
 		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME, 20);
-		submitterContactListPanel = new StructureListPanel(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
+		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
 		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER, this, "Notes",
 			false, TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);

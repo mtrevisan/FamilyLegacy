@@ -113,7 +113,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
 		nameListPanel = new VariantListPanel(TAG_NAME, this, "Variant", model);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
@@ -185,7 +185,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		nameListPanel.save(record);
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}

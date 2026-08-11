@@ -28,16 +28,18 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-/* DONE */
+/* ONGOING */
 public class RelationshipHandler implements RecordTypeHandler<RelationshipRecordDialog>{
 
 	public static final String TYPE = "RELATIONSHIP";
 	public static final String ID_PREFIX = "RL";
 
+	private static final String TAG_SUBJECT = "SUBJECT";
 	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_ROLE = "ROLE";
 
@@ -67,21 +69,41 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipRecord
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String objectId = FLEFRecordHelper.getChildValue(record, TAG_OBJECT);
+		final FLEFRecord subjectCitation = FLEFRecordHelper.findChild(record, TAG_SUBJECT)
+			.getChildren()
+			.getFirst();
+		final FLEFRecord subjectRecord = model.getRecordById(subjectCitation.getValue());
+		final String subjectTag = subjectRecord
+			.getTag();
+		final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subjectTag);
+		final String subjectDisplayText = subjectHandler.getDisplayText(subjectRecord, model);
+
+		final FLEFRecord objectCitation = FLEFRecordHelper.findChild(record, TAG_OBJECT)
+			.getChildren()
+			.getFirst();
+		final FLEFRecord objectRecord = model.getRecordById(objectCitation.getValue());
+		final String objectTag = objectRecord
+			.getTag();
+		final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(objectTag);
+		final String objectDisplayText = objectHandler.getDisplayText(objectRecord, model);
+
 		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
-		final StringBuilder display = new StringBuilder();
-		if(objectId != null){
-			final FLEFRecord obj = model.getRecordById(objectId);
-			if(obj != null)
-				display.append(individualHandler.getDisplayText(obj, model));
-			else
-				display.append(objectId);
-		}
+
+		final String id = record.getId();
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append(subjectDisplayText);
+		if(StringUtils.isNotBlank(role))
+			sb.append(" is ")
+				.append(role)
+				.append(" w.r.t. ");
 		else
-			display.append("?");
-		if(role != null && !role.isEmpty())
-			display.append(" [").append(role).append("]");
-		return display.toString();
+			sb.append(" is related to ");
+		sb.append(objectDisplayText)
+			.append(" [")
+			.append(id)
+			.append("]");
+		return sb.toString();
 	}
 
 	@Override

@@ -239,14 +239,12 @@ public class FLEFRecord{
 
 		final FLEFRecord other = (FLEFRecord)obj;
 		return (Objects.equals(id, other.id)
-			&& Objects.equals(tag, other.tag)
-			&& Objects.equals(value, other.value)
-			&& Objects.equals(children, other.children));
+			|| Objects.equals(tag, other.tag) && Objects.equals(value, other.value));
 	}
 
 	@Override
 	public int hashCode(){
-		return Objects.hash(id, tag, value, children);
+		return Objects.hash(id, tag, value);
 	}
 
 	@Override

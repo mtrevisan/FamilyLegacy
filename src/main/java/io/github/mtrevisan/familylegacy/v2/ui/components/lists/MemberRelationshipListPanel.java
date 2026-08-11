@@ -27,8 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._NoteListEditorDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
@@ -45,6 +48,16 @@ import java.util.Set;
 
 
 /* ONGOING */
+/**
+ * Panel for managing member relationships (membership) of a group.
+ * <p>
+ * This panel handles the creation and management of relationships between
+ * a group (identified by {@code groupId}) and individuals.
+ * <p>
+ * <strong>Note:</strong> This panel works in conjunction with a {@link RelationshipListPanel}
+ * to keep the general relationship list synchronized. When a member relationship
+ * is added or removed, it is automatically reflected in the general panel if set.
+ */
 public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
@@ -54,7 +67,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
 	private static final String TAG_SUBJECT = "SUBJECT";
 	private static final String TAG_OBJECT = "OBJECT";
-	private static final String TAG_ROLE = "ROLE";
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 
 
@@ -65,7 +77,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private final String groupId;
-	private RelationshipListPanel generalPanel;
 
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
@@ -90,8 +101,8 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.item("Create New...", this::createNewItem);
 				builder.item("Add Existing...", this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
-				builder.selectionSensitiveItem("Edit Member Individual...", this::editMemberIndividual);
+				builder.selectionSensitiveItem("Edit Relationship...", this::editItem);
+				builder.selectionSensitiveItem("Edit Member...", this::editMemberItem);
 				builder.selectionSensitiveItem("Notes...", this::showNotes);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			}
@@ -125,29 +136,13 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		return (other != null && TAG_INDIVIDUAL.equals(other.getTag()));
 	}
 
-	//FIXME
-//	@Override
-//	public void setItems(final List<FLEFRecord> items){
-//		final List<FLEFRecord> members = new ArrayList<>();
-//		for(final FLEFRecord rel : items)
-//			if(isMemberRelationship(rel))
-//				members.add(rel);
-//		super.setItems(members);
-//	}
-
+	/**
+	 * Creates a new individual and a relationship to the group.
+	 *
+	 * @return the new relationship record, or {@code null} if cancelled
+	 */
 	@Override
-	protected FLEFRecord showAddDialog(){
-		final String[] result = {null};
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			IndividualHandler.TYPE,
-			(handlerType, selectedRecord) -> result[0] = selectedRecord.getValue()
-		);
-		dialog.setVisible(true);
-
-		final String individualId = result[0];
-		if(individualId == null)
-			return null;
-
+	protected FLEFRecord showCreateNewDialog(){
 		if(groupId == null){
 			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -155,20 +150,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		//TODO
-//		final RelationshipRecordDialog relDialog = RelationshipRecordDialog(parent, model, null, groupId,
-//			individualId);
-//		relDialog.setVisible(true);
-//
-//		final FLEFRecord rel = (relDialog.isSaved()? relDialog.getCitationRecord(): null);
-//		if(rel != null && generalPanel != null && !generalPanel.getItems().contains(rel))
-//			generalPanel.addItemDirectly(rel);
-//		return rel;
-		return null;
-	}
-
-	@Override
-	protected FLEFRecord showCreateNewDialog(){
+		// 1. Track existing individuals to identify the newly created one
 		final Set<String> before = new HashSet<>();
 		for(final FLEFRecord rec : model.getRecordsByType(TAG_INDIVIDUAL)){
 			final String id = rec.getId();
@@ -176,9 +158,11 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 				before.add(id);
 		}
 
+		// 2. Create a new individual
 		final JDialog createDialog = individualHandler.createNewDialog(parent, model);
 		createDialog.setVisible(true);
 
+		// 3. Find the newly created individual ID
 		String newIndividualId = null;
 		for(final FLEFRecord rec : model.getRecordsByType(TAG_INDIVIDUAL)){
 			final String id = rec.getId();
@@ -191,6 +175,28 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		if(newIndividualId == null)
 			return null;
 
+		// 4. Create a relationship between the group and the new individual
+		final RelationshipRecordDialog relDialog = (RelationshipRecordDialog)relationshipHandler.createNewDialog(parent, model);
+		relDialog.setSubject(groupId, GroupHandler.TYPE);
+		//TODO group vs individual
+//		relDialog.setObject(newIndividualId, IndividualHandler.TYPE);
+		relDialog.setVisible(true);
+
+		if(relDialog.isSaved())
+			return relDialog.getRecord();
+
+		// Rollback: remove the newly created individual
+		model.removeRecord(newIndividualId);
+		return null;
+	}
+
+	/**
+	 * Adds an existing individual as a member of the group.
+	 *
+	 * @return the new relationship record, or {@code null} if cancelled
+	 */
+	@Override
+	protected FLEFRecord showAddDialog(){
 		if(groupId == null){
 			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -198,18 +204,34 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		//TODO
-//		final RelationshipRecordDialog relDialog = new RelationshipRecordDialog(parent, model, null, groupId,
-//			newIndividualId);
-//		relDialog.setVisible(true);
-//
-//		final FLEFRecord rel = relDialog.isSaved()? relDialog.getCitationRecord(): null;
-//		if(rel != null && generalPanel != null && !generalPanel.getItems().contains(rel))
-//			generalPanel.addItemDirectly(rel);
-//		return rel;
-		return null;
+		// 1. Select an existing individual
+		final String[] result = {null};
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			IndividualHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord.getValue()
+		);
+		dialog.setVisible(true);
+
+		final String individualId = result[0];
+		if(individualId == null)
+			return null;
+
+		// 2. Create a relationship between the group and the selected individual
+		final RelationshipRecordDialog relDialog = (RelationshipRecordDialog)relationshipHandler.createNewDialog(parent, model);
+		relDialog.setSubject(groupId, GroupHandler.TYPE);
+		//TODO group vs individual
+//		relDialog.setObject(newIndividualId, IndividualHandler.TYPE);
+		relDialog.setVisible(true);
+
+		return (relDialog.isSaved()? relDialog.getRecord(): null);
 	}
 
+	/**
+	 * Edits an existing relationship.
+	 *
+	 * @param existing the existing relationship to edit
+	 * @return the updated relationship, or {@code null} if cancelled
+	 */
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
@@ -219,15 +241,18 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		//TODO
-//		final RelationshipRecordDialog dialog = (RelationshipRecordDialog)relationshipHandler.createEditDialog(parent, model,
-//			existing);
-//		dialog.setVisible(true);
-//		return (dialog.isSaved()? dialog.getCitationRecord(): existing);
-		return null;
+		final BaseRecordDialog dialog = relationshipHandler.createEditDialog(parent, model, existing);
+		dialog.setVisible(true);
+
+		// Return the same record (it was updated in place)
+		return existing;
 	}
 
-	private void editMemberIndividual(){
+	/**
+	 * Edits the individual that is the target of the selected relationship.
+	 * The individual is the one that is not the group itself.
+	 */
+	private void editMemberItem(){
 		final int idx = list.getSelectedIndex();
 		if(idx == -1)
 			return;
@@ -256,6 +281,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		final JDialog editDialog = individualHandler.createEditDialog(parent, model, individual);
 		editDialog.setVisible(true);
 
+		// Update the display in the list
 		final int pos = list.getSelectedIndex();
 		if(pos != -1)
 			listModel.set(pos, getDisplay(relationship));
@@ -273,6 +299,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		final _NoteListEditorDialog dialog = new _NoteListEditorDialog(parent, model, relationship);
 		dialog.setVisible(true);
 		if(dialog.isSaved()){
+			// Update the display in the list
 			final int pos = list.getSelectedIndex();
 			if(pos != -1)
 				listModel.set(pos, getDisplay(relationship));

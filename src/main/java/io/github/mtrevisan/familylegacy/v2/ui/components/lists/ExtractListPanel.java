@@ -44,15 +44,16 @@ import java.util.List;
 
 
 /* DONE */
+/**
+ * Panel for managing a list of extracts with text, type, locale, and notes.
+ */
 public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = -259585503419013969L;
 
 
-	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
-	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_LOCALE = "LOCALE";
@@ -133,6 +134,12 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		return showExtractDialog(existing);
 	}
 
+	/**
+	 * Shows the extract dialog for creating or editing an extract.
+	 *
+	 * @param initial the initial extract record, or {@code null} for a new extract
+	 * @return the created/updated extract record, or {@code null} if canceled
+	 */
 	private FLEFRecord showExtractDialog(final FLEFRecord initial){
 		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, "Document Parts", model);
 		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
@@ -150,7 +157,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
 		final FLEFRecord[] result = {null};
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog.getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			() -> {
 				if(!validExtractData(dialog, documentPartPanel, textArea))
 					return;

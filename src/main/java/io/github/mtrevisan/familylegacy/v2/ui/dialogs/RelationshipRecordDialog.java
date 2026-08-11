@@ -34,13 +34,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -58,7 +59,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-/* DONE */
+/* ONGOING */
 /**
  * Dialog for editing a {@code RELATIONSHIP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -137,13 +138,14 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private final ParticipantField subjectField;
 	private final ParticipantField objectField;
 	private final BoundComboBox<String> subjectTypeCombo;
+	private final JLabel subjectTypeLabel;
 	private final BoundTextField subjectRoleField;
 	private final BoundComboBox<String> statusCombo;
 	private final DateField validOnField;
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityReferenceListPanel notePanel;
-	private final SourceCitationListPanel sourcePanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
@@ -168,6 +170,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		objectField = ParticipantField.create(TAG_OBJECT, this, model);
 		objectField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
 		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> updateTypeCombo());
+		subjectTypeLabel = new JLabel("Subject Type*:");
 		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
@@ -183,9 +186,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), RelationshipHandler.TYPE);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -247,7 +250,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
+		final boolean subjectVisible = (parentEntity != null && !parentEntity.isEmpty());
+
+		//TODO adding info, subject rule sometimes si mette nella stessa riga di object...
+		//quando group to individual, che sarebbe lista vuota nella type combo box...
 		// subject
+		subjectLabel.setVisible(subjectVisible);
+		subjectField.setVisible(subjectVisible);
 		mainPanel.add(subjectLabel, "align label");
 		mainPanel.add(subjectField, "growx,wrap");
 
@@ -256,7 +265,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		mainPanel.add(objectField, "growx,wrap");
 
 		// (subject) type
-		mainPanel.add(new JLabel("Subject Type*:"), "align label");
+		subjectTypeLabel.setVisible(subjectVisible);
+		subjectTypeCombo.setVisible(subjectVisible);
+		mainPanel.add(subjectTypeLabel, "align label");
 		mainPanel.add(subjectTypeCombo, "growx,wrap");
 
 		// (subject) role
@@ -337,6 +348,12 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
+		if(parentEntity != null && !parentEntity.isEmpty()){
+			subjectField.setParticipant(parentEntity.getPath(), FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			subjectTypeCombo.setText(parentEntity.getPath());
+		}
+
+
 		if(!subjectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject is required.",
@@ -348,6 +365,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object is required.",
 				tabbedPane, mainPanel, objectField);
+			return false;
+		}
+
+		if(subjectField.equals(objectField)){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Subject and Object must not be the same entity.",
+				tabbedPane, mainPanel, subjectField);
 			return false;
 		}
 
@@ -372,7 +396,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validOnField.save(record);
 		validFromField.save(record);
 		validToField.save(record);
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		sourcePanel.save(record);
 		evidencePanel.save(record);
 		restrictionPanel.save(record);

@@ -37,10 +37,17 @@ import java.util.List;
 
 
 /* DONE */
-public class VariantListPanel extends StructureListPanel{
+/**
+ * Panel for managing variants (phonetic and transcription) of a record.
+ */
+public class VariantListPanel extends EntityReferenceListPanel{
 
 	@Serial
 	private static final long serialVersionUID = -298718064629353117L;
+
+
+	private static final String TAG_PHONETIC = "PHONETIC";
+	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 
 
 	static{
@@ -48,12 +55,8 @@ public class VariantListPanel extends StructureListPanel{
 	}
 
 
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
-
-
 	public VariantListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
-		super(path, parent, panelTitle, model, VariantHandler.TYPE);
+		super(path, parent, panelTitle, model, VariantHandler.TYPE, false);
 	}
 
 
@@ -70,6 +73,23 @@ public class VariantListPanel extends StructureListPanel{
 		items.add(variantPhonetic);
 		items.add(variantTranscription);
 		setItems(items);
+	}
+
+	/**
+	 * Saves the current variants to the given record.
+	 *
+	 * @param record the record to save to
+	 */
+	public void save(final FLEFRecord record){
+		FLEFRecordHelper.removeChildren(record, TAG_PHONETIC);
+		FLEFRecordHelper.removeChildren(record, TAG_TRANSCRIPTION);
+
+		for(final FLEFRecord item : getItems())
+			if(item != null){
+				final String tag = item.getTag();
+				if(TAG_PHONETIC.equals(tag) || TAG_TRANSCRIPTION.equals(tag))
+					record.addChild(item);
+			}
 	}
 
 }

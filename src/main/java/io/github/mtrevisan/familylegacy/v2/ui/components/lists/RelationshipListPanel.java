@@ -27,12 +27,14 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
@@ -40,6 +42,10 @@ import java.io.Serial;
 import java.util.List;
 
 
+/* ONGOING set withParentEntity on subject */
+/**
+ * Panel for managing a list of relationships.
+ */
 public class RelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
@@ -56,6 +62,9 @@ public class RelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
+	private String subjectEntityId;
+	private String subjectEntityHandlerType;
+
 	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
 
 
@@ -63,6 +72,21 @@ public class RelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		super(parent, panelTitle, model);
 
 		this.path = path;
+	}
+
+	/**
+	 * Sets the subject entity for new records created by this panel.
+	 * This is used to automatically link new records to a subject entity.
+	 *
+	 * @param subjectEntityId        the ID of the subject entity
+	 * @param subjectEntityHandlerType the handler type of the subject entity
+	 * @return this panel instance (for method chaining)
+	 */
+	public RelationshipListPanel withSubject(final String subjectEntityId, final String subjectEntityHandlerType){
+		this.subjectEntityId = subjectEntityId;
+		this.subjectEntityHandlerType = subjectEntityHandlerType;
+
+		return this;
 	}
 
 
@@ -106,7 +130,9 @@ public class RelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final RelationshipRecordDialog dialog = (RelationshipRecordDialog)relationshipHandler.createNewDialog(parent, model);
+		final BaseRecordDialog dialog = relationshipHandler.createNewDialog(parent, model);
+		if(StringUtils.isNotEmpty(subjectEntityId) && StringUtils.isNotEmpty(subjectEntityHandlerType))
+			dialog.withParentEntity(subjectEntityId, subjectEntityHandlerType);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

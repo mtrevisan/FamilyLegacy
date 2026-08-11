@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.IndividualField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -88,10 +87,10 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]"));
 
-	private final StructureListPanel namePanel;
+	private final EntityReferenceListPanel namePanel;
 	private final IndividualField custodianField;
 	private final PlaceCitationField placeCitationField;
-	private final StructureListPanel contactPanel;
+	private final EntityReferenceListPanel contactPanel;
 	private final EntityReferenceListPanel notePanel;
 	private final ModificationPanel modificationPanel;
 
@@ -108,11 +107,11 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private RepositoryRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
-		namePanel = new StructureListPanel(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
 		custodianField = IndividualField.create(TAG_CUSTODIAN, this, model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		contactPanel = new StructureListPanel(TAG_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		contactPanel = EntityReferenceListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), RepositoryHandler.TYPE);
 		modificationPanel = new ModificationPanel(this);
 
@@ -187,7 +186,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		custodianField.saveReferences(record);
 		placeCitationField.saveReferences(record);
 		contactPanel.save(record);
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		modificationPanel.save(record);
 	}
 

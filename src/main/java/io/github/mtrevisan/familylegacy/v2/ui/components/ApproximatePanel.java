@@ -83,7 +83,7 @@ public class ApproximatePanel extends JPanel{
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
 		this.path = path;
 
-		culturalNormPanel = new EntityReferenceListPanel(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.TYPE);
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.TYPE);
 
 
 		initComponents();
@@ -159,7 +159,7 @@ public class ApproximatePanel extends JPanel{
 		if(basis != null && !basis.isEmpty())
 			FLEFRecordHelper.updateChildValue(approx, TAG_BASIS, basis);
 
-		culturalNormPanel.saveReferences(parent);
+		culturalNormPanel.save(parent);
 
 		final String margin = marginField.getText()
 			.trim();

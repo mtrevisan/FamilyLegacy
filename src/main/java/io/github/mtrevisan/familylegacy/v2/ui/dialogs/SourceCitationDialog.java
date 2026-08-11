@@ -126,7 +126,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		source = new BoundTextField(TAG_SOURCE);
 		locationField = new BoundTextField(TAG_LOCATION, 20);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, null, model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, null, model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), SourceCitationHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
@@ -219,7 +219,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		extractPanel.save(record);
 		qualifiers.save(record);
 	}

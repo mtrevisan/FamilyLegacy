@@ -45,6 +45,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 
 /* DONE */
@@ -309,6 +310,24 @@ public class ParticipantField extends JPanel{
 				return handler;
 		}
 		return null;
+	}
+
+
+	@Override
+	public boolean equals(final Object obj){
+		if(this == obj)
+			return true;
+		if(obj == null || getClass() != obj.getClass())
+			return false;
+
+		final ParticipantField other = (ParticipantField)obj;
+		return (Objects.equals(participantType, other.participantType)
+			&& Objects.equals(participantRecord, other.participantRecord));
+	}
+
+	@Override
+	public int hashCode(){
+		return Objects.hash(participantType, participantRecord);
 	}
 
 }

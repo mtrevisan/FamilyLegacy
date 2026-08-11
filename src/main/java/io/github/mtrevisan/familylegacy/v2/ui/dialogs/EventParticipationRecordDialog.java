@@ -34,8 +34,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EventField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -121,7 +122,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private final ParticipantField participantField;
 	private final BoundComboBox<String> roleCombo;
 	private final EntityReferenceListPanel notePanel;
-	private final SourceCitationListPanel sourcePanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
@@ -153,9 +154,9 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			"accused", "judge"
 		});
 		roleCombo.setEditable(true);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), EventParticipationHandler.TYPE);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -296,7 +297,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		bindingManager.save(record);
 
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		sourcePanel.save(record);
 		evidencePanel.save(record);
 		restrictionPanel.save(record);

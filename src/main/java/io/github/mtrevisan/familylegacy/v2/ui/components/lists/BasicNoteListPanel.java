@@ -120,11 +120,14 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final String text = textArea.getText()
 			.trim();
-		final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path);
-		final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-		newNote.addChild(FLEFRecord.createChildWithValue(TAG_DATE, creationDate));
-		newNote.addChild(FLEFRecord.createChildWithValue(noteTag, text));
-		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? newNote: null);
+		if(result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)){
+			final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path);
+			final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+			newNote.addChild(FLEFRecord.createChildWithValue(TAG_DATE, creationDate));
+			newNote.addChild(FLEFRecord.createChildWithValue(noteTag, text));
+			return newNote;
+		}
+		return null;
 	}
 
 	@Override
@@ -132,7 +135,8 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		if(existing == null)
 			return null;
 
-		final JTextArea textArea = new JTextArea(getDisplay(existing), 10, 50);
+		final String displayText = getDisplay(existing);
+		final JTextArea textArea = new JTextArea(displayText, 10, 50);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
 
@@ -146,10 +150,18 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final String text = textArea.getText()
 			.trim();
-		FLEFRecordHelper.updateChildValue(existing, noteTag, text);
-		return (result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)? existing: null);
+		if(result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)){
+			FLEFRecordHelper.updateChildValue(existing, noteTag, text);
+			return existing;
+		}
+		return null;
 	}
 
+	/**
+	 * Loads notes from the given record.
+	 *
+	 * @param record the record containing the notes
+	 */
 	public void load(final FLEFRecord record){
 		clear();
 
@@ -160,6 +172,11 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		setItems(notes);
 	}
 
+	/**
+	 * Saves the current notes to the given record.
+	 *
+	 * @param record the record to save to
+	 */
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);
 

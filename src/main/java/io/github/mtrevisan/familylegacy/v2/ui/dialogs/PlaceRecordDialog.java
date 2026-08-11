@@ -32,13 +32,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -105,11 +105,11 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final StructureListPanel namePanel;
+	private final EntityReferenceListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField mapCoordinatesField;
 	private final EvidenceQualifiersPanel mapQualifiers;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 	private final EvidenceQualifiersPanel placeQualifiers;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
@@ -130,7 +130,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private PlaceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PlaceHandler.TYPE));
 
-		namePanel = new StructureListPanel(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"address", "building", "street", "hamlet", "village", "town",
@@ -141,12 +141,12 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES, 31);
 		mapQualifiers = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, "Map Evidence");
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Place Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
-		conclusionPanel = new EntityReferenceListPanel(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
+		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
 			.withParentEntity(this.record.getId(), PlaceHandler.TYPE);
 
 
@@ -243,7 +243,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 
-		conclusionPanel.saveReferences(record);
+		conclusionPanel.save(record);
 	}
 
 

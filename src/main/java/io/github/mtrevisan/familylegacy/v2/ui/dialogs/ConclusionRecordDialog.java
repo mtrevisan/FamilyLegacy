@@ -35,11 +35,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -109,7 +110,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea narrativeArea;
 	private final EntityReferenceListPanel researchPanel;
 	private final DateField dateField;
-	private final SourceCitationListPanel sourcePanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
@@ -136,10 +137,10 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			"unresearched", "conflicting_evidence", "supported", "proven", "disproven"
 		});
 		narrativeArea = new BoundTextArea(TAG_NARRATIVE, 5, 30);
-		researchPanel = new EntityReferenceListPanel(TAG_RESEARCH, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
+		researchPanel = EntityReferenceListPanel.createForRecord(TAG_RESEARCH, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
 			.withParentEntity(this.record.getId(), ConclusionHandler.TYPE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Conclusion Date", model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
@@ -316,7 +317,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			}
 		}
 
-		researchPanel.saveReferences(record);
+		researchPanel.save(record);
 		sourcePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);

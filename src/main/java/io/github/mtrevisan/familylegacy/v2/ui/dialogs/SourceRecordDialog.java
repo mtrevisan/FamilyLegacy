@@ -33,8 +33,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.RepositoryCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -108,7 +108,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> mediaTypeCombo;
 	private final DateField dateField;
 	private final PlaceCitationField placeCitationField;
-	private final RepositoryCitationListPanel repositoryCitationPanel;
+	private final EntityCitationListPanel repositoryCitationPanel;
 	private final EntityReferenceListPanel documentPanel;
 	private final EntityReferenceListPanel notePanel;
 	private final RestrictionPanel restrictionPanel;
@@ -137,10 +137,10 @@ public class SourceRecordDialog extends BaseRecordDialog{
 				"magazine", "manuscript", "map", "newspaper", "photo",
 				"tombstone", "video"});
 		mediaTypeCombo.setEditable(true);
-		repositoryCitationPanel = new RepositoryCitationListPanel(TAG_REPOSITORY, this, "Repositories", model);
-		documentPanel = new EntityReferenceListPanel(TAG_DOCUMENT, this, "Documents", model, DocumentHandler.TYPE)
+		repositoryCitationPanel = new EntityCitationListPanel(TAG_REPOSITORY, this, "Repositories", model, RepositoryHandler.TYPE);
+		documentPanel = EntityReferenceListPanel.createForRecord(TAG_DOCUMENT, this, "Documents", model, DocumentHandler.TYPE)
 			.withParentEntity(this.record.getId(), SourceHandler.TYPE);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), SourceHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -238,8 +238,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		dateField.save(record);
 		placeCitationField.saveReferences(record);
 		repositoryCitationPanel.save(record);
-		documentPanel.saveReferences(record);
-		notePanel.saveReferences(record);
+		documentPanel.save(record);
+		notePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}

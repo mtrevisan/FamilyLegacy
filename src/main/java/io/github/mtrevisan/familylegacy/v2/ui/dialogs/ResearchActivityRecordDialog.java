@@ -34,9 +34,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TaskListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -161,7 +160,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> statusCombo;
 	private final BoundTextArea actionArea;
 	private final ParticipantField targetField;
-	private final SourceCitationListPanel sourcePanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final BoundComboBox<String> searchScopeTypeCombo;
 	private final BoundTextArea searchScopeDetailArea;
 	private final BoundComboBox<String> resultCombo;
@@ -169,7 +168,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea conclusionArea;
 	private final BoundComboBox<String> conclusionConfidenceCombo;
 	private final ParticipantField parentField;
-	private final TaskListPanel taskPanel;
+	private final EntityReferenceListPanel taskPanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
@@ -188,7 +187,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchActivityHandler.TYPE));
 
 		// Initialize components
-		questionPanel = new EntityReferenceListPanel(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
+		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
 			.withParentEntity(this.record.getId(), ResearchActivityHandler.TYPE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Activity Date", model);
 		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
@@ -203,7 +202,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			EventParticipationHandler.TYPE, RelationshipHandler.TYPE, IndividualAttributeHandler.TYPE,
 			GroupAttributeHandler.TYPE, PlaceRelationshipHandler.TYPE, SourceHandler.TYPE, DocumentHandler.TYPE,
 			IdentityHypothesisHandler.TYPE, CulturalNormHandler.TYPE, HistoricEventHandler.TYPE));
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, new String[]{
 			"entire_source",
 			"index_only",
@@ -222,7 +221,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			"low", "medium", "high"});
 		parentField = ParticipantField.create(TAG_PARENT, this, model);
 		parentField.setHandlerType(ResearchActivityHandler.TYPE);
-		taskPanel = new TaskListPanel(TAG_TASK, this, "Tasks", model);
+		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model, ResearchTaskHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
@@ -405,7 +404,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		targetField.saveReferences(record);
 		parentField.saveReferences(record);
-		questionPanel.saveReferences(record);
+		questionPanel.save(record);
 		taskPanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);

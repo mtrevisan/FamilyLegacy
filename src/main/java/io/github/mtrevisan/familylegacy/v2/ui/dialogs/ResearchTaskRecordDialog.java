@@ -122,7 +122,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchTaskHandler.TYPE));
 
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 30);
-		questionPanel = new EntityReferenceListPanel(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
+		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
 			.withParentEntity(this.record.getId(), ResearchTaskHandler.TYPE);
 		createdByField = ParticipantField.create(TAG_CREATED_BY, this, model);
 		createdByField.setHandlerType(ResearchActivityHandler.TYPE);
@@ -233,7 +233,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 		bindingManager.save(record);
 
-		questionPanel.saveReferences(record);
+		questionPanel.save(record);
 		createdByField.saveReferences(record);
 		dueDateField.save(record);
 		restrictionPanel.save(record);

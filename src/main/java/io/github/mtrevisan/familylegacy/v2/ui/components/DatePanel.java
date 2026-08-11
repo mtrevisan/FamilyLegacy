@@ -30,7 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -86,7 +87,7 @@ public class DatePanel extends JPanel{
 	private final SpanningDatePanel spanningDatePanel;
 
 	private final BoundTextField originalTextField;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 	private final BoundComboBox<String> certaintyCombo;
 	private final BoundComboBox<String> credibilityCombo;
 
@@ -97,7 +98,7 @@ public class DatePanel extends JPanel{
 		spanningDatePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 15);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, parent, "Sources", model);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceHandler.TYPE);
 		certaintyCombo = new BoundComboBox<>(TAG_CERTAINTY,
 			new String[]{StringUtils.EMPTY, "proven", "challenged", "disproven"});
 		credibilityCombo = new BoundComboBox<>(TAG_CREDIBILITY,

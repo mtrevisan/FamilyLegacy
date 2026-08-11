@@ -31,11 +31,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.RelationshipListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -44,6 +43,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -107,11 +107,11 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final StructureListPanel personalNamePanel;
+	private final EntityReferenceListPanel personalNamePanel;
 	private final BoundComboBox<String> sexCombo;
 	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 	private final PreferredImagePanel preferredImagePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
@@ -135,24 +135,25 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private IndividualRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(IndividualHandler.TYPE));
 
-		personalNamePanel = new StructureListPanel(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.TYPE);
+		personalNamePanel = EntityReferenceListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.TYPE);
 		sexCombo = new BoundComboBox<>(TAG_SEX,
 			new String[]{StringUtils.EMPTY, "male", "female", "unknown"});
-		culturalNormPanel = new EntityReferenceListPanel(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
-		conclusionPanel = new EntityReferenceListPanel(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
+		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
 		memberPanel = new MemberRelationshipListPanel(this, model, this.record.getId());
-		attributePanel = new EntityReferenceListPanel(TAG_INDIVIDUAL_ATTRIBUTE, this, "Individual Attributes", model, IndividualAttributeHandler.TYPE)
+		attributePanel = EntityReferenceListPanel.createForRecord(TAG_INDIVIDUAL_ATTRIBUTE, this, "Individual Attributes", model, IndividualAttributeHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
-		relationshipPanel = new RelationshipListPanel(TAG_RELATIONSHIP, this, "Relationships", model);
+		relationshipPanel = new RelationshipListPanel(TAG_RELATIONSHIP, this, "Relationships", model)
+			.withSubject(this.record.getId(), IndividualHandler.TYPE);
 
 
 		initComponents();
@@ -240,16 +241,16 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		personalNamePanel.save(record);
-		culturalNormPanel.saveReferences(record);
-		notePanel.saveReferences(record);
+		culturalNormPanel.save(record);
+		notePanel.save(record);
 		sourceCitationPanel.save(record);
 		preferredImagePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 
-		conclusionPanel.saveReferences(record);
+		conclusionPanel.save(record);
 		memberPanel.save(record);
-		attributePanel.saveReferences(record);
+		attributePanel.save(record);
 		relationshipPanel.save(record);
 	}
 

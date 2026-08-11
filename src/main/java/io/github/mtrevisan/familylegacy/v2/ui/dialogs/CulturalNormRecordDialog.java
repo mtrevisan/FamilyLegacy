@@ -33,11 +33,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -108,7 +109,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityReferenceListPanel notePanel;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 	private final EvidenceQualifiersPanel qualifiers;
 	private final ModificationPanel modificationPanel;
 
@@ -150,9 +151,9 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_PLACE, "Evidence");
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), CulturalNormHandler.TYPE);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 		modificationPanel = new ModificationPanel(this);
 
@@ -250,7 +251,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		placeQualifiers.save(record);
 		validFromField.save(record);
 		validToField.save(record);
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		sourceCitationPanel.save(record);
 		qualifiers.save(record);
 		modificationPanel.save(record);

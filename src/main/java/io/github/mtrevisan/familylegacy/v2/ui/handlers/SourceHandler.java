@@ -62,6 +62,11 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 	}
 
 	@Override
+	public RecordTypeHandler<?> getCitationHandler(){
+		return new SourceCitationHandler();
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String title = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		String id = record.getId();

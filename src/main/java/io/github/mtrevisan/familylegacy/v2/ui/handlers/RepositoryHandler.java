@@ -59,6 +59,11 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 	}
 
 	@Override
+	public RecordTypeHandler<?> getCitationHandler(){
+		return new RepositoryCitationHandler();
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 		String id = record.getId();

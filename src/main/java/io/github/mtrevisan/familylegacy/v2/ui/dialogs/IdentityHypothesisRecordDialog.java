@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
@@ -109,7 +109,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private final BoundTextField subject;
 	private final ParticipantField candidateField;
 	private final BoundTextArea commentArea;
-	private final SourceCitationListPanel sourcePanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
 	private final ModificationPanel modificationPanel;
 
@@ -129,7 +129,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		subject = new BoundTextField(TAG_SUBJECT);
 		candidateField = ParticipantField.create(TAG_CANDIDATE, this, model);
 		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		modificationPanel = new ModificationPanel(this);
 

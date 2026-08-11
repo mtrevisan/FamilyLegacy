@@ -129,7 +129,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			"spherical_UV", "cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
 		mappingCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), DocumentHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -230,7 +230,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}

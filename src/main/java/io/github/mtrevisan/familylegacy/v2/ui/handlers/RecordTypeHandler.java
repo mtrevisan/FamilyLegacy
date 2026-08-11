@@ -65,6 +65,10 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	 */
 	String getIdPrefix();
 
+	default RecordTypeHandler<?> getCitationHandler(){
+		return null;
+	}
+
 	/**
 	 * Returns a human-readable display name for the given record.
 	 * Used for list rendering.

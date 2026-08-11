@@ -629,6 +629,7 @@ public class GifDecoder{
 			id.append((char)read());
 		if(!id.toString().startsWith("GIF")){
 			status = FILE_READ_STATUS_FORMAT_ERROR;
+
 			return;
 		}
 

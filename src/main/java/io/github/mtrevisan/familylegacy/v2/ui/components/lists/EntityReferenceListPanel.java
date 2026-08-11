@@ -32,17 +32,30 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.util.List;
+import java.util.function.Consumer;
 
 
 /* DONE */
+/**
+ * Panel for managing a list of entity references (records or structures).
+ * <p>
+ * This panel supports two modes:
+ * <ul>
+ *   <li><strong>Record mode</strong>: stores only the ID of the referenced entity</li>
+ *   <li><strong>Structure mode</strong>: stores the entire entity record</li>
+ * </ul>
+ * It also supports setting a parent entity for new records via {@link #withParentEntity(String, String)}.
+ */
 public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
-	private final String path;
+	protected final String path;
+	private final boolean isRecord;
 
 	private final RecordTypeHandler<?> handler;
 
@@ -50,13 +63,70 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	private String parentEntityHandlerType;
 
 
-	public EntityReferenceListPanel(final String path, final Dialog parent, final String panelTitle,
-			final FLEFModel model, final String handlerType){
+	/**
+	 * Creates a panel in record mode (stores only the ID of the referenced entity).
+	 *
+	 * @param path         the path where references are stored
+	 * @param parent       the parent dialog
+	 * @param panelTitle   the border title
+	 * @param model        the FLEF model
+	 * @param handlerType  the type of the entity handler
+	 * @return a new EntityReferenceListPanel in record mode
+	 */
+	public static EntityReferenceListPanel createForRecord(final String path, final Dialog parent,
+			final String panelTitle, final FLEFModel model, final String handlerType){
+		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerType, true);
+	}
+
+	/**
+	 * Creates a panel in structure mode (stores the entire entity record).
+	 *
+	 * @param path         the path where references are stored
+	 * @param parent       the parent dialog
+	 * @param panelTitle   the border title
+	 * @param model        the FLEF model
+	 * @param handlerType  the type of the entity handler
+	 * @return a new EntityReferenceListPanel in structure mode
+	 */
+	public static EntityReferenceListPanel createForStructure(final String path, final Dialog parent,
+			final String panelTitle, final FLEFModel model, final String handlerType){
+		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerType, false);
+	}
+
+
+	/**
+	 * Constructs an EntityReferenceListPanel.
+	 *
+	 * @param path         the path where references are stored
+	 * @param parent       the parent dialog
+	 * @param panelTitle   the border title
+	 * @param model        the FLEF model
+	 * @param handlerType  the type of the entity handler
+	 * @param isRecord     {@code true} for record mode (store only ID), {@code false} for structure mode
+	 */
+	protected EntityReferenceListPanel(final String path, final Dialog parent, final String panelTitle,
+			final FLEFModel model, final String handlerType, final boolean isRecord){
 		super(parent, panelTitle, model);
 
 		this.path = path;
+		this.isRecord = isRecord;
 
 		handler = HandlerRegistry.getHandler(handlerType);
+	}
+
+	/**
+	 * Sets the parent entity for new records created by this panel.
+	 * This is used to automatically link new records to a parent entity.
+	 *
+	 * @param parentEntityId        the ID of the parent entity
+	 * @param parentEntityHandlerType the handler type of the parent entity
+	 * @return this panel instance (for method chaining)
+	 */
+	public EntityReferenceListPanel withParentEntity(final String parentEntityId, final String parentEntityHandlerType){
+		this.parentEntityId = parentEntityId;
+		this.parentEntityHandlerType = parentEntityHandlerType;
+
+		return this;
 	}
 
 
@@ -64,26 +134,41 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	protected void initComponents(){
 		super.initComponents();
 
+		final Consumer<GUIHelper.MenuBuilder> menuItems = (isRecord
+			? createMenuItemsForRecord()
+			: createMenuItemsForStructure());
 		GUIHelper.installBehavior(list,
 			this::editItem,
 			this::createNewItem,
 			this::removeItem,
-			builder -> {
-				builder.item("Create New...", this::createNewItem);
-				builder.item("Add Existing...", this::addItem);
-				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
-				builder.selectionSensitiveItem("Remove", this::removeItem);
-			}
+			menuItems
 		);
+	}
+
+	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForRecord(){
+		return builder -> {
+			builder.item("Create New...", this::createNewItem);
+			builder.item("Add Existing...", this::addItem);
+			builder.separator();
+			builder.selectionSensitiveItem("Edit...", this::editItem);
+			builder.selectionSensitiveItem("Remove", this::removeItem);
+		};
+	}
+
+	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForStructure(){
+		final Consumer<GUIHelper.MenuBuilder> menuItems;
+		menuItems = builder -> {
+			builder.item("Create New...", this::createNewItem);
+			builder.separator();
+			builder.selectionSensitiveItem("Edit...", this::editItem);
+			builder.selectionSensitiveItem("Remove", this::removeItem);
+		};
+		return menuItems;
 	}
 
 	@Override
 	protected String getDisplay(final FLEFRecord record){
-		if(record != null)
-			return handler.getDisplayText(record, model);
-
-		return "--";
+		return (record != null? handler.getDisplayText(record, model): "--");
 	}
 
 	@Override
@@ -100,8 +185,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final BaseRecordDialog dialog = handler.createNewDialog(parent, model)
-			.withParentEntity(parentEntityId, parentEntityHandlerType);
+		final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
+		if(isRecord && StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityHandlerType))
+			dialog.withParentEntity(parentEntityId, parentEntityHandlerType);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -123,13 +209,12 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		return existing;
 	}
 
-	public EntityReferenceListPanel withParentEntity(final String parentEntityId, final String parentEntityHandlerType){
-		this.parentEntityId = parentEntityId;
-		this.parentEntityHandlerType = parentEntityHandlerType;
 
-		return this;
-	}
-
+	/**
+	 * Loads entities from the given record.
+	 *
+	 * @param record the record containing the entities
+	 */
 	public void load(final FLEFRecord record){
 		clear();
 
@@ -140,11 +225,23 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		setItems(entities);
 	}
 
-	public void saveReferences(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
+	/**
+	 * Saves the current entities to the given record.
+	 * <p>
+	 * In record mode, saves only the IDs of the entities.
+	 * In structure mode, saves the entire entity records.
+	 *
+	 * @param record the record to save to
+	 */
+	public void save(final FLEFRecord record){
+		if(isRecord){
+			FLEFRecordHelper.removeChildren(record, path);
 
-		for(final FLEFRecord item : getItems())
-			FLEFRecordHelper.addChild(record, path, item.getFormattedId());
+			for(final FLEFRecord item : getItems())
+				FLEFRecordHelper.addChild(record, path, item.getFormattedId());
+		}
+		else
+			super.save(record, path);
 	}
 
 	public boolean hasData(){

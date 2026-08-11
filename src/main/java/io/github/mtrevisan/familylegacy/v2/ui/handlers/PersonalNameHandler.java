@@ -94,7 +94,7 @@ public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStruct
 			if(val != null && !val.isBlank()){
 				if(!fullName.isEmpty())
 					fullName.append(StringUtils.SPACE);
-				fullName.append(val.trim());
+				fullName.append(val);
 			}
 		}
 
@@ -108,7 +108,7 @@ public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStruct
 		if(type != null && !type.isBlank())
 			result += " (" + type + ")";
 
-		return result + " [" + record.getId() + "]";
+		return result;
 	}
 
 	@Override

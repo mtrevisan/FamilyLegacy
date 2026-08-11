@@ -158,8 +158,8 @@ public final class GUIHelper{
 	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
 	public static void installBehavior(final JComponent component,
-		final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
-		final Consumer<MenuBuilder> menuBuilder){
+			final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
+			final Consumer<MenuBuilder> menuBuilder){
 		if(component instanceof JTextComponent field)
 			field.setEditable(false);
 		component.setBackground(COLOR_BACKGROUND);
@@ -362,6 +362,7 @@ public final class GUIHelper{
 		 */
 		public MenuBuilder item(final String label, final Runnable action){
 			entries.add(MenuEntry.createEntry(label, action, () -> true));
+
 			return this;
 		}
 
@@ -374,6 +375,7 @@ public final class GUIHelper{
 		 */
 		public MenuBuilder selectionSensitiveItem(final String label, final Runnable action){
 			entries.add(MenuEntry.createEntry(label, action, hasSelection));
+
 			return this;
 		}
 
@@ -387,6 +389,7 @@ public final class GUIHelper{
 		 */
 		public MenuBuilder item(final String label, final Runnable action, final Supplier<Boolean> enabledCondition){
 			entries.add(MenuEntry.createEntry(label, action, enabledCondition));
+
 			return this;
 		}
 
@@ -397,6 +400,7 @@ public final class GUIHelper{
 		 */
 		public MenuBuilder separator(){
 			entries.add(MenuEntry.createSeparator());
+
 			return this;
 		}
 

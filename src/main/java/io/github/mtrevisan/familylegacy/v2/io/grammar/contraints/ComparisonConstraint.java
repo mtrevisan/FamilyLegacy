@@ -45,6 +45,7 @@ public final class ComparisonConstraint extends Constraint{
 				"Constraint violation at '%s': field '%s' not found",
 				contextPath, right
 			));
+
 			return;
 		}
 

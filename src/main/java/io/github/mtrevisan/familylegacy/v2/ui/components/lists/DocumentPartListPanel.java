@@ -44,7 +44,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/* DONE */
+/**
+ * Panel for managing document parts with image cropping functionality.
+ */
 public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
@@ -101,49 +103,59 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	/**
-	 * Edits the crop rectangle for the currently selected image.
+	 * Edits the crop rectangle for the currently selected document part.
+	 * <p>
+	 * This method:
+	 * <ol>
+	 *   <li>Gets the selected document part from the list</li>
+	 *   <li>Extracts the current crop rectangle (if any)</li>
+	 *   <li>Loads the image and shows the crop dialog</li>
+	 *   <li>If crop is confirmed, updates the crop rectangle</li>
+	 * </ol>
 	 */
 	private void editCrop(){
 		final int itemIndex = list.getSelectedIndex();
-		if(itemIndex >= 0){
-			final FLEFRecord documentPart = items.get(itemIndex);
-			final FLEFRecord imageCrop = FLEFRecordHelper.findChild(documentPart, TAG_CROP);
-			Rectangle imageCropRect = null;
-			try{
-				final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_X));
-				final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_Y));
-				final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_WIDTH));
-				final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_HEIGHT));
-				imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
-			}
-			catch(final NumberFormatException ignored){}
-			final String documentId = FLEFRecordHelper.getChildValuesAsString(documentPart, TAG_DOCUMENT);
-			final FLEFRecord document = model.getRecordById(documentId);
-			final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
+		if(itemIndex < 0)
+			return;
 
-			try{
-				cropDialog.loadData(uri, imageCropRect);
-				cropDialog.setVisible(true);
 
-				if(cropDialog.isSaved()){
-					final Rectangle documentCropRect = cropDialog.getCrop();
-					if(documentCropRect != null && !documentCropRect.isEmpty()){
-						// temporarily save under DOCUMENT
-						final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, TAG_CROP);
-						FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
-						FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
-						FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
-						FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
-					}
+		final FLEFRecord documentPart = items.get(itemIndex);
+		final FLEFRecord imageCrop = FLEFRecordHelper.findChild(documentPart, TAG_CROP);
+		Rectangle imageCropRect = null;
+		try{
+			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_X));
+			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_Y));
+			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_WIDTH));
+			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_HEIGHT));
+			imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
+		}
+		catch(final NumberFormatException ignored){}
+		final String documentId = FLEFRecordHelper.getChildValuesAsString(documentPart, TAG_DOCUMENT);
+		final FLEFRecord document = model.getRecordById(documentId);
+		final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
+
+		try{
+			cropDialog.loadData(uri, imageCropRect);
+			cropDialog.setVisible(true);
+
+			if(cropDialog.isSaved()){
+				final Rectangle documentCropRect = cropDialog.getCrop();
+				if(documentCropRect != null && !documentCropRect.isEmpty()){
+					// temporarily save under DOCUMENT
+					final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, TAG_CROP);
+					FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
+					FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
+					FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
+					FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
 				}
 			}
-			catch(final IOException ioe){
-				ioe.printStackTrace();
+		}
+		catch(final IOException ioe){
+			ioe.printStackTrace();
 
-				JOptionPane.showMessageDialog(parent,
-					"Error loading image for cropping: " + ioe.getMessage(),
-					"Error", JOptionPane.ERROR_MESSAGE);
-			}
+			JOptionPane.showMessageDialog(parent,
+				"Error loading image for cropping: " + ioe.getMessage(),
+				"Error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -225,6 +237,13 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		return existing;
 	}
 
+	/**
+	 * Loads document parts from the given record.
+	 * <p>
+	 * Resolves document references to actual document records from the model.
+	 *
+	 * @param record the record containing the document parts
+	 */
 	public void load(final FLEFRecord record){
 		clear();
 
@@ -233,11 +252,20 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final List<FLEFRecord> noteCitations = FLEFRecordHelper.findChildren(record, path);
 		final List<FLEFRecord> notes = new ArrayList<>(noteCitations.size());
-		for(final FLEFRecord noteCitation : noteCitations)
-			notes.add(model.getRecordById(noteCitation.getValue()));
+		for(final FLEFRecord noteCitation : noteCitations){
+			final FLEFRecord note = model.getRecordById(noteCitation.getValue());
+			notes.add(note);
+		}
 		setItems(notes);
 	}
 
+	/**
+	 * Saves document part references to the given record.
+	 * <p>
+	 * Creates {@code DOCUMENT_PART} records with references to documents and their crop data.
+	 *
+	 * @param record the record to save to
+	 */
 	public void saveReferences(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, TAG_DOCUMENT);
 

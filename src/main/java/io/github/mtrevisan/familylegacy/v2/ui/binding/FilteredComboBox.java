@@ -35,7 +35,6 @@ import javax.swing.WindowConstants;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.JTextComponent;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -75,6 +74,15 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 
 		if(items != null)
 			setItems(items);
+
+
+		// Find the element with the longest string and use it as a prototype
+		if(!originalItems.isEmpty()){
+			final E longest = originalItems.stream()
+				.max(Comparator.comparingInt(e -> e.toString().length()))
+				.orElse(null);
+			setPrototypeDisplayValue(longest);
+		}
 	}
 
 
@@ -203,7 +211,6 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 			frame.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 30));
 
 			final FilteredComboBox<String> comboBox = new FilteredComboBox<>(new ArrayList<>(languageCodes));
-			comboBox.setPreferredSize(new Dimension(380, 30));
 
 			frame.add(comboBox);
 			frame.setLocationRelativeTo(null);

@@ -28,9 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -113,10 +112,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundComboBox<String> typeCombo;
-	private final StructureListPanel partPanel;
+	private final EntityReferenceListPanel partPanel;
 	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 
 
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -146,10 +145,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			"regnal", "slave_name"
 		});
 		typeCombo.setEditable(true);
-		partPanel = new StructureListPanel(TAG_PART, this, "Parts*", model, PartHandler.TYPE);
-		culturalNormPanel = new EntityReferenceListPanel(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		partPanel = EntityReferenceListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.TYPE);
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE);
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 
 
 		initComponents();
@@ -222,8 +221,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		partPanel.save(record);
-		culturalNormPanel.saveReferences(record);
-		notePanel.saveReferences(record);
+		culturalNormPanel.save(record);
+		notePanel.save(record);
 		sourceCitationPanel.save(record);
 	}
 

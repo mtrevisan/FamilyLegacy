@@ -44,6 +44,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
+/**
+ * Panel for managing a list of translations with value and locale.
+ */
 public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
@@ -119,26 +122,25 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private FLEFRecord showTranslationDialog(final FLEFRecord initial){
-		JDialog dialog = new JDialog(parent, initial == null? "Add Translation": "Edit Translation", true);
+		final JDialog dialog = new JDialog(parent, initial == null? "Add Translation": "Edit Translation", true);
 		dialog.setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]10[]"));
 
 		final String value = FLEFRecordHelper.getChildValue(initial, TAG_VALUE);
 		final String locale = FLEFRecordHelper.getChildValue(initial, TAG_LOCALE);
 
-		BoundTextArea valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
+		final BoundTextArea valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
 		if(initial != null){
 			valueArea.setText(value);
 		}
 		dialog.add(new JLabel("Value*:"), "align label,top");
 		dialog.add(GUIHelper.createScrollPane(valueArea), "growx,wrap");
 
-		BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
+		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
-		if(initial != null && StringUtils.isNotEmpty(locale)){
+		if(initial != null && StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
-		}
 		dialog.add(new JLabel("Locale:"), "align label");
 		dialog.add(localeCombo, "growx,wrap");
 
@@ -146,7 +148,9 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			() -> {
 				if(valueArea.isEmpty()){
-					JOptionPane.showMessageDialog(dialog, "Translation value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+					JOptionPane.showMessageDialog(dialog,
+						"Translation value cannot be empty.", "Validation Error", JOptionPane.ERROR_MESSAGE);
+
 					return;
 				}
 				final FLEFRecord res = FLEFRecord.createEmpty();
@@ -156,7 +160,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 				dialog.dispose();
 			},
 			dialog::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		dialog.add(buttonPanel, BorderLayout.SOUTH);
 
 		dialog.pack();
 		dialog.setLocationRelativeTo(parent);

@@ -66,12 +66,26 @@ public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
 		// Locate the first populated NAME structure
 		final String formattedName = FLEFRecordHelper.getChildValue(record, "NAME.TEXT.VALUE");
 
-		final String id = record.getId();
-		if(StringUtils.isNotEmpty(formattedName))
-			return formattedName + (StringUtils.isNotEmpty(id)? " [" + id + "]": StringUtils.EMPTY);
+		final String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 
-		// Fallback to the record ID
-		return "[" + id + "]";
+		final String id = record.getId();
+		final StringBuilder sb = new StringBuilder();
+		if(StringUtils.isNotEmpty(formattedName))
+			sb.append(formattedName);
+		if(StringUtils.isNotEmpty(type)){
+			if(!sb.isEmpty())
+				sb.append(' ');
+			sb.append('(')
+				.append(type)
+				.append(')');
+		}
+		if(!sb.isEmpty())
+			sb.append(' ');
+		sb.append("[")
+			.append(id)
+			.append("]");
+
+		return sb.toString();
 	}
 
 	@Override

@@ -30,9 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -111,11 +110,11 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
-	private final StructureListPanel variantPanel;
+	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
 	private final DateField dateField;
 	private final EntityReferenceListPanel notePanel;
-	private final SourceCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourceCitationPanel;
 
 
 	public static ClassifiedNameDialog createNew(final Dialog parent, final FLEFModel model){
@@ -158,8 +157,8 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid On", model);
-		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
+		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
+		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 
 
 		initComponents();
@@ -253,7 +252,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 		dateField.save(record);
 		variantPanel.save(record);
-		notePanel.saveReferences(record);
+		notePanel.save(record);
 		sourceCitationPanel.save(record);
 	}
 

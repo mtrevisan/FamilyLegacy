@@ -120,9 +120,9 @@ public class DateFieldPanel extends JPanel{
 
 	private void clearDate(){
 		if(dateRecord != null && !(JOptionPane.showConfirmDialog(parent,
-			"Clear " + label + "?", "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION)){
+			"Clear " + label + "?", "Confirm", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION))
 			return;
-		}
+
 		dateRecord = null;
 		updateSummary();
 	}
