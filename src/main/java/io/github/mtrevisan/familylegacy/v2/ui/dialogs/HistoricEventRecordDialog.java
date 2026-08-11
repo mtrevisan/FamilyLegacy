@@ -29,21 +29,19 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -78,6 +76,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new HistoricEventHandler());
+		HandlerRegistry.register(new NoteHandler());
 	}
 
 
@@ -86,36 +85,18 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private final BoundTextField titleField;
 	private final DateField dateField;
 	private final PlaceField placeField;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static HistoricEventRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new HistoricEventRecordDialog(parent, model, null);
+		return createNew(parent, model, HistoricEventRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static HistoricEventRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new HistoricEventRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, HistoricEventRecordDialog::new);
 	}
 
 
@@ -127,8 +108,9 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		titleField = new BoundTextField(TAG_TITLE, 30);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeField = PlaceField.create(TAG_PLACE, this, model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, "Notes", model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), HistoricEventHandler.TYPE);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		modificationPanel = new ModificationPanel(this);
 
 
@@ -146,18 +128,12 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(titleField);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -207,7 +183,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		dateField.save(record);
-		placeField.save(record);
+		placeField.saveReferences(record);
 		notePanel.saveReferences(record);
 		sourceCitationPanel.save(record);
 		modificationPanel.save(record);
@@ -215,17 +191,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final HistoricEventRecordDialog dialog = HistoricEventRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(HistoricEventRecordDialog::createNew);
 	}
 
 }

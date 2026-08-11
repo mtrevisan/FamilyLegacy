@@ -27,6 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -74,14 +76,14 @@ public class ApproximatePanel extends JPanel{
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
 	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "stated", "calculated", "conventional", "unspecified"});
-	private final CulturalNormListPanel culturalNormPanel;
+	private final EntityReferenceListPanel culturalNormPanel;
 	private final JTextField marginField = new JTextField(10);
 
 
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
 		this.path = path;
 
-		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, parent, model);
+		culturalNormPanel = new EntityReferenceListPanel(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.TYPE);
 
 
 		initComponents();
@@ -120,7 +122,7 @@ public class ApproximatePanel extends JPanel{
 		marginField.setEnabled(enabled);
 	}
 
-	public void loadFromRecord(FLEFRecord record){
+	public void loadFromRecord(final FLEFRecord record){
 		clear();
 
 		final FLEFRecord approxRecord = FLEFRecordHelper.findChild(record, path);
@@ -146,20 +148,20 @@ public class ApproximatePanel extends JPanel{
 	 *
 	 * @param parent the parent record (e.g., VALUE, NOT_BEFORE, etc.)
 	 */
-	public void saveToRecord(FLEFRecord parent){
+	public void saveToRecord(final FLEFRecord parent){
 		if(!approximateCheck.isSelected())
 			return;
 
 		// Create an APPROXIMATE node as a child of parent
-		FLEFRecord approx = FLEFRecord.createChild(path);
+		final FLEFRecord approx = FLEFRecord.createChild(path);
 
-		String basis = (String)basisCombo.getSelectedItem();
+		final String basis = (String)basisCombo.getSelectedItem();
 		if(basis != null && !basis.isEmpty())
 			FLEFRecordHelper.updateChildValue(approx, TAG_BASIS, basis);
 
-		culturalNormPanel.save(parent);
+		culturalNormPanel.saveReferences(parent);
 
-		String margin = marginField.getText()
+		final String margin = marginField.getText()
 			.trim();
 		if(!margin.isEmpty())
 			FLEFRecordHelper.updateChildValue(approx, TAG_MARGIN, margin);

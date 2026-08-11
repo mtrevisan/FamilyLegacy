@@ -59,13 +59,13 @@ public class ImageCropDialog extends JDialog{
 
 	public static ImageCropDialog create(final Dialog parent){
 		final ImageCropDialog dialog = new ImageCropDialog(parent);
-		dialog.initialize(parent, false);
+		dialog.initialize(false);
 		return dialog;
 	}
 
 	public static ImageCropDialog createViewOnly(final Dialog parent){
 		final ImageCropDialog dialog = new ImageCropDialog(parent);
-		dialog.initialize(parent, true);
+		dialog.initialize(true);
 		return dialog;
 	}
 
@@ -75,7 +75,7 @@ public class ImageCropDialog extends JDialog{
 	}
 
 
-	private void initialize(final Dialog parent, final boolean viewOnly){
+	private void initialize(final boolean viewOnly){
 		initComponents(viewOnly);
 
 		initLayout();
@@ -86,11 +86,8 @@ public class ImageCropDialog extends JDialog{
 
 		if(viewOnly)
 			imageHolder = ScaledImage.createViewOnly();
-		else{
+		else
 			imageHolder = ScaledImage.create();
-
-//			imageHolder.setCursor(Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
-		}
 	}
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html

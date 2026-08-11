@@ -73,21 +73,20 @@ public class SingleDatePanel extends JPanel{
 	private static final long serialVersionUID = 3393161879295516317L;
 
 
+	private static final String DOT = ".";
+
 	private static final String TAG_FULL_DATE = "FULL_DATE";
 	private static final String TAG_DECADE = "DECADE";
 	private static final String TAG_CENTURY = "CENTURY";
 	private static final String TAG_PART = "PART";
-	private static final String CALENDAR = "CALENDAR";
 	private static final String TAG_CALENDAR = "CALENDAR";
 	private static final String TAG_APPROXIMATE = "APPROXIMATE";
 	private static final String TAG_POINT = "POINT";
 
-	private static final String DOT = ".";
 
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final JComboBox<DateType> dateTypeCombo = new JComboBox<>(DateType.values());
-
 	private final BoundTextField fullDateField;
 	private final BoundTextField decadeField;
 	private final BoundTextField centuryField;
@@ -105,12 +104,14 @@ public class SingleDatePanel extends JPanel{
 		fullDateField = new BoundTextField(TAG_FULL_DATE, 15);
 		decadeField = new BoundTextField(TAG_DECADE, 5);
 		centuryField = new BoundTextField(TAG_CENTURY, 5);
-		centuryPartCombo = new BoundComboBox<>(TAG_PART, new String[]{StringUtils.EMPTY,
+		centuryPartCombo = new BoundComboBox<>(TAG_PART, new String[]{
+			StringUtils.EMPTY,
 			"first_quarter", "second_quarter", "third_quarter", "fourth_quarter",
 			"first_half", "second_half",
 			"early", "mid", "late"});
-		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{"gregorian", "julian", "islamic", "hebrew",
-			"chinese", "indian", "buddhist", "french-republican", "coptic", "soviet eternal", "ethiopian", "mayan"});
+		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{
+			"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
+			"soviet eternal", "ethiopian", "mayan"});
 		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parent, model);
 
 		fieldMap.put(DateType.FULL_DATE, fullDateField);
@@ -190,7 +191,7 @@ public class SingleDatePanel extends JPanel{
 		approxPanel.loadFromRecord(record);
 
 		centuryPartCombo.setPath(type.getTagName() + DOT + TAG_PART);
-		calendarCombo.setPath(type.getTagName() + DOT + CALENDAR);
+		calendarCombo.setPath(type.getTagName() + DOT + TAG_CALENDAR);
 		bindingManager.load(record);
 
 		cardLayout.show(cardPanel, type.name());

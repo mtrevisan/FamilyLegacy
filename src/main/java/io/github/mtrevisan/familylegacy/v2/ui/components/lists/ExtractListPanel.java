@@ -22,15 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -62,18 +60,11 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_COMMENT = "COMMENT";
 
 
-	static{
-		HandlerRegistry.register(new NoteHandler());
-	}
-
-
 	private final String path;
 
-	private List<FLEFRecord> sourceDocuments;
 
-
-	public ExtractListPanel(final String path, final Dialog parent, final FLEFModel model){
-		super(parent, "Extracts", model);
+	public ExtractListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+		super(parent, panelTitle, model);
 
 		this.path = path;
 	}
@@ -92,27 +83,32 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+			}
+		);
 	}
 
 	@Override
 	protected String getDisplay(final FLEFRecord item){
-		final String text = FLEFRecordHelper.getChildValue(item, TAG_TEXT);
-		final String type = FLEFRecordHelper.getChildValue(item, TAG_TYPE);
-		final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
+		if(item != null){
+			final String text = FLEFRecordHelper.getChildValue(item, TAG_TEXT);
+			final String type = FLEFRecordHelper.getChildValue(item, TAG_TYPE);
+			final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
 
-		final StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotEmpty(locale))
-			sb.append("[")
-				.append(locale)
-				.append("] ");
-		if(StringUtils.isNotEmpty(text))
-			sb.append(text.length() > 50? text.substring(0, 47) + "...": text);
-		if(StringUtils.isNotEmpty(type))
-			sb.append(" (")
-				.append(type)
-				.append(")");
-		return sb.toString();
+			final StringBuilder sb = new StringBuilder();
+			if(StringUtils.isNotEmpty(locale))
+				sb.append("[")
+					.append(locale)
+					.append("] ");
+			if(StringUtils.isNotEmpty(text))
+				sb.append(text.length() > 50? text.substring(0, 47) + "...": text);
+			if(StringUtils.isNotEmpty(type))
+				sb.append(" (")
+					.append(type)
+					.append(")");
+			return sb.toString();
+		}
+
+		return "--";
 	}
 
 	@Override
@@ -120,9 +116,6 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		return null;
 	}
 
-	/**
-	 * Creates a new extract and adds it to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
 		return showExtractDialog(null);
@@ -131,7 +124,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Extract entry not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Extract Entry not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -141,7 +134,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private FLEFRecord showExtractDialog(final FLEFRecord initial){
-		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, model);
+		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, "Document Parts", model);
 		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{"transcript", "extract", "abstract"});
@@ -245,16 +238,16 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return;
 
-		final String sourceId = FLEFRecordHelper.getChildValue(record, TAG_SOURCE);
-		final FLEFRecord source = model.getRecordById(sourceId);
-		sourceDocuments = FLEFRecordHelper.findChildren(source, TAG_DOCUMENT);
-
 		final List<FLEFRecord> extracts = FLEFRecordHelper.findChildren(record, path);
 		setItems(extracts);
 	}
 
 	public void save(final FLEFRecord record){
 		super.save(record, path);
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

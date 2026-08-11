@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -25,15 +49,12 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
-import java.awt.Dimension;
 import java.io.Serial;
 
 
@@ -73,6 +94,7 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new ConclusionHandler());
 	}
 
+
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]"));
 
@@ -95,19 +117,13 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 	// Handler for cultural norm
 	private final CulturalNormHandler culturalNormHandler = new CulturalNormHandler();
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 */
+
 	public static _CulturalNormImpactRecordDialog createNew(Dialog parent, FLEFModel model){
-		return new _CulturalNormImpactRecordDialog(parent, model, null);
+		return createNew(parent, model, _CulturalNormImpactRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 */
 	public static _CulturalNormImpactRecordDialog createEdit(Dialog parent, FLEFModel model, FLEFRecord record){
-		if(record == null) throw new IllegalArgumentException("Record cannot be null");
-		return new _CulturalNormImpactRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, _CulturalNormImpactRecordDialog::new);
 	}
 
 
@@ -156,16 +172,11 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 	private void initComponents(){
 //		bindingManager.bind(significanceArea);
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -182,9 +193,7 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 
 		// Significance
 		mainPanel.add(new JLabel("Significance:"), "align label");
-		JScrollPane scroll = GUIHelper.createScrollPane(significanceArea);
-		scroll.setPreferredSize(new Dimension(200, 80));
-		mainPanel.add(scroll, "growx,wrap");
+		mainPanel.add(GUIHelper.createScrollPane(significanceArea), "growx,wrap");
 
 		return mainPanel;
 	}

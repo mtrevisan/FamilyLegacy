@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -57,8 +57,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	private final String path;
 
 
-	public TranslationListPanel(final String path, Dialog parent, FLEFModel model){
-		super(parent, "Translations", model);
+	public TranslationListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+		super(parent, panelTitle, model);
 
 		this.path = path;
 	}
@@ -81,23 +81,26 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplay(FLEFRecord item){
-		final String value = FLEFRecordHelper.getChildValue(item, TAG_VALUE);
-		final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
+	protected String getDisplay(final FLEFRecord item){
+		if(item != null){
+			final String value = FLEFRecordHelper.getChildValue(item, TAG_VALUE);
+			final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
 
-		StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotEmpty(locale))
-			sb.append("[")
-				.append(locale)
-				.append("] ");
-		if(StringUtils.isNotEmpty(value)){
-			String display = value;
-			if(display.length() > 50){
-				display = display.substring(0, 47) + "...";
+			final StringBuilder sb = new StringBuilder();
+			if(StringUtils.isNotEmpty(locale))
+				sb.append("[")
+					.append(locale)
+					.append("] ");
+			if(StringUtils.isNotEmpty(value)){
+				String display = value;
+				if(display.length() > 50)
+					display = display.substring(0, 47) + "...";
+				sb.append(display);
 			}
-			sb.append(display);
+			return sb.toString();
 		}
-		return sb.toString();
+
+		return "--";
 	}
 
 	@Override
@@ -105,20 +108,17 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		return showTranslationDialog(null);
 	}
 
-	/**
-	 * Creates a new translation and adds it to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
 		return showTranslationDialog(null);
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(FLEFRecord existing){
+	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		return showTranslationDialog(existing);
 	}
 
-	private FLEFRecord showTranslationDialog(FLEFRecord initial){
+	private FLEFRecord showTranslationDialog(final FLEFRecord initial){
 		JDialog dialog = new JDialog(parent, initial == null? "Add Translation": "Edit Translation", true);
 		dialog.setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]10[]"));
 
@@ -132,7 +132,9 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		dialog.add(new JLabel("Value*:"), "align label,top");
 		dialog.add(GUIHelper.createScrollPane(valueArea), "growx,wrap");
 
-		BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
+			StringUtils.EMPTY,
+			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
 		if(initial != null && StringUtils.isNotEmpty(locale)){
 			localeCombo.setSelectedItem(locale);
@@ -185,15 +187,10 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public void save(final FLEFRecord record){
 		super.save(record, path);
-//		final List<FLEFRecord> translations = getItems();
-//		for(int i = 0; i < translations.size(); i ++){
-//			final FLEFRecord entry = translations.get(i);
-//			final String value = FLEFRecordHelper.getChildValue(entry, TAG_VALUE);
-//			final String locale = FLEFRecordHelper.getChildValue(entry, TAG_LOCALE);
-//
-//			FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].VALUE", value);
-//			FLEFRecordHelper.addChild(record, "TRANSLATION[" + i + "].LOCALE", locale);
-//		}
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

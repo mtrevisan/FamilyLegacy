@@ -63,9 +63,9 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 		String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 		String id = record.getId();
 		if(name != null && !name.isEmpty()){
-			return name + " (" + id + ")";
+			return name + " [" + id + "]";
 		}
-		return id;
+		return "[" + record.getId() + "]";
 	}
 
 	@Override

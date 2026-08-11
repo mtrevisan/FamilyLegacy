@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -105,6 +105,7 @@ public abstract class AbstractCitationListPanel extends AbstractListPanel<FLEFRe
 				return targetHandler.getDisplayText(entity, model);
 			return entityId;
 		}
+
 		return "--";
 	}
 

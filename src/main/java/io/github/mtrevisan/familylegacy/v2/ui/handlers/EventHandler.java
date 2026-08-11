@@ -70,9 +70,9 @@ public class EventHandler implements RecordTypeHandler<EventRecordDialog>{
 		}
 		if(sb.isEmpty())
 			sb.append("Event");
-		sb.append(" (")
+		sb.append(" [")
 			.append(id)
-			.append(")");
+			.append("]");
 		return sb.toString();
 	}
 

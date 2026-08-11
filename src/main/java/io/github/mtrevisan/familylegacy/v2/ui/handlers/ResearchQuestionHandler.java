@@ -62,7 +62,9 @@ public class ResearchQuestionHandler implements RecordTypeHandler<ResearchQuesti
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null) return "--";
+		if(record == null)
+			return "--";
+
 		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
 		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
 		if(StringUtils.isNotEmpty(question)){

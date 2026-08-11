@@ -38,7 +38,6 @@ import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
@@ -143,8 +142,7 @@ public class _NoteListEditorDialog extends JDialog{
 			}
 		);
 
-		JScrollPane scrollPane = GUIHelper.createScrollPane(noteList);
-		panel.add(scrollPane, "growx,wrap");
+		panel.add(noteList, "growx,wrap");
 		return panel;
 	}
 

@@ -31,10 +31,10 @@ import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,7 +44,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -71,7 +70,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
-	private static final String TAG_SOURCE = "ORIGINAL_TEXT";
+	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 
 
@@ -90,30 +89,12 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel qualifiers;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static PlaceCitationDialog createNew(final Dialog parent, final FLEFModel model){
-		return new PlaceCitationDialog(parent, model, null);
+		return createNew(parent, model, PlaceCitationDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static PlaceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new PlaceCitationDialog(parent, model, record);
+		return createEdit(parent, model, record, PlaceCitationDialog::new);
 	}
 
 
@@ -122,7 +103,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		place = new BoundTextField(TAG_PLACE);
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 
 
@@ -141,17 +122,11 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		bindingManager.bind(originalTextField);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -174,12 +149,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	public void setPlace(final String placeId){
 		if(StringUtils.isNotEmpty(placeId)){
-			if(model.getRecordById(placeId) == null){
-				JOptionPane.showMessageDialog(this, "Unknown Place ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(placeId, PlaceHandler.TYPE))
 				return;
-			}
 
 			place.setText(placeId);
 
@@ -210,7 +181,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(StringUtils.isEmpty(place.getText())){
 			JOptionPane.showMessageDialog(null,
-				"PLACE is required for a citation.\n" +
+				"Place is required for a citation.\n" +
 					"Please select a place record.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
@@ -243,7 +214,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord place = FLEFRecord.createMainRecord("P1", TAG_PLACE);
 			model.addRecord(place);
 
-//			FLEFRecord placeCitation = FLEFRecord.createEmpty();
+//			final FLEFRecord placeCitation = FLEFRecord.createEmpty();
 //			placeCitation.addChild(FLEFRecord.createChildWithValue(TAG_PLACE, "P1"));
 //			final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(null, model, placeCitation);
 			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model);

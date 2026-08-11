@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameDialog;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -54,6 +53,7 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 
 	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TYPE = "TYPE";
 
 
 	@Override
@@ -79,16 +79,25 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
-			return StringUtils.EMPTY;
+			return "--";
 
-		FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
+		final FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
 		if(textValue != null){
 			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
-			if(value != null && !value.isEmpty())
+			if(value != null && !value.isEmpty()){
+				// Truncate long names
+				if(value.length() > 50)
+					value = value.substring(0, 50) + "...";
+
+				final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+				if(type != null && !type.isEmpty())
+					value += " (" +  type + ")";
+
 				return value;
+			}
 		}
 
-		return record.getId();
+		return "[" + record.getId() + "]";
 	}
 
 	@Override

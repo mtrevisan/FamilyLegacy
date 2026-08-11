@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialo
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
+import java.util.List;
 
 
 /**
@@ -50,8 +51,9 @@ public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStruct
 	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
 	public static final String CITED_TYPE = "PERSONAL_NAME";
 
-	private static final String TAG_TEXT = "TEXT";
+	private static final String TAG_PART = "PART";
 	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TYPE = "TYPE";
 
 
 	@Override
@@ -82,17 +84,31 @@ public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStruct
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
-			return StringUtils.EMPTY;
+			return "--";
 
-		FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
-		if(textValue != null){
-			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
-			if(value != null && !value.isEmpty())
-				return value;
+		final List<FLEFRecord> parts = FLEFRecordHelper.findChildren(record, TAG_PART);
+		final StringBuilder fullName = new StringBuilder();
+
+		for(final FLEFRecord part : parts){
+			final String val = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
+			if(val != null && !val.isBlank()){
+				if(!fullName.isEmpty())
+					fullName.append(StringUtils.SPACE);
+				fullName.append(val.trim());
+			}
 		}
 
-		// Fallback to the record ID
-		return record.getId();
+		String result = fullName.toString();
+		if(result.isBlank())
+			return "[" + record.getId() + "]";
+
+		if(result.length() > 50)
+			result = result.substring(0, 50) + "...";
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		if(type != null && !type.isBlank())
+			result += " (" + type + ")";
+
+		return result + " [" + record.getId() + "]";
 	}
 
 	@Override

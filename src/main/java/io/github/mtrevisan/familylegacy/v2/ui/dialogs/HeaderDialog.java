@@ -30,8 +30,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.BasicNoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ContactListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.BasicNoteListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -100,13 +103,16 @@ public class HeaderDialog extends JDialog{
 	private static final String TAG_SUBMITTER_NAME = TAG_SUBMITTER + DOT + TAG_NAME;
 	private static final String TAG_SUBMITTER_CONTACT = TAG_SUBMITTER + DOT + "CONTACT";
 	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_SUBMITTER_NOTE = TAG_SUBMITTER + DOT + TAG_NOTE;
 	private static final String TAG_SCOPE = "SCOPE";
 
 
-	private final FLEFRecord headerRecord;
+	static{
+		HandlerRegistry.register(new ContactHandler());
+	}
 
 	private final BindingManager bindingManager = new BindingManager();
+
+	private final FLEFRecord headerRecord;
 
 	private final BoundTextField protocolNameField;
 	private final BoundTextField protocolVersionField;
@@ -121,7 +127,7 @@ public class HeaderDialog extends JDialog{
 	private final BoundTextArea copyrightArea;
 
 	private final BoundTextField submitterNameField;
-	private final ContactListPanel submitterContactListPanel;
+	private final StructureListPanel submitterContactListPanel;
 	private final BasicNoteListPanel submitterNotePanel;
 
 	private final BoundTextArea scopeArea;
@@ -142,7 +148,7 @@ public class HeaderDialog extends JDialog{
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
 		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME, 20);
-		submitterContactListPanel = new ContactListPanel(TAG_SUBMITTER_CONTACT, this, model);
+		submitterContactListPanel = new StructureListPanel(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
 		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER, this, "Notes",
 			false, TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
@@ -194,11 +200,11 @@ public class HeaderDialog extends JDialog{
 
 		// copyright
 		panel.add(new JLabel("Copyright:"), "align label,top");
-		panel.add(copyrightArea, "growx,wrap");
+		panel.add(GUIHelper.createScrollPane(copyrightArea), "growx,wrap");
 
 		// scope
 		panel.add(new JLabel("Scope:"), "align label,top");
-		panel.add(scopeArea, "growx");
+		panel.add(GUIHelper.createScrollPane(scopeArea), "growx");
 
 		return panel;
 	}

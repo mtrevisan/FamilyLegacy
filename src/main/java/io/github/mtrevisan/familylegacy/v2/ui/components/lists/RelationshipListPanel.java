@@ -22,47 +22,45 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
-import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.List;
 
 
-/**
- * Panel for managing a list of {@code RESEARCH_STATUS} references according to FLEF 0.1.1.
- */
-public class ResearchQuestionListPanel extends AbstractListPanel<FLEFRecord>{
+public class RelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = 8660802930133158028L;
+	private static final long serialVersionUID = 8165048140355496463L;
+
+
+	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
 
 
 	static{
-		HandlerRegistry.register(new ResearchQuestionHandler());
+		HandlerRegistry.register(new RelationshipHandler());
 	}
 
 
 	private final String path;
 
-	private final RecordTypeHandler<?> researchQuestionHandler = HandlerRegistry.getHandler(ResearchQuestionHandler.TYPE);
+	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
 
 
-	public ResearchQuestionListPanel(final String path, final Dialog parent, final FLEFModel model){
-		this(path, parent, "Researches", model);
-	}
-
-	public ResearchQuestionListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
-		super(parent, borderTitle, model);
+	public RelationshipListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+		super(parent, panelTitle, model);
 
 		this.path = path;
 	}
@@ -87,9 +85,9 @@ public class ResearchQuestionListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord researchQuestion){
-		if(researchQuestion != null)
-			return researchQuestionHandler.getDisplayText(researchQuestion, model);
+	protected String getDisplay(final FLEFRecord relationship){
+		if(relationship != null)
+			return relationshipHandler.getDisplayText(relationship, model);
 
 		return "--";
 	}
@@ -98,7 +96,7 @@ public class ResearchQuestionListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			ResearchQuestionHandler.TYPE,
+			RelationshipHandler.TYPE,
 			(handlerType, selectedRecord) -> result[0] = selectedRecord
 		);
 		dialog.setVisible(true);
@@ -106,40 +104,46 @@ public class ResearchQuestionListPanel extends AbstractListPanel<FLEFRecord>{
 		return result[0];
 	}
 
-	/**
-	 * Creates a new research status and adds it to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-//		final ResearchLogRecordDialog dialog = (ResearchLogRecordDialog)researchQuestionHandler.createNewDialog(parent, model);
-//		dialog.setVisible(true);
-//
-//		return (dialog.isSaved()? dialog.getRecord(): null);
-		return null;
+		final RelationshipRecordDialog dialog = (RelationshipRecordDialog)relationshipHandler.createNewDialog(parent, model);
+		dialog.setVisible(true);
+
+		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Research record not found: " + existing,
-				"Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parent, relationshipHandler.getLabel() + " not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
+
 			return null;
 		}
-		JDialog dialog = researchQuestionHandler.createEditDialog(parent, model, existing);
+
+		final RelationshipRecordDialog dialog = (RelationshipRecordDialog)relationshipHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
-		// Return the same ID (the record was edited in place)
+		// Return the same record (it was updated in place)
 		return existing;
 	}
 
-	@Override
-	protected boolean validateItem(FLEFRecord item){
-		if(items.contains(item)){
-			JOptionPane.showMessageDialog(parent,
-				"This research reference is already in the list.", "Duplicate", JOptionPane.WARNING_MESSAGE);
-			return false;
-		}
-		return true;
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null)
+			return;
+
+		final List<FLEFRecord> relationships = FLEFRecordHelper.findChildren(record, TAG_RELATIONSHIP);
+		setItems(relationships);
+	}
+
+	public void save(final FLEFRecord record){
+		super.save(record, path);
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

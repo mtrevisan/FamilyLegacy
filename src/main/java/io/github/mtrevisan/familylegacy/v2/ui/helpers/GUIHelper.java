@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import org.apache.commons.lang3.StringUtils;
 
@@ -32,6 +33,7 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -64,6 +66,7 @@ import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -459,6 +462,33 @@ public final class GUIHelper{
 		private static MenuEntry createSeparator(){
 			return new MenuEntry(null, null, null, true);
 		}
+	}
+
+
+	/**
+	 * Launches a standalone test window for a record dialog, replacing the identical
+	 * {@code UIManager.setLookAndFeel(...) + SwingUtilities.invokeLater(...)} boilerplate that used to be duplicated
+	 * in every dialog's {@code public static void main(String[])}. Usage:
+	 * <pre>
+	 * public static void main(final String[] args){
+	 *     GUIHelper.launch(NoteRecordDialog::createNew);
+	 * }
+	 * </pre>
+	 *
+	 * @param dialogFactory	Reference to the dialog's own {@code createNew(Dialog, FLEFModel)} factory method.
+	 */
+	public static void launch(final BiFunction<Dialog, FLEFModel, ? extends JDialog> dialogFactory){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		final FLEFModel model = new FLEFModel();
+
+		SwingUtilities.invokeLater(() -> {
+			final JDialog dialog = dialogFactory.apply(null, model);
+			dialog.setVisible(true);
+		});
 	}
 
 }

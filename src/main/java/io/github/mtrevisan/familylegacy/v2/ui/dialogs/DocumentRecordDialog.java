@@ -32,10 +32,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ImagePreviewAccessory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -46,10 +47,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.File;
 import java.io.Serial;
@@ -87,6 +85,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new DocumentHandler());
+		HandlerRegistry.register(new NoteHandler());
 	}
 
 
@@ -98,35 +97,17 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private final BoundTextField fileField;
 	private final BoundComboBox<String> mappingCombo;
 	private final BoundTextArea descriptionArea;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static DocumentRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new DocumentRecordDialog(parent, model, null);
+		return createNew(parent, model, DocumentRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static DocumentRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new DocumentRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, DocumentRecordDialog::new);
 	}
 
 
@@ -143,11 +124,13 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 				builder.separator();
 				builder.selectionSensitiveItem("Clear", fileField::clear);
 			});
-		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{StringUtils.EMPTY, "spherical_UV",
-			"cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
+		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{
+			StringUtils.EMPTY,
+			"spherical_UV", "cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
 		mappingCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), DocumentHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
@@ -190,18 +173,12 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(descriptionArea);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -260,17 +237,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final DocumentRecordDialog dialog = DocumentRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(DocumentRecordDialog::createNew);
 	}
 
 }

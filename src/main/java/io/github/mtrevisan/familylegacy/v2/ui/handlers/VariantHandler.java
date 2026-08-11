@@ -69,7 +69,7 @@ public class VariantHandler implements RecordTypeHandler<TextValueVariantDialog>
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
-			return StringUtils.EMPTY;
+			return "--";
 
 		String tag = record.getTag();
 		if(TAG_PHONETIC.equals(tag)){
@@ -102,7 +102,7 @@ public class VariantHandler implements RecordTypeHandler<TextValueVariantDialog>
 		}
 
 		// Fallback to the record ID
-		return record.getId();
+		return "[" + record.getId() + "]";
 	}
 
 	@Override

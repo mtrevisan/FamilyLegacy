@@ -1,3 +1,27 @@
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -6,23 +30,46 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.components.*;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.*;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TaskListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import java.awt.Dialog;
 import java.io.Serial;
 import java.util.List;
 
 
-/* ONGOING */
+/* DONE */
 /**
- * Dialog for editing a {@code ResearchActivityRecord} according to FLEF 0.1.1.
+ * Dialog for editing a {@code RESEARCH_ACTIVITY_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
@@ -33,16 +80,19 @@ import java.util.List;
  *   activity_type: enum { search, review, analysis, correspondence, interview, hypothesis }
  *   status: enum { planned, in_progress, completed, abandoned }
  *   action: Text
+ *
  *   target?: ResearchTarget
- *   source*: Xref&lt;SourceRecord&gt;
  *   search_scope?: struct {
  *     type: enum { entire_source, index_only, partial_source, selected_entries }
  *     detail?: Text
  *   }
+ *
  *   result?: enum { positive, negative, inconclusive, conflicting, unavailable }
  *   observation?: Text
  *   conclusion?: Text
  *   conclusion_confidence?: enum { low, medium, high }
+ *
+ *   source*: Xref&lt;SourceRecord&gt;
  *   parent?: Xref&lt;ResearchActivityRecord&gt;
  *   task*: Xref&lt;ResearchTaskRecord&gt;
  *   restriction?: RestrictionStructure
@@ -76,6 +126,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private static final String TAG_TASK = "TASK";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
+
 	static{
 		HandlerRegistry.register(new ResearchActivityHandler());
 		HandlerRegistry.register(new ResearchTaskHandler());
@@ -95,62 +146,56 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new HistoricEventHandler());
 	}
 
-	private final BindingManager bindingManager = new BindingManager();
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]10[]5[]5[]10[]5[]5[]10[]"));
 
-	// Fields
-	private final ResearchQuestionListPanel questionPanel;
+	private final JTabbedPane tabbedPane = new JTabbedPane();
+	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]10[]"));
+	private final JPanel searchPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
+	private final JPanel findingsPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+	private final JPanel referencesPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+
+	private final BindingManager bindingManager = new BindingManager();
+
+	private final EntityReferenceListPanel questionPanel;
 	private final DateField dateField;
 	private final BoundComboBox<String> activityTypeCombo;
 	private final BoundComboBox<String> statusCombo;
 	private final BoundTextArea actionArea;
 	private final ParticipantField targetField;
-
-	// Search Scope
+	private final SourceCitationListPanel sourcePanel;
 	private final BoundComboBox<String> searchScopeTypeCombo;
 	private final BoundTextArea searchScopeDetailArea;
-
-	// Result fields
 	private final BoundComboBox<String> resultCombo;
 	private final BoundTextArea observationArea;
 	private final BoundTextArea conclusionArea;
 	private final BoundComboBox<String> conclusionConfidenceCombo;
-
-	// Parent and Tasks
 	private final ParticipantField parentField;
-	private final ParticipantField taskPanel;
-
-	// Restriction and Modification
+	private final TaskListPanel taskPanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 */
-	public static ResearchActivityRecordDialog createNew(Dialog parent, FLEFModel model){
-		return new ResearchActivityRecordDialog(parent, model, null);
+
+	public static ResearchActivityRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return createNew(parent, model, ResearchActivityRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 */
-	public static ResearchActivityRecordDialog createEdit(Dialog parent, FLEFModel model, FLEFRecord record){
-		if(record == null) throw new IllegalArgumentException("Record cannot be null");
-		return new ResearchActivityRecordDialog(parent, model, record);
+	public static ResearchActivityRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createEdit(parent, model, record, ResearchActivityRecordDialog::new);
 	}
+
 
 	private ResearchActivityRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchActivityHandler.TYPE));
 
 		// Initialize components
-		questionPanel = new ResearchQuestionListPanel(TAG_QUESTION, parent, model);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, parent, "Activity Date", model);
+		questionPanel = new EntityReferenceListPanel(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
+			.withParentEntity(this.record.getId(), ResearchActivityHandler.TYPE);
+		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Activity Date", model);
 		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
-			"", "search", "review", "analysis", "correspondence", "interview", "hypothesis"
+			"search", "review", "analysis", "correspondence", "interview", "hypothesis"
 		});
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
-			"", "planned", "in_progress", "completed", "abandoned"
+			"planned", "in_progress", "completed", "abandoned"
 		});
 		actionArea = new BoundTextArea(TAG_ACTION, 3, 30);
 		targetField = ParticipantField.create(TAG_TARGET, this, model);
@@ -158,8 +203,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			EventParticipationHandler.TYPE, RelationshipHandler.TYPE, IndividualAttributeHandler.TYPE,
 			GroupAttributeHandler.TYPE, PlaceRelationshipHandler.TYPE, SourceHandler.TYPE, DocumentHandler.TYPE,
 			IdentityHypothesisHandler.TYPE, CulturalNormHandler.TYPE, HistoricEventHandler.TYPE));
+		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, new String[]{
-			"",
 			"entire_source",
 			"index_only",
 			"partial_source",
@@ -167,21 +212,26 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		});
 		searchScopeDetailArea = new BoundTextArea(TAG_SEARCH_SCOPE_DETAIL, 3, 30);
 		resultCombo = new BoundComboBox<>(TAG_RESULT, new String[]{
-			"", "positive", "negative", "inconclusive", "conflicting", "unavailable"
+			StringUtils.EMPTY,
+			"positive", "negative", "inconclusive", "conflicting", "unavailable"
 		});
 		observationArea = new BoundTextArea(TAG_OBSERVATION, 3, 30);
 		conclusionArea = new BoundTextArea(TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{"", "low", "medium", "high"});
+		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
+			StringUtils.EMPTY,
+			"low", "medium", "high"});
 		parentField = ParticipantField.create(TAG_PARENT, this, model);
 		parentField.setHandlerType(ResearchActivityHandler.TYPE);
-		taskPanel = ParticipantField.create(TAG_TARGET, this, model);
-		taskPanel.setHandlerType(ResearchTaskHandler.TYPE);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, parent);
-		modificationPanel = new ModificationPanel(parent);
+		taskPanel = new TaskListPanel(TAG_TASK, this, "Tasks", model);
+		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		modificationPanel = new ModificationPanel(this);
 
 		initComponents();
+
 		loadData();
+
 		pack();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -189,148 +239,149 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(activityTypeCombo);
 		bindingManager.bind(statusCombo);
 		bindingManager.bind(actionArea);
+		bindingManager.bind(searchScopeTypeCombo);
+		bindingManager.bind(searchScopeDetailArea);
 		bindingManager.bind(resultCombo);
 		bindingManager.bind(observationArea);
 		bindingManager.bind(conclusionArea);
 		bindingManager.bind(conclusionConfidenceCombo);
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
+
 		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("Search", createSearchPanel());
+		tabbedPane.addTab("Findings", createFindingsPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(), this::save, this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
-		// Date
+		// question
+		mainPanel.add(questionPanel, "span 2,growx,wrap");
+
+		// date
 		mainPanel.add(new JLabel("Date*:"), "align label");
 		mainPanel.add(dateField, "growx,wrap");
 
-		// Activity Type
+		// activity type
 		mainPanel.add(new JLabel("Activity Type*:"), "align label");
 		mainPanel.add(activityTypeCombo, "growx,wrap");
 
-		// Status
+		// status
 		mainPanel.add(new JLabel("Status*:"), "align label");
 		mainPanel.add(statusCombo, "growx,wrap");
 
-		// Action
+		// action
 		mainPanel.add(new JLabel("Action*:"), "align label");
-		mainPanel.add(actionArea, "growx,wrap");
-
-		// Target
-		mainPanel.add(new JLabel("Target:"), "align label");
-		mainPanel.add(targetField, "growx,wrap");
-
-		// Search Scope
-		mainPanel.add(new JLabel("Type:"), "align label");
-		mainPanel.add(searchScopeTypeCombo, "growx,wrap");
-		mainPanel.add(new JLabel("Detail:"), "align label");
-		mainPanel.add(searchScopeDetailArea, "growx,wrap");
-
-		// Result
-		mainPanel.add(new JLabel("Result:"), "align label");
-		mainPanel.add(resultCombo, "growx,wrap");
-
-		// Observation
-		mainPanel.add(new JLabel("Observation:"), "align label");
-		mainPanel.add(observationArea, "growx,wrap");
-
-		// Conclusion
-		mainPanel.add(new JLabel("Conclusion:"), "align label");
-		mainPanel.add(conclusionArea, "growx,wrap");
-
-		// Conclusion Confidence
-		mainPanel.add(new JLabel("Conclusion Confidence:"), "align label");
-		mainPanel.add(conclusionConfidenceCombo, "growx,wrap");
+		mainPanel.add(GUIHelper.createScrollPane(actionArea), "growx,wrap");
 
 		return mainPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]10[]"));
-		panel.add(questionPanel, "growx");
-		panel.add(parentField, "growx");
-		panel.add(taskPanel, "growx");
-		return panel;
+	private JPanel createSearchPanel(){
+		// target
+		searchPanel.add(new JLabel("Target:"), "align label");
+		searchPanel.add(targetField, "growx,wrap");
+
+		// search scope
+		final JPanel searchScopePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]10[]"));
+		searchScopePanel.setBorder(BorderFactory.createTitledBorder("Search Scope"));
+		// type
+		searchScopePanel.add(new JLabel("Type*:"), "align label");
+		searchScopePanel.add(searchScopeTypeCombo, "growx,wrap");
+		// detail
+		searchScopePanel.add(new JLabel("Detail:"), "align label");
+		searchScopePanel.add(GUIHelper.createScrollPane(searchScopeDetailArea), "growx");
+		searchPanel.add(searchScopePanel, "span 2,growx,wrap");
+
+		return searchPanel;
 	}
+
+	private JPanel createFindingsPanel(){
+		// result
+		findingsPanel.add(new JLabel("Result:"), "align label");
+		findingsPanel.add(resultCombo, "growx,wrap");
+
+		// observation
+		findingsPanel.add(new JLabel("Observation:"), "align label");
+		findingsPanel.add(GUIHelper.createScrollPane(observationArea), "growx,wrap");
+
+		// conclusion panel
+		final JPanel conclusionPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]10[]"));
+		conclusionPanel.setBorder(BorderFactory.createTitledBorder("Conclusion"));
+		// conclusion
+		conclusionPanel.add(GUIHelper.createScrollPane(conclusionArea), "span 2,growx,wrap");
+		// confidence
+		conclusionPanel.add(new JLabel("Confidence:"), "align label");
+		conclusionPanel.add(conclusionConfidenceCombo, "growx");
+		findingsPanel.add(conclusionPanel, "span 2,growx,wrap");
+
+		return findingsPanel;
+	}
+
+	private JPanel createReferencesPanel(){
+		// source
+		referencesPanel.add(sourcePanel, "span 2,growx,wrap");
+
+		// parent
+		referencesPanel.add(new JLabel("Parent:"), "align label");
+		referencesPanel.add(parentField, "growx,wrap");
+
+		// task
+		referencesPanel.add(taskPanel, "span 2,growx");
+
+		return referencesPanel;
+	}
+
 
 	@Override
 	protected void loadData(){
-		// Load date
 		dateField.load(record);
 
-		// Load simple fields (activity_type, status, action, result, conclusion_confidence)
 		bindingManager.load(record);
 
-		// Load action separately (it's a BoundTextArea)
-		actionArea.setText(FLEFRecordHelper.getChildValue(record, TAG_ACTION));
-
-		// Load target
 		targetField.load(record);
-
-		// Load search scope
-		String type = FLEFRecordHelper.getChildValue(record, TAG_SEARCH_SCOPE_TYPE);
-		searchScopeTypeCombo.setSelectedItem(StringUtils.defaultString(type));
-		String detail = FLEFRecordHelper.getChildValue(record, TAG_SEARCH_SCOPE_DETAIL);
-		searchScopeDetailArea.setText(StringUtils.defaultString(detail));
-
-		// Load observation and conclusion
-		observationArea.setText(FLEFRecordHelper.getChildValue(record, TAG_OBSERVATION));
-		conclusionArea.setText(FLEFRecordHelper.getChildValue(record, TAG_CONCLUSION));
-
-		// Load parent
 		parentField.load(record);
-
-		// Load questions
-//		questionPanel.load(record);
-
-		// Load tasks
+		questionPanel.load(record);
 		taskPanel.load(record);
-
-		// Load restriction and modification
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		// Date is required
 		if(!dateField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Date is required.",
 				tabbedPane, mainPanel, dateField);
+
 			return false;
 		}
 
-		// Activity type is required
-		String activityType = (String)activityTypeCombo.getSelectedItem();
-		if(StringUtils.isEmpty(activityType)){
+		if(activityTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Activity type is required.",
 				tabbedPane, mainPanel, activityTypeCombo);
+
 			return false;
 		}
 
-		// Status is required
-		String status = (String)statusCombo.getSelectedItem();
-		if(StringUtils.isEmpty(status)){
+		if(statusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Status is required.",
 				tabbedPane, mainPanel, statusCombo);
+
 			return false;
 		}
 
 		// Action is required
-		String action = actionArea.getText().trim();
-		if(StringUtils.isEmpty(action)){
+		if(actionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Action is required.",
 				tabbedPane, mainPanel, actionArea);
+
 			return false;
 		}
 
@@ -339,7 +390,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		// Clear existing children to avoid duplication
+		// clear existing children to avoid duplication
 		FLEFRecordHelper.removeChildren(record, TAG_ACTION);
 		FLEFRecordHelper.removeChildren(record, TAG_TARGET);
 		FLEFRecordHelper.removeChildren(record, TAG_SEARCH_SCOPE_TYPE);
@@ -348,66 +399,21 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		FLEFRecordHelper.removeChildren(record, TAG_CONCLUSION);
 		FLEFRecordHelper.removeChildren(record, TAG_PARENT);
 
-		// Save date
 		dateField.save(record);
 
-		// Save simple fields (activity_type, status, result, conclusion_confidence)
 		bindingManager.save(record);
 
-		// Save action
-		FLEFRecordHelper.updateChildValue(record, TAG_ACTION, actionArea.getText().trim());
-
-		// Save target
-		targetField.save(record);
-
-		// Save search scope
-		String type = (String)searchScopeTypeCombo.getSelectedItem();
-		if(StringUtils.isNotEmpty(type)){
-			FLEFRecordHelper.updateChildValue(record, TAG_SEARCH_SCOPE_TYPE, type);
-		}
-		String detail = searchScopeDetailArea.getText().trim();
-		if(StringUtils.isNotEmpty(detail)){
-			FLEFRecordHelper.updateChildValue(record, TAG_SEARCH_SCOPE_DETAIL, detail);
-		}
-
-		// Save observation and conclusion
-		FLEFRecordHelper.updateChildValue(record, TAG_OBSERVATION, observationArea.getText().trim());
-		FLEFRecordHelper.updateChildValue(record, TAG_CONCLUSION, conclusionArea.getText().trim());
-
-		// Save parent
-		parentField.save(record);
-
-		// Save questions (removes existing children with TAG_QUESTION)
-//		questionPanel.save(record);
-
-		// Save tasks (removes existing children with TAG_TASK)
+		targetField.saveReferences(record);
+		parentField.saveReferences(record);
+		questionPanel.saveReferences(record);
 		taskPanel.save(record);
-
-		// Save restriction and modification
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 	}
 
-	// ------------------------------------------------------------------------
-	// Main for testing
-	// ------------------------------------------------------------------------
 
-	public static void main(String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(Exception ignored){
-		}
-		SwingUtilities.invokeLater(() -> {
-			FLEFModel model = new FLEFModel();
-			// Add dummy records for testing
-			FLEFRecord q1 = FLEFRecord.createChild("research_question");
-			q1.setId("@RQ1@");
-			model.addRecord(q1);
-
-			ResearchActivityRecordDialog dialog = ResearchActivityRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+	public static void main(final String[] args){
+		GUIHelper.launch(ResearchActivityRecordDialog::createNew);
 	}
 
 }

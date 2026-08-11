@@ -32,8 +32,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.TranslationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TranslationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -43,9 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -107,30 +104,12 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static NoteRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new NoteRecordDialog(parent, model, null);
+		return createNew(parent, model, NoteRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static NoteRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new NoteRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, NoteRecordDialog::new);
 	}
 
 
@@ -140,10 +119,14 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		titleField = new BoundTextField(TAG_TITLE, 30);
 		valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
 		valueArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
-		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{StringUtils.EMPTY, "text/plain", "text/html", "text/markdown"});
-		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
-		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{
+			StringUtils.EMPTY,
+			"text/plain", "text/html", "text/markdown"});
+		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
+			StringUtils.EMPTY,
+			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations", model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
@@ -165,18 +148,12 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(localeCombo);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -242,17 +219,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final NoteRecordDialog dialog = NoteRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(NoteRecordDialog::createNew);
 	}
 
 }

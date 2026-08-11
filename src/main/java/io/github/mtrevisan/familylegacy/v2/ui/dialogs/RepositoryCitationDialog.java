@@ -30,10 +30,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -43,7 +44,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -74,6 +74,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new RepositoryCitationHandler());
+		HandlerRegistry.register(new NoteHandler());
 	}
 
 
@@ -83,34 +84,16 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	private final BoundTextField repository;
 	private final BoundTextField locationField;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static RepositoryCitationDialog createNew(final Dialog parent, final FLEFModel model){
-		return new RepositoryCitationDialog(parent, model, null);
+		return createNew(parent, model, RepositoryCitationDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static RepositoryCitationDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new RepositoryCitationDialog(parent, model, record);
+		return createEdit(parent, model, record, RepositoryCitationDialog::new);
 	}
 
 
@@ -119,7 +102,8 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 		repository = new BoundTextField(TAG_REPOSITORY);
 		locationField = new BoundTextField(TAG_LOCATION, 20);
-		notePanel = new NoteListPanel(TAG_NOTE, this, null, model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, null, model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), RepositoryCitationHandler.TYPE);
 
 
 		initComponents();
@@ -137,17 +121,11 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		bindingManager.bind(locationField);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Notes", notePanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -161,12 +139,8 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	public void setRepository(final String repositoryId){
 		if(StringUtils.isNotEmpty(repositoryId)){
-			if(model.getRecordById(repositoryId) == null){
-				JOptionPane.showMessageDialog(this, "Unknown Repository ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(repositoryId, RepositoryHandler.TYPE))
 				return;
-			}
 
 			repository.setText(repositoryId);
 
@@ -228,7 +202,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			final FLEFRecord repository = FLEFRecord.createMainRecord("R1", TAG_REPOSITORY);
 			model.addRecord(repository);
 
-//			FLEFRecord repositoryCitation = FLEFRecord.createEmpty();
+//			final FLEFRecord repositoryCitation = FLEFRecord.createEmpty();
 //			repositoryCitation.addChild(FLEFRecord.createChildWithValue(TAG_REPOSITORY, "R1"));
 //			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createEdit(null, model, repositoryCitation);
 			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createNew(null, model);

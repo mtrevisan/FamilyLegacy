@@ -282,7 +282,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 			list.setEnabled(true);
 			selectButton.setEnabled(true);
 			for(final FLEFRecord record : filteredRecords){
-				final String displayText = getSelectedDescriptor().getDisplayText(record, model);
+				final RecordTypeHandler<?> desc = getSelectedDescriptor();
+				final String displayText = desc.getDisplayText(record, model);
 				listModel.addElement(displayText);
 			}
 		}

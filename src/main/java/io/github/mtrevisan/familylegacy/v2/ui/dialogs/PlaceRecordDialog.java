@@ -29,12 +29,14 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ConclusionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -44,10 +46,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -97,6 +96,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new PlaceHandler());
+		HandlerRegistry.register(new ClassifiedNameHandler());
 	}
 
 
@@ -105,7 +105,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final ClassifiedNameListPanel namePanel;
+	private final StructureListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField mapCoordinatesField;
 	private final EvidenceQualifiersPanel mapQualifiers;
@@ -115,42 +115,25 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 	// Other
-	private final ConclusionListPanel conclusionPanel;
+	private final EntityReferenceListPanel conclusionPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static PlaceRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new PlaceRecordDialog(parent, model, null);
+		return createNew(parent, model, PlaceRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static PlaceRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new PlaceRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, PlaceRecordDialog::new);
 	}
 
 
 	private PlaceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PlaceHandler.TYPE));
 
-		namePanel = new ClassifiedNameListPanel(TAG_NAME, this, "Names*", model);
+		namePanel = new StructureListPanel(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
-			StringUtils.EMPTY, "address", "building", "street", "hamlet", "village", "town",
+			StringUtils.EMPTY,
+			"address", "building", "street", "hamlet", "village", "town",
 			"municipality", "city", "metropolitan_area", "county", "province",
 			"department", "district", "region", "macro_region", "country",
 			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
@@ -158,12 +141,13 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES, 31);
 		mapQualifiers = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, "Map Evidence");
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Place Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
-		conclusionPanel = new ConclusionListPanel(TAG_CONCLUSION, this, model);
+		conclusionPanel = new EntityReferenceListPanel(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
+			.withParentEntity(this.record.getId(), PlaceHandler.TYPE);
 
 
 		initComponents();
@@ -181,18 +165,12 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(mapCoordinatesField);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -265,22 +243,12 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
 
-		conclusionPanel.save(record);
+		conclusionPanel.saveReferences(record);
 	}
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final PlaceRecordDialog dialog = PlaceRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(PlaceRecordDialog::createNew);
 	}
 
 }

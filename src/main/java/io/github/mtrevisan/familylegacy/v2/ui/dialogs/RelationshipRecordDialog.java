@@ -31,15 +31,15 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -48,12 +48,10 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.Collections;
@@ -126,6 +124,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new RelationshipHandler());
 		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new GroupHandler());
+		HandlerRegistry.register(new NoteHandler());
 	}
 
 
@@ -143,38 +142,20 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private final DateField validOnField;
 	private final DateField validFromField;
 	private final DateField validToField;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final SourceCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static RelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new RelationshipRecordDialog(parent, model, null);
+		return createNew(parent, model, RelationshipRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static RelationshipRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new RelationshipRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, RelationshipRecordDialog::new);
 	}
 
 	private RelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
@@ -202,8 +183,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), RelationshipHandler.TYPE);
+		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -255,18 +237,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(subjectRoleField);
 		bindingManager.bind(statusCombo);
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -291,7 +268,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		mainPanel.add(statusCombo, "growx,wrap");
 
 		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		// valid on
 		validityPanel.add(new JLabel("Valid On:"), "align label");
@@ -320,13 +297,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	public void setSubject(final String subjectId, final String subjectHandlerType){
 		if(StringUtils.isNotEmpty(subjectId)){
-			if(model.getRecordById(subjectId) == null){
-				final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subjectHandlerType);
-				JOptionPane.showMessageDialog(this, "Unknown " + subjectHandler.getLabel() + " ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(subjectId, subjectHandlerType))
 				return;
-			}
 
 			subjectField.setParticipant(subjectHandlerType, FLEFRecord.createMainRecord(subjectId, null));
 			subjectLabel.setVisible(false);
@@ -392,8 +364,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		subjectField.save(record);
-		objectField.save(record);
+		subjectField.saveReferences(record);
+		objectField.saveReferences(record);
 
 		bindingManager.save(record);
 

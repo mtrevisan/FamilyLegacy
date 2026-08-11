@@ -28,13 +28,13 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.CulturalNormListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PartStructureListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
@@ -47,7 +47,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -104,6 +103,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new PartHandler());
 	}
 
 
@@ -113,44 +113,27 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundComboBox<String> typeCombo;
-	private final PartStructureListPanel partPanel;
-	private final CulturalNormListPanel culturalNormPanel;
-	private final NoteListPanel notePanel;
+	private final StructureListPanel partPanel;
+	private final EntityReferenceListPanel culturalNormPanel;
+	private final EntityReferenceListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
-		return new PersonalNameStructureDialog(parent, model, null);
+		return createNew(parent, model, PersonalNameStructureDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static PersonalNameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new PersonalNameStructureDialog(parent, model, record);
+		return createEdit(parent, model, record, PersonalNameStructureDialog::new);
 	}
 
 
 	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(PersonalNameHandler.TYPE));
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY,
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
 			// marital status and origins at birth
 			"official", "religious", "birth",
 			// changes in marital status and family events
@@ -163,10 +146,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			"regnal", "slave_name"
 		});
 		typeCombo.setEditable(true);
-		partPanel = new PartStructureListPanel(TAG_PART, this, model);
-		culturalNormPanel = new CulturalNormListPanel(TAG_CULTURAL_NORM, this, model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		partPanel = new StructureListPanel(TAG_PART, this, "Parts*", model, PartHandler.TYPE);
+		culturalNormPanel = new EntityReferenceListPanel(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 
 
 		initComponents();
@@ -183,16 +166,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		bindingManager.bind(typeCombo);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -245,7 +222,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		partPanel.save(record);
-		culturalNormPanel.save(record);
+		culturalNormPanel.saveReferences(record);
 		notePanel.saveReferences(record);
 		sourceCitationPanel.save(record);
 	}

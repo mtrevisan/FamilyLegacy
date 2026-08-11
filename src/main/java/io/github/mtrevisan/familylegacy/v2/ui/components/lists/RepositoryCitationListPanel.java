@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -39,9 +39,6 @@ import java.io.Serial;
 
 
 /* DONE */
-/**
- * Panel for managing a list of {@code REPOSITORY} references according to FLEF 0.1.1.
- */
 public class RepositoryCitationListPanel extends AbstractCitationListPanel{
 
 	@Serial
@@ -60,13 +57,9 @@ public class RepositoryCitationListPanel extends AbstractCitationListPanel{
 	private static final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 
 
-	public RepositoryCitationListPanel(final String path, final Dialog parent, final FLEFModel model){
-		this(path, parent, "Repositories", model);
-	}
-
-	public RepositoryCitationListPanel(final String path, final Dialog parent, final String borderTitle,
+	public RepositoryCitationListPanel(final String path, final Dialog parent, final String panelTitle,
 			final FLEFModel model){
-		super(path, parent, borderTitle, model, TAG_REPOSITORY, RepositoryHandler.TYPE);
+		super(path, parent, panelTitle, model, TAG_REPOSITORY, RepositoryHandler.TYPE);
 	}
 
 
@@ -96,8 +89,11 @@ public class RepositoryCitationListPanel extends AbstractCitationListPanel{
 
 	@Override
 	protected JDialog createTargetEditDialog(final FLEFRecord entity){
-		final RecordTypeHandler<?> repositoryHandler = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 		return repositoryHandler.createEditDialog(parent, model, entity);
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

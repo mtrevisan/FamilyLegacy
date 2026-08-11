@@ -27,13 +27,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._ConclusionRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ConclusionRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class ConclusionHandler implements RecordTypeHandler<_ConclusionRecordDialog>{
+public class ConclusionHandler implements RecordTypeHandler<ConclusionRecordDialog>{
 
 	public static final String TYPE = "CONCLUSION";
 	public static final String ID_PREFIX = "CC";
@@ -58,7 +58,9 @@ public class ConclusionHandler implements RecordTypeHandler<_ConclusionRecordDia
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null) return "--";
+		if(record == null)
+			return "--";
+
 		String context = FLEFRecordHelper.getChildValue(record, "CONTEXT");
 		String proofStatus = FLEFRecordHelper.getChildValue(record, "PROOF_STATUS");
 		if(StringUtils.isNotEmpty(context)){
@@ -72,13 +74,13 @@ public class ConclusionHandler implements RecordTypeHandler<_ConclusionRecordDia
 	}
 
 	@Override
-	public _ConclusionRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return _ConclusionRecordDialog.createNew(parent, model);
+	public ConclusionRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return ConclusionRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public _ConclusionRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return _ConclusionRecordDialog.createEdit(parent, model, record);
+	public ConclusionRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return ConclusionRecordDialog.createEdit(parent, model, record);
 	}
 
 }

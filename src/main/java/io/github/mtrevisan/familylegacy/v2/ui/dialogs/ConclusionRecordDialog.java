@@ -1,4 +1,28 @@
-package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
+/**
+ * Copyright (c) 2026 Mauro Trevisan
+ * <p>
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ * OTHER DEALINGS IN THE SOFTWARE.
+ */
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -9,13 +33,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchQuestionListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -23,13 +47,11 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* ONGOING */
 /**
  * Dialog for editing a {@code CONCLUSION_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -52,7 +74,7 @@ import java.io.Serial;
  * }
  * </pre>
  */
-public class _ConclusionRecordDialog extends BaseRecordDialog{
+public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = -2667811782933374258L;
@@ -71,6 +93,7 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new ConclusionHandler());
+		HandlerRegistry.register(new ResearchQuestionHandler());
 	}
 
 
@@ -84,55 +107,39 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> preferredCombo;
 	private final BoundComboBox<String> proofStatusCombo;
 	private final BoundTextArea narrativeArea;
-	private final ResearchQuestionListPanel researchPanel;
+	private final EntityReferenceListPanel researchPanel;
 	private final DateField dateField;
 	private final SourceCitationListPanel sourcePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
-	public static _ConclusionRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new _ConclusionRecordDialog(parent, model, null);
+	public static ConclusionRecordDialog createNew(final Dialog parent, final FLEFModel model){
+		return createNew(parent, model, ConclusionRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
-	public static _ConclusionRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new _ConclusionRecordDialog(parent, model, record);
+	public static ConclusionRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, ConclusionRecordDialog::new);
 	}
 
 
-	private _ConclusionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private ConclusionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ConclusionHandler.TYPE));
 
 		contextField = new BoundTextField(TAG_CONTEXT, 30);
 //		resolvesPanel = new ConclusionTargetListPanel(TAG_RESOLVES, parent, model);
 //		resolvesPanel.addPropertyChangeListener(ConclusionTargetListPanel.PROPERTY_ITEMS, evt -> updatePreferredCombo());
-		preferredCombo = new BoundComboBox<>(TAG_PREFERRED, new String[]{StringUtils.EMPTY});
+		preferredCombo = new BoundComboBox<>(TAG_PREFERRED, new String[]{
+			StringUtils.EMPTY});
 		proofStatusCombo = new BoundComboBox<>(TAG_PROOF_STATUS, new String[]{
 			StringUtils.EMPTY,
 			"unresearched", "conflicting_evidence", "supported", "proven", "disproven"
 		});
 		narrativeArea = new BoundTextArea(TAG_NARRATIVE, 5, 30);
-		researchPanel = new ResearchQuestionListPanel(TAG_RESEARCH, this, model);
+		researchPanel = new EntityReferenceListPanel(TAG_RESEARCH, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
+			.withParentEntity(this.record.getId(), ConclusionHandler.TYPE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Conclusion Date", model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
@@ -153,18 +160,13 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(proofStatusCombo);
 		bindingManager.bind(narrativeArea);
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -172,7 +174,7 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 		mainPanel.add(new JLabel("Context*:"), "align label");
 		mainPanel.add(contextField, "growx,wrap");
 
-//		// resolves
+		// resolves
 //		mainPanel.add(resolvesPanel, "span 2,growx,wrap");
 
 		// preferred
@@ -188,8 +190,7 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 		mainPanel.add(GUIHelper.createScrollPane(narrativeArea), "growx,wrap");
 
 		// research
-		mainPanel.add(new JLabel("Research:"), "align label");
-		mainPanel.add(researchPanel, "growx,wrap");
+		mainPanel.add(researchPanel, "span 2,growx,wrap");
 
 		// date
 		mainPanel.add(new JLabel("Date:"), "align label");
@@ -232,8 +233,6 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 		narrativeArea.setText(FLEFRecordHelper.getChildValue(record, TAG_NARRATIVE));
 
 		dateField.load(record);
-		//TODO
-//		researchPanel.load(record);
 //		resolvesPanel.load(record);
 
 		updatePreferredCombo();
@@ -252,6 +251,7 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 			}
 		}
 
+		researchPanel.load(record);
 		sourcePanel.load(record);
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
@@ -303,8 +303,6 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 		FLEFRecordHelper.updateChildValue(record, TAG_NARRATIVE, narrativeArea.getText());
 
 		dateField.save(record);
-		//TODO
-//		researchPanel.save(record);
 //		resolvesPanel.save(record);
 
 		// Preferred
@@ -318,6 +316,7 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 			}
 		}
 
+		researchPanel.saveReferences(record);
 		sourcePanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
@@ -325,17 +324,7 @@ public class _ConclusionRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final _ConclusionRecordDialog dialog = _ConclusionRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(ConclusionRecordDialog::createNew);
 	}
 
 }

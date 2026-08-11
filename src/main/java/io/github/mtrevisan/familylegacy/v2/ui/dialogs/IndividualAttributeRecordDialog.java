@@ -34,11 +34,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -50,7 +51,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -108,7 +108,6 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final BoundTextField individual;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
 	private final DateField validOnField;
@@ -121,38 +120,19 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static IndividualAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new IndividualAttributeRecordDialog(parent, model, null);
+		return createNew(parent, model, IndividualAttributeRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static IndividualAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new IndividualAttributeRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, IndividualAttributeRecordDialog::new);
 	}
 
 
 	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE));
 
-		individual = new BoundTextField(TAG_INDIVIDUAL);
 		typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY,
 				"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
@@ -161,11 +141,11 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 			});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE, 20);
-		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
+		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Valid On", model);
+		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
+		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -182,23 +162,17 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
-		bindingManager.bind(individual);
+		bindingManager.bind(parentEntity);
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);
 
-
-		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -211,7 +185,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		mainPanel.add(valueField, "growx, wrap");
 
 		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		// valid on
 		validityPanel.add(new JLabel("Valid On:"), "align label");
@@ -222,7 +196,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		// valid to
 		validityPanel.add(new JLabel("Valid To:"), "align label");
 		validityPanel.add(validToField, "growx");
-		add(validityPanel, "span 2,growx,wrap");
+		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		// place
 		mainPanel.add(new JLabel("Place:"), "align label");
@@ -243,14 +217,10 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	public void setIndividual(final String individualId){
 		if(StringUtils.isNotEmpty(individualId)){
-			if(model.getRecordById(individualId) == null){
-				JOptionPane.showMessageDialog(this, "Unknown Individual ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(individualId, IndividualHandler.TYPE))
 				return;
-			}
 
-			individual.setText(individualId);
+			parentEntity.setText(individualId);
 
 			refreshLayout();
 		}
@@ -283,9 +253,9 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(individual.isEmpty()){
+		if(parentEntity.isEmpty()){
 			JOptionPane.showMessageDialog(null,
-				"Individual is required.",
+				"Parent Individual is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
@@ -304,14 +274,12 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_INDIVIDUAL, XRefHelper.formatXRef(individual.getText()));
-
 		bindingManager.save(record);
 
 		validOnField.save(record);
 		validFromField.save(record);
 		validToField.save(record);
-		placeCitationField.save(record);
+		placeCitationField.saveReferences(record);
 		sourceCitationPanel.save(record);
 		qualifiers.save(record);
 		restrictionPanel.save(record);
@@ -331,7 +299,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 			final FLEFRecord individual = FLEFRecord.createMainRecord("I1", TAG_INDIVIDUAL);
 			model.addRecord(individual);
 
-//			FLEFRecord individualAttribute = FLEFRecord.createEmpty();
+//			final FLEFRecord individualAttribute = FLEFRecord.createEmpty();
 //			individualAttribute.addChild(FLEFRecord.createChildWithValue(TAG_INDIVIDUAL, "I1"));
 //			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createEdit(null, model, individualAttribute);
 			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createNew(null, model);

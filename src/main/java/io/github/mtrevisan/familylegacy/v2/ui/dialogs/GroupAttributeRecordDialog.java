@@ -26,18 +26,17 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -50,7 +49,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -116,10 +114,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final BoundTextField group;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
-	private final DateField dateField;
+	private final DateField validOnField;
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final PlaceCitationField placeCitationField;
@@ -129,47 +126,28 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static GroupAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new GroupAttributeRecordDialog(parent, model, null);
+		return createNew(parent, model, GroupAttributeRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static GroupAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new GroupAttributeRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, GroupAttributeRecordDialog::new);
 	}
 
 
 	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
 
-		group = new BoundTextField(TAG_GROUP);
 		typeCombo = new BoundComboBox<>(TAG_TYPE,
 			new String[]{StringUtils.EMPTY, "residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language", "wealth", "land_holding", "primary_income_source"});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE, 20);
-		dateField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
-		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
-		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
+		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Valid On", model);
+		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
+		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -186,23 +164,17 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
-		bindingManager.bind(group);
+		bindingManager.bind(parentEntity);
 		bindingManager.bind(typeCombo);
 		bindingManager.bind(valueField);
 
-
-		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -219,7 +191,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		// valid on
 		validityPanel.add(new JLabel("Valid On:"), "align label");
-		validityPanel.add(dateField, "growx,wrap");
+		validityPanel.add(validOnField, "growx,wrap");
 		// valid from
 		validityPanel.add(new JLabel("Valid From:"), "align label");
 		validityPanel.add(validFromField, "growx,wrap");
@@ -247,14 +219,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	public void setGroup(final String groupId){
 		if(StringUtils.isNotEmpty(groupId)){
-			if(model.getRecordById(groupId) == null){
-				JOptionPane.showMessageDialog(this, "Unknown Group ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(groupId, GroupHandler.TYPE))
 				return;
-			}
 
-			group.setText(groupId);
+			parentEntity.setText(groupId);
 
 			refreshLayout();
 		}
@@ -275,7 +243,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 		bindingManager.load(record);
 
-		dateField.load(record);
+		validOnField.load(record);
 		validFromField.load(record);
 		validToField.load(record);
 		placeCitationField.load(record);
@@ -287,10 +255,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(group.isEmpty()){
+		if(parentEntity.isEmpty()){
 			JOptionPane.showMessageDialog(null,
-				"Group is required for an attribute.\n" +
-					"Please select a group record.",
+				"Parent Group is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;
@@ -309,14 +276,12 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_GROUP, XRefHelper.formatXRef(group.getText()));
-
 		bindingManager.save(record);
 
-		dateField.save(record);
+		validOnField.save(record);
 		validFromField.save(record);
 		validToField.save(record);
-		placeCitationField.save(record);
+		placeCitationField.saveReferences(record);
 		sourceCitationPanel.save(record);
 		qualifiers.save(record);
 		restrictionPanel.save(record);
@@ -336,7 +301,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 			final FLEFRecord group = FLEFRecord.createMainRecord("G1", TAG_GROUP);
 			model.addRecord(group);
 
-//			FLEFRecord groupAttribute = FLEFRecord.createEmpty();
+//			final FLEFRecord groupAttribute = FLEFRecord.createEmpty();
 //			groupAttribute.addChild(FLEFRecord.createChildWithValue(TAG_GROUP, "G1"));
 //			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createEdit(null, model, groupAttribute);
 			final GroupAttributeRecordDialog dialog = GroupAttributeRecordDialog.createNew(null, model);

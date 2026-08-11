@@ -29,10 +29,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -46,9 +47,6 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -105,6 +103,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new VariantHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new VariantHandler());
 	}
 
 
@@ -112,38 +111,20 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
-	private final VariantListPanel variantPanel;
+	private final StructureListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
 	private final DateField dateField;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static ClassifiedNameDialog createNew(final Dialog parent, final FLEFModel model){
-		return new ClassifiedNameDialog(parent, model, null);
+		return createNew(parent, model, ClassifiedNameDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static ClassifiedNameDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new ClassifiedNameDialog(parent, model, record);
+		return createEdit(parent, model, record, ClassifiedNameDialog::new);
 	}
 
 
@@ -151,40 +132,34 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
 
 		valueField = new BoundTextField(TAG_VALUE, 30);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY,
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
 			// official and legal names
-			"official",
-			"legal",
+			"official", "legal",
 			// historical naming traditions
-			"colonial",
-			"indigenous",
-			"traditional",
+			"colonial", "indigenous", "traditional",
 			// language and localization variants
-			"translated",
-			"romanized",
+			"translated", "romanized",
 			// historical variants
-			"historic",
-			"former",
+			"historic", "former",
 			// common usage
-			"common",
-			"colloquial",
+			"common", "colloquial",
 			// abbreviated forms
-			"abbreviated",
-			"acronym",
+			"abbreviated", "acronym",
 			// religious and ecclesiastical forms
 			"religious",
 			// administrative and archival forms
-			"administrative",
-			"archival"
+			"administrative", "archival"
 		});
 		typeCombo.setEditable(true);
-		variantPanel = new VariantListPanel(TAG_VARIANT, this, model);
+		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
-			StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
+			StringUtils.EMPTY,
+			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid On", model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 
 
 		initComponents();
@@ -203,18 +178,12 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		bindingManager.bind(localeCombo);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Variants", createVariantPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -290,17 +259,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final ClassifiedNameDialog dialog = new ClassifiedNameDialog(null, model, null);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(ClassifiedNameDialog::createNew);
 	}
 
 }

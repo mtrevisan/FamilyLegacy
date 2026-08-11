@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -39,9 +39,6 @@ import java.io.Serial;
 
 
 /* DONE */
-/**
- * Panel for managing a list of {@code SOURCE} references according to FLEF 0.1.1.
- */
 public class SourceCitationListPanel extends AbstractCitationListPanel{
 
 	@Serial
@@ -57,13 +54,9 @@ public class SourceCitationListPanel extends AbstractCitationListPanel{
 	}
 
 
-	public SourceCitationListPanel(final String path, final Dialog parent, final FLEFModel model){
-		this(path, parent, "Sources", model);
-	}
-
-	public SourceCitationListPanel(final String path, final Dialog parent, final String borderTitle,
+	public SourceCitationListPanel(final String path, final Dialog parent, final String panelTitle,
 			final FLEFModel model){
-		super(path, parent, borderTitle, model, TAG_SOURCE, SourceHandler.TYPE);
+		super(path, parent, panelTitle, model, TAG_SOURCE, SourceHandler.TYPE);
 	}
 
 
@@ -95,6 +88,10 @@ public class SourceCitationListPanel extends AbstractCitationListPanel{
 	protected JDialog createTargetEditDialog(final FLEFRecord entity){
 		final RecordTypeHandler<?> sourceHandler = HandlerRegistry.getHandler(SourceHandler.TYPE);
 		return sourceHandler.createEditDialog(parent, model, entity);
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

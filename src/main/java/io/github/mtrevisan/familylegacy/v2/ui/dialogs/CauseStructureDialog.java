@@ -36,8 +36,6 @@ import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -75,30 +73,12 @@ public class CauseStructureDialog extends BaseRecordDialog{
 	private final EvidenceQualifiersPanel evidencePanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static CauseStructureDialog createNew(final Dialog parent, final FLEFModel model){
-		return new CauseStructureDialog(parent, model, null);
+		return createNew(parent, model, CauseStructureDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static CauseStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new CauseStructureDialog(parent, model, record);
+		return createEdit(parent, model, record, CauseStructureDialog::new);
 	}
 
 
@@ -171,17 +151,7 @@ public class CauseStructureDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final CauseStructureDialog dialog = CauseStructureDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(CauseStructureDialog::createNew);
 	}
 
 }

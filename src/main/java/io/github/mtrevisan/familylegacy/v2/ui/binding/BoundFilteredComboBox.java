@@ -102,7 +102,10 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 				return;
 			}
 		}
-		// no match: do not change selection
+
+		// no match: change selection if combo box is editable
+		if(isEditable)
+			setSelectedItem(value);
 	}
 
 	@Override

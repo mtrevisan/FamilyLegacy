@@ -63,9 +63,9 @@ public class CulturalNormHandler implements RecordTypeHandler<CulturalNormRecord
 		String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){
-			return title + " (" + id + ")";
+			return title + " [" + id + "]";
 		}
-		return id;
+		return "[" + id + "]";
 	}
 
 	@Override

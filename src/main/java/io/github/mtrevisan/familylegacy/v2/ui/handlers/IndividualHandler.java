@@ -65,7 +65,7 @@ public class IndividualHandler implements RecordTypeHandler<IndividualRecordDial
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
-			return StringUtils.EMPTY;
+			return "--";
 
 		// Locate the first populated NAME structure
 		String formattedName = null;
@@ -78,10 +78,10 @@ public class IndividualHandler implements RecordTypeHandler<IndividualRecordDial
 
 		final String id = record.getId();
 		if(StringUtils.isNotEmpty(formattedName))
-			return formattedName + (StringUtils.isNotEmpty(id)? " (" + id + ")": StringUtils.EMPTY);
+			return formattedName + (StringUtils.isNotEmpty(id)? " [" + id + "]": StringUtils.EMPTY);
 
 		// Fallback to the record ID
-		return id;
+		return "[" + id + "]";
 	}
 
 	/**

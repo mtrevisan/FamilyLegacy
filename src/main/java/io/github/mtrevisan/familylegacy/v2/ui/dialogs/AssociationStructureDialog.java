@@ -52,8 +52,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -125,31 +123,13 @@ public class AssociationStructureDialog extends BaseRecordDialog{
 	private final BoundTextField nameField;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static AssociationStructureDialog createNew(final Dialog parent, final FLEFModel model){
-		return new AssociationStructureDialog(parent, model, null);
+		return createNew(parent, model, AssociationStructureDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static AssociationStructureDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new AssociationStructureDialog(parent, model, record);
+		return createEdit(parent, model, record, AssociationStructureDialog::new);
 	}
 
 
@@ -250,23 +230,13 @@ public class AssociationStructureDialog extends BaseRecordDialog{
 		else{
 			FLEFRecordHelper.removeChildren(record, TAG_NAME);
 
-			targetField.save(record);
+			targetField.saveReferences(record);
 		}
 	}
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final AssociationStructureDialog dialog = new AssociationStructureDialog(null, model, null);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(AssociationStructureDialog::createNew);
 	}
 
 }

@@ -75,6 +75,7 @@ public class RestrictionPanel extends JPanel{
 
 	private final String path;
 
+
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundComboBox<String> levelCombo;
@@ -92,7 +93,9 @@ public class RestrictionPanel extends JPanel{
 
 		this.path = path;
 
-		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, new String[]{StringUtils.EMPTY, "public", "restricted", "confidential"});
+		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, new String[]{
+			StringUtils.EMPTY,
+			"public", "restricted", "confidential"});
 		rationaleArea = new BoundTextArea(path + DOT + TAG_RATIONALE, 3, 25);
 		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
 		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES, 15);

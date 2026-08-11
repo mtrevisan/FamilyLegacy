@@ -57,9 +57,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.time.Instant;
@@ -159,31 +156,13 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static ResearchQuestionRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new ResearchQuestionRecordDialog(parent, model, null);
+		return createNew(parent, model, ResearchQuestionRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static ResearchQuestionRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new ResearchQuestionRecordDialog(parent, model, record);
+			final FLEFRecord record){
+		return createEdit(parent, model, record, ResearchQuestionRecordDialog::new);
 	}
 
 
@@ -199,7 +178,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 			IdentityHypothesisHandler.TYPE, CulturalNormHandler.TYPE, HistoricEventHandler.TYPE));
 		statusPanel = new ResearchQuestionStatusPanel();
 		conclusionArea = new BoundTextArea(TAG_CONCLUSION, 3, 30);
-		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{StringUtils.EMPTY,
+		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
+			StringUtils.EMPTY,
 			"low", "medium", "high"});
 		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
 		createdField = new BoundTextField(TAG_CREATED, 20);
@@ -227,17 +207,11 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(createdField);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -247,7 +221,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		// question
 		mainPanel.add(new JLabel("Question*:"), "align label");
-		mainPanel.add(questionArea, "growx,wrap");
+		mainPanel.add(GUIHelper.createScrollPane(questionArea), "growx,wrap");
 
 		// target
 		mainPanel.add(new JLabel("Target:"), "align label");
@@ -261,7 +235,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		final JPanel conclusionPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 		conclusionPanel.setBorder(BorderFactory.createTitledBorder("Conclusion"));
 		// conclusion
-		conclusionPanel.add(conclusionArea, "span 2,growx,wrap");
+		conclusionPanel.add(GUIHelper.createScrollPane(conclusionArea), "span 2,growx,wrap");
 		// confidence
 		conclusionPanel.add(new JLabel("Confidence:"), "align label");
 		conclusionPanel.add(conclusionConfidenceCombo, "growx");
@@ -269,7 +243,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		// rationale
 		mainPanel.add(new JLabel("Rationale:"), "align label");
-		mainPanel.add(rationaleArea, "growx,wrap");
+		mainPanel.add(GUIHelper.createScrollPane(rationaleArea), "growx,wrap");
 
 		return mainPanel;
 	}
@@ -313,7 +287,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		bindingManager.save(record);
 
-		targetField.save(record);
+		targetField.saveReferences(record);
 		statusPanel.save(record);
 		restrictionPanel.save(record);
 		modificationPanel.save(record);
@@ -321,17 +295,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final ResearchQuestionRecordDialog dialog = ResearchQuestionRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(ResearchQuestionRecordDialog::createNew);
 	}
 
 }

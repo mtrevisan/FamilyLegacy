@@ -29,11 +29,19 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.List;
@@ -54,6 +62,8 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected final FLEFRecord record;
 	protected final boolean isNew;
 	protected boolean isSaved;
+
+	protected BoundTextField parentEntity;
 
 
 	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
@@ -90,20 +100,82 @@ public abstract class BaseRecordDialog extends JDialog{
 		return sb.toString();
 	}
 
-	protected String extractReferenceId(String referenceId, final FLEFRecord record, final String tag){
-		if(referenceId == null){
-			referenceId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, tag));
 
-			if(referenceId == null){
-				referenceId = generateNewId();
-
-				if(record != null)
-					FLEFRecordHelper.addChild(record, tag, referenceId);
-			}
-		}
-		return referenceId;
+	/**
+	 * Collapses the {@code createNew(Dialog, FLEFModel)} boilerplate that used to be duplicated, near-verbatim, in every
+	 * subclass. Call it from the subclass's own {@code createNew}, passing its constructor as a method reference:
+	 * <pre>
+	 * public static NoteRecordDialog createNew(final Dialog parent, final FLEFModel model){
+	 *     return createNew(parent, model, NoteRecordDialog::new);
+	 * }
+	 * </pre>
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param factory	Reference to the subclass's private constructor (e.g. {@code NoteRecordDialog::new}).
+	 * @return	A new dialog instance, for a new record.
+	 */
+	protected static <T extends BaseRecordDialog> T createNew(final Dialog parent, final FLEFModel model,
+			final DialogFactory<T> factory){
+		return factory.create(parent, model, null);
 	}
 
+	/**
+	 * Collapses the {@code createEdit(Dialog, FLEFModel, FLEFRecord)} boilerplate (including the "record cannot be null"
+	 * guard) that used to be duplicated, near-verbatim, in every subclass. Call it from the subclass's own
+	 * {@code createEdit}, passing its constructor as a method reference:
+	 * <pre>
+	 * public static NoteRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	 *     return createEdit(parent, model, record, NoteRecordDialog::new);
+	 * }
+	 * </pre>
+	 *
+	 * @param parent	The parent window.
+	 * @param model	The FLEF model.
+	 * @param record	The record to edit (must not be {@code null}).
+	 * @param factory	Reference to the subclass's private constructor (e.g. {@code NoteRecordDialog::new}).
+	 * @return	A new dialog instance, for editing an existing record.
+	 */
+	protected static <T extends BaseRecordDialog> T createEdit(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record, final DialogFactory<T> factory){
+		if(record == null)
+			throw new IllegalArgumentException("Record cannot be null");
+
+		return factory.create(parent, model, record);
+	}
+
+
+	/**
+	 * Wires up the standard dialog chrome that used to be repeated at the end of every {@code initComponents()}:
+	 * the frame's layout, the tabbed pane, and the Save/Cancel button row. Call it last, from the subclass's own
+	 * {@code initComponents()}, after all tabs have been added:
+	 * <pre>
+	 * tabbedPane.addTab("Main", createMainPanel());
+	 * tabbedPane.addTab("Modification", modificationPanel);
+	 *
+	 * finalizeLayout(tabbedPane);
+	 * </pre>
+	 *
+	 * @param tabbedPane	The dialog's fully-populated tabbed pane.
+	 */
+	protected void finalizeLayout(final JTabbedPane tabbedPane){
+		setLayout(new MigLayout("ins 10,fillx,top"));
+
+		add(tabbedPane, "growx");
+
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			this::save,
+			this::dispose);
+		add(buttonPanel, BorderLayout.SOUTH);
+	}
+
+
+	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityHandlerType){
+		parentEntity = new BoundTextField(parentEntityHandlerType);
+		parentEntity.setText(parentEntityId);
+
+		return this;
+	}
 
 	protected abstract void loadData();
 
@@ -157,57 +229,25 @@ System.out.println(FLEFWriter.create().writeToString(model));
 		return FLEFRecordHelper.getChildValue(record, tag);
 	}
 
-	protected String getChildValue(final FLEFRecord parent, final String tag){
-		return FLEFRecordHelper.getChildValue(parent, tag);
-	}
-
 	protected FLEFRecord findChild(final String tag){
 		return FLEFRecordHelper.findChild(record, tag);
-	}
-
-	protected FLEFRecord findChild(final FLEFRecord parent, final String tag){
-		return FLEFRecordHelper.findChild(parent, tag);
 	}
 
 	protected List<FLEFRecord> findChildren(final String tag){
 		return FLEFRecordHelper.findChildren(record, tag);
 	}
 
-	protected List<FLEFRecord> findChildren(final FLEFRecord parent, final String tag){
-		return FLEFRecordHelper.findChildren(parent, tag);
-	}
-
-	protected String getChildValuesAsString(final String tag){
-		return FLEFRecordHelper.getChildValuesAsString(record, tag);
-	}
-
-	protected String getChildValuesAsString(final FLEFRecord parent, final String tag){
-		return FLEFRecordHelper.getChildValuesAsString(parent, tag);
-	}
-
 	protected void updateChildValue(final String tag, final String value){
 		FLEFRecordHelper.updateChildValue(record, tag, value);
-	}
-
-	protected void updateChildValue(final FLEFRecord parent, final String tag, final String value){
-		FLEFRecordHelper.updateChildValue(parent, tag, value);
 	}
 
 	protected void addChild(final String tag, final String value){
 		FLEFRecordHelper.addChild(record, tag, value);
 	}
 
-	protected void addChild(final FLEFRecord parent, final String tag, final String value){
-		FLEFRecordHelper.addChild(parent, tag, value);
-	}
-
 
 	protected void removeChildren(final String tag){
 		FLEFRecordHelper.removeChildren(record, tag);
-	}
-
-	protected void removeChildren(final FLEFRecord parent, final String tag){
-		FLEFRecordHelper.removeChildren(parent, tag);
 	}
 
 
@@ -231,6 +271,19 @@ System.out.println(FLEFWriter.create().writeToString(model));
 
 	public FLEFRecord getRecord(){
 		return (!record.isEmpty()? record: null);
+	}
+
+
+	protected boolean confirmRecordExistsForType(final String participantId, final String participantHandlerType){
+		if(model.getRecordById(participantId) == null){
+			final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerType);
+			JOptionPane.showMessageDialog(this, "Unknown " + participantHandler.getLabel() + " ID.",
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return false;
+		}
+
+		return true;
 	}
 
 }

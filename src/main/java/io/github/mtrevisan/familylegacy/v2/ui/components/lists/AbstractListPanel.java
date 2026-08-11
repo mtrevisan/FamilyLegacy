@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -209,7 +209,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 *
 	 * @param item the item to add
 	 */
-	protected final void addItemDirectly(final T item){
+	public final void addItemDirectly(final T item){
 		if(item != null)
 			addElement(item);
 	}
@@ -342,8 +342,10 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	}
 
 	private void addElement(final T newItem){
-		items.add(newItem);
-		listModel.addElement(getDisplay(newItem));
+		if(!items.contains(newItem)){
+			items.add(newItem);
+			listModel.addElement(getDisplay(newItem));
+		}
 	}
 
 

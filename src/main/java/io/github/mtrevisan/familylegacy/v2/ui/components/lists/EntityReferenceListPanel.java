@@ -22,14 +22,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DocumentRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -37,50 +36,27 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
-import java.io.Serial;
 import java.util.List;
 
 
-/**
- * Panel for managing a list of {@code DOCUMENT} references according to FLEF 0.1.1.
- */
-public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
-
-	@Serial
-	private static final long serialVersionUID = 6678882576554492478L;
-
-
-	static{
-		HandlerRegistry.register(new DocumentHandler());
-	}
-
+/* DONE */
+public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.TYPE);
+	private final RecordTypeHandler<?> handler;
+
+	private String parentEntityId;
+	private String parentEntityHandlerType;
 
 
-	/**
-	 * Constructs a DocumentListPanel without a border.
-	 *
-	 * @param parent the parent dialog
-	 * @param model        the FLEF model
-	 */
-	public DocumentListPanel(final String path, final Dialog parent, final FLEFModel model){
-		this(path, parent, "Documents", model);
-	}
-
-	/**
-	 * Constructs a DocumentListPanel with a titled border.
-	 *
-	 * @param parent the parent dialog
-	 * @param borderTitle  the border title, or {@code null} for no border
-	 * @param model        the FLEF model
-	 */
-	public DocumentListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
-		super(parent, borderTitle, model);
+	public EntityReferenceListPanel(final String path, final Dialog parent, final String panelTitle,
+			final FLEFModel model, final String handlerType){
+		super(parent, panelTitle, model);
 
 		this.path = path;
+
+		handler = HandlerRegistry.getHandler(handlerType);
 	}
 
 
@@ -103,9 +79,9 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord document){
-		if(document != null)
-			return documentHandler.getDisplayText(document, model);
+	protected String getDisplay(final FLEFRecord record){
+		if(record != null)
+			return handler.getDisplayText(record, model);
 
 		return "--";
 	}
@@ -114,7 +90,7 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			DocumentHandler.TYPE,
+			handler.getType(),
 			(handlerType, selectedRecord) -> result[0] = selectedRecord
 		);
 		dialog.setVisible(true);
@@ -122,12 +98,10 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 		return result[0];
 	}
 
-	/**
-	 * Creates a new document and adds it to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final DocumentRecordDialog dialog = (DocumentRecordDialog)documentHandler.createNewDialog(parent, model);
+		final BaseRecordDialog dialog = handler.createNewDialog(parent, model)
+			.withParentEntity(parentEntityId, parentEntityHandlerType);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -136,17 +110,24 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Document not found", "Error",
+			JOptionPane.showMessageDialog(parent, handler.getLabel() + " not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final JDialog dialog = documentHandler.createEditDialog(parent, model, existing);
+		final JDialog dialog = handler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
 		return existing;
+	}
+
+	public EntityReferenceListPanel withParentEntity(final String parentEntityId, final String parentEntityHandlerType){
+		this.parentEntityId = parentEntityId;
+		this.parentEntityHandlerType = parentEntityHandlerType;
+
+		return this;
 	}
 
 	public void load(final FLEFRecord record){
@@ -155,15 +136,19 @@ public class DocumentListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return;
 
-		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(record, path);
-		setItems(documents);
+		final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, path);
+		setItems(entities);
 	}
 
-	public void save(final FLEFRecord record){
+	public void saveReferences(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);
 
-		for(final FLEFRecord document : getItems())
-			FLEFRecordHelper.addChild(record, path, document.getFormattedId());
+		for(final FLEFRecord item : getItems())
+			FLEFRecordHelper.addChild(record, path, item.getFormattedId());
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

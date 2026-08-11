@@ -63,8 +63,8 @@ public class HistoricEventHandler implements RecordTypeHandler<HistoricEventReco
 		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
 		final String id = record.getId();
 		if(title != null && !title.isEmpty())
-			return title + " (" + id + ")";
-		return id;
+			return title + " [" + id + "]";
+		return "[" + id + "]";
 	}
 
 	@Override

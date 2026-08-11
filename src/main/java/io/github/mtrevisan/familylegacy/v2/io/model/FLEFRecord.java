@@ -28,6 +28,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -39,12 +40,11 @@ public class FLEFRecord{
 	private static final String PARAM_ID = "id";
 
 
-	// For main records
-	private String id;
-//	private String tag;
-
-	// For children
 	private String tag;
+
+	// For main records:
+	private String id;
+	// For children:
 	private String value;
 
 	private final List<FLEFRecord> children = new ArrayList<>();
@@ -163,7 +163,8 @@ public class FLEFRecord{
 
 	public FLEFRecord addChildrenWithTag(final String tag, final List<FLEFRecord> children){
 		for(final FLEFRecord child : children)
-			child.setTag(tag);
+			if(StringUtils.isEmpty(child.getTag()))
+				child.setTag(tag);
 
 		return addChildren(children);
 	}
@@ -228,6 +229,25 @@ public class FLEFRecord{
 		return (StringUtils.isEmpty(id) && StringUtils.isEmpty(value) && children.isEmpty());
 	}
 
+
+	@Override
+	public boolean equals(final Object obj){
+		if(this == obj)
+			return true;
+		if(obj == null || getClass() != obj.getClass())
+			return false;
+
+		final FLEFRecord other = (FLEFRecord)obj;
+		return (Objects.equals(id, other.id)
+			&& Objects.equals(tag, other.tag)
+			&& Objects.equals(value, other.value)
+			&& Objects.equals(children, other.children));
+	}
+
+	@Override
+	public int hashCode(){
+		return Objects.hash(id, tag, value, children);
+	}
 
 	@Override
 	public String toString(){

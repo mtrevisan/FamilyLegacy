@@ -66,9 +66,9 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 		String title = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		String id = record.getId();
 		if(title != null && !title.isEmpty()){
-			return title + " (" + id + ")";
+			return title + " [" + id + "]";
 		}
-		return id;
+		return "[" + record.getId() + "]";
 	}
 
 	@Override

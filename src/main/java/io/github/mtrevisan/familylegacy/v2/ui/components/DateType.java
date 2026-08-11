@@ -29,9 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
 
 /* DONE */
-/**
- * According to FLEF 0.1.1.
- */
 public enum DateType{
 
 	FULL_DATE("Full Date", Constants.TAG_FULL_DATE, "Date is required for FULL DATE type."),

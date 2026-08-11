@@ -30,10 +30,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.VariantListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -42,9 +43,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -81,6 +79,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new PartHandler());
+		HandlerRegistry.register(new NoteHandler());
 	}
 
 
@@ -89,35 +88,17 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private final BoundTextField addressField;
 	private final BoundComboBox<String> typeCombo;
 	private final VariantListPanel nameListPanel;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static ContactStructureDialog createNew(final Dialog parent, final FLEFModel model){
-		return new ContactStructureDialog(parent, model, null);
+		return createNew(parent, model, ContactStructureDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static ContactStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new ContactStructureDialog(parent, model, record);
+		return createEdit(parent, model, record, ContactStructureDialog::new);
 	}
 
 
@@ -128,10 +109,11 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		addressField = new BoundTextField(TAG_ADDRESS, 30);
 		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
-			StringUtils.EMPTY, "email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
+			StringUtils.EMPTY,
+			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
-		nameListPanel = new VariantListPanel(TAG_NAME, this, model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
+		nameListPanel = new VariantListPanel(TAG_NAME, this, "Variant", model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
@@ -151,18 +133,12 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		bindingManager.bind(typeCombo);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -216,17 +192,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final ContactStructureDialog dialog = ContactStructureDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(ContactStructureDialog::createNew);
 	}
 
 }

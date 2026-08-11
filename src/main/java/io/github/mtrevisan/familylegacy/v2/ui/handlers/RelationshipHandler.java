@@ -32,10 +32,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import java.awt.Dialog;
 
 
-/* ONGOING */
+/* DONE */
 public class RelationshipHandler implements RecordTypeHandler<RelationshipRecordDialog>{
 
-	public static final String TYPE = "Relationship";
+	public static final String TYPE = "RELATIONSHIP";
 	public static final String ID_PREFIX = "RL";
 
 	private static final String TAG_OBJECT = "OBJECT";
@@ -45,6 +45,9 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipRecord
 	static{
 		HandlerRegistry.register(new IndividualHandler());
 	}
+
+
+	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 
 
 	@Override
@@ -64,16 +67,13 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipRecord
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		//TODO
 		final String objectId = FLEFRecordHelper.getChildValue(record, TAG_OBJECT);
 		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
 		final StringBuilder display = new StringBuilder();
 		if(objectId != null){
 			final FLEFRecord obj = model.getRecordById(objectId);
-			if(obj != null){
-				final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+			if(obj != null)
 				display.append(individualHandler.getDisplayText(obj, model));
-			}
 			else
 				display.append(objectId);
 		}

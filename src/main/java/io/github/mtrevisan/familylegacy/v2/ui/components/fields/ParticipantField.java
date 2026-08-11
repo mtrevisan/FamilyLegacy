@@ -246,7 +246,7 @@ public class ParticipantField extends JPanel{
 	 *
 	 * @param targetRecord the record to save into
 	 */
-	public void save(final FLEFRecord targetRecord){
+	public void saveReferences(final FLEFRecord targetRecord){
 		FLEFRecordHelper.removeChildren(targetRecord, path);
 
 		if(hasData()){

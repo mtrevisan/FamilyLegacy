@@ -31,29 +31,27 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EventField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.List;
@@ -107,6 +105,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new PlaceHandler());
+		HandlerRegistry.register(new NoteHandler());
 
 	}
 
@@ -121,38 +120,20 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private final JLabel participantLabel;
 	private final ParticipantField participantField;
 	private final BoundComboBox<String> roleCombo;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final SourceCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
 	private final RestrictionPanel restrictionPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static EventParticipationRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new EventParticipationRecordDialog(parent, model, null);
+		return createNew(parent, model, EventParticipationRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static EventParticipationRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new EventParticipationRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, EventParticipationRecordDialog::new);
 	}
 
 
@@ -172,8 +153,9 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			"accused", "judge"
 		});
 		roleCombo.setEditable(true);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), EventParticipationHandler.TYPE);
+		sourcePanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
@@ -192,18 +174,13 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private void initComponents(){
 		bindingManager.bind(roleCombo);
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -235,12 +212,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	public void setEvent(final String eventId){
 		if(StringUtils.isNotEmpty(eventId)){
-			if(model.getRecordById(eventId) == null){
-				JOptionPane.showMessageDialog(this, "Unknown Event ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(eventId, EventHandler.TYPE))
 				return;
-			}
 
 			eventField.setRecord(FLEFRecord.createMainRecord(eventId, null));
 			eventLabel.setVisible(false);
@@ -256,13 +229,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	public void setParticipant(final String participantId, final String participantHandlerType){
 		if(StringUtils.isNotEmpty(participantId)){
-			if(model.getRecordById(participantId) == null){
-				final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerType);
-				JOptionPane.showMessageDialog(this, "Unknown " + participantHandler.getLabel() + " ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(participantId, participantHandlerType))
 				return;
-			}
 
 			eventField.setRecord(FLEFRecord.createEmpty());
 			eventLabel.setVisible(true);
@@ -323,8 +291,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		FLEFRecordHelper.removeChildren(record, TAG_PARTICIPANT);
 		FLEFRecordHelper.removeChildren(record, TAG_ROLE);
 
-		eventField.save(record);
-		participantField.save(record);
+		eventField.saveReferences(record);
+		participantField.saveReferences(record);
 
 		bindingManager.save(record);
 

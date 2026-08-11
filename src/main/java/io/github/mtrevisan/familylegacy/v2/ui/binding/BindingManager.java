@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +65,7 @@ public class BindingManager{
 				continue;
 
 			final String path = comp.getPath();
-			if(path == null || path.isEmpty())
+			if(StringUtils.isEmpty(path))
 				continue;
 
 			final String value = FLEFRecordHelper.getChildValuesAsString(record, path);

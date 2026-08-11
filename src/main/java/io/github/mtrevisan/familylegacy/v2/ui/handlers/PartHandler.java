@@ -89,7 +89,7 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 		int variantCount = 0;
 		for(final FLEFRecord child : record.getChildren())
 			if(TAG_PHONETIC.equals(child.getTag()) || TAG_TRANSCRIPTION.equals(child.getTag()))
-				variantCount++;
+				variantCount ++;
 
 		if(variantCount > 0)
 			sb.append(" (")

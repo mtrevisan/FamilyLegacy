@@ -29,11 +29,13 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.SourceCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -41,12 +43,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -85,6 +85,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new PlaceRelationshipHandler());
+		HandlerRegistry.register(new NoteHandler());
 	}
 
 
@@ -99,36 +100,18 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final SourceCitationListPanel sourceCitationPanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static PlaceRelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new PlaceRelationshipRecordDialog(parent, model, null);
+		return createNew(parent, model, PlaceRelationshipRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static PlaceRelationshipRecordDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new PlaceRelationshipRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, PlaceRelationshipRecordDialog::new);
 	}
 
 
@@ -148,8 +131,9 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
-		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), PlaceRelationshipHandler.TYPE);
+		sourceCitationPanel = new SourceCitationListPanel(TAG_SOURCE, this, "Sources", model);
 		modificationPanel = new ModificationPanel(this);
 
 
@@ -167,17 +151,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(typeCombo);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -217,12 +195,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	public void setSubject(final String placeId){
 		if(StringUtils.isNotEmpty(placeId)){
-			if(model.getRecordById(placeId) == null){
-				JOptionPane.showMessageDialog(this, "Unknown Place ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(placeId, PlaceHandler.TYPE))
 				return;
-			}
 
 			subjectField.setRecord(FLEFRecord.createMainRecord(placeId, null));
 			subjectLabel.setVisible(false);
@@ -272,7 +246,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!typeCombo.isSelected()){
+		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type cannot be empty.",
 				tabbedPane, mainPanel, typeCombo);
@@ -285,8 +259,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		subjectField.save(record);
-		objectField.save(record);
+		subjectField.saveReferences(record);
+		objectField.saveReferences(record);
 
 		bindingManager.save(record);
 

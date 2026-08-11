@@ -22,12 +22,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -53,11 +51,6 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private static final String TAG_DATE = "DATE";
-
-
-	static{
-		HandlerRegistry.register(new NoteHandler());
-	}
 
 
 	private final String path;
@@ -111,9 +104,6 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		return null;
 	}
 
-	/**
-	 * Creates a new note and adds it to the list.
-	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
 		final JTextArea textArea = new JTextArea(10, 50);

@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -74,12 +74,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.TYPE);
 
 
-	public DocumentPartListPanel(final String path, final Dialog parent, final FLEFModel model){
-		this(path, parent, "Documents", model);
-	}
-
-	public DocumentPartListPanel(final String path, final Dialog parent, final String borderTitle, final FLEFModel model){
-		super(parent, borderTitle, model);
+	public DocumentPartListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+		super(parent, panelTitle, model);
 
 		this.path = path;
 
@@ -216,7 +212,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Note not found", "Error",
+			JOptionPane.showMessageDialog(parent, documentHandler.getLabel() + " not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -252,6 +248,10 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			part.addChild(crop);
 			record.addChild(part);
 		}
+	}
+
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 }

@@ -102,7 +102,10 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 				return;
 			}
 		}
-		// no match: do not change selection
+
+		// no match: change selection if combo box is editable
+		if(isEditable)
+			setSelectedItem(value);
 	}
 
 	@Override
@@ -123,7 +126,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		return readOnly;
 	}
 
-	public boolean isSelected(){
+	public boolean isValued(){
 		final Object item = getSelectedItem();
 		return ((isEditable() || getSelectedIndex() >= 0) && (item instanceof String str? StringUtils.isNotEmpty(str): item != null));
 	}

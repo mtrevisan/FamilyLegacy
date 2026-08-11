@@ -29,12 +29,13 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ExtractListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.ExtractListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,7 +45,6 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -95,6 +95,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new SourceCitationHandler());
+		HandlerRegistry.register(new NoteHandler());
 	}
 
 
@@ -105,35 +106,17 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private final BoundTextField source;
 	private final BoundTextField locationField;
 	private final ExtractListPanel extractPanel;
-	private final NoteListPanel notePanel;
+	private final EntityReferenceListPanel notePanel;
 	private final EvidenceQualifiersPanel qualifiers;
 	private final RestrictionPanel restrictionPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model){
-		return new SourceCitationDialog(parent, model, null);
+		return createNew(parent, model, SourceCitationDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static SourceCitationDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new SourceCitationDialog(parent, model, record);
+		return createEdit(parent, model, record, SourceCitationDialog::new);
 	}
 
 
@@ -142,8 +125,9 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		source = new BoundTextField(TAG_SOURCE);
 		locationField = new BoundTextField(TAG_LOCATION, 20);
-		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, null, model);
+		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, null, model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), SourceCitationHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 
@@ -163,18 +147,12 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		bindingManager.bind(locationField);
 
 
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Notes", notePanel);
 		tabbedPane.addTab("Restriction", restrictionPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -194,12 +172,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	public void setSource(final String sourceId){
 		if(StringUtils.isNotEmpty(sourceId)){
-			if(model.getRecordById(sourceId) == null){
-				JOptionPane.showMessageDialog(this, "Unknown Source ID.",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
+			if(!confirmRecordExistsForType(sourceId, SourceHandler.TYPE))
 				return;
-			}
 
 			source.setText(sourceId);
 
@@ -263,7 +237,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord source = FLEFRecord.createMainRecord("S1", TAG_SOURCE);
 			model.addRecord(source);
 
-//			FLEFRecord sourceCitation = FLEFRecord.createEmpty();
+//			final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
 //			sourceCitation.addChild(FLEFRecord.createChildWithValue(TAG_SOURCE, "S1"));
 //			final SourceCitationDialog dialog = SourceCitationDialog.createEdit(null, model, sourceCitation);
 			final SourceCitationDialog dialog = SourceCitationDialog.createNew(null, model);

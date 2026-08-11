@@ -22,62 +22,55 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.handlers;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 
 import java.awt.Dialog;
+import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 
-public class NoteHandler implements RecordTypeHandler<NoteRecordDialog>{
+/* DONE */
+public class VariantListPanel extends StructureListPanel{
 
-	public static final String TYPE = "NOTE";
-	public static final String ID_PREFIX = "N";
-
-	private static final String TAG_VALUE = "VALUE";
+	@Serial
+	private static final long serialVersionUID = -298718064629353117L;
 
 
-	@Override
-	public String getLabel(){
-		return "Note";
+	static{
+		HandlerRegistry.register(new VariantHandler());
 	}
 
-	@Override
-	public String getType(){
-		return TYPE;
+
+	private static final String TAG_PHONETIC = "PHONETIC";
+	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+
+
+	public VariantListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+		super(path, parent, panelTitle, model, VariantHandler.TYPE);
 	}
 
-	@Override
-	public String getIdPrefix(){
-		return ID_PREFIX;
-	}
 
 	@Override
-	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		String id = record.getId();
-		if(value != null && !value.isEmpty()){
-			// Truncate long notes
-			if(value.length() > 50){
-				value = value.substring(0, 50) + "...";
-			}
-			return value + " [" + id + "]";
-		}
-		return "[" + id + "]";
-	}
+	public void load(final FLEFRecord record){
+		clear();
 
-	@Override
-	public NoteRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return NoteRecordDialog.createNew(parent, model);
-	}
+		if(record == null)
+			return;
 
-	@Override
-	public NoteRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return NoteRecordDialog.createEdit(parent, model, record);
+		final FLEFRecord variantPhonetic = FLEFRecordHelper.findChild(record, TAG_PHONETIC);
+		final FLEFRecord variantTranscription = FLEFRecordHelper.findChild(record, TAG_TRANSCRIPTION);
+		List<FLEFRecord> items = new ArrayList<>();
+		items.add(variantPhonetic);
+		items.add(variantTranscription);
+		setItems(items);
 	}
 
 }
+

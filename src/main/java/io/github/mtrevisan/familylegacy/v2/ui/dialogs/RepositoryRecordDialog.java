@@ -26,13 +26,15 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ClassifiedNameListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ContactListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.NoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.IndividualField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.StructureListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -40,9 +42,6 @@ import net.miginfocom.swing.MigLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -80,55 +79,41 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 	static{
 		HandlerRegistry.register(new RepositoryHandler());
+		HandlerRegistry.register(new NoteHandler());
+		HandlerRegistry.register(new ClassifiedNameHandler());
+		HandlerRegistry.register(new ContactHandler());
 	}
 
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]"));
 
-	private final ClassifiedNameListPanel namePanel;
+	private final StructureListPanel namePanel;
 	private final IndividualField custodianField;
 	private final PlaceCitationField placeCitationField;
-	private final ContactListPanel contactPanel;
-	private final NoteListPanel notePanel;
+	private final StructureListPanel contactPanel;
+	private final EntityReferenceListPanel notePanel;
 	private final ModificationPanel modificationPanel;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static RepositoryRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return new RepositoryRecordDialog(parent, model, null);
+		return createNew(parent, model, RepositoryRecordDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static RepositoryRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new RepositoryRecordDialog(parent, model, record);
+		return createEdit(parent, model, record, RepositoryRecordDialog::new);
 	}
 
 
 	private RepositoryRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
 
-		namePanel = new ClassifiedNameListPanel(TAG_NAME, this, "Names*", model);
+		namePanel = new StructureListPanel(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
 		custodianField = IndividualField.create(TAG_CUSTODIAN, this, model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		contactPanel = new ContactListPanel(TAG_CONTACT, this, model);
-		notePanel = new NoteListPanel(TAG_NOTE, this, model);
+		contactPanel = new StructureListPanel(TAG_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
+		notePanel = new EntityReferenceListPanel(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
+			.withParentEntity(this.record.getId(), RepositoryHandler.TYPE);
 		modificationPanel = new ModificationPanel(this);
 
 
@@ -143,17 +128,11 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10,fillx,top"));
-
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
 		tabbedPane.addTab("Modification", modificationPanel);
-		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
@@ -205,8 +184,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		namePanel.save(record);
-		custodianField.save(record);
-		placeCitationField.save(record);
+		custodianField.saveReferences(record);
+		placeCitationField.saveReferences(record);
 		contactPanel.save(record);
 		notePanel.saveReferences(record);
 		modificationPanel.save(record);
@@ -214,17 +193,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final RepositoryRecordDialog dialog = RepositoryRecordDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(RepositoryRecordDialog::createNew);
 	}
 
 }

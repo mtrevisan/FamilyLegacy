@@ -64,7 +64,7 @@ public class IndividualAttributeHandler implements RecordTypeHandler<IndividualA
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
-			return StringUtils.EMPTY;
+			return "--";
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);

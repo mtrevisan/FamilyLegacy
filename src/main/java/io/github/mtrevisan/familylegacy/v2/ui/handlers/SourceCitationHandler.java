@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.SourceCitationDialog;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -77,7 +76,7 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
-			return StringUtils.EMPTY;
+			return "--";
 
 		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_SOURCE));
 		final FLEFRecord source = model.getRecordById(xref);

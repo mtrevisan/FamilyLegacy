@@ -26,17 +26,21 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.EventParticipationRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-/* ONGOING */
 public class EventParticipationHandler implements RecordTypeHandler<EventParticipationRecordDialog>{
 
 	public static final String TYPE = "EVENT_PARTICIPATION";
 	public static final String ID_PREFIX = "EP";
+
+	private static final String TAG_PARTICIPANT = "PARTICIPANT";
+	private static final String TAG_ROLE = "ROLE";
+	private static final String TAG_EVENT = "EVENT";
 
 
 	@Override
@@ -56,35 +60,56 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		//TODO
-		String type = getChildValue(record, "TYPE");
-		String date = getChildValue(record, "DATE");
-		String id = record.getId();
-		StringBuilder sb = new StringBuilder();
-		if(type != null)
-			sb.append(type);
-		if(date != null){
-			if(!sb.isEmpty())
-				sb.append(StringUtils.SPACE);
-			sb.append("(")
-				.append(date)
-				.append(")");
-		}
-		if(sb.isEmpty())
-			sb.append("Event");
-		sb.append(" (")
-			.append(id)
-			.append(")");
-		return sb.toString();
-	}
+		if(record == null)
+			return "--";
 
-	private String getChildValue(FLEFRecord parent, String tag){
-		for(FLEFRecord child : parent.getChildren()){
-			if(tag.equals(child.getTag())){
-				return child.getValue();
+		final StringBuilder sb = new StringBuilder();
+
+		final FLEFRecord participantNode = FLEFRecordHelper.findChild(record, TAG_PARTICIPANT);
+		String participantText = null;
+		if(participantNode != null && !participantNode.getChildren().isEmpty()){
+			final FLEFRecord refNode = participantNode.getChildren().getFirst();
+			final String type = refNode.getTag();
+			final String refId = refNode.getValue();
+
+			if(StringUtils.isNotEmpty(refId)){
+				final FLEFRecord targetRecord = model.getRecordById(refId);
+				if(targetRecord != null){
+					final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(type);
+					if(handler != null)
+						participantText = handler.getDisplayText(targetRecord, model);
+				}
 			}
 		}
-		return null;
+		sb.append(StringUtils.isNotEmpty(participantText) ? participantText : "Unknown Participant");
+
+		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
+		if(StringUtils.isNotEmpty(role))
+			sb.append(" (")
+				.append(role)
+				.append(")");
+
+		final String eventRef = FLEFRecordHelper.getChildValue(record, TAG_EVENT);
+		if(StringUtils.isNotEmpty(eventRef)){
+			final FLEFRecord eventRecord = model.getRecordById(eventRef);
+			if(eventRecord != null){
+				final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
+				if(eventHandler != null)
+					sb.append(" in ")
+						.append(eventHandler.getDisplayText(eventRecord, model));
+			}
+		}
+
+		final String id = record.getFormattedId();
+		if(StringUtils.isNotEmpty(id)){
+			if(sb.isEmpty())
+				sb.append(StringUtils.SPACE);
+			sb.append("[")
+				.append(id)
+				.append("]");
+		}
+
+		return sb.toString();
 	}
 
 	@Override

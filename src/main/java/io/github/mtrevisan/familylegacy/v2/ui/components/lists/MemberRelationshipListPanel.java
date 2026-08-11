@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -44,10 +44,7 @@ import java.util.List;
 import java.util.Set;
 
 
-/**
- * Panel that displays only member relationships (group ↔ Individual).
- * Provides extra actions: "Add Existing", "Create New", "Edit Member Individual", "Notes".
- */
+/* ONGOING */
 public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
@@ -103,24 +100,10 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplay(final FLEFRecord relationship){
-		if(relationship == null)
-			return "--";
+		if(relationship != null)
+			return relationshipHandler.getDisplayText(relationship, model);
 
-		final String objectId = FLEFRecordHelper.getChildValue(relationship, TAG_OBJECT);
-		final String role = FLEFRecordHelper.getChildValue(relationship, TAG_ROLE);
-		final StringBuilder display = new StringBuilder();
-		if(objectId != null){
-			final FLEFRecord obj = model.getRecordById(objectId);
-			if(obj != null)
-				display.append(individualHandler.getDisplayText(obj, model));
-			else
-				display.append(objectId);
-		}
-		else
-			display.append("?");
-		if(role != null && !role.isEmpty())
-			display.append(" [").append(role).append("]");
-		return display.toString();
+		return "--";
 	}
 
 	private boolean isMemberRelationship(final FLEFRecord relationship){
@@ -230,7 +213,7 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Member Relationship not found", "Error",
+			JOptionPane.showMessageDialog(parent, relationshipHandler.getLabel() + " not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -311,4 +294,9 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 		record.addChildrenWithTag(TAG_RELATIONSHIP, getItems());
 	}
+
+	public boolean hasData(){
+		return !isEmpty();
+	}
+
 }

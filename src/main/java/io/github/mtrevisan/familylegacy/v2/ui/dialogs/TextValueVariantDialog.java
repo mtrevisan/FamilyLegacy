@@ -39,8 +39,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
@@ -75,21 +73,8 @@ import java.io.Serial;
  *       scientific
  *     } | Text
  *     type?: enum {
- *       romanized,
- *       latinized,
- *       anglicized,
- *       francized,
- *       germanized,
- *       italianized,
- *       hispanicized,
- *       lusitanized,
- *       cyrillized,
- *       arabized,
- *       hebraized,
- *       hellenized,
- *       gairaigized,
- *       modernized,
- *       normalized
+ *       romanized, latinized, anglicized, francized, germanized, italianized, hispanicized, lusitanized, cyrillized,
+ *       arabized, hebraized, hellenized, gairaigized, modernized, normalized
  *     } | Text
  *     value: Text
  *   }
@@ -127,30 +112,12 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private final BoundTextField valueField;
 
 
-	/**
-	 * Creates a new dialog to create a new record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @return	A new dialog instance.
-	 */
 	public static TextValueVariantDialog createNew(final Dialog parent, final FLEFModel model){
-		return new TextValueVariantDialog(parent, model, null);
+		return createNew(parent, model, TextValueVariantDialog::new);
 	}
 
-	/**
-	 * Creates a new dialog to edit an existing record.
-	 *
-	 * @param parent	The parent window.
-	 * @param model	The FLEF model.
-	 * @param record	The record to edit (must not be {@code null}).
-	 * @return	A new dialog instance.
-	 */
 	public static TextValueVariantDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
-
-		return new TextValueVariantDialog(parent, model, record);
+		return createEdit(parent, model, record, TextValueVariantDialog::new);
 	}
 
 
@@ -159,7 +126,8 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 		phoneticSystemField = new BoundTextField(TAG_SYSTEM, 15);
 		phoneticSystemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
-		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM, new String[]{StringUtils.EMPTY,
+		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM, new String[]{
+			StringUtils.EMPTY,
 			"romaji", "hepburn", "kunreishiki", "nihonshiki",
 			"pinyin", "wadegiles",
 			"bgn_pcgn",
@@ -175,22 +143,10 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 			"scientific"
 		});
 		transcriptionSystemCombo.setEditable(true);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{StringUtils.EMPTY,
-			"romanized",
-			"latinized",
-			"anglicized",
-			"francized",
-			"germanized",
-			"italianized",
-			"hispanicized",
-			"lusitanized",
-			"cyrillized",
-			"arabized",
-			"hebraized",
-			"hellenized",
-			"gairaigized",
-			"modernized",
-			"normalized"
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
+			"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
+			"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
 		});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE, 20);
@@ -286,7 +242,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(transcriptionRadio.isSelected() && !transcriptionSystemCombo.isSelected()){
+		if(transcriptionRadio.isSelected() && !transcriptionSystemCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"System cannot be empty.",
 				null, null, transcriptionSystemCombo);
@@ -317,17 +273,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final TextValueVariantDialog dialog = TextValueVariantDialog.createNew(null, model);
-			dialog.setVisible(true);
-		});
+		GUIHelper.launch(TextValueVariantDialog::createNew);
 	}
 
 }

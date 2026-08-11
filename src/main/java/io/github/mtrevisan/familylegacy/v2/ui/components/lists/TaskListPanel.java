@@ -22,47 +22,46 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CauseStructureDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CauseHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchTaskRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 
 
 /* DONE */
-public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
+public class TaskListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
-	private static final long serialVersionUID = 4430543872221786213L;
-
-
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
+	private static final long serialVersionUID = 3753276752610474405L;
 
 
 	static{
-		HandlerRegistry.register(new CauseHandler());
+		HandlerRegistry.register(new ResearchTaskHandler());
 	}
 
 
 	private final String path;
 
+	private final RecordTypeHandler<?> researchTaskHandler = HandlerRegistry.getHandler(ResearchTaskHandler.TYPE);
 
-	public CauseStructureListPanel(final String path, final Dialog parent, final FLEFModel model){
-		super(parent, "Causes", model);
+
+	public TaskListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
+		super(parent, panelTitle, model);
 
 		this.path = path;
 	}
@@ -78,46 +77,37 @@ public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
 			this::removeItem,
 			builder -> {
 				builder.item("Create New...", this::createNewItem);
+				builder.item("Add Existing...", this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit...", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+			}
+		);
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord cause){
-		if(cause == null)
-			return "--";
+	protected String getDisplay(final FLEFRecord researchTask){
+		if(researchTask != null)
+			return researchTaskHandler.getDisplayText(researchTask, model);
 
-		final String type = FLEFRecordHelper.getChildValue(cause, TAG_TYPE);
-		final String value = FLEFRecordHelper.getChildValue(cause, TAG_VALUE);
-		final StringBuilder sb = new StringBuilder();
-
-		if(StringUtils.isNotEmpty(type))
-			sb.append("[")
-				.append(type)
-				.append("] ");
-		sb.append(StringUtils.defaultString(value));
-
-		final List<FLEFRecord> phonetics = FLEFRecordHelper.findChildren(cause, TAG_PHONETIC);
-		final List<FLEFRecord> transcriptions = FLEFRecordHelper.findChildren(cause, TAG_TRANSCRIPTION);
-		final int variantCount = phonetics.size() + transcriptions.size();
-		if(variantCount > 0)
-			sb.append(" (")
-				.append(variantCount)
-				.append(" variants)");
-		return sb.toString();
+		return "--";
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		return null;
+		final FLEFRecord[] result = {null};
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			PlaceHandler.TYPE,
+			(handlerType, selectedRecord) -> result[0] = selectedRecord
+		);
+		dialog.setVisible(true);
+
+		return result[0];
 	}
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final RecordTypeHandler<?> causeHandler = HandlerRegistry.getHandler(CauseHandler.TYPE);
-		final CauseStructureDialog dialog = (CauseStructureDialog)causeHandler.createNewDialog(parent, model);
+		final ResearchTaskRecordDialog dialog = (ResearchTaskRecordDialog)researchTaskHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -126,16 +116,17 @@ public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord existing){
 		if(existing == null){
-			JOptionPane.showMessageDialog(parent, "Cause not found.", "Error", JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(parent, "Research Task not found", "Error",
+				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final RecordTypeHandler<?> causeHandler = HandlerRegistry.getHandler(CauseHandler.TYPE);
-		final CauseStructureDialog dialog = (CauseStructureDialog)causeHandler.createEditDialog(parent, model, existing);
+		final JDialog dialog = researchTaskHandler.createEditDialog(parent, model, existing);
 		dialog.setVisible(true);
 
-		return (dialog.isSaved()? dialog.getRecord(): null);
+		// Return the same record (it was updated in place)
+		return existing;
 	}
 
 	public void load(final FLEFRecord record){
@@ -144,31 +135,22 @@ public class CauseStructureListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return;
 
-		final List<FLEFRecord> causes = FLEFRecordHelper.findChildren(record, path);
-		setItems(causes);
+		final List<FLEFRecord> researchTaskCitations = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> researchTasks = new ArrayList<>(researchTaskCitations.size());
+		for(final FLEFRecord researchTaskCitation : researchTaskCitations)
+			researchTasks.add(model.getRecordById(researchTaskCitation.getValue()));
+		setItems(researchTasks);
 	}
 
 	public void save(final FLEFRecord record){
-		super.save(record, path);
-//		record.addChildren(getItems());
+		FLEFRecordHelper.removeChildren(record, path);
+
+		for(final FLEFRecord researchTask : getItems())
+			FLEFRecordHelper.addChild(record, path, researchTask);
 	}
 
 	public boolean hasData(){
 		return !isEmpty();
-	}
-
-	public boolean validateData(){
-		for(final FLEFRecord cause : getItems()){
-			final String value = FLEFRecordHelper.getChildValue(cause, TAG_VALUE);
-			if(StringUtils.isEmpty(value)){
-				JOptionPane.showMessageDialog(parent,
-					"Cause has no value.",
-					"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-				return false;
-			}
-		}
-		return true;
 	}
 
 }

@@ -22,61 +22,27 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.handlers;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CauseStructureDialog;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class CauseHandler implements RecordTypeHandler<CauseStructureDialog>{
+/**
+ * A reference to a record dialog's private constructor, used by {@link BaseRecordDialog#createNew(Dialog, FLEFModel, DialogFactory)}
+ * and {@link BaseRecordDialog#createEdit(Dialog, FLEFModel, FLEFRecord, DialogFactory)} to collapse the identical
+ * {@code createNew}/{@code createEdit} boilerplate that used to be duplicated in every subclass.
+ * <p>
+ * Every record dialog's private constructor already has the shape {@code (Dialog, FLEFModel, FLEFRecord)}, so a
+ * method reference such as {@code NoteRecordDialog::new} satisfies this interface directly.
+ *
+ * @param <T>	The concrete dialog type.
+ */
+@FunctionalInterface
+public interface DialogFactory<T extends BaseRecordDialog>{
 
-	public static final String TYPE = "CAUSE";
-
-	private static final String TAG_VALUE = "VALUE";
-
-
-	@Override
-	public boolean isTopLevelEntity(){
-		return false;
-	}
-
-	@Override
-	public String getLabel(){
-		return "Cause";
-	}
-
-	@Override
-	public String getType(){
-		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		return null;
-	}
-
-	@Override
-	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return "--";
-
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		return (StringUtils.isNotEmpty(value)? value: record.getId());
-	}
-
-	@Override
-	public CauseStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return CauseStructureDialog.createNew(parent, model);
-	}
-
-	@Override
-	public CauseStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return CauseStructureDialog.createEdit(parent, model, record);
-	}
+	T create(Dialog parent, FLEFModel model, FLEFRecord record);
 
 }

@@ -147,7 +147,7 @@ public class IndividualField extends JPanel{
 		setRecord(child);
 	}
 
-	public void save(final FLEFRecord targetRecord){
+	public void saveReferences(final FLEFRecord targetRecord){
 		FLEFRecordHelper.removeChildren(targetRecord, path);
 
 		if(record != null)
