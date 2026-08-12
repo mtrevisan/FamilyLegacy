@@ -34,9 +34,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.MemberRelationshipListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.RelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -102,6 +102,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new RelationshipHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new PersonalNameHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new ConclusionHandler());
 	}
 
 
@@ -120,7 +122,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private final EntityReferenceListPanel conclusionPanel;
 	private final MemberRelationshipListPanel memberPanel;
 	private final EntityReferenceListPanel attributePanel;
-	private final RelationshipListPanel relationshipPanel;
+	private final EntityReferenceListPanel relationshipPanel;
 
 
 	public static IndividualRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -149,11 +151,11 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
-		memberPanel = new MemberRelationshipListPanel(this, model, this.record.getId());
+		memberPanel = new MemberRelationshipListPanel(this, model, this.record.getId(), IndividualHandler.TYPE);
 		attributePanel = EntityReferenceListPanel.createForRecord(TAG_INDIVIDUAL_ATTRIBUTE, this, "Individual Attributes", model, IndividualAttributeHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
-		relationshipPanel = new RelationshipListPanel(TAG_RELATIONSHIP, this, "Relationships", model)
-			.withSubject(this.record.getId(), IndividualHandler.TYPE);
+		relationshipPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Relationships", model, RelationshipHandler.TYPE)
+			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
 
 
 		initComponents();
@@ -225,10 +227,10 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
 
-		conclusionPanel.load(record);
-		memberPanel.load(record);
-		attributePanel.load(record);
-		relationshipPanel.load(record);
+		conclusionPanel.loadReference(record.getId());
+		memberPanel.loadReference(record.getId());
+		attributePanel.loadReference(record.getId());
+		relationshipPanel.loadReference(record.getId());
 	}
 
 	@Override

@@ -68,7 +68,6 @@ import java.io.Serial;
  *     nationality, ssn, title, children_count, marriages_count, religion, language, literacy, education
  *   } | Text
  *   value?: Text
- *   valid_on?: DateStructure
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
  *   place?: PlaceCitation
@@ -88,7 +87,6 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_VALID_ON = "VALID_ON";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
 	private static final String TAG_PLACE = "PLACE";
@@ -109,7 +107,6 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
-	private final DateField validOnField;
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final PlaceCitationField placeCitationField;
@@ -139,8 +136,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 				"language", "literacy", "education"
 			});
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(TAG_VALUE, 20);
-		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Valid On", model);
+		valueField = new BoundTextField(TAG_VALUE);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
@@ -181,14 +177,11 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 		// value
 		mainPanel.add(new JLabel("Value:"), "align label");
-		mainPanel.add(valueField, "growx, wrap");
+		mainPanel.add(valueField, "growx,wrap");
 
 		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
-		// valid on
-		validityPanel.add(new JLabel("Valid On:"), "align label");
-		validityPanel.add(validOnField, "growx,wrap");
 		// valid from
 		validityPanel.add(new JLabel("Valid From:"), "align label");
 		validityPanel.add(validFromField, "growx,wrap");
@@ -240,7 +233,6 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 		bindingManager.load(record);
 
-		validOnField.load(record);
 		validFromField.load(record);
 		validToField.load(record);
 		placeCitationField.load(record);
@@ -275,7 +267,6 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		validOnField.save(record);
 		validFromField.save(record);
 		validToField.save(record);
 		placeCitationField.saveReferences(record);

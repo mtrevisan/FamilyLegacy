@@ -268,7 +268,6 @@ record IndividualAttributeRecord {
     education        // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
   } | Text
   value?: Text                         // The value of the attribute.
-  valid_on?: DateStructure             // A date on which the attribute is known, attested, observed, reported, or documented to have existed.
   valid_from?: DateStructure           // The date from which this attribute is known or believed to have been valid.
   valid_to?: DateStructure             // The date until which this attribute is known or believed to have been valid.
   place?: PlaceCitation                // Place specifically associated with this attribute.
@@ -361,7 +360,6 @@ record GroupAttributeRecord {
     primary_income_source   // Principal economic activity or source of income associated with the group.
   } | Text
   value?: Text                    // The value of the attribute.
-  valid_on?: DateStructure        // A date on which the attribute is known, attested, observed, reported, or documented to have existed.
   valid_from?: DateStructure      // The date from which this attribute is known or believed to have been valid.
   valid_to?: DateStructure        // The date until which this attribute is known or believed to have been valid.
   place?: PlaceCitation           // Place specifically associated with this attribute, when different from the group's general residence.
@@ -413,10 +411,9 @@ struct ClassifiedName {
 // Unlike PersonalNameStructure, this structure does not decompose the text into culturally-specific components such as given names, family names,
 // patronymics, titles, or lineage elements.
 struct NameStructure {
-  value: Text                  // the primary textual value
-  variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations
+  value: Text                   // the primary textual value
+  variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
   locale?: LocaleCode
-  date?: DateStructure         // date on which this form of the name is attested
   note*: Xref<NoteRecord>
   source*: SourceCitation
 }
@@ -495,15 +492,14 @@ record RelationshipRecord {
     group_member,         // (Individual -> Group) membership in a group
     associate             // (Individual -> Individual | Individual -> Group | Group -> Group) general association
   } | Text
-  role?: Text                  // the function, position, capacity or responsibility held by the subject within the relationship (e.g., 'president', 'member', 'resident', 'head of household', 'tribal leader')
+  role?: Text                   // the function, position, capacity or responsibility held by the subject within the relationship (e.g., 'president', 'member', 'resident', 'head of household', 'tribal leader')
   status?: enum {
     active,   // relationship currently exists
     ended,    // relationship no longer exists
     unknown   // relationship status is not known
   }
-  valid_on?: DateStructure     // a date on which this relationship is known, attested, recognized, or documented to have existed
-  valid_from?: DateStructure   // the date from which this relationship was known to be in effect
-  valid_to?: DateStructure     // the date until which this relationship was known to be in effect
+  valid_from?: DateStructure    // the date from which this relationship was known to be in effect
+  valid_to?: DateStructure      // the date until which this relationship was known to be in effect
   note*: Xref<NoteRecord>
   source*: SourceCitation
   evidence?: EvidenceQualifiers
@@ -560,8 +556,8 @@ struct PlaceCitation {
 // Relationships are directional: `administrative_part_of(Treviso -> Veneto)` is NOT equivalent to `administrative_part_of(Veneto -> Treviso)`.
 record PlaceRelationshipRecord {
   id: LocalID
-  subject: Xref<PlaceRecord>   // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT.
-  object: Xref<PlaceRecord>    // the place to which the subject is related
+  subject: Xref<PlaceRecord>    // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT.
+  object: Xref<PlaceRecord>     // the place to which the subject is related
   type: enum {
     administrative_part_of,   // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto
     geographic_part_of,       // subject is geographically contained within another place
@@ -569,10 +565,10 @@ record PlaceRelationshipRecord {
     judicial_part_of,         // subject belongs to a court, district, or judicial jurisdiction
     cadastral_part_of         // subject belongs to a cadastral or land-records district
   } | Text
-  valid_from?: DateStructure   // the date from which this place relationship is known or believed to have been valid
-  valid_to?: DateStructure     // the date until which this place relationship is known or believed to have been valid
-  note*: Text                  // a note containing commentary, interpretation, or discussion related to this place relationship
-  source*: SourceCitation      // a list of source citations supporting the existence, interpretation, or dating of this place relationship
+  valid_from?: DateStructure    // the date from which this place relationship is known or believed to have been valid
+  valid_to?: DateStructure      // the date until which this place relationship is known or believed to have been valid
+  note*: Text                   // a note containing commentary, interpretation, or discussion related to this place relationship
+  source*: SourceCitation       // a list of source citations supporting the existence, interpretation, or dating of this place relationship
   modification: ModificationStructure
 }
 

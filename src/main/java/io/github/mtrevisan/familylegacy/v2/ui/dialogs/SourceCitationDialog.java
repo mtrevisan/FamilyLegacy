@@ -124,7 +124,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(SourceCitationHandler.TYPE));
 
 		source = new BoundTextField(TAG_SOURCE);
-		locationField = new BoundTextField(TAG_LOCATION, 20);
+		locationField = new BoundTextField(TAG_LOCATION);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, null, model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), SourceCitationHandler.TYPE);

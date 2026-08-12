@@ -118,6 +118,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	@Override
 	public void clear(){
+		setText(null);
 		setSelectedIndex(-1);
 	}
 

@@ -47,6 +47,11 @@ public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 	private static final String TAG_VALUE = "VALUE";
 
 
+	static{
+		HandlerRegistry.register(new PlaceCitationHandler());
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Place";
@@ -60,6 +65,11 @@ public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 	@Override
 	public String getIdPrefix(){
 		return ID_PREFIX;
+	}
+
+	@Override
+	public RecordTypeHandler<?> getCitationHandler(){
+		return HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
 	}
 
 	@Override

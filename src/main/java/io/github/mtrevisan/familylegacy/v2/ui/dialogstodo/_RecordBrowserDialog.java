@@ -85,7 +85,7 @@ public class _RecordBrowserDialog<T extends BaseRecordDialog> extends JDialog{
 
 	private final DefaultListModel<String> listModel = new DefaultListModel<>();
 	private final JList<String> list = new JList<>(listModel);
-	private final JTextField searchField = new JTextField(15);
+	private final JTextField searchField = new JTextField(null);
 	private final JButton searchButton = new JButton("Search");
 	private final JButton clearButton = new JButton("Clear");
 

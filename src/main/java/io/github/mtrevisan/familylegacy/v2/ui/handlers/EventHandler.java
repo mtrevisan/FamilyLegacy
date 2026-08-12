@@ -64,15 +64,15 @@ public class EventHandler implements RecordTypeHandler<EventRecordDialog>{
 		if(date != null){
 			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);
-			sb.append("(")
+			sb.append('(')
 				.append(date)
-				.append(")");
+				.append(')');
 		}
 		if(sb.isEmpty())
 			sb.append("Event");
 		sb.append(" [")
 			.append(id)
-			.append("]");
+			.append(']');
 		return sb.toString();
 	}
 

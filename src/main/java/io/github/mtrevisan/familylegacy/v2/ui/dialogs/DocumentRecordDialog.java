@@ -114,7 +114,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private DocumentRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(DocumentHandler.TYPE));
 
-		fileField = new BoundTextField(TAG_FILE, 50);
+		fileField = new BoundTextField(TAG_FILE);
 		GUIHelper.installBehavior(fileField,
 			null,
 			null,

@@ -222,19 +222,19 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(final FLEFRecord existing){
-		if(existing == null){
+	protected FLEFRecord showEditDialog(final FLEFRecord record){
+		if(record == null){
 			JOptionPane.showMessageDialog(parent, documentHandler.getLabel() + " not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		final JDialog dialog = documentHandler.createEditDialog(parent, model, existing);
+		final JDialog dialog = documentHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		// Return the same record (it was updated in place)
-		return existing;
+		return record;
 	}
 
 	/**
@@ -276,10 +276,6 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			part.addChild(crop);
 			record.addChild(part);
 		}
-	}
-
-	public boolean hasData(){
-		return !isEmpty();
 	}
 
 }

@@ -55,7 +55,7 @@ public class DateField extends JPanel{
 
 	private FLEFRecord record;
 
-	private final JTextField displayField = new JTextField(20);
+	private final JTextField displayField = new JTextField(null);
 
 
 	public static DateField create(final Dialog parent, final String dialogTitle, final FLEFModel model){

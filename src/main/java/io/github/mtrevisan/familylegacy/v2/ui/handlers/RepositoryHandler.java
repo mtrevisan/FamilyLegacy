@@ -43,6 +43,11 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 	private static final String TAG_NAME = "NAME";
 
 
+	static{
+		HandlerRegistry.register(new RepositoryCitationHandler());
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Repository";
@@ -60,7 +65,7 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 
 	@Override
 	public RecordTypeHandler<?> getCitationHandler(){
-		return new RepositoryCitationHandler();
+		return HandlerRegistry.getHandler(RepositoryCitationHandler.TYPE);
 	}
 
 	@Override

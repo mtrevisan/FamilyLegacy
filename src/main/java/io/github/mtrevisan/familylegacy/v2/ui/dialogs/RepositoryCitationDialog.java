@@ -101,7 +101,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(RepositoryCitationHandler.TYPE));
 
 		repository = new BoundTextField(TAG_REPOSITORY);
-		locationField = new BoundTextField(TAG_LOCATION, 20);
+		locationField = new BoundTextField(TAG_LOCATION);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, null, model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), RepositoryCitationHandler.TYPE);
 

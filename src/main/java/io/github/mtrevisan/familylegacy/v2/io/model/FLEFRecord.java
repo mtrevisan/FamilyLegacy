@@ -239,7 +239,7 @@ public class FLEFRecord{
 
 		final FLEFRecord other = (FLEFRecord)obj;
 		return (Objects.equals(id, other.id)
-			|| Objects.equals(tag, other.tag) && Objects.equals(value, other.value));
+			&& Objects.equals(tag, other.tag) && Objects.equals(value, other.value));
 	}
 
 	@Override
@@ -251,7 +251,7 @@ public class FLEFRecord{
 	public String toString(){
 		final StringBuilder sb = new StringBuilder(tag != null? tag: "--");
 		if(id != null)
-			sb.append("[").append(id).append("]");
+			sb.append('[').append(id).append(']');
 		if(value != null)
 			sb.append(" = ").append(value);
 		if(hasChildren())

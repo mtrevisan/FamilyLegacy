@@ -31,8 +31,13 @@ import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
@@ -66,6 +71,16 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	private final String path;
 
 	private final RecordTypeHandler<?> recordHandler;
+
+
+	static{
+		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new SourceCitationHandler());
+		HandlerRegistry.register(new RepositoryHandler());
+		HandlerRegistry.register(new RepositoryCitationHandler());
+		HandlerRegistry.register(new PlaceHandler());
+		HandlerRegistry.register(new PlaceCitationHandler());
+	}
 
 
 	/**
@@ -139,7 +154,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			PlaceHandler.TYPE,
+			recordHandler.getType(),
 			(handlerType, selectedRecord) -> {
 				final String selectedId = selectedRecord.getValue();
 				final FLEFRecord citation = model.getRecordById(selectedId);
@@ -182,8 +197,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(final FLEFRecord existing){
-		if(existing == null){
+	protected FLEFRecord showEditDialog(final FLEFRecord record){
+		if(record == null){
 			JOptionPane.showMessageDialog(parent, recordHandler.getCitationHandler().getLabel() + " not found",
 				"Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -191,9 +206,9 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final JDialog dialog = createCitationEditDialog(existing);
+		final JDialog dialog = createCitationEditDialog(record);
 		dialog.setVisible(true);
-		return existing;
+		return record;
 	}
 
 	public final void editTargetItem(){
@@ -251,10 +266,6 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public JDialog createTargetEditDialog(final FLEFRecord entity){
 		return recordHandler.createEditDialog(parent, model, entity);
-	}
-
-	public boolean hasData(){
-		return !isEmpty();
 	}
 
 }

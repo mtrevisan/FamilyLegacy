@@ -308,22 +308,12 @@ public class FLEFValidator{
 			final List<String> errors){
 		final String validFrom = FLEFRecordHelper.getChildValue(relationship, "VALID_FROM");
 		final String validTo = FLEFRecordHelper.getChildValue(relationship, "VALID_TO");
-		final String validOn = FLEFRecordHelper.getChildValue(relationship, "VALID_ON");
 
 		if(validFrom != null && validTo != null){
 			if(validFrom.compareTo(validTo) > 0){
 				errors.add(String.format(
 					"Constraint violation at '%s': VALID_FROM (%s) must be before VALID_TO (%s)",
 					contextPath, validFrom, validTo));
-			}
-		}
-
-		// VALID_ON should be between VALID_FROM and VALID_TO if all are present
-		if(validFrom != null && validTo != null && validOn != null){
-			if(validOn.compareTo(validFrom) < 0 || validOn.compareTo(validTo) > 0){
-				errors.add(String.format(
-					"Constraint violation at '%s': VALID_ON (%s) must be between VALID_FROM (%s) and VALID_TO (%s)",
-					contextPath, validOn, validFrom, validTo));
 			}
 		}
 	}

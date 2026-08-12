@@ -87,7 +87,7 @@ public class CauseStructureDialog extends BaseRecordDialog{
 
 		setTitle(record == null? "Add Cause": "Edit Cause");
 
-		valueField = new BoundTextField(TAG_VALUE, 20);
+		valueField = new BoundTextField(TAG_VALUE);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 
 
@@ -105,7 +105,7 @@ public class CauseStructureDialog extends BaseRecordDialog{
 		bindingManager.bind(valueField);
 
 
-		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]10[]"));
+		setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]10[]"));
 
 		final JPanel valuePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		valuePanel.add(new JLabel("Value:"), "align label");

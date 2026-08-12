@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -78,6 +79,11 @@ public class DatePanel extends JPanel{
 	private static final String TAG_SPANNING = "SPANNING";
 
 
+	static{
+		HandlerRegistry.register(new SourceHandler());
+	}
+
+
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -97,7 +103,7 @@ public class DatePanel extends JPanel{
 		boundedDatePanel = new BoundedDatePanel(parent, model);
 		spanningDatePanel = new SpanningDatePanel(parent, model);
 
-		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 15);
+		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
 		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceHandler.TYPE);
 		certaintyCombo = new BoundComboBox<>(TAG_CERTAINTY,
 			new String[]{StringUtils.EMPTY, "proven", "challenged", "disproven"});
@@ -115,12 +121,12 @@ public class DatePanel extends JPanel{
 		bindingManager.bind(credibilityCombo);
 
 
-		setLayout(new MigLayout("ins 0, fillx, wrap 1", "[grow]", "[]5[]5[]"));
+		setLayout(new MigLayout("ins 0,fillx,wrap 1", "[grow]", "[]5[]5[]"));
 
 		// Tabbed pane for date types
-		final JPanel pointOuter = new JPanel(new MigLayout("ins 0, fillx"));
+		final JPanel pointOuter = new JPanel(new MigLayout("ins 0,fillx"));
 		pointOuter.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-		final JPanel valueWrapper = new JPanel(new MigLayout("ins 7, fillx", "[right]rel[grow]"));
+		final JPanel valueWrapper = new JPanel(new MigLayout("ins 7,fillx", "[right]rel[grow]"));
 		valueWrapper.setBorder(BorderFactory.createTitledBorder("Point Date"));
 		valueWrapper.add(pointDatePanel, "growx");
 		pointOuter.add(valueWrapper, "growx");

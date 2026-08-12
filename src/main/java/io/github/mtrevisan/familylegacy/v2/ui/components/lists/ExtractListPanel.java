@@ -97,7 +97,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 			final StringBuilder sb = new StringBuilder();
 			if(StringUtils.isNotEmpty(locale))
-				sb.append("[")
+				sb.append('[')
 					.append(locale)
 					.append("] ");
 			if(StringUtils.isNotEmpty(text))
@@ -105,7 +105,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			if(StringUtils.isNotEmpty(type))
 				sb.append(" (")
 					.append(type)
-					.append(")");
+					.append(')');
 			return sb.toString();
 		}
 
@@ -123,15 +123,15 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(final FLEFRecord existing){
-		if(existing == null){
+	protected FLEFRecord showEditDialog(final FLEFRecord record){
+		if(record == null){
 			JOptionPane.showMessageDialog(parent, "Extract Entry not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		return showExtractDialog(existing);
+		return showExtractDialog(record);
 	}
 
 	/**
@@ -251,10 +251,6 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public void save(final FLEFRecord record){
 		super.save(record, path);
-	}
-
-	public boolean hasData(){
-		return !isEmpty();
 	}
 
 }

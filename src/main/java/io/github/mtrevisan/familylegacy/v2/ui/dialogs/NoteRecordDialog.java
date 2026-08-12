@@ -117,7 +117,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	private NoteRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
 
-		titleField = new BoundTextField(TAG_TITLE, 30);
+		titleField = new BoundTextField(TAG_TITLE);
 		valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
 		valueArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
 		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{
@@ -164,7 +164,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 		// value
 		mainPanel.add(new JLabel("Value*:"), "align label,top");
-		mainPanel.add(GUIHelper.createScrollPane(valueArea), "growx, growy, wrap");
+		mainPanel.add(GUIHelper.createScrollPane(valueArea), "growx,growy,wrap");
 
 		// mime
 		mainPanel.add(new JLabel("MIME:"), "align label");

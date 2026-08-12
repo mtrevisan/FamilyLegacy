@@ -91,7 +91,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 			final StringBuilder sb = new StringBuilder();
 			if(StringUtils.isNotEmpty(locale))
-				sb.append("[")
+				sb.append('[')
 					.append(locale)
 					.append("] ");
 			if(StringUtils.isNotEmpty(value)){
@@ -117,8 +117,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(final FLEFRecord existing){
-		return showTranslationDialog(existing);
+	protected FLEFRecord showEditDialog(final FLEFRecord record){
+		return showTranslationDialog(record);
 	}
 
 	private FLEFRecord showTranslationDialog(final FLEFRecord initial){
@@ -191,10 +191,6 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public void save(final FLEFRecord record){
 		super.save(record, path);
-	}
-
-	public boolean hasData(){
-		return !isEmpty();
 	}
 
 }

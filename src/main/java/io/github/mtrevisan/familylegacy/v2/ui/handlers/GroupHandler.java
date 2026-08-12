@@ -81,9 +81,9 @@ public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
 		}
 		if(!sb.isEmpty())
 			sb.append(' ');
-		sb.append("[")
+		sb.append('[')
 			.append(id)
-			.append("]");
+			.append(']');
 
 		return sb.toString();
 	}

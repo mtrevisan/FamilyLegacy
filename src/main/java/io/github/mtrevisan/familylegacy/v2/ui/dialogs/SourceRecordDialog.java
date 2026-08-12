@@ -97,6 +97,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new RepositoryHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new DocumentHandler());
 	}
 
 
@@ -127,9 +128,9 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private SourceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(SourceHandler.TYPE));
 
-		titleField = new BoundTextField(TAG_VALUE, 30);
-		authorField = new BoundTextField(TAG_AUTHOR, 30);
-		publisherField = new BoundTextField(TAG_PUBLISHER, 30);
+		titleField = new BoundTextField(TAG_VALUE);
+		authorField = new BoundTextField(TAG_AUTHOR);
+		publisherField = new BoundTextField(TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid Date", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		mediaTypeCombo = new BoundComboBox<>(TAG_MEDIA_TYPE,

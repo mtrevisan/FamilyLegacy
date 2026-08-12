@@ -64,7 +64,7 @@ public class EventField extends JPanel{
 	private FLEFRecord record;
 
 
-	private final JTextField displayField = new JTextField(20);
+	private final JTextField displayField = new JTextField(null);
 
 	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
 

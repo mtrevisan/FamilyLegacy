@@ -126,7 +126,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private CulturalNormRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormHandler.TYPE));
 
-		titleField = new BoundTextField(TAG_TITLE, 30);
+		titleField = new BoundTextField(TAG_TITLE);
 		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{
 			// Lifecycle and age-related customs:
 			"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
@@ -190,7 +190,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 		// rule type
 		mainPanel.add(new JLabel("Rule Type:"), "align label");
-		mainPanel.add(ruleTypeCombo, "growx, wrap");
+		mainPanel.add(ruleTypeCombo, "growx,wrap");
 
 		// place
 		final JPanel placePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[grow]", "[]5[]5[]"));

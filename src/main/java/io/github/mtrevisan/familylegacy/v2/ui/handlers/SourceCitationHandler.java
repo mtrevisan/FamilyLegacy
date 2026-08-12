@@ -45,7 +45,12 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 	private static final String TAG_SOURCE = "SOURCE";
 
 
-	private final SourceHandler sourceHandle = new SourceHandler();
+	static{
+		HandlerRegistry.register(new SourceCitationHandler());
+	}
+
+
+	private final RecordTypeHandler<?> sourceHandle = HandlerRegistry.getHandler(SourceCitationHandler.TYPE);
 
 
 	@Override

@@ -77,9 +77,9 @@ public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
 		if(StringUtils.isNotEmpty(id)){
 			if(sb.isEmpty())
 				sb.append(StringUtils.SPACE);
-			sb.append("[")
+			sb.append('[')
 				.append(id)
-				.append("]");
+				.append(']');
 		}
 		return sb.toString();
 	}

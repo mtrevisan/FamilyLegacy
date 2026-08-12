@@ -49,6 +49,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -59,7 +60,7 @@ import java.util.Collections;
 import java.util.List;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code RELATIONSHIP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -72,7 +73,6 @@ import java.util.List;
  *   type: enum { biological_child, adoptive_child, foster_child, guarded_child, step_child, civil_spouse, religious_spouse, customary_spouse, cohabiting_partner, engaged_partner, group_member, associate } | Text
  *   role?: Text
  *   status?: enum { active, ended, unknown }
- *   valid_on?: DateStructure
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
  *   note*: Xref&lt;NoteRecord&gt;
@@ -94,12 +94,17 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -6390551689993360839L;
 
 
+	protected enum ActorType{
+		SUBJECT,
+		OBJECT
+	}
+
+
 	private static final String TAG_SUBJECT = "SUBJECT";
 	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_ROLE = "ROLE";
 	private static final String TAG_STATUS = "STATUS";
-	private static final String TAG_VALID_ON = "VALID_ON";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
 	private static final String TAG_NOTE = "NOTE";
@@ -130,18 +135,18 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top,hidemode 3", "[right]rel[grow]", "[]5[]10[]5[]10[]10[]10[]"));
+	private final JPanel mainPanel = new JPanel();
 
 	private final BindingManager bindingManager = new BindingManager();
 
+	private ActorType actorType;
+
 	private final JLabel subjectLabel;
 	private final ParticipantField subjectField;
-	private final ParticipantField objectField;
 	private final BoundComboBox<String> subjectTypeCombo;
-	private final JLabel subjectTypeLabel;
+	private final ParticipantField objectField;
 	private final BoundTextField subjectRoleField;
 	private final BoundComboBox<String> statusCombo;
-	private final DateField validOnField;
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityReferenceListPanel notePanel;
@@ -166,11 +171,18 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		subjectLabel = new JLabel("Subject*:");
 		subjectField = ParticipantField.create(TAG_SUBJECT, this, model);
 		subjectField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
-		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> updateTypeCombo());
+		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> {
+			updateTypeCombo();
+
+			refreshLayout();
+		});
 		objectField = ParticipantField.create(TAG_OBJECT, this, model);
 		objectField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
-		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> updateTypeCombo());
-		subjectTypeLabel = new JLabel("Subject Type*:");
+		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> {
+			updateTypeCombo();
+
+			refreshLayout();
+		});
 		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
@@ -178,12 +190,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			"group_member", "associate"
 		});
 		subjectTypeCombo.setEditable(true);
-		subjectRoleField = new BoundTextField(TAG_ROLE, 20);
+		subjectRoleField = new BoundTextField(TAG_ROLE);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
 			StringUtils.EMPTY,
 			"active", "ended", "unknown"
 		});
-		validOnField = DateField.createWithWrapperTag(TAG_VALID_ON, this, "Date", model);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
@@ -204,18 +215,28 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 	private void updateTypeCombo(){
-		final String subjectType = subjectField.getParticipantType();
-		final String objectType = objectField.getParticipantType();
+		final FLEFRecord subjectRecord = subjectField.getParticipantRecord();
+		if(subjectRecord == null)
+			return;
+
+		final FLEFRecord objectRecord = objectField.getParticipantRecord();
+		if(objectRecord == null)
+			return;
+
+		final String subjectType = subjectRecord.getTag();
+		final String objectType = objectRecord.getTag();
 		final List<String> validTypes = getValidTypes(subjectType, objectType);
 
 		final DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
 		model.addElement(StringUtils.EMPTY);
 		for(final String type : validTypes)
 			model.addElement(type);
+		final String selectedItem = (String)subjectTypeCombo.getSelectedItem();
+		final int selectedIndex = subjectTypeCombo.getSelectedIndex();
 		subjectTypeCombo.setModel(model);
-
-		final String currentSelection = (String)subjectTypeCombo.getSelectedItem();
-		if(currentSelection == null || !validTypes.contains(currentSelection))
+		if(selectedIndex < 0)
+			subjectTypeCombo.setSelectedItem(selectedItem);
+		else if(!validTypes.contains(selectedItem))
 			subjectTypeCombo.clear();
 	}
 
@@ -250,40 +271,39 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final boolean subjectVisible = (parentEntity != null && !parentEntity.isEmpty());
+		final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
+		mainPanel.setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]",
+			(showAll
+				? "[]5[]10[]5[]10[]10[]10[]"
+				: "[]5[]10[]10[]10[]10[]")));
 
-		//TODO adding info, subject rule sometimes si mette nella stessa riga di object...
-		//quando group to individual, che sarebbe lista vuota nella type combo box...
-		// subject
-		subjectLabel.setVisible(subjectVisible);
-		subjectField.setVisible(subjectVisible);
-		mainPanel.add(subjectLabel, "align label");
-		mainPanel.add(subjectField, "growx,wrap");
-
-		// object
-		mainPanel.add(new JLabel("Object*:"), "align label");
-		mainPanel.add(objectField, "growx,wrap");
+		if(showAll || actorType != ActorType.SUBJECT){
+			// subject
+			mainPanel.add(subjectLabel, "align label");
+			mainPanel.add(subjectField, "growx,wrap");
+		}
 
 		// (subject) type
-		subjectTypeLabel.setVisible(subjectVisible);
-		subjectTypeCombo.setVisible(subjectVisible);
-		mainPanel.add(subjectTypeLabel, "align label");
+		mainPanel.add(new JLabel("Subject Type*:"), "align label");
 		mainPanel.add(subjectTypeCombo, "growx,wrap");
 
 		// (subject) role
 		mainPanel.add(new JLabel("Subject Role:"), "align label");
 		mainPanel.add(subjectRoleField, "growx,wrap");
 
+		if(showAll || actorType != ActorType.OBJECT){
+			// object
+			mainPanel.add(new JLabel("Object*:"), "align label");
+			mainPanel.add(objectField, "growx,wrap");
+		}
+
 		// status
 		mainPanel.add(new JLabel("Status:"), "align label");
 		mainPanel.add(statusCombo, "growx,wrap");
 
 		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
-		// valid on
-		validityPanel.add(new JLabel("Valid On:"), "align label");
-		validityPanel.add(validOnField, "growx,wrap");
 		// valid from
 		validityPanel.add(new JLabel("Valid From:"), "align label");
 		validityPanel.add(validFromField, "growx,wrap");
@@ -306,24 +326,52 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public void setSubject(final String subjectId, final String subjectHandlerType){
-		if(StringUtils.isNotEmpty(subjectId)){
-			if(!confirmRecordExistsForType(subjectId, subjectHandlerType))
-				return;
-
-			subjectField.setParticipant(subjectHandlerType, FLEFRecord.createMainRecord(subjectId, null));
-			subjectLabel.setVisible(false);
-			subjectField.setVisible(false);
-
-			refreshLayout();
-		}
-	}
-
 	private void refreshLayout(){
+		recreateMainPanel();
+
 		mainPanel.revalidate();
 		mainPanel.repaint();
 
 		pack();
+	}
+
+	private void recreateMainPanel(){
+		mainPanel.removeAll();
+		createMainPanel();
+	}
+
+	@Override
+	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityHandlerType){
+		JOptionPane.showMessageDialog(this, "Cannot set parent on Relationship Record Dialog.",
+			"Error", JOptionPane.ERROR_MESSAGE);
+
+		return this;
+	}
+
+	public BaseRecordDialog withSubject(final String parentEntityId, final String parentEntityHandlerType){
+		super.withParentEntity(parentEntityId, parentEntityHandlerType);
+
+		if(parentEntity != null && !parentEntity.isEmpty()){
+			subjectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			actorType = ActorType.SUBJECT;
+		}
+
+		refreshLayout();
+
+		return this;
+	}
+
+	public BaseRecordDialog withObject(final String parentEntityId, final String parentEntityHandlerType){
+		super.withParentEntity(parentEntityId, parentEntityHandlerType);
+
+		if(parentEntity != null && !parentEntity.isEmpty()){
+			objectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			actorType = ActorType.OBJECT;
+		}
+
+		refreshLayout();
+
+		return this;
 	}
 
 
@@ -334,7 +382,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		bindingManager.load(record);
 
-		validOnField.load(record);
 		validFromField.load(record);
 		validToField.load(record);
 		notePanel.load(record);
@@ -348,12 +395,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(parentEntity != null && !parentEntity.isEmpty()){
-			subjectField.setParticipant(parentEntity.getPath(), FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
-			subjectTypeCombo.setText(parentEntity.getPath());
-		}
-
-
 		if(!subjectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject is required.",
@@ -375,8 +416,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		String type = (String)subjectTypeCombo.getSelectedItem();
-		if(StringUtils.isEmpty(type)){
+		if(!subjectTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type is required.",
 				tabbedPane, mainPanel, subjectTypeCombo);
@@ -393,7 +433,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		bindingManager.save(record);
 
-		validOnField.save(record);
 		validFromField.save(record);
 		validToField.save(record);
 		notePanel.save(record);

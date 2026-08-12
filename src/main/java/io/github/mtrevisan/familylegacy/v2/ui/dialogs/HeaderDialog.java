@@ -143,10 +143,10 @@ public class HeaderDialog extends JDialog{
 		sourceNameField = new BoundTextField(TAG_SOURCE_NAME, "FL");
 		sourceVersionField = new BoundTextField(TAG_SOURCE_VERSION, "0.1");
 		sourceCorporateField = new BoundTextField(TAG_SOURCE_CORPORATE, "(c) Mauro Trevisan");
-		dateField = new BoundTextField(TAG_DATE, 20);
+		dateField = new BoundTextField(TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
-		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME, 20);
+		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME);
 		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
 		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER, this, "Notes",
 			false, TAG_NOTE);

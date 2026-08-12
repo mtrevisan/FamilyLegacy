@@ -69,7 +69,7 @@ public class PlaceCitationField extends JPanel{
 
 	private FLEFRecord record;
 
-	private final JTextField displayField = new JTextField(20);
+	private final JTextField displayField = new JTextField(null);
 
 	private final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
 

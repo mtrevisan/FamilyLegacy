@@ -86,7 +86,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 		buttonCardPanel.add(closeButton, "close");
 		buttonCardPanel.add(reopenButton, "reopen");
 
-		closedDate = new BoundTextField(TAG_CLOSED, 20);
+		closedDate = new BoundTextField(TAG_CLOSED);
 		closedDate.setEnabled(false);
 
 

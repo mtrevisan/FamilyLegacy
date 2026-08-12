@@ -92,7 +92,6 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	public static final String TAG_VALUE = TAG_TEXT + DOT + "VALUE";
 	private static final String TAG_VARIANT = TAG_TEXT + DOT + "VARIANT";
 	private static final String TAG_LOCALE = TAG_TEXT + DOT + "LOCALE";
-	private static final String TAG_DATE = TAG_TEXT + DOT + "DATE";
 	private static final String TAG_NOTE = TAG_TEXT + DOT + "NOTE";
 	private static final String TAG_SOURCE = TAG_TEXT + DOT + "SOURCE";
 
@@ -112,7 +111,6 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
-	private final DateField dateField;
 	private final EntityReferenceListPanel notePanel;
 	private final EntityCitationListPanel sourceCitationPanel;
 
@@ -130,7 +128,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	private ClassifiedNameDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
 
-		valueField = new BoundTextField(TAG_VALUE, 30);
+		valueField = new BoundTextField(TAG_VALUE);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			// official and legal names
@@ -156,7 +154,6 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
-		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid On", model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
 		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 
@@ -186,24 +183,20 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
 
 		// value
 		panel.add(new JLabel("Name Value*:"), "align label");
-		panel.add(valueField, "growx, wrap");
+		panel.add(valueField, "growx,wrap");
 
 		// type
 		panel.add(new JLabel("Type:"), "align label");
-		panel.add(typeCombo, "growx, wrap");
+		panel.add(typeCombo, "growx,wrap");
 
 		// locale
 		localeCombo.setEditable(true);
 		panel.add(new JLabel("Locale:"), "align label");
-		panel.add(localeCombo, "growx, wrap");
-
-		// date
-		panel.add(new JLabel("Date:"), "align label");
-		panel.add(dateField, "growx,wrap");
+		panel.add(localeCombo, "growx");
 
 		return panel;
 	}
@@ -226,7 +219,6 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	protected void loadData(){
 		bindingManager.load(record);
 
-		dateField.load(record);
 		variantPanel.load(record);
 		notePanel.load(record);
 		sourceCitationPanel.load(record);
@@ -250,7 +242,6 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		dateField.save(record);
 		variantPanel.save(record);
 		notePanel.save(record);
 		sourceCitationPanel.save(record);

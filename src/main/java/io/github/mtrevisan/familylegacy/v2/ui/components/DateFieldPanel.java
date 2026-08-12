@@ -67,7 +67,7 @@ public class DateFieldPanel extends JPanel{
 	private final String label;
 
 	private FLEFRecord dateRecord; // the DATE node (wrapper)
-	private final JTextField summaryField = new JTextField();
+	private final JTextField summaryField = new JTextField(null);
 	private final JButton editButton = new JButton("Edit...");
 	private final JButton clearButton = new JButton("Clear");
 
@@ -90,7 +90,7 @@ public class DateFieldPanel extends JPanel{
 
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0, fillx", "[right]rel[grow][][][]"));
+		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow][][][]"));
 		setBorder(BorderFactory.createEmptyBorder(0, 0, 5, 0));
 
 		JLabel labelComp = new JLabel(label + ":");
@@ -187,7 +187,7 @@ public class DateFieldPanel extends JPanel{
 					dateStr.append(" basis: ").append(basis);
 				if(margin != null)
 					dateStr.append(" margin: ").append(margin);
-				dateStr.append(")");
+				dateStr.append(')');
 			}
 			else
 				dateStr.append(" (approx)");

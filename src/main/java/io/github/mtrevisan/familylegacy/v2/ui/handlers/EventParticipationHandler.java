@@ -43,6 +43,11 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 	private static final String TAG_EVENT = "EVENT";
 
 
+	static{
+		HandlerRegistry.register(new EventHandler());
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Event Participation";
@@ -87,7 +92,7 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 		if(StringUtils.isNotEmpty(role))
 			sb.append(" (")
 				.append(role)
-				.append(")");
+				.append(')');
 
 		final String eventRef = FLEFRecordHelper.getChildValue(record, TAG_EVENT);
 		if(StringUtils.isNotEmpty(eventRef)){
@@ -104,9 +109,9 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 		if(StringUtils.isNotEmpty(id)){
 			if(sb.isEmpty())
 				sb.append(StringUtils.SPACE);
-			sb.append("[")
+			sb.append('[')
 				.append(id)
-				.append("]");
+				.append(']');
 		}
 
 		return sb.toString();

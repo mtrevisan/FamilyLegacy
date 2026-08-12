@@ -107,7 +107,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		setTitle(record == null? "Add Part": "Edit Part");
 
-		addressField = new BoundTextField(TAG_ADDRESS, 30);
+		addressField = new BoundTextField(TAG_ADDRESS);
 		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
@@ -142,7 +142,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]10[]"));
 
 		panel.add(new JLabel("Address*:"), "align label");
 		panel.add(addressField, "growx,wrap");

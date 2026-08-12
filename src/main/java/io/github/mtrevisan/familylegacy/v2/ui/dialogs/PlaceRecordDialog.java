@@ -49,9 +49,10 @@ import javax.swing.JTabbedPane;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* DONE */
+/* ONGOING test */
 /**
  * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -97,6 +98,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	static{
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new ClassifiedNameHandler());
+		HandlerRegistry.register(new ConclusionHandler());
 	}
 
 
@@ -139,7 +141,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
 		});
 		typeCombo.setEditable(true);
-		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES, 31);
+		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES);
 		mapQualifiers = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, "Map Evidence");
 		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Place Evidence");
@@ -215,7 +217,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
 
-		conclusionPanel.load(record);
+		conclusionPanel.loadReference(record.getId());
 	}
 
 	@Override
@@ -248,7 +250,28 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(PlaceRecordDialog::createNew);
+//		GUIHelper.launch(PlaceRecordDialog::createNew, modelFiller);
+
+		final FLEFRecord conclusion = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
+		conclusion.addChild(FLEFRecord.createChildWithValue("CONTEXT", "fdgh"));
+		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
+			.addChild(FLEFRecord.createChildWithValue("GROUP", "@P1@"))
+			.addChild(FLEFRecord.createChildWithValue("GROUP", "@P2@"))
+		);
+		conclusion.addChild(FLEFRecord.createChildWithValue("PROOF_STATUS", "PROOF_STATUS"));
+		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
+		place.addChild(FLEFRecord.createChild("NAME")
+			.addChild(FLEFRecord.createChild("TEXT")
+				.addChild(FLEFRecord.createChildWithValue("VALUE", "f"))
+			)
+		);
+		place.addChild(FLEFRecord.createChildWithValue("CONCLUSION", conclusion.getId()));
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(conclusion);
+			model.addRecord(place);
+		};
+		GUIHelper.launch(PlaceRecordDialog::createEdit, modelFiller, place);
 	}
 
 }

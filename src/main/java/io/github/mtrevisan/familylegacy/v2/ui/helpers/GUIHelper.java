@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import org.apache.commons.lang3.StringUtils;
 
@@ -66,7 +67,6 @@ import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -481,13 +481,30 @@ public final class GUIHelper{
 	 *
 	 * @param dialogFactory	Reference to the dialog's own {@code createNew(Dialog, FLEFModel)} factory method.
 	 */
-	public static void launch(final BiFunction<Dialog, FLEFModel, ? extends JDialog> dialogFactory){
+	public static void launch(final CreateNewFunction dialogFactory){
+		launch(dialogFactory, model -> {});
+	}
+
+	public static void launch(final EditFunction dialogFactory, final FLEFRecord record){
+		final CreateNewFunction createNewFn = (dialog, model) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, model -> {});
+	}
+
+	public static void launch(final EditFunction dialogFactory, final Consumer<FLEFModel> modelFiller,
+			final FLEFRecord record){
+		final CreateNewFunction createNewFn = (dialog, model) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, modelFiller);
+	}
+
+	public static void launch(final CreateNewFunction dialogFactory, final Consumer<FLEFModel> modelFiller){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
 
 		final FLEFModel model = new FLEFModel();
+
+		modelFiller.accept(model);
 
 		SwingUtilities.invokeLater(() -> {
 			final JDialog dialog = dialogFactory.apply(null, model);

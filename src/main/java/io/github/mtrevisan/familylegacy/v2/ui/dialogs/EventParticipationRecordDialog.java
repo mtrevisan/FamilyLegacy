@@ -220,7 +220,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			eventLabel.setVisible(false);
 			eventField.setVisible(false);
 
-			participantField.setParticipant(null, null);
+			participantField.setParticipant(null);
 			participantLabel.setVisible(true);
 			participantField.setVisible(true);
 
@@ -237,7 +237,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			eventLabel.setVisible(true);
 			eventField.setVisible(true);
 
-			participantField.setParticipant(participantHandlerType, FLEFRecord.createMainRecord(participantId, null));
+			participantField.setParticipant(FLEFRecord.createMainRecord(participantId, participantHandlerType));
 			participantLabel.setVisible(false);
 			participantField.setVisible(false);
 

@@ -50,9 +50,10 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* ONGOING */
+/* ONGOING resolves */
 /**
  * Dialog for editing a {@code CONCLUSION_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -127,7 +128,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private ConclusionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ConclusionHandler.TYPE));
 
-		contextField = new BoundTextField(TAG_CONTEXT, 30);
+		contextField = new BoundTextField(TAG_CONTEXT);
 //		resolvesPanel = new ConclusionTargetListPanel(TAG_RESOLVES, parent, model);
 //		resolvesPanel.addPropertyChangeListener(ConclusionTargetListPanel.PROPERTY_ITEMS, evt -> updatePreferredCombo());
 		preferredCombo = new BoundComboBox<>(TAG_PREFERRED, new String[]{
@@ -239,7 +240,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		updatePreferredCombo();
 
 		// Load preferred
-		String prefRef = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED);
+		final String prefRef = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED);
 		if(StringUtils.isNotEmpty(prefRef)){
 			String prefId = XRefHelper.extractXRef(prefRef);
 			// Find and select in combo
@@ -308,7 +309,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		// Preferred
 		FLEFRecordHelper.removeChildren(record, TAG_PREFERRED);
-		String selectedPreferred = (String)preferredCombo.getSelectedItem();
+		final String selectedPreferred = (String)preferredCombo.getSelectedItem();
 		if(StringUtils.isNotEmpty(selectedPreferred)){
 			int dashIdx = selectedPreferred.indexOf(" - ");
 			if(dashIdx > 0){
@@ -325,7 +326,28 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(ConclusionRecordDialog::createNew);
+//		GUIHelper.launch(ConclusionRecordDialog::createNew);
+
+		final FLEFRecord conclusion = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
+		conclusion.addChild(FLEFRecord.createChildWithValue("CONTEXT", "fdgh"));
+		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
+			.addChild(FLEFRecord.createChildWithValue("GROUP", "@P1@"))
+			.addChild(FLEFRecord.createChildWithValue("GROUP", "@P2@"))
+		);
+		conclusion.addChild(FLEFRecord.createChildWithValue("PROOF_STATUS", "PROOF_STATUS"));
+		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
+		place.addChild(FLEFRecord.createChild("NAME")
+			.addChild(FLEFRecord.createChild("TEXT")
+				.addChild(FLEFRecord.createChildWithValue("VALUE", "f"))
+			)
+		);
+		place.addChild(FLEFRecord.createChildWithValue("CONCLUSION", conclusion.getId()));
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(conclusion);
+			model.addRecord(place);
+		};
+		GUIHelper.launch(ConclusionRecordDialog::createEdit, modelFiller, conclusion);
 	}
 
 }

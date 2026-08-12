@@ -103,7 +103,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(PlaceCitationHandler.TYPE));
 
 		place = new BoundTextField(TAG_PLACE);
-		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT, 30);
+		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
 		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 
@@ -133,7 +133,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	private JPanel createMainPanel(){
 		// original text
 		mainPanel.add(new JLabel("Original Text*:"), "align label");
-		mainPanel.add(originalTextField, "growx, wrap");
+		mainPanel.add(originalTextField, "growx,wrap");
 
 		// qualifiers
 		mainPanel.add(qualifiers, "span 2,growx");

@@ -46,6 +46,11 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 	private static final String TAG_VALUE = TAG_TITLE + DOT + "VALUE";
 
 
+	static{
+		HandlerRegistry.register(new SourceCitationHandler());
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Source";
@@ -63,7 +68,7 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 
 	@Override
 	public RecordTypeHandler<?> getCitationHandler(){
-		return new SourceCitationHandler();
+		return HandlerRegistry.getHandler(SourceCitationHandler.TYPE);
 	}
 
 	@Override

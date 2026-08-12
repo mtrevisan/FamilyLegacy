@@ -2,7 +2,9 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class XRefHelper{
@@ -10,6 +12,9 @@ public class XRefHelper{
 	private static final String XREF_PREFIX = "@";
 	private static final String XREF_SUFFIX = "@";
 	private static final String XREF_VOID = XREF_PREFIX + "VOID" + XREF_SUFFIX;
+
+
+	private static final Map<String, Integer> RESERVED_IDS = new ConcurrentHashMap<>();
 
 
 	private XRefHelper(){}
@@ -82,34 +87,39 @@ public class XRefHelper{
 		return child;
 	}
 
+
 	/**
-	 * Generates a new unique ID for a record type.
+	 * Generates and reserves a new unique ID.
+	 * <p>
+	 * The generated ID is guaranteed to be unique among both persisted records and IDs already reserved by open dialogs.
 	 *
 	 * @param model	The FLEF model.
-	 * @param type	The record type (e.g., "INDIVIDUAL", "FAMILY", "EVENT").
-	 * @param prefix	The ID prefix (e.g., "I", "F", "E").
+	 * @param type	The record type (e.g., "INDIVIDUAL", "EVENT").
+	 * @param prefix	The ID prefix (e.g., "I", "E").
 	 * @return	A new unique ID.
 	 */
-	public static String generateNewId(final FLEFModel model, final String type, final String prefix){
-		if(model == null || type == null || prefix == null)
-			return prefix + "1";
+	public static synchronized String generateNewId(final FLEFModel model, final String type, final String prefix){
+		Integer next = RESERVED_IDS.get(prefix);
+		if(next == null)
+			next = model.getRecordsByType(type).stream()
+				.map(FLEFRecord::getId)
+				.filter(Objects::nonNull)
+				.filter(id -> id.startsWith(prefix))
+				.mapToInt(id -> {
+					try{
+						return Integer.parseInt(id.substring(prefix.length()));
+					}
+					catch(NumberFormatException ignored){
+						return 0;
+					}
+				})
+				.max()
+				.orElse(0);
+		next ++;
 
-		final int max = model.getRecordsByType(type).stream()
-			.map(FLEFRecord::getId)
-			.filter(Objects::nonNull)
-			.filter(id -> id.startsWith(prefix))
-			.mapToInt(id -> {
-				try{
-					return Integer.parseInt(id.substring(prefix.length()));
-				}
-				catch(final NumberFormatException ignored){
-					return 0;
-				}
-			})
-			.max()
-			.orElse(0);
+		RESERVED_IDS.put(prefix, next);
 
-		return prefix + (max + 1);
+		return prefix + next;
 	}
 
 }

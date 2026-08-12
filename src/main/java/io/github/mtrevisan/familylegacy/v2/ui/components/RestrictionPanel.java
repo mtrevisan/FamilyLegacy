@@ -98,7 +98,7 @@ public class RestrictionPanel extends JPanel{
 			"public", "restricted", "confidential"});
 		rationaleArea = new BoundTextArea(path + DOT + TAG_RATIONALE, 3, 25);
 		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
-		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES, 15);
+		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES);
 
 
 		initComponents();

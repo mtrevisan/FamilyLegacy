@@ -139,7 +139,7 @@ public final class FLEFRecordHelper{
 	public static String getChildValuesAsString(final FLEFRecord parent, final String path){
 		final List<FLEFRecord> children = findChildren(parent, path);
 		if(children.isEmpty())
-			return StringUtils.EMPTY;
+			return null;
 
 		return children.stream()
 			.map(FLEFRecord::getValue)

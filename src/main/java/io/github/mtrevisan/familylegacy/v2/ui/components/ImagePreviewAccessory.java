@@ -48,9 +48,13 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 
 	public ImagePreviewAccessory(final JFileChooser chooser){
 		chooser.addPropertyChangeListener(this);
+
 		setLayout(new BorderLayout());
+
 		setPreferredSize(new Dimension(250, 250));
+
 		setBorder(BorderFactory.createTitledBorder("Preview"));
+
 		add(previewImage, BorderLayout.CENTER);
 	}
 

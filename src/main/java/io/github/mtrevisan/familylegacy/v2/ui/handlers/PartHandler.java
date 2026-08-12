@@ -73,7 +73,7 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(type))
-			sb.append("[")
+			sb.append('[')
 				.append(type)
 				.append("] ");
 		if(StringUtils.isNotEmpty(value)){
@@ -96,11 +96,11 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 				.append(variantCount)
 				.append(" variant")
 				.append(variantCount > 1? "s": StringUtils.EMPTY)
-				.append(")");
+				.append(')');
 		else if(StringUtils.isNotEmpty(record.getId())){
 			sb.append(" (")
 				.append(record.getId())
-				.append(")");
+				.append(')');
 		}
 
 		return sb.toString();

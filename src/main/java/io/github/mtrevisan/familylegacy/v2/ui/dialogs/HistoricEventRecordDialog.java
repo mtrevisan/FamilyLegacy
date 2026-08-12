@@ -106,7 +106,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 		setTitle(record == null? "Add Historic Event": "Edit Historic Event");
 
-		titleField = new BoundTextField(TAG_TITLE, 30);
+		titleField = new BoundTextField(TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeField = PlaceField.create(TAG_PLACE, this, model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)

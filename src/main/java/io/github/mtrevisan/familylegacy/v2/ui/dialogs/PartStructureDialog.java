@@ -110,7 +110,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 			"nickname", "regnal", "religious", "posthumous"
 		});
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(TAG_VALUE, 25);
+		valueField = new BoundTextField(TAG_VALUE);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
 
 
@@ -129,7 +129,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 		bindingManager.bind(valueField);
 
 
-		setLayout(new MigLayout("ins 10, fillx", "[right]rel[grow]", "[]5[]10[]"));
+		setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]10[]"));
 
 		add(new JLabel("Part Type*:"), "align label");
 		add(typeCombo, "growx,wrap");

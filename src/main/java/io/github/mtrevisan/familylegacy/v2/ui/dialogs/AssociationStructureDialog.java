@@ -142,7 +142,7 @@ public class AssociationStructureDialog extends BaseRecordDialog{
 			GroupAttributeHandler.TYPE, PlaceHandler.TYPE, PlaceRelationshipHandler.TYPE, SourceHandler.TYPE,
 			DocumentHandler.TYPE, IdentityHypothesisHandler.TYPE, CulturalNormHandler.TYPE, HistoricEventHandler.TYPE));
 		targetField.addChangeListener(e -> updateNameFieldState());
-		nameField = new BoundTextField(TAG_NAME, 30);
+		nameField = new BoundTextField(TAG_NAME);
 
 
 		initComponents();
@@ -173,7 +173,7 @@ public class AssociationStructureDialog extends BaseRecordDialog{
 
 		// target
 		add(new JLabel("Target*:"), "align label");
-		add(targetField, "growx, wrap");
+		add(targetField, "growx,wrap");
 
 		// name
 		add(new JLabel("Name:"), "align label");

@@ -63,7 +63,7 @@ public class IndividualField extends JPanel{
 
 	private FLEFRecord record;
 
-	private final JTextField displayField = new JTextField(20);
+	private final JTextField displayField = new JTextField(null);
 
 	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
 

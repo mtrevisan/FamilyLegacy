@@ -124,7 +124,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(VariantHandler.TYPE));
 
-		phoneticSystemField = new BoundTextField(TAG_SYSTEM, 15);
+		phoneticSystemField = new BoundTextField(TAG_SYSTEM);
 		phoneticSystemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
 		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM, new String[]{
 			StringUtils.EMPTY,
@@ -149,7 +149,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 			"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
 		});
 		typeCombo.setEditable(true);
-		valueField = new BoundTextField(TAG_VALUE, 20);
+		valueField = new BoundTextField(TAG_VALUE);
 
 
 		initComponents();

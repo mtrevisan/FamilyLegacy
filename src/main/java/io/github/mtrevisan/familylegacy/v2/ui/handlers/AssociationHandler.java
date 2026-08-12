@@ -41,6 +41,24 @@ public class AssociationHandler implements RecordTypeHandler<AssociationStructur
 	private static final String TAG_NAME = "NAME";
 
 
+	static{
+		HandlerRegistry.register(new IndividualHandler());
+		HandlerRegistry.register(new GroupHandler());
+		HandlerRegistry.register(new EventHandler());
+		HandlerRegistry.register(new EventParticipationHandler());
+		HandlerRegistry.register(new RelationshipHandler());
+		HandlerRegistry.register(new IndividualAttributeHandler());
+		HandlerRegistry.register(new GroupAttributeHandler());
+		HandlerRegistry.register(new PlaceHandler());
+		HandlerRegistry.register(new PlaceRelationshipHandler());
+		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new DocumentHandler());
+		HandlerRegistry.register(new IdentityHypothesisHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new HistoricEventHandler());
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

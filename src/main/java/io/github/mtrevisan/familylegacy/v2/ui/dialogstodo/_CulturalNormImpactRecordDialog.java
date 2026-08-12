@@ -131,7 +131,7 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormImpactHandler.TYPE));
 
 		// Cultural norm field
-		culturalNormField = new JTextField(20);
+		culturalNormField = new JTextField(null);
 		culturalNormField.setEditable(false);
 		culturalNormButton = new JButton("...");
 		culturalNormButton.setToolTipText("Select a Cultural Norm record");

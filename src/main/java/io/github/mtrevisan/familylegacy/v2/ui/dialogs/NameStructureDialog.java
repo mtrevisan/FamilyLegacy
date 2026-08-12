@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
@@ -60,7 +59,6 @@ import java.io.Serial;
  *   value: Text
  *   variant*: TextValueVariant
  *   locale?: LocaleCode
- *   date?: DateStructure
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  * }
@@ -75,7 +73,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 	public static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VARIANT = "VARIANT";
 	private static final String TAG_LOCALE = "LOCALE";
-	private static final String TAG_DATE = "DATE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
 
@@ -93,7 +90,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private final BoundTextField valueField;
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
-	private final DateField dateField;
 	private final EntityReferenceListPanel notePanel;
 	private final EntityCitationListPanel sourceCitationPanel;
 
@@ -111,13 +107,12 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
 
-		valueField = new BoundTextField(TAG_VALUE, 30);
+		valueField = new BoundTextField(TAG_VALUE);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
-		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid On", model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
 		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 
@@ -146,20 +141,16 @@ public class NameStructureDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
 
 		// value
 		panel.add(new JLabel("Name Value*:"), "align label");
-		panel.add(valueField, "growx, wrap");
+		panel.add(valueField, "growx,wrap");
 
 		// locale
 		localeCombo.setEditable(true);
 		panel.add(new JLabel("Locale:"), "align label");
-		panel.add(localeCombo, "growx, wrap");
-
-		// date
-		panel.add(new JLabel("Date:"), "align label");
-		panel.add(dateField, "growx,wrap");
+		panel.add(localeCombo, "growx");
 
 		return panel;
 	}
@@ -182,7 +173,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 	protected void loadData(){
 		bindingManager.load(record);
 
-		dateField.load(record);
 		variantPanel.load(record);
 		notePanel.load(record);
 		sourceCitationPanel.load(record);
@@ -206,7 +196,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 	protected void saveData(){
 		bindingManager.save(record);
 
-		dateField.save(record);
 		variantPanel.save(record);
 		notePanel.save(record);
 		sourceCitationPanel.save(record);

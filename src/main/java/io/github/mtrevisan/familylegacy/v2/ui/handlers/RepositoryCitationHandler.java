@@ -45,7 +45,12 @@ public class RepositoryCitationHandler implements RecordTypeHandler<RepositoryCi
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 
 
-	private final RepositoryHandler repositoryHandle = new RepositoryHandler();
+	static{
+		HandlerRegistry.register(new RepositoryHandler());
+	}
+
+
+	private final RecordTypeHandler<?> repositoryHandle = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 
 
 	@Override

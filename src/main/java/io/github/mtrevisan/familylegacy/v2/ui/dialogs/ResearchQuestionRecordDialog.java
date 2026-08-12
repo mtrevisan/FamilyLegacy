@@ -169,7 +169,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private ResearchQuestionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(ResearchQuestionHandler.TYPE));
 
-		titleField = new BoundTextField(TAG_TITLE, 20);
+		titleField = new BoundTextField(TAG_TITLE);
 		questionArea = new BoundTextArea(TAG_QUESTION, 3, 30);
 		targetField = ParticipantField.create(TAG_TARGET, this, model);
 		targetField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE, EventHandler.TYPE,
@@ -182,7 +182,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
 		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
-		createdField = new BoundTextField(TAG_CREATED, 20);
+		createdField = new BoundTextField(TAG_CREATED);
 		createdField.setEditable(false);
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);

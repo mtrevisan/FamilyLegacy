@@ -101,9 +101,9 @@ public class SingleDatePanel extends JPanel{
 
 
 	public SingleDatePanel(final Dialog parent, final FLEFModel model){
-		fullDateField = new BoundTextField(TAG_FULL_DATE, 15);
-		decadeField = new BoundTextField(TAG_DECADE, 5);
-		centuryField = new BoundTextField(TAG_CENTURY, 5);
+		fullDateField = new BoundTextField(TAG_FULL_DATE);
+		decadeField = new BoundTextField(TAG_DECADE);
+		centuryField = new BoundTextField(TAG_CENTURY);
 		centuryPartCombo = new BoundComboBox<>(TAG_PART, new String[]{
 			StringUtils.EMPTY,
 			"first_quarter", "second_quarter", "third_quarter", "fourth_quarter",

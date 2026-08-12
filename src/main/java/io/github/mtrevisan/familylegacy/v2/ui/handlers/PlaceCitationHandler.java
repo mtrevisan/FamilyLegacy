@@ -45,7 +45,12 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 	private static final String TAG_PLACE = "PLACE";
 
 
-	private final PlaceHandler placeHandle = new PlaceHandler();
+	static{
+		HandlerRegistry.register(new PlaceHandler());
+	}
+
+
+	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 
 
 	@Override
@@ -80,7 +85,7 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 
 		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_PLACE));
 		final FLEFRecord place = model.getRecordById(xref);
-		return placeHandle.getDisplayText(place, model);
+		return placeHandler.getDisplayText(place, model);
 	}
 
 	@Override

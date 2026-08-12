@@ -121,7 +121,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 
 		// UI components (typeCombo may remain null if only one type)
 		typeCombo = (handlerTypes.size() > 1? createTypeCombo(handlers): null);
-		searchField = new JTextField(15);
+		searchField = new JTextField(null);
 		listModel = new DefaultListModel<>();
 		list = new JList<>(listModel);
 		selectButton = new JButton("Select");
@@ -163,7 +163,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		// Top panel: type combo (if more than one) + search field
-		final JPanel topPanel = new JPanel(new MigLayout("fillx, wrap 2", "[right]rel[grow]"));
+		final JPanel topPanel = new JPanel(new MigLayout("fillx,wrap 2", "[right]rel[grow]"));
 		if(typeCombo != null){
 			topPanel.add(new JLabel("Type:"), "align label");
 			topPanel.add(typeCombo, "growx");

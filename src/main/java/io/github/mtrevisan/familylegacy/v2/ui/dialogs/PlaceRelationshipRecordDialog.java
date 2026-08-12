@@ -181,7 +181,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		// valid to
 		validityPanel.add(new JLabel("Valid To:"), "align label");
 		validityPanel.add(validToField, "growx");
-		mainPanel.add(validityPanel, "span 2,growx");
+		mainPanel.add(validityPanel, "span 2,growx,wrap");
 
 		return mainPanel;
 	}

@@ -74,28 +74,26 @@ public abstract class BaseRecordDialog extends JDialog{
 		this.record = (record != null? record: createNewRecord());
 		this.isNew = (record == null);
 
-		setTitle(buildTitle(handler, record));
+		setTitle(buildTitle(handler, (record == null)));
 	}
 
-	private String buildTitle(final RecordTypeHandler<?> handler, final FLEFRecord record){
-		final String dialogType = (record == null? "New": "Edit");
+	private String buildTitle(final RecordTypeHandler<?> handler, final boolean isNew){
+		final String dialogType = (isNew? "New": "Edit");
 		final String label = handler.getLabel();
 		final StringBuilder sb = new StringBuilder(dialogType)
 			.append(StringUtils.SPACE)
 			.append(label);
 
-		String id = (record != null? record.getId(): null);
+		String id = record.getId();
 		if(id == null)
 			// in case of a citation
 			id = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, handler.getCitedType()));
-		if(id == null && record == null && handler.isTopLevelEntity())
-			id = generateNewId();
 
 		if(id != null)
 			sb.append(StringUtils.SPACE)
-				.append('(')
+				.append('[')
 				.append(id)
-				.append(')');
+				.append(']');
 		return sb.toString();
 	}
 

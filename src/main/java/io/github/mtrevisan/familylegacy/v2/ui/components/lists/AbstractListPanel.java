@@ -207,7 +207,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Adds a single item directly (without showing a dialog).
 	 *
-	 * @param item the item to add
+	 * @param item	The item to add.
 	 */
 	public final void addItemDirectly(final T item){
 		if(item != null)
@@ -253,39 +253,39 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Returns the display string for an item.
 	 *
-	 * @param item the item
-	 * @return the display string
+	 * @param item	The item.
+	 * @return	The display string.
 	 */
 	protected abstract String getDisplay(T item);
 
 	/**
 	 * Shows a dialog to create a new item.
 	 *
-	 * @return the new item, or {@code null} if canceled
+	 * @return	The new item, or {@code null} if canceled.
 	 */
 	protected abstract T showCreateNewDialog();
 
 	/**
 	 * Shows a dialog to add an existing item (e.g., from a selection list).
 	 *
-	 * @return the item to add, or {@code null} if canceled
+	 * @return	The item to add, or {@code null} if canceled.
 	 */
 	protected abstract T showAddDialog();
 
 	/**
 	 * Shows a dialog to edit an existing item.
 	 *
-	 * @param existing the item to edit
-	 * @return the updated item, or {@code null} if canceled
+	 * @param record	The item to edit.
+	 * @return	The updated item, or {@code null} if canceled.
 	 */
-	protected abstract T showEditDialog(T existing);
+	protected abstract T showEditDialog(T record);
 
 	/**
 	 * Validates an item. Default implementation returns {@code true}.
 	 * Override to add custom validation.
 	 *
-	 * @param item the item to validate
-	 * @return {@code true} if valid, {@code false} otherwise
+	 * @param item	The item to validate.
+	 * @return	Whether is valid.
 	 */
 	protected boolean validateItem(final T item){
 		return true;
@@ -303,7 +303,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Returns the number of items in the list.
 	 *
-	 * @return the item count
+	 * @return	The item count.
 	 */
 	public final int getItemCount(){
 		return items.size();
@@ -312,7 +312,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Returns whether the list is empty.
 	 *
-	 * @return {@code true} if empty, {@code false} otherwise
+	 * @return	Whether is empty.
 	 */
 	public final boolean isEmpty(){
 		return items.isEmpty();
@@ -321,7 +321,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Returns the list of items.
 	 *
-	 * @return the items
+	 * @return	The items.
 	 */
 	public final List<T> getItems(){
 		return items;
@@ -330,7 +330,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Replaces all items with the given list.
 	 *
-	 * @param newItems the new items
+	 * @param newItems	The new items.
 	 */
 	public final void setItems(final List<T> newItems){
 		clear();
@@ -339,6 +339,15 @@ public abstract class AbstractListPanel<T> extends JPanel{
 			for(final T item : newItems)
 				if(item != null)
 					addElement(item);
+	}
+
+	/**
+	 * Checks if the list contains any items.
+	 *
+	 * @return	Whether there is at least one item.
+	 */
+	public boolean hasData(){
+		return !isEmpty();
 	}
 
 	private void addElement(final T newItem){

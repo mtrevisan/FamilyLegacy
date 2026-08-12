@@ -159,7 +159,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		agencyField = new BoundTextField(TAG_AGENCY, 30);
+		agencyField = new BoundTextField(TAG_AGENCY);
 		causePanel = EntityReferenceListPanel.createForStructure(TAG_CAUSE, this, "Causes", model, CauseHandler.TYPE);
 		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
 			.withParentEntity(this.record.getId(), EventHandler.TYPE);

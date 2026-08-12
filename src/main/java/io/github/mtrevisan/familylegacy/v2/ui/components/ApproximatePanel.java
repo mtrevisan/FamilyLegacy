@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -72,12 +73,17 @@ public class ApproximatePanel extends JPanel{
 	private static final String TAG_MARGIN = "MARGIN";
 
 
+	static{
+		HandlerRegistry.register(new CulturalNormHandler());
+	}
+
+
 	private final String path;
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
 	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "stated", "calculated", "conventional", "unspecified"});
 	private final EntityReferenceListPanel culturalNormPanel;
-	private final JTextField marginField = new JTextField(10);
+	private final JTextField marginField = new JTextField(null);
 
 
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){

@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.MemberRelationshipListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.RelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -102,6 +101,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new RelationshipHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new ClassifiedNameHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
+		HandlerRegistry.register(new ConclusionHandler());
 	}
 
 
@@ -120,7 +121,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	private final EntityReferenceListPanel conclusionPanel;
 	private final MemberRelationshipListPanel memberPanel;
 	private final EntityReferenceListPanel attributePanel;
-	private final RelationshipListPanel relationshipPanel;
+	private final EntityReferenceListPanel relationshipPanel;
 
 
 	public static GroupRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -138,8 +139,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names", model, ClassifiedNameHandler.TYPE);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
-			"family", "household", "neighbourhood", "fraternity", "club", "research group", "literary society",
-			"association", "organisation", "tribe"});
+			"family", "household", "neighbourhood", "fraternity", "club", "literary_society", "association",
+			"organisation", "tribe"});
 		typeCombo.setEditable(true);
 		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
@@ -152,12 +153,11 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		memberPanel = new MemberRelationshipListPanel(this, model, this.record.getId());
+		memberPanel = new MemberRelationshipListPanel(this, model, this.record.getId(), GroupHandler.TYPE);
 		attributePanel = EntityReferenceListPanel.createForRecord(TAG_GROUP_ATTRIBUTE, this, "Group Attributes", model, GroupAttributeHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		relationshipPanel = new RelationshipListPanel(TAG_RELATIONSHIP, this, "Relationships", model)
-			.withSubject(this.record.getId(), GroupHandler.TYPE);
-
+		relationshipPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Relationships", model, RelationshipHandler.TYPE)
+			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
 
 		initComponents();
 
@@ -228,10 +228,10 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
 
-		conclusionPanel.load(record);
-		memberPanel.load(record);
-		attributePanel.load(record);
-		relationshipPanel.load(record);
+		conclusionPanel.loadReference(record.getId());
+		memberPanel.loadReference(record.getId());
+		attributePanel.loadReference(record.getId());
+		relationshipPanel.loadReference(record.getId());
 	}
 
 	@Override
