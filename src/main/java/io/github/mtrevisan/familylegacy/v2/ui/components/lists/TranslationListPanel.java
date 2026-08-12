@@ -76,15 +76,15 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 			this::createNewItem,
 			this::removeItem,
 			builder -> {
-				builder.item("Create New...", this::createNewItem);
+				builder.item("Create New…", this::createNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Edit…", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			});
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord item){
+	protected String getDisplayText(final FLEFRecord item){
 		if(item != null){
 			final String value = FLEFRecordHelper.getChildValue(item, TAG_VALUE);
 			final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
@@ -97,7 +97,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 			if(StringUtils.isNotEmpty(value)){
 				String display = value;
 				if(display.length() > 50)
-					display = display.substring(0, 47) + "...";
+					display = display.substring(0, 47) + "…";
 				sb.append(display);
 			}
 			return sb.toString();

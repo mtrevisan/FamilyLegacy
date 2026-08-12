@@ -79,7 +79,7 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 		if(StringUtils.isNotEmpty(value)){
 			String val = value;
 			if(val.length() > 50)
-				val = val.substring(0, 50) + "...";
+				val = val.substring(0, 50) + "…";
 			sb.append(val);
 		}
 		else

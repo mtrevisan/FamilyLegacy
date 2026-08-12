@@ -35,7 +35,7 @@ import java.awt.Dialog;
  * Handler for a specific record type (INDIVIDUAL, FAMILY, GROUP, EVENT, etc.).
  * Provides methods for display name, edit dialog, and new dialog creation.
  *
- * @param <T> the specific dialog type that extends JDialog
+ * @param <T>	the specific dialog type that extends JDialog
  */
 public interface RecordTypeHandler<T extends BaseRecordDialog>{
 
@@ -73,8 +73,8 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	 * Returns a human-readable display name for the given record.
 	 * Used for list rendering.
 	 *
-	 * @param record the record
-	 * @param model  the FLEF model
+	 * @param record	the record
+	 * @param model	the FLEF model
 	 * @return the display name (e.g., "John Doe (I1)", "Smith Family (F1)")
 	 */
 	String getDisplayText(FLEFRecord record, FLEFModel model);

@@ -81,7 +81,9 @@ public class ApproximatePanel extends JPanel{
 	private final String path;
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
-	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "stated", "calculated", "conventional", "unspecified"});
+	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{
+		StringUtils.EMPTY,
+		"stated", "calculated", "conventional", "unspecified"});
 	private final EntityReferenceListPanel culturalNormPanel;
 	private final JTextField marginField = new JTextField(null);
 
@@ -152,7 +154,7 @@ public class ApproximatePanel extends JPanel{
 	 * Saves the approximate data into an APPROXIMATE child of the given parent record.
 	 * If the check box is not selected, does nothing.
 	 *
-	 * @param parent the parent record (e.g., VALUE, NOT_BEFORE, etc.)
+	 * @param parent	the parent record (e.g., VALUE, NOT_BEFORE, etc.)
 	 */
 	public void saveToRecord(final FLEFRecord parent){
 		if(!approximateCheck.isSelected())

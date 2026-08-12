@@ -368,7 +368,7 @@ public class ScaledImage extends JLabel{
 					case 'W' -> setCursor(Cursor.getPredefinedCursor(Cursor.W_RESIZE_CURSOR));
 					case 'M' -> setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
 					default ->
-						setCursor(viewOnly ? Cursor.getDefaultCursor() : Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
+						setCursor(viewOnly? Cursor.getDefaultCursor(): Cursor.getPredefinedCursor(Cursor.CROSSHAIR_CURSOR));
 				}
 			}
 		}

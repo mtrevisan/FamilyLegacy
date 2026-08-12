@@ -83,7 +83,7 @@ public class ModificationPanel extends JPanel{
 	/**
 	 * Constructs a new ModificationPanel.
 	 *
-	 * @param parent the parent dialog (used for showing message dialogs)
+	 * @param parent	the parent dialog (used for showing message dialogs)
 	 */
 	public ModificationPanel(final Dialog parent){
 		creationCommentArea = new BoundTextArea(TAG_CREATION + DOT + TAG_COMMENT, 3, 25);
@@ -113,7 +113,7 @@ public class ModificationPanel extends JPanel{
 	/**
 	 * Loads data from a record's MODIFICATION_STRUCTURE into the panel.
 	 *
-	 * @param record the record containing the MODIFICATION_STRUCTURE
+	 * @param record	the record containing the MODIFICATION_STRUCTURE
 	 */
 	public void load(final FLEFRecord record){
 		clear();
@@ -134,7 +134,7 @@ public class ModificationPanel extends JPanel{
 	/**
 	 * Saves the panel data into the parent's record.
 	 *
-	 * @param record the record to save into
+	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, TAG_CREATION);

@@ -71,7 +71,7 @@ import java.util.function.Consumer;
  * Right-click shows a popup menu with Add, Edit, Delete, and Select.
  * Keyboard shortcuts: Ins = Add, Delete = Delete, Enter = Select, Esc = Cancel.
  *
- * @param <T> the specific dialog type (used for edit dialogs)
+ * @param <T>	the specific dialog type (used for edit dialogs)
  */
 public class _RecordBrowserDialog<T extends BaseRecordDialog> extends JDialog{
 
@@ -96,10 +96,10 @@ public class _RecordBrowserDialog<T extends BaseRecordDialog> extends JDialog{
 	/**
 	 * Creates a new RecordBrowserDialog for the given record type.
 	 *
-	 * @param parent      the parent frame
-	 * @param model       the FLEF model
-	 * @param handler     the handler for the record type
-	 * @param onSelection callback invoked with the selected record ID, or null if canceled
+	 * @param parent	the parent frame
+	 * @param model	the FLEF model
+	 * @param handler	the handler for the record type
+	 * @param onSelection	callback invoked with the selected record ID, or null if canceled
 	 */
 	public _RecordBrowserDialog(Frame parent, FLEFModel model, RecordTypeHandler<T> handler,
 			Consumer<String> onSelection){
@@ -142,7 +142,7 @@ public class _RecordBrowserDialog<T extends BaseRecordDialog> extends JDialog{
 
 		// ---- Context menu for the list (right-click) ----
 		JPopupMenu popup = new JPopupMenu();
-		JMenuItem addItem = new JMenuItem("Add...");
+		JMenuItem addItem = new JMenuItem("Add…");
 		JMenuItem editItem = new JMenuItem("Edit");
 		JMenuItem deleteItem = new JMenuItem("Delete");
 		popup.add(addItem);
@@ -262,7 +262,7 @@ public class _RecordBrowserDialog<T extends BaseRecordDialog> extends JDialog{
 	 * Filters the records based on the search text.
 	 * The filter is case‑insensitive and applied to the display name of each record.
 	 *
-	 * @param searchText the text to search for (case‑insensitive)
+	 * @param searchText	the text to search for (case‑insensitive)
 	 */
 	private void filterRecords(String searchText){
 		filteredRecords.clear();

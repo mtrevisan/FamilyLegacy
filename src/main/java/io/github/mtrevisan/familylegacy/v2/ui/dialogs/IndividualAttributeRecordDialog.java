@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -129,12 +130,12 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE));
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE,
-			new String[]{StringUtils.EMPTY,
-				"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
-				"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count", "religion",
-				"language", "literacy", "education"
-			});
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
+			"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
+			"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count", "religion",
+			"language", "literacy", "education"
+		});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
@@ -212,7 +213,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 			if(!confirmRecordExistsForType(individualId, IndividualHandler.TYPE))
 				return;
 
-			parentEntity.setText(individualId);
+			withParentEntity(individualId, IndividualHandler.TYPE);
 
 			refreshLayout();
 		}
@@ -240,6 +241,9 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		qualifiers.load(record);
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
+
+		final String individualId = FLEFRecordHelper.getChildValuesAsString(record, TAG_INDIVIDUAL);
+		withParentEntity(individualId, IndividualHandler.TYPE);
 	}
 
 	@Override

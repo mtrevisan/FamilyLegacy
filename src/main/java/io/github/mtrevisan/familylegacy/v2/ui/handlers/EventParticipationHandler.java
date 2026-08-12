@@ -86,7 +86,7 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 				}
 			}
 		}
-		sb.append(StringUtils.isNotEmpty(participantText) ? participantText : "Unknown Participant");
+		sb.append(StringUtils.isNotEmpty(participantText)? participantText: "Unknown Participant");
 
 		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))

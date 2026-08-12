@@ -180,7 +180,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 		// Buttons
 		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		final JButton cancelButton = new JButton("Cancel");
-		final JButton createButton = new JButton("Create New...");
+		final JButton createButton = new JButton("Create New…");
 		buttonPanel.add(createButton);
 		buttonPanel.add(selectButton);
 		buttonPanel.add(cancelButton);

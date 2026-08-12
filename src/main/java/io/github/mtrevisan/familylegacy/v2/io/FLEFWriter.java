@@ -55,7 +55,7 @@ public class FLEFWriter{
 	/**
 	 * Creates a writer with custom indentation sequence.
 	 *
-	 * @param indentSequence string used for each level of indentation
+	 * @param indentSequence	string used for each level of indentation
 	 */
 	public static FLEFWriter createWithIndentSequence(final String indentSequence){
 		return new FLEFWriter(indentSequence);
@@ -70,7 +70,7 @@ public class FLEFWriter{
 	/**
 	 * Serializes a {@link FLEFModel} into a formatted string.
 	 *
-	 * @param model model to serialize
+	 * @param model	model to serialize
 	 * @return FLEF formatted string representation
 	 */
 	public String writeToString(final FLEFModel model){
@@ -89,7 +89,7 @@ public class FLEFWriter{
 	 *
 	 * @param model	Model to write.
 	 * @param writer	Target output stream writer.
-	 * @throws IOException	If writing fails.
+	 * @throws	IOException	If writing fails.
 	 */
 	public void write(final FLEFModel model, final Writer writer) throws IOException{
 		Objects.requireNonNull(model, "model cannot be null");
@@ -125,7 +125,7 @@ public class FLEFWriter{
 	 * @param rootRecord	Record to serialize.
 	 * @param writer	Target output writer.
 	 * @param indentLevel	Current tree nesting level.
-	 * @throws IOException	If writing fails.
+	 * @throws	IOException	If writing fails.
 	 */
 	public void writeRecord(final FLEFRecord rootRecord, final Writer writer, final int indentLevel) throws IOException{
 		if(rootRecord == null || !rootRecord.hasData())

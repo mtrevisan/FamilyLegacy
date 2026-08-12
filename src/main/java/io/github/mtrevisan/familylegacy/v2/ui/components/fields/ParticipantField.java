@@ -75,9 +75,9 @@ public class ParticipantField extends JPanel{
 	/**
 	 * Constructs a ParticipantField.
 	 *
-	 * @param path   the path in the record structure
-	 * @param parent the parent dialog
-	 * @param model  the FLEF model
+	 * @param path	the path in the record structure
+	 * @param parent	the parent dialog
+	 * @param model	the FLEF model
 	 * @return a new ParticipantField instance
 	 */
 	public static ParticipantField create(final String path, final Dialog parent, final FLEFModel model){
@@ -108,9 +108,9 @@ public class ParticipantField extends JPanel{
 			null,
 			null,
 			builder -> {
-				builder.item("Set...", this::set);
+				builder.item("Set…", this::set);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::edit);
+				builder.selectionSensitiveItem("Edit…", this::edit);
 				builder.selectionSensitiveItem("Clear", this::clear);
 			});
 
@@ -161,7 +161,7 @@ public class ParticipantField extends JPanel{
 	/**
 	 * Sets the current participant.
 	 *
-	 * @param record the participant record (must not be null if type is not null)
+	 * @param record	the participant record (must not be null if type is not null)
 	 */
 	public void setParticipant(final FLEFRecord record){
 		this.participantRecord = record;
@@ -204,7 +204,7 @@ public class ParticipantField extends JPanel{
 	/**
 	 * Loads the participant from the given record.
 	 *
-	 * @param targetRecord the record to load from
+	 * @param targetRecord	the record to load from
 	 */
 	public void load(final FLEFRecord targetRecord){
 		clear();
@@ -234,7 +234,7 @@ public class ParticipantField extends JPanel{
 	 * Saves the current participant.
 	 * Removes any existing child with the given path and creates a new one.
 	 *
-	 * @param targetRecord the record to save into
+	 * @param targetRecord	the record to save into
 	 */
 	public void saveReferences(final FLEFRecord targetRecord){
 		FLEFRecordHelper.removeChildren(targetRecord, path);

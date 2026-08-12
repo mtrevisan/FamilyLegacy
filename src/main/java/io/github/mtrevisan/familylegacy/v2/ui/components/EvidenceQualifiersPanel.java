@@ -77,8 +77,8 @@ public class EvidenceQualifiersPanel extends JPanel{
 	/**
 	 * Constructs a new panel with the given path prefix and title.
 	 *
-	 * @param path  the path prefix for child fields (e.g., "EVIDENCE" or "EVIDENCE.QUALIFIERS")
-	 * @param title the title to display in the TitledBorder
+	 * @param path	the path prefix for child fields (e.g., "EVIDENCE" or "EVIDENCE.QUALIFIERS")
+	 * @param title	the title to display in the TitledBorder
 	 */
 	public EvidenceQualifiersPanel(final String path, final String title){
 		this.path = (path != null && !path.isEmpty())? path + DOT: StringUtils.EMPTY;
@@ -86,9 +86,15 @@ public class EvidenceQualifiersPanel extends JPanel{
 		setLayout(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]"));
 		setBorder(BorderFactory.createTitledBorder(title));
 
-		sourceTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "original", "derived"});
-		informationTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "primary", "secondary", "undetermined"});
-		evidenceTypeCombo = new JComboBox<>(new String[]{StringUtils.EMPTY, "direct", "indirect", "negative"});
+		sourceTypeCombo = new JComboBox<>(new String[]{
+			StringUtils.EMPTY,
+			"original", "derived"});
+		informationTypeCombo = new JComboBox<>(new String[]{
+			StringUtils.EMPTY,
+			"primary", "secondary", "undetermined"});
+		evidenceTypeCombo = new JComboBox<>(new String[]{
+			StringUtils.EMPTY,
+			"direct", "indirect", "negative"});
 
 		// Tooltips
 		sourceTypeCombo.setToolTipText("Classification of the source itself: original (first-hand) or derived (secondary)");
@@ -124,7 +130,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	/**
 	 * Loads the selected values from the given record.
 	 *
-	 * @param record the record to read from
+	 * @param record	the record to read from
 	 */
 	public void load(final FLEFRecord record){
 		clear();
@@ -145,7 +151,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	/**
 	 * Saves the selected values into the given record.
 	 *
-	 * @param record the record to save into
+	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.updateChildValue(record, path + TAG_SOURCE_TYPE, getSourceType());
@@ -188,7 +194,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	/**
 	 * Sets the enabled state of all combos.
 	 *
-	 * @param enabled true to enable, false to disable
+	 * @param enabled	true to enable, false to disable
 	 */
 	@Override
 	public void setEnabled(final boolean enabled){

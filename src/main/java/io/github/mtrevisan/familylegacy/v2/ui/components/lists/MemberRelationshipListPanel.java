@@ -31,10 +31,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._NoteListEditorDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -47,14 +45,20 @@ import java.io.Serial;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 
 /* ONGOING */
 /**
- * Panel for managing member relationships (membership) of a group.
+ * Panel for managing membership relationships (group_member) of a genealogical entity.
  * <p>
  * This panel handles the creation and management of relationships between
- * a group (identified by {@code groupId}) and individuals.
+ * an actor (either an Individual or a Group) and the opposite entity type.
+ * <ul>
+ *   <li>If actor is a {@code Group}, the members are {@code Individual}s.</li>
+ *   <li>If actor is an {@code Individual}, the members are {@code Group}s.</li>
+ * </ul>
+ * The actor is identified by its ID and its handler type passed in the constructor.
  */
 public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
@@ -66,9 +70,6 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_SUBJECT = "SUBJECT";
 	private static final String TAG_OBJECT = "OBJECT";
 
-	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
-	private static final String TAG_GROUP = "GROUP";
-
 
 	static{
 		HandlerRegistry.register(new IndividualHandler());
@@ -78,21 +79,43 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private final String actorId;
+	private final String actorHandlerType;
 
-	//TODO
-	private final RecordTypeHandler<?> handler;
-	private final RecordTypeHandler<?> relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
+	private final RecordTypeHandler<?> relationshipHandler;
+
+	// The type of the member (the opposite of the actor)
+	private final String memberHandlerType;
+	private final RecordTypeHandler<?> memberHandler;
 
 
-	public MemberRelationshipListPanel(final Dialog parent, final FLEFModel model, final String actorId,
-			final String actorHandlerType){
-		super(parent, "Members", model);
+	/**
+	 * Constructs a MemberRelationshipListPanel.
+	 *
+	 * @param parent	the parent dialog
+	 * @param model	the FLEF model
+	 * @param actorId	the ID of the actor (individual or group)
+	 * @param actorHandlerType	the handler type of the actor
+	 */
+	public MemberRelationshipListPanel(final Dialog parent, final String panelTitle, final FLEFModel model,
+			final String actorId, final String actorHandlerType){
+		super(parent, panelTitle, model);
 
 		this.actorId = actorId;
+		this.actorHandlerType = actorHandlerType;
+		this.relationshipHandler = HandlerRegistry.getHandler(RelationshipHandler.TYPE);
 
-		handler = HandlerRegistry.getHandler(actorHandlerType);
+		// Determine the member type: if actor is Individual, members are Group; if actor is Group, members are Individual.
+		if(IndividualHandler.TYPE.equals(actorHandlerType)){
+			this.memberHandlerType = GroupHandler.TYPE;
+			this.memberHandler = HandlerRegistry.getHandler(GroupHandler.TYPE);
+		}
+		else if(GroupHandler.TYPE.equals(actorHandlerType)){
+			this.memberHandlerType = IndividualHandler.TYPE;
+			this.memberHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+		}
+		else
+			throw new IllegalArgumentException("Unsupported actor handler type: " + actorHandlerType);
 	}
-
 
 	@Override
 	protected void initComponents(){
@@ -103,144 +126,171 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			this::createNewItem,
 			this::removeItem,
 			builder -> {
-				builder.item("Create New...", this::createNewItem);
-				builder.item("Add Existing...", this::addItem);
+				builder.item("Create New…", this::createNewItem);
+				builder.item("Add Existing…", this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit Relationship...", this::editItem);
-				builder.selectionSensitiveItem("Edit Member...", this::editMemberItem);
-				builder.selectionSensitiveItem("Notes...", this::showNotes);
+				builder.selectionSensitiveItem("Edit Relationship…", this::editItem);
+				builder.selectionSensitiveItem("Edit Member…", this::editMemberItem);
+				builder.selectionSensitiveItem("Notes…", this::showNotes);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			}
 		);
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord relationship){
+	protected String getDisplayText(final FLEFRecord relationship){
 		if(relationship != null)
 			return relationshipHandler.getDisplayText(relationship, model);
 
 		return "--";
 	}
 
-	private boolean isMemberRelationship(final FLEFRecord relationship){
+	/**
+	 * Checks whether the given relationship is a membership relationship
+	 * involving the actor and an entity of the member type.
+	 *
+	 * @param relationship	the relationship to check
+	 * @return {@code true} if it is a membership relationship
+	 */
+	private boolean isMembershipRelationship(final FLEFRecord relationship){
 		if(actorId == null)
 			return false;
 
 		final String subjectId = FLEFRecordHelper.getChildValue(relationship, TAG_SUBJECT);
 		final String objectId = FLEFRecordHelper.getChildValue(relationship, TAG_OBJECT);
-		final boolean groupIsSubject = actorId.equals(subjectId);
-		final boolean groupIsObject = actorId.equals(objectId);
-		if(!groupIsSubject && !groupIsObject)
+
+		// The actor must be either the subject or the object
+		final boolean actorIsSubject = actorId.equals(subjectId);
+		final boolean actorIsObject = actorId.equals(objectId);
+		if(!actorIsSubject && !actorIsObject)
 			return false;
 
-		final String otherId = groupIsSubject? objectId: subjectId;
+		// The other participant must be of the member type
+		final String otherId = (actorIsSubject? objectId: subjectId);
 		if(otherId == null)
 			return false;
 
 		final FLEFRecord other = model.getRecordById(otherId);
-		return (other != null && TAG_INDIVIDUAL.equals(other.getTag()));
+		return (other != null && memberHandlerType.equals(other.getTag()));
 	}
 
+
 	/**
-	 * Creates a new individual and a relationship to the group.
+	 * Creates a new member entity (Individual or Group) and a membership relationship
+	 * with the actor.
 	 *
 	 * @return the new relationship record, or {@code null} if cancelled
 	 */
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
 		if(actorId == null){
-			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
+			JOptionPane.showMessageDialog(parent, "Actor ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		// 1. Track existing individuals to identify the newly created one
+		// 1. Track existing member entities to identify the newly created one
 		final Set<String> before = new HashSet<>();
-		for(final FLEFRecord rec : model.getRecordsByType(TAG_INDIVIDUAL)){
+		for(final FLEFRecord rec : model.getRecordsByType(memberHandlerType)){
 			final String id = rec.getId();
 			if(id != null)
 				before.add(id);
 		}
 
-		// 2. Create a new individual/group
-		final JDialog createDialog = handler.createNewDialog(parent, model);
+		// 2. Create a new member entity using the member handler
+		final BaseRecordDialog createDialog = memberHandler.createNewDialog(parent, model);
 		createDialog.setVisible(true);
+		if(!createDialog.isSaved())
+			return null;
 
-		// 3. Find the newly created individual/group ID
-		String newIndividualId = null;
-		for(final FLEFRecord rec : model.getRecordsByType(TAG_INDIVIDUAL)){
+		// 3. Find the newly created member ID
+		String newMemberId = null;
+		for(final FLEFRecord rec : model.getRecordsByType(memberHandlerType)){
 			final String id = rec.getId();
 			if(id != null && !before.contains(id)){
-				newIndividualId = id;
-
+				newMemberId = id;
 				break;
 			}
 		}
-		if(newIndividualId == null)
+		if(newMemberId == null)
 			return null;
 
-		// 4. Create a relationship between the group and the new individual
+		// 4. Create the membership relationship
 		final RelationshipRecordDialog relDialog = (RelationshipRecordDialog)relationshipHandler.createNewDialog(parent, model);
-		relDialog.withParentEntity(actorId, GroupHandler.TYPE);
-		//TODO group vs individual
-//		relDialog.setObject(newIndividualId, IndividualHandler.TYPE);
+		configureRelationship(relDialog, newMemberId);
 		relDialog.setVisible(true);
 
 		if(relDialog.isSaved())
 			return relDialog.getRecord();
 
-		// Rollback: remove the newly created individual
-		model.removeRecord(newIndividualId);
+		// Rollback: remove the newly created member entity
+		model.removeRecord(newMemberId);
 		return null;
 	}
 
 	/**
-	 * Adds an existing individual as a member of the group.
+	 * Adds an existing member entity to the actor.
 	 *
 	 * @return the new relationship record, or {@code null} if cancelled
 	 */
 	@Override
 	protected FLEFRecord showAddDialog(){
 		if(actorId == null){
-			JOptionPane.showMessageDialog(parent, "Group ID not available.", "Error",
+			JOptionPane.showMessageDialog(parent, "Actor ID not available.", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
-		// 1. Select an existing individual
+		// 1. Select an existing member entity
 		final String[] result = {null};
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			IndividualHandler.TYPE,
-			(handlerType, selectedRecord) -> result[0] = selectedRecord.getValue()
-		);
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(
+			parent, model, memberHandlerType, (handlerType, selectedRecord) -> {
+			if(selectedRecord != null)
+				result[0] = selectedRecord.getId();
+		});
 		dialog.setVisible(true);
 
-		final String individualId = result[0];
-		if(individualId == null)
+		final String memberId = result[0];
+		if(memberId == null)
 			return null;
 
-		// 2. Create a relationship between the group and the selected individual
+		// 2. Create a relationship between the actor and the selected member
 		final RelationshipRecordDialog relDialog = (RelationshipRecordDialog)relationshipHandler.createNewDialog(parent, model);
-		relDialog.withParentEntity(actorId, GroupHandler.TYPE);
-		//TODO group vs individual
-//		relDialog.setObject(newIndividualId, IndividualHandler.TYPE);
+		configureRelationship(relDialog, memberId);
 		relDialog.setVisible(true);
 
 		return (relDialog.isSaved()? relDialog.getRecord(): null);
 	}
 
 	/**
-	 * Edits an existing relationship.
+	 * Configures the relationship dialog with the correct subject/object.
 	 *
-	 * @param record the existing relationship to edit
-	 * @return the updated relationship, or {@code null} if cancelled
+	 * @param relDialog	the relationship dialog
+	 * @param memberId	the ID of the member entity
 	 */
+	private void configureRelationship(final RelationshipRecordDialog relDialog, final String memberId){
+		// The subject must be the member, the object must be the actor (group)
+		// According to the protocol, group_member: Individual -> Group
+		if(IndividualHandler.TYPE.equals(memberHandlerType)){
+			// member is Individual, actor is Group → subject = Individual, object = Group
+			relDialog.withSubject(memberId, memberHandlerType);
+			relDialog.withObject(actorId, actorHandlerType);
+		}
+		else{
+			// member is Group, actor is Individual → subject = Individual, object = Group
+			// (or we could allow both directions, but protocol defines group_member as Individual -> Group)
+			relDialog.withSubject(actorId, actorHandlerType);
+			relDialog.withObject(memberId, memberHandlerType);
+		}
+	}
+
+
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
-			JOptionPane.showMessageDialog(parent, relationshipHandler.getLabel() + " not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Relationship not found.", "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -249,13 +299,12 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 		final BaseRecordDialog dialog = relationshipHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
-		// Return the same record (it was updated in place)
-		return record;
+		return (dialog.isSaved()? record: null);
 	}
 
 	/**
-	 * Edits the individual that is the target of the selected relationship.
-	 * The individual is the one that is not the group itself.
+	 * Edits the member entity (Individual or Group) that is linked to the actor
+	 * via the selected relationship.
 	 */
 	private void editMemberItem(){
 		final int idx = list.getSelectedIndex();
@@ -263,35 +312,35 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		final FLEFRecord relationship = items.get(idx);
-		if(relationship == null)
-			return;
-
-		if(actorId == null)
+		if(relationship == null || actorId == null)
 			return;
 
 		final String subjectId = FLEFRecordHelper.getChildValue(relationship, TAG_SUBJECT);
 		final String objectId = FLEFRecordHelper.getChildValue(relationship, TAG_OBJECT);
-		final String otherId = actorId.equals(subjectId)? objectId: subjectId;
+		final String otherId = (actorId.equals(subjectId)? objectId: subjectId);
 		if(otherId == null)
 			return;
 
-		final FLEFRecord individual = model.getRecordById(otherId);
-		if(individual == null){
-			JOptionPane.showMessageDialog(parent, "Individual not found: " + otherId, "Error",
+		final FLEFRecord member = model.getRecordById(otherId);
+		if(member == null){
+			JOptionPane.showMessageDialog(parent, "Member not found: " + otherId, "Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return;
 		}
 
-		final JDialog editDialog = handler.createEditDialog(parent, model, individual);
+		final JDialog editDialog = memberHandler.createEditDialog(parent, model, member);
 		editDialog.setVisible(true);
 
-		// Update the display in the list
+		// Refresh the display
 		final int pos = list.getSelectedIndex();
 		if(pos != -1)
-			listModel.set(pos, getDisplay(relationship));
+			listModel.set(pos, getDisplayText(relationship));
 	}
 
+	/**
+	 * Shows the notes editor for the selected relationship.
+	 */
 	private void showNotes(){
 		final int idx = list.getSelectedIndex();
 		if(idx == -1)
@@ -303,18 +352,19 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final _NoteListEditorDialog dialog = new _NoteListEditorDialog(parent, model, relationship);
 		dialog.setVisible(true);
+
 		if(dialog.isSaved()){
-			// Update the display in the list
 			final int pos = list.getSelectedIndex();
 			if(pos != -1)
-				listModel.set(pos, getDisplay(relationship));
+				listModel.set(pos, getDisplayText(relationship));
 		}
 	}
 
+
 	/**
-	 * Loads entities from the given record.
+	 * Loads all relationship children from the given record.
 	 *
-	 * @param record the record containing the entities
+	 * @param record	the record containing relationships
 	 */
 	public void load(final FLEFRecord record){
 		clear();
@@ -323,31 +373,51 @@ public class MemberRelationshipListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		final List<FLEFRecord> relationships = FLEFRecordHelper.findChildren(record, TAG_RELATIONSHIP);
-		setItems(relationships);
+		// Filter only membership relationships involving this actor
+		final List<FLEFRecord> filtered = relationships.stream()
+			.filter(this::isMembershipRelationship)
+			.collect(Collectors.toList());
+		setItems(filtered);
 	}
 
+	/**
+	 * Saves the current relationship items as children of the given record.
+	 *
+	 * @param record	the record to save into
+	 */
+	public void save(final FLEFRecord record){
+		// Remove all existing RELATIONSHIP children to avoid duplicates
+		FLEFRecordHelper.removeChildren(record, TAG_RELATIONSHIP);
+
+		for(final FLEFRecord rel : getItems()){
+			rel.setTag(TAG_RELATIONSHIP);
+			record.addChild(rel);
+		}
+	}
+
+	/**
+	 * Loads relationships where the actor is either the subject or the object,
+	 * without needing a parent record.
+	 *
+	 * @param recordId	the ID of the actor
+	 */
 	public void loadReference(final String recordId){
 		clear();
 
 		if(recordId == null)
 			return;
 
-		if(IndividualHandler.TYPE.equals(handler.getType())){
-			//TODO load all entities from model whose `resolves` contains `recordId`
-//			final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, path);
-//			setItems(entities);
-		}
-		else if(GroupHandler.TYPE.equals(handler.getType())){
-			//TODO load all entities from model whose `resolves` contains `recordId`
-//			final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, path);
-//			setItems(entities);
-		}
-	}
-
-	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, TAG_RELATIONSHIP);
-
-		record.addChildrenWithTag(TAG_RELATIONSHIP, getItems());
+		// Scan all relationships in the model to find those involving the actor
+		final List<FLEFRecord> allRels = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> filtered = allRels.stream()
+			.filter(rel -> {
+				final String subjectId = FLEFRecordHelper.getChildValue(rel, TAG_SUBJECT);
+				final String objectId = FLEFRecordHelper.getChildValue(rel, TAG_OBJECT);
+				return recordId.equals(subjectId) || recordId.equals(objectId);
+			})
+			.filter(this::isMembershipRelationship)
+			.collect(Collectors.toList());
+		setItems(filtered);
 	}
 
 }

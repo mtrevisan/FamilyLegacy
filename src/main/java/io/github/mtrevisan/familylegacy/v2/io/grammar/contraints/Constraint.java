@@ -14,10 +14,10 @@ public abstract class Constraint{
 	/**
 	 * Validates the given record against this constraint.
 	 *
-	 * @param contextPath the current hierarchical path for error reporting
-	 * @param record the record containing the fields to evaluate
-	 * @param model       the FLEF model (needed for resolving cross-references)
-	 * @param errors the list to collect validation error messages
+	 * @param contextPath	the current hierarchical path for error reporting
+	 * @param record	the record containing the fields to evaluate
+	 * @param model	the FLEF model (needed for resolving cross-references)
+	 * @param errors	the list to collect validation error messages
 	 */
 	public abstract void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 		final List<String> errors);

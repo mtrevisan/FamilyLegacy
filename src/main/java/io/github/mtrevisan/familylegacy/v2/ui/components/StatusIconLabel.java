@@ -66,10 +66,10 @@ class StatusIconLabel extends JLabel{
 	/**
 	 * Draws the status icon. Can be overridden by subclasses to customize appearance.
 	 *
-	 * @param g2   the Graphics2D context
-	 * @param x    the x coordinate of the icon
-	 * @param y    the y coordinate of the icon
-	 * @param size the size of the icon (width = height)
+	 * @param g2	the Graphics2D context
+	 * @param x	the x coordinate of the icon
+	 * @param y	the y coordinate of the icon
+	 * @param size	the size of the icon (width = height)
 	 */
 	protected void drawStatusIcon(final Graphics2D g2, final int x, final int y, final int size){
 		final int margin = size / 6;

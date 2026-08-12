@@ -115,10 +115,10 @@ public class PlaceCitationField extends JPanel{
 			null,
 			null,
 			builder -> {
-				builder.item("Create New...", newAction);
+				builder.item("Create New…", newAction);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", editAction);
-				builder.selectionSensitiveItem("Edit Citation...", editCitationAction);
+				builder.selectionSensitiveItem("Edit…", editAction);
+				builder.selectionSensitiveItem("Edit Citation…", editCitationAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
 			}
 		);

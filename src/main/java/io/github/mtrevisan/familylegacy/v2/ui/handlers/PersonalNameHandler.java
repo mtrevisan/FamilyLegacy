@@ -103,7 +103,7 @@ public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStruct
 			return "[" + record.getId() + "]";
 
 		if(result.length() > 50)
-			result = result.substring(0, 50) + "...";
+			result = result.substring(0, 50) + "…";
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		if(type != null && !type.isBlank())
 			result += " (" + type + ")";

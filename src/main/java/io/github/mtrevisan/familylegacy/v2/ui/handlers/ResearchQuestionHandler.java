@@ -68,7 +68,7 @@ public class ResearchQuestionHandler implements RecordTypeHandler<ResearchQuesti
 		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
 		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
 		if(StringUtils.isNotEmpty(question)){
-			String display = question.length() > 40? question.substring(0, 37) + "...": question;
+			String display = question.length() > 40? question.substring(0, 37) + "…": question;
 			if(StringUtils.isNotEmpty(status)){
 				display += " [" + status + "]";
 			}

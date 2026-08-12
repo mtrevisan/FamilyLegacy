@@ -35,7 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -98,7 +98,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	static{
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new ClassifiedNameHandler());
-		HandlerRegistry.register(new ConclusionHandler());
+		HandlerRegistry.register(new ConclusionTargetHandler());
 	}
 
 
@@ -148,7 +148,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
-		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
+		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionTargetHandler.TYPE)
 			.withParentEntity(this.record.getId(), PlaceHandler.TYPE);
 
 
@@ -255,10 +255,13 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		final FLEFRecord conclusion = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
 		conclusion.addChild(FLEFRecord.createChildWithValue("CONTEXT", "fdgh"));
 		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
-			.addChild(FLEFRecord.createChildWithValue("GROUP", "@P1@"))
-			.addChild(FLEFRecord.createChildWithValue("GROUP", "@P2@"))
+			.addChild(FLEFRecord.createChildWithValue("PLACE", "@P1@"))
 		);
-		conclusion.addChild(FLEFRecord.createChildWithValue("PROOF_STATUS", "PROOF_STATUS"));
+		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
+			.addChild(FLEFRecord.createChildWithValue("GROUP", "@G2@"))
+		);
+		conclusion.addChild(FLEFRecord.createChildWithValue("PREFERRED", "@P1@"));
+		conclusion.addChild(FLEFRecord.createChildWithValue("PROOF_STATUS", "supported"));
 		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
 		place.addChild(FLEFRecord.createChild("NAME")
 			.addChild(FLEFRecord.createChild("TEXT")

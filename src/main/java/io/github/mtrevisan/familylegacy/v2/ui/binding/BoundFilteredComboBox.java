@@ -36,6 +36,16 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 	private final boolean readOnly;
 
 
+	public BoundFilteredComboBox(final String path){
+		super();
+
+		clear();
+
+		this.path = path;
+
+		readOnly = false;
+	}
+
 	public BoundFilteredComboBox(final String path, final List<E> items){
 		super(items);
 

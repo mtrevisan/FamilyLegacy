@@ -136,10 +136,10 @@ public class DateDialog extends JDialog{
 	/**
 	 * Convenience method to show the dialog and return the selected date record.
 	 *
-	 * @param parent      the parent dialog
-	 * @param model       the FLEF model
-	 * @param title       the dialog title
-	 * @param initialDate the initial DATE_STRUCTURE record (can be null)
+	 * @param parent	the parent dialog
+	 * @param model	the FLEF model
+	 * @param title	the dialog title
+	 * @param initialDate	the initial DATE_STRUCTURE record (can be null)
 	 * @return the saved DATE_STRUCTURE record, or null
 	 */
 	public static FLEFRecord showDateDialog(final Dialog parent, final FLEFModel model, final String title,

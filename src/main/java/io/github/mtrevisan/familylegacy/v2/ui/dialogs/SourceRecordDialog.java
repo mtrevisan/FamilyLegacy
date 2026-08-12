@@ -133,10 +133,11 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		publisherField = new BoundTextField(TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid Date", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		mediaTypeCombo = new BoundComboBox<>(TAG_MEDIA_TYPE,
-			new String[]{StringUtils.EMPTY, "audio", "book", "card", "electronic", "fiche", "film",
-				"magazine", "manuscript", "map", "newspaper", "photo",
-				"tombstone", "video"});
+		mediaTypeCombo = new BoundComboBox<>(TAG_MEDIA_TYPE, new String[]{
+			StringUtils.EMPTY,
+			"audio", "book", "card", "electronic", "fiche", "film",
+			"magazine", "manuscript", "map", "newspaper", "photo",
+			"tombstone", "video"});
 		mediaTypeCombo.setEditable(true);
 		repositoryCitationPanel = new EntityCitationListPanel(TAG_REPOSITORY, this, "Repositories", model, RepositoryHandler.TYPE);
 		documentPanel = EntityReferenceListPanel.createForRecord(TAG_DOCUMENT, this, "Documents", model, DocumentHandler.TYPE)

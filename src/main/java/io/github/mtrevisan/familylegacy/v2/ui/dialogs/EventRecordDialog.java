@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -146,6 +147,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(EventHandler.TYPE));
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
 			"birth", "death", "adoption", "graduation", "immigration", "naturalization", "bankruptcy", "guardianship",
 			"coroner_report", "cremation", "burial", "education", "retirement", "military_induction",
 			"military_muster_roll", "military_service", "military_award", "military_release", "military_discharge",

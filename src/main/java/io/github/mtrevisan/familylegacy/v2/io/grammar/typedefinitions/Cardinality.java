@@ -30,7 +30,7 @@ public enum Cardinality{
 	/**
 	 * Validates whether a given occurrence count satisfies this cardinality constraint.
 	 *
-	 * @param count the number of occurrences found in the record
+	 * @param count	the number of occurrences found in the record
 	 * @return {@code true} if the count is valid according to this cardinality; {@code false} otherwise
 	 */
 	public boolean isValidCount(final int count){

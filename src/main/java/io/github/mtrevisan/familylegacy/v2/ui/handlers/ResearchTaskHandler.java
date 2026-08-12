@@ -65,7 +65,7 @@ public class ResearchTaskHandler implements RecordTypeHandler<ResearchTaskRecord
 		String description = FLEFRecordHelper.getChildValue(record, "DESCRIPTION");
 		String status = FLEFRecordHelper.getChildValue(record, "STATUS");
 		if(StringUtils.isNotEmpty(description)){
-			String display = description.length() > 40? description.substring(0, 37) + "...": description;
+			String display = description.length() > 40? description.substring(0, 37) + "…": description;
 			if(StringUtils.isNotEmpty(status)){
 				display += " [" + status + "]";
 			}

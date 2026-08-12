@@ -77,9 +77,9 @@ public class _NoteListEditorDialog extends JDialog{
 	/**
 	 * Creates a new note list editor dialog.
 	 *
-	 * @param parent      the parent frame (or dialog) for modality
-	 * @param model       the FLEF model
-	 * @param ownerRecord the record whose notes are being edited
+	 * @param parent	the parent frame (or dialog) for modality
+	 * @param model	the FLEF model
+	 * @param ownerRecord	the record whose notes are being edited
 	 */
 	public _NoteListEditorDialog(Dialog parent, FLEFModel model, FLEFRecord ownerRecord){
 		super(parent, "Notes for " + ownerRecord.getId(), true);
@@ -134,10 +134,10 @@ public class _NoteListEditorDialog extends JDialog{
 			this::createNewNote,
 			this::deleteNote,
 			builder -> {
-				builder.item("Create New...", this::createNewNote);
-				builder.item("Add Existing...", this::addExistingNote);
+				builder.item("Create New…", this::createNewNote);
+				builder.item("Add Existing…", this::addExistingNote);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editNote);
+				builder.selectionSensitiveItem("Edit…", this::editNote);
 				builder.selectionSensitiveItem("Clear", this::deleteNote);
 			}
 		);

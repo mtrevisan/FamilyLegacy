@@ -80,16 +80,16 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			this::createNewItem,
 			this::removeItem,
 			builder -> {
-				builder.item("Create New...", this::createNewItem);
+				builder.item("Create New…", this::createNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Edit…", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			}
 		);
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord item){
+	protected String getDisplayText(final FLEFRecord item){
 		if(item != null){
 			final String text = FLEFRecordHelper.getChildValue(item, TAG_TEXT);
 			final String type = FLEFRecordHelper.getChildValue(item, TAG_TYPE);
@@ -101,7 +101,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 					.append(locale)
 					.append("] ");
 			if(StringUtils.isNotEmpty(text))
-				sb.append(text.length() > 50? text.substring(0, 47) + "...": text);
+				sb.append(text.length() > 50? text.substring(0, 47) + "…": text);
 			if(StringUtils.isNotEmpty(type))
 				sb.append(" (")
 					.append(type)
@@ -137,16 +137,17 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Shows the extract dialog for creating or editing an extract.
 	 *
-	 * @param initial the initial extract record, or {@code null} for a new extract
+	 * @param initial	the initial extract record, or {@code null} for a new extract
 	 * @return the created/updated extract record, or {@code null} if canceled
 	 */
 	private FLEFRecord showExtractDialog(final FLEFRecord initial){
 		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, "Document Parts", model);
 		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
-		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE,
-			new String[]{"transcript", "extract", "abstract"});
-		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE,
-			new String[]{StringUtils.EMPTY, "en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			"verbatim", "summarized", "translated", "normalized"});
+		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
+			StringUtils.EMPTY,
+			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
 		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes",
 			false, TAG_NOTE);

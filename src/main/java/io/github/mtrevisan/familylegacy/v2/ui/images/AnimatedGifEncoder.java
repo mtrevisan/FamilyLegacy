@@ -116,7 +116,7 @@ public class AnimatedGifEncoder{
 	 * Must be invoked before the first image is added.
 	 *
 	 * @param iterations	Number of iterations.
-	 * @throws IllegalArgumentException	If a frame has already been added.
+	 * @throws	IllegalArgumentException	If a frame has already been added.
 	 */
 	public void setRepeat(final int iterations) throws IllegalArgumentException{
 		if(firstFrameAdded)
@@ -181,7 +181,7 @@ public class AnimatedGifEncoder{
 	 *
 	 * @param width	Frame width.
 	 * @param height	Frame height.
-	 * @throws IllegalArgumentException	If with or height are non-positive.
+	 * @throws	IllegalArgumentException	If with or height are non-positive.
 	 */
 	public void setSize(final int width, final int height) throws IllegalArgumentException{
 		if(width < 1 || height < 1)

@@ -227,7 +227,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		final T updated = showEditDialog(current);
 		if(updated != null){
 			items.set(idx, updated);
-			listModel.set(idx, getDisplay(updated));
+			listModel.set(idx, getDisplayText(updated));
 		}
 	}
 
@@ -256,7 +256,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @param item	The item.
 	 * @return	The display string.
 	 */
-	protected abstract String getDisplay(T item);
+	protected abstract String getDisplayText(T item);
 
 	/**
 	 * Shows a dialog to create a new item.
@@ -353,7 +353,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	private void addElement(final T newItem){
 		if(!items.contains(newItem)){
 			items.add(newItem);
-			listModel.addElement(getDisplay(newItem));
+			listModel.addElement(getDisplayText(newItem));
 		}
 	}
 

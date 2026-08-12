@@ -35,8 +35,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationLis
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -53,6 +53,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
 /* DONE */
@@ -104,6 +105,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new PersonalNameHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new ConclusionHandler());
+		HandlerRegistry.register(new ConclusionTargetHandler());
 	}
 
 
@@ -120,6 +122,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	// Other
 	private final EntityReferenceListPanel conclusionPanel;
+	//TODO ONGOING
 	private final MemberRelationshipListPanel memberPanel;
 	private final EntityReferenceListPanel attributePanel;
 	private final EntityReferenceListPanel relationshipPanel;
@@ -138,8 +141,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, HandlerRegistry.getHandler(IndividualHandler.TYPE));
 
 		personalNamePanel = EntityReferenceListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.TYPE);
-		sexCombo = new BoundComboBox<>(TAG_SEX,
-			new String[]{StringUtils.EMPTY, "male", "female", "unknown"});
+		sexCombo = new BoundComboBox<>(TAG_SEX, new String[]{
+			StringUtils.EMPTY,
+			"male", "female", "unknown"});
 		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
@@ -149,9 +153,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
-		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
+		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionTargetHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
-		memberPanel = new MemberRelationshipListPanel(this, model, this.record.getId(), IndividualHandler.TYPE);
+		memberPanel = new MemberRelationshipListPanel(this, "Members", model, this.record.getId(), IndividualHandler.TYPE);
 		attributePanel = EntityReferenceListPanel.createForRecord(TAG_INDIVIDUAL_ATTRIBUTE, this, "Individual Attributes", model, IndividualAttributeHandler.TYPE)
 			.withParentEntity(this.record.getId(), IndividualHandler.TYPE);
 		relationshipPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Relationships", model, RelationshipHandler.TYPE)
@@ -258,7 +262,18 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(IndividualRecordDialog::createNew);
+//		GUIHelper.launch(IndividualRecordDialog::createNew, modelFiller);
+
+		final FLEFRecord individualAttribute = FLEFRecord.createMainRecord("IA1", "INDIVIDUAL_ATTRIBUTE");
+		individualAttribute.addChild(FLEFRecord.createChildWithValue("INDIVIDUAL", "@I1@"));
+		individualAttribute.addChild(FLEFRecord.createChildWithValue("TYPE", "residence"));
+		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(individualAttribute);
+			model.addRecord(individual);
+		};
+		GUIHelper.launch(IndividualRecordDialog::createEdit, modelFiller, individual);
 	}
 
 }

@@ -26,7 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import java.util.List;
 
 
 public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
@@ -35,6 +37,16 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	private final boolean readOnly;
 
+
+	public BoundComboBox(final String path){
+		super();
+
+		clear();
+
+		this.path = path;
+
+		readOnly = false;
+	}
 
 	public BoundComboBox(final String path, final E[] items){
 		super(items);
@@ -103,8 +115,8 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 			}
 		}
 
-		// no match: change selection if combo box is editable
-		if(isEditable)
+		// no match: if editable, set the typed value
+		if(isEditable())
 			setSelectedItem(value);
 	}
 
@@ -116,9 +128,16 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		super.setSelectedItem(item);
 	}
 
+	/**
+	 * Clears the current selection.
+	 * In read-only mode, it only clears the selection without throwing an exception.
+	 */
 	@Override
 	public void clear(){
-		setText(null);
+		// In read-only mode, we just deselect (or keep the current item) but we shouldn't throw an exception
+		if(!readOnly)
+			setText(null);
+
 		setSelectedIndex(-1);
 	}
 
@@ -130,6 +149,52 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	public boolean isValued(){
 		final Object item = getSelectedItem();
 		return ((isEditable() || getSelectedIndex() >= 0) && (item instanceof String str? StringUtils.isNotEmpty(str): item != null));
+	}
+
+
+	/**
+	 * Updates the combo box items while preserving the empty element (if present)
+	 * and the current selection when possible.
+	 *
+	 * @param newItems	The new list of items.
+	 */
+	public void updateItems(final List<E> newItems){
+		// Check if the empty element was present
+		final E emptyElement = isEmptyItemPresent();
+
+		// Save the current selection
+		@SuppressWarnings("unchecked")
+		final E selectedItem = (E)getSelectedItem();
+
+		// Clear and repopulate the model
+		final DefaultComboBoxModel<E> model = (DefaultComboBoxModel<E>)getModel();
+		model.removeAllElements();
+		if(emptyElement != null)
+			model.addElement(emptyElement);
+		for(final E element : newItems)
+			model.addElement(element);
+
+		// Restore the selection if it is still valid
+		model.setSelectedItem(selectedItem != null && newItems.contains(selectedItem)
+			? selectedItem
+			: emptyElement);
+	}
+
+	/**
+	 * Returns the empty element if present in the current model.
+	 * The empty element is defined as the first element whose string representation
+	 * is equal to {@link StringUtils#EMPTY}.
+	 *
+	 * @return	The empty element, or {@code null} if not found.
+	 */
+	private E isEmptyItemPresent(){
+		final DefaultComboBoxModel<E> model = (DefaultComboBoxModel<E>)getModel();
+		for(int i = 0; i < model.getSize(); i ++){
+			final E emptyElement = model.getElementAt(i);
+			if(StringUtils.EMPTY.equals(emptyElement))
+				return emptyElement;
+		}
+		return null;
 	}
 
 }

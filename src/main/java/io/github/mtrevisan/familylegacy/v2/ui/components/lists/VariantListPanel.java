@@ -78,7 +78,7 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	/**
 	 * Saves the current variants to the given record.
 	 *
-	 * @param record the record to save to
+	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, TAG_PHONETIC);

@@ -49,7 +49,7 @@ import java.util.TreeSet;
 /**
  * An editable JComboBox that dynamically filters items based on text input.
  *
- * @param <E> The type of the elements in this combo box.
+ * @param <E>	The type of the elements in this combo box.
  */
 public class FilteredComboBox<E> extends JComboBox<E>{
 

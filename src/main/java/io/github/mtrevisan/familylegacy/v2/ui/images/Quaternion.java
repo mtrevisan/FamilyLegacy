@@ -135,7 +135,7 @@ public class Quaternion{
 	 * <p>The norm of the quaternion must not be zero.</p>
 	 *
 	 * @return	A normalized quaternion.
-	 * @throws ZeroException	If the norm of the quaternion is zero.
+	 * @throws	ZeroException	If the norm of the quaternion is zero.
 	 */
 	public Quaternion normalize() throws ZeroException{
 		final double normSquared = getNormSquared();
@@ -164,7 +164,7 @@ public class Quaternion{
 	 * <p>The norm of the quaternion must not be zero.</p>
 	 *
 	 * @return	The inverse.
-	 * @throws ZeroException	If the norm of the quaternion is zero.
+	 * @throws	ZeroException	If the norm of the quaternion is zero.
 	 */
 	public Quaternion getInverse() throws ZeroException{
 		return getConjugate().normalize();

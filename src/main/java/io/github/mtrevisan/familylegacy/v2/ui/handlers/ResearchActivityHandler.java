@@ -70,7 +70,7 @@ public class ResearchActivityHandler implements RecordTypeHandler<ResearchActivi
 		String type = FLEFRecordHelper.getChildValue(record, TAG_ACTIVITY_TYPE);
 		String date = FLEFRecordHelper.getChildValue(record, TAG_DATE);
 		if(StringUtils.isNotEmpty(action)){
-			String display = action.length() > 40? action.substring(0, 37) + "...": action;
+			String display = action.length() > 40? action.substring(0, 37) + "…": action;
 			if(StringUtils.isNotEmpty(type)){
 				display += " [" + type + "]";
 			}

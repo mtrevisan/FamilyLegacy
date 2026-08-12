@@ -61,7 +61,7 @@ import java.util.function.Supplier;
  * Generic dialog for selecting a record of a specific type from a list with search filter.
  * Double-click on an item selects it and closes the dialog.
  *
- * @param <T> the specific dialog type (used for edit dialogs)
+ * @param <T>	the specific dialog type (used for edit dialogs)
  */
 public class _GenericSelectionDialog<T extends BaseRecordDialog> extends JDialog{
 
@@ -88,10 +88,10 @@ public class _GenericSelectionDialog<T extends BaseRecordDialog> extends JDialog
 	/**
 	 * Creates a selection dialog for the given record type.
 	 *
-	 * @param parent      the parent frame
-	 * @param model       the FLEF model
-	 * @param handler     the handler for the record type
-	 * @param onSelection callback invoked with the selected record ID, or null if canceled
+	 * @param parent	the parent frame
+	 * @param model	the FLEF model
+	 * @param handler	the handler for the record type
+	 * @param onSelection	callback invoked with the selected record ID, or null if canceled
 	 */
 	public _GenericSelectionDialog(final Dialog parent, final FLEFModel model, final RecordTypeHandler<T> handler,
 			final Consumer<FLEFRecord> onSelection){

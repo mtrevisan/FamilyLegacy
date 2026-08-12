@@ -94,9 +94,9 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			null,
 			this::removeItem,
 			builder -> {
-				builder.item("Add Existing...", this::addItem);
+				builder.item("Add Existing…", this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit Crop...", this::editCrop);
+				builder.selectionSensitiveItem("Edit Crop…", this::editCrop);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			}
 		);
@@ -160,7 +160,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord documentPart){
+	protected String getDisplayText(final FLEFRecord documentPart){
 		if(documentPart != null){
 			FLEFRecord doc = documentPart;
 			if(documentPart.getId() == null){
@@ -242,7 +242,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	 * <p>
 	 * Resolves document references to actual document records from the model.
 	 *
-	 * @param record the record containing the document parts
+	 * @param record	the record containing the document parts
 	 */
 	public void load(final FLEFRecord record){
 		clear();
@@ -264,7 +264,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	 * <p>
 	 * Creates {@code DOCUMENT_PART} records with references to documents and their crop data.
 	 *
-	 * @param record the record to save to
+	 * @param record	the record to save to
 	 */
 	public void saveReferences(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, TAG_DOCUMENT);

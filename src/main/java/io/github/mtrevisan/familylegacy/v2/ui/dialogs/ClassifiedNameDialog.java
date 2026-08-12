@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;

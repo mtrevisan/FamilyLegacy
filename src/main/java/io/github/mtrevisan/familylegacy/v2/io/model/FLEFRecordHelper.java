@@ -238,7 +238,7 @@ public final class FLEFRecordHelper{
 	/**
 	 * Remove a child navigating through a path of tags separated by '.'.
 	 *
-	 * @param parent The starting record.
+	 * @param parent	The starting record.
 	 * @param path	The dot‑separated tag path (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @return The deleted child, or {@code null} if any tag in the path is not found.
 	 */

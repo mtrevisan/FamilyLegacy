@@ -248,24 +248,24 @@ record IndividualAttributeRecord {
   id: LocalID
   individual: Xref<IndividualRecord>   // The individual to whom this attribute applies.
   type: enum {                         // The type of attribute being asserted.
-    characteristic,  // Physical, behavioral, medical, or descriptive characteristic (e.g "blue eyes", "blind", "left-handed", "scar on forehead").
-    residence,       // Place where the individual is known to have lived, resided, or maintained a household.
-    occupation,      // Occupation, profession, trade, office, or vocation (e.g. "farmer", "blacksmith", "teacher").
-    possession,      // Property, assets, land, livestock, tools, money, or other possessions associated with the individual.
-    military_rank,   // Military rank or grade held by the individual (e.g. "captain", "sergeant", "colonel").
-    caste,           // Social, hereditary, religious, or legal caste classification associated with the individual.
-    social_class,    // Social, economic, or societal classification associated with the individual (e.g. "nobility", "bourgeoisie", "peasant").
-    ethnicity,       // Ethnic, tribal, cultural, or ancestral identity.
-    citizenship,     // Citizenship, nationality, or legal political allegiance.
-    nationality,     // National identity, ethnic-national affiliation, or nationality associated with the individual. Unlike CITIZENSHIP, nationality may reflect cultural or historical identity rather than legal status.
-    ssn,             // Government-issued personal identification number (e.g. Social Security Number, Tax Code, National ID).
-    title,           // Noble, honorific, professional, hereditary, religious, or administrative title associated with the individual (e.g. "Count", "Doctor", "Bishop", "Sir").
-    children_count,  // Reported number of children associated with the individual.
-    marriages_count, // Reported number of marriages associated with the individual.
-    religion,        // Religion, denomination, faith, or spiritual affiliation.
-    language,        // Language spoken, written, understood, or otherwise associated with the individual.
-    literacy,        // Ability to read and/or write (e.g. "illiterate", "literate", "signature only").
-    education        // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
+    characteristic,    // Physical, behavioral, medical, or descriptive characteristic (e.g "blue eyes", "blind", "left-handed", "scar on forehead").
+    residence,         // Place where the individual is known to have lived, resided, or maintained a household.
+    occupation,        // Occupation, profession, trade, office, or vocation (e.g. "farmer", "blacksmith", "teacher").
+    possession,        // Property, assets, land, livestock, tools, money, or other possessions associated with the individual.
+    military_rank,     // Military rank or grade held by the individual (e.g. "captain", "sergeant", "colonel").
+    caste,             // Social, hereditary, religious, or legal caste classification associated with the individual.
+    social_class,      // Social, economic, or societal classification associated with the individual (e.g. "nobility", "bourgeoisie", "peasant").
+    ethnicity,         // Ethnic, tribal, cultural, or ancestral identity.
+    citizenship,       // Citizenship, nationality, or legal political allegiance.
+    nationality,       // National identity, ethnic-national affiliation, or nationality associated with the individual. Unlike CITIZENSHIP, nationality may reflect cultural or historical identity rather than legal status.
+    ssn,               // Government-issued personal identification number (e.g. Social Security Number, Tax Code, National ID).
+    title,             // Noble, honorific, professional, hereditary, religious, or administrative title associated with the individual (e.g. "Count", "Doctor", "Bishop", "Sir").
+    children_count,    // Reported number of children associated with the individual.
+    marriages_count,   // Reported number of marriages associated with the individual.
+    religion,          // Religion, denomination, faith, or spiritual affiliation.
+    language,          // Language spoken, written, understood, or otherwise associated with the individual.
+    literacy,          // Ability to read and/or write (e.g. "illiterate", "literate", "signature only").
+    education          // Educational attainment, schooling level, degree, qualification, or academic status (e.g. "elementary", "secondary", "university", "doctorate").
   } | Text
   value?: Text                         // The value of the attribute.
   valid_from?: DateStructure           // The date from which this attribute is known or believed to have been valid.

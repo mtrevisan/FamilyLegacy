@@ -62,8 +62,8 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Constructs a BasicNoteListPanel with a titled border.
 	 *
-	 * @param parent the parent dialog
-	 * @param borderTitle  the border title, or {@code null} for no border
+	 * @param parent	the parent dialog
+	 * @param borderTitle	the border title, or {@code null} for no border
 	 */
 	public BasicNoteListPanel(final String path, final Dialog parent, final String borderTitle,
 			final boolean saveDate, final String noteTag){
@@ -85,16 +85,16 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 			this::createNewItem,
 			this::removeItem,
 			builder -> {
-				builder.item("Create New...", this::createNewItem);
+				builder.item("Create New…", this::createNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", this::editItem);
+				builder.selectionSensitiveItem("Edit…", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			}
 		);
 	}
 
 	@Override
-	protected String getDisplay(final FLEFRecord note){
+	protected String getDisplayText(final FLEFRecord note){
 		final String comment = FLEFRecordHelper.getChildValuesAsString(note, noteTag);
 		return (comment != null? comment : "--");
 	}
@@ -135,7 +135,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return null;
 
-		final String displayText = getDisplay(record);
+		final String displayText = getDisplayText(record);
 		final JTextArea textArea = new JTextArea(displayText, 10, 50);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -160,7 +160,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Loads notes from the given record.
 	 *
-	 * @param record the record containing the notes
+	 * @param record	the record containing the notes
 	 */
 	public void load(final FLEFRecord record){
 		clear();
@@ -175,7 +175,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Saves the current notes to the given record.
 	 *
-	 * @param record the record to save to
+	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);

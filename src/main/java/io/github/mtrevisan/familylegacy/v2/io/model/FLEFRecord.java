@@ -172,7 +172,7 @@ public class FLEFRecord{
 	/**
 	 * Removes a specific child record from this record's children list.
 	 *
-	 * @param child the child record to remove
+	 * @param child	the child record to remove
 	 * @return {@code true} if the child was found and removed, {@code false} otherwise
 	 */
 	public boolean removeChild(final FLEFRecord child){
@@ -182,7 +182,7 @@ public class FLEFRecord{
 	/**
 	 * Removes all children with the given tag.
 	 *
-	 * @param tag the tag of children to remove
+	 * @param tag	the tag of children to remove
 	 * @return the list of removed children (empty if none were found)
 	 */
 	public List<FLEFRecord> removeChildren(final String tag){

@@ -50,7 +50,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
+/* ONGOING */
 /**
  * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.1.
  * <p>
@@ -105,10 +105,13 @@ public class DatePanel extends JPanel{
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
 		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceHandler.TYPE);
-		certaintyCombo = new BoundComboBox<>(TAG_CERTAINTY,
-			new String[]{StringUtils.EMPTY, "proven", "challenged", "disproven"});
-		credibilityCombo = new BoundComboBox<>(TAG_CREDIBILITY,
-			new String[]{StringUtils.EMPTY, "0", "1", "2", "3"});
+		//TODO EvidenceQualifiers
+		certaintyCombo = new BoundComboBox<>(TAG_CERTAINTY, new String[]{
+			StringUtils.EMPTY,
+			"proven", "challenged", "disproven"});
+		credibilityCombo = new BoundComboBox<>(TAG_CREDIBILITY, new String[]{
+			StringUtils.EMPTY,
+			"0", "1", "2", "3"});
 
 
 		initComponents();
@@ -180,7 +183,7 @@ public class DatePanel extends JPanel{
 	/**
 	 * Loads data from a DATE wrapper record.
 	 *
-	 * @param record the DATE record (wrapper), or null
+	 * @param record	the DATE record (wrapper), or null
 	 */
 	public void load(final FLEFRecord record){
 		clear();

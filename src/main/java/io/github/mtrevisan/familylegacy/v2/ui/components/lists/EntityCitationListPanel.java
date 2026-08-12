@@ -86,11 +86,11 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Constructs a CitationListPanel with all necessary behavior.
 	 *
-	 * @param path                  the record path where citations are stored
-	 * @param parent                the parent dialog
-	 * @param panelTitle            the border title
-	 * @param model                 the FLEF model
-	 * @param recordHandlerType     the type of the target entity handler
+	 * @param path	the record path where citations are stored
+	 * @param parent	the parent dialog
+	 * @param panelTitle	the border title
+	 * @param model	the FLEF model
+	 * @param recordHandlerType	the type of the target entity handler
 	 */
 	public EntityCitationListPanel(final String path, final Dialog parent, final String panelTitle,
 			final FLEFModel model, final String recordHandlerType){
@@ -111,18 +111,18 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			this::createNewItem,
 			this::removeItem,
 			builder -> {
-				builder.item("Create New...", this::createNewItem);
-				builder.item("Add Existing...", this::addItem);
+				builder.item("Create New…", this::createNewItem);
+				builder.item("Add Existing…", this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit Record...", this::editTargetItem);
-				builder.selectionSensitiveItem("Edit Citation...", this::editItem);
+				builder.selectionSensitiveItem("Edit Record…", this::editTargetItem);
+				builder.selectionSensitiveItem("Edit Citation…", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			});
 	}
 
 
 	@Override
-	protected String getDisplay(final FLEFRecord citation){
+	protected String getDisplayText(final FLEFRecord citation){
 		final String entityId = findTargetEntityId(citation);
 		if(entityId != null){
 			final FLEFRecord entity = model.getRecordById(entityId);
@@ -137,7 +137,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	/**
 	 * Finds the target entity ID referenced by a citation record.
 	 *
-	 * @param citation the citation record
+	 * @param citation	the citation record
 	 * @return the entity ID, or {@code null} if not found
 	 */
 	private String findTargetEntityId(final FLEFRecord citation){
@@ -224,7 +224,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			dialog.setVisible(true);
 
 			if(isDialogSaved(dialog))
-				listModel.setElementAt(getDisplay(citation), idx);
+				listModel.setElementAt(getDisplayText(citation), idx);
 		}
 	}
 

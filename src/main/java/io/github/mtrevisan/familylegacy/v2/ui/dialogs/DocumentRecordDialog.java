@@ -120,7 +120,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			null,
 			null,
 			builder -> {
-				builder.item("Set...", this::setNewItem);
+				builder.item("Set…", this::setNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Clear", fileField::clear);
 			});

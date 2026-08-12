@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -47,7 +48,6 @@ import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -226,18 +226,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		final String subjectType = subjectRecord.getTag();
 		final String objectType = objectRecord.getTag();
 		final List<String> validTypes = getValidTypes(subjectType, objectType);
-
-		final DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
-		model.addElement(StringUtils.EMPTY);
-		for(final String type : validTypes)
-			model.addElement(type);
-		final String selectedItem = (String)subjectTypeCombo.getSelectedItem();
-		final int selectedIndex = subjectTypeCombo.getSelectedIndex();
-		subjectTypeCombo.setModel(model);
-		if(selectedIndex < 0)
-			subjectTypeCombo.setSelectedItem(selectedItem);
-		else if(!validTypes.contains(selectedItem))
-			subjectTypeCombo.clear();
+		subjectTypeCombo.updateItems(validTypes);
 	}
 
 	private List<String> getValidTypes(final String subjectType, final String objectType){
@@ -391,6 +380,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		modificationPanel.load(record);
 
 		updateTypeCombo();
+
+
+		final FLEFRecord subject = FLEFRecordHelper.findChild(record, TAG_SUBJECT)
+			.getChildren()
+			.getFirst();
+		withSubject(subject.getValue(), subject.getTag());
+		withObject(null, null);
 	}
 
 	@Override

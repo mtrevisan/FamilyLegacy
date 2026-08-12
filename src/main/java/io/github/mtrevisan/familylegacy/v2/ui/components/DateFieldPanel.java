@@ -68,15 +68,15 @@ public class DateFieldPanel extends JPanel{
 
 	private FLEFRecord dateRecord; // the DATE node (wrapper)
 	private final JTextField summaryField = new JTextField(null);
-	private final JButton editButton = new JButton("Edit...");
+	private final JButton editButton = new JButton("Edit…");
 	private final JButton clearButton = new JButton("Clear");
 
 	/**
 	 * Constructs a new DateFieldPanel.
 	 *
-	 * @param parent the parent dialog
-	 * @param label  the label to display (e.g., "Valid From")
-	 * @param model  the FLEF model
+	 * @param parent	the parent dialog
+	 * @param label	the label to display (e.g., "Valid From")
+	 * @param model	the FLEF model
 	 */
 	public DateFieldPanel(Dialog parent, String label, FLEFModel model){
 		this.model = model;
@@ -264,7 +264,7 @@ public class DateFieldPanel extends JPanel{
 	/**
 	 * Loads a DATE record into this panel.
 	 *
-	 * @param record the DATE record (wrapper), or null
+	 * @param record	the DATE record (wrapper), or null
 	 */
 	public void loadFromRecord(FLEFRecord record){
 		this.dateRecord = record;

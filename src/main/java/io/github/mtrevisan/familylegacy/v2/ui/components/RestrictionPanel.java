@@ -86,7 +86,7 @@ public class RestrictionPanel extends JPanel{
 	/**
 	 * Constructs a new RestrictionPanel.
 	 *
-	 * @param parent the parent dialog (used for showing message dialogs)
+	 * @param parent	the parent dialog (used for showing message dialogs)
 	 */
 	public RestrictionPanel(final String path, final Dialog parent){
 		this.parent = parent;
@@ -94,7 +94,6 @@ public class RestrictionPanel extends JPanel{
 		this.path = path;
 
 		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, new String[]{
-			StringUtils.EMPTY,
 			"public", "restricted", "confidential"});
 		rationaleArea = new BoundTextArea(path + DOT + TAG_RATIONALE, 3, 25);
 		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
@@ -131,7 +130,7 @@ public class RestrictionPanel extends JPanel{
 	/**
 	 * Loads data from a RESTRICTION record into the panel.
 	 *
-	 * @param record the RESTRICTION record, or {@code null}
+	 * @param record	the RESTRICTION record, or {@code null}
 	 */
 	public void load(final FLEFRecord record){
 		clear();
@@ -150,7 +149,7 @@ public class RestrictionPanel extends JPanel{
 	/**
 	 * Saves the panel data into a RESTRICTION record.
 	 *
-	 * @param record an existing RESTRICTION record to update, or {@code null} to create a new one
+	 * @param record	an existing RESTRICTION record to update, or {@code null} to create a new one
 	 */
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChild(record, path);

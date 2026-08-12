@@ -141,7 +141,7 @@ public class FLEFValidator{
 	 * Semantically validates the given {@link FLEFModel}.
 	 * Validates referential integrity, symbol resolution, and ID uniqueness.
 	 *
-	 * @param model the model to validate
+	 * @param model	the model to validate
 	 * @return a list of validation error messages (empty if valid)
 	 */
 	public List<String> validateIntegrity(final FLEFModel model){

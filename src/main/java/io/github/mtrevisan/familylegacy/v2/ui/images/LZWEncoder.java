@@ -196,7 +196,7 @@ public class LZWEncoder{
 
 		hshift = 0;
 		for(fcode = HSIZE; fcode < 65536; fcode <<= 1)
-			 ++ hshift;
+			++ hshift;
 		hshift = 8 - hshift; // set hash code range bound
 
 		hsize_reg = HSIZE;
@@ -274,7 +274,7 @@ public class LZWEncoder{
 		if(remaining == 0)
 			return EOF;
 
-		 -- remaining;
+		-- remaining;
 
 		final byte pix = pixAry[curPixel ++];
 
@@ -305,7 +305,7 @@ public class LZWEncoder{
 				clearFlag = false;
 			}
 			else{
-				 ++ numberOfBits;
+				++ numberOfBits;
 				if(numberOfBits == MAX_BITS)
 					maxcode = MAX_MAX_CODE;
 				else

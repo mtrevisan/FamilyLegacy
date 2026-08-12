@@ -127,7 +127,6 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		createdByField = ParticipantField.create(TAG_CREATED_BY, this, model);
 		createdByField.setHandlerType(ResearchActivityHandler.TYPE);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
-			StringUtils.EMPTY,
 			"open", "in_progress", "completed", "abandoned"});
 		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{
 			StringUtils.EMPTY,

@@ -87,11 +87,11 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 			if(value != null && !value.isEmpty()){
 				// Truncate long names
 				if(value.length() > 50)
-					value = value.substring(0, 50) + "...";
+					value = value.substring(0, 50) + "…";
 
 				final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 				if(type != null && !type.isEmpty())
-					value += " (" +  type + ")";
+					value += " (" + type + ")";
 
 				return value;
 			}

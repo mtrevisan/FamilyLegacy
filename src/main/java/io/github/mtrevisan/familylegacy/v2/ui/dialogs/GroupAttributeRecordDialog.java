@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -137,8 +138,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(GroupAttributeHandler.TYPE));
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE,
-			new String[]{StringUtils.EMPTY, "residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language", "wealth", "land_holding", "primary_income_source"});
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
+			"residence", "member_count", "children_count", "social_class", "ethnicity", "religion", "language", "wealth",
+			"land_holding", "primary_income_source"});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
@@ -216,7 +219,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 			if(!confirmRecordExistsForType(groupId, GroupHandler.TYPE))
 				return;
 
-			parentEntity.setText(groupId);
+			withParentEntity(groupId, GroupHandler.TYPE);
 
 			refreshLayout();
 		}
@@ -244,6 +247,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		qualifiers.load(record);
 		restrictionPanel.load(record);
 		modificationPanel.load(record);
+
+		final String groupId = FLEFRecordHelper.getChildValuesAsString(record, TAG_GROUP);
+		withParentEntity(groupId, GroupHandler.TYPE);
 	}
 
 	@Override

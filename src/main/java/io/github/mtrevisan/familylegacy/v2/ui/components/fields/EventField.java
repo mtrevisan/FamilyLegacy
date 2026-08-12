@@ -110,10 +110,10 @@ public class EventField extends JPanel{
 			null,
 			null,
 			builder -> {
-				builder.item("Create New...", newAction);
-				builder.item("Add Existing...", addAction);
+				builder.item("Create New…", newAction);
+				builder.item("Add Existing…", addAction);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit...", editAction);
+				builder.selectionSensitiveItem("Edit…", editAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
 			}
 		);

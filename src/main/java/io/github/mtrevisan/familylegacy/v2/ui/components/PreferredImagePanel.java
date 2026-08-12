@@ -94,7 +94,7 @@ public class PreferredImagePanel extends JPanel{
 	/**
 	 * Constructs a PreferredImagePanel.
 	 *
-	 * @param parent the parent dialog (for showing modal dialogs)
+	 * @param parent	the parent dialog (for showing modal dialogs)
 	 */
 	public PreferredImagePanel(final String path, final Dialog parent){
 		this.parent = parent;
@@ -122,9 +122,9 @@ public class PreferredImagePanel extends JPanel{
 			null,
 			null,
 			builder -> {
-				builder.item("Create New...", this::createNewItem);
+				builder.item("Create New…", this::createNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit Crop...", this::editCrop);
+				builder.selectionSensitiveItem("Edit Crop…", this::editCrop);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			});
 
@@ -134,7 +134,7 @@ public class PreferredImagePanel extends JPanel{
 	/**
 	 * Loads the preferred image data from the given record.
 	 *
-	 * @param record the record containing the PREFERRED_IMAGE child
+	 * @param record	the record containing the PREFERRED_IMAGE child
 	 */
 	public void load(final FLEFRecord record){
 		clearImage();
@@ -160,7 +160,7 @@ public class PreferredImagePanel extends JPanel{
 			final int width = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
 			final int height = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
 			if(x >= 0 && y >= 0 && width >= 0 && height >= 0)
-				cropRect = new Rectangle(x, y,  width, height);
+				cropRect = new Rectangle(x, y, width, height);
 		}
 		catch(Exception ignored){}
 	}
@@ -169,7 +169,7 @@ public class PreferredImagePanel extends JPanel{
 	 * Saves the preferred image data to the given record.
 	 * If no image is selected, does nothing.
 	 *
-	 * @param record the record to save into
+	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
 		FLEFRecordHelper.removeChildren(record, path);

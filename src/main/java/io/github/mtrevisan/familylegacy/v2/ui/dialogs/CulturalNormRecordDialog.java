@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -128,6 +129,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 		titleField = new BoundTextField(TAG_TITLE);
 		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{
+			StringUtils.EMPTY,
 			// Lifecycle and age-related customs:
 			"age_of_majority", "marriage_minimum_age", "baptism_age", "confirmation_age", "military_service_age",
 			"retirement_age",

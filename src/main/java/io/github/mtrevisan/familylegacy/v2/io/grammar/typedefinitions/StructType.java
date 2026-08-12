@@ -55,8 +55,8 @@ public class StructType extends TypeDefinition{
 
 			// Extract all child AST records matching the current field definition name
 			final List<FLEFRecord> children = record.getChildren().stream()
-				 .filter(c -> c.getTag().equals(fieldName))
-				 .toList();
+				.filter(c -> c.getTag().equals(fieldName))
+				.toList();
 
 			// 1. Validate cardinality constraints (?, *, +, required)
 			if(!fieldDef.cardinality().isValidCount(children.size())){

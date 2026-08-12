@@ -67,7 +67,7 @@ import java.io.Serial;
 public class ContactStructureDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 3227495851403391698L;
+	private static final long serialVersionUID = 5523786168919512214L;
 
 
 	private static final String TAG_ADDRESS = "ADDRESS";

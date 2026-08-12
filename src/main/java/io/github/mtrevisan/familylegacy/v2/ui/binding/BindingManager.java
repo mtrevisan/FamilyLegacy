@@ -43,7 +43,7 @@ public class BindingManager{
 	/**
 	 * Registers a bound component.
 	 *
-	 * @param component the component to register
+	 * @param component	the component to register
 	 * @return this manager (for fluent calls)
 	 */
 	public BindingManager bind(final PathBound component){
@@ -57,7 +57,7 @@ public class BindingManager{
 	 * Loads values into all registered components from the given record,
 	 * using each component's path.
 	 *
-	 * @param record the record to read from
+	 * @param record	the record to read from
 	 */
 	public void load(final FLEFRecord record){
 		for(final PathBound comp : boundComponents){
@@ -77,7 +77,7 @@ public class BindingManager{
 	 * Saves values from all registered components back to the given record,
 	 * using each component's path.
 	 *
-	 * @param record the record to write into
+	 * @param record	the record to write into
 	 */
 	public void save(final FLEFRecord record){
 		for(final PathBound comp : boundComponents){

@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceLi
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -52,6 +53,7 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
 /* DONE */
@@ -103,6 +105,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new ClassifiedNameHandler());
 		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new ConclusionHandler());
+		HandlerRegistry.register(new ConclusionTargetHandler());
 	}
 
 
@@ -119,6 +122,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	// Other
 	private final EntityReferenceListPanel conclusionPanel;
+	//TODO ONGOING
 	private final MemberRelationshipListPanel memberPanel;
 	private final EntityReferenceListPanel attributePanel;
 	private final EntityReferenceListPanel relationshipPanel;
@@ -151,9 +155,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 		modificationPanel = new ModificationPanel(this);
 
-		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionHandler.TYPE)
+		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionTargetHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		memberPanel = new MemberRelationshipListPanel(this, model, this.record.getId(), GroupHandler.TYPE);
+		memberPanel = new MemberRelationshipListPanel(this, "Members", model, this.record.getId(), GroupHandler.TYPE);
 		attributePanel = EntityReferenceListPanel.createForRecord(TAG_GROUP_ATTRIBUTE, this, "Group Attributes", model, GroupAttributeHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
 		relationshipPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Relationships", model, RelationshipHandler.TYPE)
@@ -259,7 +263,29 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(GroupRecordDialog::createNew);
+//		GUIHelper.launch(GroupRecordDialog::createNew, modelFiller);
+
+		final FLEFRecord groupAttribute = FLEFRecord.createMainRecord("GA1", "GROUP_ATTRIBUTE");
+		groupAttribute.addChild(FLEFRecord.createChildWithValue("GROUP", "@G1@"));
+		groupAttribute.addChild(FLEFRecord.createChildWithValue("TYPE", "residence"));
+		final FLEFRecord relationship = FLEFRecord.createMainRecord("RL1", "RELATIONSHIP");
+		relationship.addChild(FLEFRecord.createChild("SUBJECT")
+			.addChild(FLEFRecord.createChildWithValue("GROUP", "@G1@"))
+		);
+		relationship.addChild(FLEFRecord.createChild("OBJECT")
+			.addChild(FLEFRecord.createChildWithValue("GROUP", "@G2@"))
+		);
+		relationship.addChild(FLEFRecord.createChildWithValue("TYPE", "associate"));
+		final FLEFRecord group1 = FLEFRecord.createMainRecord("G1", "GROUP");
+		final FLEFRecord group2 = FLEFRecord.createMainRecord("G2", "GROUP");
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(groupAttribute);
+			model.addRecord(relationship);
+			model.addRecord(group1);
+			model.addRecord(group2);
+		};
+		GUIHelper.launch(GroupRecordDialog::createEdit, modelFiller, group1);
 	}
 
 }
