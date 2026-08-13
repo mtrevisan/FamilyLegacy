@@ -22,10 +22,10 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.images;
+package io.github.mtrevisan.familylegacy.todo.images;
 
 
-public class CylindricalProjectionTypeDetector{
+public class _CylindricalProjectionTypeDetector{
 
 /*
 https://chatgpt.com/c/7579f801-7f5f-497c-8c2b-a63585791180

@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.CalendarParserBuilder;
 import io.github.mtrevisan.familylegacy.gedcom.parsers.calendars.DateParser;
 import io.github.mtrevisan.familylegacy.services.JavaHelper;
-import io.github.mtrevisan.familylegacy.ui.utilities.validators.PhoneNumberValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
@@ -819,20 +818,10 @@ public final class Transformer extends TransformerHelper{
 		CONTACT.value = WWW.value
 	*/
 	void contactStructureTo(final GedcomNode parent, final GedcomNode destinationNode){
-		final List<GedcomNode> phones = traverseAsList(parent, "PHON[]");
-		for(final GedcomNode phone : phones)
-			if(PhoneNumberValidator.isValid(phone.getValue()))
-				destinationNode.addChild(createWithValue("CONTACT", phone.getValue()));
 		final List<GedcomNode> emails = traverseAsList(parent, "EMAIL[]");
 		for(final GedcomNode email : emails)
 			if(EMAIL_VALIDATOR.isValid(email.getValue()))
 				destinationNode.addChild(createWithValue("CONTACT", email.getValue()));
-		final List<GedcomNode> faxes = traverseAsList(parent, "FAX[]");
-		for(final GedcomNode fax : faxes)
-			if(PhoneNumberValidator.isValid(fax.getValue()))
-				destinationNode.addChild(createWithValue("CONTACT", fax.getValue())
-					.addChildValue("TYPE", "fax")
-				);
 		final List<GedcomNode> urls = traverseAsList(parent, "WWW[]");
 		for(final GedcomNode url : urls)
 			if(URL_VALIDATOR.isValid(url.getValue()))
@@ -1682,13 +1671,13 @@ public final class Transformer extends TransformerHelper{
 	void contactStructureFrom(final GedcomNode parent, final GedcomNode destinationNode){
 		final List<GedcomNode> contacts = traverseAsList(parent, "CONTACT[]");
 		for(final GedcomNode contact : contacts)
-			if(!"fax".equals(traverse(contact, "TYPE").getValue()) && PhoneNumberValidator.isValid(contact.getValue()))
+			if(!"fax".equals(traverse(contact, "TYPE").getValue()))
 				destinationNode.addChildValue("PHON", contact.getValue());
 		for(final GedcomNode contact : contacts)
 			if(EMAIL_VALIDATOR.isValid(contact.getValue()))
 				destinationNode.addChildValue("EMAIL", contact.getValue());
 		for(final GedcomNode contact : contacts)
-			if("fax".equals(traverse(contact, "TYPE").getValue()) && PhoneNumberValidator.isValid(contact.getValue()))
+			if("fax".equals(traverse(contact, "TYPE").getValue()))
 				destinationNode.addChildValue("FAX", contact.getValue());
 		for(final GedcomNode contact : contacts)
 			if(URL_VALIDATOR.isValid(contact.getValue()))

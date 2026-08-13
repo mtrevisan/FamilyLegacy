@@ -111,7 +111,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
 	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 
 
 	public static ClassifiedNameDialog createNew(final Dialog parent, final FLEFModel model){
@@ -153,8 +153,9 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
+		localeCombo.setEditable(true);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 
 
 		initComponents();
@@ -193,7 +194,6 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 		panel.add(typeCombo, "growx,wrap");
 
 		// locale
-		localeCombo.setEditable(true);
 		panel.add(new JLabel("Locale:"), "align label");
 		panel.add(localeCombo, "growx");
 
@@ -209,7 +209,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(notePanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -220,7 +220,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 		variantPanel.load(record);
 		notePanel.load(record);
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 	}
 
 	@Override
@@ -243,7 +243,7 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 		variantPanel.save(record);
 		notePanel.save(record);
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 	}
 
 

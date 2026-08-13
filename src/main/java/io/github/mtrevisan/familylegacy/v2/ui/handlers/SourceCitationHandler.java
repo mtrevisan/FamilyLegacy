@@ -75,7 +75,7 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

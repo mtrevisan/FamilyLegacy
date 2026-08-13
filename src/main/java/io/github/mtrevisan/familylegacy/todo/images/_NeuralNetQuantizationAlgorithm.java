@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.images;
+package io.github.mtrevisan.familylegacy.todo.images;
 
 
 /**
@@ -46,7 +46,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.images;
  *
  * @see <a href="https://github.com/rtyley/animated-gif-lib-for-java">Animated GIF library for Java</a>
  */
-public class NeuralNetQuantizationAlgorithm{
+public class _NeuralNetQuantizationAlgorithm{
 
 	//number of colors used
 	private static final int NET_SIZE = 256;
@@ -129,7 +129,7 @@ public class NeuralNetQuantizationAlgorithm{
 
 
 	/* Initialise network in range (0,0,0) to (255,255,255) and set parameters. */
-	public NeuralNetQuantizationAlgorithm(final byte[] imageData, final int len, final int samplingFactor){
+	public _NeuralNetQuantizationAlgorithm(final byte[] imageData, final int len, final int samplingFactor){
 		this.imageData = imageData;
 		length_count = len;
 		this.samplingFactor = samplingFactor;

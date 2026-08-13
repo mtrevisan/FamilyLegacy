@@ -24,8 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
-import io.github.mtrevisan.familylegacy.v2.ui.images.AnimatedGifEncoder;
-import io.github.mtrevisan.familylegacy.v2.ui.images.GifDecoder;
+import io.github.mtrevisan.familylegacy.todo.images._AnimatedGifEncoder;
+import io.github.mtrevisan.familylegacy.todo.images._GifDecoder;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -125,13 +125,13 @@ public final class ResourceHelper{
 			throws IOException{
 		final ImageIcon scaled;
 		if(icon.getDescription().endsWith(EXTENSION_GIF)){
-			final GifDecoder decoder = new GifDecoder();
+			final _GifDecoder decoder = new _GifDecoder();
 			decoder.read(icon.getDescription());
 
 			final int frameCount = decoder.getFrameCount();
 			final int loopCount = decoder.getLoopCount();
 
-			final AnimatedGifEncoder encoder = new AnimatedGifEncoder();
+			final _AnimatedGifEncoder encoder = new _AnimatedGifEncoder();
 			encoder.setTransparent(Color.BLACK, true);
 			encoder.setRepeat(loopCount);
 

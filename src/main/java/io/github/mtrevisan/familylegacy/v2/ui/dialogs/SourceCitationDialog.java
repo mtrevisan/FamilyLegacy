@@ -61,7 +61,7 @@ import java.io.Serial;
  *   extract*: ExtractStructure
  *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
- *   restriction?: RestrictionStructure
+ *   privacy?: PrivacyStructure
  *
  *   require extract.document_part.document in source.document
  * }
@@ -108,7 +108,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private final ExtractListPanel extractPanel;
 	private final EntityReferenceListPanel notePanel;
 	private final EvidenceQualifiersPanel qualifiers;
-	private final RestrictionPanel restrictionPanel;
+	private final RestrictionPanel privacyPanel;
 
 
 	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model){
@@ -129,7 +129,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, null, model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), SourceCitationHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
 
 
 		initComponents();
@@ -150,7 +150,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Notes", notePanel);
-		tabbedPane.addTab("Restriction", restrictionPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
 
 		finalizeLayout(tabbedPane);
 	}

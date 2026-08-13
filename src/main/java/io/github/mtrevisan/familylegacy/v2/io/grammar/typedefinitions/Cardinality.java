@@ -1,6 +1,5 @@
 package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 
-
 import org.apache.commons.lang3.StringUtils;
 
 

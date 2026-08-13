@@ -65,8 +65,8 @@ import java.io.Serial;
  *   mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
  *   description?: Text
  *   note*: Xref&lt;NoteRecord&gt;
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -98,8 +98,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> mappingCombo;
 	private final BoundTextArea descriptionArea;
 	private final EntityReferenceListPanel notePanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static DocumentRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -131,8 +131,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), DocumentHandler.TYPE);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -175,8 +175,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -209,8 +209,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		bindingManager.load(record);
 
 		notePanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -231,8 +231,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		notePanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

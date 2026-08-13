@@ -27,29 +27,23 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Panel for managing a list of entity references (records or structures).
  * <p>
@@ -67,8 +61,6 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private static final String TAG_RESOLVES = "RESOLVES";
-	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
-	private static final String TAG_GROUP = "GROUP";
 
 
 	protected enum RelationType{
@@ -191,7 +183,10 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord record){
-		return (record != null? handler.getDisplayText(record, model): "--");
+		if(record != null)
+			return handler.getDisplayText(record, model);
+
+		return "--";
 	}
 
 	@Override
@@ -238,7 +233,6 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 
-	//TODO refactor
 	/**
 	 * Loads entities from the given record.
 	 *
@@ -250,20 +244,10 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return;
 
-		if(ConclusionTargetHandler.TYPE.equals(handler.getType())){
-			final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(record, path);
-			final List<FLEFRecord> entities = new ArrayList<>(resolves.size());
-			for(final FLEFRecord resolve : resolves)
-				entities.add(resolve.getChildren().getFirst());
-			setItems(entities);
-		}
-		else{
-			final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, path);
-			setItems(entities);
-		}
+		final List<FLEFRecord> entities = handler.extractEntities(record, path);
+		setItems(entities);
 	}
 
-	//TODO refactor
 	/**
 	 * Loads entities from the given record.
 	 *
@@ -275,64 +259,10 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return;
 
-		if(ConclusionTargetHandler.TYPE.equals(handler.getType())){
-			final List<FLEFRecord> conclusions = model.getRecordsByType(ConclusionHandler.TYPE).stream()
-				.filter(conclusion -> {
-					final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES);
-					for(final FLEFRecord resolve : resolves){
-						final FLEFRecord resolveCitation = resolve.getChildren()
-							.getFirst();
-						final String resolveTag = resolveCitation.getTag();
-						final String resolveXRef = XRefHelper.extractXRef(resolveCitation.getValue());
-						if(resolveTag.equals(parentEntityHandlerType) && resolveXRef.equals(recordId))
-							return true;
-					}
-					return false;
-				})
-				.toList();
-			setItems(conclusions);
-		}
-		else if(IndividualAttributeHandler.TYPE.equals(handler.getType())){
-			final List<FLEFRecord> individualAttributes = model.getRecordsByType(IndividualAttributeHandler.TYPE).stream()
-				.filter(attribute -> {
-					final List<FLEFRecord> individuals = FLEFRecordHelper.findChildren(attribute, TAG_INDIVIDUAL);
-					for(final FLEFRecord individual : individuals){
-						final String resolveTag = individual.getTag();
-						final String resolveXRef = XRefHelper.extractXRef(individual.getValue());
-						if(resolveTag.equals(parentEntityHandlerType) && resolveXRef.equals(recordId))
-							return true;
-
-						break;
-					}
-					return false;
-				})
-				.toList();
-			setItems(individualAttributes);
-		}
-		else if(GroupAttributeHandler.TYPE.equals(handler.getType())){
-			final List<FLEFRecord> groupAttributes = model.getRecordsByType(GroupAttributeHandler.TYPE).stream()
-				.filter(attribute -> {
-					final List<FLEFRecord> groups = FLEFRecordHelper.findChildren(attribute, TAG_GROUP);
-					for(final FLEFRecord group : groups){
-						final String resolveTag = group.getTag();
-						final String resolveXRef = XRefHelper.extractXRef(group.getValue());
-						if(resolveTag.equals(parentEntityHandlerType) && resolveXRef.equals(recordId))
-							return true;
-
-						break;
-					}
-					return false;
-				})
-				.toList();
-			setItems(groupAttributes);
-		}
-		else if(RelationshipHandler.TYPE.equals(handler.getType())){
-			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-			setItems(relationships);
-		}
+		final List<FLEFRecord> references = handler.findReferences(model, recordId, parentEntityHandlerType);
+		setItems(references);
 	}
 
-	//TODO refactor
 	/**
 	 * Saves the current entities to the given record.
 	 * <p>

@@ -69,8 +69,8 @@ import java.io.Serial;
  *   repository*: RepositoryCitation
  *   document*: Xref&lt;DocumentRecord&gt;
  *   note*: Xref&lt;NoteRecord&gt;
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -112,8 +112,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private final EntityCitationListPanel repositoryCitationPanel;
 	private final EntityReferenceListPanel documentPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static SourceRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -144,8 +144,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 			.withParentEntity(this.record.getId(), SourceHandler.TYPE);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), SourceHandler.TYPE);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -168,8 +168,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -224,8 +224,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		repositoryCitationPanel.load(record);
 		documentPanel.load(record);
 		notePanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -242,8 +242,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		repositoryCitationPanel.save(record);
 		documentPanel.save(record);
 		notePanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchQuestionRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -68,10 +69,9 @@ public class ResearchQuestionHandler implements RecordTypeHandler<ResearchQuesti
 		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
 		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
 		if(StringUtils.isNotEmpty(question)){
-			String display = question.length() > 40? question.substring(0, 37) + "…": question;
-			if(StringUtils.isNotEmpty(status)){
+			String display = GUIHelper.limitTextLength(question);
+			if(StringUtils.isNotEmpty(status))
 				display += " [" + status + "]";
-			}
 			return display;
 		}
 		return record.getId() != null? record.getId(): "(unnamed)";

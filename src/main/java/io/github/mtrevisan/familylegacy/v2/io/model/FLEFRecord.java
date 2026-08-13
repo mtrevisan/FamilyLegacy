@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JOptionPane;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -57,13 +58,13 @@ public class FLEFRecord{
 		return record;
 	}
 
-	public static FLEFRecord createChildWithValue(final String tag, final String value){
-		final FLEFRecord record = createChild(tag);
+	public static FLEFRecord createChildWithTagAndValue(final String tag, final String value){
+		final FLEFRecord record = createChildWithTag(tag);
 		record.setValue(value);
 		return record;
 	}
 
-	public static FLEFRecord createChild(final String tag){
+	public static FLEFRecord createChildWithTag(final String tag){
 		final FLEFRecord record = createEmpty();
 		record.setTag(tag);
 		return record;
@@ -124,7 +125,32 @@ public class FLEFRecord{
 		return children;
 	}
 
-	public long countChildren(final String tag){
+	public FLEFRecord getTheOnlyChild(final String tag){
+		final List<FLEFRecord> taggedChildren = FLEFRecordHelper.findChildren(this, tag);
+		final int size = taggedChildren.size();
+		if(size > 1){
+			JOptionPane.showMessageDialog(null, "Record with more than one child: " + this,
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		return (size == 1? taggedChildren.getFirst(): null);
+	}
+
+	public FLEFRecord getTheOnlyChild(){
+		final int size = children.size();
+		if(size > 1){
+			JOptionPane.showMessageDialog(null, "Record with more than one child: " + this,
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		return (size == 1? children.getFirst(): null);
+	}
+
+	public long countChildrenWithTag(final String tag){
 		return children.stream()
 			.filter(c -> tag.equals(c.getTag()))
 			.count();
@@ -185,7 +211,7 @@ public class FLEFRecord{
 	 * @param tag	the tag of children to remove
 	 * @return the list of removed children (empty if none were found)
 	 */
-	public List<FLEFRecord> removeChildren(final String tag){
+	private List<FLEFRecord> removeChildren(final String tag){
 		final List<FLEFRecord> removed = new ArrayList<>();
 		children.removeIf(child -> {
 			if(tag.equals(child.getTag())){

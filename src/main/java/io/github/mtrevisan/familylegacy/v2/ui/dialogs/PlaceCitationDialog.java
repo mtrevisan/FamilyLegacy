@@ -86,7 +86,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	private final BoundTextField place;
 	private final BoundTextField originalTextField;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel qualifiers;
 
 
@@ -104,7 +104,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		place = new BoundTextField(TAG_PLACE);
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
 
 
@@ -143,7 +143,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -174,7 +174,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		bindingManager.load(record);
 
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 		qualifiers.load(record);
 	}
 
@@ -198,7 +198,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		bindingManager.save(record);
 
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 		qualifiers.save(record);
 	}
 

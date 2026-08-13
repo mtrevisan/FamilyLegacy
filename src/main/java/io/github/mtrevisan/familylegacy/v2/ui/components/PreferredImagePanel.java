@@ -126,7 +126,8 @@ public class PreferredImagePanel extends JPanel{
 				builder.separator();
 				builder.selectionSensitiveItem("Edit Crop…", this::editCrop);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+			}
+		);
 
 		add(imageButton, "growx");
 	}

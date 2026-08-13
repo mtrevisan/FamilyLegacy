@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.images;
+package io.github.mtrevisan.familylegacy.todo.images;
 
 import java.awt.AlphaComposite;
 import java.awt.Color;
@@ -51,7 +51,7 @@ import java.util.Locale;
  *
  * @see <a href="https://github.com/rtyley/animated-gif-lib-for-java">Animated GIF library for Java</a>
  */
-public class GifDecoder{
+public class _GifDecoder{
 
 	public static final int FILE_READ_STATUS_OK = 0;
 	/** Error decoding file (maybe partially decoded) */

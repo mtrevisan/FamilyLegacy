@@ -27,7 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
@@ -39,6 +41,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -53,12 +56,14 @@ import java.io.Serial;
  * <pre>
  * record HistoricEventRecord {
  *   id: LocalID
+ *   type?: enum { war, epidemic, famine, migration, legal_reform, political_change, territorial_change, natural_disaster, economic_crisis, scientific_discovery, religious_reform, social_movement, pandemic } | Text
  *   title?: Text
  *   date?: DateStructure
  *   place?: PlaceCitation
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
- *   modification: ModificationStructure
+ *   evidence?: EvidenceQualifiers
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -68,11 +73,13 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -3544157573805016620L;
 
 
+	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_DATE = "DATE";
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_EVIDENCE = "EVIDENCE";
 
 
 	static{
@@ -83,12 +90,14 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
+	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField titleField;
 	private final DateField dateField;
 	private final PlaceField placeField;
 	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourceCitationPanel;
-	private final ModificationPanel modificationPanel;
+	private final EntityCitationListPanel sourcePanel;
+	private final EvidenceQualifiersPanel evidencePanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static HistoricEventRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -106,13 +115,21 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 		setTitle(record == null? "Add Historic Event": "Edit Historic Event");
 
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
+			"war", "epidemic", "famine", "migration", "legal_reform", "political_change", "territorial_change",
+			"natural_disaster", "economic_crisis", "scientific_discovery", "religious_reform", "social_movement",
+			"pandemic"
+		});
+		typeCombo.setEditable(true);
 		titleField = new BoundTextField(TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeField = PlaceField.create(TAG_PLACE, this, model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), HistoricEventHandler.TYPE);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		modificationPanel = new ModificationPanel(this);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -126,19 +143,24 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 
 	private void initComponents(){
+		bindingManager.bind(typeCombo);
 		bindingManager.bind(titleField);
 
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
 
 	private JPanel createMainPanel(){
-		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]10[]"));
+
+		// type
+		mainPanel.add(new JLabel("Type:"), "align label");
+		mainPanel.add(typeCombo, "growx,wrap");
 
 		// title
 		mainPanel.add(new JLabel("Title:"), "align label");
@@ -150,7 +172,10 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 		// place
 		mainPanel.add(new JLabel("Place:"), "align label");
-		mainPanel.add(placeField, "growx");
+		mainPanel.add(placeField, "growx,wrap");
+
+		// evidence
+		mainPanel.add(evidencePanel, "span 2,growx");
 
 		return mainPanel;
 	}
@@ -158,7 +183,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
 		panel.add(notePanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -170,8 +195,9 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		dateField.load(record);
 		placeField.load(record);
 		notePanel.load(record);
-		sourceCitationPanel.load(record);
-		modificationPanel.load(record);
+		sourcePanel.load(record);
+		evidencePanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -186,8 +212,9 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		dateField.save(record);
 		placeField.saveReferences(record);
 		notePanel.save(record);
-		sourceCitationPanel.save(record);
-		modificationPanel.save(record);
+		sourcePanel.save(record);
+		evidencePanel.save(record);
+		auditPanel.save(record);
 	}
 
 

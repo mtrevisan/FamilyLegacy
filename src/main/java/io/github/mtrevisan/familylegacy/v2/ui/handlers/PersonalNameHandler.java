@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PersonalNameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -78,7 +79,7 @@ public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStruct
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -102,8 +103,7 @@ public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStruct
 		if(result.isBlank())
 			return "[" + record.getId() + "]";
 
-		if(result.length() > 50)
-			result = result.substring(0, 50) + "…";
+		result = GUIHelper.limitTextLength(result);
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		if(type != null && !type.isBlank())
 			result += " (" + type + ")";

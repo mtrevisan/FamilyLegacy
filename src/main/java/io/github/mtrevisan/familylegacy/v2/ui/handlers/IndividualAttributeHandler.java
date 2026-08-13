@@ -27,10 +27,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualAttributeRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
+import java.util.List;
 
 
 /* DONE */
@@ -44,6 +46,7 @@ public class IndividualAttributeHandler implements RecordTypeHandler<IndividualA
 
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 
 
 	@Override
@@ -62,6 +65,25 @@ public class IndividualAttributeHandler implements RecordTypeHandler<IndividualA
 	}
 
 	@Override
+	public List<FLEFRecord> findReferences(final FLEFModel model, final String recordId,
+			final String parentEntityType){
+		return model.getRecordsByType(TYPE).stream()
+			.filter(attribute -> {
+				final List<FLEFRecord> individuals = FLEFRecordHelper.findChildren(attribute, TAG_INDIVIDUAL);
+				for(final FLEFRecord individual : individuals){
+					final String resolveTag = individual.getTag();
+					final String resolveXRef = XRefHelper.extractXRef(individual.getValue());
+					if(resolveTag.equals(parentEntityType) && resolveXRef.equals(recordId))
+						return true;
+
+					break;
+				}
+				return false;
+			})
+			.toList();
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return "--";
@@ -73,10 +95,11 @@ public class IndividualAttributeHandler implements RecordTypeHandler<IndividualA
 			sb.append('(')
 				.append(type)
 				.append(')');
-		if(type != null && StringUtils.isNotEmpty(value))
-			sb.append(StringUtils.SPACE);
-		if(StringUtils.isNotEmpty(value))
+		if(StringUtils.isNotEmpty(value)){
+			if(!sb.isEmpty())
+				sb.append(StringUtils.SPACE);
 			sb.append(value);
+		}
 		return sb.toString();
 	}
 

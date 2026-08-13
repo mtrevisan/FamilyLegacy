@@ -36,7 +36,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationLis
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -52,7 +54,7 @@ import java.io.Serial;
 import java.util.function.Consumer;
 
 
-/* ONGOING test */
+/* DONE */
 /**
  * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -72,8 +74,8 @@ import java.util.function.Consumer;
  *   }
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -92,6 +94,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
+
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
 
 
@@ -99,6 +103,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new ClassifiedNameHandler());
 		HandlerRegistry.register(new ConclusionTargetHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -111,12 +116,13 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField mapCoordinatesField;
 	private final EvidenceQualifiersPanel mapQualifiers;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel placeQualifiers;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel conclusionPanel;
 
 
@@ -143,11 +149,13 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES);
 		mapQualifiers = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, "Map Evidence");
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		placeQualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Place Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), PlaceHandler.TYPE);
 		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionTargetHandler.TYPE)
 			.withParentEntity(this.record.getId(), PlaceHandler.TYPE);
 
@@ -169,8 +177,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -181,7 +189,6 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		// type
 		mainPanel.add(new JLabel("Type:"), "align label");
-		typeCombo.setEditable(true);
 		mainPanel.add(typeCombo, "growx,wrap");
 
 		// map
@@ -199,9 +206,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
+		panel.add(culturalNormPanel, "growx");
 		panel.add(conclusionPanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -212,10 +220,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		namePanel.load(record);
 		mapQualifiers.load(record);
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 		placeQualifiers.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 
 		conclusionPanel.loadReference(record.getId());
 	}
@@ -240,10 +248,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		mapQualifiers.save(record);
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 		placeQualifiers.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 
 		conclusionPanel.save(record);
 	}
@@ -253,22 +261,22 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 //		GUIHelper.launch(PlaceRecordDialog::createNew, modelFiller);
 
 		final FLEFRecord conclusion = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion.addChild(FLEFRecord.createChildWithValue("CONTEXT", "fdgh"));
-		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
-			.addChild(FLEFRecord.createChildWithValue("PLACE", "@P1@"))
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "fdgh"));
+		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
+			.addChild(FLEFRecord.createChildWithTagAndValue("PLACE", "@P1@"))
 		);
-		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
-			.addChild(FLEFRecord.createChildWithValue("GROUP", "@G2@"))
+		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G2@"))
 		);
-		conclusion.addChild(FLEFRecord.createChildWithValue("PREFERRED", "@P1@"));
-		conclusion.addChild(FLEFRecord.createChildWithValue("PROOF_STATUS", "supported"));
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("PREFERRED", "@P1@"));
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("PROOF_STATUS", "supported"));
 		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-		place.addChild(FLEFRecord.createChild("NAME")
-			.addChild(FLEFRecord.createChild("TEXT")
-				.addChild(FLEFRecord.createChildWithValue("VALUE", "f"))
+		place.addChild(FLEFRecord.createChildWithTag("NAME")
+			.addChild(FLEFRecord.createChildWithTag("TEXT")
+				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "f"))
 			)
 		);
-		place.addChild(FLEFRecord.createChildWithValue("CONCLUSION", conclusion.getId()));
+		place.addChild(FLEFRecord.createChildWithTagAndValue("CONCLUSION", conclusion.getId()));
 
 		final Consumer<FLEFModel> modelFiller = model -> {
 			model.addRecord(conclusion);

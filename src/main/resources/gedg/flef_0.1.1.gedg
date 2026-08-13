@@ -14,8 +14,6 @@
 // - blocked_by relationships SHOULD form a DAG.
 // - follow_up relationships SHOULD be acyclic.
 
-// FIXME Xref<CulturalNormRecord> vs CulturalNormImpactRecord?
-
 
 // ============================================================
 // Base scalar types
@@ -57,11 +55,10 @@ Record = oneof {
   note: NoteRecord
   repository: RepositoryRecord
   cultural_norm: CulturalNormRecord
-  cultural_norm_impact: CulturalNormImpactRecord
   source: SourceRecord
   document: DocumentRecord
   historic_event: HistoricEventRecord
-  historic_event_impact: HistoricEventImpactRecord
+  context_impact: ContextImpactRecord
   identity_hypothesis: IdentityHypothesisRecord
   research_question: ResearchQuestionRecord
   research_activity: ResearchActivityRecord
@@ -106,17 +103,17 @@ struct Header {
 record IndividualRecord {
   id: LocalID
   name*: PersonalNameStructure               // names associated with this individual (birth name, married name, alias, etc.)
-  sex?: enum {                               // Biological sex as recorded in sources or inferred from evidence. This field represents a genealogical research assertion.
+  sex?: enum {                               // Biological sex as recorded in sources or inferred from evidence. This represents a genealogical conclusion and may be revised as additional evidence becomes available.
     male, female, unknown
   }
   note*: Xref<NoteRecord>                    // free-text notes about this individual
   source*: SourceCitation                    // source citations supporting facts about this individual
   preferred_image?: struct {
     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
-    crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
+    crop?: CropRect   // normalized rectangle identifying the region of interest within the image
   }
-  restriction?: RestrictionStructure
-  modification: ModificationStructure        // creation and update metadata for this record
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 // embedded
@@ -132,12 +129,12 @@ struct PersonalNameStructure {
     // legal, immigration, and naturalization changes
     legal, immigrant, adapted,
     // informal, stage, and social names
-    aka, nickname, artistic, professional, user,
+    alias, nickname, artistic, professional, user,
     // historical and dynastic contexts
     regnal, slave_name
     // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
   } | Text
-  part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names).
+  part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
   cultural_norm*: Xref<CulturalNormRecord>
   note*: Xref<NoteRecord>
   source*: SourceCitation
@@ -184,7 +181,7 @@ record EventRecord {
     engagement, marriage_bann, marriage_contract, marriage_license, marriage_settlement,
     marriage, divorce_filed, divorce_decree, divorce, annulment
   } | Text
-  description?: Text              // text describing a particular event pertaining to the individual or group, or the value of an attribute
+  description?: Text              // Human-readable description of the event when a structured representation is insufficient.
   date?: DateStructure            // the date of the event
   place?: PlaceCitation           // the location of the event
   agency?: Text                   // Organization, institution, authority, corporation, or person responsible for the associated context (e.g., an employer, a church that administered rites, an archiving organization)
@@ -195,8 +192,8 @@ record EventRecord {
   note*: Xref<NoteRecord>
   source*: SourceCitation
   evidence?: EvidenceQualifiers   // evidence qualifiers for the event
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 // --- Informational note: taxonomy of EVENT/ATTRIBUTE types ---
@@ -273,8 +270,8 @@ record IndividualAttributeRecord {
   place?: PlaceCitation                // Place specifically associated with this attribute.
   source*: SourceCitation              // Sources supporting this attribute.
   evidence?: EvidenceQualifiers        // Evidentiary assessment of this assertion.
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 
@@ -298,8 +295,8 @@ record EventParticipationRecord {
   note*: Xref<NoteRecord>
   source*: SourceCitation
   evidence?: EvidenceQualifiers
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 EventParticipant = oneof {
@@ -330,8 +327,8 @@ record GroupRecord {
     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
   }
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 
@@ -365,8 +362,8 @@ record GroupAttributeRecord {
   place?: PlaceCitation           // Place specifically associated with this attribute, when different from the group's general residence.
   source*: SourceCitation         // Sources supporting this attribute.
   evidence?: EvidenceQualifiers   // Evidentiary assessment of this assertion.
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 
@@ -503,8 +500,8 @@ record RelationshipRecord {
   note*: Xref<NoteRecord>
   source*: SourceCitation
   evidence?: EvidenceQualifiers
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 RelationshipParticipant = oneof {
@@ -534,8 +531,8 @@ record PlaceRecord {
   }
   source*: SourceCitation
   evidence?: EvidenceQualifiers
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 // embedded
@@ -569,7 +566,7 @@ record PlaceRelationshipRecord {
   valid_to?: DateStructure      // the date until which this place relationship is known or believed to have been valid
   note*: Text                   // a note containing commentary, interpretation, or discussion related to this place relationship
   source*: SourceCitation       // a list of source citations supporting the existence, interpretation, or dating of this place relationship
-  modification: ModificationStructure
+  audit: AuditStructure
 }
 
 
@@ -589,8 +586,8 @@ record NoteRecord {
     locale?: LocaleCode
   }
   source*: SourceCitation
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 
@@ -607,8 +604,8 @@ record RepositoryRecord {
   place?: PlaceCitation                // the location of the repository
   contact*: ContactStructure
   note*: Xref<NoteRecord>
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 // embedded
@@ -645,8 +642,8 @@ struct ContactStructure {
     variant*: TextValueVariant
   }
   note?: Text
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 
@@ -706,26 +703,60 @@ record CulturalNormRecord {
   note*: Xref<NoteRecord>
   source*: SourceCitation
   evidence?: EvidenceQualifiers
-  modification: ModificationStructure
+  audit: AuditStructure
 }
 
-record CulturalNormImpactRecord {
+// association record
+// Links a contextual factor to a genealogical entity, assertion, or research outcome that it influences, explains, constrains, motivates, or causes.
+// Contextual factors may include cultural norms, historical events, legal frameworks, social customs, environmental conditions, or other external influences represented
+// through CONTEXT.
+// This record is intended to document interpretative relationships rather than direct evidence of participation or ownership. It explicitly captures how broader context
+// helps explain, influence, or justify genealogical conclusions and assertions.
+//
+// Recommended usage:
+//  - Historic events commonly EXPLAIN, INFLUENCE, MOTIVATE or CAUSE.
+//  - Cultural norms commonly EXPLAIN, INFLUENCE or CONSTRAIN.
+// Implementations SHOULD warn when a combination appears semantically unusual.
+// Implementations SHOULD index ContextImpactRecord by both CONTEXT and TARGET.
+record ContextImpactRecord {
   id: LocalID
-  cultural_norm: Xref<CulturalNormRecord>
-  target: CulturalNormImpactTarget
-
-  significance?: Text
+  context: ContextSource    // The contextual factor exerting the influence.
+  target: ImpactTarget      // The entity, assertion, attribute, relationship, or conclusion affected by the context.
+  impact_type?: enum {
+    explains,     // Provides explanatory context for the target.
+    influences,   // Exerts a general influence on the target.
+    constrains,   // Limits or restricts what was possible or likely.
+    motivates,    // Encourages, promotes, or makes the target more likely.
+    causes        // Directly contributes to the occurrence or existence of the target.
+  } | Text
+  significance?: Text       // Human-readable description of the nature, significance, or consequences of the contextual influence on the target.
+  source*: SourceCitation   // Sources supporting the existence or interpretation of this contextual relationship.
+  evidence?: EvidenceQualifiers
+  audit: AuditStructure
 }
 
-CulturalNormImpactTarget = oneof {
+// A contextual factor that may influence or explain genealogical information.
+// Context sources are not themselves evidence that a target participated in an event or followed a practice; they provide historical, cultural, legal, social,
+// environmental, or interpretative context.
+ContextSource = oneof {
+  cultural_norm: Xref<CulturalNormRecord>
+  historic_event: Xref<HistoricEventRecord>
+}
+
+ImpactTarget = oneof {
   individual: Xref<IndividualRecord>
   group: Xref<GroupRecord>
+  place: Xref<PlaceRecord>
   event: Xref<EventRecord>
   relationship: Xref<RelationshipRecord>
   individual_attribute: Xref<IndividualAttributeRecord>
   group_attribute: Xref<GroupAttributeRecord>
   conclusion: Xref<ConclusionRecord>
+  event_participation: Xref<EventParticipationRecord>
+  place_relationship: Xref<PlaceRelationshipRecord>
+  identity_hypothesis: Xref<IdentityHypothesisRecord>
 }
+
 
 // --- Examples ---
 // For Latin names, you must use the nominative (which generally ends in -us for men and -a for women).
@@ -756,8 +787,8 @@ record SourceRecord {
   repository*: RepositoryCitation
   document*: Xref<DocumentRecord>   // a document reference to the auxiliary data to be linked to this context
   note*: Xref<NoteRecord>           // may contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 // embedded
@@ -767,7 +798,7 @@ struct SourceCitation {
   location?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
   extract*: ExtractStructure
   evidence?: EvidenceQualifiers
-  restriction?: RestrictionStructure
+  privacy?: PrivacyStructure
 
   require extract.document_part.document in source.document
 }
@@ -823,8 +854,8 @@ record DocumentRecord {
   } | Text
   description?: Text   // Optional description of the document or media (e.g. "cover", "back", "page 3", "index", "cemetery entrance").
   note*: Xref<NoteRecord>
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 
@@ -937,29 +968,28 @@ enum CenturyPart {
 // exists primarily to provide historical, legal, social, environmental, or political context.
 record HistoricEventRecord {
   id: LocalID
+  type?: enum {
+    war,                    // Armed conflict between states, governments, factions, or organized groups.
+    epidemic,               // Widespread outbreak of an infectious disease affecting a population within a region.
+    famine,                 // Severe shortage of food resulting in widespread hunger, malnutrition, or mortality.
+    migration,              // Large-scale movement or resettlement of populations across regions or political boundaries.
+    legal_reform,           // Introduction, modification, or abolition of laws, legal systems, or judicial frameworks.
+    political_change,       // Significant alteration of political authority, governance, sovereignty, or regime structure.
+    territorial_change,     // Modification of borders, jurisdictions, territorial ownership, or administrative organization.
+    natural_disaster,       // Destructive natural event such as an earthquake, flood, volcanic eruption, wildfire, drought, or storm.
+    economic_crisis,        // Major disruption of economic activity, including depressions, financial crashes, inflation crises, or trade collapses.
+    scientific_discovery,   // Scientific breakthrough, technological innovation, or major advancement affecting society or historical development.
+    religious_reform,       // Major religious, ecclesiastical, or doctrinal change affecting institutions or populations.
+    social_movement,        // Organized social or cultural movement that influences societal norms, rights, or collective behavior.
+    pandemic                // Epidemic affecting multiple countries or continents.
+  } | Text
   title?: Text            // the title of the event
   date?: DateStructure    // the date on which this historic event happened
   place?: PlaceCitation   // the place in which this historic event happened
   note*: Xref<NoteRecord>
   source*: SourceCitation
-  modification: ModificationStructure
-}
-
-// Links a historical event to a genealogical entity or event that was influenced, explained, triggered, constrained, or otherwise affected
-// by the historical context. This structure allows researchers to explicitly document the impact of broader historical developments
-// (such as wars, epidemics, legal reforms, migrations, or natural disasters) on specific genealogical records.
-record HistoricEventImpactRecord {
-  id: LocalID
-  historic_event: Xref<HistoricEventRecord>   // The historical event that provides context or exerted an influence.
-  target: ImpactTarget                        // The genealogical entity or event affected by the historical event.
-  significance?: Text                         // Description of the nature, significance, or consequences of the historical event on the target.
-}
-
-ImpactTarget = oneof {
-  individual: Xref<IndividualRecord>
-  group: Xref<GroupRecord>
-  place: Xref<PlaceRecord>
-  event: Xref<EventRecord>
+  evidence?: EvidenceQualifiers
+  audit: AuditStructure
 }
 
 
@@ -986,8 +1016,8 @@ record ResearchQuestionRecord {
   rationale?: Text          // explanation supporting the conclusion
   created: Date
   closed?: Date             // date the question was resolved or disproven
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 ResearchTarget = oneof {
@@ -1056,8 +1086,8 @@ record ResearchActivityRecord {
   source*: Xref<SourceRecord>               // sources consulted, examined, or discovered
   parent?: Xref<ResearchActivityRecord>     // previous activity from which this activity originated
   task*: Xref<ResearchTaskRecord>           // follow-up tasks generated by this activity
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 // primary record
@@ -1076,8 +1106,8 @@ record ResearchTaskRecord {
   priority?: enum { low, normal, high }
   due_date?: Date                             // optional target completion date
   outcome?: Text                              // notes describing the result once completed
-  restriction?: RestrictionStructure
-  modification: ModificationStructure
+  privacy?: PrivacyStructure
+  audit: AuditStructure
 }
 
 // primary record
@@ -1126,13 +1156,13 @@ ConclusionTarget = oneof {
 
 
 // ================================================
-// Restriction, modification, identity, evidence
+// Privacy, audit, identity, evidence
 // ================================================
 
 // embedded
-// Specifies how this structure may be displayed, exported, or distributed. The restriction expresses the intent of the data contributor and should be
+// Specifies how this structure may be displayed, exported, or distributed. The privacy expresses the intent of the data contributor and should be
 // respected regardless of any automatic privacy policy applied by the receiving system.
-struct RestrictionStructure {
+struct PrivacyStructure {
   level: enum {
     public,        // information may be freely displayed, exported, and distributed
     restricted,    // information should be treated with caution and may be omitted from public reports, exports, or distributions
@@ -1147,7 +1177,7 @@ struct RestrictionStructure {
 // embedded
 // Audit trail describing when the structure was created and subsequently modified. This information concerns the record itself, not the historical
 // subject represented by the record.
-struct ModificationStructure {
+struct AuditStructure {
   creation: struct {
     date: Date   // the date of the creation of this structure
     comment?: Text
@@ -1173,7 +1203,7 @@ record IdentityHypothesisRecord {
   comment?: Text                 // a note explaining the basis for the possible duplicate hypothesis
   source*: SourceCitation
   evidence?: EvidenceQualifiers
-  modification: ModificationStructure
+  audit: AuditStructure
   
   require subject != candidate
   require type(subject) == type(candidate)

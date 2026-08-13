@@ -65,8 +65,8 @@ import java.io.Serial;
  *     locale?: LocaleCode
  *   }
  *   source*: SourceCitation
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -91,7 +91,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]5[]"));
+	private final JPanel propertiesPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]5[]10[]"));
 
 	private final BindingManager bindingManager = new BindingManager();
 
@@ -100,9 +100,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> mimeCombo;
 	private final BoundComboBox<String> localeCombo;
 	private final TranslationListPanel translationPanel;
-	private final EntityCitationListPanel sourceCitationPanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final EntityCitationListPanel sourcePanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static NoteRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -127,9 +127,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations", model);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -149,38 +149,40 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(localeCombo);
 
 
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Properties", createPropertiesPanel());
+		tabbedPane.addTab("Sources", createSourcesPanel());
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
 
-	private JPanel createMainPanel(){
+	private JPanel createPropertiesPanel(){
 		// title
-		mainPanel.add(new JLabel("Title:"), "align label");
-		mainPanel.add(titleField, "growx,wrap");
+		propertiesPanel.add(new JLabel("Title:"), "align label");
+		propertiesPanel.add(titleField, "growx,wrap");
 
 		// value
-		mainPanel.add(new JLabel("Value*:"), "align label,top");
-		mainPanel.add(GUIHelper.createScrollPane(valueArea), "growx,growy,wrap");
+		propertiesPanel.add(new JLabel("Value*:"), "align label,top");
+		propertiesPanel.add(GUIHelper.createScrollPane(valueArea), "growx,growy,wrap");
 
 		// mime
-		mainPanel.add(new JLabel("MIME:"), "align label");
-		mainPanel.add(mimeCombo, "growx,wrap");
+		propertiesPanel.add(new JLabel("MIME:"), "align label");
+		propertiesPanel.add(mimeCombo, "growx,wrap");
 
 		// locale
-		mainPanel.add(new JLabel("Locale:"), "align label");
-		mainPanel.add(localeCombo, "growx,wrap");
+		propertiesPanel.add(new JLabel("Locale:"), "align label");
+		propertiesPanel.add(localeCombo, "growx,wrap");
 
-		return mainPanel;
+		// translation
+		propertiesPanel.add(translationPanel, "span 2,growx");
+
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
+	private JPanel createSourcesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
-		panel.add(translationPanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -190,9 +192,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		bindingManager.load(record);
 
 		translationPanel.load(record);
-		sourceCitationPanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		sourcePanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -200,7 +202,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		if(valueArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Note value is required.",
-				tabbedPane, mainPanel, valueArea);
+				tabbedPane, propertiesPanel, valueArea);
 
 			return false;
 		}
@@ -213,9 +215,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		bindingManager.save(record);
 
 		translationPanel.save(record);
-		sourceCitationPanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		sourcePanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

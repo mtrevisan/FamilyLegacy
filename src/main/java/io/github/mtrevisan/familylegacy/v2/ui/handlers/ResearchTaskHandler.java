@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchTaskRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -65,10 +66,9 @@ public class ResearchTaskHandler implements RecordTypeHandler<ResearchTaskRecord
 		String description = FLEFRecordHelper.getChildValue(record, "DESCRIPTION");
 		String status = FLEFRecordHelper.getChildValue(record, "STATUS");
 		if(StringUtils.isNotEmpty(description)){
-			String display = description.length() > 40? description.substring(0, 37) + "…": description;
-			if(StringUtils.isNotEmpty(status)){
+			String display = GUIHelper.limitTextLength(description);
+			if(StringUtils.isNotEmpty(status))
 				display += " [" + status + "]";
-			}
 			return display;
 		}
 		return record.getId() != null? record.getId(): "(unnamed)";

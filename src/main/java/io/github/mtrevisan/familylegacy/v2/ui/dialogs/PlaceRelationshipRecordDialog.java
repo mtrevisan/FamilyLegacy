@@ -33,7 +33,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
@@ -54,6 +56,8 @@ import java.io.Serial;
 
 /* DONE */
 /**
+ * Dialog for editing a {@code PLACE_RELATIONSHIP_RECORD} according to FLEF 0.1.1.
+ * <p>
  * Structure:
  * <pre>
  * record PlaceRelationshipRecord {
@@ -65,7 +69,7 @@ import java.io.Serial;
  *   valid_to?: DateStructure
  *   note*: Text
  *   source*: SourceCitation
- *   modification: ModificationStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -75,18 +79,24 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -4588274864438851179L;
 
 
-	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
+	private static final String DOT = ".";
+
+	private static final String TAG_PLACE = "PLACE";
+	private static final String TAG_SUBJECT_PLACE = "SUBJECT" + DOT + TAG_PLACE;
+	private static final String TAG_OBJECT_PLACE = "OBJECT" + DOT + TAG_PLACE;
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
 
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+
 
 	static{
 		HandlerRegistry.register(new PlaceRelationshipHandler());
 		HandlerRegistry.register(new NoteHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -102,8 +112,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourceCitationPanel;
-	private final ModificationPanel modificationPanel;
+	private final EntityCitationListPanel sourcePanel;
+	private final ModificationPanel auditPanel;
+
+	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static PlaceRelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -122,8 +135,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		setTitle(record == null? "Add Place Relationship": "Edit Place Relationship");
 
 		subjectLabel = new JLabel("Subject*:");
-		subjectField = PlaceField.create(TAG_SUBJECT, this, model);
-		objectField = PlaceField.create(TAG_OBJECT, this, model);
+		subjectField = PlaceField.create(TAG_SUBJECT_PLACE, this, model);
+		objectField = PlaceField.create(TAG_OBJECT_PLACE, this, model);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
@@ -134,8 +147,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), PlaceRelationshipHandler.TYPE);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		modificationPanel = new ModificationPanel(this);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		auditPanel = new ModificationPanel(this);
+
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), PlaceRelationshipHandler.TYPE);
 
 
 		initComponents();
@@ -154,7 +170,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -187,9 +203,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
+		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -225,8 +242,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		validFromField.load(record);
 		validToField.load(record);
 		notePanel.load(record);
-		sourceCitationPanel.load(record);
-		modificationPanel.load(record);
+		sourcePanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -268,8 +285,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		validFromField.save(record);
 		validToField.save(record);
 		notePanel.save(record);
-		sourceCitationPanel.save(record);
-		modificationPanel.save(record);
+		sourcePanel.save(record);
+		auditPanel.save(record);
 	}
 
 

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import java.awt.Dialog;
 
@@ -73,7 +74,7 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -85,9 +86,7 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 		if(textValue != null){
 			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
 			if(value != null && !value.isEmpty()){
-				// Truncate long names
-				if(value.length() > 50)
-					value = value.substring(0, 50) + "…";
+				value = GUIHelper.limitTextLength(value);
 
 				final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 				if(type != null && !type.isEmpty())

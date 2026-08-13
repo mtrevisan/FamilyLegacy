@@ -61,7 +61,7 @@ import java.io.Serial;
  *     official, religious, birth,
  *     married, maiden, divorce, adoption, fostering,
  *     legal, immigrant, adapted,
- *     aka, nickname, artistic, professional, user,
+ *     alias, nickname, artistic, professional, user,
  *     regnal, slave_name
  *   } | Text
  *   part+: PartStructure
@@ -101,8 +101,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new VariantHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new PartHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -115,7 +115,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final EntityReferenceListPanel partPanel;
 	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 
 
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -140,7 +140,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			// legal, immigration, and naturalization changes
 			"legal", "immigrant", "adapted",
 			// informal, stage, and social names
-			"aka", "nickname", "artistic", "professional", "user",
+			"alias", "nickname", "artistic", "professional", "user",
 			// historical and dynastic contexts
 			"regnal", "slave_name"
 		});
@@ -148,7 +148,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		partPanel = EntityReferenceListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.TYPE);
 		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 
 
 		initComponents();
@@ -186,9 +186,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
+		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -200,7 +201,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		partPanel.load(record);
 		culturalNormPanel.load(record);
 		notePanel.load(record);
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 	}
 
 	@Override
@@ -223,7 +224,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		partPanel.save(record);
 		culturalNormPanel.save(record);
 		notePanel.save(record);
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 	}
 
 	public boolean hasData(){

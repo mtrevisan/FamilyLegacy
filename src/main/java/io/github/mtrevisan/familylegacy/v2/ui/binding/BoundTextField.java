@@ -106,4 +106,16 @@ public class BoundTextField extends JTextField implements PathBound{
 		return StringUtils.isEmpty(getText());
 	}
 
+
+	@Override
+	public String toString(){
+		final StringBuilder sb = new StringBuilder();
+		sb.append("value: ");
+		final String text = getText();
+		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
+			.append(", path: ")
+			.append(path);
+		return sb.toString();
+	}
+
 }

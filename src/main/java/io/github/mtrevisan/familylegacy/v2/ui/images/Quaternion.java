@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.images;
 
-
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ZeroException;
 
 

@@ -117,7 +117,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.selectionSensitiveItem("Edit Record…", this::editTargetItem);
 				builder.selectionSensitiveItem("Edit Citation…", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+			}
+		);
 	}
 
 

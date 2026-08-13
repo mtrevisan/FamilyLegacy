@@ -34,6 +34,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel
 import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
@@ -67,7 +69,7 @@ import java.io.Serial;
  *   comment?: Text
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
- *   modification: ModificationStructure
+ *   audit: AuditStructure
  *
  *   require subject != candidate
  * }
@@ -91,6 +93,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+
 
 	static{
 		HandlerRegistry.register(new IdentityHypothesisHandler());
@@ -98,6 +102,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new SourceHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -111,7 +116,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea commentArea;
 	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
-	private final ModificationPanel modificationPanel;
+	private final ModificationPanel auditPanel;
+
+	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static IdentityHypothesisRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -131,7 +139,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
 		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		modificationPanel = new ModificationPanel(this);
+		auditPanel = new ModificationPanel(this);
+
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), IdentityHypothesisHandler.TYPE);
 
 
 		initComponents();
@@ -150,7 +161,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -172,6 +183,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+		panel.add(culturalNormPanel, "growx");
 		panel.add(sourcePanel, "growx");
 		return panel;
 	}
@@ -193,7 +205,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		candidateField.load(record);
 		sourcePanel.load(record);
 		evidencePanel.load(record);
-		modificationPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -238,7 +250,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		candidateField.saveReferences(record);
 		sourcePanel.save(record);
 		evidencePanel.save(record);
-		modificationPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

@@ -22,14 +22,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.images;
+package io.github.mtrevisan.familylegacy.todo.images;
 
 //import org.opencv.core.*;
 //import org.opencv.imgcodecs.Imgcodecs;
 //import org.opencv.imgproc.Imgproc;
 
 
-public class ImageProjectionTypeDetector{
+public class _ImageProjectionTypeDetector{
 
 //	static{
 //		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);

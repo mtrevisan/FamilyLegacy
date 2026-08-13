@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.images;
+package io.github.mtrevisan.familylegacy.todo.images;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -37,7 +37,7 @@ import java.io.OutputStream;
 /**
  * @see <a href="https://github.com/rtyley/animated-gif-lib-for-java">Animated GIF library for Java</a>
  */
-public class AnimatedGifEncoder{
+public class _AnimatedGifEncoder{
 
 	private int width;
 	private int height;
@@ -340,7 +340,7 @@ public class AnimatedGifEncoder{
 		final int len = pixels.length;
 		final int nPix = len / 3;
 		indexedPixels = new byte[nPix];
-		final NeuralNetQuantizationAlgorithm nq = new NeuralNetQuantizationAlgorithm(pixels, len, sample);
+		final _NeuralNetQuantizationAlgorithm nq = new _NeuralNetQuantizationAlgorithm(pixels, len, sample);
 		// initialize quantizer
 		colorTab = nq.process(); // create reduced palette
 		// convert map from BGR to RGB
@@ -548,7 +548,7 @@ public class AnimatedGifEncoder{
 	 * Encodes and writes pixel data
 	 */
 	private void writePixels() throws IOException{
-		final LZWEncoder encoder = new LZWEncoder(width, height, indexedPixels, colorDepth);
+		final _LZWEncoder encoder = new _LZWEncoder(width, height, indexedPixels, colorDepth);
 		encoder.encode(out);
 	}
 

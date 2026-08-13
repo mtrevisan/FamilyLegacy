@@ -161,7 +161,7 @@ public class ApproximatePanel extends JPanel{
 			return;
 
 		// Create an APPROXIMATE node as a child of parent
-		final FLEFRecord approx = FLEFRecord.createChild(path);
+		final FLEFRecord approx = FLEFRecord.createChildWithTag(path);
 
 		final String basis = (String)basisCombo.getSelectedItem();
 		if(basis != null && !basis.isEmpty())

@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +54,10 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -259585503419013969L;
 
 
+	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
+	private static final String TAG_DESCRIPTION = "DESCRIPTION";
+	private static final String TAG_FILE = "FILE";
 	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_LOCALE = "LOCALE";
@@ -90,31 +94,64 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord item){
-		if(item != null){
-			final String text = FLEFRecordHelper.getChildValue(item, TAG_TEXT);
-			final String type = FLEFRecordHelper.getChildValue(item, TAG_TYPE);
-			final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
+		if(item == null)
+			return "--";
 
-			final StringBuilder sb = new StringBuilder();
-			if(StringUtils.isNotEmpty(locale))
-				sb.append('[')
-					.append(locale)
-					.append("] ");
-			if(StringUtils.isNotEmpty(text))
-				sb.append(text.length() > 50? text.substring(0, 47) + "…": text);
-			if(StringUtils.isNotEmpty(type))
-				sb.append(" (")
-					.append(type)
-					.append(')');
-			return sb.toString();
+		final String text = FLEFRecordHelper.getChildValue(item, TAG_TEXT);
+		final String type = FLEFRecordHelper.getChildValue(item, TAG_TYPE);
+		final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
+
+		final StringBuilder sb = new StringBuilder();
+		if(StringUtils.isNotEmpty(locale))
+			sb.append('[')
+				.append(locale)
+				.append("] ");
+
+		if(StringUtils.isNotEmpty(text))
+			sb.append(GUIHelper.limitTextLength(text));
+		else{
+			// First document_part
+			final FLEFRecord documentPart = FLEFRecordHelper.findChildren(item, TAG_DOCUMENT_PART).stream()
+				.findFirst()
+				.orElse(null);
+			if(documentPart != null){
+				final FLEFRecord documentCitation = FLEFRecordHelper.findChild(documentPart, TAG_DOCUMENT);
+				final String documentId = (documentCitation != null? documentCitation.getValue(): null);
+				final FLEFRecord document = model.getRecordById(documentId);
+				if(document != null){
+					final String description = FLEFRecordHelper.getChildValue(document, TAG_DESCRIPTION);
+
+					if(StringUtils.isNotBlank(description))
+						sb.append(description);
+					else{
+						final String uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
+						if(StringUtils.isNotBlank(uri))
+							sb.append(FileHelper.getFilename(uri));
+						else
+							sb.append('[')
+								.append(document.getId())
+								.append(']');
+					}
+				}
+			}
 		}
 
-		return "--";
+		if(StringUtils.isNotEmpty(type)){
+			if(!sb.isEmpty())
+				sb.append(' ');
+			sb.append('(')
+				.append(type)
+				.append(')');
+		}
+
+		return (!sb.isEmpty()
+			? sb.toString()
+			: "--");
 	}
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -165,11 +202,11 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 				final FLEFRecord res = FLEFRecord.createEmpty();
 				documentPartPanel.saveReferences(res);
-				res.addChild(FLEFRecord.createChildWithValue(TAG_TEXT, textArea.getText()));
-				res.addChild(FLEFRecord.createChildWithValue(TAG_TYPE, (String)typeCombo.getSelectedItem()));
-				res.addChild(FLEFRecord.createChildWithValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TEXT, textArea.getText()));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, (String)typeCombo.getSelectedItem()));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
 				for(final FLEFRecord note : basicNote.getItems())
-					res.addChild(FLEFRecord.createChildWithValue(TAG_NOTE, FLEFRecordHelper.getChildValuesAsString(note, TAG_COMMENT)));
+					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_NOTE, FLEFRecordHelper.getChildValuesAsString(note, TAG_COMMENT)));
 				result[0] = res;
 
 				dialog.dispose();
@@ -225,7 +262,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		if(StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
 		for(final String note : notes)
-			basicNote.addItemDirectly(FLEFRecord.createChildWithValue(TAG_COMMENT, note));
+			basicNote.addItemDirectly(FLEFRecord.createChildWithTagAndValue(TAG_COMMENT, note));
 	}
 
 	private static boolean validExtractData(final JDialog dialog, final DocumentPartListPanel documentPartPanel,

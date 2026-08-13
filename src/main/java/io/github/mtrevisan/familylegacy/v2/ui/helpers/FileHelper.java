@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.tika.Tika;
@@ -228,6 +229,10 @@ public final class FileHelper{
 		final Path relativePath = Paths.get(relativeDir);
 		final Path targetPath = basePath.resolve(relativePath).normalize();
 		return targetPath.toString();
+	}
+
+	public static String getFilename(final String uri){
+		return FilenameUtils.getBaseName(uri);
 	}
 
 }

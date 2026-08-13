@@ -174,4 +174,18 @@ public class DateField extends JPanel{
 			() -> DateFieldPanel.extractDateSummary(record));
 	}
 
+
+	@Override
+	public String toString(){
+		final StringBuilder sb = new StringBuilder();
+		sb.append("value: ");
+		String text = displayField.getText();
+		if(GUIHelper.isPlaceholder(text))
+			text = null;
+		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
+			.append(", path: ")
+			.append(path);
+		return sb.toString();
+	}
+
 }

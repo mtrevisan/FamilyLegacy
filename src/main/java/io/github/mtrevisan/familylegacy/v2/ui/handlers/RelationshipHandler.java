@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
+import java.util.List;
 
 
 /* DONE */
@@ -68,26 +69,36 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipRecord
 	}
 
 	@Override
+	public List<FLEFRecord> findReferences(final FLEFModel model, final String recordId,
+			final String parentEntityType){
+		return model.getRecordsByType(TYPE);
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final FLEFRecord subjectCitation = FLEFRecordHelper.findChild(record, TAG_SUBJECT)
-			.getChildren()
-			.getFirst();
-		final String subjectTag = subjectCitation.getTag();
-		final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subjectTag);
-		final FLEFRecord subjectRecord = model.getRecordById(subjectCitation.getValue());
-		final String subjectDisplayText = (subjectRecord != null
-			? subjectHandler.getDisplayText(subjectRecord, model)
-			: "[" + XRefHelper.extractXRef(subjectCitation.getValue()) + "]");
+			.getTheOnlyChild();
+		String subjectDisplayText = "--";
+		if(subjectCitation != null && !subjectCitation.isEmpty()){
+			final String subjectTag = subjectCitation.getTag();
+			final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subjectTag);
+			final FLEFRecord subjectRecord = model.getRecordById(subjectCitation.getValue());
+			subjectDisplayText = (subjectRecord != null
+				? subjectHandler.getDisplayText(subjectRecord, model)
+				: "[" + XRefHelper.extractXRef(subjectCitation.getValue()) + "]");
+		}
 
+		String objectDisplayText = "--";
 		final FLEFRecord objectCitation = FLEFRecordHelper.findChild(record, TAG_OBJECT)
-			.getChildren()
-			.getFirst();
-		final String objectTag = objectCitation.getTag();
-		final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(objectTag);
-		final FLEFRecord objectRecord = model.getRecordById(objectCitation.getValue());
-		final String objectDisplayText = (objectRecord != null
-			? objectHandler.getDisplayText(objectRecord, model)
-			: "[" + XRefHelper.extractXRef(objectCitation.getValue()) + "]");
+			.getTheOnlyChild();
+		if(subjectCitation != null && !subjectCitation.isEmpty()){
+			final String objectTag = objectCitation.getTag();
+			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(objectTag);
+			final FLEFRecord objectRecord = model.getRecordById(objectCitation.getValue());
+			objectDisplayText = (objectRecord != null
+				? objectHandler.getDisplayText(objectRecord, model)
+				: "[" + XRefHelper.extractXRef(objectCitation.getValue()) + "]");
+		}
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);

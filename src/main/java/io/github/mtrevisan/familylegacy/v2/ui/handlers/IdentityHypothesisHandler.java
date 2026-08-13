@@ -66,21 +66,23 @@ public class IdentityHypothesisHandler implements RecordTypeHandler<IdentityHypo
 		String subjectId = null;
 		String candidateId = null;
 
-		FLEFRecord subjectNode = FLEFRecordHelper.findChild(record, "SUBJECT");
+		final FLEFRecord subjectNode = FLEFRecordHelper.findChild(record, "SUBJECT");
 		if(subjectNode != null && !subjectNode.getChildren().isEmpty()){
-			FLEFRecord child = subjectNode.getChildren().getFirst();
-			String ref = child.getValue();
-			if(StringUtils.isNotEmpty(ref)){
-				subjectId = XRefHelper.extractXRef(ref);
+			final FLEFRecord child = subjectNode.getTheOnlyChild();
+			if(child != null && !child.isEmpty()){
+				final String ref = child.getValue();
+				if(StringUtils.isNotEmpty(ref))
+					subjectId = XRefHelper.extractXRef(ref);
 			}
 		}
 
-		FLEFRecord candidateNode = FLEFRecordHelper.findChild(record, "CANDIDATE");
+		final FLEFRecord candidateNode = FLEFRecordHelper.findChild(record, "CANDIDATE");
 		if(candidateNode != null && !candidateNode.getChildren().isEmpty()){
-			FLEFRecord child = candidateNode.getChildren().getFirst();
-			String ref = child.getValue();
-			if(StringUtils.isNotEmpty(ref)){
-				candidateId = XRefHelper.extractXRef(ref);
+			final FLEFRecord child = candidateNode.getTheOnlyChild();
+			if(child != null && !child.isEmpty()){
+				final String ref = child.getValue();
+				if(StringUtils.isNotEmpty(ref))
+					candidateId = XRefHelper.extractXRef(ref);
 			}
 		}
 

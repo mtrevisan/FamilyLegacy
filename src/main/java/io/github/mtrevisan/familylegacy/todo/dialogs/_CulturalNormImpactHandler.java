@@ -22,17 +22,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.handlers;
+package io.github.mtrevisan.familylegacy.todo.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogstodo._CulturalNormImpactRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
 import java.awt.Dialog;
 
 
-public class CulturalNormImpactHandler implements RecordTypeHandler<_CulturalNormImpactRecordDialog>{
+public class _CulturalNormImpactHandler implements RecordTypeHandler<_CulturalNormImpactRecordDialog>{
 
 	public static final String TYPE = "CULTURAL_NORM_IMPACT";
 
@@ -44,7 +44,7 @@ public class CulturalNormImpactHandler implements RecordTypeHandler<_CulturalNor
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

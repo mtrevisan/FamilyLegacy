@@ -26,14 +26,20 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 
 import java.awt.Dialog;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ConclusionTargetHandler implements RecordTypeHandler<BaseRecordDialog>{
 
 	public static final String TYPE = "CONCLUSION_TARGET";
+
+	private static final String TAG_RESOLVES = "RESOLVES";
 
 
 	static{
@@ -70,7 +76,41 @@ public class ConclusionTargetHandler implements RecordTypeHandler<BaseRecordDial
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public RecordTypeHandler<?> getRecordHandler(){
+		return HandlerRegistry.getHandler(ConclusionHandler.TYPE);
+	}
+
+	@Override
+	public List<FLEFRecord> extractEntities(final FLEFRecord record, final String path){
+		final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> entities = new ArrayList<>(resolves.size());
+		for(final FLEFRecord resolve : resolves)
+			entities.add(resolve.getChildren().getFirst());
+		return entities;
+	}
+
+	@Override
+	public List<FLEFRecord> findReferences(final FLEFModel model, final String recordId,
+			final String parentEntityType){
+		return model.getRecordsByType(ConclusionHandler.TYPE).stream()
+			.filter(conclusion -> {
+				final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(conclusion, TAG_RESOLVES);
+				for(final FLEFRecord resolve : resolves){
+					final FLEFRecord resolveCitation = resolve.getTheOnlyChild();
+					if(resolveCitation != null && !resolveCitation.isEmpty()){
+						final String resolveTag = resolveCitation.getTag();
+						final String resolveXRef = XRefHelper.extractXRef(resolveCitation.getValue());
+						if(resolveTag.equals(parentEntityType) && resolveXRef.equals(recordId))
+							return true;
+					}
+				}
+				return false;
+			})
+			.toList();
 	}
 
 	@Override
@@ -85,12 +125,16 @@ public class ConclusionTargetHandler implements RecordTypeHandler<BaseRecordDial
 
 		final String recordId = record.getValue();
 		final FLEFRecord parentRecord = model.getRecordById(recordId);
+		if(parentRecord == null)
+			return "--";
+
 		return handler.getDisplayText(parentRecord, model);
 	}
 
 	@Override
 	public BaseRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		throw new UnsupportedOperationException("Not supported yet.");
+		final RecordTypeHandler<?> recordHandler = getRecordHandler();
+		return (recordHandler != null? recordHandler: this).createNewDialog(parent, model);
 	}
 
 	@Override

@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.dialogstodo;
+package io.github.mtrevisan.familylegacy.todo.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -69,7 +68,7 @@ import java.io.Serial;
  *   target: CulturalNormImpactTarget
  *   significance?: Text
  *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -128,7 +127,7 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 
 
 	private _CulturalNormImpactRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(CulturalNormImpactHandler.TYPE));
+		super(parent, model, record, HandlerRegistry.getHandler(_CulturalNormImpactHandler.TYPE));
 
 		// Cultural norm field
 		culturalNormField = new JTextField(null);
@@ -174,7 +173,7 @@ public class _CulturalNormImpactRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Audit", modificationPanel);
 
 		finalizeLayout(tabbedPane);
 	}

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ConclusionRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -64,10 +65,9 @@ public class ConclusionHandler implements RecordTypeHandler<ConclusionRecordDial
 		String context = FLEFRecordHelper.getChildValue(record, "CONTEXT");
 		String proofStatus = FLEFRecordHelper.getChildValue(record, "PROOF_STATUS");
 		if(StringUtils.isNotEmpty(context)){
-			String display = context.length() > 40? context.substring(0, 37) + "…": context;
-			if(StringUtils.isNotEmpty(proofStatus)){
+			String display = GUIHelper.limitTextLength(context);
+			if(StringUtils.isNotEmpty(proofStatus))
 				display += " [" + proofStatus + "]";
-			}
 			return display;
 		}
 		return record.getId() != null? record.getId(): "(unnamed)";

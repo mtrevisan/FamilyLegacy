@@ -65,8 +65,8 @@ import java.io.Serial;
  *   priority?: enum { low, normal, high }
  *   due_date?: Date
  *   outcome?: Text
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -105,8 +105,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> priorityCombo;
 	private final DateField dueDateField;
 	private final BoundTextArea outcomeArea;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static ResearchTaskRecordDialog createNew(Dialog parent, FLEFModel model){
@@ -133,8 +133,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 			"low", "normal", "high"});
 		dueDateField = DateField.createWithWrapperTag(TAG_DUE_DATE, this, "Due Date", model);
 		outcomeArea = new BoundTextArea(TAG_OUTCOME, 3, 30);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
 		initComponents();
 
@@ -153,8 +153,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 
 		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -197,8 +197,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		questionPanel.load(record);
 		createdByField.load(record);
 		dueDateField.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -235,8 +235,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		questionPanel.save(record);
 		createdByField.saveReferences(record);
 		dueDateField.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

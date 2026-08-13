@@ -148,7 +148,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * {@code initComponents()}, after all tabs have been added:
 	 * <pre>
 	 * tabbedPane.addTab("Main", createMainPanel());
-	 * tabbedPane.addTab("Modification", modificationPanel);
+	 * tabbedPane.addTab("Audit", auditPanel);
 	 *
 	 * finalizeLayout(tabbedPane);
 	 * </pre>

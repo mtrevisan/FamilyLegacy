@@ -58,8 +58,8 @@ import java.io.Serial;
  *   place?: PlaceCitation
  *   contact*: ContactStructure
  *   note*: Xref&lt;NoteRecord&gt;
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -92,7 +92,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final PlaceCitationField placeCitationField;
 	private final EntityReferenceListPanel contactPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final ModificationPanel modificationPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static RepositoryRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -113,7 +113,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		contactPanel = EntityReferenceListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), RepositoryHandler.TYPE);
-		modificationPanel = new ModificationPanel(this);
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -129,7 +129,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private void initComponents(){
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -164,7 +164,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		placeCitationField.load(record);
 		contactPanel.load(record);
 		notePanel.load(record);
-		modificationPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -187,7 +187,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		placeCitationField.saveReferences(record);
 		contactPanel.save(record);
 		notePanel.save(record);
-		modificationPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

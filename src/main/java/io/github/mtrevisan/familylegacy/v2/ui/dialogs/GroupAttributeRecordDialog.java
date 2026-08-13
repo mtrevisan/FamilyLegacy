@@ -36,6 +36,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -82,8 +85,8 @@ import java.io.Serial;
  *   place?: PlaceCitation
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -103,9 +106,12 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+
 
 	static{
 		HandlerRegistry.register(new GroupAttributeHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -119,10 +125,13 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final PlaceCitationField placeCitationField;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel qualifiers;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
+
+	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static GroupAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -147,10 +156,13 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
+
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), GroupAttributeHandler.TYPE);
 
 
 		initComponents();
@@ -171,8 +183,8 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -208,8 +220,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]"));
-		panel.add(sourceCitationPanel, "growx");
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]10[]"));
+		panel.add(culturalNormPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -243,10 +256,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		validFromField.load(record);
 		validToField.load(record);
 		placeCitationField.load(record);
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 		qualifiers.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 
 		final String groupId = FLEFRecordHelper.getChildValuesAsString(record, TAG_GROUP);
 		withParentEntity(groupId, GroupHandler.TYPE);
@@ -280,10 +293,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		validFromField.save(record);
 		validToField.save(record);
 		placeCitationField.saveReferences(record);
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 		qualifiers.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

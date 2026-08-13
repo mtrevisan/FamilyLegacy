@@ -57,7 +57,7 @@ public class CauseHandler implements RecordTypeHandler<CauseStructureDialog>{
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

@@ -76,7 +76,7 @@ public class AssociationHandler implements RecordTypeHandler<AssociationStructur
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -84,18 +84,21 @@ public class AssociationHandler implements RecordTypeHandler<AssociationStructur
 		if(record == null)
 			return "--";
 
-		final FLEFRecord target = FLEFRecordHelper.findChild(record, TAG_TARGET);
 		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 
 		if(StringUtils.isNotEmpty(name))
 			return (StringUtils.isNotEmpty(name)? name: "[VOID]");
 
-		final FLEFRecord child = target.getChildren().getFirst();
-		final String handlerType = child.getTag();
-		final String xref = child.getValue();
-		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
-		final FLEFRecord targetRecord = model.getRecordById(xref);
-		return handler.getDisplayText(targetRecord, model);
+		final FLEFRecord child = record.getTheOnlyChild(TAG_TARGET);
+		if(child != null && !child.isEmpty()){
+			final String handlerType = child.getTag();
+			final String xref = child.getValue();
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
+			final FLEFRecord targetRecord = model.getRecordById(xref);
+			return handler.getDisplayText(targetRecord, model);
+		}
+
+		return "--";
 	}
 
 	@Override

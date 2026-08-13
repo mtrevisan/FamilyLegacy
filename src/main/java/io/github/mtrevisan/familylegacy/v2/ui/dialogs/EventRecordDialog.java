@@ -84,8 +84,8 @@ import java.io.Serial;
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -101,17 +101,19 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_AGENCY = "AGENCY";
 	private static final String TAG_CAUSE = "CAUSE";
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
+
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 
 
 	static{
 		HandlerRegistry.register(new EventHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new CauseHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -126,12 +128,14 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final PlaceCitationField placeCitationField;
 	private final BoundTextField agencyField;
 	private final EntityReferenceListPanel causePanel;
-	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel qualifiers;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
+
+	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static EventRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -163,14 +167,15 @@ public class EventRecordDialog extends BaseRecordDialog{
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		agencyField = new BoundTextField(TAG_AGENCY);
 		causePanel = EntityReferenceListPanel.createForStructure(TAG_CAUSE, this, "Causes", model, CauseHandler.TYPE);
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), EventHandler.TYPE);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), EventHandler.TYPE);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
+
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), EventHandler.TYPE);
 
 
 		initComponents();
@@ -191,8 +196,8 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -231,7 +236,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
 		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -245,10 +250,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 		causePanel.load(record);
 		culturalNormPanel.load(record);
 		notePanel.load(record);
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 		qualifiers.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -281,10 +286,10 @@ public class EventRecordDialog extends BaseRecordDialog{
 		causePanel.save(record);
 		culturalNormPanel.save(record);
 		notePanel.save(record);
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 		qualifiers.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

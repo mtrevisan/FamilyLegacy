@@ -432,7 +432,7 @@ public final class FLEFGrammarParser{
 			expect(TAG_TYPE_FN);
 			expect("(");
 			final List<String> secondFields = parseIdentListUntil(")");
-			if(secondFields.size() != 2){
+			if(secondFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
 					"Expected one field in second type(...), found [" + StringUtils.join(secondFields, ", ") + "]",

@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.MemberRelationshipListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
@@ -66,15 +65,14 @@ import java.util.function.Consumer;
  *   id: LocalID
  *   name*: ClassifiedName
  *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
- *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  *   preferred_image?: struct {
  *     uri: Uri
  *     crop?: CropRect
  *   }
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -86,12 +84,12 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_GROUP_ATTRIBUTE = "GROUP_ATTRIBUTE";
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
@@ -103,9 +101,9 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new RelationshipHandler());
 		HandlerRegistry.register(new NoteHandler());
 		HandlerRegistry.register(new ClassifiedNameHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
 		HandlerRegistry.register(new ConclusionHandler());
 		HandlerRegistry.register(new ConclusionTargetHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -113,17 +111,16 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	private final EntityReferenceListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
-	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final PreferredImagePanel preferredImagePanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 	private final EntityReferenceListPanel conclusionPanel;
-	//TODO ONGOING
-	private final MemberRelationshipListPanel memberPanel;
+	private final EntityReferenceListPanel memberPanel;
 	private final EntityReferenceListPanel attributePanel;
 	private final EntityReferenceListPanel relationshipPanel;
 
@@ -146,18 +143,19 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			"family", "household", "neighbourhood", "fraternity", "club", "literary_society", "association",
 			"organisation", "tribe"});
 		typeCombo.setEditable(true);
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
 		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionTargetHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		memberPanel = new MemberRelationshipListPanel(this, "Members", model, this.record.getId(), GroupHandler.TYPE);
+		memberPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Members", model, RelationshipHandler.TYPE)
+			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
 		attributePanel = EntityReferenceListPanel.createForRecord(TAG_GROUP_ATTRIBUTE, this, "Group Attributes", model, GroupAttributeHandler.TYPE)
 			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
 		relationshipPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Relationships", model, RelationshipHandler.TYPE)
@@ -180,8 +178,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -211,11 +209,11 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]10[]10[]"));
+		panel.add(culturalNormPanel, "growx");
 		panel.add(conclusionPanel, "growx");
 		panel.add(relationshipPanel, "growx");
-		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -227,10 +225,10 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		namePanel.load(record);
 		culturalNormPanel.load(record);
 		notePanel.load(record);
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 		preferredImagePanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 
 		conclusionPanel.loadReference(record.getId());
 		memberPanel.loadReference(record.getId());
@@ -250,10 +248,10 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		namePanel.save(record);
 		culturalNormPanel.save(record);
 		notePanel.save(record);
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 		preferredImagePanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 
 		conclusionPanel.save(record);
 		memberPanel.save(record);
@@ -266,16 +264,16 @@ public class GroupRecordDialog extends BaseRecordDialog{
 //		GUIHelper.launch(GroupRecordDialog::createNew, modelFiller);
 
 		final FLEFRecord groupAttribute = FLEFRecord.createMainRecord("GA1", "GROUP_ATTRIBUTE");
-		groupAttribute.addChild(FLEFRecord.createChildWithValue("GROUP", "@G1@"));
-		groupAttribute.addChild(FLEFRecord.createChildWithValue("TYPE", "residence"));
+		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"));
+		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "residence"));
 		final FLEFRecord relationship = FLEFRecord.createMainRecord("RL1", "RELATIONSHIP");
-		relationship.addChild(FLEFRecord.createChild("SUBJECT")
-			.addChild(FLEFRecord.createChildWithValue("GROUP", "@G1@"))
+		relationship.addChild(FLEFRecord.createChildWithTag("SUBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
 		);
-		relationship.addChild(FLEFRecord.createChild("OBJECT")
-			.addChild(FLEFRecord.createChildWithValue("GROUP", "@G2@"))
+		relationship.addChild(FLEFRecord.createChildWithTag("OBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G2@"))
 		);
-		relationship.addChild(FLEFRecord.createChildWithValue("TYPE", "associate"));
+		relationship.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "associate"));
 		final FLEFRecord group1 = FLEFRecord.createMainRecord("G1", "GROUP");
 		final FLEFRecord group2 = FLEFRecord.createMainRecord("G2", "GROUP");
 

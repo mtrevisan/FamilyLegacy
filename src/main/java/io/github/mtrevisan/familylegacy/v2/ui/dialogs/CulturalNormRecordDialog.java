@@ -76,7 +76,7 @@ import java.io.Serial;
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
- *   modification: ModificationStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -110,9 +110,9 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourceCitationPanel;
+	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel qualifiers;
-	private final ModificationPanel modificationPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static CulturalNormRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -155,9 +155,9 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
 			.withParentEntity(this.record.getId(), CulturalNormHandler.TYPE);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
-		modificationPanel = new ModificationPanel(this);
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -178,7 +178,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -221,7 +221,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private JPanel createReferencesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]10[]"));
 		panel.add(notePanel, "growx");
-		panel.add(sourceCitationPanel, "growx");
+		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
@@ -235,9 +235,9 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		validFromField.load(record);
 		validToField.load(record);
 		notePanel.load(record);
-		sourceCitationPanel.load(record);
+		sourcePanel.load(record);
 		qualifiers.load(record);
-		modificationPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -254,9 +254,9 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		validFromField.save(record);
 		validToField.save(record);
 		notePanel.save(record);
-		sourceCitationPanel.save(record);
+		sourcePanel.save(record);
 		qualifiers.save(record);
-		modificationPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

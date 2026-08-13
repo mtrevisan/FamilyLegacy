@@ -310,11 +310,10 @@ public class FLEFValidator{
 		final String validTo = FLEFRecordHelper.getChildValue(relationship, "VALID_TO");
 
 		if(validFrom != null && validTo != null){
-			if(validFrom.compareTo(validTo) > 0){
+			if(validFrom.compareTo(validTo) > 0)
 				errors.add(String.format(
 					"Constraint violation at '%s': VALID_FROM (%s) must be before VALID_TO (%s)",
 					contextPath, validFrom, validTo));
-			}
 		}
 	}
 

@@ -28,13 +28,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -44,13 +42,12 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.border.TitledBorder;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.1.
  * <p>
@@ -72,8 +69,6 @@ public class DatePanel extends JPanel{
 
 	private static final String TAG_ORIGINAL_TEXT = "ORIGINAL_TEXT";
 	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_CERTAINTY = "CERTAINTY";
-	private static final String TAG_CREDIBILITY = "CREDIBILITY";
 	private static final String TAG_POINT = "POINT";
 	private static final String TAG_BOUNDED = "BOUNDED";
 	private static final String TAG_SPANNING = "SPANNING";
@@ -93,9 +88,8 @@ public class DatePanel extends JPanel{
 	private final SpanningDatePanel spanningDatePanel;
 
 	private final BoundTextField originalTextField;
-	private final EntityCitationListPanel sourceCitationPanel;
-	private final BoundComboBox<String> certaintyCombo;
-	private final BoundComboBox<String> credibilityCombo;
+	private final EntityCitationListPanel sourcePanel;
+	private final EvidenceQualifiersPanel qualifiers;
 
 
 	public DatePanel(final Dialog parent, final FLEFModel model){
@@ -104,14 +98,8 @@ public class DatePanel extends JPanel{
 		spanningDatePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
-		sourceCitationPanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceHandler.TYPE);
-		//TODO EvidenceQualifiers
-		certaintyCombo = new BoundComboBox<>(TAG_CERTAINTY, new String[]{
-			StringUtils.EMPTY,
-			"proven", "challenged", "disproven"});
-		credibilityCombo = new BoundComboBox<>(TAG_CREDIBILITY, new String[]{
-			StringUtils.EMPTY,
-			"0", "1", "2", "3"});
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceHandler.TYPE);
+		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 
 
 		initComponents();
@@ -120,8 +108,6 @@ public class DatePanel extends JPanel{
 
 	private void initComponents(){
 		bindingManager.bind(originalTextField);
-		bindingManager.bind(certaintyCombo);
-		bindingManager.bind(credibilityCombo);
 
 
 		setLayout(new MigLayout("ins 0,fillx,wrap 1", "[grow]", "[]5[]5[]"));
@@ -156,27 +142,14 @@ public class DatePanel extends JPanel{
 		});
 		add(tabbedPane, "growx,wrap");
 
-		add(new JLabel("Origianl Text:"), "align label");
+		add(new JLabel("Original Text:"), "align label");
 		add(originalTextField, "growx");
 
-		// Source Citations
-		add(sourceCitationPanel, "growx");
+		// source
+		add(sourcePanel, "growx");
 
-		// Qualifiers
-		add(createEvidencePanel(), "growx");
-	}
-
-	private JPanel createEvidencePanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]"));
-		panel.setBorder(new TitledBorder("Qualifiers"));
-
-		panel.add(new JLabel("Certainty:"), "align label");
-		panel.add(certaintyCombo, "growx,wrap");
-
-		panel.add(new JLabel("Credibility:"), "align label");
-		panel.add(credibilityCombo, "growx,wrap");
-
-		return panel;
+		// qualifiers
+		add(qualifiers, "span 2,growx");
 	}
 
 
@@ -212,11 +185,13 @@ public class DatePanel extends JPanel{
 			}
 		}
 
-		// SOURCE_CITATION
-		sourceCitationPanel.load(record);
-
-		// EVIDENCE_QUALIFIERS
 		bindingManager.load(record);
+
+		// source
+		sourcePanel.load(record);
+
+		// evidence
+		qualifiers.load(record);
 	}
 
 	/**
@@ -228,32 +203,33 @@ public class DatePanel extends JPanel{
 		if(!hasData())
 			return null;
 
-		final FLEFRecord target = FLEFRecord.createEmpty();
+		final FLEFRecord record = FLEFRecord.createEmpty();
 
-		// Save the date value: POINT, BOUNDED, or SPANNING
+		// date
 		switch(tabbedPane.getSelectedIndex()){
-			case 0 -> savePoint(target);
-			case 1 -> saveBounded(target);
-			case 2 -> saveSpanning(target);
+			case 0 -> savePoint(record);
+			case 1 -> saveBounded(record);
+			case 2 -> saveSpanning(record);
 			default -> { /* do nothing */ }
 		}
 
-		// Save SOURCE_CITATION
-		sourceCitationPanel.save(target);
+		bindingManager.save(record);
 
-		// Save EVIDENCE_QUALIFIERS
-		bindingManager.save(target);
+		// source
+		sourcePanel.save(record);
 
-		return (target.hasData()? target: null);
+		// evidence
+		qualifiers.save(record);
+
+		return (record.hasData()? record: null);
 	}
 
 	public void clear(){
 		pointDatePanel.clear();
 		boundedDatePanel.clear();
 		spanningDatePanel.clear();
-		sourceCitationPanel.clear();
-		certaintyCombo.setSelectedIndex(0);
-		credibilityCombo.setSelectedIndex(0);
+		sourcePanel.clear();
+		qualifiers.clear();
 	}
 
 	public boolean hasData(){

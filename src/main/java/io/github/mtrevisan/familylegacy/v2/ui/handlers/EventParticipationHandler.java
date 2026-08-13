@@ -70,10 +70,9 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 
 		final StringBuilder sb = new StringBuilder();
 
-		final FLEFRecord participantNode = FLEFRecordHelper.findChild(record, TAG_PARTICIPANT);
 		String participantText = null;
-		if(participantNode != null && !participantNode.getChildren().isEmpty()){
-			final FLEFRecord refNode = participantNode.getChildren().getFirst();
+		final FLEFRecord refNode = record.getTheOnlyChild(TAG_PARTICIPANT);
+		if(refNode != null && !refNode.isEmpty()){
 			final String type = refNode.getTag();
 			final String refId = refNode.getValue();
 
@@ -107,7 +106,7 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 
 		final String id = record.getFormattedId();
 		if(StringUtils.isNotEmpty(id)){
-			if(sb.isEmpty())
+			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);
 			sb.append('[')
 				.append(id)

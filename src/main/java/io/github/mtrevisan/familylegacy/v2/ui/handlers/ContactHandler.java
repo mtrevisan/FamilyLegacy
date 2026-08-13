@@ -59,7 +59,7 @@ public class ContactHandler implements RecordTypeHandler<ContactStructureDialog>
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

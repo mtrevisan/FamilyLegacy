@@ -94,8 +94,8 @@ import java.util.List;
  *   source*: Xref&lt;SourceRecord&gt;
  *   parent?: Xref&lt;ResearchActivityRecord&gt;
  *   task*: Xref&lt;ResearchTaskRecord&gt;
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -169,8 +169,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> conclusionConfidenceCombo;
 	private final ParticipantField parentField;
 	private final EntityReferenceListPanel taskPanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static ResearchActivityRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -222,8 +222,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		parentField = ParticipantField.create(TAG_PARENT, this, model);
 		parentField.setHandlerType(ResearchActivityHandler.TYPE);
 		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model, ResearchTaskHandler.TYPE);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
 		initComponents();
 
@@ -250,8 +250,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Search", createSearchPanel());
 		tabbedPane.addTab("Findings", createFindingsPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -345,8 +345,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		parentField.load(record);
 		questionPanel.load(record);
 		taskPanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -406,8 +406,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		parentField.saveReferences(record);
 		questionPanel.save(record);
 		taskPanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

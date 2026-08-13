@@ -75,7 +75,7 @@ public class RepositoryCitationHandler implements RecordTypeHandler<RepositoryCi
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -37,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -78,8 +78,8 @@ import java.util.List;
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  *
  * EntityParticipant = oneof {
@@ -112,6 +112,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+
+
 	private static final List<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = List.of(
 		"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
 		"civil_spouse", "religious_spouse", "customary_spouse", "cohabiting_partner", "engaged_partner",
@@ -131,6 +134,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new IndividualHandler());
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new NoteHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -152,8 +156,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private final EntityReferenceListPanel notePanel;
 	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
+
+	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static RelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -164,6 +171,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			final FLEFRecord record){
 		return createEdit(parent, model, record, RelationshipRecordDialog::new);
 	}
+
 
 	private RelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, HandlerRegistry.getHandler(RelationshipHandler.TYPE));
@@ -201,8 +209,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			.withParentEntity(this.record.getId(), RelationshipHandler.TYPE);
 		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
+
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), RelationshipHandler.TYPE);
 
 
 		initComponents();
@@ -253,8 +264,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -308,7 +319,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
+		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
 		panel.add(sourcePanel, "growx");
 		return panel;
@@ -366,8 +378,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		subjectField.load(record);
-		objectField.load(record);
+		final FLEFRecord subject = record.getTheOnlyChild(TAG_SUBJECT);
+		final FLEFRecord object = record.getTheOnlyChild(TAG_OBJECT);
+		subjectField.load(subject != null? subject.getTheOnlyChild(): null);
+		objectField.load(object != null? object.getTheOnlyChild(): null);
 
 		bindingManager.load(record);
 
@@ -376,17 +390,16 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		notePanel.load(record);
 		sourcePanel.load(record);
 		evidencePanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 
 		updateTypeCombo();
 
 
-		final FLEFRecord subject = FLEFRecordHelper.findChild(record, TAG_SUBJECT)
-			.getChildren()
-			.getFirst();
-		withSubject(subject.getValue(), subject.getTag());
-		withObject(null, null);
+		if(subject != null && !subject.isEmpty()){
+			withSubject(subject.getValue(), subject.getTag());
+			withObject(null, null);
+		}
 	}
 
 	@Override
@@ -434,8 +447,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		notePanel.save(record);
 		sourcePanel.save(record);
 		evidencePanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

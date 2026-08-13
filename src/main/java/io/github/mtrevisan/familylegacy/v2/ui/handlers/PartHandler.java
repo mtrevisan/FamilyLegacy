@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -60,7 +61,7 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -76,12 +77,8 @@ public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
 			sb.append('[')
 				.append(type)
 				.append("] ");
-		if(StringUtils.isNotEmpty(value)){
-			String val = value;
-			if(val.length() > 50)
-				val = val.substring(0, 50) + "…";
-			sb.append(val);
-		}
+		if(StringUtils.isNotEmpty(value))
+			sb.append(GUIHelper.limitTextLength(value));
 		else
 			sb.append("--");
 

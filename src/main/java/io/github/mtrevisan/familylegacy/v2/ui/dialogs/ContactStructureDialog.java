@@ -59,8 +59,8 @@ import java.io.Serial;
  *     variant*: TextValueVariant
  *   }
  *   note?: Text
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  * </pre>
  */
@@ -89,8 +89,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final VariantListPanel nameListPanel;
 	private final EntityReferenceListPanel notePanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static ContactStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -114,8 +114,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		});
 		nameListPanel = new VariantListPanel(TAG_NAME, this, "Variant", model);
 		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -135,8 +135,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -164,8 +164,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		nameListPanel.load(record);
 		notePanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -186,8 +186,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		nameListPanel.save(record);
 		notePanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

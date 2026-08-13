@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
-import io.github.mtrevisan.familylegacy.v2.ui.images.ImagePreview;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -356,7 +355,7 @@ public final class MediaDialog extends CommonListDialog{
 				}
 			}
 		});
-		fileChooser.setAccessory(new ImagePreview(fileChooser, 150, 100));
+//		fileChooser.setAccessory(new ImagePreview(fileChooser, 150, 100));
 
 		openFolderButton.addActionListener(evt -> {
 			File file = null;

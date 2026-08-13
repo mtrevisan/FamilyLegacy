@@ -101,7 +101,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showAddDialog(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -123,8 +123,8 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		if(result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)){
 			final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path);
 			final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-			newNote.addChild(FLEFRecord.createChildWithValue(TAG_DATE, creationDate));
-			newNote.addChild(FLEFRecord.createChildWithValue(noteTag, text));
+			newNote.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DATE, creationDate));
+			newNote.addChild(FLEFRecord.createChildWithTagAndValue(noteTag, text));
 			return newNote;
 		}
 		return null;

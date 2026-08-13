@@ -80,7 +80,6 @@ public class ScaledImage extends JLabel{
 	private int imageHeight;
 	private int viewportWidth;
 	private int viewportHeight;
-	private CropListenerInterface listener;
 
 	// spherical (UV mapped) image data:
 	private int[] curvedImageBuffer;
@@ -132,12 +131,6 @@ public class ScaledImage extends JLabel{
 		initComponents();
 	}
 
-
-	public ScaledImage withListener(final CropListenerInterface listener){
-		this.listener = listener;
-
-		return this;
-	}
 
 	private void initComponents(){
 		final ImageMouseListener listener = new ImageMouseListener();
@@ -711,8 +704,6 @@ public class ScaledImage extends JLabel{
 				// If the created area has zero width or height, cancel the selection
 				if(cropStartPointX == cropEndPointX || cropStartPointY == cropEndPointY)
 					cropStartPointX = NO_CROP_COORD;
-				else if(listener != null)
-					listener.cropSelected();
 
 				repaint();
 			}

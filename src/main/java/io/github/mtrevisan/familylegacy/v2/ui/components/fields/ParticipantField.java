@@ -112,7 +112,8 @@ public class ParticipantField extends JPanel{
 				builder.separator();
 				builder.selectionSensitiveItem("Edit…", this::edit);
 				builder.selectionSensitiveItem("Clear", this::clear);
-			});
+			}
+		);
 
 		add(displayField, "growx");
 
@@ -209,19 +210,10 @@ public class ParticipantField extends JPanel{
 	public void load(final FLEFRecord targetRecord){
 		clear();
 
-		if(targetRecord == null)
+		if(targetRecord == null || targetRecord.isEmpty())
 			return;
 
-		final FLEFRecord node = FLEFRecordHelper.findChild(targetRecord, path);
-		if(node == null || node.getChildren().size() != 1)
-			return;
-
-		final FLEFRecord participant = node.getChildren()
-			.getFirst();
-		if(participant.isEmpty())
-			return;
-
-		final String ref = participant.getValue();
+		final String ref = targetRecord.getValue();
 		final FLEFRecord rec = model.getRecordById(ref);
 		if(rec != null)
 			// Optionally verify that the record's tag matches the expected type
@@ -240,8 +232,8 @@ public class ParticipantField extends JPanel{
 		FLEFRecordHelper.removeChildren(targetRecord, path);
 
 		if(hasData()){
-			final FLEFRecord parentNode = FLEFRecord.createChild(path);
-			final FLEFRecord child = FLEFRecord.createChildWithValue(participantRecord.getTag(), participantRecord.getFormattedId());
+			final FLEFRecord parentNode = FLEFRecord.createChildWithTag(path);
+			final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(participantRecord.getTag(), participantRecord.getFormattedId());
 			parentNode.addChild(child);
 			targetRecord.addChild(parentNode);
 		}
@@ -315,6 +307,17 @@ public class ParticipantField extends JPanel{
 	@Override
 	public int hashCode(){
 		return Objects.hashCode(participantRecord);
+	}
+
+	@Override
+	public String toString(){
+		final StringBuilder sb = new StringBuilder();
+		sb.append("value: ");
+		final String text = displayField.getText();
+		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
+			.append(", path: ")
+			.append(path);
+		return sb.toString();
 	}
 
 }

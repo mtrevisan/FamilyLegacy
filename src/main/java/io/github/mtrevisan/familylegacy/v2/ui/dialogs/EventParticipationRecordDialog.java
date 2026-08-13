@@ -36,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EventField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -75,8 +76,8 @@ import java.util.List;
  *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  *
  * EntityParticipant = oneof {
@@ -99,6 +100,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+
 
 	static{
 		HandlerRegistry.register(new EventParticipationHandler());
@@ -107,7 +110,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		HandlerRegistry.register(new GroupHandler());
 		HandlerRegistry.register(new PlaceHandler());
 		HandlerRegistry.register(new NoteHandler());
-
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
@@ -124,8 +127,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private final EntityReferenceListPanel notePanel;
 	private final EntityCitationListPanel sourcePanel;
 	private final EvidenceQualifiersPanel evidencePanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
+
+	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static EventParticipationRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -158,8 +164,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			.withParentEntity(this.record.getId(), EventParticipationHandler.TYPE);
 		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
 		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
+
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), EventParticipationHandler.TYPE);
 
 
 		initComponents();
@@ -178,8 +187,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		tabbedPane.addTab("Main", createMainPanel());
 		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -204,7 +213,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createReferencesPanel(){
-		JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
+		panel.add(culturalNormPanel, "growx");
 		panel.add(notePanel, "growx");
 		panel.add(sourcePanel, "growx");
 		return panel;
@@ -263,8 +273,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		notePanel.load(record);
 		sourcePanel.load(record);
 		evidencePanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -300,8 +310,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		notePanel.save(record);
 		sourcePanel.save(record);
 		evidencePanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

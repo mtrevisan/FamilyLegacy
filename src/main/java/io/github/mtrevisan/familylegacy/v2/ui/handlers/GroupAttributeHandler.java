@@ -27,10 +27,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
+import java.util.List;
 
 
 /* DONE */
@@ -44,6 +46,7 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRe
 
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_GROUP = "GROUP";
 
 
 	@Override
@@ -62,6 +65,25 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRe
 	}
 
 	@Override
+	public List<FLEFRecord> findReferences(final FLEFModel model, final String recordId,
+			final String parentEntityType){
+		return model.getRecordsByType(TYPE).stream()
+			.filter(attribute -> {
+				final List<FLEFRecord> groups = FLEFRecordHelper.findChildren(attribute, TAG_GROUP);
+				for(final FLEFRecord group : groups){
+					final String resolveTag = group.getTag();
+					final String resolveXRef = XRefHelper.extractXRef(group.getValue());
+					if(resolveTag.equals(parentEntityType) && resolveXRef.equals(recordId))
+						return true;
+
+					break;
+				}
+				return false;
+			})
+			.toList();
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return "--";
@@ -69,14 +91,15 @@ public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRe
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		final StringBuilder sb = new StringBuilder();
-		if(type != null)
+		if(StringUtils.isNotEmpty(type))
 			sb.append('(')
 				.append(type)
 				.append(')');
-		if(type != null && StringUtils.isNotEmpty(value))
-			sb.append(StringUtils.SPACE);
-		if(StringUtils.isNotEmpty(value))
+		if(StringUtils.isNotEmpty(value)){
+			if(!sb.isEmpty())
+				sb.append(StringUtils.SPACE);
 			sb.append(value);
+		}
 		return sb.toString();
 	}
 

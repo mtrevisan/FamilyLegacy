@@ -129,6 +129,7 @@ public final class FLEFGrammarValidator{
 				errors.add(context + ": duplicate field '" + field.name() + "'");
 			validateTypeUsage(field.type(), context + DOT + field.name());
 		}
+
 		for(final Constraint constraint : struct.getConstraints())
 			validateConstraint(constraint, fieldNames, context);
 	}
@@ -144,6 +145,7 @@ public final class FLEFGrammarValidator{
 		else if(constraint instanceof ConditionalRequireConstraint cond){
 			if(!fieldNames.contains(cond.getConditionField()))
 				errors.add(context + ": " + cond + " has unknown condition field '" + cond.getConditionField() + "'");
+
 			for(final String f : cond.getRequiredFields())
 				if(!fieldNames.contains(f))
 					errors.add(context + ": " + cond + " requires unknown field '" + f + "'");

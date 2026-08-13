@@ -130,7 +130,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}
 		catch(final NumberFormatException ignored){}
-		final String documentId = FLEFRecordHelper.getChildValuesAsString(documentPart, TAG_DOCUMENT);
+		final String documentId = documentPart.getId();
 		final FLEFRecord document = model.getRecordById(documentId);
 		final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
 
@@ -218,7 +218,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -270,8 +270,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		FLEFRecordHelper.removeChildren(record, TAG_DOCUMENT);
 
 		for(final FLEFRecord documentPart : getItems()){
-			final FLEFRecord part = FLEFRecord.createChild(TAG_DOCUMENT_PART);
-			part.addChild(FLEFRecord.createChildWithValue(TAG_DOCUMENT, documentPart.getId()));
+			final FLEFRecord part = FLEFRecord.createChildWithTag(TAG_DOCUMENT_PART);
+			part.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DOCUMENT, documentPart.getId()));
 			final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, TAG_CROP);
 			part.addChild(crop);
 			record.addChild(part);

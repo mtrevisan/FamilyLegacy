@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.io;
 
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
@@ -56,7 +57,7 @@ public class FLEFParser{
 
 	private FLEFRecord parseRecord(){
 		final String tag = readIdentifier();
-		final FLEFRecord record = FLEFRecord.createChild(tag);
+		final FLEFRecord record = FLEFRecord.createChildWithTag(tag);
 
 		skipSpaces();
 
@@ -407,6 +408,18 @@ public class FLEFParser{
 		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.1.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 		for(final String warning : grammar.getParseWarnings())
+			System.out.println(warning);
+
+
+		System.out.println();
+
+
+		final FLEFGrammarValidator.ValidationResult validationResult = FLEFGrammarValidator.validate(grammar);
+		System.out.println("Grammar check (errors):");
+		for(final String error : validationResult.errors())
+			System.out.println(error);
+		System.out.println("Grammar check (warnings):");
+		for(final String warning : validationResult.warnings())
 			System.out.println(warning);
 
 

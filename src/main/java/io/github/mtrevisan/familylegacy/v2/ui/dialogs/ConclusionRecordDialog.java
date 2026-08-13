@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationLis
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
@@ -59,7 +60,7 @@ import java.io.Serial;
 import java.util.function.Consumer;
 
 
-/* DONE */
+/* ONGOING test */
 /**
  * Dialog for editing a {@code CONCLUSION_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -75,8 +76,8 @@ import java.util.function.Consumer;
  *   research*: Xref&lt;ResearchQuestionRecord&gt;
  *   date?: Date
  *   source*: SourceCitation
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  *
  *   require preferred in resolves
  * }
@@ -101,16 +102,19 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_RESTRICTION = "RESTRICTION";
 
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+
 
 	static{
 		HandlerRegistry.register(new ConclusionHandler());
 		HandlerRegistry.register(new ConclusionTargetHandler());
 		HandlerRegistry.register(new ResearchQuestionHandler());
+		HandlerRegistry.register(new CulturalNormHandler());
 	}
 
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]10[]10[]"));
+	private final JPanel propertiesPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]10[]"));
 
 	private final BindingManager bindingManager = new BindingManager();
 
@@ -122,8 +126,11 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private final EntityReferenceListPanel researchPanel;
 	private final DateField dateField;
 	private final EntityCitationListPanel sourcePanel;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
+
+	// Other
+	private final EntityReferenceListPanel culturalNormPanel;
 
 	private final RecordTypeHandler<?> conclusionTargetHandler = HandlerRegistry.getHandler(ConclusionTargetHandler.TYPE);
 
@@ -167,8 +174,11 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			.withParentEntity(this.record.getId(), ConclusionHandler.TYPE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Conclusion Date", model);
 		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
+
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
+			.withParentEntity(this.record.getId(), ConclusionHandler.TYPE);
 
 
 		initComponents();
@@ -187,47 +197,62 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		bindingManager.bind(narrativeArea);
 
 
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Properties", createPropertiesPanel());
+		tabbedPane.addTab("Context", createContextPanel());
+		tabbedPane.addTab("Research", createResearchPanel());
+		tabbedPane.addTab("Sources", createSourcesPanel());
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
 
-	private JPanel createMainPanel(){
+	private JPanel createPropertiesPanel(){
 		// context
-		mainPanel.add(new JLabel("Context*:"), "align label");
-		mainPanel.add(contextField, "growx,wrap");
+		propertiesPanel.add(new JLabel("Context*:"), "align label");
+		propertiesPanel.add(contextField, "growx,wrap");
 
 		// resolves
-		mainPanel.add(resolvesPanel, "span 2,growx,wrap");
+		propertiesPanel.add(resolvesPanel, "span 2,growx,wrap");
 
 		// preferred
-		mainPanel.add(new JLabel("Preferred:"), "align label");
-		mainPanel.add(preferredCombo, "growx,wrap");
+		propertiesPanel.add(new JLabel("Preferred:"), "align label");
+		propertiesPanel.add(preferredCombo, "growx,wrap");
 
 		// proof status
-		mainPanel.add(new JLabel("Proof Status*:"), "align label");
-		mainPanel.add(proofStatusCombo, "growx,wrap");
+		propertiesPanel.add(new JLabel("Proof Status*:"), "align label");
+		propertiesPanel.add(proofStatusCombo, "growx,wrap");
 
 		// narrative
-		mainPanel.add(new JLabel("Narrative:"), "align label");
-		mainPanel.add(GUIHelper.createScrollPane(narrativeArea), "growx,wrap");
-
-		// research
-		mainPanel.add(researchPanel, "span 2,growx,wrap");
+		propertiesPanel.add(new JLabel("Narrative:"), "align label");
+		propertiesPanel.add(GUIHelper.createScrollPane(narrativeArea), "growx,wrap");
 
 		// date
-		mainPanel.add(new JLabel("Date:"), "align label");
-		mainPanel.add(dateField, "growx");
+		propertiesPanel.add(new JLabel("Date:"), "align label");
+		propertiesPanel.add(dateField, "growx");
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
+	private JPanel createResearchPanel(){
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]"));
+
+		// research
+		panel.add(researchPanel, "span 2,growx,wrap");
+
+		return panel;
+	}
+
+	private JPanel createSourcesPanel(){
 		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
 		panel.add(sourcePanel, "growx");
+		return panel;
+	}
+
+	//TODO ContextImpactRecord (target.conclusion = this conclusion)
+	private JPanel createContextPanel(){
+		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
+		panel.add(culturalNormPanel, "growx");
 		return panel;
 	}
 
@@ -269,8 +294,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		researchPanel.load(record);
 		sourcePanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -279,7 +304,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		if(context.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Context is required.",
-				tabbedPane, mainPanel, contextField);
+				tabbedPane, propertiesPanel, contextField);
 			return false;
 		}
 
@@ -287,7 +312,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		if(StringUtils.isEmpty(proofStatus)){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Proof status is required.",
-				tabbedPane, mainPanel, proofStatusCombo);
+				tabbedPane, propertiesPanel, proofStatusCombo);
 			return false;
 		}
 
@@ -309,8 +334,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		researchPanel.save(record);
 		sourcePanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 
@@ -318,21 +343,21 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 //		GUIHelper.launch(ConclusionRecordDialog::createNew);
 
 		final FLEFRecord conclusion = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion.addChild(FLEFRecord.createChildWithValue("CONTEXT", "fdgh"));
-		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
-			.addChild(FLEFRecord.createChildWithValue("PLACE", "@P1@"))
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "fdgh"));
+		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
+			.addChild(FLEFRecord.createChildWithTagAndValue("PLACE", "@P1@"))
 		);
-		conclusion.addChild(FLEFRecord.createChild("RESOLVES")
-			.addChild(FLEFRecord.createChildWithValue("PLACE", "@P2@"))
+		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
+			.addChild(FLEFRecord.createChildWithTagAndValue("PLACE", "@P2@"))
 		);
-		conclusion.addChild(FLEFRecord.createChildWithValue("PROOF_STATUS", "PROOF_STATUS"));
+		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("PROOF_STATUS", "PROOF_STATUS"));
 		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-		place.addChild(FLEFRecord.createChild("NAME")
-			.addChild(FLEFRecord.createChild("TEXT")
-				.addChild(FLEFRecord.createChildWithValue("VALUE", "f"))
+		place.addChild(FLEFRecord.createChildWithTag("NAME")
+			.addChild(FLEFRecord.createChildWithTag("TEXT")
+				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "f"))
 			)
 		);
-		place.addChild(FLEFRecord.createChildWithValue("CONCLUSION", conclusion.getId()));
+		place.addChild(FLEFRecord.createChildWithTagAndValue("CONCLUSION", conclusion.getId()));
 
 		final Consumer<FLEFModel> modelFiller = model -> {
 			model.addRecord(conclusion);

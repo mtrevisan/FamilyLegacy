@@ -239,6 +239,10 @@ public final class GUIHelper{
 	}
 
 
+	public static String limitTextLength(final String text){
+		return (text.length() > 50? text.substring(0, 49) + "…": text);
+	}
+
 	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
 		final Supplier<String> getText, final Consumer<String> setText){
 		if(hasData.get()){

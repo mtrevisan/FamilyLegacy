@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.images.CropListenerInterface;
 import io.github.mtrevisan.familylegacy.v2.ui.images.ScaledImage;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
@@ -48,7 +47,7 @@ import java.util.function.Consumer;
 
 
 //TODO
-public class CropDialog extends JDialog implements CropListenerInterface{
+public class CropDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3777867436237271707L;
@@ -79,8 +78,7 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		});
 		cancelButton.addActionListener(evt -> dispose());
 
-		imageHolder = ScaledImage.create()
-			.withListener(this);
+		imageHolder = ScaledImage.create();
 
 		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow,fill][][]"));
 		add(imageHolder, "grow,wrap");
@@ -96,7 +94,6 @@ public class CropDialog extends JDialog implements CropListenerInterface{
 		repaint();
 	}
 
-	@Override
 	public final void cropSelected(){
 		okButton.setEnabled(true);
 	}

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchActivityRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
@@ -70,13 +71,11 @@ public class ResearchActivityHandler implements RecordTypeHandler<ResearchActivi
 		String type = FLEFRecordHelper.getChildValue(record, TAG_ACTIVITY_TYPE);
 		String date = FLEFRecordHelper.getChildValue(record, TAG_DATE);
 		if(StringUtils.isNotEmpty(action)){
-			String display = action.length() > 40? action.substring(0, 37) + "…": action;
-			if(StringUtils.isNotEmpty(type)){
+			String display = GUIHelper.limitTextLength(action);
+			if(StringUtils.isNotEmpty(type))
 				display += " [" + type + "]";
-			}
-			if(StringUtils.isNotEmpty(date)){
+			if(StringUtils.isNotEmpty(date))
 				display += " (" + date + ")";
-			}
 			return display;
 		}
 		return record.getId() != null? record.getId(): "(unnamed)";

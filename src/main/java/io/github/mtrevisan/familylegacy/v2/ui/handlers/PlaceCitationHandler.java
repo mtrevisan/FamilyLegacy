@@ -75,7 +75,7 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

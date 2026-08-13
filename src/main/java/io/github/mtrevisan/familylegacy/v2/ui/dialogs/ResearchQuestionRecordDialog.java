@@ -82,8 +82,8 @@ import java.util.List;
  *   rationale?: Text
  *   created: Date
  *   closed?: Date
- *   restriction?: RestrictionStructure
- *   modification: ModificationStructure
+ *   privacy?: PrivacyStructure
+ *   audit: AuditStructure
  * }
  *
  * ResearchTarget = oneof {
@@ -152,8 +152,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> conclusionConfidenceCombo;
 	private final BoundTextArea rationaleArea;
 	private final BoundTextField createdField;
-	private final RestrictionPanel restrictionPanel;
-	private final ModificationPanel modificationPanel;
+	private final RestrictionPanel privacyPanel;
+	private final ModificationPanel auditPanel;
 
 
 	public static ResearchQuestionRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -184,8 +184,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
 		createdField = new BoundTextField(TAG_CREATED);
 		createdField.setEditable(false);
-		restrictionPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		modificationPanel = new ModificationPanel(this);
+		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+		auditPanel = new ModificationPanel(this);
 
 
 		initComponents();
@@ -208,8 +208,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 
 		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Restriction", restrictionPanel);
-		tabbedPane.addTab("Modification", modificationPanel);
+		tabbedPane.addTab("Privacy", privacyPanel);
+		tabbedPane.addTab("Audit", auditPanel);
 
 		finalizeLayout(tabbedPane);
 	}
@@ -255,8 +255,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		targetField.load(record);
 		statusPanel.load(record);
-		restrictionPanel.load(record);
-		modificationPanel.load(record);
+		privacyPanel.load(record);
+		auditPanel.load(record);
 	}
 
 	@Override
@@ -289,8 +289,8 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		targetField.saveReferences(record);
 		statusPanel.save(record);
-		restrictionPanel.save(record);
-		modificationPanel.save(record);
+		privacyPanel.save(record);
+		auditPanel.save(record);
 	}
 
 

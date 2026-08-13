@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventHandler;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.events.BusExceptionEvent;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.images.ImagePreview;
 import io.github.mtrevisan.familylegacy.gedcom.Flef;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomGrammarParseException;
 import io.github.mtrevisan.familylegacy.gedcom.GedcomNode;
@@ -232,7 +231,7 @@ public class DocumentStructureDialog extends JDialog implements ActionListener, 
 				sphericalCheckBox.setEnabled(true);
 			}
 		});
-		fileChooser.setAccessory(new ImagePreview(fileChooser, 150, 100));
+//		fileChooser.setAccessory(new ImagePreview(fileChooser, 150, 100));
 
 		sphericalCheckBox.setEnabled(false);
 		mappingComboBox.setEnabled(false);

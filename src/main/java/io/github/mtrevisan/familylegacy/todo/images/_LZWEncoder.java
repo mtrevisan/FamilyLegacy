@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.images;
+package io.github.mtrevisan.familylegacy.todo.images;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,7 +33,7 @@ import java.io.OutputStream;
  *
  * @see <a href="https://github.com/rtyley/animated-gif-lib-for-java">Animated GIF library for Java</a>
  */
-public class LZWEncoder{
+public class _LZWEncoder{
 
 	private static final int EOF = -1;
 
@@ -138,7 +138,7 @@ public class LZWEncoder{
 	final byte[] accum = new byte[256];
 
 	//----------------------------------------------------------------------------
-	LZWEncoder(final int width, final int height, final byte[] pixels, final int colorDepth){
+	_LZWEncoder(final int width, final int height, final byte[] pixels, final int colorDepth){
 		imgW = width;
 		imgH = height;
 		pixAry = pixels;

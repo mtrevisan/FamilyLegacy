@@ -82,7 +82,7 @@ public class XRefHelper{
 		if(parent == null || tag == null || targetId == null)
 			return null;
 
-		final FLEFRecord child = FLEFRecord.createChildWithValue(tag, formatXRef(targetId));
+		final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, formatXRef(targetId));
 		parent.addChild(child);
 		return child;
 	}

@@ -63,7 +63,7 @@ public class VariantHandler implements RecordTypeHandler<TextValueVariantDialog>
 
 	@Override
 	public String getIdPrefix(){
-		return null;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override

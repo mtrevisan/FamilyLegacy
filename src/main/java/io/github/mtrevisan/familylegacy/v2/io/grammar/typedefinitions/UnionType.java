@@ -38,8 +38,8 @@ public final class UnionType extends TypeDefinition{
 		// If the current tag is the field name itself (and not one of the union choices),
 		// look at its first child to determine the selected union branch.
 		if(!choices.containsKey(tag) && !record.getChildren().isEmpty()){
-			final FLEFRecord firstChild = record.getChildren().getFirst();
-			if(choices.containsKey(firstChild.getTag())){
+			final FLEFRecord firstChild = record.getTheOnlyChild();
+			if(firstChild != null && !firstChild.isEmpty() && choices.containsKey(firstChild.getTag())){
 				tag = firstChild.getTag();
 				targetRecord = firstChild;
 			}

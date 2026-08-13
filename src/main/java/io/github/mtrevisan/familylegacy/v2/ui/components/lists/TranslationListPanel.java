@@ -80,7 +80,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.separator();
 				builder.selectionSensitiveItem("Edit…", this::editItem);
 				builder.selectionSensitiveItem("Remove", this::removeItem);
-			});
+			}
+		);
 	}
 
 	@Override
@@ -94,12 +95,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 				sb.append('[')
 					.append(locale)
 					.append("] ");
-			if(StringUtils.isNotEmpty(value)){
-				String display = value;
-				if(display.length() > 50)
-					display = display.substring(0, 47) + "…";
-				sb.append(display);
-			}
+			if(StringUtils.isNotEmpty(value))
+				sb.append(GUIHelper.limitTextLength(value));
 			return sb.toString();
 		}
 
@@ -154,9 +151,10 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 					return;
 				}
 				final FLEFRecord res = FLEFRecord.createEmpty();
-				res.addChild(FLEFRecord.createChildWithValue(TAG_VALUE, valueArea.getText()));
-				res.addChild(FLEFRecord.createChildWithValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_VALUE, valueArea.getText()));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
 				result[0] = res;
+
 				dialog.dispose();
 			},
 			dialog::dispose);
@@ -181,8 +179,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 			final String translationLocale = FLEFRecordHelper.getChildValue(child, TAG_LOCALE);
 			if(StringUtils.isNotEmpty(translationValue)){
 				final FLEFRecord res = FLEFRecord.createEmpty();
-				res.addChild(FLEFRecord.createChildWithValue(TAG_VALUE, translationValue));
-				res.addChild(FLEFRecord.createChildWithValue(TAG_LOCALE, translationLocale));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_VALUE, translationValue));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_LOCALE, translationLocale));
 				translations.add(res);
 			}
 		}

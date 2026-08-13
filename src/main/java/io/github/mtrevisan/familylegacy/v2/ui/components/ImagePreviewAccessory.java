@@ -45,6 +45,8 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 	private final ScaledImage previewImage = ScaledImage.createViewOnly();
 	private SwingWorker<BufferedImage, Void> loaderWorker;
 
+	private volatile File currentSelectedFile;
+
 
 	public ImagePreviewAccessory(final JFileChooser chooser){
 		chooser.addPropertyChangeListener(this);
@@ -62,19 +64,40 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 	@Override
 	public void propertyChange(final PropertyChangeEvent evt){
 		final String propertyName = evt.getPropertyName();
-		if(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(propertyName)){
+
+		if(JFileChooser.DIRECTORY_CHANGED_PROPERTY.equals(propertyName)){
+			currentSelectedFile = null;
+
+			if(loaderWorker != null && !loaderWorker.isDone())
+				loaderWorker.cancel(true);
+
+			previewImage.setRectangularImage(null);
+		}
+
+		else if(JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(propertyName)){
 			final File selectedFile = (File)evt.getNewValue();
+
+			currentSelectedFile = selectedFile;
 
 			// Cancel any ongoing image loading task
 			if(loaderWorker != null && !loaderWorker.isDone())
 				loaderWorker.cancel(true);
 
+			// Clear previous preview while the new image is loading
+			previewImage.setRectangularImage(null);
+
 			if(selectedFile != null && selectedFile.isFile()){
+				final File requestedFile = selectedFile;
+
 				loaderWorker = new SwingWorker<>(){
 					@Override
 					protected BufferedImage doInBackground(){
 						try{
-							return ImageIO.read(selectedFile);
+							final BufferedImage image = ImageIO.read(requestedFile);
+							if(image == null || isCancelled())
+								return null;
+
+							return image;
 						}
 						catch(final Exception e){
 							return null;
@@ -83,20 +106,23 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 
 					@Override
 					protected void done(){
-						if(!isCancelled()){
-							try{
-								previewImage.setRectangularImage(get());
-							}
-							catch(final Exception e){
-								previewImage.setRectangularImage(null);
-							}
+						if(isCancelled())
+							return;
+
+						// Ignore stale workers that completed after another file was already selected
+						if(!requestedFile.equals(currentSelectedFile))
+							return;
+
+						try{
+							previewImage.setRectangularImage(get());
+						}
+						catch(final Exception e){
+							previewImage.setRectangularImage(null);
 						}
 					}
 				};
 				loaderWorker.execute();
 			}
-			else
-				previewImage.setRectangularImage(null);
 		}
 	}
 
