@@ -35,11 +35,10 @@ import java.awt.Dialog;
 import java.util.List;
 
 
-/* DONE */
 /**
  * Handler for {@code INDIVIDUAL_ATTRIBUTE_RECORD} entities according to FLEF 0.1.1.
  */
-public class IndividualAttributeHandler implements RecordTypeHandler<IndividualAttributeRecordDialog>{
+public class IndividualAttributeHandler extends AbstractRecordTypeHandler<IndividualAttributeRecordDialog>{
 
 	public static final String TYPE = "INDIVIDUAL_ATTRIBUTE";
 	public static final String ID_PREFIX = "IA";

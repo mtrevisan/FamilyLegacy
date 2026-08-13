@@ -44,12 +44,16 @@ import java.util.EnumMap;
 import java.util.Map;
 
 
-/* DONE */
 /**
  * Panel for editing a single date (FULL_DATE, DECADE, or CENTURY) with optional APPROXIMATE.
  * <p>
  * Structure:
  * <pre>
+ * struct QualifiedDate {
+ *   single_date: SingleDate
+ *   approximate?: Approximate
+ * }
+ *
  * SingleDate = oneof {
  *   full_date: struct {
  *     value: HistoricalDate
@@ -67,7 +71,7 @@ import java.util.Map;
  * }
  * </pre>
  */
-public class SingleDatePanel extends JPanel{
+public class QualifiedDatePanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = 3393161879295516317L;
@@ -75,21 +79,28 @@ public class SingleDatePanel extends JPanel{
 
 	private static final String DOT = ".";
 
+	private static final String TAG_SINGLE_DATE = "SINGLE_DATE";
+	private static final String TAG_APPROXIMATE = "APPROXIMATE";
+
 	private static final String TAG_FULL_DATE = "FULL_DATE";
 	private static final String TAG_DECADE = "DECADE";
 	private static final String TAG_CENTURY = "CENTURY";
+
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_START_YEAR = "START_YEAR";
+	private static final String TAG_ORDINAL = "ORDINAL";
 	private static final String TAG_PART = "PART";
 	private static final String TAG_CALENDAR = "CALENDAR";
-	private static final String TAG_APPROXIMATE = "APPROXIMATE";
+
 	private static final String TAG_POINT = "POINT";
 
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final JComboBox<DateType> dateTypeCombo = new JComboBox<>(DateType.values());
-	private final BoundTextField fullDateField;
-	private final BoundTextField decadeField;
-	private final BoundTextField centuryField;
+	private final JComboBox<DateType> singleDateTypeCombo = new JComboBox<>(DateType.values());
+	private final BoundTextField fullDateValueField;
+	private final BoundTextField decadeStartYearField;
+	private final BoundTextField centuryOrdinalField;
 	private final BoundComboBox<String> centuryPartCombo;
 	private final BoundComboBox<String> calendarCombo;
 	private final ApproximatePanel approxPanel;
@@ -100,11 +111,11 @@ public class SingleDatePanel extends JPanel{
 	private final Map<DateType, BoundTextField> fieldMap = new EnumMap<>(DateType.class);
 
 
-	public SingleDatePanel(final Dialog parent, final FLEFModel model){
-		fullDateField = new BoundTextField(TAG_FULL_DATE);
-		decadeField = new BoundTextField(TAG_DECADE);
-		centuryField = new BoundTextField(TAG_CENTURY);
-		centuryPartCombo = new BoundComboBox<>(TAG_PART, new String[]{
+	public QualifiedDatePanel(final Dialog parent, final FLEFModel model){
+		fullDateValueField = new BoundTextField(TAG_FULL_DATE + DOT + TAG_VALUE);
+		decadeStartYearField = new BoundTextField(TAG_DECADE + DOT + TAG_START_YEAR);
+		centuryOrdinalField = new BoundTextField(TAG_CENTURY + DOT + TAG_ORDINAL);
+		centuryPartCombo = new BoundComboBox<>(TAG_CENTURY + DOT + TAG_PART, new String[]{
 			StringUtils.EMPTY,
 			"first_quarter", "second_quarter", "third_quarter", "fourth_quarter",
 			"first_half", "second_half",
@@ -114,9 +125,9 @@ public class SingleDatePanel extends JPanel{
 			"soviet eternal", "ethiopian", "mayan"});
 		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parent, model);
 
-		fieldMap.put(DateType.FULL_DATE, fullDateField);
-		fieldMap.put(DateType.DECADE, decadeField);
-		fieldMap.put(DateType.CENTURY, centuryField);
+		fieldMap.put(DateType.FULL_DATE, fullDateValueField);
+		fieldMap.put(DateType.DECADE, decadeStartYearField);
+		fieldMap.put(DateType.CENTURY, centuryOrdinalField);
 
 
 		initComponents();
@@ -124,38 +135,38 @@ public class SingleDatePanel extends JPanel{
 
 
 	private void initComponents(){
-		bindingManager.bind(fullDateField);
-		bindingManager.bind(decadeField);
-		bindingManager.bind(centuryField);
+		bindingManager.bind(fullDateValueField);
+		bindingManager.bind(decadeStartYearField);
+		bindingManager.bind(centuryOrdinalField);
 		bindingManager.bind(centuryPartCombo);
 		bindingManager.bind(calendarCombo);
 
 
-		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]5[]"));
+		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]10[]10[]20[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		// Date type combo
 		final JPanel typePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		typePanel.add(new JLabel("Type:"), "align label");
-		typePanel.add(dateTypeCombo, "growx");
+		typePanel.add(singleDateTypeCombo, "growx");
 		add(typePanel, "growx,wrap");
 
 		// Card panel for FULL_DATE, DECADE, CENTURY
 		final JPanel fullDatePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		fullDatePanel.add(new JLabel("Full date:"), "align label");
-		fullDatePanel.add(fullDateField, "growx");
+		fullDatePanel.add(fullDateValueField, "growx");
 
 		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow][right]rel[grow]"));
 		centuryPanel.add(new JLabel("Century:"), "align label");
-		centuryPanel.add(centuryField, "growx");
+		centuryPanel.add(centuryOrdinalField, "growx");
 		centuryPanel.add(new JLabel("Part:"), "align label");
 		centuryPanel.add(centuryPartCombo, "growx");
-		centuryField.setToolTipText("e.g., 15 for 15th century");
+		centuryOrdinalField.setToolTipText("e.g., 15 for 15th century");
 
 		final JPanel decadePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
 		decadePanel.add(new JLabel("Decade:"), "align label");
-		decadePanel.add(decadeField, "growx");
-		decadeField.setToolTipText("e.g., 1490 for the 1490s");
+		decadePanel.add(decadeStartYearField, "growx");
+		decadeStartYearField.setToolTipText("e.g., 1490 for the 1490s");
 
 		cardPanel.add(fullDatePanel, DateType.FULL_DATE.name());
 		cardPanel.add(decadePanel, DateType.DECADE.name());
@@ -172,8 +183,8 @@ public class SingleDatePanel extends JPanel{
 		// Approximate
 		add(approxPanel, "growx,wrap");
 
-		dateTypeCombo.addActionListener(e -> {
-			final DateType selected = (DateType)dateTypeCombo.getSelectedItem();
+		singleDateTypeCombo.addActionListener(e -> {
+			final DateType selected = (DateType)singleDateTypeCombo.getSelectedItem();
 			if(selected != null)
 				cardLayout.show(cardPanel, selected.name());
 		});
@@ -185,16 +196,17 @@ public class SingleDatePanel extends JPanel{
 		if(record == null)
 			return;
 
-		final DateType type = DateType.fromNode(record);
-		dateTypeCombo.setSelectedItem(type);
+		final FLEFRecord singleDate = record.getTheOnlyChild(TAG_SINGLE_DATE);
+		final DateType singleDateType = DateType.fromNode(singleDate);
+		singleDateTypeCombo.setSelectedItem(singleDateType);
 
-		approxPanel.loadFromRecord(record);
+		final FLEFRecord approximate = record.getTheOnlyChild(QualifiedDatePanel.TAG_APPROXIMATE);
+		approxPanel.loadFromRecord(approximate);
 
-		centuryPartCombo.setPath(type.getTagName() + DOT + TAG_PART);
-		calendarCombo.setPath(type.getTagName() + DOT + TAG_CALENDAR);
-		bindingManager.load(record);
+		calendarCombo.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
+		bindingManager.load(singleDate);
 
-		cardLayout.show(cardPanel, type.name());
+		cardLayout.show(cardPanel, singleDateType.name());
 	}
 
 	/**
@@ -210,11 +222,11 @@ public class SingleDatePanel extends JPanel{
 
 		// Clear non-selected fields automatically using the Map
 		fieldMap.forEach((type, field) -> {
-			if(type != dateTypeCombo.getSelectedItem())
+			if(type != singleDateTypeCombo.getSelectedItem())
 				field.setText(StringUtils.EMPTY);
 		});
 
-		final DateType selectedType = (DateType)dateTypeCombo.getSelectedItem();
+		final DateType selectedType = (DateType)singleDateTypeCombo.getSelectedItem();
 		if(selectedType != DateType.CENTURY)
 			centuryPartCombo.setText(StringUtils.EMPTY);
 
@@ -230,7 +242,7 @@ public class SingleDatePanel extends JPanel{
 	}
 
 	public void clear(){
-		dateTypeCombo.setSelectedIndex(0);
+		singleDateTypeCombo.setSelectedIndex(0);
 		fieldMap.values()
 			.forEach(field -> field.setText(StringUtils.EMPTY));
 		centuryPartCombo.setSelectedIndex(0);
@@ -240,7 +252,7 @@ public class SingleDatePanel extends JPanel{
 	}
 
 	public boolean hasData(){
-		final DateType selected = (DateType)dateTypeCombo.getSelectedItem();
+		final DateType selected = (DateType)singleDateTypeCombo.getSelectedItem();
 		if(selected == null)
 			return false;
 
@@ -249,7 +261,7 @@ public class SingleDatePanel extends JPanel{
 	}
 
 	public boolean validateData(){
-		final DateType selected = (DateType)dateTypeCombo.getSelectedItem();
+		final DateType selected = (DateType)singleDateTypeCombo.getSelectedItem();
 		if(selected != null){
 			final BoundTextField activeField = fieldMap.get(selected);
 			if(activeField != null && activeField.isEmpty()){

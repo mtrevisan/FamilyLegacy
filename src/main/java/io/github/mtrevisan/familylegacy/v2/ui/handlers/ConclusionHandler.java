@@ -34,12 +34,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class ConclusionHandler implements RecordTypeHandler<ConclusionRecordDialog>{
+public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecordDialog>{
 
 	public static final String TYPE = "CONCLUSION";
 	public static final String ID_PREFIX = "CC";
-
-	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override

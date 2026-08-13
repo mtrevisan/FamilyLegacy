@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class EventHandler implements RecordTypeHandler<EventRecordDialog>{
+public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 
 	public static final String TYPE = "EVENT";
 	public static final String ID_PREFIX = "E";

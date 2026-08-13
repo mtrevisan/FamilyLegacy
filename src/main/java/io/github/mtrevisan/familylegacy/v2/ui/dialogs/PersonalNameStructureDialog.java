@@ -26,31 +26,26 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE /*/
 /**
  * Dialog for editing a {@code PERSONAL_NAME_STRUCTURE} according to FLEF 0.1.1.
  * <p>
@@ -66,8 +61,8 @@ import java.io.Serial;
  *   } | Text
  *   part+: PartStructure
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
- *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  * }
  * struct PartStructure {
  *   type: enum {
@@ -82,6 +77,12 @@ import java.io.Serial;
  *   variant*: TextValueVariant
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): type, part
+ * Tab 5 (Context): context
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
  */
 public class PersonalNameStructureDialog extends BaseRecordDialog{
 
@@ -91,31 +92,17 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_PART = "PART";
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_NOTE = "NOTE";
 
 
-	static{
-		HandlerRegistry.register(new PersonalNameHandler());
-		HandlerRegistry.register(new VariantHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new PartHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
 	private final EntityReferenceListPanel partPanel;
-	private final EntityReferenceListPanel culturalNormPanel;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
 
 
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -129,7 +116,9 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 
 	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PersonalNameHandler.TYPE));
+		super(parent, model, record, PersonalNameHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -145,63 +134,69 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			"regnal", "slave_name"
 		});
 		typeCombo.setEditable(true);
-		partPanel = EntityReferenceListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.TYPE);
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		partPanel = EntityReferenceListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.class);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.CONTEXT_IMPACT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PersonalNameHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.build();
+
+		components.bind(typeCombo);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(typeCombo);
-
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// type
-		mainPanel.add(new JLabel("Type:"), "align label");
-		mainPanel.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
 
 		// parts
-		mainPanel.add(partPanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(propertiesPanel, partPanel);
 
-		// qualifiers
-		mainPanel.add(culturalNormPanel, "span 2,growx");
-
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
 		return panel;
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
 		partPanel.load(record);
-		culturalNormPanel.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
 	}
 
 	@Override
@@ -209,7 +204,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		if(partPanel.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"At least one part is required.",
-				tabbedPane, mainPanel, partPanel);
+				tabbedPane, propertiesPanel, partPanel);
 
 			return false;
 		}
@@ -219,12 +214,9 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
 		partPanel.save(record);
-		culturalNormPanel.save(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
 	}
 
 	public boolean hasData(){

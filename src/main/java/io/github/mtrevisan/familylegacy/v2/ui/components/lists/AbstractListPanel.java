@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/* DONE */
 /**
  * Abstract base panel managing lists of items of type {@code T}.
  * <p>

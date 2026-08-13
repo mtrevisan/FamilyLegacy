@@ -37,7 +37,7 @@ import java.awt.Dialog;
 /**
  * Handler for ResearchActivityRecord.
  */
-public class ResearchActivityHandler implements RecordTypeHandler<ResearchActivityRecordDialog>{
+public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchActivityRecordDialog>{
 
 	public static final String TYPE = "RESEARCH_ACTIVITY";
 	public static final String ID_PREFIX = "RA";

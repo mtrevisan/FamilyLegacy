@@ -26,13 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.ButtonGroup;
@@ -45,7 +44,6 @@ import java.awt.FlowLayout;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.1.
  * <p>
@@ -94,21 +92,13 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private static final String TAG_VALUE = "VALUE";
 
 
-	static{
-		HandlerRegistry.register(new VariantHandler());
-	}
-
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final RecordDialogComponents components;
 
 	private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
 	private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");
-	private final JLabel systemLabel = new JLabel("System*:");
 	private final BoundTextField phoneticSystemField;
 	private final BoundComboBox<String> transcriptionSystemCombo;
-	private final JLabel typeLabel = new JLabel("Type:");
 	private final BoundComboBox<String> typeCombo;
-	private final JLabel valueLabel = new JLabel("Value*:");
 	private final BoundTextField valueField;
 
 
@@ -122,7 +112,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 
 	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(VariantHandler.TYPE));
+		super(parent, model, record, VariantHandler.class);
 
 		phoneticSystemField = new BoundTextField(TAG_SYSTEM);
 		phoneticSystemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
@@ -151,25 +141,23 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE);
 
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.build();
 
-		initComponents();
+		components.bind(phoneticSystemField);
+		components.bind(transcriptionSystemCombo);
+		components.bind(typeCombo);
+		components.bind(valueField);
 
-		loadData();
 
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(phoneticSystemField);
-		bindingManager.bind(transcriptionSystemCombo);
-		bindingManager.bind(typeCombo);
-		bindingManager.bind(valueField);
-
-
-		setLayout(new MigLayout("ins 10,fillx,hidemode 3", "[right]rel[grow]", "[]15[]5[]5[]5[]"));
+	@Override
+	protected void initComponents(){
+		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]15[]5[]5[]5[]");
 
 		final ButtonGroup group = new ButtonGroup();
 		group.add(phoneticRadio);
@@ -179,18 +167,15 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		add(new JLabel("Variant Kind:"), "align label");
-		add(radioPanel, "growx,wrap");
+		GUIHelper.addLabeledComponent(this, "Variant Kind:", radioPanel);
 
-		add(systemLabel, "align label");
+		add(new JLabel("System*:"), "align label");
 		add(phoneticSystemField, "growx,wrap");
 		add(transcriptionSystemCombo, "growx,wrap");
 
-		add(typeLabel, "align label");
-		add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(this, "Type:", typeCombo);
 
-		add(valueLabel, "align label");
-		add(valueField, "growx,wrap");
+		GUIHelper.addLabeledComponent(this, "Value*:", valueField);
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());
@@ -206,9 +191,9 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
-		String tag = record.getTag();
+		final String tag = record.getTag();
 		if(TAG_PHONETIC.equals(tag))
 			phoneticRadio.setSelected(true);
 		else if(TAG_TRANSCRIPTION.equals(tag))
@@ -226,8 +211,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		transcriptionSystemCombo.setVisible(isTranscription);
 
 		// Toggle visibility for Type components
-		typeLabel.setVisible(isTranscription);
-		typeCombo.setVisible(isTranscription);
+		GUIHelper.setComponentVisible(typeCombo, isTranscription);
 
 		pack();
 	}
@@ -268,7 +252,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		else if(transcriptionRadio.isSelected())
 			record.setTag(TAG_TRANSCRIPTION);
 
-		bindingManager.save(record);
+		components.save(record);
 	}
 
 

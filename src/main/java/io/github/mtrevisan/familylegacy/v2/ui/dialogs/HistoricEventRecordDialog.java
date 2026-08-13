@@ -26,31 +26,28 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* DONE */
 /**
  * Structure:
  * <pre>
@@ -60,12 +57,20 @@ import java.io.Serial;
  *   title?: Text
  *   date?: DateStructure
  *   place?: PlaceCitation
- *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): type, title, date, place, evidence
+ * Tab 5 (Context): ContextImpactRecord (context.historic_event = this historic event)
+ * Tab 6 (Research): ConclusionRecord (resolves/preferred = this historic event), ResearchQuestionRecord (target.historic_event = this historic event)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 10 (Audit): audit
  */
 public class HistoricEventRecordDialog extends BaseRecordDialog{
 
@@ -77,27 +82,21 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_DATE = "DATE";
 	private static final String TAG_PLACE = "PLACE";
-	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
+	private static final String TAG_AUDIT = "AUDIT";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 
 
-	static{
-		HandlerRegistry.register(new HistoricEventHandler());
-		HandlerRegistry.register(new NoteHandler());
-	}
-
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final RecordDialogComponents components;
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField titleField;
 	private final DateField dateField;
 	private final PlaceField placeField;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
-	private final EvidenceQualifiersPanel evidencePanel;
-	private final ModificationPanel auditPanel;
 
 
 	public static HistoricEventRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -111,9 +110,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 
 	private HistoricEventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(HistoricEventHandler.TYPE));
-
-		setTitle(record == null? "Add Historic Event": "Edit Historic Event");
+		super(parent, model, record, HistoricEventHandler.class);
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -125,101 +122,127 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		titleField = new BoundTextField(TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeField = PlaceField.create(TAG_PLACE, this, model);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), HistoricEventHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		auditPanel = new ModificationPanel(this);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, HistoricEventHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, HistoricEventHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, HistoricEventHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, HistoricEventHandler.class)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(typeCombo);
+		components.bind(titleField);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(typeCombo);
-		bindingManager.bind(titleField);
-
-
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
-		final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]10[]"));
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
 		// type
-		mainPanel.add(new JLabel("Type:"), "align label");
-		mainPanel.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
 
 		// title
-		mainPanel.add(new JLabel("Title:"), "align label");
-		mainPanel.add(titleField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Title:", titleField);
 
 		// date
-		mainPanel.add(new JLabel("Date:"), "align label");
-		mainPanel.add(dateField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Date:", dateField);
 
 		// place
-		mainPanel.add(new JLabel("Place:"), "align label");
-		mainPanel.add(placeField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeField);
 
 		// evidence
-		mainPanel.add(evidencePanel, "span 2,growx");
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_CONTEXT);
+		GUIHelper.addComponent(panel, contextPanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		// conclusion
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		// research question
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		if(record == null)
+			return;
+
+		components.load(record);
 
 		dateField.load(record);
 		placeField.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
-		evidencePanel.load(record);
-		auditPanel.load(record);
-	}
-
-	@Override
-	protected boolean validData(){
-		return true;
 	}
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
 		dateField.save(record);
 		placeField.saveReferences(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
-		evidencePanel.save(record);
-		auditPanel.save(record);
 	}
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(HistoricEventRecordDialog::createNew);
+		final FLEFRecord document = FLEFRecord.createMainRecord("D1", "DOCUMENT");
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(document);
+		};
+		GUIHelper.launch(HistoricEventRecordDialog::createEdit, modelFiller, document);
 	}
 
 }

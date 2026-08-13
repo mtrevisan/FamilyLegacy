@@ -36,21 +36,12 @@ import java.awt.Dialog;
 /**
  * Handler for {@code PLACE_CITATION} entities according to FLEF 0.1.1.
  */
-public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDialog>{
+public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitationDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "PLACE_CITATION";
 	public static final String CITED_TYPE = "PLACE";
 
 	private static final String TAG_PLACE = "PLACE";
-
-
-	static{
-		HandlerRegistry.register(new PlaceHandler());
-	}
-
-
-	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
 
 
 	@Override
@@ -85,6 +76,7 @@ public class PlaceCitationHandler implements RecordTypeHandler<PlaceCitationDial
 
 		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_PLACE));
 		final FLEFRecord place = model.getRecordById(xref);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
 		return placeHandler.getDisplayText(place, model);
 	}
 

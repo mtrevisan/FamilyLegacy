@@ -106,8 +106,8 @@ record IndividualRecord {
   sex?: enum {                               // Biological sex as recorded in sources or inferred from evidence. This represents a genealogical conclusion and may be revised as additional evidence becomes available.
     male, female, unknown
   }
-  note*: Xref<NoteRecord>                    // free-text notes about this individual
   source*: SourceCitation                    // source citations supporting facts about this individual
+  note*: Xref<NoteRecord>                    // free-text notes about this individual
   preferred_image?: struct {
     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
     crop?: CropRect   // normalized rectangle identifying the region of interest within the image
@@ -136,8 +136,8 @@ struct PersonalNameStructure {
   } | Text
   part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
   cultural_norm*: Xref<CulturalNormRecord>
-  note*: Xref<NoteRecord>
   source*: SourceCitation
+  note*: Xref<NoteRecord>
 }
 
 // embedded
@@ -189,8 +189,8 @@ record EventRecord {
     value: Text   // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
     evidence?: EvidenceQualifiers
   }
-  note*: Xref<NoteRecord>
   source*: SourceCitation
+  note*: Xref<NoteRecord>
   evidence?: EvidenceQualifiers   // evidence qualifiers for the event
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -269,6 +269,7 @@ record IndividualAttributeRecord {
   valid_to?: DateStructure             // The date until which this attribute is known or believed to have been valid.
   place?: PlaceCitation                // Place specifically associated with this attribute.
   source*: SourceCitation              // Sources supporting this attribute.
+  note*: Xref<NoteRecord>
   evidence?: EvidenceQualifiers        // Evidentiary assessment of this assertion.
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -292,8 +293,8 @@ record EventParticipationRecord {
     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
     landlord, tenant, soldier, commander, victim, survivor, accused, judge
   } | Text
-  note*: Xref<NoteRecord>
   source*: SourceCitation
+  note*: Xref<NoteRecord>
   evidence?: EvidenceQualifiers
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -317,12 +318,12 @@ EventParticipant = oneof {
 // relationship with its own properties (dates, evidence, conclusions).
 record GroupRecord {
   id: LocalID
-  name*: ClassifiedName   // names associated with the group. For a family group in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
+  name*: ClassifiedNameStructure   // names associated with the group. For a family group in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
   type?: enum {
     family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe
   } | Text
-  note*: Xref<NoteRecord>
   source*: SourceCitation
+  note*: Xref<NoteRecord>
   preferred_image?: struct {
     uri: Uri          // Resource URI pointing to a preferred image of this individual. FIXME? document: Xref<DocumentRecord>
     crop?: CropRect   // specifies the portion of the image that should be displayed as the preferred representation
@@ -361,6 +362,7 @@ record GroupAttributeRecord {
   valid_to?: DateStructure        // The date until which this attribute is known or believed to have been valid.
   place?: PlaceCitation           // Place specifically associated with this attribute, when different from the group's general residence.
   source*: SourceCitation         // Sources supporting this attribute.
+  note*: Xref<NoteRecord>
   evidence?: EvidenceQualifiers   // Evidentiary assessment of this assertion.
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -372,7 +374,7 @@ record GroupAttributeRecord {
 // ============================================================
 
 // embedded
-struct ClassifiedName {
+struct ClassifiedNameStructure {
   type?: enum {
     // official and legal names
     official,
@@ -409,10 +411,10 @@ struct ClassifiedName {
 // patronymics, titles, or lineage elements.
 struct NameStructure {
   value: Text                   // the primary textual value
-  variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
   locale?: LocaleCode
-  note*: Xref<NoteRecord>
+  variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
   source*: SourceCitation
+  note*: Xref<NoteRecord>
 }
 
 // embedded
@@ -497,8 +499,8 @@ record RelationshipRecord {
   }
   valid_from?: DateStructure    // the date from which this relationship was known to be in effect
   valid_to?: DateStructure      // the date until which this relationship was known to be in effect
-  note*: Xref<NoteRecord>
   source*: SourceCitation
+  note*: Xref<NoteRecord>
   evidence?: EvidenceQualifiers
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -519,7 +521,7 @@ RelationshipParticipant = oneof {
 // records in order to model changing jurisdictions and historical geography.
 record PlaceRecord {
   id: LocalID
-  name+: ClassifiedName   // the name of the place formatted for display and address generation
+  name+: ClassifiedNameStructure   // the name of the place formatted for display and address generation
   type?: enum {
     address, building, street, hamlet, village, town, municipality, city,
     metropolitan_area, county, province, department, district, region,
@@ -564,8 +566,8 @@ record PlaceRelationshipRecord {
   } | Text
   valid_from?: DateStructure    // the date from which this place relationship is known or believed to have been valid
   valid_to?: DateStructure      // the date until which this place relationship is known or believed to have been valid
-  note*: Text                   // a note containing commentary, interpretation, or discussion related to this place relationship
   source*: SourceCitation       // a list of source citations supporting the existence, interpretation, or dating of this place relationship
+  note*: Text                   // a note containing commentary, interpretation, or discussion related to this place relationship
   audit: AuditStructure
 }
 
@@ -599,7 +601,7 @@ record NoteRecord {
 // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
 record RepositoryRecord {
   id: LocalID
-  name+: ClassifiedName                // the official name of the archive in which the stated source material is stored
+  name+: ClassifiedNameStructure       // the official name of the archive in which the stated source material is stored
   custodian?: Xref<IndividualRecord>   // the individual acting as custodian of the repository or its source material
   place?: PlaceCitation                // the location of the repository
   contact*: ContactStructure
@@ -638,8 +640,8 @@ struct ContactStructure {
     messaging   // Messaging application endpoint (e.g. WhatsApp, Signal, Telegram).
   } | Text
   name?: struct {
-    value: Text   // the name of the person associated with this contact
-    variant*: TextValueVariant
+    value: Text                  // the name of the person associated with this contact
+    variant*: TextValueVariant   // alternative phonetic, transliterated, or transcribed representations
   }
   note?: Text
   privacy?: PrivacyStructure
@@ -1122,8 +1124,6 @@ record ResearchTaskRecord {
 record ConclusionRecord {
   id: LocalID
   context: Text                             // the specific context that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
-  resolves*: ConclusionTarget               // a pointer to one or more conflicting assertions or hypotheses. When PROOF_STATUS is DISPROVEN, RESOLVES SHOULD normally contain at least two targets.
-  preferred?: ConclusionTarget              // the assertion or hypothesis judged most likely to be correct. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. When present, PREFERRED MUST be one of the records listed in RESOLVES. When PROOF_STATUS is DISPROVEN, PREFERRED SHOULD normally be omitted.
   proof_status: enum {
     conflicting_evidence,   // the evidence is conflicting, none prevails
     supported,              // preponderance of evidence, but not absolute certainty
@@ -1131,8 +1131,10 @@ record ConclusionRecord {
     disproven               // proven false
   }
   narrative?: Text                          // a discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen
-  research*: Xref<ResearchQuestionRecord>   // references to research questions that led to this conclusion
   date?: Date                               // the date the researcher made this conclusion
+  resolves*: ConclusionTarget               // a pointer to one or more conflicting assertions or hypotheses. When PROOF_STATUS is DISPROVEN, RESOLVES SHOULD normally contain at least two targets.
+  preferred?: ConclusionTarget              // the assertion or hypothesis judged most likely to be correct. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. When present, PREFERRED MUST be one of the records listed in RESOLVES. When PROOF_STATUS is DISPROVEN, PREFERRED SHOULD normally be omitted.
+  research*: Xref<ResearchQuestionRecord>   // references to research questions that led to this conclusion
   source*: SourceCitation                   // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
   
   require preferred in resolves
@@ -1202,6 +1204,7 @@ record IdentityHypothesisRecord {
   candidate: IdentityCandidate   // the second record in the identity hypothesis
   comment?: Text                 // a note explaining the basis for the possible duplicate hypothesis
   source*: SourceCitation
+  note*: Xref<NoteRecord>
   evidence?: EvidenceQualifiers
   audit: AuditStructure
   

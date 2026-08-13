@@ -37,7 +37,7 @@ import java.awt.Dialog;
 /**
  * Handler for IdentityHypothesisRecord.
  */
-public class IdentityHypothesisHandler implements RecordTypeHandler<IdentityHypothesisRecordDialog>{
+public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<IdentityHypothesisRecordDialog>{
 
 	public static final String TYPE = "IDENTITY_HYPOTHESIS";
 	public static final String ID_PREFIX = "IH";

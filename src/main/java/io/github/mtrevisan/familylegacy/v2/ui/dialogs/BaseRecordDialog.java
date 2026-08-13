@@ -64,7 +64,10 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	protected BoundTextField parentEntity;
 
+	protected final JTabbedPane tabbedPane = new JTabbedPane();
 
+
+	@Deprecated
 	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
 			final RecordTypeHandler<?> handler){
 		super(parent, ModalityType.APPLICATION_MODAL);
@@ -75,6 +78,105 @@ public abstract class BaseRecordDialog extends JDialog{
 		this.isNew = (record == null);
 
 		setTitle(buildTitle(handler, (record == null)));
+	}
+
+	protected <T extends Class<? extends RecordTypeHandler<?>>> BaseRecordDialog(final Dialog parent,
+			final FLEFModel model, final FLEFRecord record, final T handler){
+		super(parent, ModalityType.APPLICATION_MODAL);
+
+		this.handler = HandlerRegistry.getHandler(handler);
+		this.model = model;
+		this.record = (record != null? record: createNewRecord());
+		this.isNew = (record == null);
+
+		setTitle(buildTitle(this.handler, (record == null)));
+	}
+
+	protected void finalizeDialog(final Dialog parent){
+		initComponents();
+
+		loadData();
+
+		pack();
+
+		setLocationRelativeTo(parent);
+	}
+
+	protected void initComponents(){
+		addTabIfNotNull(tabbedPane, "Properties", createPropertiesPanel());
+		addTabIfNotNull(tabbedPane, "Attributes", createAttributesPanel());
+		addTabIfNotNull(tabbedPane, "Relationships", createRelationshipsPanel());
+		addTabIfNotNull(tabbedPane, "Participations", createParticipationsPanel());
+		addTabIfNotNull(tabbedPane, "Context", createContextPanel());
+		addTabIfNotNull(tabbedPane, "Research", createResearchPanel());
+		addTabIfNotNull(tabbedPane, "Findings", createFindingsPanel());
+		addTabIfNotNull(tabbedPane, "References", createReferencesPanel());
+		addTabIfNotNull(tabbedPane, "Sources", createSourcesPanel());
+		addTabIfNotNull(tabbedPane, "Notes", createNotesPanel());
+		addTabIfNotNull(tabbedPane, "Privacy", createPrivacyPanel());
+		addTabIfNotNull(tabbedPane, "Audit", createAuditPanel());
+
+		finalizeLayout(tabbedPane);
+	}
+
+	/**
+	 * Adds a tab to the tabbed pane only if the panel is not {@code null}.
+	 *
+	 * @param tabbedPane the tabbed pane
+	 * @param title      the tab title
+	 * @param panel      the panel to add (may be {@code null})
+	 */
+	private void addTabIfNotNull(final JTabbedPane tabbedPane, final String title, final JPanel panel){
+		if(panel != null)
+			tabbedPane.addTab(title, panel);
+	}
+
+	protected JPanel createPropertiesPanel(){
+		return null;
+	}
+
+	protected JPanel createAttributesPanel(){
+		return null;
+	}
+
+	protected JPanel createRelationshipsPanel(){
+		return null;
+	}
+
+	protected JPanel createParticipationsPanel(){
+		return null;
+	}
+
+	protected JPanel createContextPanel(){
+		return null;
+	}
+
+	protected JPanel createResearchPanel(){
+		return null;
+	}
+
+	protected JPanel createFindingsPanel(){
+		return null;
+	}
+
+	protected JPanel createReferencesPanel(){
+		return null;
+	}
+
+	protected JPanel createSourcesPanel(){
+		return null;
+	}
+
+	protected JPanel createNotesPanel(){
+		return null;
+	}
+
+	protected JPanel createPrivacyPanel(){
+		return null;
+	}
+
+	protected JPanel createAuditPanel(){
+		return null;
 	}
 
 	private String buildTitle(final RecordTypeHandler<?> handler, final boolean isNew){
@@ -167,8 +269,8 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
-	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityHandlerType){
-		parentEntity = new BoundTextField(parentEntityHandlerType);
+	public BaseRecordDialog withParentEntity(final String parentEntityId, final String path){
+		parentEntity = new BoundTextField(path);
 		parentEntity.setText(parentEntityId);
 
 		return this;
@@ -192,7 +294,7 @@ public abstract class BaseRecordDialog extends JDialog{
 
 // TODO to be removed
 System.out.println(FLEFWriter.create().writeToString(model));
-//		dispose();
+			dispose();
 		}
 	}
 
@@ -202,7 +304,9 @@ System.out.println(FLEFWriter.create().writeToString(model));
 	 *
 	 * @return	Whether the data is valid.
 	 */
-	protected abstract boolean validData();
+	protected boolean validData(){
+		return true;
+	}
 
 	/**
 	 * Saves the record data to the model.
@@ -271,9 +375,10 @@ System.out.println(FLEFWriter.create().writeToString(model));
 	}
 
 
-	protected boolean confirmRecordExistsForType(final String participantId, final String participantHandlerType){
+	protected boolean confirmRecordExistsForType(final String participantId,
+			final Class<? extends RecordTypeHandler<?>> participantHandlerClass){
 		if(model.getRecordById(participantId) == null){
-			final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerType);
+			final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerClass);
 			JOptionPane.showMessageDialog(this, "Unknown " + participantHandler.getLabel() + " ID.",
 				"Error", JOptionPane.ERROR_MESSAGE);
 

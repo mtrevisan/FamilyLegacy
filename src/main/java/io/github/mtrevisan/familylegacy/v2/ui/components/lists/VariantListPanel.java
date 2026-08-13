@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 
 import java.awt.Dialog;
@@ -36,7 +35,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/* DONE */
 /**
  * Panel for managing variants (phonetic and transcription) of a record.
  */
@@ -50,13 +48,8 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 
 
-	static{
-		HandlerRegistry.register(new VariantHandler());
-	}
-
-
 	public VariantListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
-		super(path, parent, panelTitle, model, VariantHandler.TYPE, RelationType.STRUCTURE);
+		super(path, parent, panelTitle, model, VariantHandler.class, RelationType.STRUCTURE);
 	}
 
 

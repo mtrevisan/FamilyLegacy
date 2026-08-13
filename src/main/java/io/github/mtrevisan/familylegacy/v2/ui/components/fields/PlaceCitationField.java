@@ -43,7 +43,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Component for selecting and displaying place citations.
  */
@@ -56,12 +55,6 @@ public class PlaceCitationField extends JPanel{
 	private static final String TAG_PLACE = "PLACE";
 
 
-	static{
-		HandlerRegistry.register(new PlaceCitationHandler());
-		HandlerRegistry.register(new PlaceHandler());
-	}
-
-
 	private final Dialog parent;
 
 	private final String path;
@@ -71,7 +64,7 @@ public class PlaceCitationField extends JPanel{
 
 	private final JTextField displayField = new JTextField(null);
 
-	private final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
+	private final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.class);
 
 
 	public static PlaceCitationField create(final String path, final Dialog parent, final FLEFModel model){
@@ -146,7 +139,7 @@ public class PlaceCitationField extends JPanel{
 	public void load(final FLEFRecord targetRecord){
 		clear();
 
-		if(targetRecord == null)
+		if(targetRecord == null || targetRecord.isEmpty())
 			return;
 
 		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
@@ -164,7 +157,7 @@ public class PlaceCitationField extends JPanel{
 	 * Creates a new place and adds a citation for it.
 	 */
 	private FLEFRecord createNew(){
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
 		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
@@ -175,7 +168,7 @@ public class PlaceCitationField extends JPanel{
 				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
 				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
 
-				final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
+				final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.class);
 				final PlaceCitationDialog citationDialog = (PlaceCitationDialog)placeCitationHandler.createEditDialog(parent, model, placeCitation);
 				citationDialog.setVisible(true);
 
@@ -203,7 +196,7 @@ public class PlaceCitationField extends JPanel{
 		final String placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
 		final FLEFRecord place = model.getRecordById(placeId);
 
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
 		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createEditDialog(parent, model, place);
 		dialog.setVisible(true);
 
@@ -216,7 +209,7 @@ public class PlaceCitationField extends JPanel{
 		if(record == null)
 			return;
 
-		final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
+		final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.class);
 		final PlaceCitationDialog dialog = (PlaceCitationDialog)placeCitationHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
@@ -236,9 +229,7 @@ public class PlaceCitationField extends JPanel{
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
 		sb.append("value: ");
-		String text = displayField.getText();
-		if(GUIHelper.isPlaceholder(text))
-			text = null;
+		final String text = GUIHelper.getText(displayField.getText());
 		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
 			.append(", path: ")
 			.append(path);

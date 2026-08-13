@@ -49,7 +49,6 @@ import java.awt.image.DataBufferInt;
 import java.io.Serial;
 
 
-/* DONE */
 public class ScaledImage extends JLabel{
 
 	@Serial

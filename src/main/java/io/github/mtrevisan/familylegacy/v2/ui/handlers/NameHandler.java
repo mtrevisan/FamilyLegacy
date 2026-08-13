@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchQuestionRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,20 +35,32 @@ import java.awt.Dialog;
 
 
 /**
- * Handler for RESEARCH_QUESTION records.
+ * Handler for {@code NAME_STRUCTURE} entities according to FLEF 0.1.1.
+ * <p>
+ * This handler provides the necessary operations for managing name structures:
+ * creation, editing, display name generation, and type identification.
+ * <p>
+ * Structure:
+ * <pre>
+ * ???
+ * </pre>
  */
-public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQuestionRecordDialog>{
+public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 
-	public static final String TYPE = "RESEARCH_QUESTION";
-	public static final String ID_PREFIX = "RS";
+	public static final String TYPE = "NAME_STRUCTURE";
+	public static final String CITED_TYPE = "NAME";
 
-	private static final String TAG_QUESTION = "QUESTION";
-	private static final String TAG_STATUS = "STATUS";
+	private static final String TAG_VALUE = "VALUE";
 
 
 	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
 	public String getLabel(){
-		return "Research Status";
+		return "Name Structure";
 	}
 
 	@Override
@@ -57,8 +69,13 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	}
 
 	@Override
+	public String getCitedType(){
+		return (!isTopLevelEntity()? CITED_TYPE: null);
+	}
+
+	@Override
 	public String getIdPrefix(){
-		return ID_PREFIX;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
@@ -66,26 +83,30 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 		if(record == null)
 			return "--";
 
-		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
-		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
-		if(StringUtils.isNotEmpty(question)){
-			String display = GUIHelper.limitTextLength(question);
-			if(StringUtils.isNotEmpty(status))
-				display += " [" + status + "]";
-			return display;
+		final StringBuilder fullName = new StringBuilder();
+
+		final String val = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		if(val != null && !val.isBlank()){
+			if(!fullName.isEmpty())
+				fullName.append(StringUtils.SPACE);
+			fullName.append(val);
 		}
-		return record.getId() != null? record.getId(): "(unnamed)";
+
+		String result = fullName.toString();
+		if(result.isBlank())
+			return "[" + record.getId() + "]";
+
+		return GUIHelper.limitTextLength(result);
 	}
 
 	@Override
-	public ResearchQuestionRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return ResearchQuestionRecordDialog.createNew(parent, model);
+	public NameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return NameStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public ResearchQuestionRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ResearchQuestionRecordDialog.createEdit(parent, model, record);
+	public NameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return NameStructureDialog.createEdit(parent, model, record);
 	}
 
 }

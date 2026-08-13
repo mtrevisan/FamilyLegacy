@@ -26,36 +26,32 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.function.Consumer;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -63,10 +59,10 @@ import java.util.function.Consumer;
  * <pre>
  * record GroupRecord {
  *   id: LocalID
- *   name*: ClassifiedName
+ *   name*: ClassifiedNameStructure
  *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
- *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  *   preferred_image?: struct {
  *     uri: Uri
  *     crop?: CropRect
@@ -75,6 +71,18 @@ import java.util.function.Consumer;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): name, type, preferred_image
+ * Tab 2 (Attributes): GroupAttributeRecord (group = this group)
+ * Tab 3 (Relationships): RelationshipRecord (subject = this group), RelationshipRecord (object = this group)
+ * Tab 4 (Participations): EventParticipationRecord (participant.group = this group)
+ * Tab 5 (Context): ContextImpactRecord (target.group = this group)
+ * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (subject/candidate = this group), ResearchQuestionRecord (target.group = this group)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class GroupRecordDialog extends BaseRecordDialog{
 
@@ -84,45 +92,25 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_PREFERRED_IMAGE = "PREFERRED_IMAGE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
-
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_GROUP_ATTRIBUTE = "GROUP_ATTRIBUTE";
 	private static final String TAG_RELATIONSHIP = "RELATIONSHIP";
+	private static final String TAG_EVENT_PARTICIPATION = "EVENT_PARTICIPATION";
+	private static final String TAG_IDENTITY_HYPOTHESIS = "IDENTITY_HYPOTHESIS";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	static{
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new GroupAttributeHandler());
-		HandlerRegistry.register(new RelationshipHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new ClassifiedNameHandler());
-		HandlerRegistry.register(new ConclusionHandler());
-		HandlerRegistry.register(new ConclusionTargetHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final BindingManager bindingManager = new BindingManager();
-
+	private final PreferredImagePanel preferredImagePanel;
 	private final EntityReferenceListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
-	private final PreferredImagePanel preferredImagePanel;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
-
-	// Other
-	private final EntityReferenceListPanel culturalNormPanel;
-	private final EntityReferenceListPanel conclusionPanel;
-	private final EntityReferenceListPanel memberPanel;
-	private final EntityReferenceListPanel attributePanel;
-	private final EntityReferenceListPanel relationshipPanel;
 
 
 	public static GroupRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -135,153 +123,260 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 
 	private GroupRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(GroupHandler.TYPE));
+		super(parent, model, record, GroupHandler.class);
 
-		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names", model, ClassifiedNameHandler.TYPE);
+		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
+		namePanel = EntityReferenceListPanel.createForStructure(
+			TAG_NAME, this, "Names", model, ClassifiedNameHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
-			"family", "household", "neighbourhood", "fraternity", "club", "literary_society", "association",
-			"organisation", "tribe"});
+			"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
+			"association", "organisation", "tribe"
+		});
 		typeCombo.setEditable(true);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionTargetHandler.TYPE)
-			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		memberPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Members", model, RelationshipHandler.TYPE)
-			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		attributePanel = EntityReferenceListPanel.createForRecord(TAG_GROUP_ATTRIBUTE, this, "Group Attributes", model, GroupAttributeHandler.TYPE)
-			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
-		relationshipPanel = EntityReferenceListPanel.createForRecord(TAG_RELATIONSHIP, this, "Relationships", model, RelationshipHandler.TYPE)
-			.withParentEntity(this.record.getId(), GroupHandler.TYPE);
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.GROUP_ATTRIBUTE, TAG_GROUP_ATTRIBUTE, "Group Attributes", GroupAttributeHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_AS_SUBJECT, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_AS_OBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
 
-		initComponents();
+		components.bind(typeCombo);
 
-		loadData();
 
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(typeCombo);
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]10[]");
 
-
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]15[]10[]10[]10[]"));
-
-		panel.add(preferredImagePanel, "growx,align center");
-
-		// type
-		final JPanel typePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
-		typePanel.add(new JLabel("Type:"), "align label");
-		typePanel.add(typeCombo, "growx");
-		panel.add(typePanel, "growx");
+		// preferred image
+		panel.add(preferredImagePanel, "span 2,growx,align center");
 
 		// names
-		panel.add(namePanel, "growx");
+		GUIHelper.addComponent(panel, namePanel);
 
-		// members
-		panel.add(memberPanel, "growx");
-
-		// attributes
-		panel.add(attributePanel, "growx");
+		// type
+		final JPanel typePanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(typePanel, "Type:", typeCombo);
+		GUIHelper.addComponent(panel, typePanel);
 
 		return panel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]10[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(conclusionPanel, "growx");
-		panel.add(relationshipPanel, "growx");
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createAttributesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel groupAttributePanel = components.getPanel(PanelKey.GROUP_ATTRIBUTE);
+		GUIHelper.addComponent(panel, groupAttributePanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createRelationshipsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		final JPanel memberPanel = components.getPanel(PanelKey.RELATIONSHIP_AS_SUBJECT);
+		GUIHelper.addComponent(panel, memberPanel);
+
+		final JPanel relationshipPanel = components.getPanel(PanelKey.RELATIONSHIP_AS_OBJECT);
+		GUIHelper.addComponent(panel, relationshipPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createParticipationsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel eventParticipationPanel = components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT);
+		GUIHelper.addComponent(panel, eventParticipationPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS);
+		GUIHelper.addComponent(panel, identityHypothesisPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
-
-		namePanel.load(record);
-		culturalNormPanel.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
 		preferredImagePanel.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
+		namePanel.load(record);
 
-		conclusionPanel.loadReference(record.getId());
-		memberPanel.loadReference(record.getId());
-		attributePanel.loadReference(record.getId());
-		relationshipPanel.loadReference(record.getId());
-	}
-
-	@Override
-	protected boolean validData(){
-		return true;
+		components.load(record);
 	}
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
-
-		namePanel.save(record);
-		culturalNormPanel.save(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
 		preferredImagePanel.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
+		namePanel.save(record);
 
-		conclusionPanel.save(record);
-		memberPanel.save(record);
-		attributePanel.save(record);
-		relationshipPanel.save(record);
+		components.save(record);
 	}
 
 
 	public static void main(final String[] args){
-//		GUIHelper.launch(GroupRecordDialog::createNew, modelFiller);
-
 		final FLEFRecord groupAttribute = FLEFRecord.createMainRecord("GA1", "GROUP_ATTRIBUTE");
 		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"));
 		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "residence"));
-		final FLEFRecord relationship = FLEFRecord.createMainRecord("RL1", "RELATIONSHIP");
-		relationship.addChild(FLEFRecord.createChildWithTag("SUBJECT")
+
+		final FLEFRecord relationship1 = FLEFRecord.createMainRecord("RL1", "RELATIONSHIP")
+			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "associate"));
+		relationship1.addChild(FLEFRecord.createChildWithTag("SUBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
+		);
+		relationship1.addChild(FLEFRecord.createChildWithTag("OBJECT")
 			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
 		);
-		relationship.addChild(FLEFRecord.createChildWithTag("OBJECT")
+		final FLEFRecord relationship2 = FLEFRecord.createMainRecord("RL2", "RELATIONSHIP")
+			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "custom"));
+		relationship2.addChild(FLEFRecord.createChildWithTag("SUBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
+		);
+		relationship2.addChild(FLEFRecord.createChildWithTag("OBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
+		);
+
+		final FLEFRecord group1 = FLEFRecord.createMainRecord("G1", "GROUP");
+		group1.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "household"));
+		group1.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
+		final FLEFRecord group2 = FLEFRecord.createMainRecord("G2", "GROUP");
+
+		final FLEFRecord note1 = FLEFRecord.createMainRecord("N1", "NOTE");
+		note1.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Group note"));
+
+		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
+		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
+			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Group source"))
+		);
+
+		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "male"));
+
+		final FLEFRecord eventParticipation1 = FLEFRecord.createMainRecord("EP1", "EVENT_PARTICIPATION");
+		eventParticipation1.addChild(FLEFRecord.createChildWithTag("PARTICIPANT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
+		);
+
+		final FLEFRecord contextImpact1 = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
+		contextImpact1.addChild(FLEFRecord.createChildWithTag("CONTEXT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
+		);
+		contextImpact1.addChild(FLEFRecord.createChildWithTag("TARGET")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
+		);
+
+		final FLEFRecord conclusion1 = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
+		conclusion1.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "death cause"));
+		conclusion1.addChild(FLEFRecord.createChildWithTag("RESOLVES")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
+		);
+
+		final FLEFRecord identityHypothesis1 = FLEFRecord.createMainRecord("IH1", "IDENTITY_HYPOTHESIS");
+		identityHypothesis1.addChild(FLEFRecord.createChildWithTag("SUBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
+		);
+		identityHypothesis1.addChild(FLEFRecord.createChildWithTag("CANDIDATE")
 			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G2@"))
 		);
-		relationship.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "associate"));
-		final FLEFRecord group1 = FLEFRecord.createMainRecord("G1", "GROUP");
-		final FLEFRecord group2 = FLEFRecord.createMainRecord("G2", "GROUP");
+		final FLEFRecord identityHypothesis2 = FLEFRecord.createMainRecord("IH2", "IDENTITY_HYPOTHESIS");
+		identityHypothesis2.addChild(FLEFRecord.createChildWithTag("SUBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G3@"))
+		);
+		identityHypothesis2.addChild(FLEFRecord.createChildWithTag("CANDIDATE")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
+		);
+
+		final FLEFRecord researchQuestion1 = FLEFRecord.createMainRecord("RQ1", "RESEARCH_QUESTION");
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "rq title"));
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("QUESTION", "is?"));
+		researchQuestion1.addChild(FLEFRecord.createChildWithTag("TARGET")
+			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
+		);
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("STATUS", "open"));
 
 		final Consumer<FLEFModel> modelFiller = model -> {
 			model.addRecord(groupAttribute);
-			model.addRecord(relationship);
+			model.addRecord(relationship1);
+			model.addRecord(relationship2);
 			model.addRecord(group1);
 			model.addRecord(group2);
+			model.addRecord(note1);
+			model.addRecord(source1);
+			model.addRecord(individual);
+			model.addRecord(eventParticipation1);
+			model.addRecord(contextImpact1);
+			model.addRecord(conclusion1);
+			model.addRecord(identityHypothesis1);
+			model.addRecord(identityHypothesis2);
+			model.addRecord(researchQuestion1);
 		};
 		GUIHelper.launch(GroupRecordDialog::createEdit, modelFiller, group1);
 	}

@@ -26,8 +26,15 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.AbstractMap;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -98,7 +105,7 @@ public final class FLEFRecordHelper{
 	 */
 	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String path){
 		final List<FLEFRecord> result = new ArrayList<>();
-		if(parent == null|| StringUtils.isEmpty(path))
+		if(parent == null || StringUtils.isEmpty(path))
 			return result;
 
 		final String[] segments = StringUtils.split(path, '.');
@@ -113,6 +120,87 @@ public final class FLEFRecordHelper{
 		for(final FLEFRecord child : targetParent.getChildren())
 			if(seg.tag.equals(child.getTag()))
 				result.add(child);
+		return result;
+	}
+
+	/**
+	 * Finds all children with the given tag.
+	 *
+	 * @param parent	The parent record.
+	 * @param paths	The array of dot‑separated tag paths to search for (e.g. "[GROUP, ROOT.RESTRICTION[2].CODE]").
+	 * @return	A (unordered) list of matching child records.
+	 */
+	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String... paths){
+		final List<FLEFRecord> result = new ArrayList<>();
+		if(parent == null || paths == null)
+			return result;
+
+		for(final String path : paths)
+			result.addAll(findChildren(parent, path));
+		return result;
+	}
+
+	/**
+	 * Finds all children that match any of the given dot‑separated tag paths.
+	 * The result preserves the global order of the tree (pre‑order traversal).
+	 *
+	 * @param parent The root record from which to start the search.
+	 * @param paths  An array of dot‑separated tag paths (e.g. {"ROOT.A.CODE", "ROOT.B.VALUE"}).
+	 * @return A list of matching child records, in global tree order, without duplicates.
+	 */
+	public static List<FLEFRecord> findChildrenOrdered(final FLEFRecord parent, final String[] paths){
+		final List<FLEFRecord> result = new ArrayList<>();
+		if(parent == null || paths == null || paths.length == 0)
+			return result;
+
+		// 1. Build map: targetParent → set of expected tags
+		final Map<FLEFRecord, Set<String>> targetMap = new HashMap<>();
+		for(final String path : paths){
+			if(StringUtils.isEmpty(path))
+				continue;
+
+			final String[] segments = StringUtils.split(path, '.');
+			final FLEFRecord targetParent = navigateToParent(parent, segments);
+			if(targetParent == null)
+				continue;
+
+			final Segment seg = Segment.parse(segments[segments.length - 1]);
+			if(seg == null)
+				continue;
+
+			targetMap.computeIfAbsent(targetParent, k -> new HashSet<>()).add(seg.tag);
+		}
+
+		if(targetMap.isEmpty())
+			return result;
+
+		// 2. Iterative pre‑order traversal (stack), tracking the parent of each node
+		final Set<FLEFRecord> visited = new HashSet<>();
+		final Deque<AbstractMap.SimpleEntry<FLEFRecord, FLEFRecord>> stack = new ArrayDeque<>();
+		stack.push(new AbstractMap.SimpleEntry<>(parent, null));
+		while(!stack.isEmpty()){
+			final AbstractMap.SimpleEntry<FLEFRecord, FLEFRecord> entry = stack.pop();
+			final FLEFRecord node = entry.getKey();
+			final FLEFRecord nodeParent = entry.getValue();
+
+			if(visited.contains(node))
+				continue;
+
+			visited.add(node);
+
+			// Check if this node is a direct child of a target parent and has a matching tag
+			if(nodeParent != null && targetMap.containsKey(nodeParent)){
+				final Set<String> expectedTags = targetMap.get(nodeParent);
+				if(expectedTags.contains(node.getTag()))
+					result.add(node);
+			}
+
+			// Push children in reverse order so that the first child is processed first (LIFO)
+			final List<FLEFRecord> children = node.getChildren();
+			for(int i = children.size() - 1; i >= 0; i --)
+				stack.push(new AbstractMap.SimpleEntry<>(children.get(i), node));
+		}
+
 		return result;
 	}
 

@@ -33,11 +33,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class VariantHandler implements RecordTypeHandler<TextValueVariantDialog>{
+public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "TEXT_VALUE_VARIANT";
-
 
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";

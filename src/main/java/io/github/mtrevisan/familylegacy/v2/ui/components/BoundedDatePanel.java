@@ -37,7 +37,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Panel for BOUNDED date (uncertainty interval) according to FLEF 0.1.1.
  * <p>
@@ -57,17 +56,17 @@ public class BoundedDatePanel extends JPanel{
 	private static final long serialVersionUID = 1351303209761075021L;
 
 
+	private static final String TAG_BOUNDED = "BOUNDED";
 	private static final String TAG_NOT_BEFORE = "NOT_BEFORE";
 	private static final String TAG_NOT_AFTER = "NOT_AFTER";
-	private static final String TAG_BOUNDED = "BOUNDED";
 
-	private final SingleDatePanel notBeforePanel;
-	private final SingleDatePanel notAfterPanel;
+	private final QualifiedDatePanel notBeforePanel;
+	private final QualifiedDatePanel notAfterPanel;
 
 
 	public BoundedDatePanel(final Dialog parent, final FLEFModel model){
-		this.notBeforePanel = new SingleDatePanel(parent, model);
-		this.notAfterPanel = new SingleDatePanel(parent, model);
+		this.notBeforePanel = new QualifiedDatePanel(parent, model);
+		this.notAfterPanel = new QualifiedDatePanel(parent, model);
 
 
 		initComponents();

@@ -46,9 +46,8 @@ import java.util.List;
  * ???
  * </pre>
  */
-public class PersonalNameHandler implements RecordTypeHandler<PersonalNameStructureDialog>{
+public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameStructureDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "PERSONAL_NAME_STRUCTURE";
 	public static final String CITED_TYPE = "PERSONAL_NAME";
 

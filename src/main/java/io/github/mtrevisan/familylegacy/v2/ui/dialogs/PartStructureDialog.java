@@ -27,24 +27,21 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Structure:
  * <pre>
@@ -74,12 +71,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 	private static final String TAG_VARIANT = "VARIANT";
 
 
-	static{
-		HandlerRegistry.register(new PartHandler());
-	}
-
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final RecordDialogComponents components;
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
@@ -96,9 +88,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 
 	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PartHandler.TYPE));
-
-		setTitle(record == null? "Add Part": "Edit Part");
+		super(parent, model, record, PartHandler.class);
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -113,31 +103,30 @@ public class PartStructureDialog extends BaseRecordDialog{
 		valueField = new BoundTextField(TAG_VALUE);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
 
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.build();
 
-		initComponents();
+		components.bind(typeCombo);
+		components.bind(valueField);
 
-		loadData();
 
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(typeCombo);
-		bindingManager.bind(valueField);
+	@Override
+	protected void initComponents(){
+		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]10[]15[]");
 
+		// type
+		GUIHelper.addLabeledComponent(this, "Part Type*:", typeCombo);
 
-		setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]10[]"));
+		// value
+		GUIHelper.addLabeledComponent(this, "Value*:", valueField);
 
-		add(new JLabel("Part Type*:"), "align label");
-		add(typeCombo, "growx,wrap");
-
-		add(new JLabel("Value*:"), "align label");
-		add(valueField, "growx,wrap");
-
-		add(variantPanel, "span 2,growx,wrap");
+		// variant
+		GUIHelper.addComponent(this, variantPanel);
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			this::save,
@@ -148,7 +137,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
@@ -175,7 +164,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 	protected void saveData(){
 		record.setTag(TAG_PART);
 
-		bindingManager.save(record);
+		components.save(record);
 
 		variantPanel.save(record);
 	}

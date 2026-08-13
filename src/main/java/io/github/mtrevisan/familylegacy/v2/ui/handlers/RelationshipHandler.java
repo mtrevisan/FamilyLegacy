@@ -35,8 +35,7 @@ import java.awt.Dialog;
 import java.util.List;
 
 
-/* DONE */
-public class RelationshipHandler implements RecordTypeHandler<RelationshipRecordDialog>{
+public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipRecordDialog>{
 
 	public static final String TYPE = "RELATIONSHIP";
 	public static final String ID_PREFIX = "RL";
@@ -45,12 +44,6 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipRecord
 	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_ROLE = "ROLE";
-
-
-	static{
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new GroupHandler());
-	}
 
 
 	@Override
@@ -76,8 +69,8 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipRecord
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final FLEFRecord subjectCitation = FLEFRecordHelper.findChild(record, TAG_SUBJECT)
-			.getTheOnlyChild();
+		final FLEFRecord subjectChild = FLEFRecordHelper.findChild(record, TAG_SUBJECT);
+		final FLEFRecord subjectCitation = (subjectChild != null? subjectChild.getTheOnlyChild(): null);
 		String subjectDisplayText = "--";
 		if(subjectCitation != null && !subjectCitation.isEmpty()){
 			final String subjectTag = subjectCitation.getTag();
@@ -89,9 +82,9 @@ public class RelationshipHandler implements RecordTypeHandler<RelationshipRecord
 		}
 
 		String objectDisplayText = "--";
-		final FLEFRecord objectCitation = FLEFRecordHelper.findChild(record, TAG_OBJECT)
-			.getTheOnlyChild();
-		if(subjectCitation != null && !subjectCitation.isEmpty()){
+		FLEFRecord objectChild = FLEFRecordHelper.findChild(record, TAG_OBJECT);
+		final FLEFRecord objectCitation = (objectChild != null? objectChild.getTheOnlyChild(): null);
+		if(objectCitation != null && !objectCitation.isEmpty()){
 			final String objectTag = objectCitation.getTag();
 			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(objectTag);
 			final FLEFRecord objectRecord = model.getRecordById(objectCitation.getValue());

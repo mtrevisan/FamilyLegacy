@@ -26,30 +26,24 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code NAME_STRUCTURE} according to FLEF 0.1.1.
  * <p>
@@ -57,12 +51,17 @@ import java.io.Serial;
  * <pre>
  * struct NameStructure {
  *   value: Text
- *   variant*: TextValueVariant
  *   locale?: LocaleCode
- *   note*: Xref&lt;NoteRecord&gt;
+ *   variant*: TextValueVariant
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): value, locale, variant
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
  */
 public class NameStructureDialog extends BaseRecordDialog{
 
@@ -73,25 +72,15 @@ public class NameStructureDialog extends BaseRecordDialog{
 	public static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VARIANT = "VARIANT";
 	private static final String TAG_LOCALE = "LOCALE";
-	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_NOTE = "NOTE";
 
 
-	static{
-		HandlerRegistry.register(new ClassifiedNameHandler());
-		HandlerRegistry.register(new VariantHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new SourceHandler());
-	}
-
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final RecordDialogComponents components;
 
 	private final BoundTextField valueField;
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
 
 
 	public static NameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -105,7 +94,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 
 	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
+		super(parent, model, record, ClassifiedNameHandler.class);
 
 		valueField = new BoundTextField(TAG_VALUE);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
@@ -113,69 +102,64 @@ public class NameStructureDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		localeCombo.setEditable(true);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.build();
+
+		components.bind(valueField);
+		components.bind(localeCombo);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(valueField);
-		bindingManager.bind(localeCombo);
-
-
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Variants", createVariantPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// value
-		panel.add(new JLabel("Name Value*:"), "align label");
-		panel.add(valueField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
 
 		// locale
-		localeCombo.setEditable(true);
-		panel.add(new JLabel("Locale:"), "align label");
-		panel.add(localeCombo, "growx");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);
+
+		// variant
+		GUIHelper.addComponent(propertiesPanel, variantPanel);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
 
 		return panel;
 	}
 
-	private JPanel createVariantPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
-		panel.add(variantPanel, "growx");
-		return panel;
-	}
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
 		return panel;
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
 		variantPanel.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
 	}
 
 	@Override
@@ -194,11 +178,9 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
 		variantPanel.save(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
 	}
 
 

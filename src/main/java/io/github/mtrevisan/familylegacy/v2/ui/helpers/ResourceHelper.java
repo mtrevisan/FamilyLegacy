@@ -24,8 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
-import io.github.mtrevisan.familylegacy.todo.images._AnimatedGifEncoder;
-import io.github.mtrevisan.familylegacy.todo.images._GifDecoder;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
@@ -36,12 +35,10 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import javax.swing.ImageIcon;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -87,73 +84,56 @@ public final class ResourceHelper{
 
 	private static ImageIcon getImage(final ImageIcon icon, final int width, final int height){
 		try{
-			final int iconWidth = icon.getIconWidth();
-			final int iconHeight = icon.getIconHeight();
-			final double ratio = Math.min((double)width / iconWidth, (double)height / iconHeight);
-			final int w = (int)(iconWidth * ratio);
-			final int h = (int)(iconHeight * ratio);
-			final int hints = Image.SCALE_SMOOTH;
-			return scaleImage(icon, w, h, hints);
+			final BufferedImage original = toBufferedImage(icon);
+			final BufferedImage scaled = Thumbnails.of(original)
+				.size(width, height)
+				.keepAspectRatio(true)
+				.asBufferedImage();
+
+			return new ImageIcon(scaled);
 		}
 		catch(final Exception e){
 			LOGGER.error(null, e);
 		}
 		return null;
+	}
+
+	private static BufferedImage toBufferedImage(final ImageIcon icon){
+		if(icon == null)
+			return null;
+
+		if(icon.getImage() instanceof BufferedImage)
+			return (BufferedImage)icon.getImage();
+
+		final BufferedImage buffered = new BufferedImage(
+			icon.getIconWidth(),
+			icon.getIconHeight(),
+			BufferedImage.TYPE_INT_ARGB
+		);
+		final Graphics2D g2d = buffered.createGraphics();
+		g2d.drawImage(icon.getImage(), 0, 0, null);
+		g2d.dispose();
+		return buffered;
 	}
 
 	public static ImageIcon getImageFixedHeight(final String filename, final int height){
 		return getImageFixedHeight(getOriginalImage(filename), height);
 	}
 
+
 	private static ImageIcon getImageFixedHeight(final ImageIcon icon, final int height){
 		try{
-			final int iconWidth = icon.getIconWidth();
-			final int iconHeight = icon.getIconHeight();
-			final double ratio = (double)height / iconHeight;
-			final int w = (int)(iconWidth * ratio);
-			final int h = (int)(iconHeight * ratio);
-			final int hints = Image.SCALE_SMOOTH;
-			return scaleImage(icon, w, h, hints);
+			final BufferedImage original = toBufferedImage(icon);
+			final BufferedImage scaled = Thumbnails.of(original)
+				.height(height)
+				.asBufferedImage();
+
+			return new ImageIcon(scaled);
 		}
 		catch(final Exception e){
 			LOGGER.error(null, e);
 		}
 		return null;
-	}
-
-	private static ImageIcon scaleImage(final ImageIcon icon, final int w, final int h, final int hints)
-			throws IOException{
-		final ImageIcon scaled;
-		if(icon.getDescription().endsWith(EXTENSION_GIF)){
-			final _GifDecoder decoder = new _GifDecoder();
-			decoder.read(icon.getDescription());
-
-			final int frameCount = decoder.getFrameCount();
-			final int loopCount = decoder.getLoopCount();
-
-			final _AnimatedGifEncoder encoder = new _AnimatedGifEncoder();
-			encoder.setTransparent(Color.BLACK, true);
-			encoder.setRepeat(loopCount);
-
-			final ByteArrayOutputStream os = new ByteArrayOutputStream();
-			encoder.start(os);
-			for(int frameNumber = 0; frameNumber < frameCount; frameNumber ++){
-				final BufferedImage frame = decoder.getFrame(frameNumber);
-				final int delay = decoder.getDelay(frameNumber);
-				encoder.setDelay(delay);
-				encoder.addFrame(toBufferedImage(frame.getScaledInstance(w, h, hints)));
-			}
-			encoder.finish();
-
-			os.flush();
-			os.close();
-
-			scaled = new ImageIcon(os.toByteArray());
-		}
-		else
-			scaled = new ImageIcon(icon.getImage()
-				.getScaledInstance(w, h, hints));
-		return scaled;
 	}
 
 	public static BufferedImage toBufferedImage(final Image img){

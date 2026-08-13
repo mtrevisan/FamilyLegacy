@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class PartHandler implements RecordTypeHandler<PartStructureDialog>{
+public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 
 	public static final String TYPE = "PART";
 

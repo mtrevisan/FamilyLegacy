@@ -27,8 +27,12 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 
@@ -253,6 +257,50 @@ public class FLEFRecord{
 
 	public boolean isEmpty(){
 		return (StringUtils.isEmpty(id) && StringUtils.isEmpty(value) && children.isEmpty());
+	}
+
+
+	/**
+	 * Creates a deep copy of this record and its entire subtree.
+	 * The copy is independent of the original; modifications to the copy
+	 * do not affect the original and vice versa.
+	 * <p>
+	 * This implementation is iterative and uses a stack to avoid recursion,
+	 * preventing stack overflow on deeply nested trees.
+	 */
+	public void deepCopyTo(final FLEFRecord destination){
+		// Map original nodes to their copies to handle shared references
+		final Map<FLEFRecord, FLEFRecord> map = new HashMap<>();
+		final Deque<FLEFRecord> stack = new ArrayDeque<>();
+
+		// Create copy of the root
+		destination.tag = this.tag;
+		destination.id = this.id;
+		destination.value = this.value;
+		map.put(this, destination);
+		stack.push(this);
+
+		// Process all nodes iteratively
+		while(!stack.isEmpty()){
+			final FLEFRecord original = stack.pop();
+			final FLEFRecord copy = map.get(original);
+
+			// Copy all children
+			for(final FLEFRecord child : original.children){
+				FLEFRecord childCopy = map.get(child);
+				if(childCopy == null){
+					// Not copied yet: create a new copy
+					childCopy = FLEFRecord.createEmpty();
+					childCopy.tag = child.tag;
+					childCopy.id = child.id;
+					childCopy.value = child.value;
+					map.put(child, childCopy);
+					stack.push(child);
+				}
+				// Add the (possibly existing) copy to this node's children
+				copy.children.add(childCopy);
+			}
+		}
 	}
 
 

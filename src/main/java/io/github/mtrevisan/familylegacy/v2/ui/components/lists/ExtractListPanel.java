@@ -44,7 +44,6 @@ import java.io.Serial;
 import java.util.List;
 
 
-/* DONE */
 /**
  * Panel for managing a list of extracts with text, type, locale, and notes.
  */

@@ -74,11 +74,7 @@ public class BoundTextArea extends JTextArea implements PathBound{
 
 	@Override
 	public String getText(){
-		final String value = super.getText();
-		if(GUIHelper.isPlaceholder(value))
-			return null;
-
-		return (value != null? value.trim(): null);
+		return GUIHelper.getText(super.getText());
 	}
 
 	@Override
@@ -90,12 +86,13 @@ public class BoundTextArea extends JTextArea implements PathBound{
 			super.setText(value);
 		else
 			GUIHelper.updateDisplay(this,
-				() -> {
-					final String text = super.getText();
-					return (value != null && (StringUtils.isNotEmpty(text) || GUIHelper.isPlaceholder(text)));
-				},
+				() -> StringUtils.isNotEmpty(value),
 				() -> value,
-				super::setText);
+				this::forceSetText);
+	}
+
+	public void forceSetText(final String value){
+		super.setText(value);
 	}
 
 	@Override

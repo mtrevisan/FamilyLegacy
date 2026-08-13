@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for SOURCE records.
  */
-public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
+public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>{
 
 	public static final String TYPE = "SOURCE";
 	public static final String ID_PREFIX = "S";
@@ -44,11 +44,6 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_VALUE = TAG_TITLE + DOT + "VALUE";
-
-
-	static{
-		HandlerRegistry.register(new SourceCitationHandler());
-	}
 
 
 	@Override
@@ -68,7 +63,7 @@ public class SourceHandler implements RecordTypeHandler<SourceRecordDialog>{
 
 	@Override
 	public RecordTypeHandler<?> getCitationHandler(){
-		return HandlerRegistry.getHandler(SourceCitationHandler.TYPE);
+		return HandlerRegistry.getHandler(SourceCitationHandler.class);
 	}
 
 	@Override

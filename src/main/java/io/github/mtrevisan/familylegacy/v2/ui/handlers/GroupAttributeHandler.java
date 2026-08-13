@@ -35,11 +35,10 @@ import java.awt.Dialog;
 import java.util.List;
 
 
-/* DONE */
 /**
  * Handler for {@code GROUP_ATTRIBUTE_RECORD} entities according to FLEF 0.1.1.
  */
-public class GroupAttributeHandler implements RecordTypeHandler<GroupAttributeRecordDialog>{
+public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttributeRecordDialog>{
 
 	public static final String TYPE = "GROUP_ATTRIBUTE";
 	public static final String ID_PREFIX = "GA";

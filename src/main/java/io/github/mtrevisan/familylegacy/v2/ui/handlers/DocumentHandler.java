@@ -37,7 +37,7 @@ import java.awt.Dialog;
 /**
  * Handler for DOCUMENT records.
  */
-public class DocumentHandler implements RecordTypeHandler<DocumentRecordDialog>{
+public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDialog>{
 
 	public static final String TYPE = "DOCUMENT";
 	public static final String ID_PREFIX = "D";

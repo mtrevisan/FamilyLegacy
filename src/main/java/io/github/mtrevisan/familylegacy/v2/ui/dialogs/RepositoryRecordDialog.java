@@ -26,26 +26,24 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.IndividualField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -53,7 +51,7 @@ import java.io.Serial;
  * <pre>
  * record RepositoryRecord {
  *   id: LocalID
- *   name+: ClassifiedName
+ *   name+: ClassifiedNameStructure
  *   custodian?: Xref&lt;IndividualRecord&gt;
  *   place?: PlaceCitation
  *   contact*: ContactStructure
@@ -62,6 +60,13 @@ import java.io.Serial;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): name, custodian, place, contact
+ * Tab 7 (Sources): SourceRecord (repository references this repository)
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class RepositoryRecordDialog extends BaseRecordDialog{
 
@@ -73,26 +78,20 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private static final String TAG_CUSTODIAN = "CUSTODIAN";
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_CONTACT = "CONTACT";
+	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	static{
-		HandlerRegistry.register(new RepositoryHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new ClassifiedNameHandler());
-		HandlerRegistry.register(new ContactHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]"));
+	private final JPanel propertiesPanel;
 
 	private final EntityReferenceListPanel namePanel;
 	private final IndividualField custodianField;
 	private final PlaceCitationField placeCitationField;
 	private final EntityReferenceListPanel contactPanel;
-	private final EntityReferenceListPanel notePanel;
-	private final ModificationPanel auditPanel;
 
 
 	public static RepositoryRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -105,55 +104,73 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 
 	private RepositoryRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(RepositoryHandler.TYPE));
+		super(parent, model, record, RepositoryHandler.class);
 
-		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
+
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.class);
 		custodianField = IndividualField.create(TAG_CUSTODIAN, this, model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		contactPanel = EntityReferenceListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), RepositoryHandler.TYPE);
-		auditPanel = new ModificationPanel(this);
+		contactPanel = EntityReferenceListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.class);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, TAG_SOURCE, "Sources", SourceHandler.class, RepositoryHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// name
-		mainPanel.add(namePanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		// custodian
-		mainPanel.add(new JLabel("Custodian:"), "align label");
-		mainPanel.add(custodianField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Custodian:", custodianField);
 
-		// place structure
-		mainPanel.add(new JLabel("Place:"), "align label");
-		mainPanel.add(placeCitationField, "growx");
+		// place
+		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeCitationField);
 
-		return mainPanel;
+		// contact
+		GUIHelper.addComponent(propertiesPanel, contactPanel);
+
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
-		panel.add(contactPanel, "growx");
-		panel.add(notePanel, "growx");
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_ON_REPOSITORY);
+		GUIHelper.addComponent(panel, sourcePanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
@@ -163,8 +180,6 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		custodianField.load(record);
 		placeCitationField.load(record);
 		contactPanel.load(record);
-		notePanel.load(record);
-		auditPanel.load(record);
 	}
 
 	@Override
@@ -172,7 +187,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"At least one name is required.",
-				tabbedPane, mainPanel, namePanel);
+				tabbedPane, propertiesPanel, namePanel);
 
 			return false;
 		}
@@ -186,8 +201,6 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		custodianField.saveReferences(record);
 		placeCitationField.saveReferences(record);
 		contactPanel.save(record);
-		notePanel.save(record);
-		auditPanel.save(record);
 	}
 
 

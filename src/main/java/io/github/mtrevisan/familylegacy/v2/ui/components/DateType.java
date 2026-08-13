@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
 
-/* DONE */
 public enum DateType{
 
 	FULL_DATE("Full Date", Constants.TAG_FULL_DATE, "Date is required for FULL DATE type."),
@@ -65,7 +64,7 @@ public enum DateType{
 		for(final DateType type : values())
 			if(FLEFRecordHelper.findChild(record, type.tagName) != null)
 				return type;
-		return FULL_DATE;
+		return null;
 	}
 
 

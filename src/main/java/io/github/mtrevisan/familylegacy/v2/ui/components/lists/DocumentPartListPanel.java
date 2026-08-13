@@ -64,16 +64,11 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
 
 
-	static{
-		HandlerRegistry.register(new DocumentHandler());
-	}
-
-
 	private final String path;
 
 	private final ImageCropDialog cropDialog;
 
-	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.TYPE);
+	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.class);
 
 
 	public DocumentPartListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
@@ -176,41 +171,40 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			DocumentHandler.TYPE,
-			(handlerType, selectedRecord) -> {
-				final FLEFRecord document = model.getRecordById(selectedRecord.getId());
-				if(document != null && !items.contains(document)){
-					final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, DocumentHandler.class);
+		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
+			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
+			final FLEFRecord document = model.getRecordById(selectedRecord.getId());
+			if(document != null && !items.contains(document)){
+				final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
 
-					try{
-						cropDialog.loadData(uri, null);
-						cropDialog.setVisible(true);
+				try{
+					cropDialog.loadData(uri, null);
+					cropDialog.setVisible(true);
 
-						if(cropDialog.isSaved()){
-							final Rectangle documentCropRect = cropDialog.getCrop();
-							if(documentCropRect != null && !documentCropRect.isEmpty()){
-								// temporarily save under DOCUMENT
-								final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(selectedRecord, TAG_CROP);
-								FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
-								FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
-								FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
-								FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
-							}
+					if(cropDialog.isSaved()){
+						final Rectangle documentCropRect = cropDialog.getCrop();
+						if(documentCropRect != null && !documentCropRect.isEmpty()){
+							// temporarily save under DOCUMENT
+							final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(selectedRecord, TAG_CROP);
+							FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
+							FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
+							FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
+							FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
 						}
 					}
-					catch(final IOException ioe){
-						ioe.printStackTrace();
-
-						JOptionPane.showMessageDialog(parent,
-							"Error loading image for cropping: " + ioe.getMessage(),
-							"Error", JOptionPane.ERROR_MESSAGE);
-					}
-
-					result[0] = document;
 				}
+				catch(final IOException ioe){
+					ioe.printStackTrace();
+
+					JOptionPane.showMessageDialog(parent,
+						"Error loading image for cropping: " + ioe.getMessage(),
+						"Error", JOptionPane.ERROR_MESSAGE);
+				}
+
+				result[0] = document;
 			}
-		);
+		});
 		dialog.setVisible(true);
 
 		return result[0];

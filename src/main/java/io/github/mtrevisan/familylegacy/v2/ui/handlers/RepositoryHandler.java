@@ -35,17 +35,12 @@ import java.awt.Dialog;
 /**
  * Handler for REPOSITORY records.
  */
-public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDialog>{
+public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecordDialog>{
 
 	public static final String TYPE = "REPOSITORY";
 	public static final String ID_PREFIX = "R";
 
 	private static final String TAG_NAME = "NAME";
-
-
-	static{
-		HandlerRegistry.register(new RepositoryCitationHandler());
-	}
 
 
 	@Override
@@ -63,9 +58,10 @@ public class RepositoryHandler implements RecordTypeHandler<RepositoryRecordDial
 		return ID_PREFIX;
 	}
 
+
 	@Override
 	public RecordTypeHandler<?> getCitationHandler(){
-		return HandlerRegistry.getHandler(RepositoryCitationHandler.TYPE);
+		return HandlerRegistry.getHandler(RepositoryCitationHandler.class);
 	}
 
 	@Override

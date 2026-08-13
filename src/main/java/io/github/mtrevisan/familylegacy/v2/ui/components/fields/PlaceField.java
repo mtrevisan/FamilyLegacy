@@ -41,7 +41,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Component for selecting and displaying places.
  */
@@ -49,11 +48,6 @@ public class PlaceField extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -3019762064903963378L;
-
-
-	static{
-		HandlerRegistry.register(new PlaceHandler());
-	}
 
 
 	private final Dialog parent;
@@ -65,7 +59,7 @@ public class PlaceField extends JPanel{
 
 	private final JTextField displayField = new JTextField(null);
 
-	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
 
 
 	public static PlaceField create(final String path, final Dialog parent, final FLEFModel model){
@@ -140,7 +134,7 @@ public class PlaceField extends JPanel{
 	public void load(final FLEFRecord targetRecord){
 		clear();
 
-		if(targetRecord == null)
+		if(targetRecord == null || targetRecord.isEmpty())
 			return;
 
 		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
@@ -155,7 +149,7 @@ public class PlaceField extends JPanel{
 	}
 
 	private FLEFRecord createNew(){
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
 		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
@@ -170,10 +164,11 @@ public class PlaceField extends JPanel{
 	}
 
 	private void add(){
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			PlaceHandler.TYPE,
-			(handlerType, selectedRecord) -> setRecord(selectedRecord)
-		);
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, PlaceHandler.class);
+		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
+			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
+			setRecord(selectedRecord);
+		});
 		dialog.setVisible(true);
 	}
 
@@ -184,7 +179,7 @@ public class PlaceField extends JPanel{
 			return;
 		}
 
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.TYPE);
+		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
 		final PlaceRecordDialog dialog = (PlaceRecordDialog)placeHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
@@ -204,9 +199,7 @@ public class PlaceField extends JPanel{
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
 		sb.append("value: ");
-		String text = displayField.getText();
-		if(GUIHelper.isPlaceholder(text))
-			text = null;
+		final String text = GUIHelper.getText(displayField.getText());
 		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
 			.append(", path: ")
 			.append(path);

@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import net.miginfocom.swing.MigLayout;
@@ -34,12 +35,12 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.ToolTipManager;
+import java.awt.Dialog;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Reusable panel that groups all evidence qualifiers as defined in the FLEF protocol according to FLEF 0.1.1.:
  * source_type, information_type, and evidence_type.
@@ -78,13 +79,14 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * Constructs a new panel with the given path prefix and title.
 	 *
 	 * @param path	the path prefix for child fields (e.g., "EVIDENCE" or "EVIDENCE.QUALIFIERS")
-	 * @param title	the title to display in the TitledBorder
+	 * @param panelTitle	the title to display in the TitledBorder
 	 */
-	public EvidenceQualifiersPanel(final String path, final String title){
+	public EvidenceQualifiersPanel(final String path, final Dialog parent, final String panelTitle,
+			final FLEFModel model, final String recordHandlerType){
 		this.path = (path != null && !path.isEmpty())? path + DOT: StringUtils.EMPTY;
 
 		setLayout(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]"));
-		setBorder(BorderFactory.createTitledBorder(title));
+		setBorder(BorderFactory.createTitledBorder(panelTitle));
 
 		sourceTypeCombo = new JComboBox<>(new String[]{
 			StringUtils.EMPTY,

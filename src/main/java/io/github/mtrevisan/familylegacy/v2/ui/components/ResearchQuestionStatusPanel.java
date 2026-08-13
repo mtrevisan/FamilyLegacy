@@ -30,14 +30,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import net.miginfocom.swing.MigLayout;
 
-import javax.swing.JButton;
 import javax.swing.JPanel;
-import java.awt.CardLayout;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
 
 
-/* DONE */
 /**
  * Panel that manages the status and closure of a ResearchQuestionRecord.
  * Provides visual indicators, status combo, and close/reopen buttons (mutually exclusive).
@@ -57,8 +52,8 @@ public class ResearchQuestionStatusPanel extends JPanel{
 
 	private final BoundComboBox<String> statusCombo;
 	private final StatusIconLabel statusIcon;
-	private final CardLayout buttonCardLayout;
-	private final JPanel buttonCardPanel;
+//	private final CardLayout buttonCardLayout;
+//	private final JPanel buttonCardPanel;
 	private final BoundTextField closedDate;
 
 
@@ -72,19 +67,19 @@ public class ResearchQuestionStatusPanel extends JPanel{
 		statusCombo.setSelectedItem(STATUS_OPEN);
 
 		// Button card panel with Close and Reopen buttons (same position)
-		buttonCardLayout = new CardLayout();
-		buttonCardPanel = new JPanel(buttonCardLayout);
+//		buttonCardLayout = new CardLayout();
+//		buttonCardPanel = new JPanel(buttonCardLayout);
 
-		final JButton closeButton = new JButton("Close");
-		closeButton.setToolTipText("Mark as resolved and set closed date");
-		closeButton.addActionListener(e -> closeQuestion());
+//		final JButton closeButton = new JButton("Close");
+//		closeButton.setToolTipText("Mark as resolved and set closed date");
+//		closeButton.addActionListener(e -> closeQuestion());
 
-		final JButton reopenButton = new JButton("Reopen");
-		reopenButton.setToolTipText("Reopen the question and clear closed date");
-		reopenButton.addActionListener(e -> reopenQuestion());
+//		final JButton reopenButton = new JButton("Reopen");
+//		reopenButton.setToolTipText("Reopen the question and clear closed date");
+//		reopenButton.addActionListener(e -> reopenQuestion());
 
-		buttonCardPanel.add(closeButton, "close");
-		buttonCardPanel.add(reopenButton, "reopen");
+//		buttonCardPanel.add(closeButton, "close");
+//		buttonCardPanel.add(reopenButton, "reopen");
 
 		closedDate = new BoundTextField(TAG_CLOSED);
 		closedDate.setEnabled(false);
@@ -105,14 +100,18 @@ public class ResearchQuestionStatusPanel extends JPanel{
 
 		add(statusIcon, "width 16!,height 16!,gapx 5");
 		add(statusCombo, "growx,width 120!");
-		add(buttonCardPanel, "gapx 5");
+//		add(buttonCardPanel, "gapx 5");
 
 
 		statusCombo.addActionListener(e -> updateUIState());
 	}
 
 	private void updateUIState(){
-		final String status = (String)statusCombo.getSelectedItem();
+		String status = (String)statusCombo.getSelectedItem();
+		if(status == null){
+			status = STATUS_OPEN;
+			statusCombo.setSelectedItem(status);
+		}
 		final boolean isClosed = (STATUS_RESOLVED.equals(status) || STATUS_DISPROVEN.equals(status));
 
 		// Update icon
@@ -130,28 +129,28 @@ public class ResearchQuestionStatusPanel extends JPanel{
 		statusIcon.setToolTipText(tooltip);
 
 		// Show the appropriate button (Close or Reopen)
-		buttonCardLayout.show(buttonCardPanel, (isClosed? "reopen": "close"));
+//		buttonCardLayout.show(buttonCardPanel, (isClosed? "reopen": "close"));
 	}
 
-	private void closeQuestion(){
-		final String status = (String)statusCombo.getSelectedItem();
-		if(STATUS_OPEN.equals(status) || STATUS_ON_HOLD.equals(status)){
-			statusCombo.setSelectedItem(STATUS_RESOLVED);
-			closedDate.setText(DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+//	private void closeQuestion(){
+//		final String status = (String)statusCombo.getSelectedItem();
+//		if(STATUS_OPEN.equals(status) || STATUS_ON_HOLD.equals(status)){
+//			statusCombo.setSelectedItem(STATUS_RESOLVED);
+//			closedDate.setText(DateTimeFormatter.ISO_INSTANT.format(Instant.now()));
+//
+//			updateUIState();
+//		}
+//	}
 
-			updateUIState();
-		}
-	}
-
-	private void reopenQuestion(){
-		final String status = (String)statusCombo.getSelectedItem();
-		if(STATUS_RESOLVED.equals(status) || STATUS_DISPROVEN.equals(status)){
-			statusCombo.setSelectedItem(STATUS_OPEN);
-			closedDate.setText(null);
-
-			updateUIState();
-		}
-	}
+//	private void reopenQuestion(){
+//		final String status = (String)statusCombo.getSelectedItem();
+//		if(STATUS_RESOLVED.equals(status) || STATUS_DISPROVEN.equals(status)){
+//			statusCombo.setSelectedItem(STATUS_OPEN);
+//			closedDate.setText(null);
+//
+//			updateUIState();
+//		}
+//	}
 
 	public void load(final FLEFRecord record){
 		bindingManager.load(record);

@@ -26,35 +26,33 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.function.Consumer;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -62,7 +60,7 @@ import java.util.function.Consumer;
  * <pre>
  * record PlaceRecord {
  *   id: LocalID
- *   name+: ClassifiedName
+ *   name+: ClassifiedNameStructure
  *   type?: enum {
  *     address, building, street, hamlet, village, town, municipality, city,
  *     metropolitan_area, county, province, department, district, region,
@@ -78,6 +76,16 @@ import java.util.function.Consumer;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): name, type, map, evidence
+ * Tab 3 (Relationships): PlaceRelationshipRecord (subject = this place), PlaceRelationshipRecord (object = this place)
+ * Tab 4 (Participations): EventParticipationRecord (participant.place = this place)
+ * Tab 5 (Context): ContextImpactRecord (target.place = this place)
+ * Tab 6 (Research): ConclusionRecord (resolves/preferred = this place), IdentityHypothesisRecord (subject/candidate = this place), ResearchQuestionRecord (target.place = this place)
+ * Tab 7 (Sources): source
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class PlaceRecordDialog extends BaseRecordDialog{
 
@@ -93,37 +101,25 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private static final String TAG_COORDINATES = "COORDINATES";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+	private static final String TAG_PLACE_RELATIONSHIP = "PLACE_RELATIONSHIP";
+	private static final String TAG_EVENT_PARTICIPATION = "EVENT_PARTICIPATION";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_IDENTITY_HYPOTHESIS = "IDENTITY_HYPOTHESIS";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 
 
-	static{
-		HandlerRegistry.register(new PlaceHandler());
-		HandlerRegistry.register(new ClassifiedNameHandler());
-		HandlerRegistry.register(new ConclusionTargetHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final EntityReferenceListPanel namePanel;
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField mapCoordinatesField;
-	private final EvidenceQualifiersPanel mapQualifiers;
-	private final EntityCitationListPanel sourcePanel;
-	private final EvidenceQualifiersPanel placeQualifiers;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
-
-	// Other
-	private final EntityReferenceListPanel culturalNormPanel;
-	private final EntityReferenceListPanel conclusionPanel;
+	private final EvidenceQualifiersPanel mapEvidencePanel;
 
 
 	public static PlaceRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -136,9 +132,11 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 
 	private PlaceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PlaceHandler.TYPE));
+		super(parent, model, record, PlaceHandler.class);
 
-		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.TYPE);
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
+
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"address", "building", "street", "hamlet", "village", "town",
@@ -148,84 +146,132 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		});
 		typeCombo.setEditable(true);
 		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES);
-		mapQualifiers = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, "Map Evidence");
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		placeQualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Place Evidence");
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
+		mapEvidencePanel = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, this, "Map Evidence", model, null);
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), PlaceHandler.TYPE);
-		conclusionPanel = EntityReferenceListPanel.createForRecord(TAG_CONCLUSION, this, "Conclusions", model, ConclusionTargetHandler.TYPE)
-			.withParentEntity(this.record.getId(), PlaceHandler.TYPE);
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_AS_SUBJECT, TAG_PLACE_RELATIONSHIP, "Members", PlaceRelationshipHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_AS_OBJECT, TAG_PLACE_RELATIONSHIP, "Relationships", PlaceRelationshipHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(typeCombo);
+		components.bind(mapCoordinatesField);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(typeCombo);
-		bindingManager.bind(mapCoordinatesField);
-
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// name
-		mainPanel.add(namePanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		// type
-		mainPanel.add(new JLabel("Type:"), "align label");
-		mainPanel.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
 
-		// map
-		final JPanel mapPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
+		// map panel:
+		final JPanel mapPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 		mapPanel.setBorder(new TitledBorder("Map"));
-		mapPanel.add(new JLabel("Coordinates:"), "align label");
-		mapPanel.add(mapCoordinatesField, "growx,wrap");
-		mapPanel.add(mapQualifiers, "span 2,growx,wrap");
-		mainPanel.add(mapPanel, "span 2,growx,wrap");
+		GUIHelper.addLabeledComponent(mapPanel, "Coordinates:", mapCoordinatesField);
+		GUIHelper.addComponent(mapPanel, mapEvidencePanel);
+		GUIHelper.addComponent(propertiesPanel, mapPanel);
 
 		// place evidence
-		mainPanel.add(placeQualifiers, "span 2,growx,wrap");
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(conclusionPanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createRelationshipsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		final JPanel placeRelationshipAsSubjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_AS_SUBJECT);
+		GUIHelper.addComponent(panel, placeRelationshipAsSubjectPanel);
+
+		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_AS_OBJECT);
+		GUIHelper.addComponent(panel, placeRelationshipAsObjectPanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createParticipationsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel eventParticipationPanel = components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT);
+		GUIHelper.addComponent(panel, eventParticipationPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
+
+		// conclusion
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		// identity hypothesis
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS);
+		GUIHelper.addComponent(panel, identityHypothesisPanel);
+
+		// research question
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
 		namePanel.load(record);
-		mapQualifiers.load(record);
-		sourcePanel.load(record);
-		placeQualifiers.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
-
-		conclusionPanel.loadReference(record.getId());
+		mapEvidencePanel.load(record);
 	}
 
 	@Override
@@ -233,7 +279,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		if(!namePanel.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"At least one name is required.",
-				tabbedPane, mainPanel, namePanel);
+				tabbedPane, propertiesPanel, namePanel);
 
 			return false;
 		}
@@ -245,15 +291,9 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		namePanel.save(record);
 
-		bindingManager.save(record);
+		components.save(record);
 
-		mapQualifiers.save(record);
-		sourcePanel.save(record);
-		placeQualifiers.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
-
-		conclusionPanel.save(record);
+		mapEvidencePanel.save(record);
 	}
 
 

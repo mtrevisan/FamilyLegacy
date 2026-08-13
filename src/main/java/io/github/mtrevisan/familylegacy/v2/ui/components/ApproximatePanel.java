@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -73,11 +72,6 @@ public class ApproximatePanel extends JPanel{
 	private static final String TAG_MARGIN = "MARGIN";
 
 
-	static{
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
-
-
 	private final String path;
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
@@ -91,7 +85,7 @@ public class ApproximatePanel extends JPanel{
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
 		this.path = path;
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.TYPE);
+		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.class);
 
 
 		initComponents();

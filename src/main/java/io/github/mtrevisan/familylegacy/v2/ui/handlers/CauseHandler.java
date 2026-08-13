@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class CauseHandler implements RecordTypeHandler<CauseStructureDialog>{
+public class CauseHandler extends AbstractRecordTypeHandler<CauseStructureDialog>{
 
 	public static final String TYPE = "CAUSE";
 

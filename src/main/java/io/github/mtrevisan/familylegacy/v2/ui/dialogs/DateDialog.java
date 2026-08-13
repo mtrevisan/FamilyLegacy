@@ -26,9 +26,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.DatePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.DateStructurePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -40,10 +39,10 @@ import java.awt.Dialog;
 
 public class DateDialog extends JDialog{
 
-	private final DatePanel datePanel;
+	private final DateStructurePanel dateValuePanel;
 
 	private FLEFRecord result;
-	private boolean saved = false;
+	private boolean saved;
 
 
 	/**
@@ -77,8 +76,8 @@ public class DateDialog extends JDialog{
 	private DateDialog(final Dialog parent, final FLEFModel model, final String title, final FLEFRecord initialDate){
 		super(parent, title, ModalityType.APPLICATION_MODAL);
 
-		datePanel = new DatePanel(this, model);
-		datePanel.load(initialDate);
+		dateValuePanel = new DateStructurePanel(this, model);
+		dateValuePanel.load(initialDate);
 
 
 		initComponents();
@@ -90,17 +89,17 @@ public class DateDialog extends JDialog{
 
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10,fill,wrap 1", "[grow]", "[grow][]"));
+		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[grow][]");
 
 		// Date panel
-		final JPanel dateWrapper = new JPanel(new MigLayout("ins 0,fill"));
-		dateWrapper.add(datePanel, "grow");
-		add(dateWrapper, "grow");
+		final JPanel dateWrapper = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addComponent(dateWrapper, dateValuePanel);
+		GUIHelper.addComponent(this, dateWrapper);
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			() -> {
-				if(datePanel.validateData()){
-					result = datePanel.save();
+				if(dateValuePanel.validateData()){
+					result = dateValuePanel.save();
 					saved = true;
 
 					dispose();

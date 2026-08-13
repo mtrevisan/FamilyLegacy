@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -38,7 +37,6 @@ import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -55,7 +53,6 @@ import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 
 
 /**
@@ -68,8 +65,10 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private static final long serialVersionUID = -6835967045890180368L;
 
 
+	public static final String PROPERTY_TYPE_SELECTED = "type-selected";
+
+
 	private final FLEFModel model;
-	private final BiConsumer<String, FLEFRecord> onSelection;
 	// non-null if only one type
 	private final RecordTypeHandler<?> defaultType;
 
@@ -93,11 +92,10 @@ public class MultiTypeSelectionDialog extends JDialog{
 	 * @param parent	The parent dialog.
 	 * @param model	The FLEF model.
 	 * @param handlerType	The supported participant type.
-	 * @param onSelection	Callback invoked when a record is selected (or {@code null} if canceled).
 	 */
 	public MultiTypeSelectionDialog(final Dialog parent, final FLEFModel model,
-			final String handlerType, final BiConsumer<String, FLEFRecord> onSelection){
-		this(parent, model, List.of(handlerType), onSelection);
+			final Class<? extends RecordTypeHandler<?>> handlerType){
+		this(parent, model, List.of(handlerType));
 	}
 
 	/**
@@ -106,17 +104,15 @@ public class MultiTypeSelectionDialog extends JDialog{
 	 * @param parent	The parent dialog.
 	 * @param model	The FLEF model.
 	 * @param handlerTypes	The list of supported participant types.
-	 * @param onSelection	Callback invoked when a record is selected (or {@code null} if canceled).
 	 */
 	public MultiTypeSelectionDialog(final Dialog parent, final FLEFModel model,
-			final List<String> handlerTypes, final BiConsumer<String, FLEFRecord> onSelection){
+			final List<Class<? extends RecordTypeHandler<?>>> handlerTypes){
 		super(parent, "Select Participant", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
 		final RecordTypeHandler<?>[] handlers = handlerTypes.stream()
 			.map(HandlerRegistry::getHandler)
 			.toArray(value -> new RecordTypeHandler<?>[handlerTypes.size()]);
-		this.onSelection = onSelection;
 		defaultType = (handlerTypes.size() == 1? handlers[0]: null);
 
 		// UI components (typeCombo may remain null if only one type)
@@ -163,13 +159,10 @@ public class MultiTypeSelectionDialog extends JDialog{
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		// Top panel: type combo (if more than one) + search field
-		final JPanel topPanel = new JPanel(new MigLayout("fillx,wrap 2", "[right]rel[grow]"));
-		if(typeCombo != null){
-			topPanel.add(new JLabel("Type:"), "align label");
-			topPanel.add(typeCombo, "growx");
-		}
-		topPanel.add(new JLabel("Search:"), "align label");
-		topPanel.add(searchField, "growx");
+		final JPanel topPanel = GUIHelper.createLabelFieldPanel(0, (typeCombo != null? "[]10[]": "[]"));
+		if(typeCombo != null)
+			GUIHelper.addLabeledComponent(topPanel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(topPanel, "Search:", searchField);
 
 		// List panel
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(list);
@@ -314,7 +307,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 			selectedType = desc.getType();
 			selectedRecord = newRecord;
 			confirmed = true;
-			onSelection.accept(selectedType, selectedRecord);
+
+			firePropertyChange(PROPERTY_TYPE_SELECTED, null, null);
 
 			dispose();
 		}
@@ -328,7 +322,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 				selectedType = desc.getType();
 				selectedRecord = filteredRecords.get(idx);
 				confirmed = true;
-				onSelection.accept(selectedType, selectedRecord);
+
+				firePropertyChange(PROPERTY_TYPE_SELECTED, null, null);
 
 				dispose();
 			}

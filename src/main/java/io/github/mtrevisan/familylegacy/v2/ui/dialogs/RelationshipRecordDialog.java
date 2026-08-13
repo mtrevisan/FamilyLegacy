@@ -26,32 +26,27 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Dialog;
@@ -60,7 +55,6 @@ import java.util.Collections;
 import java.util.List;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code RELATIONSHIP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -75,8 +69,8 @@ import java.util.List;
  *   status?: enum { active, ended, unknown }
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
- *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -87,6 +81,15 @@ import java.util.List;
  *   group: Xref&lt;GroupRecord&gt;
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): subject, object, type, role, status, valid_from, valid_to, evidence
+ * Tab 5 (Context): ContextImpactRecord (target.relationship = this relationship)
+ * Tab 6 (Research): ConclusionRecord (resolves/preferred = this relationship), ResearchQuestionRecord (target.relationship = this relationship)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class RelationshipRecordDialog extends BaseRecordDialog{
 
@@ -107,12 +110,15 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private static final String TAG_STATUS = "STATUS";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 
 
 	private static final List<String> INDIVIDUAL_TO_INDIVIDUAL_TYPES = List.of(
@@ -129,23 +135,12 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private static final List<String> GROUP_TO_INDIVIDUAL_TYPES = Collections.emptyList();
 
 
-	static{
-		HandlerRegistry.register(new RelationshipHandler());
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel();
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private ActorType actorType;
 
-	private final JLabel subjectLabel;
 	private final ParticipantField subjectField;
 	private final BoundComboBox<String> subjectTypeCombo;
 	private final ParticipantField objectField;
@@ -153,14 +148,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> statusCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
-	private final EvidenceQualifiersPanel evidencePanel;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
-
-	// Other
-	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static RelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -174,19 +161,20 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 
 	private RelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(RelationshipHandler.TYPE));
+		super(parent, model, record, RelationshipHandler.class);
 
-		subjectLabel = new JLabel("Subject*:");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
+
 		subjectField = ParticipantField.create(TAG_SUBJECT, this, model);
-		subjectField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
-		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> {
+		subjectField.setHandlerTypes(IndividualHandler.class, GroupHandler.class);
+		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> {
 			updateTypeCombo();
 
 			refreshLayout();
 		});
 		objectField = ParticipantField.create(TAG_OBJECT, this, model);
-		objectField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE));
-		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT, e -> {
+		objectField.setHandlerTypes(IndividualHandler.class, GroupHandler.class);
+		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> {
 			updateTypeCombo();
 
 			refreshLayout();
@@ -205,24 +193,25 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		});
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), RelationshipHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), RelationshipHandler.TYPE);
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, RelationshipHandler.class)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, RelationshipHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, RelationshipHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, RelationshipHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(subjectTypeCombo);
+		components.bind(subjectRoleField);
+		components.bind(statusCombo);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 	private void updateTypeCombo(){
@@ -238,6 +227,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		final String objectType = objectRecord.getTag();
 		final List<String> validTypes = getValidTypes(subjectType, objectType);
 		subjectTypeCombo.updateItems(validTypes);
+		subjectTypeCombo.setEnabled(!validTypes.isEmpty());
 	}
 
 	private List<String> getValidTypes(final String subjectType, final String objectType){
@@ -256,101 +246,124 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		return GROUP_TO_INDIVIDUAL_TYPES;
 	}
 
-	private void initComponents(){
-		bindingManager.bind(subjectTypeCombo);
-		bindingManager.bind(subjectRoleField);
-		bindingManager.bind(statusCombo);
 
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
-		mainPanel.setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]",
-			(showAll
-				? "[]5[]10[]5[]10[]10[]10[]"
-				: "[]5[]10[]10[]10[]10[]")));
 
-		if(showAll || actorType != ActorType.SUBJECT){
-			// subject
-			mainPanel.add(subjectLabel, "align label");
-			mainPanel.add(subjectField, "growx,wrap");
-		}
+		// subject
+		GUIHelper.addLabeledComponent(propertiesPanel, "Subject*:", subjectField);
+		GUIHelper.setComponentVisible(subjectField, (showAll || actorType != ActorType.SUBJECT));
 
 		// (subject) type
-		mainPanel.add(new JLabel("Subject Type*:"), "align label");
-		mainPanel.add(subjectTypeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Subject Type*:", subjectTypeCombo);
 
 		// (subject) role
-		mainPanel.add(new JLabel("Subject Role:"), "align label");
-		mainPanel.add(subjectRoleField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Subject Role:", subjectRoleField);
 
-		if(showAll || actorType != ActorType.OBJECT){
-			// object
-			mainPanel.add(new JLabel("Object*:"), "align label");
-			mainPanel.add(objectField, "growx,wrap");
-		}
+		// object
+		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
+		GUIHelper.setComponentVisible(subjectField, (showAll || actorType != ActorType.OBJECT));
 
 		// status
-		mainPanel.add(new JLabel("Status:"), "align label");
-		mainPanel.add(statusCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Status:", statusCombo);
 
-		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		// validity range:
+		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		// valid from
-		validityPanel.add(new JLabel("Valid From:"), "align label");
-		validityPanel.add(validFromField, "growx,wrap");
+		GUIHelper.addLabeledComponent(validityPanel, "Valid From:", validFromField);
 		// valid to
-		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx");
-		mainPanel.add(validityPanel, "span 2,growx,wrap");
+		GUIHelper.addLabeledComponent(validityPanel, "Valid To:", validToField);
+		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// evidence
-		mainPanel.add(evidencePanel, "span 2,growx,wrap");
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		// conclusion
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		// research question
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	private void refreshLayout(){
 		recreateMainPanel();
 
-		mainPanel.revalidate();
-		mainPanel.repaint();
+		propertiesPanel.revalidate();
+		propertiesPanel.repaint();
 
 		pack();
 	}
 
 	private void recreateMainPanel(){
-		mainPanel.removeAll();
-		createMainPanel();
+		propertiesPanel.removeAll();
+		createPropertiesPanel();
 	}
 
 	@Override
-	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityHandlerType){
+	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityPath){
 		JOptionPane.showMessageDialog(this, "Cannot set parent on Relationship Record Dialog.",
 			"Error", JOptionPane.ERROR_MESSAGE);
 
 		return this;
 	}
 
-	public BaseRecordDialog withSubject(final String parentEntityId, final String parentEntityHandlerType){
-		super.withParentEntity(parentEntityId, parentEntityHandlerType);
+	public BaseRecordDialog withSubject(final String parentEntityId, final String parentEntityPath){
+		super.withParentEntity(parentEntityId, parentEntityPath);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
 			subjectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
@@ -362,8 +375,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
-	public BaseRecordDialog withObject(final String parentEntityId, final String parentEntityHandlerType){
-		super.withParentEntity(parentEntityId, parentEntityHandlerType);
+	public BaseRecordDialog withObject(final String parentEntityId, final String parentEntityPath){
+		super.withParentEntity(parentEntityId, parentEntityPath);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
 			objectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
@@ -383,15 +396,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		subjectField.load(subject != null? subject.getTheOnlyChild(): null);
 		objectField.load(object != null? object.getTheOnlyChild(): null);
 
-		bindingManager.load(record);
+		components.load(record);
 
 		validFromField.load(record);
 		validToField.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
-		evidencePanel.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
 
 		updateTypeCombo();
 
@@ -407,28 +415,28 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		if(!subjectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject is required.",
-				tabbedPane, mainPanel, subjectField);
+				tabbedPane, propertiesPanel, subjectField);
 			return false;
 		}
 
 		if(!objectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object is required.",
-				tabbedPane, mainPanel, objectField);
+				tabbedPane, propertiesPanel, objectField);
 			return false;
 		}
 
 		if(subjectField.equals(objectField)){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject and Object must not be the same entity.",
-				tabbedPane, mainPanel, subjectField);
+				tabbedPane, propertiesPanel, subjectField);
 			return false;
 		}
 
 		if(!subjectTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type is required.",
-				tabbedPane, mainPanel, subjectTypeCombo);
+				tabbedPane, propertiesPanel, subjectTypeCombo);
 			return false;
 		}
 
@@ -440,15 +448,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		subjectField.saveReferences(record);
 		objectField.saveReferences(record);
 
-		bindingManager.save(record);
+		components.save(record);
 
 		validFromField.save(record);
 		validToField.save(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
-		evidencePanel.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
 	}
 
 

@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import java.awt.Dialog;
 
 
-public class NoteHandler implements RecordTypeHandler<NoteRecordDialog>{
+public class NoteHandler extends AbstractRecordTypeHandler<NoteRecordDialog>{
 
 	public static final String TYPE = "NOTE";
 	public static final String ID_PREFIX = "N";

@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRelationshipRecordDia
 import java.awt.Dialog;
 
 
-public class PlaceRelationshipHandler implements RecordTypeHandler<PlaceRelationshipRecordDialog>{
+public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRelationshipRecordDialog>{
 
 	public static final String TYPE = "PLACE_RELATIONSHIP";
 	public static final String ID_PREFIX = "PR";

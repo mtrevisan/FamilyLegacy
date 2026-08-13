@@ -50,7 +50,6 @@ import java.io.IOException;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Panel for selecting and managing a preferred image associated with a record.
  * The image is referenced via a Source record, and can be cropped.

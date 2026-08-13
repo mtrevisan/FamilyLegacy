@@ -27,14 +27,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
@@ -42,7 +41,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
@@ -60,13 +58,10 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.List;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code RESEARCH_ACTIVITY_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -98,6 +93,12 @@ import java.util.List;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): question, date, activity_type, status, action, target, search_scope, result, observation, conclusion, conclusion_confidence, parent, task
+ * Tab 7 (Sources): source
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
@@ -123,36 +124,13 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
 	private static final String TAG_PARENT = "PARENT";
 	private static final String TAG_TASK = "TASK";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	static{
-		HandlerRegistry.register(new ResearchActivityHandler());
-		HandlerRegistry.register(new ResearchTaskHandler());
-		HandlerRegistry.register(new ResearchQuestionHandler());
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new EventHandler());
-		HandlerRegistry.register(new EventParticipationHandler());
-		HandlerRegistry.register(new RelationshipHandler());
-		HandlerRegistry.register(new IndividualAttributeHandler());
-		HandlerRegistry.register(new GroupAttributeHandler());
-		HandlerRegistry.register(new PlaceRelationshipHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new DocumentHandler());
-		HandlerRegistry.register(new IdentityHypothesisHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new HistoricEventHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]10[]"));
-	private final JPanel searchPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
-	private final JPanel findingsPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
-	private final JPanel referencesPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final EntityReferenceListPanel questionPanel;
 	private final DateField dateField;
@@ -160,7 +138,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> statusCombo;
 	private final BoundTextArea actionArea;
 	private final ParticipantField targetField;
-	private final EntityCitationListPanel sourcePanel;
 	private final BoundComboBox<String> searchScopeTypeCombo;
 	private final BoundTextArea searchScopeDetailArea;
 	private final BoundComboBox<String> resultCombo;
@@ -169,8 +146,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> conclusionConfidenceCombo;
 	private final ParticipantField parentField;
 	private final EntityReferenceListPanel taskPanel;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
 
 
 	public static ResearchActivityRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -184,10 +159,12 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 
 	private ResearchActivityRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(ResearchActivityHandler.TYPE));
+		super(parent, model, record, ResearchActivityHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]");
 
 		// Initialize components
-		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
+		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.class)
 			.withParentEntity(this.record.getId(), ResearchActivityHandler.TYPE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Activity Date", model);
 		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
@@ -198,11 +175,10 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		});
 		actionArea = new BoundTextArea(TAG_ACTION, 3, 30);
 		targetField = ParticipantField.create(TAG_TARGET, this, model);
-		targetField.setHandlerTypes(List.of(IndividualHandler.TYPE, GroupHandler.TYPE, EventHandler.TYPE,
-			EventParticipationHandler.TYPE, RelationshipHandler.TYPE, IndividualAttributeHandler.TYPE,
-			GroupAttributeHandler.TYPE, PlaceRelationshipHandler.TYPE, SourceHandler.TYPE, DocumentHandler.TYPE,
-			IdentityHypothesisHandler.TYPE, CulturalNormHandler.TYPE, HistoricEventHandler.TYPE));
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+		targetField.setHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
+			EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
+			GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
+			IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
 		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, new String[]{
 			"entire_source",
 			"index_only",
@@ -220,94 +196,83 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
 		parentField = ParticipantField.create(TAG_PARENT, this, model);
-		parentField.setHandlerType(ResearchActivityHandler.TYPE);
-		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model, ResearchTaskHandler.TYPE);
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
+		parentField.setHandlerTypes(ResearchActivityHandler.class);
+		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model, ResearchTaskHandler.class);
 
-		initComponents();
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
 
-		loadData();
+		components.bind(activityTypeCombo);
+		components.bind(statusCombo);
+		components.bind(actionArea);
+		components.bind(searchScopeTypeCombo);
+		components.bind(searchScopeDetailArea);
+		components.bind(resultCombo);
+		components.bind(observationArea);
+		components.bind(conclusionArea);
+		components.bind(conclusionConfidenceCombo);
 
-		pack();
 
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
-	private void initComponents(){
-		bindingManager.bind(activityTypeCombo);
-		bindingManager.bind(statusCombo);
-		bindingManager.bind(actionArea);
-		bindingManager.bind(searchScopeTypeCombo);
-		bindingManager.bind(searchScopeDetailArea);
-		bindingManager.bind(resultCombo);
-		bindingManager.bind(observationArea);
-		bindingManager.bind(conclusionArea);
-		bindingManager.bind(conclusionConfidenceCombo);
 
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Search", createSearchPanel());
-		tabbedPane.addTab("Findings", createFindingsPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// question
-		mainPanel.add(questionPanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(propertiesPanel, questionPanel);
 
 		// date
-		mainPanel.add(new JLabel("Date*:"), "align label");
-		mainPanel.add(dateField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Date*:", dateField);
 
 		// activity type
-		mainPanel.add(new JLabel("Activity Type*:"), "align label");
-		mainPanel.add(activityTypeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Activity Type*:", activityTypeCombo);
 
 		// status
-		mainPanel.add(new JLabel("Status*:"), "align label");
-		mainPanel.add(statusCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Status*:", statusCombo);
 
 		// action
-		mainPanel.add(new JLabel("Action*:"), "align label");
-		mainPanel.add(GUIHelper.createScrollPane(actionArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Action*:", actionArea);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createSearchPanel(){
-		// target
-		searchPanel.add(new JLabel("Target:"), "align label");
-		searchPanel.add(targetField, "growx,wrap");
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		// search scope
-		final JPanel searchScopePanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]10[]"));
+		// target
+		GUIHelper.addLabeledComponent(panel, "Target:", targetField);
+
+		// search scope:
+		final JPanel searchScopePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		searchScopePanel.setBorder(BorderFactory.createTitledBorder("Search Scope"));
 		// type
-		searchScopePanel.add(new JLabel("Type*:"), "align label");
-		searchScopePanel.add(searchScopeTypeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(searchScopePanel, "Type*:", searchScopeTypeCombo);
 		// detail
-		searchScopePanel.add(new JLabel("Detail:"), "align label");
-		searchScopePanel.add(GUIHelper.createScrollPane(searchScopeDetailArea), "growx");
-		searchPanel.add(searchScopePanel, "span 2,growx,wrap");
+		GUIHelper.addLabeledComponent(searchScopePanel, "Detail:", searchScopeDetailArea);
+		GUIHelper.addComponent(panel, searchScopePanel);
 
-		return searchPanel;
+		return panel;
 	}
 
-	private JPanel createFindingsPanel(){
+	@Override
+	protected JPanel createFindingsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
+
 		// result
-		findingsPanel.add(new JLabel("Result:"), "align label");
-		findingsPanel.add(resultCombo, "growx,wrap");
+		panel.add(new JLabel("Result:"), "align label");
+		panel.add(resultCombo, "growx,wrap");
 
 		// observation
-		findingsPanel.add(new JLabel("Observation:"), "align label");
-		findingsPanel.add(GUIHelper.createScrollPane(observationArea), "growx,wrap");
+		panel.add(new JLabel("Observation:"), "align label");
+		panel.add(GUIHelper.createScrollPane(observationArea), "growx,wrap");
 
-		// conclusion panel
+		// conclusion panel:
 		final JPanel conclusionPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]10[]"));
 		conclusionPanel.setBorder(BorderFactory.createTitledBorder("Conclusion"));
 		// conclusion
@@ -315,38 +280,59 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		// confidence
 		conclusionPanel.add(new JLabel("Confidence:"), "align label");
 		conclusionPanel.add(conclusionConfidenceCombo, "growx");
-		findingsPanel.add(conclusionPanel, "span 2,growx,wrap");
+		panel.add(conclusionPanel, "span 2,growx,wrap");
 
-		return findingsPanel;
+		return panel;
 	}
 
-	private JPanel createReferencesPanel(){
-		// source
-		referencesPanel.add(sourcePanel, "span 2,growx,wrap");
+	@Override
+	protected JPanel createReferencesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// parent
-		referencesPanel.add(new JLabel("Parent:"), "align label");
-		referencesPanel.add(parentField, "growx,wrap");
+		panel.add(new JLabel("Parent:"), "align label");
+		panel.add(parentField, "growx,wrap");
 
 		// task
-		referencesPanel.add(taskPanel, "span 2,growx");
+		panel.add(taskPanel, "span 2,growx");
 
-		return referencesPanel;
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
+		if(record == null)
+			return;
+
 		dateField.load(record);
 
-		bindingManager.load(record);
+		components.load(record);
 
 		targetField.load(record);
 		parentField.load(record);
 		questionPanel.load(record);
 		taskPanel.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
 	}
 
 	@Override
@@ -354,7 +340,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		if(!dateField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Date is required.",
-				tabbedPane, mainPanel, dateField);
+				tabbedPane, propertiesPanel, dateField);
 
 			return false;
 		}
@@ -362,7 +348,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		if(activityTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Activity type is required.",
-				tabbedPane, mainPanel, activityTypeCombo);
+				tabbedPane, propertiesPanel, activityTypeCombo);
 
 			return false;
 		}
@@ -370,7 +356,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		if(statusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Status is required.",
-				tabbedPane, mainPanel, statusCombo);
+				tabbedPane, propertiesPanel, statusCombo);
 
 			return false;
 		}
@@ -379,7 +365,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		if(actionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Action is required.",
-				tabbedPane, mainPanel, actionArea);
+				tabbedPane, propertiesPanel, actionArea);
 
 			return false;
 		}
@@ -400,14 +386,12 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		dateField.save(record);
 
-		bindingManager.save(record);
+		components.save(record);
 
 		targetField.saveReferences(record);
 		parentField.saveReferences(record);
 		questionPanel.save(record);
 		taskPanel.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
 	}
 
 

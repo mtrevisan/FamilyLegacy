@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class EventParticipationHandler implements RecordTypeHandler<EventParticipationRecordDialog>{
+public class EventParticipationHandler extends AbstractRecordTypeHandler<EventParticipationRecordDialog>{
 
 	public static final String TYPE = "EVENT_PARTICIPATION";
 	public static final String ID_PREFIX = "EP";
@@ -41,11 +41,6 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 	private static final String TAG_PARTICIPANT = "PARTICIPANT";
 	private static final String TAG_ROLE = "ROLE";
 	private static final String TAG_EVENT = "EVENT";
-
-
-	static{
-		HandlerRegistry.register(new EventHandler());
-	}
 
 
 	@Override
@@ -73,8 +68,10 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 		String participantText = null;
 		final FLEFRecord refNode = record.getTheOnlyChild(TAG_PARTICIPANT);
 		if(refNode != null && !refNode.isEmpty()){
-			final String type = refNode.getTag();
-			final String refId = refNode.getValue();
+			final FLEFRecord actor = refNode.getChildren()
+				.getFirst();
+			final String type = actor.getTag();
+			final String refId = actor.getValue();
 
 			if(StringUtils.isNotEmpty(refId)){
 				final FLEFRecord targetRecord = model.getRecordById(refId);
@@ -97,14 +94,14 @@ public class EventParticipationHandler implements RecordTypeHandler<EventPartici
 		if(StringUtils.isNotEmpty(eventRef)){
 			final FLEFRecord eventRecord = model.getRecordById(eventRef);
 			if(eventRecord != null){
-				final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.TYPE);
+				final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.class);
 				if(eventHandler != null)
 					sb.append(" in ")
 						.append(eventHandler.getDisplayText(eventRecord, model));
 			}
 		}
 
-		final String id = record.getFormattedId();
+		final String id = record.getId();
 		if(StringUtils.isNotEmpty(id)){
 			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);

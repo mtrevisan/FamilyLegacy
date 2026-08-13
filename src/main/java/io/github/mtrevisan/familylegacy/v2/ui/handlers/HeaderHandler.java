@@ -26,29 +26,27 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ResearchQuestionRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.HeaderDialog;
 
 import java.awt.Dialog;
 
 
 /**
- * Handler for RESEARCH_QUESTION records.
+ * Handler for HEADER records.
  */
-public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQuestionRecordDialog>{
+public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 
-	public static final String TYPE = "RESEARCH_QUESTION";
-	public static final String ID_PREFIX = "RS";
-
-	private static final String TAG_QUESTION = "QUESTION";
-	private static final String TAG_STATUS = "STATUS";
+	public static final String TYPE = "HEADER";
 
 
 	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
+
+	@Override
 	public String getLabel(){
-		return "Research Status";
+		return "Header";
 	}
 
 	@Override
@@ -58,34 +56,27 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 
 	@Override
 	public String getIdPrefix(){
-		return ID_PREFIX;
+		throw new UnsupportedOperationException("Not supported.");
+	}
+
+	@Override
+	public RecordTypeHandler<?> getCitationHandler(){
+		return HandlerRegistry.getHandler(PlaceCitationHandler.class);
 	}
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return "--";
-
-		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
-		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
-		if(StringUtils.isNotEmpty(question)){
-			String display = GUIHelper.limitTextLength(question);
-			if(StringUtils.isNotEmpty(status))
-				display += " [" + status + "]";
-			return display;
-		}
-		return record.getId() != null? record.getId(): "(unnamed)";
+		return "Header";
 	}
 
 	@Override
-	public ResearchQuestionRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return ResearchQuestionRecordDialog.createNew(parent, model);
+	public HeaderDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return createEditDialog(parent, model, null);
 	}
 
 	@Override
-	public ResearchQuestionRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ResearchQuestionRecordDialog.createEdit(parent, model, record);
+	public HeaderDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return new HeaderDialog(parent, model);
 	}
 
 }

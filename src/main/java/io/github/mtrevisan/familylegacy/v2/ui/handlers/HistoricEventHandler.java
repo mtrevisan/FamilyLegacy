@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for HISTORIC_EVENT records.
  */
-public class HistoricEventHandler implements RecordTypeHandler<HistoricEventRecordDialog>{
+public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEventRecordDialog>{
 
 	public static final String TYPE = "HISTORIC_EVENT";
 	public static final String ID_PREFIX = "HE";

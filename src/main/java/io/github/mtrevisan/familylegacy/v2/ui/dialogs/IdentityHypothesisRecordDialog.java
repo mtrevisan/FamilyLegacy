@@ -27,38 +27,31 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* DONE */
 /**
- * Dialog for editing an {@code IdentityHypothesisRecord} according to FLEF 0.1.1.
+ * Dialog for editing an {@code IDENTITY_HYPOTHESIS_RECORD} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
@@ -80,6 +73,13 @@ import java.io.Serial;
  *   place: Xref&lt;PlaceRecord&gt;
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): subject, candidate, comment, evidence
+ * Tab 5 (Context): ContextImpactRecord (target.identity_hypothesis = this hypothesis)
+ * Tab 6 (Research): ConclusionRecord (resolves/preferred = this hypothesis), ResearchQuestionRecord (target.identity_hypothesis = this hypothesis)
+ * Tab 7 (Sources): source
+ * Tab 10 (Audit): audit
  */
 public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
@@ -91,35 +91,20 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private static final String TAG_CANDIDATE = "CANDIDATE";
 	private static final String TAG_COMMENT = "COMMENT";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-
-
-	static{
-		HandlerRegistry.register(new IdentityHypothesisHandler());
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new PlaceHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+	private final RecordDialogComponents components;
 
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
-	private final BoundTextField subject;
 	private final ParticipantField candidateField;
 	private final BoundTextArea commentArea;
-	private final EntityCitationListPanel sourcePanel;
-	private final EvidenceQualifiersPanel evidencePanel;
-	private final ModificationPanel auditPanel;
-
-	// Other
-	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static IdentityHypothesisRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -127,90 +112,114 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	}
 
 	public static IdentityHypothesisRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+		final FLEFRecord record){
 		return createEdit(parent, model, record, IdentityHypothesisRecordDialog::new);
 	}
 
+
 	private IdentityHypothesisRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(IdentityHypothesisHandler.TYPE));
+		super(parent, model, record, IdentityHypothesisHandler.class);
 
-		subject = new BoundTextField(TAG_SUBJECT);
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
+
 		candidateField = ParticipantField.create(TAG_CANDIDATE, this, model);
+		candidateField.setHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		evidencePanel = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		auditPanel = new ModificationPanel(this);
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), IdentityHypothesisHandler.TYPE);
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IdentityHypothesisHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IdentityHypothesisHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IdentityHypothesisHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, IdentityHypothesisHandler.class)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(commentArea);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
-	private void initComponents(){
-		bindingManager.bind(subject);
-		bindingManager.bind(commentArea);
 
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// subject
+		//parentEntity
 
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Audit", auditPanel);
+		// candidate
+		GUIHelper.addLabeledComponent(propertiesPanel, "Candidate*:", candidateField);
 
-		finalizeLayout(tabbedPane);
+		// comment
+		GUIHelper.addLabeledComponent(propertiesPanel, "Comment:", commentArea);
+
+		// evidence
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
+
+		return propertiesPanel;
 	}
 
-	private JPanel createMainPanel(){
-		// Candidate
-		mainPanel.add(new JLabel("Candidate*:"), "align label");
-		mainPanel.add(candidateField, "growx,wrap");
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		// Comment
-		mainPanel.add(new JLabel("Comment:"), "align label");
-		mainPanel.add(GUIHelper.createScrollPane(commentArea), "growx,wrap");
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
 
-		// Evidence
-		mainPanel.add(evidencePanel, "span 2,growx,wrap");
-
-		return mainPanel;
-	}
-
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(sourcePanel, "growx");
 		return panel;
 	}
 
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-	public void setSubject(final String subjectId, final String subjectHandlerType){
-		if(StringUtils.isNotEmpty(subjectId) && StringUtils.isNotEmpty(subjectHandlerType)){
-			subject.setText(subjectId);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
 
-			candidateField.setHandlerType(subjectHandlerType);
-		}
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.save(record);
+		if(record == null)
+			return;
 
-		candidateField.load(record);
-		sourcePanel.load(record);
-		evidencePanel.load(record);
-		auditPanel.load(record);
+		final FLEFRecord participant = record.getTheOnlyChild(TAG_CANDIDATE);
+		candidateField.load(participant != null? participant.getTheOnlyChild(): null);
+
+		components.load(record);
+
+
+		// load parent subject reference
+		final FLEFRecord subject = FLEFRecordHelper.findChild(record, TAG_SUBJECT)
+			.getTheOnlyChild();
+		withParentEntity(subject.getValue(), subject.getTag());
 	}
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(subject.getText())){
+		if(StringUtils.isEmpty(parentEntity.getPath()) || StringUtils.isEmpty(parentEntity.getText())){
 			JOptionPane.showMessageDialog(this,
 				"Subject is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -221,18 +230,20 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		if(!candidateField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Candidate is required.",
-				tabbedPane, mainPanel, candidateField);
+				tabbedPane, propertiesPanel, candidateField);
+
 			return false;
 		}
 
 		// Subject and candidate must be different records
-		final String subjectId = subject.getText();
+		final String subjectId = parentEntity.getText();
 		final FLEFRecord candidate = candidateField.getParticipantRecord();
 		final String candidateId = (candidate != null? candidate.getId(): null);
 		if(subjectId != null && subjectId.equals(candidateId)){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject and candidate must be different records.",
-				tabbedPane, mainPanel, candidateField);
+				tabbedPane, propertiesPanel, candidateField);
+
 			return false;
 		}
 
@@ -245,28 +256,72 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		FLEFRecordHelper.removeChildren(record, TAG_CANDIDATE);
 		FLEFRecordHelper.removeChildren(record, TAG_COMMENT);
 
-		bindingManager.save(record);
-
 		candidateField.saveReferences(record);
-		sourcePanel.save(record);
-		evidencePanel.save(record);
-		auditPanel.save(record);
+
+		// Note: This will also save the subjectField (via bindingManager) and other common panels
+		components.save(record);
 	}
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
+		final FLEFRecord identityHypothesis = FLEFRecord.createMainRecord("IH1", "IDENTITY_HYPOTHESIS");
+		identityHypothesis.addChild(FLEFRecord.createChildWithTag("SUBJECT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
+		);
+		identityHypothesis.addChild(FLEFRecord.createChildWithTag("CANDIDATE")
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I2@"))
+		);
+		identityHypothesis.addChild(FLEFRecord.createChildWithTagAndValue("COMMENT", "Possibly the hypothesis is true"));
+		identityHypothesis.addChild(FLEFRecord.createChildWithTag("SOURCE")
+			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
+		);
+		identityHypothesis.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
 
-		final FLEFModel model = new FLEFModel();
+		final FLEFRecord individual1 = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+		final FLEFRecord individual2 = FLEFRecord.createMainRecord("I2", "INDIVIDUAL");
 
-		SwingUtilities.invokeLater(() -> {
-			final IdentityHypothesisRecordDialog dialog = IdentityHypothesisRecordDialog.createNew(null, model);
-			dialog.setSubject("I1", IndividualHandler.TYPE);
-			dialog.setVisible(true);
-		});
+		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
+		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
+			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Hypothesis source"))
+		);
+
+		final FLEFRecord contextImpact1 = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
+		contextImpact1.addChild(FLEFRecord.createChildWithTag("CONTEXT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
+		);
+		contextImpact1.addChild(FLEFRecord.createChildWithTag("TARGET")
+			.addChild(FLEFRecord.createChildWithTagAndValue("IDENTITY_HYPOTHESIS", "@IH1@"))
+		);
+
+		final FLEFRecord conclusion1 = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
+		conclusion1.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "death cause"));
+		conclusion1.addChild(FLEFRecord.createChildWithTag("RESOLVES")
+			.addChild(FLEFRecord.createChildWithTagAndValue("IDENTITY_HYPOTHESIS", "@IH1@"))
+		);
+
+		final FLEFRecord researchQuestion1 = FLEFRecord.createMainRecord("RQ1", "RESEARCH_QUESTION");
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "rq title"));
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("QUESTION", "is?"));
+		researchQuestion1.addChild(FLEFRecord.createChildWithTag("TARGET")
+			.addChild(FLEFRecord.createChildWithTagAndValue("IDENTITY_HYPOTHESIS", "@IH1@"))
+		);
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("STATUS", "open"));
+
+		final FLEFRecord note1 = FLEFRecord.createMainRecord("N1", "NOTE");
+		note1.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "id hyp note"));
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(identityHypothesis);
+			model.addRecord(individual1);
+			model.addRecord(individual2);
+			model.addRecord(source1);
+			model.addRecord(contextImpact1);
+			model.addRecord(conclusion1);
+			model.addRecord(researchQuestion1);
+			model.addRecord(note1);
+		};
+
+		GUIHelper.launch(IdentityHypothesisRecordDialog::createEdit, modelFiller, identityHypothesis);
 	}
 
 }

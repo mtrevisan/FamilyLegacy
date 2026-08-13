@@ -36,21 +36,12 @@ import java.awt.Dialog;
 /**
  * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.1.
  */
-public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDialog>{
+public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitationDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "SOURCE_CITATION";
 	public static final String CITED_TYPE = "SOURCE";
 
 	private static final String TAG_SOURCE = "SOURCE";
-
-
-	static{
-		HandlerRegistry.register(new SourceCitationHandler());
-	}
-
-
-	private final RecordTypeHandler<?> sourceHandle = HandlerRegistry.getHandler(SourceCitationHandler.TYPE);
 
 
 	@Override
@@ -85,6 +76,7 @@ public class SourceCitationHandler implements RecordTypeHandler<SourceCitationDi
 
 		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_SOURCE));
 		final FLEFRecord source = model.getRecordById(xref);
+		final RecordTypeHandler<?> sourceHandle = HandlerRegistry.getHandler(SourceCitationHandler.class);
 		return sourceHandle.getDisplayText(source, model);
 	}
 

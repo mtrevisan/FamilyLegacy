@@ -41,7 +41,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Component for selecting and displaying individuals.
  */
@@ -49,11 +48,6 @@ public class IndividualField extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -406821028241563963L;
-
-
-	static{
-		HandlerRegistry.register(new IndividualHandler());
-	}
 
 
 	private final Dialog parent;
@@ -65,7 +59,7 @@ public class IndividualField extends JPanel{
 
 	private final JTextField displayField = new JTextField(null);
 
-	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+	private final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.class);
 
 
 	public static IndividualField create(final String path, final Dialog parent, final FLEFModel model){
@@ -140,7 +134,7 @@ public class IndividualField extends JPanel{
 	public void load(final FLEFRecord targetRecord){
 		clear();
 
-		if(targetRecord == null)
+		if(targetRecord == null || targetRecord.isEmpty())
 			return;
 
 		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
@@ -158,7 +152,7 @@ public class IndividualField extends JPanel{
 	 * Creates a new place and adds a citation for it.
 	 */
 	private FLEFRecord createNew(){
-		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.class);
 		final IndividualRecordDialog dialog = (IndividualRecordDialog)individualHandler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
@@ -173,11 +167,11 @@ public class IndividualField extends JPanel{
 	}
 
 	private void add(){
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			IndividualHandler.TYPE,
-			(handlerType, selectedRecord) -> setRecord(selectedRecord)
-		);
-		dialog.setVisible(true);
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, IndividualHandler.class);
+		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
+			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
+			setRecord(selectedRecord);
+		});
 	}
 
 	private void edit(){
@@ -187,7 +181,7 @@ public class IndividualField extends JPanel{
 			return;
 		}
 
-		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.TYPE);
+		final RecordTypeHandler<?> individualHandler = HandlerRegistry.getHandler(IndividualHandler.class);
 		final IndividualRecordDialog dialog = (IndividualRecordDialog)individualHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
@@ -207,9 +201,7 @@ public class IndividualField extends JPanel{
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
 		sb.append("value: ");
-		String text = displayField.getText();
-		if(GUIHelper.isPlaceholder(text))
-			text = null;
+		final String text = GUIHelper.getText(displayField.getText());
 		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
 			.append(", path: ")
 			.append(path);

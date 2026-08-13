@@ -28,27 +28,24 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import net.miginfocom.swing.MigLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code REPOSITORY_CITATION} according to FLEF 0.1.1.
  * <p>
@@ -60,6 +57,10 @@ import java.io.Serial;
  *   note?: Text
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): location
+ * Tab 8 (Notes): note
  */
 public class RepositoryCitationDialog extends BaseRecordDialog{
 
@@ -72,19 +73,12 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	private static final String TAG_NOTE = "NOTE";
 
 
-	static{
-		HandlerRegistry.register(new RepositoryCitationHandler());
-		HandlerRegistry.register(new NoteHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundTextField repository;
 	private final BoundTextField locationField;
-	private final EntityReferenceListPanel notePanel;
 
 
 	public static RepositoryCitationDialog createNew(final Dialog parent, final FLEFModel model){
@@ -98,48 +92,48 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 
 	private RepositoryCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(RepositoryCitationHandler.TYPE));
+		super(parent, model, record, RepositoryCitationHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");
 
 		repository = new BoundTextField(TAG_REPOSITORY);
 		locationField = new BoundTextField(TAG_LOCATION);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, null, model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), RepositoryCitationHandler.TYPE);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.build();
+
+		components.bind(repository);
+		components.bind(locationField);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(repository);
-		bindingManager.bind(locationField);
-
-
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Notes", notePanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// location
-		mainPanel.add(new JLabel("Location:"), "align label");
-		mainPanel.add(locationField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Location:", locationField);
 
-		return mainPanel;
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
 	}
 
 
 	public void setRepository(final String repositoryId){
 		if(StringUtils.isNotEmpty(repositoryId)){
-			if(!confirmRecordExistsForType(repositoryId, RepositoryHandler.TYPE))
+			if(!confirmRecordExistsForType(repositoryId, RepositoryHandler.class))
 				return;
 
 			repository.setText(repositoryId);
@@ -149,8 +143,8 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	}
 
 	private void refreshLayout(){
-		mainPanel.revalidate();
-		mainPanel.repaint();
+		propertiesPanel.revalidate();
+		propertiesPanel.repaint();
 
 		pack();
 	}
@@ -161,9 +155,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		if(record == null)
 			return;
 
-		bindingManager.load(record);
-
-		notePanel.load(record);
+		components.load(record);
 	}
 
 	@Override
@@ -184,9 +176,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	protected void saveData(){
 		FLEFRecordHelper.updateChildValue(record, TAG_REPOSITORY, XRefHelper.formatXRef(repository.getText()));
 
-		bindingManager.save(record);
-
-		notePanel.save(record);
+		components.save(record);
 	}
 
 

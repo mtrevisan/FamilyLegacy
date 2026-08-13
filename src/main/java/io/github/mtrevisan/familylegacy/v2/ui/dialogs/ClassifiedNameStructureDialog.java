@@ -26,36 +26,30 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
- * Dialog for editing a {@code CLASSIFIED_NAME} according to FLEF 0.1.1.
+ * Dialog for editing a {@code CLASSIFIED_NAME_STRUCTURE} according to FLEF 0.1.1.
  * <p>
  * Structure:
  * <pre>
- * struct ClassifiedName {
+ * struct ClassifiedNameStructure {
  *   type?: enum {
  *     official, legal,
  *     colonial, indigenous, traditional,
@@ -73,12 +67,17 @@ import java.io.Serial;
  *   variant*: TextValueVariant
  *   locale?: LocaleCode
  *   date?: DateStructure
- *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): value, type, localw, variant
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
  */
-public class ClassifiedNameDialog extends BaseRecordDialog{
+public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = 4890876589041527256L;
@@ -95,37 +94,26 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = TAG_TEXT + DOT + "SOURCE";
 
 
-	static{
-		HandlerRegistry.register(new ClassifiedNameHandler());
-		HandlerRegistry.register(new VariantHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new VariantHandler());
-	}
-
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final RecordDialogComponents components;
 
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
 
 
-	public static ClassifiedNameDialog createNew(final Dialog parent, final FLEFModel model){
-		return createNew(parent, model, ClassifiedNameDialog::new);
+	public static ClassifiedNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
+		return createNew(parent, model, ClassifiedNameStructureDialog::new);
 	}
 
-	public static ClassifiedNameDialog createEdit(final Dialog parent, final FLEFModel model,
+	public static ClassifiedNameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return createEdit(parent, model, record, ClassifiedNameDialog::new);
+		return createEdit(parent, model, record, ClassifiedNameStructureDialog::new);
 	}
 
 
-	private ClassifiedNameDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(ClassifiedNameHandler.TYPE));
+	private ClassifiedNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, ClassifiedNameHandler.class);
 
 		valueField = new BoundTextField(TAG_VALUE);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
@@ -154,73 +142,67 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
 		localeCombo.setEditable(true);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.build();
+
+		components.bind(valueField);
+		components.bind(typeCombo);
+		components.bind(localeCombo);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(valueField);
-		bindingManager.bind(typeCombo);
-		bindingManager.bind(localeCombo);
-
-
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Variants", createVariantPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]5[]"));
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
 		// value
-		panel.add(new JLabel("Name Value*:"), "align label");
-		panel.add(valueField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
 
 		// type
-		panel.add(new JLabel("Type:"), "align label");
-		panel.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
 
 		// locale
-		panel.add(new JLabel("Locale:"), "align label");
-		panel.add(localeCombo, "growx");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);
+
+		// variant
+		GUIHelper.addComponent(propertiesPanel, variantPanel);
+
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
 
 		return panel;
 	}
 
-	private JPanel createVariantPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
-		panel.add(variantPanel, "growx");
-		return panel;
-	}
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
 		return panel;
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
 		variantPanel.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
 	}
 
 	@Override
@@ -239,16 +221,14 @@ public class ClassifiedNameDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
 		variantPanel.save(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
 	}
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(ClassifiedNameDialog::createNew);
+		GUIHelper.launch(ClassifiedNameStructureDialog::createNew);
 	}
 
 }

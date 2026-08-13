@@ -26,30 +26,26 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.ExtractListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import net.miginfocom.swing.MigLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code SOURCE_CITATION} according to FLEF 0.1.1.
  * <p>
@@ -65,6 +61,7 @@ import java.io.Serial;
  *
  *   require extract.document_part.document in source.document
  * }
+ *
  * struct ExtractStructure {
  *   document_part*: struct {
  *     document: Xref&lt;DocumentRecord&gt;
@@ -78,6 +75,11 @@ import java.io.Serial;
  *   require one_of(document_part, text)
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): location, extract, evidence
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
  */
 public class SourceCitationDialog extends BaseRecordDialog{
 
@@ -90,25 +92,16 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private static final String TAG_EXTRACT = "EXTRACT";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
 
 
-	static{
-		HandlerRegistry.register(new SourceCitationHandler());
-		HandlerRegistry.register(new NoteHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundTextField source;
 	private final BoundTextField locationField;
 	private final ExtractListPanel extractPanel;
-	private final EntityReferenceListPanel notePanel;
-	private final EvidenceQualifiersPanel qualifiers;
-	private final RestrictionPanel privacyPanel;
 
 
 	public static SourceCitationDialog createNew(final Dialog parent, final FLEFModel model){
@@ -121,71 +114,67 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 
 	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(SourceCitationHandler.TYPE));
+		super(parent, model, record, SourceCitationHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		source = new BoundTextField(TAG_SOURCE);
 		locationField = new BoundTextField(TAG_LOCATION);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, null, model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), SourceCitationHandler.TYPE);
-		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.build();
+
+		components.bind(source);
+		components.bind(locationField);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(source);
-		bindingManager.bind(locationField);
-
-
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Notes", notePanel);
-		tabbedPane.addTab("Privacy", privacyPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// location
-		mainPanel.add(new JLabel("Location:"), "align label");
-		mainPanel.add(locationField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Location:", locationField);
 
 		// extract
-		mainPanel.add(extractPanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(propertiesPanel, extractPanel);
 
-		// qualifiers
-		mainPanel.add(qualifiers, "span 2,growx");
+		// evidence
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return mainPanel;
+		return propertiesPanel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
 	}
 
 
 	public void setSource(final String sourceId){
 		if(StringUtils.isNotEmpty(sourceId)){
-			if(!confirmRecordExistsForType(sourceId, SourceHandler.TYPE))
+			if(!confirmRecordExistsForType(sourceId, SourceHandler.class))
 				return;
 
 			source.setText(sourceId);
-
-			refreshLayout();
 		}
-	}
-
-	private void refreshLayout(){
-		mainPanel.revalidate();
-		mainPanel.repaint();
-
-		pack();
 	}
 
 
@@ -194,11 +183,9 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		if(record == null)
 			return;
 
-		bindingManager.load(record);
+		components.load(record);
 
-		notePanel.load(record);
 		extractPanel.load(record);
-		qualifiers.load(record);
 	}
 
 	@Override
@@ -217,11 +204,9 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
-		notePanel.save(record);
 		extractPanel.save(record);
-		qualifiers.save(record);
 	}
 
 

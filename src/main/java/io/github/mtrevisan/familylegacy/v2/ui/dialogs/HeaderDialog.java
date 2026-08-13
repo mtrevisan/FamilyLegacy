@@ -25,20 +25,19 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.BasicNoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HeaderHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 
-import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
@@ -50,7 +49,6 @@ import java.time.LocalDate;
 import java.time.ZoneOffset;
 
 
-/* DONE */
 /**
  * Dialog for editing the {@code HEADER} singleton structure according to FLEF 0.1.1.
  * <p>
@@ -77,8 +75,12 @@ import java.time.ZoneOffset;
  *   scope?: Text
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): (date), copyright, scope
+ * Tab 11 (Submitter): name, contact, note
  */
-public class HeaderDialog extends JDialog{
+public class HeaderDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = 8685753096364050900L;
@@ -104,14 +106,7 @@ public class HeaderDialog extends JDialog{
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SCOPE = "SCOPE";
 
-
-	static{
-		HandlerRegistry.register(new ContactHandler());
-	}
-
-	private final BindingManager bindingManager = new BindingManager();
-
-	private final FLEFRecord headerRecord;
+	private final RecordDialogComponents components;
 
 	private final BoundTextField protocolNameField;
 	private final BoundTextField protocolVersionField;
@@ -133,9 +128,7 @@ public class HeaderDialog extends JDialog{
 
 
 	public HeaderDialog(final Dialog parent, final FLEFModel model){
-		super(parent, "Header", ModalityType.APPLICATION_MODAL);
-
-		headerRecord = model.getHeader();
+		super(parent, model, model.getHeader(), HeaderHandler.class);
 
 		protocolNameField = new BoundTextField(TAG_PROTOCOL_NAME, "Family LEgacy Format");
 		protocolVersionField = new BoundTextField(TAG_PROTOCOL_VERSION, "0.1.1");
@@ -147,41 +140,40 @@ public class HeaderDialog extends JDialog{
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
 		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME);
-		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.TYPE);
+		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
 		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER, this, "Notes",
 			false, TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
 
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.build();
 
-		initComponents();
+		components.bind(protocolNameField);
+		components.bind(protocolVersionField);
+		components.bind(sourceSystemIdField);
+		components.bind(sourceNameField);
+		components.bind(sourceVersionField);
+		components.bind(sourceCorporateField);
+		components.bind(dateField);
+		components.bind(copyrightArea);
+		components.bind(submitterNameField);
+		components.bind(scopeArea);
 
-		loadData();
 
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(protocolNameField);
-		bindingManager.bind(protocolVersionField);
-		bindingManager.bind(sourceSystemIdField);
-		bindingManager.bind(sourceNameField);
-		bindingManager.bind(sourceVersionField);
-		bindingManager.bind(sourceCorporateField);
-		bindingManager.bind(dateField);
-		bindingManager.bind(copyrightArea);
-		bindingManager.bind(submitterNameField);
-		bindingManager.bind(scopeArea);
-
-
-		setLayout(new MigLayout("ins 10,fillx", "[grow]"));
+	@Override
+	protected void initComponents(){
+		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[grow]");
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
+		tabbedPane.addTab("Properties", createPropertiesPanel());
 		tabbedPane.addTab("Submitter", createSubmitterPanel());
-		add(tabbedPane, BorderLayout.CENTER);
+		GUIHelper.addComponent(this, tabbedPane);
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			this::save,
@@ -190,58 +182,57 @@ public class HeaderDialog extends JDialog{
 	}
 
 
-	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]15[]15[]"));
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// date
-		panel.add(new JLabel("Date:"), "align label");
-		panel.add(dateField, "growx,wrap");
+		GUIHelper.addLabeledComponent(panel, "Date:", dateField);
 
 		// copyright
-		panel.add(new JLabel("Copyright:"), "align label,top");
-		panel.add(GUIHelper.createScrollPane(copyrightArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(panel, "Copyright:", copyrightArea);
 
 		// scope
-		panel.add(new JLabel("Scope:"), "align label,top");
-		panel.add(GUIHelper.createScrollPane(scopeArea), "growx");
+		GUIHelper.addLabeledComponent(panel, "Scope:", scopeArea);
 
 		return panel;
 	}
 
 	private JPanel createSubmitterPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10", "[right]rel[grow]", "[]15[]15[]"));
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// name
-		panel.add(new JLabel("Name:"), "align label,top");
-		panel.add(submitterNameField, "growx,wrap");
+		GUIHelper.addLabeledComponent(panel, "Name:", submitterNameField);
 
 		// contact
-		panel.add(submitterContactListPanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(panel, submitterContactListPanel);
 
 		// note
-		panel.add(submitterNotePanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(panel, submitterNotePanel);
 
 		return panel;
 	}
 
 
-	private void loadData(){
-		bindingManager.load(headerRecord);
+	@Override
+	protected void loadData(){
+		components.load(record);
 
-		submitterContactListPanel.load(headerRecord);
-		submitterNotePanel.load(headerRecord);
+		submitterContactListPanel.load(record);
+		submitterNotePanel.load(record);
 	}
 
-	private void save(){
-		FLEFRecordHelper.removeAllChildren(headerRecord);
+	@Override
+	protected void saveData(){
+		FLEFRecordHelper.removeAllChildren(record);
 
 		if(dateField.isEmpty())
 			dateField.setText(LocalDate.now(ZoneOffset.UTC).toString());
 
-		bindingManager.save(headerRecord);
+		components.save(record);
 
-		submitterContactListPanel.save(headerRecord);
-		submitterNotePanel.save(headerRecord);
+		submitterContactListPanel.save(record);
+		submitterNotePanel.save(record);
 
 		dispose();
 	}

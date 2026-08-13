@@ -32,7 +32,7 @@ import javax.swing.JTextField;
 
 public class BoundTextField extends JTextField implements PathBound{
 
-	private String path;
+	protected String path;
 
 	private final boolean readOnly;
 
@@ -68,11 +68,7 @@ public class BoundTextField extends JTextField implements PathBound{
 
 	@Override
 	public String getText(){
-		final String value = super.getText();
-		if(GUIHelper.isPlaceholder(value))
-			return null;
-
-		return (value != null? value.trim(): null);
+		return GUIHelper.getText(super.getText());
 	}
 
 	@Override
@@ -81,15 +77,13 @@ public class BoundTextField extends JTextField implements PathBound{
 			throw new IllegalStateException("Cannot set text on a read-only BoundTextField");
 
 		if(isEditable())
-			super.setText(value);
+			forceSetText(value);
 		else
-			GUIHelper.updateDisplay(this,
-				() -> {
-					final String text = super.getText();
-					return (value != null && (StringUtils.isNotEmpty(text) || GUIHelper.isPlaceholder(text)));
-				},
-				() -> value,
-				super::setText);
+			GUIHelper.setText(value, this, super::setText);
+	}
+
+	public void forceSetText(final String value){
+		super.setText(value);
 	}
 
 	@Override

@@ -39,7 +39,6 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 
 
-/* DONE */
 public class ImagePreviewAccessory extends JPanel implements PropertyChangeListener{
 
 	private final ScaledImage previewImage = ScaledImage.createViewOnly();

@@ -28,8 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.images.ScaledImage;
-import net.miginfocom.swing.MigLayout;
-import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -92,11 +90,10 @@ public class ImageCropDialog extends JDialog{
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
-		setLayout(new MigLayout(StringUtils.EMPTY, "[grow]", "[grow]"));
+		GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]");
 
-		final JPanel recordPanel = new JPanel();
-		recordPanel.setLayout(new MigLayout("ins 0,fill", "[grow,fill]", "[grow,fill]"));
-		recordPanel.add(imageHolder);
+		final JPanel recordPanel = GUIHelper.createLabelFieldPanel(0, "[grow,fill]");
+		GUIHelper.addComponent(recordPanel, imageHolder);
 		add(recordPanel, "grow,push");
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),

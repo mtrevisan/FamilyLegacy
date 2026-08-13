@@ -26,29 +26,23 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TranslationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -69,6 +63,12 @@ import java.io.Serial;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): title, value, mime, locale, translation
+ * Tab 7 (Sources): source
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class NoteRecordDialog extends BaseRecordDialog{
 
@@ -82,27 +82,19 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_TRANSLATION = "TRANSLATION";
 	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	static{
-		HandlerRegistry.register(new NoteHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel propertiesPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]5[]5[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundTextField titleField;
 	private final BoundTextArea valueArea;
 	private final BoundComboBox<String> mimeCombo;
 	private final BoundComboBox<String> localeCombo;
 	private final TranslationListPanel translationPanel;
-	private final EntityCitationListPanel sourcePanel;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
 
 
 	public static NoteRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -115,7 +107,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 
 	private NoteRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(NoteHandler.TYPE));
+		super(parent, model, record, NoteHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");
 
 		titleField = new BoundTextField(TAG_TITLE);
 		valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
@@ -127,74 +121,70 @@ public class NoteRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations", model);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(titleField);
+		components.bind(valueArea);
+		components.bind(mimeCombo);
+		components.bind(localeCombo);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(titleField);
-		bindingManager.bind(valueArea);
-		bindingManager.bind(mimeCombo);
-		bindingManager.bind(localeCombo);
-
-
-		tabbedPane.addTab("Properties", createPropertiesPanel());
-		tabbedPane.addTab("Sources", createSourcesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createPropertiesPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// title
-		propertiesPanel.add(new JLabel("Title:"), "align label");
-		propertiesPanel.add(titleField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Title:", titleField);
 
 		// value
-		propertiesPanel.add(new JLabel("Value*:"), "align label,top");
-		propertiesPanel.add(GUIHelper.createScrollPane(valueArea), "growx,growy,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueArea);
 
 		// mime
-		propertiesPanel.add(new JLabel("MIME:"), "align label");
-		propertiesPanel.add(mimeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "MIME type:", mimeCombo);
 
 		// locale
-		propertiesPanel.add(new JLabel("Locale:"), "align label");
-		propertiesPanel.add(localeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);
 
 		// translation
-		propertiesPanel.add(translationPanel, "span 2,growx");
+		GUIHelper.addComponent(propertiesPanel, translationPanel);
 
 		return propertiesPanel;
 	}
 
-	private JPanel createSourcesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]"));
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
 		translationPanel.load(record);
-		sourcePanel.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
 	}
 
 	@Override
@@ -212,12 +202,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
 		translationPanel.save(record);
-		sourcePanel.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
 	}
 
 

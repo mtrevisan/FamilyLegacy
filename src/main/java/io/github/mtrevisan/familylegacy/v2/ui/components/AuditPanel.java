@@ -42,7 +42,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 
-/* DONE */
 /**
  * Panel for editing a {@code MODIFICATION_STRUCTURE} according to FLEF 0.1.1.
  * <p>
@@ -60,7 +59,7 @@ import java.time.temporal.ChronoUnit;
  * }
  * </pre>
  */
-public class ModificationPanel extends JPanel{
+public class AuditPanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -8538135290834556766L;
@@ -85,7 +84,7 @@ public class ModificationPanel extends JPanel{
 	 *
 	 * @param parent	the parent dialog (used for showing message dialogs)
 	 */
-	public ModificationPanel(final Dialog parent){
+	public AuditPanel(final Dialog parent){
 		creationCommentArea = new BoundTextArea(TAG_CREATION + DOT + TAG_COMMENT, 3, 25);
 		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates",
 			true, TAG_COMMENT);

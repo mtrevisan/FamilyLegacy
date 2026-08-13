@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for PLACE records.
  */
-public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
+public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
 	public static final String TYPE = "PLACE";
 	public static final String ID_PREFIX = "P";
@@ -45,11 +45,6 @@ public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_VALUE = "VALUE";
-
-
-	static{
-		HandlerRegistry.register(new PlaceCitationHandler());
-	}
 
 
 	@Override
@@ -69,7 +64,7 @@ public class PlaceHandler implements RecordTypeHandler<PlaceRecordDialog>{
 
 	@Override
 	public RecordTypeHandler<?> getCitationHandler(){
-		return HandlerRegistry.getHandler(PlaceCitationHandler.TYPE);
+		return HandlerRegistry.getHandler(PlaceCitationHandler.class);
 	}
 
 	@Override

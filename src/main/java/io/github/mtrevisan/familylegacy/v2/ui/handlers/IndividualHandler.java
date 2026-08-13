@@ -34,12 +34,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-/* DONE */
-public class IndividualHandler implements RecordTypeHandler<IndividualRecordDialog>{
+public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecordDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "INDIVIDUAL";
-	/** The ID prefix used for generating new group IDs (e.g., {@code G}). */
 	public static final String ID_PREFIX = "I";
 
 	private static final String TAG_NAME = "NAME";

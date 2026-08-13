@@ -26,35 +26,31 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code PLACE_RELATIONSHIP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -67,11 +63,19 @@ import java.io.Serial;
  *   type: enum { administrative_part_of, geographic_part_of, ecclesiastical_part_of, judicial_part_of, cadastral_part_of } | Text
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
- *   note*: Text
  *   source*: SourceCitation
+ *   note*: Text
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): subject, object, type, valid_from, valid_to
+ * Tab 5 (Context): ContextImpactRecord (target.place_relationship = this relationship)
+ * Tab 6 (Research): ConclusionRecord (resolves/preferred = this relationship), ResearchQuestionRecord (target.place_relationship = this relationship)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 10 (Audit): audit
  */
 public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
@@ -87,36 +91,23 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
-	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SOURCE = "SOURCE";
-
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-
-
-	static{
-		HandlerRegistry.register(new PlaceRelationshipHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_AUDIT = "AUDIT";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top,hidemode 3", "[right]rel[grow]", "[]5[]10[]10[]"));
+	private final JPanel propertiesPanel;
 
-	private final BindingManager bindingManager = new BindingManager();
+	private final RecordDialogComponents components;
 
-	private final JLabel subjectLabel;
 	private final PlaceField subjectField;
 	private final PlaceField objectField;
 	private final BoundComboBox<String> typeCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
-	private final ModificationPanel auditPanel;
-
-	// Other
-	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static PlaceRelationshipRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -130,11 +121,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 
 	private PlaceRelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PlaceRelationshipHandler.TYPE));
+		super(parent, model, record, PlaceRelationshipHandler.class);
 
-		setTitle(record == null? "Add Place Relationship": "Edit Place Relationship");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 
-		subjectLabel = new JLabel("Subject*:");
 		subjectField = PlaceField.create(TAG_SUBJECT_PLACE, this, model);
 		objectField = PlaceField.create(TAG_OBJECT_PLACE, this, model);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
@@ -145,88 +135,111 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), PlaceRelationshipHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		auditPanel = new ModificationPanel(this);
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), PlaceRelationshipHandler.TYPE);
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, RelationshipHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceRelationshipHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceRelationshipHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(typeCombo);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(typeCombo);
-
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// subject
-		mainPanel.add(subjectLabel, "align label");
-		mainPanel.add(subjectField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Subject*:", subjectField);
 
 		// object
-		mainPanel.add(new JLabel("Object*:"), "align label");
-		mainPanel.add(objectField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
 
 		// type
-		mainPanel.add(new JLabel("Part Type*:"), "align label");
-		mainPanel.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Part Type*:", typeCombo);
 
-		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		// validity range:
+		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		// valid from
-		validityPanel.add(new JLabel("Valid From:"), "align label");
-		validityPanel.add(validFromField, "growx,wrap");
+		GUIHelper.addLabeledComponent(validityPanel, "Valid From:", validFromField);
 		// valid to
-		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx");
-		mainPanel.add(validityPanel, "span 2,growx,wrap");
+		GUIHelper.addLabeledComponent(validityPanel, "Valid To:", validToField);
+		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	public void setSubject(final String placeId){
 		if(StringUtils.isNotEmpty(placeId)){
-			if(!confirmRecordExistsForType(placeId, PlaceHandler.TYPE))
+			if(!confirmRecordExistsForType(placeId, PlaceHandler.class))
 				return;
 
 			subjectField.setRecord(FLEFRecord.createMainRecord(placeId, null));
-			subjectLabel.setVisible(false);
-			subjectField.setVisible(false);
+			GUIHelper.setComponentVisible(subjectField, false);
 
 			refreshLayout();
 		}
 	}
 
 	private void refreshLayout(){
-		mainPanel.revalidate();
-		mainPanel.repaint();
+		propertiesPanel.revalidate();
+		propertiesPanel.repaint();
 
 		pack();
 	}
@@ -237,13 +250,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		subjectField.load(record);
 		objectField.load(record);
 
-		bindingManager.load(record);
+		components.load(record);
 
 		validFromField.load(record);
 		validToField.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
-		auditPanel.load(record);
 	}
 
 	@Override
@@ -251,7 +261,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		if(!subjectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject cannot be empty.",
-				tabbedPane, mainPanel, subjectField);
+				tabbedPane, propertiesPanel, subjectField);
 
 			return false;
 		}
@@ -259,7 +269,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		if(!objectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object cannot be empty.",
-				tabbedPane, mainPanel, objectField);
+				tabbedPane, propertiesPanel, objectField);
 
 			return false;
 		}
@@ -267,7 +277,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type cannot be empty.",
-				tabbedPane, mainPanel, typeCombo);
+				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;
 		}
@@ -280,13 +290,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		subjectField.saveReferences(record);
 		objectField.saveReferences(record);
 
-		bindingManager.save(record);
+		components.save(record);
 
 		validFromField.save(record);
 		validToField.save(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
-		auditPanel.save(record);
 	}
 
 

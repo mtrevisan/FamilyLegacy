@@ -33,14 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class GroupHandler implements RecordTypeHandler<GroupRecordDialog>{
+public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "GROUP";
-	/** The ID prefix used for generating new group IDs (e.g., {@code G}). */
 	public static final String ID_PREFIX = "G";
-
-	private static final String TAG_NAME = "NAME";
 
 
 	@Override

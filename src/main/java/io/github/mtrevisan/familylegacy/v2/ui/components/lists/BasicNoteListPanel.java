@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -40,7 +39,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 
-/* DONE */
 /**
  * Panel for managing a list of a simple {@code NOTE} references according to FLEF 0.1.1.
  */
@@ -112,7 +110,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final int result = JOptionPane.showConfirmDialog(
 			parent,
-			new JScrollPane(textArea),
+			GUIHelper.createScrollPane(textArea),
 			"Add Note",
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.PLAIN_MESSAGE
@@ -142,7 +140,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final int result = JOptionPane.showConfirmDialog(
 			parent,
-			new JScrollPane(textArea),
+			GUIHelper.createScrollPane(textArea),
 			"Edit Note",
 			JOptionPane.OK_CANCEL_OPTION,
 			JOptionPane.PLAIN_MESSAGE

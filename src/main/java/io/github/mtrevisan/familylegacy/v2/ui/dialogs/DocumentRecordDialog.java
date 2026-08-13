@@ -26,34 +26,31 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ImagePreviewAccessory;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Dialog;
 import java.io.File;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code DOCUMENT_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -69,6 +66,14 @@ import java.io.Serial;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): file, mapping, description
+ * Tab 6 (Research): ResearchQuestionRecord (target.document = this document)
+ * Tab 7 (Sources): SourceRecord (document contains this document)
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class DocumentRecordDialog extends BaseRecordDialog{
 
@@ -79,27 +84,20 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private static final String TAG_FILE = "FILE";
 	private static final String TAG_MAPPING = "MAPPING";
 	private static final String TAG_DESCRIPTION = "DESCRIPTION";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
+	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	static{
-		HandlerRegistry.register(new DocumentHandler());
-		HandlerRegistry.register(new NoteHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundTextField fileField;
 	private final BoundComboBox<String> mappingCombo;
 	private final BoundTextArea descriptionArea;
-	private final EntityReferenceListPanel notePanel;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
 
 
 	public static DocumentRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -112,7 +110,9 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 
 	private DocumentRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(DocumentHandler.TYPE));
+		super(parent, model, record, DocumentHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 
 		fileField = new BoundTextField(TAG_FILE);
 		GUIHelper.installBehavior(fileField,
@@ -126,22 +126,26 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			});
 		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{
 			StringUtils.EMPTY,
-			"spherical_UV", "cylindrical_equirectangular_horizontal", "cylindrical_equirectangular_vertical"});
+			"planar", "spherical_equirectangular", "spherical_uv", "cubemap", "cylindrical_equirectangular_horizontal",
+			"cylindrical_equirectangular_vertical"});
 		mappingCombo.setEditable(true);
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), DocumentHandler.TYPE);
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, DocumentHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(fileField);
+		components.bind(mappingCombo);
+		components.bind(descriptionArea);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 	private void setNewItem(){
@@ -167,50 +171,69 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		fileField.setText(selectedFile.getAbsolutePath());
 	}
 
-	private void initComponents(){
-		bindingManager.bind(fileField);
-		bindingManager.bind(mappingCombo);
-		bindingManager.bind(descriptionArea);
 
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
-		// name
-		mainPanel.add(new JLabel("File*:"), "align label");
-		mainPanel.add(fileField, "growx,wrap");
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// file
+		GUIHelper.addLabeledComponent(propertiesPanel, "File*:", fileField);
 
 		// mapping
-		mainPanel.add(new JLabel("Mapping:"), "align label");
-		mainPanel.add(mappingCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Mapping:", mappingCombo);
 
 		// description
-		mainPanel.add(new JLabel("Description:"), "align label,top");
-		mainPanel.add(GUIHelper.createScrollPane(descriptionArea), "growx");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Description:", descriptionArea);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
-		panel.add(notePanel, "growx");
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		// research question
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		if(record == null)
+			return;
 
-		notePanel.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
+		components.load(record);
 	}
 
 	@Override
@@ -218,7 +241,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		if(fileField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Document file is required.",
-				tabbedPane, mainPanel, fileField);
+				tabbedPane, propertiesPanel, fileField);
 
 			return false;
 		}
@@ -228,16 +251,17 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
-
-		notePanel.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
+		components.save(record);
 	}
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(DocumentRecordDialog::createNew);
+		final FLEFRecord document = FLEFRecord.createMainRecord("D1", "DOCUMENT");
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(document);
+		};
+		GUIHelper.launch(DocumentRecordDialog::createEdit, modelFiller, document);
 	}
 
 }

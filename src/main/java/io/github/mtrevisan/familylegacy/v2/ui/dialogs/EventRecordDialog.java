@@ -26,35 +26,32 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CauseHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
+import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* DONE */
 /**
  * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -81,13 +78,23 @@ import java.io.Serial;
  *     value: Text
  *     evidence?: EvidenceQualifiers
  *   }
- *   note*: Xref&lt;NoteRecord&gt;
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): type, description, date, place, agency, cause, evidence
+ * Tab 4 (Participations): EventParticipationRecord (event = this event)
+ * Tab 5 (Context): ContextImpactRecord (target.event = this event)
+ * Tab 6 (Research): ConclusionRecord (resolves/preferred = this event), ResearchQuestionRecord (target.event = this event)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class EventRecordDialog extends BaseRecordDialog{
 
@@ -95,47 +102,37 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -9191829528682252778L;
 
 
+	private static final String DOT = ".";
+
 	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_DESCRIPTION = "DESCRIPTION";
+	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_DATE = "DATE";
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_AGENCY = "AGENCY";
 	private static final String TAG_CAUSE = "CAUSE";
-	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_EVENT_PARTICIPATION = "EVENT_PARTICIPATION";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 	private static final String TAG_SOURCE = "SOURCE";
+	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
-
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-
-
-	static{
-		HandlerRegistry.register(new EventHandler());
-		HandlerRegistry.register(new NoteHandler());
-		HandlerRegistry.register(new CauseHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]5[]10[]10[]10[]"));
+	private final RecordDialogComponents components;
 
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
-	private final BoundTextArea descriptionArea;
+	private final BoundTextArea titleArea;
 	private final DateField dateField;
 	private final PlaceCitationField placeCitationField;
 	private final BoundTextField agencyField;
-	private final EntityReferenceListPanel causePanel;
-	private final EntityReferenceListPanel notePanel;
-	private final EntityCitationListPanel sourcePanel;
-	private final EvidenceQualifiersPanel qualifiers;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
-
-	// Other
-	private final EntityReferenceListPanel culturalNormPanel;
+	private final BoundTextField causeField;
+	private final EvidenceQualifiersPanel causeEvidencePanel;
 
 
 	public static EventRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -148,7 +145,9 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 
 	private EventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(EventHandler.TYPE));
+		super(parent, model, record, EventHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -162,98 +161,138 @@ public class EventRecordDialog extends BaseRecordDialog{
 			"divorce", "annulment"
 		});
 		typeCombo.setEditable(true);
-		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
+		titleArea = new BoundTextArea(TAG_TITLE, 3, 25);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		agencyField = new BoundTextField(TAG_AGENCY);
-		causePanel = EntityReferenceListPanel.createForStructure(TAG_CAUSE, this, "Causes", model, CauseHandler.TYPE);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE)
-			.withParentEntity(this.record.getId(), EventHandler.TYPE);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
+		causeField = new BoundTextField(TAG_CAUSE + DOT + TAG_VALUE);
+		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE + DOT + TAG_EVIDENCE, this, "Cause Evidence", model, null);
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), EventHandler.TYPE);
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, EventHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, EventHandler.class)
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, EventHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, EventHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, EventHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(typeCombo);
+		components.bind(titleArea);
+		components.bind(agencyField);
+		components.bind(causeField);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(typeCombo);
-		bindingManager.bind(descriptionArea);
-		bindingManager.bind(agencyField);
-
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// type
-		mainPanel.add(new JLabel("Type*:"), "align label");
-		mainPanel.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
 
 		// description
-		mainPanel.add(new JLabel("Description*:"), "align label");
-		mainPanel.add(GUIHelper.createScrollPane(descriptionArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Description*:", titleArea);
 
 		// date
-		mainPanel.add(new JLabel("Date:"), "align label");
-		mainPanel.add(dateField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Date:", dateField);
 
 		// place
-		mainPanel.add(new JLabel("Place:"), "align label");
-		mainPanel.add(placeCitationField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeCitationField);
 
 		// agency
-		mainPanel.add(new JLabel("Agency:"), "align label");
-		mainPanel.add(agencyField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Agency:", agencyField);
 
-		// cause
-		mainPanel.add(causePanel, "span 2,growx,wrap");
+		// cause panel:
+		final JPanel causePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
+		causePanel.setBorder(new TitledBorder("Cause"));
+		GUIHelper.addComponent(causePanel, causeField);
+		GUIHelper.addComponent(causePanel, causeEvidencePanel);
+		GUIHelper.addComponent(propertiesPanel, causePanel);
 
-		// qualifiers
-		mainPanel.add(qualifiers, "span 2,growx,wrap");
+		// evidence
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]", "[]10[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(notePanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createParticipationsPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel eventParticipationPanel = components.getPanel(PanelKey.EVENT_PARTICIPATION_ON_EVENT);
+		GUIHelper.addComponent(panel, eventParticipationPanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
 		dateField.load(record);
 		placeCitationField.load(record);
-		causePanel.load(record);
-		culturalNormPanel.load(record);
-		notePanel.load(record);
-		sourcePanel.load(record);
-		qualifiers.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
+		causeEvidencePanel.load(record);
 	}
 
 	@Override
@@ -261,15 +300,15 @@ public class EventRecordDialog extends BaseRecordDialog{
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type is required.",
-				tabbedPane, mainPanel, typeCombo);
+				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;
 		}
 
-		if(descriptionArea.isEmpty()){
+		if(titleArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Description is required.",
-				tabbedPane, mainPanel, descriptionArea);
+				tabbedPane, propertiesPanel, titleArea);
 
 			return false;
 		}
@@ -279,22 +318,25 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
 		dateField.save(record);
 		placeCitationField.saveReferences(record);
-		causePanel.save(record);
-		culturalNormPanel.save(record);
-		notePanel.save(record);
-		sourcePanel.save(record);
-		qualifiers.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
+		causeEvidencePanel.save(record);
 	}
 
 
+
 	public static void main(final String[] args){
-		GUIHelper.launch(EventRecordDialog::createNew);
+		final FLEFRecord event = FLEFRecord.createMainRecord("E1", "EVENT");
+		event.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "famine"));
+		event.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "title"));
+
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(event);
+		};
+		GUIHelper.launch(EventRecordDialog::createEdit, modelFiller, event);
 	}
 
 }

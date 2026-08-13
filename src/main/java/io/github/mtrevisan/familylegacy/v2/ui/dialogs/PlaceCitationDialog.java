@@ -28,28 +28,24 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
-import net.miginfocom.swing.MigLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code PLACE_CITATION} according to FLEF 0.1.1.
  * <p>
@@ -62,6 +58,10 @@ import java.io.Serial;
  *   evidence?: EvidenceQualifiers
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): original text, evidence
+ * Tab 7 (Sources): source
  */
 public class PlaceCitationDialog extends BaseRecordDialog{
 
@@ -75,19 +75,12 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 
 
-	static{
-		HandlerRegistry.register(new PlaceCitationHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundTextField place;
 	private final BoundTextField originalTextField;
-	private final EntityCitationListPanel sourcePanel;
-	private final EvidenceQualifiersPanel qualifiers;
 
 
 	public static PlaceCitationDialog createNew(final Dialog parent, final FLEFModel model){
@@ -100,70 +93,57 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 
 	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PlaceCitationHandler.TYPE));
+		super(parent, model, record, PlaceCitationHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		place = new BoundTextField(TAG_PLACE);
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, PlaceCitationHandler.class)
+			.build();
+
+		components.bind(place);
+		components.bind(originalTextField);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(place);
-		bindingManager.bind(originalTextField);
-
-
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// original text
-		mainPanel.add(new JLabel("Original Text*:"), "align label");
-		mainPanel.add(originalTextField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Original Text*:", originalTextField);
 
-		// qualifiers
-		mainPanel.add(qualifiers, "span 2,growx");
+		// evidence
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,top,wrap 1", "[grow]"));
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
 		return panel;
 	}
 
 
 	public void setPlace(final String placeId){
 		if(StringUtils.isNotEmpty(placeId)){
-			if(!confirmRecordExistsForType(placeId, PlaceHandler.TYPE))
+			if(!confirmRecordExistsForType(placeId, PlaceHandler.class))
 				return;
 
 			place.setText(placeId);
-
-			refreshLayout();
 		}
-	}
-
-	private void refreshLayout(){
-		mainPanel.revalidate();
-		mainPanel.repaint();
-
-		pack();
 	}
 
 
@@ -172,10 +152,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		if(record == null)
 			return;
 
-		bindingManager.load(record);
-
-		sourcePanel.load(record);
-		qualifiers.load(record);
+		components.load(record);
 	}
 
 	@Override
@@ -196,10 +173,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	protected void saveData(){
 		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, XRefHelper.formatXRef(place.getText()));
 
-		bindingManager.save(record);
-
-		sourcePanel.save(record);
-		qualifiers.save(record);
+		components.save(record);
 	}
 
 

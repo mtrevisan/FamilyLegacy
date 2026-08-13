@@ -129,7 +129,7 @@ public class DateField extends JPanel{
 	public void load(final FLEFRecord targetRecord){
 		clear();
 
-		if(targetRecord == null)
+		if(targetRecord == null || targetRecord.isEmpty())
 			return;
 
 		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
@@ -171,7 +171,7 @@ public class DateField extends JPanel{
 	private void updateDisplay(){
 		GUIHelper.updateDisplay(displayField,
 			this::hasData,
-			() -> DateFieldPanel.extractDateSummary(record));
+			() -> DateFieldPanel.getDateValueDisplayText(record));
 	}
 
 
@@ -179,9 +179,7 @@ public class DateField extends JPanel{
 	public String toString(){
 		final StringBuilder sb = new StringBuilder();
 		sb.append("value: ");
-		String text = displayField.getText();
-		if(GUIHelper.isPlaceholder(text))
-			text = null;
+		final String text = GUIHelper.getText(displayField.getText());
 		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
 			.append(", path: ")
 			.append(path);

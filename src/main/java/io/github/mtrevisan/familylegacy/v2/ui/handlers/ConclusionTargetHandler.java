@@ -35,28 +35,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class ConclusionTargetHandler implements RecordTypeHandler<BaseRecordDialog>{
+public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecordDialog>{
 
 	public static final String TYPE = "CONCLUSION_TARGET";
 
 	private static final String TAG_RESOLVES = "RESOLVES";
-
-
-	static{
-		HandlerRegistry.register(new ConclusionHandler());
-		HandlerRegistry.register(new EventHandler());
-		HandlerRegistry.register(new EventParticipationHandler());
-		HandlerRegistry.register(new RelationshipHandler());
-		HandlerRegistry.register(new IndividualHandler());
-		HandlerRegistry.register(new IndividualAttributeHandler());
-		HandlerRegistry.register(new GroupHandler());
-		HandlerRegistry.register(new IdentityHypothesisHandler());
-		HandlerRegistry.register(new PlaceHandler());
-		HandlerRegistry.register(new PlaceRelationshipHandler());
-		HandlerRegistry.register(new SourceHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-		HandlerRegistry.register(new HistoricEventHandler());
-	}
 
 
 	@Override
@@ -81,7 +64,7 @@ public class ConclusionTargetHandler implements RecordTypeHandler<BaseRecordDial
 
 	@Override
 	public RecordTypeHandler<?> getRecordHandler(){
-		return HandlerRegistry.getHandler(ConclusionHandler.TYPE);
+		return HandlerRegistry.getHandler(ConclusionHandler.class);
 	}
 
 	@Override
@@ -120,7 +103,7 @@ public class ConclusionTargetHandler implements RecordTypeHandler<BaseRecordDial
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
 
-		if(ConclusionHandler.TYPE.equals(handler.getType()))
+		if(ConclusionHandler.class.equals(handler.getClass()))
 			return handler.getDisplayText(record, model);
 
 		final String recordId = record.getValue();

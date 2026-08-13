@@ -27,38 +27,31 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.EvidenceQualifiersPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code INDIVIDUAL_ATTRIBUTE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -76,11 +69,21 @@ import java.io.Serial;
  *   valid_to?: DateStructure
  *   place?: PlaceCitation
  *   source*: SourceCitation
+ *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): individual, type, value, valid_from, valid_to, place, evidence
+ * Tab 5 (Context): ContextImpactRecord (target.individual_attribute = this attribute)
+ * Tab 6 (Research): ConclusionRecord (resolves/preferred = this attribute), ResearchQuestionRecord (target.individual_attribute = this attribute)
+ * Tab 7 (Sources): source
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
@@ -96,34 +99,23 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
-
-	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-
-
-	static{
-		HandlerRegistry.register(new IndividualAttributeHandler());
-		HandlerRegistry.register(new CulturalNormHandler());
-	}
+	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
+	private static final String TAG_CONCLUSION = "CONCLUSION";
+	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]5[]10[]10[]10[]"));
+	private final RecordDialogComponents components;
 
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
 	private final DateField validFromField;
 	private final DateField validToField;
 	private final PlaceCitationField placeCitationField;
-	private final EntityCitationListPanel sourcePanel;
-	private final EvidenceQualifiersPanel qualifiers;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
-
-	// Other
-	private final EntityReferenceListPanel culturalNormPanel;
 
 
 	public static IndividualAttributeRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -131,110 +123,145 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 	public static IndividualAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+		final FLEFRecord record){
 		return createEdit(parent, model, record, IndividualAttributeRecordDialog::new);
 	}
 
 
 	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(IndividualAttributeHandler.TYPE));
+		super(parent, model, record, IndividualAttributeHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"characteristic", "residence", "occupation", "possession", "military_rank", "caste", "social_class",
-			"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count", "religion",
-			"language", "literacy", "education"
+			"ethnicity", "citizenship", "nationality", "ssn", "title", "children_count", "marriages_count",
+			"religion", "language", "literacy", "education"
 		});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "Valid From", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "Valid To", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, this, "Sources", model, SourceHandler.TYPE);
-		qualifiers = new EvidenceQualifiersPanel(TAG_EVIDENCE, "Evidence");
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, this, "Cultural Norms", model, CulturalNormHandler.TYPE)
-			.withParentEntity(this.record.getId(), IndividualAttributeHandler.TYPE);
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IndividualAttributeHandler.class)
+			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IndividualAttributeHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IndividualAttributeHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, IndividualAttributeHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(typeCombo);
+		components.bind(valueField);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(parentEntity);
-		bindingManager.bind(typeCombo);
-		bindingManager.bind(valueField);
+	@Override
+	protected JPanel createPropertiesPanel(){
+		// individual
+		//parentEntity
 
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("References", createReferencesPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
 		// type
-		mainPanel.add(new JLabel("Type*:"), "align label");
-		mainPanel.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
 
 		// value
-		mainPanel.add(new JLabel("Value:"), "align label");
-		mainPanel.add(valueField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Value:", valueField);
 
-		// validity range
-		final JPanel validityPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]5[]"));
+		// validity range:
+		final JPanel validityPanel = GUIHelper.createLabelFieldPanel(5, "[]5[]");
 		validityPanel.setBorder(BorderFactory.createTitledBorder("Validity Range"));
 		// valid from
-		validityPanel.add(new JLabel("Valid From:"), "align label");
-		validityPanel.add(validFromField, "growx,wrap");
+		GUIHelper.addLabeledComponent(validityPanel, "Valid From:", validFromField);
 		// valid to
-		validityPanel.add(new JLabel("Valid To:"), "align label");
-		validityPanel.add(validToField, "growx");
-		mainPanel.add(validityPanel, "span 2,growx,wrap");
+		GUIHelper.addLabeledComponent(validityPanel, "Valid To:", validToField);
+		GUIHelper.addComponent(propertiesPanel, validityPanel);
 
 		// place
-		mainPanel.add(new JLabel("Place:"), "align label");
-		mainPanel.add(placeCitationField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeCitationField);
 
-		// qualifiers
-		mainPanel.add(qualifiers, "span 2,growx");
+		// evidence
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
-	private JPanel createReferencesPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx,wrap 1", "[grow]", "[]10[]"));
-		panel.add(culturalNormPanel, "growx");
-		panel.add(sourcePanel, "growx");
+	@Override
+	protected JPanel createContextPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT_ON_TARGET);
+		GUIHelper.addComponent(panel, contextPanel);
+
 		return panel;
+	}
+
+	@Override
+	protected JPanel createResearchPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		GUIHelper.addComponent(panel, conclusionPanel);
+
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(panel, researchQuestionPanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createSourcesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		GUIHelper.addComponent(panel, sourcePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
+
+		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	public void setIndividual(final String individualId){
 		if(StringUtils.isNotEmpty(individualId)){
-			if(!confirmRecordExistsForType(individualId, IndividualHandler.TYPE))
+			if(!confirmRecordExistsForType(individualId, IndividualHandler.class))
 				return;
 
 			withParentEntity(individualId, IndividualHandler.TYPE);
-
 			refreshLayout();
 		}
 	}
 
 	private void refreshLayout(){
-		mainPanel.revalidate();
-		mainPanel.repaint();
+		propertiesPanel.revalidate();
+		propertiesPanel.repaint();
 
 		pack();
 	}
@@ -245,23 +272,21 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		if(record == null)
 			return;
 
-		bindingManager.load(record);
-
 		validFromField.load(record);
 		validToField.load(record);
 		placeCitationField.load(record);
-		sourcePanel.load(record);
-		qualifiers.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
 
+		components.load(record);
+
+
+		// load parent individual reference
 		final String individualId = FLEFRecordHelper.getChildValuesAsString(record, TAG_INDIVIDUAL);
 		withParentEntity(individualId, IndividualHandler.TYPE);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(parentEntity.isEmpty()){
+		if(StringUtils.isEmpty(parentEntity.getPath()) || StringUtils.isEmpty(parentEntity.getText())){
 			JOptionPane.showMessageDialog(null,
 				"Parent Individual is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -272,7 +297,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		if(StringUtils.isEmpty((String)typeCombo.getSelectedItem())){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type cannot be empty.",
-				tabbedPane, mainPanel, typeCombo);
+				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;
 		}
@@ -282,37 +307,66 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
-
 		validFromField.save(record);
 		validToField.save(record);
 		placeCitationField.saveReferences(record);
-		sourcePanel.save(record);
-		qualifiers.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
+
+		components.save(record);
 	}
 
 
 	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch(final Exception ignored){}
+		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "male"));
 
-		final FLEFModel model = new FLEFModel();
+		final FLEFRecord individualAttribute = FLEFRecord.createMainRecord("IA1", "INDIVIDUAL_ATTRIBUTE");
+		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"));
+		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "occupation"));
+		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "farmer"));
+		individualAttribute.addChild(FLEFRecord.createChildWithTag("SOURCE")
+			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
+		);
+		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
 
-		SwingUtilities.invokeLater(() -> {
-			final FLEFRecord individual = FLEFRecord.createMainRecord("I1", TAG_INDIVIDUAL);
+		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
+		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
+			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Source for attribute")));
+
+		final FLEFRecord contextImpact1 = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
+		contextImpact1.addChild(FLEFRecord.createChildWithTag("CONTEXT")
+			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
+		);
+		contextImpact1.addChild(FLEFRecord.createChildWithTag("TARGET")
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL_ATTRIBUTE", "@IA1@"))
+		);
+
+		final FLEFRecord conclusion1 = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
+		conclusion1.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "death cause"));
+		conclusion1.addChild(FLEFRecord.createChildWithTag("RESOLVES")
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL_ATTRIBUTE", "@IA1@"))
+		);
+
+		final FLEFRecord researchQuestion1 = FLEFRecord.createMainRecord("RQ1", "RESEARCH_QUESTION");
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "rq title"));
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("QUESTION", "is?"));
+		researchQuestion1.addChild(FLEFRecord.createChildWithTag("TARGET")
+			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL_ATTRIBUTE", "@IA1@"))
+		);
+		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("STATUS", "open"));
+
+		final FLEFRecord note1 = FLEFRecord.createMainRecord("N1", "NOTE");
+		note1.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Ind attr note"));
+
+		final Consumer<FLEFModel> modelFiller = model -> {
 			model.addRecord(individual);
-
-//			final FLEFRecord individualAttribute = FLEFRecord.createEmpty();
-//			individualAttribute.addChild(FLEFRecord.createChildWithValue(TAG_INDIVIDUAL, "I1"));
-//			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createEdit(null, model, individualAttribute);
-			final IndividualAttributeRecordDialog dialog = IndividualAttributeRecordDialog.createNew(null, model);
-			dialog.setIndividual("I1");
-			dialog.setVisible(true);
-		});
+			model.addRecord(individualAttribute);
+			model.addRecord(source1);
+			model.addRecord(contextImpact1);
+			model.addRecord(conclusion1);
+			model.addRecord(researchQuestion1);
+			model.addRecord(note1);
+		};
+		GUIHelper.launch(IndividualAttributeRecordDialog::createEdit, modelFiller, individualAttribute);
 	}
 
 }

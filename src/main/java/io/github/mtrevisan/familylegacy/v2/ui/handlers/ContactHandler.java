@@ -33,7 +33,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.awt.Dialog;
 
 
-public class ContactHandler implements RecordTypeHandler<ContactStructureDialog>{
+public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDialog>{
 
 	public static final String TYPE = "CONTACT";
 

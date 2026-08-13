@@ -35,7 +35,7 @@ import java.awt.Dialog;
 /**
  * Handler for CULTURAL_NORM records.
  */
-public class CulturalNormHandler implements RecordTypeHandler<CulturalNormRecordDialog>{
+public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormRecordDialog>{
 
 	public static final String TYPE = "CULTURAL_NORM";
 	public static final String ID_PREFIX = "CN";

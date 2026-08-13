@@ -57,7 +57,6 @@ CREATE TABLE "repository_type"	/* REPOSITORY_TABLE.TYPE */
      repository_types   TEXT NOT NULL
   );
 
-/* DONE */
 CREATE TABLE repositories_links
   (
      repositories_links_id INTEGER PRIMARY KEY,
@@ -76,7 +75,6 @@ CREATE TABLE repositories_links
      FOREIGN KEY (contact_id) REFERENCES contact (contact_id)
   );
 
-/* DONE */
 CREATE TABLE "date_format"
   (
      date_format_id INTEGER PRIMARY KEY,
@@ -106,7 +104,6 @@ CREATE TABLE "place"
      check_dupes           BOOLEAN DEFAULT 1	/* ? */
   );
 
-/* DONE */
 CREATE TABLE places_types
   (
      places_types_id     INTEGER PRIMARY KEY,
@@ -120,7 +117,6 @@ CREATE TABLE places_types
      FOREIGN KEY (place_type_id) REFERENCES place_type (place_type_id)
   );
 
-/* DONE */
 CREATE TABLE place_name
   (
      place_name_id   INTEGER PRIMARY KEY,
@@ -129,7 +125,6 @@ CREATE TABLE place_name
      main_place_name BOOLEAN NOT NULL DEFAULT 0
   );
 
-/* DONE */
 CREATE TABLE "place_type"
   (
      place_type_id INTEGER PRIMARY KEY,
@@ -137,7 +132,6 @@ CREATE TABLE "place_type"
      description   TEXT DEFAULT ''
   );
 
-/* DONE */
 CREATE TABLE "nested_place"
   (
      nested_place_id INTEGER PRIMARY KEY,
@@ -277,7 +271,6 @@ CREATE TABLE "change_date"	/* MODIFICATION_TABLE */
      FOREIGN KEY (assertion_id) REFERENCES assertion (assertion_id)
   );
 
-/* DONE */
 CREATE TABLE "chart"
   (
      chart_id      INTEGER PRIMARY KEY,
@@ -285,14 +278,12 @@ CREATE TABLE "chart"
      chart_type_id INTEGER REFERENCES chart_type (chart_type_id)
   );
 
-/* DONE */
 CREATE TABLE "chart_type"
   (
      chart_type_id INTEGER PRIMARY KEY,
      chart_types   TEXT UNIQUE NOT NULL
   );
 
-/* DONE */
 CREATE TABLE "colors_type"
   (
      colors_type_id INTEGER PRIMARY KEY,
@@ -333,7 +324,6 @@ CREATE TABLE "couple"
      FOREIGN KEY (person_id2) REFERENCES person (person_id)
   );
 
-/* DONE */
 CREATE TABLE "current"
   (
      current_id      INTEGER PRIMARY KEY,
@@ -346,7 +336,6 @@ CREATE TABLE "current"
      FOREIGN KEY (nested_place_id) REFERENCES nested_place (nested_place_id)
   );
 
-/* DONE */
 CREATE TABLE demo
   (
      id   INTEGER PRIMARY KEY,
@@ -373,7 +362,6 @@ CREATE TABLE "event"
      FOREIGN KEY (event_type_id) REFERENCES event_type (event_type_id)
   );
 
-/* DONE */
 CREATE TABLE "event_type"
   (
      event_type_id INTEGER PRIMARY KEY,
@@ -383,7 +371,6 @@ CREATE TABLE "event_type"
      marital       BOOLEAN NOT NULL DEFAULT 0
   );
 
-/* DONE */
 CREATE TABLE "font_preference"
   (
      format_id           INTEGER PRIMARY KEY,
@@ -406,7 +393,6 @@ CREATE TABLE handle
      FOREIGN KEY (repository_id) REFERENCES repository (repository_id)
   );
 
-/* DONE */
 CREATE TABLE "kin_type"
   (
      kin_type_id      INTEGER PRIMARY KEY,
@@ -414,7 +400,6 @@ CREATE TABLE "kin_type"
      abbrev_kin_types TEXT
   );
 
-/* DONE */
 CREATE TABLE "locator"
   (
      locator_id      INTEGER PRIMARY KEY,
@@ -432,7 +417,6 @@ CREATE TABLE "locator"
      FOREIGN KEY (locator_type_id) REFERENCES locator_type (locator_type_id)
   );
 
-/* DONE */
 CREATE TABLE "locator_type"
   (
      locator_type_id INTEGER PRIMARY KEY,
@@ -521,14 +505,12 @@ CREATE TABLE person
      gender    TEXT NOT NULL DEFAULT 'unknown'	/* PERSON_TABLE.GENDER */
   );
 
-/* DONE */
 CREATE TABLE preferences
   (
      preferences_id     INTEGER PRIMARY KEY,
      use_default_images BOOLEAN
   );
 
-/* DONE */
 CREATE TABLE project
   (
      project_id      INTEGER PRIMARY KEY,
@@ -536,7 +518,6 @@ CREATE TABLE project
      project_summary TEXT
   );
 
-/* DONE */
 CREATE TABLE "report"
   (
      report_id      INTEGER PRIMARY KEY,
@@ -544,14 +525,12 @@ CREATE TABLE "report"
      report_type_id INTEGER REFERENCES report_type (report_type_id)
   );
 
-/* DONE */
 CREATE TABLE "report_type"
   (
      report_type_id INTEGER PRIMARY KEY,
      report_types   TEXT UNIQUE NOT NULL
   );
 
-/* DONE */
 CREATE TABLE roles_links
   (
      roles_links_id INTEGER PRIMARY KEY,
@@ -563,7 +542,6 @@ CREATE TABLE roles_links
      FOREIGN KEY (event_id) REFERENCES event (event_id)
   );
 
-/* DONE */
 CREATE TABLE "role_type"
   (
      role_type_id INTEGER PRIMARY KEY,

@@ -26,28 +26,26 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
+/* ONGOING name with value & variant */
 /**
  * Structure:
  * <pre>
@@ -63,6 +61,12 @@ import java.io.Serial;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): address, type, name
+ * Tab 8 (Notes): note
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class ContactStructureDialog extends BaseRecordDialog{
 
@@ -74,23 +78,16 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	static{
-		HandlerRegistry.register(new PartHandler());
-		HandlerRegistry.register(new NoteHandler());
-	}
-
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final RecordDialogComponents components;
 
 	private final BoundTextField addressField;
 	private final BoundComboBox<String> typeCombo;
-	private final VariantListPanel nameListPanel;
-	private final EntityReferenceListPanel notePanel;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
+//	private final VariantListPanel nameListPanel;
+	private final EntityReferenceListPanel namePanel;
 
 
 	public static ContactStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -103,69 +100,72 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 
 	private ContactStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(PartHandler.TYPE));
-
-		setTitle(record == null? "Add Part": "Edit Part");
+		super(parent, model, record, ContactHandler.class);
 
 		addressField = new BoundTextField(TAG_ADDRESS);
 		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
-		nameListPanel = new VariantListPanel(TAG_NAME, this, "Variant", model);
-		notePanel = EntityReferenceListPanel.createForRecord(TAG_NOTE, this, "Notes", model, NoteHandler.TYPE);
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
+//		nameListPanel = new VariantListPanel(TAG_NAME, this, "Variant", model);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Name", model, ContactNameHandler.class);
+
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
+
+		components.bind(addressField);
+		components.bind(typeCombo);
 
 
-		initComponents();
-
-		loadData();
-
-		pack();
-
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
 
-	private void initComponents(){
-		bindingManager.bind(addressField);
-		bindingManager.bind(typeCombo);
+	@Override
+	protected JPanel createPropertiesPanel(){
+		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 
+		GUIHelper.addLabeledComponent(propertiesPanel, "Address*:", addressField);
 
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
 
-		finalizeLayout(tabbedPane);
+//		GUIHelper.addComponent(propertiesPanel, nameListPanel);
+		GUIHelper.addComponent(propertiesPanel, namePanel);
+
+		return propertiesPanel;
 	}
 
-	private JPanel createMainPanel(){
-		final JPanel panel = new JPanel(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]5[]10[]"));
+	@Override
+	protected JPanel createNotesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		panel.add(new JLabel("Address*:"), "align label");
-		panel.add(addressField, "growx,wrap");
-
-		panel.add(new JLabel("Type:"), "align label");
-		panel.add(typeCombo, "growx,wrap");
-
-		panel.add(nameListPanel, "span 2,growx,wrap");
-
-		panel.add(notePanel, "span 2,growx,wrap");
+		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
+		GUIHelper.addComponent(panel, notePanel);
 
 		return panel;
+	}
+
+	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
 	}
 
 
 	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		components.load(record);
 
-		nameListPanel.load(record);
-		notePanel.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
+//		nameListPanel.load(record);
+		namePanel.load(record);
 	}
 
 	@Override
@@ -182,12 +182,10 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		bindingManager.save(record);
+		components.save(record);
 
-		nameListPanel.save(record);
-		notePanel.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
+//		nameListPanel.save(record);
+		namePanel.save(record);
 	}
 
 

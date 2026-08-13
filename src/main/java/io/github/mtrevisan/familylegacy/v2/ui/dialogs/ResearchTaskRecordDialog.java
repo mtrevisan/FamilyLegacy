@@ -27,30 +27,26 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ModificationPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RestrictionPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.function.Consumer;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code ResearchTaskRecord} according to FLEF 0.1.1.
  * <p>
@@ -69,6 +65,11 @@ import java.io.Serial;
  *   audit: AuditStructure
  * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): description, question, created_by, status, priority, due_date, outcome
+ * Tab 9 (Privacy): privacy
+ * Tab 10 (Audit): audit
  */
 public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
@@ -83,20 +84,13 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PRIORITY = "PRIORITY";
 	private static final String TAG_DUE_DATE = "DUE_DATE";
 	private static final String TAG_OUTCOME = "OUTCOME";
-	private static final String TAG_RESTRICTION = "RESTRICTION";
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_AUDIT = "AUDIT";
 
 
-	static{
-		HandlerRegistry.register(new ResearchTaskHandler());
-		HandlerRegistry.register(new ResearchActivityHandler());
-		HandlerRegistry.register(new ResearchQuestionHandler());
-	}
+	private final RecordDialogComponents components;
 
-
-	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JPanel mainPanel = new JPanel(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]10[]10[]10[]10[]"));
-
-	private final BindingManager bindingManager = new BindingManager();
+	private final JPanel propertiesPanel;
 
 	private final BoundTextArea descriptionArea;
 	private final EntityReferenceListPanel questionPanel;
@@ -105,8 +99,6 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> priorityCombo;
 	private final DateField dueDateField;
 	private final BoundTextArea outcomeArea;
-	private final RestrictionPanel privacyPanel;
-	private final ModificationPanel auditPanel;
 
 
 	public static ResearchTaskRecordDialog createNew(Dialog parent, FLEFModel model){
@@ -119,13 +111,15 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 
 	private ResearchTaskRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, record, HandlerRegistry.getHandler(ResearchTaskHandler.TYPE));
+		super(parent, model, record, ResearchTaskHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 30);
-		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.TYPE)
+		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.class)
 			.withParentEntity(this.record.getId(), ResearchTaskHandler.TYPE);
 		createdByField = ParticipantField.create(TAG_CREATED_BY, this, model);
-		createdByField.setHandlerType(ResearchActivityHandler.TYPE);
+		createdByField.setHandlerTypes(ResearchActivityHandler.class);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
 			"open", "in_progress", "completed", "abandoned"});
 		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{
@@ -133,72 +127,70 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 			"low", "normal", "high"});
 		dueDateField = DateField.createWithWrapperTag(TAG_DUE_DATE, this, "Due Date", model);
 		outcomeArea = new BoundTextArea(TAG_OUTCOME, 3, 30);
-		privacyPanel = new RestrictionPanel(TAG_RESTRICTION, this);
-		auditPanel = new ModificationPanel(this);
 
-		initComponents();
+		// Build common panels using the builder
+		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.build();
 
-		loadData();
+		components.bind(descriptionArea);
+		components.bind(statusCombo);
+		components.bind(priorityCombo);
+		components.bind(outcomeArea);
 
-		pack();
 
-		setLocationRelativeTo(parent);
+		finalizeDialog(parent);
 	}
 
-	private void initComponents(){
-		bindingManager.bind(descriptionArea);
-		bindingManager.bind(statusCombo);
-		bindingManager.bind(priorityCombo);
-		bindingManager.bind(outcomeArea);
 
-
-		tabbedPane.addTab("Main", createMainPanel());
-		tabbedPane.addTab("Privacy", privacyPanel);
-		tabbedPane.addTab("Audit", auditPanel);
-
-		finalizeLayout(tabbedPane);
-	}
-
-	private JPanel createMainPanel(){
+	@Override
+	protected JPanel createPropertiesPanel(){
 		// description
-		mainPanel.add(new JLabel("Description*:"), "align label");
-		mainPanel.add(GUIHelper.createScrollPane(descriptionArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Description*:", descriptionArea);
 
 		// question
-		mainPanel.add(questionPanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(propertiesPanel, questionPanel);
+
+		// created by
+		GUIHelper.addLabeledComponent(propertiesPanel, "Created By:", createdByField);
 
 		// status
-		mainPanel.add(new JLabel("Created By:"), "align label");
-		mainPanel.add(createdByField, "growx,wrap");
-
-		// status
-		mainPanel.add(new JLabel("Status*:"), "align label");
-		mainPanel.add(statusCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Status*:", statusCombo);
 
 		// priority
-		mainPanel.add(new JLabel("Priority:"), "align label");
-		mainPanel.add(priorityCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Priority:", priorityCombo);
 
 		// due date
-		mainPanel.add(new JLabel("Due Date:"), "align label");
-		mainPanel.add(dueDateField, "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Due Date:", dueDateField);
 
 		// outcome
-		mainPanel.add(new JLabel("Outcome:"), "align label");
-		mainPanel.add(GUIHelper.createScrollPane(outcomeArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(propertiesPanel, "Outcome:", outcomeArea);
 
-		return mainPanel;
+		return propertiesPanel;
 	}
 
 	@Override
+	protected JPanel createPrivacyPanel(){
+		return components.getPanel(PanelKey.PRIVACY);
+	}
+
+	@Override
+	protected JPanel createAuditPanel(){
+		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	@Override
 	protected void loadData(){
-		bindingManager.load(record);
+		if(record == null)
+			return;
+
+		components.load(record);
 
 		questionPanel.load(record);
 		createdByField.load(record);
 		dueDateField.load(record);
-		privacyPanel.load(record);
-		auditPanel.load(record);
 	}
 
 	@Override
@@ -206,7 +198,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		if(descriptionArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Description is required.",
-				tabbedPane, mainPanel, descriptionArea);
+				tabbedPane, propertiesPanel, descriptionArea);
 
 			return false;
 		}
@@ -214,7 +206,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		if(!statusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Status is required.",
-				tabbedPane, mainPanel, statusCombo);
+				tabbedPane, propertiesPanel, statusCombo);
 
 			return false;
 		}
@@ -230,18 +222,21 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		FLEFRecordHelper.removeChildren(record, TAG_OUTCOME);
 		FLEFRecordHelper.removeChildren(record, TAG_CREATED_BY);
 
-		bindingManager.save(record);
+		components.save(record);
 
 		questionPanel.save(record);
 		createdByField.saveReferences(record);
 		dueDateField.save(record);
-		privacyPanel.save(record);
-		auditPanel.save(record);
 	}
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(ResearchTaskRecordDialog::createNew);
+		final FLEFRecord document = FLEFRecord.createMainRecord("D1", "DOCUMENT");
+
+		final Consumer<FLEFModel> modelFiller = model -> {
+			model.addRecord(document);
+		};
+		GUIHelper.launch(ResearchTaskRecordDialog::createEdit, modelFiller, document);
 	}
 
 }

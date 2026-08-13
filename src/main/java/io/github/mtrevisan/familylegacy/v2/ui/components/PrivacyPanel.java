@@ -41,7 +41,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Panel for editing a {@code RESTRICTION_STRUCTURE} according to FLEF 0.1.1.
  * <p>
@@ -58,7 +57,7 @@ import java.io.Serial;
  * }
  * </pre>
  */
-public class RestrictionPanel extends JPanel{
+public class PrivacyPanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = -8538135290834556765L;
@@ -88,7 +87,7 @@ public class RestrictionPanel extends JPanel{
 	 *
 	 * @param parent	the parent dialog (used for showing message dialogs)
 	 */
-	public RestrictionPanel(final String path, final Dialog parent){
+	public PrivacyPanel(final String path, final Dialog parent){
 		this.parent = parent;
 
 		this.path = path;

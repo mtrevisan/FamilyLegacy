@@ -33,13 +33,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
-import javax.swing.event.EventListenerList;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.Collections;
@@ -47,35 +42,33 @@ import java.util.List;
 import java.util.Objects;
 
 
-/* DONE */
 /**
- * Component for selecting and displaying an EntityParticipant.
+ * A text field that displays and manages a participant reference.
+ * It extends {@link BoundTextField} and adds behavior for selecting,
+ * editing, and clearing a participant record via a popup menu.
  */
-public class ParticipantField extends JPanel{
+public class ParticipantField extends BoundTextField{
 
 	@Serial
 	private static final long serialVersionUID = -8333332073516970045L;
 
 
-	public static final String PROPERTY_PARTICIPANT = "participant";
+	public static final String PROPERTY_PARTICIPANT_CHANGED = "participant-changed";
 
 
 	private final Dialog parent;
-	private final String path;
+
 	private final FLEFModel model;
 
-	private List<String> handlerTypes;
+	private List<Class<? extends RecordTypeHandler<?>>> handlerTypes;
 
-	private final BoundTextField displayField;
 	private FLEFRecord participantRecord;
-
-	private final EventListenerList listenerList = new EventListenerList();
 
 
 	/**
 	 * Constructs a ParticipantField.
 	 *
-	 * @param path	the path in the record structure
+	 * @param path	the path used for binding (may be null if binding is handled externally
 	 * @param parent	the parent dialog
 	 * @param model	the FLEF model
 	 * @return a new ParticipantField instance
@@ -86,14 +79,13 @@ public class ParticipantField extends JPanel{
 
 
 	private ParticipantField(final String path, final Dialog parent, final FLEFModel model){
-		super(new MigLayout("ins 0,fillx", "[grow]"));
+		super(path);
 
 		this.parent = parent;
 
-		this.path = path;
 		this.model = model;
-		this.handlerTypes = Collections.emptyList();
-		this.displayField = new BoundTextField(null);
+
+		handlerTypes = Collections.emptyList();
 
 
 		initComponents();
@@ -101,51 +93,37 @@ public class ParticipantField extends JPanel{
 
 
 	private void initComponents(){
-		displayField.setEditable(false);
-
-		GUIHelper.installBehavior(displayField,
-			this::edit,
+		GUIHelper.installBehavior(this,
+			this::editItem,
 			null,
 			null,
 			builder -> {
-				builder.item("Set…", this::set);
+				builder.item("Add Existing…", this::addItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit…", this::edit);
+				builder.selectionSensitiveItem("Edit…", this::editItem);
 				builder.selectionSensitiveItem("Clear", this::clear);
 			}
 		);
 
-		add(displayField, "growx");
-
-		updateDisplay();
+		addPropertyChangeListener(PROPERTY_PARTICIPANT_CHANGED, e -> updateDisplay());
 	}
 
-	public void addChangeListener(final ChangeListener listener){
-		listenerList.add(ChangeListener.class, listener);
+	private void updateDisplay(){
+		final RecordTypeHandler<?> handler = (participantRecord != null
+			? findHandler(participantRecord.getTag())
+			: null);
+		final String value = (handler != null? handler.getDisplayText(participantRecord, model): null);
+		setText(value);
 	}
 
-	public void removeChangeListener(final ChangeListener listener){
-		listenerList.remove(ChangeListener.class, listener);
-	}
-
-	protected void fireStateChanged(){
-		final Object[] listeners = listenerList.getListenerList();
-		ChangeEvent e = null;
-		for(int i = listeners.length - 2; i >= 0; i -= 2)
-			if(listeners[i] == ChangeListener.class){
-				if(e == null)
-					e = new ChangeEvent(this);
-
-				((ChangeListener)listeners[i + 1]).stateChanged(e);
-			}
-	}
-
-	public void setHandlerType(final String handlerType){
-		setHandlerTypes(List.of(handlerType));
-	}
-
-	public void setHandlerTypes(final List<String> handlerTypes){
-		for(final String handlerType : handlerTypes){
+	/**
+	 * Sets the allowed handler types for the participant.
+	 *
+	 * @param handlerTypes the record types this field can accept
+	 */
+	@SafeVarargs
+	public final void setHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
 			if(handler == null){
 				JOptionPane.showMessageDialog(this, "Handler for " + handlerType
@@ -156,38 +134,31 @@ public class ParticipantField extends JPanel{
 			}
 		}
 
-		this.handlerTypes = handlerTypes;
+		this.handlerTypes = List.of(handlerTypes);
 	}
 
 	/**
-	 * Sets the current participant.
+	 * Sets the current participant and updates the display.
 	 *
-	 * @param record	the participant record (must not be null if type is not null)
+	 * @param record	the participant record (may be null)
 	 */
 	public void setParticipant(final FLEFRecord record){
-		this.participantRecord = record;
+		participantRecord = record;
 
-		updateDisplay();
-
-		firePropertyChange(PROPERTY_PARTICIPANT, null, null);
-		fireStateChanged();
+		firePropertyChange(PROPERTY_PARTICIPANT_CHANGED, null, null);
 	}
 
 	/**
 	 * Clears the current selection.
 	 */
 	public void clear(){
-		participantRecord = null;
-		displayField.setText(null);
-
-		firePropertyChange(PROPERTY_PARTICIPANT, null, null);
-		fireStateChanged();
+		setParticipant(null);
 	}
 
 	/**
 	 * Returns whether a participant is selected.
 	 *
-	 * @return	Whether a participant is set.
+	 * @return	Whether a non-empty participant is set.
 	 */
 	public boolean hasData(){
 		return (participantRecord != null && !participantRecord.isEmpty());
@@ -196,16 +167,16 @@ public class ParticipantField extends JPanel{
 	/**
 	 * Returns the selected participant record.
 	 *
-	 * @return the participant record
+	 * @return the participant record, or {@code null} if none
 	 */
 	public FLEFRecord getParticipantRecord(){
 		return participantRecord;
 	}
 
 	/**
-	 * Loads the participant from the given record.
+	 * Loads the participant from a given target record.
 	 *
-	 * @param targetRecord	the record to load from
+	 * @param targetRecord the record containing the reference
 	 */
 	public void load(final FLEFRecord targetRecord){
 		clear();
@@ -213,18 +184,19 @@ public class ParticipantField extends JPanel{
 		if(targetRecord == null || targetRecord.isEmpty())
 			return;
 
-		final String ref = targetRecord.getValue();
-		final FLEFRecord rec = model.getRecordById(ref);
+		final FLEFRecord target = FLEFRecordHelper.findChild(targetRecord, path);
+		final FLEFRecord participant = (target != null? target.getTheOnlyChild(): null);
+		final FLEFRecord parentRecord = (participant != null? participant: target);
+		final String participantId = (parentRecord != null? parentRecord.getValue(): null);
+		final FLEFRecord rec = model.getRecordById(participantId);
 		if(rec != null)
-			// Optionally verify that the record's tag matches the expected type
+			// FIXME Optionally verify that the record's tag matches the expected type
 			setParticipant(rec);
-
-		updateDisplay();
 	}
 
 	/**
-	 * Saves the current participant.
-	 * Removes any existing child with the given path and creates a new one.
+	 * Saves the current participant into the target record.
+	 * Removes any existing child with the given path and adds a new one.
 	 *
 	 * @param targetRecord	the record to save into
 	 */
@@ -233,13 +205,15 @@ public class ParticipantField extends JPanel{
 
 		if(hasData()){
 			final FLEFRecord parentNode = FLEFRecord.createChildWithTag(path);
-			final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(participantRecord.getTag(), participantRecord.getFormattedId());
+			final String tag = participantRecord.getTag();
+			final String id = participantRecord.getFormattedId();
+			final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, id);
 			parentNode.addChild(child);
 			targetRecord.addChild(parentNode);
 		}
 	}
 
-	private void set(){
+	private void addItem(){
 		if(handlerTypes.isEmpty()){
 			JOptionPane.showMessageDialog(this, "Empty handler types.\n"
 					+ "Cannot show dialog.",
@@ -248,16 +222,17 @@ public class ParticipantField extends JPanel{
 			return;
 		}
 
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			handlerTypes,
-			(handlerType, selectedRecord) -> setParticipant(selectedRecord)
-		);
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, handlerTypes);
+		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
+			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
+			setParticipant(selectedRecord);
+		});
 		dialog.setVisible(true);
 	}
 
-	private void edit(){
+	private void editItem(){
 		if(!hasData()){
-			set();
+			addItem();
 
 			return;
 		}
@@ -266,26 +241,17 @@ public class ParticipantField extends JPanel{
 		if(handler == null)
 			return;
 
-		final BaseRecordDialog editDialog = handler.createEditDialog(parent, model, participantRecord);
-		editDialog.setVisible(true);
+		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, participantRecord);
+		dialog.setVisible(true);
 
-		if(editDialog.isSaved())
-			// Only needed here because the reference to 'record' doesn't change, but the internal data does.
-			updateDisplay();
-	}
-
-	private void updateDisplay(){
-		if(participantRecord != null){
-			final RecordTypeHandler<?> handler = findHandler(participantRecord.getTag());
-			GUIHelper.updateDisplay(displayField,
-				this::hasData,
-				() -> (handler != null? handler.getDisplayText(participantRecord, model): null));
-		}
+		if(dialog.isSaved())
+			// The record may have changed; refresh the display
+			firePropertyChange(PROPERTY_PARTICIPANT_CHANGED, null, null);
 	}
 
 	private RecordTypeHandler<?> findHandler(final String type){
-		for(final String desc : handlerTypes){
-			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(desc);
+		for(final Class<? extends RecordTypeHandler<?>> headerType : handlerTypes){
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(headerType);
 			if(handler != null && handler.getType().equalsIgnoreCase(type))
 				return handler;
 		}
@@ -311,12 +277,10 @@ public class ParticipantField extends JPanel{
 
 	@Override
 	public String toString(){
-		final StringBuilder sb = new StringBuilder();
-		sb.append("value: ");
-		final String text = displayField.getText();
-		sb.append(text != null? (text.isEmpty()? "''": text): "<null>")
-			.append(", path: ")
-			.append(path);
+		final StringBuilder sb = new StringBuilder(super.toString());
+		if(participantRecord != null &&  !participantRecord.isEmpty())
+			sb.append(", participant: ")
+				.append(participantRecord);
 		return sb.toString();
 	}
 

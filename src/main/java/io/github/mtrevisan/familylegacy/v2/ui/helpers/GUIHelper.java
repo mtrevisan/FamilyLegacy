@@ -24,9 +24,13 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
@@ -35,6 +39,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -43,10 +48,12 @@ import javax.swing.JPopupMenu;
 import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.text.JTextComponent;
 import java.awt.Color;
@@ -84,13 +91,16 @@ public final class GUIHelper{
 	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK);
 
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
-	private static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
-	private static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
+	public static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
+	public static final Color COLOR_FOREGROUND_DISABLED = UIManager.getColor("Label.disabledForeground");
 
 
 	private static final String PLACEHOLDER_LIST = "(no items)";
 	private static final String PLACEHOLDER_TEXT = "(right-click to set)";
 	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
+
+	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
+
 
 	private GUIHelper(){}
 
@@ -160,11 +170,11 @@ public final class GUIHelper{
 	public static void installBehavior(final JComponent component,
 			final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
 			final Consumer<MenuBuilder> menuBuilder){
-		if(component instanceof JTextComponent field)
-			field.setEditable(false);
 		component.setBackground(COLOR_BACKGROUND);
 		component.setToolTipText(TOOLTIP_TEXT);
-		if(component instanceof JList<?> list)
+		if(component instanceof JTextComponent field)
+			field.setEditable(false);
+		else if(component instanceof JList<?> list)
 			list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		// Collect the menu entries from the builder
@@ -200,6 +210,7 @@ public final class GUIHelper{
 					if(index >= 0 && !list.isSelectedIndex(index))
 						list.setSelectedIndex(index);
 				}
+
 				// Build the popup from scratch (enabled states are evaluated now)
 				final JPopupMenu popup = buildPopup(entries);
 				popup.show(component, me.getX(), me.getY());
@@ -234,8 +245,38 @@ public final class GUIHelper{
 		return () -> false;
 	}
 
-	public static boolean isPlaceholder(final String text){
+	public static String getText(final String value){
+		if(isPlaceholder(value))
+			return null;
+
+		return (value != null? value.trim(): null);
+	}
+
+	private static boolean isPlaceholder(final String text){
 		return PLACEHOLDER_TEXT.equals(text);
+	}
+
+	public static void setText(final String value, final JTextComponent component, final Consumer<String> setText){
+		if(StringUtils.isNotEmpty(value)){
+			setText.accept(value);
+			component.setForeground(COLOR_FOREGROUND_ENABLED);
+		}
+		else{
+			setText.accept(PLACEHOLDER_TEXT);
+			component.setForeground(COLOR_FOREGROUND_DISABLED);
+		}
+
+		component.revalidate();
+		component.repaint();
+	}
+
+	public static void timed(final int delay, final Runnable runnable){
+		SwingUtilities.invokeLater(() -> {
+			final Timer timer = new Timer(delay, e -> runnable.run());
+			timer.setRepeats(false);
+			timer.start();
+		});
+
 	}
 
 
@@ -244,7 +285,7 @@ public final class GUIHelper{
 	}
 
 	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
-		final Supplier<String> getText, final Consumer<String> setText){
+			final Supplier<String> getText, final Consumer<String> setText){
 		if(hasData.get()){
 			setText.accept(getText.get());
 			component.setForeground(COLOR_FOREGROUND_ENABLED);
@@ -253,18 +294,35 @@ public final class GUIHelper{
 			setText.accept(PLACEHOLDER_TEXT);
 			component.setForeground(COLOR_FOREGROUND_DISABLED);
 		}
+
+		Container parent = component.getParent();
+		while(parent != null){
+			parent.revalidate();
+			parent.repaint();
+
+			parent = parent.getParent();
+		}
 	}
 
 	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
-		final Supplier<String> getText){
-		if(hasData.get()){
-			component.setText(getText.get());
-			component.setForeground(COLOR_FOREGROUND_ENABLED);
-		}
-		else{
-			component.setText(PLACEHOLDER_TEXT);
-			component.setForeground(COLOR_FOREGROUND_DISABLED);
-		}
+			final Supplier<String> getText){
+		SwingUtilities.invokeLater(() -> {
+			final Timer timer = new Timer(100, e -> {
+				if(hasData.get()){
+					component.setText(getText.get());
+					component.setForeground(COLOR_FOREGROUND_ENABLED);
+				}
+				else{
+					if(component instanceof BoundTextField btf)
+						btf.forceSetText(PLACEHOLDER_TEXT);
+					else
+						component.setText(PLACEHOLDER_TEXT);
+					component.setForeground(COLOR_FOREGROUND_DISABLED);
+				}
+			});
+			timer.setRepeats(false);
+			timer.start();
+		});
 	}
 
 	private static void addKeyboardShortcut(final JComponent component, final int virtualKey, final String actionMapKey,
@@ -296,6 +354,70 @@ public final class GUIHelper{
 			}
 		}
 		return popup;
+	}
+
+
+	/**
+	 * Creates a panel with a two‑column layout using MigLayout.
+	 * Each row consists of a label and a field.
+	 * The layout uses {@code wrap 1} to force each component onto its own row,
+	 * and {@code split 2} to place label and field on the same row.
+	 *
+	 * @param rowConstraints	The row constraints (e.g. "[]10[]")
+	 * @return	A new JPanel with the specified layout
+	 */
+	public static JPanel createLabelFieldPanel(final int insets, final String rowConstraints){
+		return new JPanel(createMigLayout(insets, rowConstraints));
+	}
+
+	public static void setLayoutLabelFieldPanel(final JDialog dialog, final int insets, final String rowConstraints){
+		dialog.setLayout(createMigLayout(insets, rowConstraints));
+	}
+
+	private static MigLayout createMigLayout(final int insets, final String rowConstraints){
+		return new MigLayout("ins " + insets + ",hidemode 3,fillx,top,wrap 2",
+			"[right]rel[grow,fill]",
+			rowConstraints);
+	}
+
+	/**
+	 * Adds a labeled field to a panel that uses the two‑column layout.
+	 * The label is added with {@code split 2} and the field with {@code growx,pushx}.
+	 *
+	 * @param container	The panel (must have been created with {@link #createLabelFieldPanel})
+	 * @param labelText	The text for the label
+	 * @param field	The field component
+	 */
+	public static void addLabeledComponent(final Container container, final String labelText, final JComponent field){
+		final JLabel label = new JLabel(labelText);
+		field.putClientProperty(PROPERTY_ASSOCIATED_LABEL, label);
+
+		container.add(label, "align label");
+		container.add((field instanceof JTextArea? createScrollPane(field): field), "growx");
+	}
+
+	/**
+	 * Adds a labeled field to a panel that uses the two‑column layout.
+	 * The label is added with {@code split 2} and the field with {@code growx,pushx}.
+	 *
+	 * @param container	The panel (must have been created with {@link #createLabelFieldPanel})
+	 * @param field	The field component
+	 */
+	public static void addComponent(final Container container, final JComponent field){
+		container.add((field instanceof JTextArea? createScrollPane(field): field), "span 2,growx");
+	}
+
+	public static void setComponentVisible(final JComponent field, final boolean visible){
+		final JLabel label = (JLabel)field.getClientProperty(PROPERTY_ASSOCIATED_LABEL);
+		if(label != null)
+			label.setVisible(visible);
+		field.setVisible(visible);
+
+		final Container parent = field.getParent();
+		if(parent != null){
+			parent.revalidate();
+			parent.repaint();
+		}
 	}
 
 
@@ -450,9 +572,10 @@ public final class GUIHelper{
 			}
 		};
 		cancelButton.addActionListener(escapeAction);
-		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-			KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_ESCAPE, 0), "escape");
-		rootPane.getActionMap().put("escape", escapeAction);
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+			.put(ESCAPE_STROKE, "escape");
+		rootPane.getActionMap()
+			.put("escape", escapeAction);
 
 		return buttonPanel;
 	}
@@ -511,8 +634,12 @@ public final class GUIHelper{
 		modelFiller.accept(model);
 
 		SwingUtilities.invokeLater(() -> {
-			final JDialog dialog = dialogFactory.apply(null, model);
+			final BaseRecordDialog dialog = dialogFactory.apply(null, model);
 			dialog.setVisible(true);
+
+			dialog.save();
+
+			System.out.println(FLEFWriter.create().writeToString(model));
 		});
 	}
 

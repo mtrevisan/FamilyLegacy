@@ -37,7 +37,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* DONE */
 /**
  * Panel for {@code SPANNING} date (duration) according to FLEF 0.1.1.
  * <p>
@@ -60,13 +59,13 @@ public class SpanningDatePanel extends JPanel{
 	private static final String TAG_TO = "TO";
 	private static final String TAG_SPANNING = "SPANNING";
 
-	private final SingleDatePanel fromPanel;
-	private final SingleDatePanel toPanel;
+	private final QualifiedDatePanel fromPanel;
+	private final QualifiedDatePanel toPanel;
 
 
 	public SpanningDatePanel(final Dialog parent, final FLEFModel model){
-		this.fromPanel = new SingleDatePanel(parent, model);
-		this.toPanel = new SingleDatePanel(parent, model);
+		this.fromPanel = new QualifiedDatePanel(parent, model);
+		this.toPanel = new QualifiedDatePanel(parent, model);
 
 
 		initComponents();

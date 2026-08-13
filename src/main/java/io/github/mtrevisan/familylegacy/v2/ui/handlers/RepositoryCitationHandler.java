@@ -36,21 +36,12 @@ import java.awt.Dialog;
 /**
  * Handler for {@code REPOSITORY_CITATION} entities according to FLEF 0.1.1.
  */
-public class RepositoryCitationHandler implements RecordTypeHandler<RepositoryCitationDialog>{
+public class RepositoryCitationHandler extends AbstractRecordTypeHandler<RepositoryCitationDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "REPOSITORY_CITATION";
 	public static final String CITED_TYPE = "REPOSITORY";
 
 	private static final String TAG_REPOSITORY = "REPOSITORY";
-
-
-	static{
-		HandlerRegistry.register(new RepositoryHandler());
-	}
-
-
-	private final RecordTypeHandler<?> repositoryHandle = HandlerRegistry.getHandler(RepositoryHandler.TYPE);
 
 
 	@Override
@@ -85,6 +76,7 @@ public class RepositoryCitationHandler implements RecordTypeHandler<RepositoryCi
 
 		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_REPOSITORY));
 		final FLEFRecord repository = model.getRecordById(xref);
+		final RecordTypeHandler<?> repositoryHandle = HandlerRegistry.getHandler(RepositoryHandler.class);
 		return repositoryHandle.getDisplayText(repository, model);
 	}
 

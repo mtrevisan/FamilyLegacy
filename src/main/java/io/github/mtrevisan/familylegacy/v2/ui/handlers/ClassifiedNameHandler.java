@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import java.awt.Dialog;
@@ -47,9 +47,8 @@ import java.awt.Dialog;
  * }
  * </pre>
  */
-public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDialog>{
+public class ClassifiedNameHandler extends AbstractRecordTypeHandler<ClassifiedNameStructureDialog>{
 
-	/** The record type identifier for groups. */
 	public static final String TYPE = "CLASSIFIED_NAME";
 
 	private static final String TAG_TEXT = "TEXT";
@@ -100,14 +99,14 @@ public class ClassifiedNameHandler implements RecordTypeHandler<ClassifiedNameDi
 	}
 
 	@Override
-	public ClassifiedNameDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return ClassifiedNameDialog.createNew(parent, model);
+	public ClassifiedNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return ClassifiedNameStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public ClassifiedNameDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public ClassifiedNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return ClassifiedNameDialog.createEdit(parent, model, record);
+		return ClassifiedNameStructureDialog.createEdit(parent, model, record);
 	}
 
 }
