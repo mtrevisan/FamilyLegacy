@@ -103,18 +103,40 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 	protected void initComponents(){
-		addTabIfNotNull(tabbedPane, "Properties", createPropertiesPanel());
-		addTabIfNotNull(tabbedPane, "Attributes", createAttributesPanel());
-		addTabIfNotNull(tabbedPane, "Relationships", createRelationshipsPanel());
-		addTabIfNotNull(tabbedPane, "Participations", createParticipationsPanel());
-		addTabIfNotNull(tabbedPane, "Context", createContextPanel());
-		addTabIfNotNull(tabbedPane, "Research", createResearchPanel());
-		addTabIfNotNull(tabbedPane, "Findings", createFindingsPanel());
-		addTabIfNotNull(tabbedPane, "References", createReferencesPanel());
-		addTabIfNotNull(tabbedPane, "Sources", createSourcesPanel());
-		addTabIfNotNull(tabbedPane, "Notes", createNotesPanel());
-		addTabIfNotNull(tabbedPane, "Privacy", createPrivacyPanel());
-		addTabIfNotNull(tabbedPane, "Audit", createAuditPanel());
+		final JPanel propertiesPanel = createPropertiesPanel();
+		final JPanel attributesPanel = createAttributesPanel();
+		final JPanel relationshipsPanel = createRelationshipsPanel();
+		final JPanel participationsPanel = createParticipationsPanel();
+		final JPanel contextPanel = createContextPanel();
+		final JPanel researchPanel = createResearchPanel();
+		final JPanel findingsPanel = createFindingsPanel();
+		final JPanel referencesPanel = createReferencesPanel();
+		final JPanel sourcesPanel = createSourcesPanel();
+		final JPanel notesPanel = createNotesPanel();
+		final JPanel privacyPanel = createPrivacyPanel();
+		final JPanel auditPanel = createAuditPanel();
+
+		if(attributesPanel == null &&  relationshipsPanel == null && participationsPanel == null && contextPanel == null
+				&& researchPanel == null && findingsPanel == null && referencesPanel == null && sourcesPanel == null
+				&& notesPanel == null && privacyPanel == null &&  auditPanel == null){
+			// No optional panels, just show the properties panel
+			GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]");
+			GUIHelper.addComponent(this, propertiesPanel);
+		}
+		else{
+			addTabIfNotNull(tabbedPane, "Properties", propertiesPanel);
+			addTabIfNotNull(tabbedPane, "Attributes", attributesPanel);
+			addTabIfNotNull(tabbedPane, "Relationships", relationshipsPanel);
+			addTabIfNotNull(tabbedPane, "Participations", participationsPanel);
+			addTabIfNotNull(tabbedPane, "Context", contextPanel);
+			addTabIfNotNull(tabbedPane, "Research", researchPanel);
+			addTabIfNotNull(tabbedPane, "Findings", findingsPanel);
+			addTabIfNotNull(tabbedPane, "References", referencesPanel);
+			addTabIfNotNull(tabbedPane, "Sources", sourcesPanel);
+			addTabIfNotNull(tabbedPane, "Notes", notesPanel);
+			addTabIfNotNull(tabbedPane, "Privacy", privacyPanel);
+			addTabIfNotNull(tabbedPane, "Audit", auditPanel);
+		}
 
 		finalizeLayout(tabbedPane);
 	}

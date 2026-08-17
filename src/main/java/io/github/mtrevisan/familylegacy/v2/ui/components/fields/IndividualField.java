@@ -172,6 +172,7 @@ public class IndividualField extends JPanel{
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			setRecord(selectedRecord);
 		});
+		dialog.setVisible(true);
 	}
 
 	private void edit(){

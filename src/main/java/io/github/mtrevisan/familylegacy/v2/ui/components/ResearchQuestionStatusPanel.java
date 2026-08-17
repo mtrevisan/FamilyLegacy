@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 
@@ -112,7 +113,6 @@ public class ResearchQuestionStatusPanel extends JPanel{
 			status = STATUS_OPEN;
 			statusCombo.setSelectedItem(status);
 		}
-		final boolean isClosed = (STATUS_RESOLVED.equals(status) || STATUS_DISPROVEN.equals(status));
 
 		// Update icon
 		statusIcon.setStatus(status);
@@ -122,8 +122,8 @@ public class ResearchQuestionStatusPanel extends JPanel{
 		final String tooltip = switch(status){
 			case STATUS_OPEN -> "Open";
 			case STATUS_ON_HOLD -> "On Hold";
-			case STATUS_RESOLVED -> "Resolved" + (!closedDate.isEmpty()? " on " + closedDate.getText(): "");
-			case STATUS_DISPROVEN -> "Disproven" + (!closedDate.isEmpty()? " on " + closedDate.getText(): "");
+			case STATUS_RESOLVED -> "Resolved" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
+			case STATUS_DISPROVEN -> "Disproven" + (!closedDate.isEmpty()? " on " + closedDate.getText(): StringUtils.EMPTY);
 			default -> "Unknown";
 		};
 		statusIcon.setToolTipText(tooltip);

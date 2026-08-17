@@ -24,11 +24,15 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -42,16 +46,17 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dialog;
-import java.awt.FlowLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -91,37 +96,28 @@ public class MultiTypeSelectionDialog extends JDialog{
 	 *
 	 * @param parent	The parent dialog.
 	 * @param model	The FLEF model.
-	 * @param handlerType	The supported participant type.
-	 */
-	public MultiTypeSelectionDialog(final Dialog parent, final FLEFModel model,
-			final Class<? extends RecordTypeHandler<?>> handlerType){
-		this(parent, model, List.of(handlerType));
-	}
-
-	/**
-	 * Creates a MultiTypeSelectionDialog.
-	 *
-	 * @param parent	The parent dialog.
-	 * @param model	The FLEF model.
 	 * @param handlerTypes	The list of supported participant types.
 	 */
+	@SafeVarargs
 	public MultiTypeSelectionDialog(final Dialog parent, final FLEFModel model,
-			final List<Class<? extends RecordTypeHandler<?>>> handlerTypes){
+			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		super(parent, "Select Participant", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
-		final RecordTypeHandler<?>[] handlers = handlerTypes.stream()
+		final RecordTypeHandler<?>[] handlers = Arrays.stream(handlerTypes)
 			.map(HandlerRegistry::getHandler)
-			.toArray(value -> new RecordTypeHandler<?>[handlerTypes.size()]);
-		defaultType = (handlerTypes.size() == 1? handlers[0]: null);
+			.toArray(value -> new RecordTypeHandler<?>[handlerTypes.length]);
+		defaultType = (handlerTypes.length == 1? handlers[0]: null);
 
 		// UI components (typeCombo may remain null if only one type)
-		typeCombo = (handlerTypes.size() > 1? createTypeCombo(handlers): null);
+		typeCombo = (handlerTypes.length > 1? createTypeCombo(handlers): null);
 		searchField = new JTextField(null);
 		listModel = new DefaultListModel<>();
 		list = new JList<>(listModel);
 		selectButton = new JButton("Select");
 
+
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		initComponents();
 
@@ -155,7 +151,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setLayout(new BorderLayout(10, 10));
+		setLayout(new MigLayout("ins 10,fillx,filly", "[grow]", "[][grow][]"));
+
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		// Top panel: type combo (if more than one) + search field
@@ -163,21 +160,24 @@ public class MultiTypeSelectionDialog extends JDialog{
 		if(typeCombo != null)
 			GUIHelper.addLabeledComponent(topPanel, "Type:", typeCombo);
 		GUIHelper.addLabeledComponent(topPanel, "Search:", searchField);
+		add(topPanel, "growx,wrap");
 
-		// List panel
+
+		// Center panel
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		scrollPane.setBorder(BorderFactory.createTitledBorder("Records"));
-		add(topPanel, BorderLayout.NORTH);
-		add(scrollPane, BorderLayout.CENTER);
+		add(scrollPane, "grow,wrap");
 
-		// Buttons
-		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+		// Bottom panel
+		final JPanel bottomPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow,left][grow,right]", "[]"));
 		final JButton cancelButton = new JButton("Cancel");
-		final JButton createButton = new JButton("Create New…");
-		buttonPanel.add(createButton);
-		buttonPanel.add(selectButton);
-		buttonPanel.add(cancelButton);
-		add(buttonPanel, BorderLayout.SOUTH);
+		final JButton createNewButton = new JButton("Create New…");
+		bottomPanel.add(createNewButton, "left");
+		bottomPanel.add(selectButton, "right");
+		bottomPanel.add(cancelButton, "right");
+		add(bottomPanel, "growx,wrap");
+
 
 		if(typeCombo != null)
 			typeCombo.addActionListener(e -> updateWindowTitle());
@@ -215,7 +215,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 		cancelButton.addActionListener(e -> dispose());
 
 		// Create new record
-		createButton.addActionListener(e -> createNewRecord());
+		createNewButton.addActionListener(e -> createNewRecord());
 	}
 
 	private void updateWindowTitle(){
@@ -344,6 +344,27 @@ public class MultiTypeSelectionDialog extends JDialog{
 
 	public FLEFRecord getSelectedRecord(){
 		return selectedRecord;
+	}
+
+
+	public static void main(final String[] args){
+		try{
+			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		}
+		catch(final Exception ignored){}
+
+		final FLEFModel model = new FLEFModel();
+		final List<Class<? extends RecordTypeHandler<?>>> handlerTypes = List.of(
+			IndividualHandler.class, GroupHandler.class);
+
+		SwingUtilities.invokeLater(() -> {
+			@SuppressWarnings("unchecked")
+			final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(null, model,
+				handlerTypes.toArray(Class[]::new));
+			dialog.setVisible(true);
+
+			System.out.println(FLEFWriter.create().writeToString(model));
+		});
 	}
 
 }

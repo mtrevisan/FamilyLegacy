@@ -50,8 +50,6 @@ public final class ResourceHelper{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(ResourceHelper.class);
 
-	private static final String EXTENSION_GIF = ".gif";
-
 
 	private ResourceHelper(){}
 

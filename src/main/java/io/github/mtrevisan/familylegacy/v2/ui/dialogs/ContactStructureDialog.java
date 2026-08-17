@@ -32,11 +32,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -45,7 +43,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* ONGOING name with value & variant */
 /**
  * Structure:
  * <pre>
@@ -86,7 +83,6 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	private final BoundTextField addressField;
 	private final BoundComboBox<String> typeCombo;
-//	private final VariantListPanel nameListPanel;
 	private final EntityReferenceListPanel namePanel;
 
 
@@ -107,7 +103,6 @@ public class ContactStructureDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
-//		nameListPanel = new VariantListPanel(TAG_NAME, this, "Variant", model);
 		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Name", model, ContactNameHandler.class);
 
 		// Build common panels using the builder
@@ -133,7 +128,6 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
 
-//		GUIHelper.addComponent(propertiesPanel, nameListPanel);
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		return propertiesPanel;
@@ -164,7 +158,6 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	protected void loadData(){
 		components.load(record);
 
-//		nameListPanel.load(record);
 		namePanel.load(record);
 	}
 
@@ -184,7 +177,6 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	protected void saveData(){
 		components.save(record);
 
-//		nameListPanel.save(record);
 		namePanel.save(record);
 	}
 

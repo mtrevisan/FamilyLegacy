@@ -52,6 +52,7 @@ import java.io.Serial;
 import java.util.function.Consumer;
 
 
+/* TESTED new & edit */
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.1.
  * <p>

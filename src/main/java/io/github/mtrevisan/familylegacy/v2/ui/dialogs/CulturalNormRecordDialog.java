@@ -45,7 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -174,17 +173,6 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 
 		finalizeDialog(parent);
-	}
-
-
-	protected void initComponents(){
-		final JTabbedPane tabbedPane = new JTabbedPane();
-		tabbedPane.addTab("Properties", createPropertiesPanel());
-		tabbedPane.addTab("Context", createContextPanel());
-		tabbedPane.addTab("Research", createResearchPanel());
-		tabbedPane.addTab("Sources", createSourcesPanel());
-
-		finalizeLayout(tabbedPane);
 	}
 
 

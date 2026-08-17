@@ -38,7 +38,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.io.Serial;
@@ -156,8 +155,8 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected void initComponents(){
-		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]15[]5[]5[]5[]");
+	protected JPanel createPropertiesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
 
 		final ButtonGroup group = new ButtonGroup();
 		group.add(phoneticRadio);
@@ -167,25 +166,22 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		GUIHelper.addLabeledComponent(this, "Variant Kind:", radioPanel);
+		GUIHelper.addLabeledComponent(panel, "Variant Kind:", radioPanel);
 
-		add(new JLabel("System*:"), "align label");
-		add(phoneticSystemField, "growx,wrap");
-		add(transcriptionSystemCombo, "growx,wrap");
+		panel.add(new JLabel("System*:"), "align label");
+		panel.add(phoneticSystemField, "growx,wrap");
+		panel.add(transcriptionSystemCombo, "growx,wrap");
 
-		GUIHelper.addLabeledComponent(this, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(panel, "Type:", typeCombo);
 
-		GUIHelper.addLabeledComponent(this, "Value*:", valueField);
+		GUIHelper.addLabeledComponent(panel, "Value*:", valueField);
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
-
 		updateFieldsState();
+
+		return panel;
 	}
 
 

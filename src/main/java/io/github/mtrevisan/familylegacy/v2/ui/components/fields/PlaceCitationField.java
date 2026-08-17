@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -92,6 +93,7 @@ public class PlaceCitationField extends JPanel{
 	private void initComponents(){
 		setupField(displayField,
 			this::createNew,
+			this::add,
 			this::edit,
 			this::editCitation,
 			this::clear
@@ -101,14 +103,15 @@ public class PlaceCitationField extends JPanel{
 	}
 
 	private void setupField(final JTextField field,
-			final Runnable newAction, final Runnable editAction,
+			final Runnable createNewAction, final Runnable addAction, final Runnable editAction,
 			final Runnable editCitationAction, final Runnable clearAction){
 		GUIHelper.installBehavior(field,
 			editAction,
 			null,
 			null,
 			builder -> {
-				builder.item("Create New…", newAction);
+				builder.item("Create New…", createNewAction);
+				builder.item("Add Existing…", addAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit…", editAction);
 				builder.selectionSensitiveItem("Edit Citation…", editCitationAction);
@@ -184,6 +187,15 @@ public class PlaceCitationField extends JPanel{
 		}
 
 		return null;
+	}
+
+	private void add(){
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, PlaceHandler.class);
+		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
+			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
+			setRecord(selectedRecord);
+		});
+		dialog.setVisible(true);
 	}
 
 	private void edit(){

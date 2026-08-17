@@ -85,10 +85,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 8722200901398839002L;
 
 
-	private static final String DOT = ".";
-
 	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_AUTHOR = "AUTHOR";
 	private static final String TAG_PUBLISHER = "PUBLISHER";
 	private static final String TAG_DATE = "DATE";

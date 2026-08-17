@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -197,7 +199,7 @@ public final class HandlerRegistry{
 				// Recurse into subdirectories
 				scanDirectory(packageName + "." + file.getName(), file);
 			else if(file.getName().endsWith(".class")){
-				final String className = packageName + "." + file.getName().replace(".class", "");
+				final String className = packageName + "." + file.getName().replace(".class", StringUtils.EMPTY);
 				processClass(className);
 			}
 		}
@@ -219,7 +221,7 @@ public final class HandlerRegistry{
 				// Match class files directly under the package path (including subpackages)
 				if(name.startsWith(packagePath) && name.endsWith(".class") && !name.contains("$")){
 					// Convert path to fully-qualified class name
-					final String className = name.replace('/', '.').replace(".class", "");
+					final String className = name.replace('/', '.').replace(".class", StringUtils.EMPTY);
 					processClass(className);
 				}
 			}

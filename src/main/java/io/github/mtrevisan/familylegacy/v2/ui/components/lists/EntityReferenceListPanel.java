@@ -41,6 +41,7 @@ import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 
@@ -286,7 +287,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 					final FLEFRecord parentRecord = (entity != null? entity: actor);
 					final String tag = parentRecord.getTag();
 					final String value = parentRecord.getValue();
-					return (parentEntityPath.equals(tag) && recordId.equals(XRefHelper.extractXRef(value)));
+					return (Objects.equals(parentEntityPath, tag) && recordId.equals(XRefHelper.extractXRef(value)));
 				}
 				return false;
 			})

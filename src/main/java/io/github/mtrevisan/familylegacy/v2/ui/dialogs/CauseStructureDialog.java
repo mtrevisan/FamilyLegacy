@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
-import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 
@@ -92,20 +91,17 @@ public class CauseStructureDialog extends BaseRecordDialog{
 
 
 	@Override
-	protected void initComponents(){
-		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]10[]");
+	protected JPanel createPropertiesPanel(){
+		final JPanel panel = GUIHelper.createLabelFieldPanel(0, "[]10[]");
 
 		// value:
-		GUIHelper.addLabeledComponent(this, "Value:", valueField);
+		GUIHelper.addLabeledComponent(panel, "Value:", valueField);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(this, evidencePanel);
+		GUIHelper.addComponent(panel, evidencePanel);
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
-			this::save,
-			this::dispose);
-		add(buttonPanel, BorderLayout.SOUTH);
+		return panel;
 	}
 
 

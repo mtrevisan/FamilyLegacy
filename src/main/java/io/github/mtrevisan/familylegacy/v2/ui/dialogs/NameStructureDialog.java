@@ -120,7 +120,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]");
 
 		// value
 		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);

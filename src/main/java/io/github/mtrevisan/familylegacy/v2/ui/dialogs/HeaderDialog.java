@@ -104,6 +104,7 @@ public class HeaderDialog extends BaseRecordDialog{
 	private static final String TAG_SUBMITTER_NAME = TAG_SUBMITTER + DOT + TAG_NAME;
 	private static final String TAG_SUBMITTER_CONTACT = TAG_SUBMITTER + DOT + "CONTACT";
 	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_SUBMITTER_NOTE = TAG_SUBMITTER + DOT + TAG_NOTE;
 	private static final String TAG_SCOPE = "SCOPE";
 
 	private final RecordDialogComponents components;
@@ -141,7 +142,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
 		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME);
 		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
-		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER, this, "Notes",
+		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER_NOTE, this, "Notes",
 			false, TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
 
@@ -233,8 +234,6 @@ public class HeaderDialog extends BaseRecordDialog{
 
 		submitterContactListPanel.save(record);
 		submitterNotePanel.save(record);
-
-		dispose();
 	}
 
 

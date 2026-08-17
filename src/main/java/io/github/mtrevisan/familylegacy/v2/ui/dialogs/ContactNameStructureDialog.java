@@ -26,79 +26,62 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.Serial;
 
 
 /**
+ * Dialog for editing a {@code NAME_STRUCTURE} according to FLEF 0.1.1.
+ * <p>
  * Structure:
  * <pre>
- * struct {
- *     type: enum {
- *       given, generation,
- *       patronymic, matronymic, kunya,
- *       family, family_nickname, lineage, house, clan, tribal, caste,
- *       toponymic,
- *       title, occupational, prefix, suffix,
- *       nickname, regnal, religious, posthumous
- *     } | Text
- *     value: Text
- *     variant*: TextValueVariant
- *   }
+ * struct NameStructure {
+ *   value: Text
+ *   variant*: TextValueVariant
+ * }
  * </pre>
+ * <p>
+ * Tabs:
+ * Tab 1 (Properties): value, variant
  */
-public class PartStructureDialog extends BaseRecordDialog{
+public class ContactNameStructureDialog extends BaseRecordDialog{
 
 	@Serial
-	private static final long serialVersionUID = 3227495851403391698L;
+	private static final long serialVersionUID = 7526263144620538539L;
 
 
-	private static final String TAG_PART = "PART";
-	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_VALUE = "VALUE";
+	public static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VARIANT = "VARIANT";
 
 
 	private final RecordDialogComponents components;
 
-	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
 	private final VariantListPanel variantPanel;
 
 
-	public static PartStructureDialog createNew(final Dialog parent, final FLEFModel model){
-		return createNew(parent, model, PartStructureDialog::new);
+	public static ContactNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
+		return createNew(parent, model, ContactNameStructureDialog::new);
 	}
 
-	public static PartStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return createEdit(parent, model, record, PartStructureDialog::new);
+	public static ContactNameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createEdit(parent, model, record, ContactNameStructureDialog::new);
 	}
 
 
-	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, PartHandler.class);
+	private ContactNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, ContactNameHandler.class);
 
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
-			StringUtils.EMPTY,
-			"given", "generation",
-			"patronymic", "matronymic", "kunya",
-			"family", "family_nickname", "lineage", "house", "clan", "tribal", "caste",
-			"toponymic",
-			"title", "occupational", "prefix", "suffix",
-			"nickname", "regnal", "religious", "posthumous"
-		});
-		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
 
@@ -106,7 +89,6 @@ public class PartStructureDialog extends BaseRecordDialog{
 		components = new RecordDialogBuilder(this, model, record)
 			.build();
 
-		components.bind(typeCombo);
 		components.bind(valueField);
 
 
@@ -116,18 +98,15 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
-
-		// type
-		GUIHelper.addLabeledComponent(panel, "Part Type*:", typeCombo);
+		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// value
-		GUIHelper.addLabeledComponent(panel, "Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
 
 		// variant
-		GUIHelper.addComponent(panel, variantPanel);
+		GUIHelper.addComponent(propertiesPanel, variantPanel);
 
-		return panel;
+		return propertiesPanel;
 	}
 
 
@@ -135,31 +114,25 @@ public class PartStructureDialog extends BaseRecordDialog{
 	protected void loadData(){
 		components.load(record);
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
-
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		valueField.setText(value);
-
 		variantPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
 		if(valueField.isEmpty()){
-			GUIHelper.showValidationErrorAndFocus(this,
-				"Value cannot be empty.",
-				null, null, valueField);
+			JOptionPane.showMessageDialog(this,
+				"Name value cannot be empty.", "Validation Error",
+				JOptionPane.ERROR_MESSAGE);
+			valueField.requestFocus();
 
 			return false;
 		}
+
 		return true;
 	}
 
 	@Override
 	protected void saveData(){
-		record.setTag(TAG_PART);
-
 		components.save(record);
 
 		variantPanel.save(record);
@@ -167,7 +140,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		GUIHelper.launch(PartStructureDialog::createNew);
+		GUIHelper.launch(ContactNameStructureDialog::createNew);
 	}
 
 }

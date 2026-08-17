@@ -91,7 +91,6 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private static final String TAG_CANDIDATE = "CANDIDATE";
 	private static final String TAG_COMMENT = "COMMENT";
 	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
@@ -212,9 +211,11 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 
 		// load parent subject reference
-		final FLEFRecord subject = FLEFRecordHelper.findChild(record, TAG_SUBJECT)
-			.getTheOnlyChild();
-		withParentEntity(subject.getValue(), subject.getTag());
+		final FLEFRecord subject = FLEFRecordHelper.findChild(record, TAG_SUBJECT);
+		if(subject != null){
+			final FLEFRecord subjectEntity = subject.getTheOnlyChild();
+			withParentEntity(subjectEntity.getValue(), subjectEntity.getTag());
+		}
 	}
 
 	@Override

@@ -222,7 +222,9 @@ public class ParticipantField extends BoundTextField{
 			return;
 		}
 
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, handlerTypes);
+		@SuppressWarnings("unchecked")
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+			handlerTypes.toArray(Class[]::new));
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			setParticipant(selectedRecord);

@@ -27,14 +27,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NameStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ContactNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-/* ONGOING */
 /**
  * Handler for {@code CONTACT_NAME_STRUCTURE} entities according to FLEF 0.1.1.
  * <p>
@@ -46,10 +45,9 @@ import java.awt.Dialog;
  * ???
  * </pre>
  */
-public class ContactNameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
+public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStructureDialog>{
 
 	public static final String TYPE = "CONTACT_NAME_STRUCTURE";
-	public static final String CITED_TYPE = "NAME";
 
 	private static final String TAG_VALUE = "VALUE";
 
@@ -61,17 +59,12 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<NameStructureD
 
 	@Override
 	public String getLabel(){
-		return "Name Structure";
+		return "Contact Name Structure";
 	}
 
 	@Override
 	public String getType(){
 		return TYPE;
-	}
-
-	@Override
-	public String getCitedType(){
-		return (!isTopLevelEntity()? CITED_TYPE: null);
 	}
 
 	@Override
@@ -93,21 +86,17 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<NameStructureD
 			fullName.append(val);
 		}
 
-		String result = fullName.toString();
-		if(result.isBlank())
-			return "[" + record.getId() + "]";
-
-		return GUIHelper.limitTextLength(result);
+		return GUIHelper.limitTextLength(fullName.toString());
 	}
 
 	@Override
-	public NameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return NameStructureDialog.createNew(parent, model);
+	public ContactNameStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return ContactNameStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public NameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return NameStructureDialog.createEdit(parent, model, record);
+	public ContactNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return ContactNameStructureDialog.createEdit(parent, model, record);
 	}
 
 }
