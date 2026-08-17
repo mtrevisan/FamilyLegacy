@@ -107,7 +107,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord citation){
-		final String entityId = findTargetEntityId(citation);
+		final String entityId = citation.getValue();
 		if(entityId != null){
 			final FLEFRecord entity = model.getRecordById(entityId);
 			if(entity != null)
@@ -177,6 +177,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final JDialog dialog = createCitationEditDialog(record);
 		dialog.setVisible(true);
+
 		return record;
 	}
 
@@ -203,7 +204,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(record, path);
 		final List<FLEFRecord> entities = new ArrayList<>();
 		for(final FLEFRecord citation : citations){
-			final String entityId = findTargetEntityId(citation);
+			final String entityId = citation.getValue();
 			if(entityId != null){
 				final FLEFRecord entity = model.getRecordById(entityId);
 				if(entity != null)

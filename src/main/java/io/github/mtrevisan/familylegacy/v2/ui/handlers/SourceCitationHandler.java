@@ -82,7 +82,7 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 	@Override
 	public SourceCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return SourceCitationDialog.createEdit(parent, model, null);
+		return SourceCitationDialog.createNew(parent, model);
 	}
 
 	@Override

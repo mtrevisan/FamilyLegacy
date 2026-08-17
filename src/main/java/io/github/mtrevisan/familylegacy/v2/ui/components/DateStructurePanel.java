@@ -79,6 +79,8 @@ public class DateStructurePanel extends JPanel{
 	private static final String TAG_BOUNDED = "BOUNDED";
 	private static final String TAG_SPANNING = "SPANNING";
 
+	private static final String TAG_EVIDENCE = "EVIDENCE";
+
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 
@@ -193,7 +195,7 @@ public class DateStructurePanel extends JPanel{
 		sourcePanel.load(record);
 
 		// evidence
-		qualifiers.load(record);
+		qualifiers.load(record.getTheOnlyChild(TAG_EVIDENCE));
 	}
 
 	/**

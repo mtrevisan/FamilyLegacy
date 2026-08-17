@@ -147,6 +147,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final JDialog dialog = createEditDialog(record);
 		dialog.setVisible(true);
+
 		return record;
 	}
 

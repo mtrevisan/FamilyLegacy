@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
 
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 

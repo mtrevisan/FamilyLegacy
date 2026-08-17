@@ -82,7 +82,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 	@Override
 	public PlaceCitationDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return PlaceCitationDialog.createEdit(parent, model, null);
+		return PlaceCitationDialog.createNew(parent, model);
 	}
 
 	@Override
