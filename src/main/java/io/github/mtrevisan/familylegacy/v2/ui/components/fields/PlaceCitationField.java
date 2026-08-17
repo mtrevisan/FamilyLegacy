@@ -218,9 +218,6 @@ public class PlaceCitationField extends JPanel{
 	}
 
 	private void editCitation(){
-		if(record == null)
-			return;
-
 		final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.class);
 		final PlaceCitationDialog dialog = (PlaceCitationDialog)placeCitationHandler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);

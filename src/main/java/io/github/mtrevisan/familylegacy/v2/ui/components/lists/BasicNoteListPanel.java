@@ -130,9 +130,6 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
-		if(record == null)
-			return null;
-
 		final String displayText = getDisplayText(record);
 		final JTextArea textArea = new JTextArea(displayText, 10, 50);
 		textArea.setLineWrap(true);
@@ -162,9 +159,6 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	public void load(final FLEFRecord record){
 		clear();
-
-		if(record == null)
-			return;
 
 		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(record, path);
 		setItems(notes);

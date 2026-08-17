@@ -62,9 +62,6 @@ public class FLEFModel{
 	}
 
 	public void addRecord(final FLEFRecord record){
-		if(record == null)
-			return;
-
 		String id = FLEFRecordHelper.getChildValue(record, "id");
 		if(id == null)
 			id = record.getId();

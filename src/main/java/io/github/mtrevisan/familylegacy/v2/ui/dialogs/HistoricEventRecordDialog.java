@@ -218,9 +218,6 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record == null)
-			return;
-
 		components.load(record);
 
 		dateField.load(record);

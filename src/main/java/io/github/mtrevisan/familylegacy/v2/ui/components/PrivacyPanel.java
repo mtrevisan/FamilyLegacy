@@ -134,9 +134,6 @@ public class PrivacyPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final FLEFRecord restriction = FLEFRecordHelper.findChild(record, path);
 		if(restriction == null)
 			return;

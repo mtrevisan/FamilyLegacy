@@ -126,13 +126,10 @@ public class DateField extends JPanel{
 		return (record != null && record.hasData());
 	}
 
-	public void load(final FLEFRecord targetRecord){
+	public void load(final FLEFRecord record){
 		clear();
 
-		if(targetRecord == null || targetRecord.isEmpty())
-			return;
-
-		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
+		final FLEFRecord child = FLEFRecordHelper.findChild(record, path);
 		setRecord(child);
 	}
 

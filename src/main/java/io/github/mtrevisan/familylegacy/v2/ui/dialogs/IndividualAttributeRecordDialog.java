@@ -269,9 +269,6 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record == null)
-			return;
-
 		validFromField.load(record);
 		validToField.load(record);
 		placeCitationField.load(record);

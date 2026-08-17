@@ -427,7 +427,7 @@ TextValueVariant = oneof {
   }
   transcription: struct {
     system: enum {   // indicates the system used to transcribe the text to the romanized variation
-      romaji, hepburn, kunreishiki, nihonshiki,   // Japanese
+      rōmaji, hepburn, kunreishiki, nihonshiki,   // Japanese
       pinyin, wadegiles,                          // Chinese
       bgn_pcgn,                                   // various geographic standards
       iso9,                                       // Cyrillic -> Latin

@@ -117,9 +117,6 @@ public class AuditPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		// creation.date
 		final FLEFRecord creation = FLEFRecordHelper.findChild(record, TAG_CREATION);
 		creationDate = FLEFRecordHelper.getChildValue(creation, TAG_DATE);

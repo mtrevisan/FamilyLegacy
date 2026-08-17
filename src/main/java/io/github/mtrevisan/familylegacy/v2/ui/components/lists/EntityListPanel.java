@@ -153,9 +153,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(record, path);
 		final List<FLEFRecord> entities = new ArrayList<>();
 		for(final FLEFRecord citation : citations){

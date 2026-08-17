@@ -137,9 +137,6 @@ public class EvidenceQualifiersPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		String value = FLEFRecordHelper.getChildValue(record, path + TAG_SOURCE_TYPE);
 		sourceTypeCombo.setSelectedItem(StringUtils.defaultString(value));
 

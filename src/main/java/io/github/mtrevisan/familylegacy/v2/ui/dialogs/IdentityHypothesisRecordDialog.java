@@ -201,9 +201,6 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record == null)
-			return;
-
 		final FLEFRecord participant = record.getTheOnlyChild(TAG_CANDIDATE);
 		candidateField.load(participant != null? participant.getTheOnlyChild(): null);
 

@@ -90,9 +90,6 @@ public class SpanningDatePanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final FLEFRecord from = FLEFRecordHelper.findChild(record, TAG_FROM);
 		if(from != null)
 			fromPanel.load(from);

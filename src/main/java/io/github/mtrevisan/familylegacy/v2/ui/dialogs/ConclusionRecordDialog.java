@@ -229,9 +229,6 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record == null)
-			return;
-
 		contextField.setText(FLEFRecordHelper.getChildValue(record, TAG_CONTEXT));
 		proofStatusCombo.setSelectedItem(FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS));
 		narrativeArea.setText(FLEFRecordHelper.getChildValue(record, TAG_NARRATIVE));

@@ -91,9 +91,6 @@ public class BoundedDatePanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final FLEFRecord notBefore = FLEFRecordHelper.findChild(record, TAG_NOT_BEFORE);
 		if(notBefore != null)
 			notBeforePanel.load(notBefore);

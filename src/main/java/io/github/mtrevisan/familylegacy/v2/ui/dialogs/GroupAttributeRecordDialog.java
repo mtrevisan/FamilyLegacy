@@ -278,9 +278,6 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record == null)
-			return;
-
 		validFromField.load(record);
 		validToField.load(record);
 		placeField.load(record);

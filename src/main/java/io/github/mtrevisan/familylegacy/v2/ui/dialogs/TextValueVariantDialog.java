@@ -43,6 +43,7 @@ import java.awt.FlowLayout;
 import java.io.Serial;
 
 
+/* TESTED edit */
 /**
  * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.1.
  * <p>
@@ -55,7 +56,7 @@ import java.io.Serial;
  *   }
  *   transcription: struct {
  *     system: enum {
- *       romaji, hepburn, kunreishiki, nihonshiki,
+ *       rōmaji, hepburn, kunreishiki, nihonshiki,
  *       pinyin, wadegiles,
  *       bgn_pcgn,
  *       iso9,
@@ -114,10 +115,10 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		super(parent, model, record, VariantHandler.class);
 
 		phoneticSystemField = new BoundTextField(TAG_SYSTEM);
-		phoneticSystemField.setToolTipText("e.g., 'ipa', 'romaji', 'pinyin', 'wadegiles'");
+		phoneticSystemField.setToolTipText("e.g., 'ipa', 'rōmaji', 'pinyin', 'wadegiles'");
 		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM, new String[]{
 			StringUtils.EMPTY,
-			"romaji", "hepburn", "kunreishiki", "nihonshiki",
+			"rōmaji", "hepburn", "kunreishiki", "nihonshiki",
 			"pinyin", "wadegiles",
 			"bgn_pcgn",
 			"iso9",

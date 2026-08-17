@@ -279,9 +279,6 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final List<FLEFRecord> extracts = FLEFRecordHelper.findChildren(record, path);
 		setItems(extracts);
 	}

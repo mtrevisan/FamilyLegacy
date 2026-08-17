@@ -52,7 +52,7 @@ import java.io.Serial;
 import java.util.function.Consumer;
 
 
-/* TESTED new & edit */
+/* TESTED edit */
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -281,16 +281,55 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		final FLEFRecord individualAttribute = FLEFRecord.createMainRecord("IA1", "INDIVIDUAL_ATTRIBUTE");
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"));
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "residence"));
-
 		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "male"));
+		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "female"));
 		individual.addChild(FLEFRecord.createChildWithTag("SOURCE")
 			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
 		);
 		individual.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
+		individual.addChild(FLEFRecord.createChildWithTag("NAME")
+			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "maiden"))
+			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "CN1"))
+			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "S1"))
+			.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "N1"))
+			.addChild(FLEFRecord.createChildWithTag("PART")
+				.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "given"))
+				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "nòme"))
+				.addChild(FLEFRecord.createChildWithTag("VARIANT")
+					.addChild(FLEFRecord.createChildWithTag("TRANSCRIPTION")
+						.addChild(FLEFRecord.createChildWithTagAndValue("SYSTEM", "rōmaji"))
+						.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "latinized"))
+						.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "trans"))
+					)
+				)
+			)
+		);
+
+		final FLEFRecord individualAttribute = FLEFRecord.createMainRecord("IA1", "INDIVIDUAL_ATTRIBUTE");
+		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"));
+		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "residence"));
+		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "attr"));
+		individualAttribute.addChild(FLEFRecord.createChildWithTag("VALID_FROM")
+			.addChild(FLEFRecord.createChildWithTag("VALUE")
+				.addChild(FLEFRecord.createChildWithTag("POINT")
+					.addChild(FLEFRecord.createChildWithTag("POINT")
+						.addChild(FLEFRecord.createChildWithTag("SINGLE_DATE")
+							.addChild(FLEFRecord.createChildWithTag("FULL_DATE")
+								.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "2001-02-03"))
+								.addChild(FLEFRecord.createChildWithTagAndValue("CALENDAR", "gregorian"))
+							)
+						)
+					)
+				)
+			)
+			.addChild(FLEFRecord.createChildWithTagAndValue("ORIGINAL_TEXT", "original text"))
+			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
+			.addChild(FLEFRecord.createChildWithTag("EVIDENCE")
+				.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE_TYPE", "derived"))
+				.addChild(FLEFRecord.createChildWithTagAndValue("INFORMATION_TYPE", "secondary"))
+				.addChild(FLEFRecord.createChildWithTagAndValue("EVIDENCE_TYPE", "indirect"))
+			)
+		);
 
 		final FLEFRecord relationship1 = FLEFRecord.createMainRecord("RL1", "RELATIONSHIP")
 			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "group_member"));

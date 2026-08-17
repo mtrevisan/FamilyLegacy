@@ -190,9 +190,6 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record == null)
-			return;
-
 		contextField.load(record);
 		targetField.load(record);
 

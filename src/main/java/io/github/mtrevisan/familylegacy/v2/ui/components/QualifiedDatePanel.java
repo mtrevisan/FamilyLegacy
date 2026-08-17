@@ -193,9 +193,6 @@ public class QualifiedDatePanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final FLEFRecord singleDate = record.getTheOnlyChild(TAG_SINGLE_DATE);
 		final DateType singleDateType = DateType.fromNode(singleDate);
 		singleDateTypeCombo.setSelectedItem(singleDateType);

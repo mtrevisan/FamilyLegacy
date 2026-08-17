@@ -69,10 +69,11 @@ public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDi
 		if(record == null)
 			return "--";
 
-		String tag = record.getTag();
+		final FLEFRecord variant = record.getTheOnlyChild();
+		String tag = variant.getTag();
 		if(TAG_PHONETIC.equals(tag)){
-			final String system = FLEFRecordHelper.getChildValue(record, TAG_SYSTEM);
-			final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
+			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
 
 			final StringBuilder details = new StringBuilder();
 			if(StringUtils.isNotEmpty(system))
@@ -82,9 +83,9 @@ public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDi
 			return String.format("%s [%s]", value, TAG_PHONETIC);
 		}
 		else if(TAG_TRANSCRIPTION.equals(tag)){
-			final String system = FLEFRecordHelper.getChildValue(record, TAG_SYSTEM);
-			final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-			final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
+			final String type = FLEFRecordHelper.getChildValue(variant, TAG_TYPE);
+			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
 
 			final StringBuilder details = new StringBuilder();
 			if(StringUtils.isNotEmpty(system))
@@ -99,8 +100,7 @@ public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDi
 			return String.format("%s [%s]", value, TAG_TRANSCRIPTION);
 		}
 
-		// Fallback to the record ID
-		return "[" + record.getId() + "]";
+		return "--]";
 	}
 
 	@Override

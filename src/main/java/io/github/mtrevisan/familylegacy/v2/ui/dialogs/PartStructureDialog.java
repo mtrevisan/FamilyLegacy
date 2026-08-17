@@ -41,6 +41,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+/* TESTED edit */
 /**
  * Structure:
  * <pre>
@@ -134,12 +135,6 @@ public class PartStructureDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		components.load(record);
-
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		typeCombo.setSelectedItem(type != null? type: StringUtils.EMPTY);
-
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		valueField.setText(value);
 
 		variantPanel.load(record);
 	}

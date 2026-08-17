@@ -162,9 +162,6 @@ public class DateStructurePanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		// Load the date value: POINT, BOUNDED, or SPANNING
 		final FLEFRecord value = record.getTheOnlyChild(TAG_VALUE);
 		final FLEFRecord point = FLEFRecordHelper.findChild(value, TAG_POINT);

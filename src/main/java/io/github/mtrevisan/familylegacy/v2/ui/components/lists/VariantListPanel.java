@@ -44,6 +44,7 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	private static final long serialVersionUID = -298718064629353117L;
 
 
+	private static final String TAG_VARIANT = "VARIANT";
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 
@@ -57,15 +58,8 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
-		final FLEFRecord variantPhonetic = FLEFRecordHelper.findChild(record, TAG_PHONETIC);
-		final FLEFRecord variantTranscription = FLEFRecordHelper.findChild(record, TAG_TRANSCRIPTION);
-		List<FLEFRecord> items = new ArrayList<>();
-		items.add(variantPhonetic);
-		items.add(variantTranscription);
-		setItems(items);
+		final List<FLEFRecord> variants = FLEFRecordHelper.findChildren(record, TAG_VARIANT);
+		setItems(variants);
 	}
 
 	/**

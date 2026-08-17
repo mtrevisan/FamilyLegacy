@@ -149,9 +149,6 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record == null)
-			return;
-
 		components.load(record);
 	}
 

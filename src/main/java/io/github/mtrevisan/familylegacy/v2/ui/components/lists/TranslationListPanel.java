@@ -170,9 +170,6 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final List<FLEFRecord> translations = new ArrayList<>();
 		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, path)){
 			final String translationValue = FLEFRecordHelper.getChildValue(child, TAG_VALUE);

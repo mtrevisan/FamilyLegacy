@@ -241,9 +241,6 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		if(record == null)
-			return;
-
 		final List<FLEFRecord> noteCitations = FLEFRecordHelper.findChildren(record, path);
 		final List<FLEFRecord> notes = new ArrayList<>(noteCitations.size());
 		for(final FLEFRecord noteCitation : noteCitations){
