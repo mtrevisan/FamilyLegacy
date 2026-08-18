@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -69,28 +68,18 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final FLEFRecord subjectChild = FLEFRecordHelper.findChild(record, TAG_SUBJECT);
-		final FLEFRecord subjectCitation = (subjectChild != null? subjectChild.getTheOnlyChild(): null);
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, TAG_SUBJECT, model);
 		String subjectDisplayText = "--";
-		if(subjectCitation != null && !subjectCitation.isEmpty()){
-			final String subjectTag = subjectCitation.getTag();
-			final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subjectTag);
-			final FLEFRecord subjectRecord = model.getRecordById(subjectCitation.getValue());
-			subjectDisplayText = (subjectRecord != null
-				? subjectHandler.getDisplayText(subjectRecord, model)
-				: "[" + XRefHelper.extractXRef(subjectCitation.getValue()) + "]");
+		if(subject != null){
+			final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
+			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
+		final FLEFRecord object = FLEFRecordHelper.extractRecordFromReference(record, TAG_OBJECT, model);
 		String objectDisplayText = "--";
-		FLEFRecord objectChild = FLEFRecordHelper.findChild(record, TAG_OBJECT);
-		final FLEFRecord objectCitation = (objectChild != null? objectChild.getTheOnlyChild(): null);
-		if(objectCitation != null && !objectCitation.isEmpty()){
-			final String objectTag = objectCitation.getTag();
-			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(objectTag);
-			final FLEFRecord objectRecord = model.getRecordById(objectCitation.getValue());
-			objectDisplayText = (objectRecord != null
-				? objectHandler.getDisplayText(objectRecord, model)
-				: "[" + XRefHelper.extractXRef(objectCitation.getValue()) + "]");
+		if(object != null){
+			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
+			objectDisplayText = objectHandler.getDisplayText(object, model);
 		}
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);

@@ -31,11 +31,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -223,20 +221,17 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	private static void initExtractComponents(final JDialog dialog, final DocumentPartListPanel documentPartPanel,
 			final BoundTextArea textArea, final BoundComboBox<String> typeCombo, final BoundComboBox<String> localeCombo,
 			final BasicNoteListPanel basicNote){
-		dialog.setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]10[]"));
+		GUIHelper.setLayoutLabelFieldPanel(dialog, 10, "[]10[]");
 
-		dialog.add(documentPartPanel, "span 2,growx,wrap");
+		GUIHelper.addComponent(dialog, documentPartPanel);
 
-		dialog.add(new JLabel("Text*:"), "align label,top");
-		dialog.add(GUIHelper.createScrollPane(textArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(dialog, "Text*:", textArea);
 
-		dialog.add(new JLabel("Type*:"), "align label");
-		dialog.add(typeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(dialog, "Type*:", typeCombo);
 
-		dialog.add(new JLabel("Locale:"), "align label");
-		dialog.add(localeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(dialog, "Locale:", localeCombo);
 
-		dialog.add(basicNote, "span 2,growx,wrap");
+		GUIHelper.addComponent(dialog, basicNote);
 	}
 
 	private static void loadExtractData(final FLEFRecord initial, final DocumentPartListPanel documentPartPanel,

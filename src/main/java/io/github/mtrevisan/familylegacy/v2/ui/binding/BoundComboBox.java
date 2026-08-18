@@ -175,7 +175,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 			model.addElement(element);
 
 		// Restore the selection if it is still valid
-		model.setSelectedItem(selectedItem != null && newItems.contains(selectedItem)
+		model.setSelectedItem(selectedItem != null && (newItems.contains(selectedItem) || isEditable())
 			? selectedItem
 			: emptyElement);
 	}

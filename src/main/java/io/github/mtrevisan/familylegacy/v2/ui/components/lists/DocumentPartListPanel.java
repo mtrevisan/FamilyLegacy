@@ -40,7 +40,6 @@ import java.awt.Dialog;
 import java.awt.Rectangle;
 import java.io.IOException;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -241,13 +240,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> noteCitations = FLEFRecordHelper.findChildren(record, path);
-		final List<FLEFRecord> notes = new ArrayList<>(noteCitations.size());
-		for(final FLEFRecord noteCitation : noteCitations){
-			final FLEFRecord note = model.getRecordById(noteCitation.getValue());
-			notes.add(note);
-		}
-		setItems(notes);
+		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+		setItems(referencedEntities);
 	}
 
 	/**

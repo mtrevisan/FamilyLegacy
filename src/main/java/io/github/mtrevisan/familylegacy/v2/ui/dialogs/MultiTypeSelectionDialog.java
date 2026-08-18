@@ -170,7 +170,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 
 
 		// Bottom panel
-		final JPanel bottomPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow,left][grow,right]", "[]"));
+		final JPanel bottomPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow,left][grow,right]"));
 		final JButton cancelButton = new JButton("Cancel");
 		final JButton createNewButton = new JButton("Create New…");
 		bottomPanel.add(createNewButton, "left");

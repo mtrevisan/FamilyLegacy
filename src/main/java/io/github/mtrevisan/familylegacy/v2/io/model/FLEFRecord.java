@@ -312,13 +312,48 @@ public class FLEFRecord{
 			return false;
 
 		final FLEFRecord other = (FLEFRecord)obj;
-		return (Objects.equals(id, other.id)
-			&& Objects.equals(tag, other.tag) && Objects.equals(value, other.value));
+		return (Objects.equals(tag, other.tag)
+			&& Objects.equals(id, other.id)
+			&& Objects.equals(value, other.value)
+			&& areChildrenEqual(children, other.children));
+	}
+
+	private boolean areChildrenEqual(final List<FLEFRecord> a, final List<FLEFRecord> b){
+		if(a == b)
+			return true;
+		if(a.size() != b.size())
+			return false;
+
+		if(a.size() <= 3)
+			return (a.containsAll(b) && b.containsAll(a));
+
+		final Map<FLEFRecord, Integer> counts = new HashMap<>();
+		for(final FLEFRecord child : a)
+			counts.merge(child, 1, Integer::sum);
+		for(final FLEFRecord child : b){
+			final int remaining = counts.getOrDefault(child, 0);
+			if(remaining == 0)
+				return false;
+			if(remaining == 1)
+				counts.remove(child);
+			else
+				counts.put(child, remaining - 1);
+		}
+		return counts.isEmpty();
 	}
 
 	@Override
 	public int hashCode(){
-		return Objects.hash(id, tag, value);
+		int hash = Objects.hash(tag, id, value);
+		hash = 31 * hash + childrenHash(children);
+		return hash;
+	}
+
+	private int childrenHash(final List<FLEFRecord> children){
+		int result = 0;
+		for(final FLEFRecord child : children)
+			result ^= child.hashCode();
+		return result;
 	}
 
 	@Override

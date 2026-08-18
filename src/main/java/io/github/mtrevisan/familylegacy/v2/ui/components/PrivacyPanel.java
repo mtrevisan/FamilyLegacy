@@ -31,10 +31,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
@@ -110,19 +108,16 @@ public class PrivacyPanel extends JPanel{
 
 
 
-		setLayout(new MigLayout("ins 10,fillx,top", "[right]rel[grow]", "[]10[]10[]"));
+		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]10[]10[]");
 
-		// LEVEL
-		add(new JLabel("Level*:"), "align label");
-		add(levelCombo, "growx,wrap");
+		// level
+		GUIHelper.addLabeledComponent(this, "Level*:", levelCombo);
 
-		// RATIONALE
-		add(new JLabel("Rationale:"), "align label,top");
-		add(GUIHelper.createScrollPane(rationaleArea), "growx,wrap");
+		// rationale
+		GUIHelper.addLabeledComponent(this, "Rationale:", rationaleArea);
 
-		// EXPIRES
-		add(new JLabel("Expires:"), "align label");
-		add(expiresField, "growx");
+		// expires
+		GUIHelper.addLabeledComponent(this, "Expires:", expiresField);
 	}
 
 

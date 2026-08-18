@@ -207,15 +207,17 @@ public class DateFieldPanel extends JPanel{
 			final String basis = FLEFRecordHelper.getChildValue(approx, TAG_BASIS);
 			final String margin = FLEFRecordHelper.getChildValue(approx, TAG_MARGIN);
 			if(basis != null || margin != null){
-				dateStr.append(" (approx");
+				dateStr.append(" (approx.");
 				if(basis != null)
-					dateStr.append(" basis: ").append(basis);
+					dateStr.append(" basis: ")
+						.append(basis);
 				if(margin != null)
-					dateStr.append(" margin: ").append(margin);
+					dateStr.append(" margin: ")
+						.append(margin);
 				dateStr.append(')');
 			}
 			else
-				dateStr.append(" (approx)");
+				dateStr.append(" (approx.)");
 		}
 		return dateStr.toString();
 	}
@@ -327,7 +329,7 @@ public class DateFieldPanel extends JPanel{
 			return true;
 
 		// Delegate full validation to DatePanel (which knows the structure)
-		DateStructurePanel tempPanel = new DateStructurePanel(parent, model);
+		final DateStructurePanel tempPanel = new DateStructurePanel(parent, model);
 		tempPanel.load(dateRecord);
 		return tempPanel.validateData();
 	}

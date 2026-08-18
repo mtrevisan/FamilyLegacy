@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -66,8 +67,8 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 
 		// Locate the first populated NAME structure
 		String formattedName = null;
-		for(final FLEFRecord child : record.getChildren())
-			if(TAG_NAME.equals(child.getTag())){
+		final List<FLEFRecord> children = FLEFRecordHelper.findChildren(record, TAG_NAME);
+		for(final FLEFRecord child : children){
 				formattedName = buildNameFromParts(child);
 				if(StringUtils.isNotEmpty(formattedName))
 					break;

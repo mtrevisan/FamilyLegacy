@@ -38,7 +38,6 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -107,7 +106,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord citation){
-		final String entityId = citation.getValue();
+		final String entityId = findTargetEntityId(citation);
 		if(entityId != null){
 			final FLEFRecord entity = model.getRecordById(entityId);
 			if(entity != null)
@@ -121,9 +120,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		@SuppressWarnings("unchecked")
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			(Class<? extends RecordTypeHandler<?>>)recordHandler.getClass());
+			recordHandler.getHandlerClass());
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			final String selectedId = selectedRecord.getValue();
@@ -201,17 +199,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(record, path);
-		final List<FLEFRecord> entities = new ArrayList<>();
-		for(final FLEFRecord citation : citations){
-			final String entityId = citation.getValue();
-			if(entityId != null){
-				final FLEFRecord entity = model.getRecordById(entityId);
-				if(entity != null)
-					entities.add(citation);
-			}
-		}
-		setItems(entities);
+		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+		setItems(referencedEntities);
 	}
 
 	/**

@@ -85,6 +85,8 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -4887775439277994973L;
 
 
+	private static final String DOT = ".";
+
 	private static final String TAG_PHONETIC = "PHONETIC";
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 	private static final String TAG_SYSTEM = "SYSTEM";
@@ -114,9 +116,9 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, VariantHandler.class);
 
-		phoneticSystemField = new BoundTextField(TAG_SYSTEM);
+		phoneticSystemField = new BoundTextField(TAG_PHONETIC + DOT + TAG_SYSTEM);
 		phoneticSystemField.setToolTipText("e.g., 'ipa', 'rōmaji', 'pinyin', 'wadegiles'");
-		transcriptionSystemCombo = new BoundComboBox<>(TAG_SYSTEM, new String[]{
+		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION + DOT + TAG_SYSTEM, new String[]{
 			StringUtils.EMPTY,
 			"rōmaji", "hepburn", "kunreishiki", "nihonshiki",
 			"pinyin", "wadegiles",
@@ -133,7 +135,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 			"scientific"
 		});
 		transcriptionSystemCombo.setEditable(true);
-		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION + DOT + TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
 			"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
@@ -188,12 +190,18 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
+		final FLEFRecord phonetic = record.getTheOnlyChild(TAG_PHONETIC);
+		final FLEFRecord transcription = record.getTheOnlyChild(TAG_TRANSCRIPTION);
+		if(phonetic != null)
+			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
+		else if(transcription != null)
+			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
+
 		components.load(record);
 
-		final String tag = record.getTag();
-		if(TAG_PHONETIC.equals(tag))
+		if(phonetic != null)
 			phoneticRadio.setSelected(true);
-		else if(TAG_TRANSCRIPTION.equals(tag))
+		else if(transcription != null)
 			transcriptionRadio.setSelected(true);
 
 		updateFieldsState();
@@ -244,10 +252,14 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	@Override
 	public void saveData(){
-		if(phoneticRadio.isSelected())
+		if(phoneticRadio.isSelected()){
 			record.setTag(TAG_PHONETIC);
-		else if(transcriptionRadio.isSelected())
+			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
+		}
+		else if(transcriptionRadio.isSelected()){
 			record.setTag(TAG_TRANSCRIPTION);
+			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
+		}
 
 		components.save(record);
 	}

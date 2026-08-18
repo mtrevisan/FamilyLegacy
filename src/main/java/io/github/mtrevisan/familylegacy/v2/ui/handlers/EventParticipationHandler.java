@@ -66,21 +66,11 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 		final StringBuilder sb = new StringBuilder();
 
 		String participantText = null;
-		final FLEFRecord refNode = record.getTheOnlyChild(TAG_PARTICIPANT);
-		if(refNode != null && !refNode.isEmpty()){
-			final FLEFRecord actor = refNode.getChildren()
-				.getFirst();
-			final String type = actor.getTag();
-			final String refId = actor.getValue();
-
-			if(StringUtils.isNotEmpty(refId)){
-				final FLEFRecord targetRecord = model.getRecordById(refId);
-				if(targetRecord != null){
-					final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(type);
-					if(handler != null)
-						participantText = handler.getDisplayText(targetRecord, model);
-				}
-			}
+		final FLEFRecord participant = FLEFRecordHelper.extractRecordFromReference(record, TAG_PARTICIPANT, model);
+		if(participant != null){
+			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(participant.getTag());
+			if(handler != null)
+				participantText = handler.getDisplayText(participant, model);
 		}
 		sb.append(StringUtils.isNotEmpty(participantText)? participantText: "Unknown Participant");
 

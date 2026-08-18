@@ -27,9 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IdentityHypothesisRecordDialog;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -66,25 +64,13 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 		String subjectId = null;
 		String candidateId = null;
 
-		final FLEFRecord subjectNode = FLEFRecordHelper.findChild(record, "SUBJECT");
-		if(subjectNode != null && !subjectNode.getChildren().isEmpty()){
-			final FLEFRecord child = subjectNode.getTheOnlyChild();
-			if(child != null && !child.isEmpty()){
-				final String ref = child.getValue();
-				if(StringUtils.isNotEmpty(ref))
-					subjectId = XRefHelper.extractXRef(ref);
-			}
-		}
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, "SUBJECT", model);
+		if(subject != null)
+			subjectId = subject.getId();
 
-		final FLEFRecord candidateNode = FLEFRecordHelper.findChild(record, "CANDIDATE");
-		if(candidateNode != null && !candidateNode.getChildren().isEmpty()){
-			final FLEFRecord child = candidateNode.getTheOnlyChild();
-			if(child != null && !child.isEmpty()){
-				final String ref = child.getValue();
-				if(StringUtils.isNotEmpty(ref))
-					candidateId = XRefHelper.extractXRef(ref);
-			}
-		}
+		final FLEFRecord candidate = FLEFRecordHelper.extractRecordFromReference(record, "CANDIDATE", model);
+		if(candidate != null)
+			candidateId = candidate.getId();
 
 		if(subjectId != null && candidateId != null){
 			return subjectId + " ↔ " + candidateId;

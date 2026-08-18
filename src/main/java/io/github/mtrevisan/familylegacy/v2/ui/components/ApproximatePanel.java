@@ -29,13 +29,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import net.miginfocom.swing.MigLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -93,28 +92,27 @@ public class ApproximatePanel extends JPanel{
 
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]5[]"));
+		GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]5[]");
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		add(approximateCheck, "span 2,growx,wrap");
+		GUIHelper.addComponent(this, approximateCheck);
 
-		// Basis
-		JPanel basisPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
-		basisPanel.add(new JLabel("Basis:"), "align label");
-		basisPanel.add(basisCombo, "growx");
-		add(basisPanel, "growx,wrap");
+		// basis
+		final JPanel basisPanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(basisPanel, "Basis:", basisCombo);
+		GUIHelper.addComponent(this, basisPanel);
 
-		// Cultural Norm
-		add(culturalNormPanel, "growx,wrap");
+		// cultural norm
+		GUIHelper.addComponent(this, culturalNormPanel);
 
-		// Margin
-		JPanel marginPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
-		marginPanel.add(new JLabel("Margin:"), "align label");
-		marginPanel.add(marginField, "growx");
+		// margin
+		final JPanel marginPanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(marginPanel, "Margin:", marginField);
 		marginField.setToolTipText("ISO 8601 Duration (e.g., P2Y for +/- 2 years)");
-		add(marginPanel, "growx,wrap");
+		GUIHelper.addComponent(this, marginPanel);
 
 		approximateCheck.addActionListener(e -> updateEnabled());
+
 		updateEnabled();
 	}
 
@@ -133,12 +131,12 @@ public class ApproximatePanel extends JPanel{
 
 		approximateCheck.setSelected(true);
 
-		String basis = FLEFRecordHelper.getChildValue(approxRecord, "BASIS");
+		final String basis = FLEFRecordHelper.getChildValue(approxRecord, TAG_BASIS);
 		basisCombo.setSelectedItem(StringUtils.defaultString(basis));
 
-		culturalNormPanel.load(record);
+		culturalNormPanel.load(approxRecord);
 
-		String margin = FLEFRecordHelper.getChildValue(approxRecord, "MARGIN");
+		String margin = FLEFRecordHelper.getChildValue(approxRecord, TAG_MARGIN);
 		marginField.setText(margin);
 
 		updateEnabled();
@@ -176,6 +174,7 @@ public class ApproximatePanel extends JPanel{
 		basisCombo.setSelectedIndex(0);
 		culturalNormPanel.clear();
 		marginField.setText(StringUtils.EMPTY);
+
 		updateEnabled();
 	}
 

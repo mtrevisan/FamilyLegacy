@@ -52,7 +52,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
@@ -265,22 +264,19 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// result
-		panel.add(new JLabel("Result:"), "align label");
-		panel.add(resultCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(panel, "Result:", resultCombo);
 
 		// observation
-		panel.add(new JLabel("Observation:"), "align label");
-		panel.add(GUIHelper.createScrollPane(observationArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(panel, "Observation:", observationArea);
 
 		// conclusion panel:
-		final JPanel conclusionPanel = new JPanel(new MigLayout("ins 5,fillx,top", "[right]rel[grow]", "[]10[]"));
+		final JPanel conclusionPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		conclusionPanel.setBorder(BorderFactory.createTitledBorder("Conclusion"));
 		// conclusion
-		conclusionPanel.add(GUIHelper.createScrollPane(conclusionArea), "span 2,growx,wrap");
+		GUIHelper.addComponent(conclusionPanel, conclusionConfidenceCombo);
 		// confidence
-		conclusionPanel.add(new JLabel("Confidence:"), "align label");
-		conclusionPanel.add(conclusionConfidenceCombo, "growx");
-		panel.add(conclusionPanel, "span 2,growx,wrap");
+		GUIHelper.addLabeledComponent(conclusionPanel, "Confidence:",  conclusionConfidenceCombo);
+		GUIHelper.addComponent(panel, conclusionPanel);
 
 		return panel;
 	}

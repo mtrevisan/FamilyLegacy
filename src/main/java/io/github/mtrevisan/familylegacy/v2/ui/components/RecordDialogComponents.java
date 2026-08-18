@@ -190,10 +190,6 @@ public final class RecordDialogComponents{
 	}
 
 
-	// ------------------------------------------------------------------------
-	// Load and Save methods
-	// ------------------------------------------------------------------------
-
 	/**
 	 * Registers a bound component.
 	 *

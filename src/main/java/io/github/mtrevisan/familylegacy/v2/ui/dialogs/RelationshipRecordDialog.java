@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -263,7 +264,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		// object
 		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
-		GUIHelper.setComponentVisible(subjectField, (showAll || actorType != ActorType.OBJECT));
+		GUIHelper.setComponentVisible(objectField, (showAll || actorType != ActorType.OBJECT));
 
 		// status
 		GUIHelper.addLabeledComponent(propertiesPanel, "Status:", statusCombo);
@@ -391,10 +392,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		final FLEFRecord subject = record.getTheOnlyChild(TAG_SUBJECT);
-		final FLEFRecord object = record.getTheOnlyChild(TAG_OBJECT);
-		subjectField.load(subject != null? subject.getTheOnlyChild(): null);
-		objectField.load(object != null? object.getTheOnlyChild(): null);
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, TAG_SUBJECT, model);
+		final FLEFRecord object = FLEFRecordHelper.extractRecordFromReference(record, TAG_OBJECT, model);
+		subjectField.load(subject);
+		objectField.load(object);
 
 		components.load(record);
 
@@ -402,12 +403,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validToField.load(record);
 
 		updateTypeCombo();
-
-
-		if(subject != null && !subject.isEmpty()){
-			withSubject(subject.getValue(), subject.getTag());
-			withObject(null, null);
-		}
 	}
 
 	@Override
@@ -416,6 +411,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject is required.",
 				tabbedPane, propertiesPanel, subjectField);
+
 			return false;
 		}
 
@@ -423,6 +419,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object is required.",
 				tabbedPane, propertiesPanel, objectField);
+
 			return false;
 		}
 
@@ -430,6 +427,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject and Object must not be the same entity.",
 				tabbedPane, propertiesPanel, subjectField);
+
 			return false;
 		}
 
@@ -437,6 +435,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type is required.",
 				tabbedPane, propertiesPanel, subjectTypeCombo);
+
 			return false;
 		}
 

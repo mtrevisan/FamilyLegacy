@@ -30,11 +30,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
-import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
@@ -120,7 +118,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private FLEFRecord showTranslationDialog(final FLEFRecord initial){
 		final JDialog dialog = new JDialog(parent, initial == null? "Add Translation": "Edit Translation", true);
-		dialog.setLayout(new MigLayout("ins 10,fillx", "[right]rel[grow]", "[]10[]"));
+		GUIHelper.setLayoutLabelFieldPanel(dialog, 10, "[]10[]");
 
 		final String value = FLEFRecordHelper.getChildValue(initial, TAG_VALUE);
 		final String locale = FLEFRecordHelper.getChildValue(initial, TAG_LOCALE);
@@ -129,8 +127,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		if(initial != null){
 			valueArea.setText(value);
 		}
-		dialog.add(new JLabel("Value*:"), "align label,top");
-		dialog.add(GUIHelper.createScrollPane(valueArea), "growx,wrap");
+		GUIHelper.addLabeledComponent(dialog, "Value*:", valueArea);
 
 		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
@@ -138,8 +135,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		localeCombo.setEditable(true);
 		if(initial != null && StringUtils.isNotEmpty(locale))
 			localeCombo.setSelectedItem(locale);
-		dialog.add(new JLabel("Locale:"), "align label");
-		dialog.add(localeCombo, "growx,wrap");
+		GUIHelper.addLabeledComponent(dialog, "Locale:", localeCombo);
 
 		final FLEFRecord[] result = {null};
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),

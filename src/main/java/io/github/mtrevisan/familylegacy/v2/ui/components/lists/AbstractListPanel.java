@@ -225,8 +225,24 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		final T current = items.get(idx);
 		final T updated = showEditDialog(current);
 		if(updated != null){
-			items.set(idx, updated);
-			listModel.set(idx, getDisplayText(updated));
+			// find the new index (if changed)
+			final int newIdx = items.indexOf(updated);
+			if(newIdx >= 0){
+				items.set(newIdx, updated);
+				listModel.set(newIdx, getDisplayText(updated));
+			}
+			else{
+				// add as last item if not found
+				items.add(updated);
+				listModel.addElement(getDisplayText(updated));
+			}
+		}
+		else{
+			// The item has been removed; we remove it from the list
+			items.remove(current);
+			listModel.removeElement(getDisplayText(current));
+
+			list.clearSelection();
 		}
 	}
 

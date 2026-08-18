@@ -282,6 +282,26 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	public static void main(final String[] args){
 		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+		individual.addChild(FLEFRecord.createChildWithTag("NAME")
+			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "legal"))
+			.addChild(FLEFRecord.createChildWithTag("PART")
+				.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "given"))
+				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "first name"))
+				.addChild(FLEFRecord.createChildWithTag("VARIANT")
+					.addChild(FLEFRecord.createChildWithTag("PHONETIC")
+						.addChild(FLEFRecord.createChildWithTagAndValue("SYSTEM", "ipa"))
+						.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "genki"))
+					)
+				)
+				.addChild(FLEFRecord.createChildWithTag("VARIANT")
+					.addChild(FLEFRecord.createChildWithTag("TRANSCRIPTION")
+						.addChild(FLEFRecord.createChildWithTagAndValue("SYSTEM", "rōmaji"))
+						.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "romanized"))
+						.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "nòme"))
+					)
+				)
+			)
+		);
 		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "female"));
 		individual.addChild(FLEFRecord.createChildWithTag("SOURCE")
 			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
@@ -321,11 +341,31 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 				)
 			)
 			.addChild(FLEFRecord.createChildWithTagAndValue("ORIGINAL_TEXT", "original text"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
+			.addChild(FLEFRecord.createChildWithTag("SOURCE")
+				.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
+				.addChild(FLEFRecord.createChildWithTagAndValue("LOCATION", "src loc"))
+			)
 			.addChild(FLEFRecord.createChildWithTag("EVIDENCE")
 				.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE_TYPE", "derived"))
 				.addChild(FLEFRecord.createChildWithTagAndValue("INFORMATION_TYPE", "secondary"))
 				.addChild(FLEFRecord.createChildWithTagAndValue("EVIDENCE_TYPE", "indirect"))
+			)
+		);
+		individualAttribute.addChild(FLEFRecord.createChildWithTag("VALID_TO")
+			.addChild(FLEFRecord.createChildWithTag("VALUE")
+				.addChild(FLEFRecord.createChildWithTag("POINT")
+					.addChild(FLEFRecord.createChildWithTag("SINGLE_DATE")
+						.addChild(FLEFRecord.createChildWithTag("DECADE")
+							.addChild(FLEFRecord.createChildWithTagAndValue("START_YEAR", "1940"))
+							.addChild(FLEFRecord.createChildWithTagAndValue("CALENDAR", "julian"))
+						)
+					)
+					.addChild(FLEFRecord.createChildWithTag("APPROXIMATE")
+						.addChild(FLEFRecord.createChildWithTagAndValue("BASIS", "calculated"))
+						.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
+						.addChild(FLEFRecord.createChildWithTagAndValue("MARGIN", "P2Y"))
+					)
+				)
 			)
 		);
 
@@ -338,7 +378,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
 		);
 		final FLEFRecord relationship2 = FLEFRecord.createMainRecord("RL2", "RELATIONSHIP")
-			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "custom"));
+			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "custom"))
+			.addChild(FLEFRecord.createChildWithTagAndValue("ROLE", "president"));
 		relationship2.addChild(FLEFRecord.createChildWithTag("SUBJECT")
 			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G2@"))
 		);
@@ -347,6 +388,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		);
 
 		final FLEFRecord eventParticipation1 = FLEFRecord.createMainRecord("EP1", "EVENT_PARTICIPATION");
+		eventParticipation1.addChild(FLEFRecord.createChildWithTagAndValue("EVENT", "@E1@"));
 		eventParticipation1.addChild(FLEFRecord.createChildWithTag("PARTICIPANT")
 			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
 		);
@@ -402,6 +444,10 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		final FLEFRecord culturalNorm1 = FLEFRecord.createMainRecord("CN1", "CULTURAL_NORM");
 		culturalNorm1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "cult norm title"));
 
+		final FLEFRecord event1 = FLEFRecord.createMainRecord("E1", "EVENT");
+		event1.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "epidemic"));
+		event1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "cholera"));
+
 
 		final Consumer<FLEFModel> modelFiller = model -> {
 			model.addRecord(individualAttribute);
@@ -419,6 +465,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			model.addRecord(group1);
 			model.addRecord(group2);
 			model.addRecord(culturalNorm1);
+			model.addRecord(event1);
 		};
 		GUIHelper.launch(IndividualRecordDialog::createEdit, modelFiller, individual);
 	}

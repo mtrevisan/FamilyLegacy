@@ -27,12 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import net.miginfocom.swing.MigLayout;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.ToolTipManager;
 import java.awt.Dialog;
@@ -85,7 +84,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 			final FLEFModel model, final String recordHandlerType){
 		this.path = (path != null && !path.isEmpty())? path + DOT: StringUtils.EMPTY;
 
-		setLayout(new MigLayout("ins 5", "[right]rel[grow]", "[]5[]5[]"));
+		GUIHelper.setLayoutLabelFieldPanel(this, 5, "[]5[]5[]");
 		setBorder(BorderFactory.createTitledBorder(panelTitle));
 
 		sourceTypeCombo = new JComboBox<>(new String[]{
@@ -104,12 +103,9 @@ public class EvidenceQualifiersPanel extends JPanel{
 		evidenceTypeCombo.setToolTipText("Nature of the evidentiary contribution: direct, indirect, or negative");
 
 		// Layout: label + combo per row
-		add(new JLabel("Source Type:"), "align label");
-		add(sourceTypeCombo, "growx,wrap");
-		add(new JLabel("Info Type:"), "align label");
-		add(informationTypeCombo, "growx,wrap");
-		add(new JLabel("Evidence Type:"), "align label");
-		add(evidenceTypeCombo, "growx");
+		GUIHelper.addLabeledComponent(this, "Source Type:", sourceTypeCombo);
+		GUIHelper.addLabeledComponent(this, "Info Type:", informationTypeCombo);
+		GUIHelper.addLabeledComponent(this, "Evidence Type:", evidenceTypeCombo);
 
 		// Attach hover tooltip listeners
 		attachTooltipListener(sourceTypeCombo);

@@ -109,10 +109,13 @@ public class ParticipantField extends BoundTextField{
 	}
 
 	private void updateDisplay(){
-		final RecordTypeHandler<?> handler = (participantRecord != null
-			? findHandler(participantRecord.getTag())
-			: null);
-		final String value = (handler != null? handler.getDisplayText(participantRecord, model): null);
+		String value = null;
+		if(participantRecord != null && !participantRecord.isEmpty()){
+			final FLEFRecord participant = model.getRecordById(participantRecord.getId());
+			final RecordTypeHandler<?> handler = findHandler(participantRecord.getTag());
+			if(participant != null && handler != null)
+				value = handler.getDisplayText(participant, model);
+		}
 		setText(value);
 	}
 
@@ -176,22 +179,15 @@ public class ParticipantField extends BoundTextField{
 	/**
 	 * Loads the participant from a given target record.
 	 *
-	 * @param targetRecord the record containing the reference
+	 * @param record the record containing the reference
 	 */
-	public void load(final FLEFRecord targetRecord){
+	public void load(final FLEFRecord record){
 		clear();
 
-		if(targetRecord == null || targetRecord.isEmpty())
+		if(record == null || record.isEmpty())
 			return;
 
-		final FLEFRecord target = FLEFRecordHelper.findChild(targetRecord, path);
-		final FLEFRecord participant = (target != null? target.getTheOnlyChild(): null);
-		final FLEFRecord parentRecord = (participant != null? participant: target);
-		final String participantId = (parentRecord != null? parentRecord.getValue(): null);
-		final FLEFRecord rec = model.getRecordById(participantId);
-		if(rec != null)
-			// FIXME Optionally verify that the record's tag matches the expected type
-			setParticipant(rec);
+		setParticipant(record);
 	}
 
 	/**

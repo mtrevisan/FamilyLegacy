@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -123,6 +124,7 @@ public class QualifiedDatePanel extends JPanel{
 		calendarCombo = new BoundComboBox<>(TAG_CALENDAR, new String[]{
 			"gregorian", "julian", "islamic", "hebrew", "chinese", "indian", "buddhist", "french-republican", "coptic",
 			"soviet eternal", "ethiopian", "mayan"});
+		calendarCombo.setEditable(true);
 		approxPanel = new ApproximatePanel(TAG_APPROXIMATE, parent, model);
 
 		fieldMap.put(DateType.FULL_DATE, fullDateValueField);
@@ -142,19 +144,17 @@ public class QualifiedDatePanel extends JPanel{
 		bindingManager.bind(calendarCombo);
 
 
-		setLayout(new MigLayout("ins 0,fillx", "[right]rel[grow]", "[]10[]10[]20[]"));
+		GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]10[]10[]20[]");
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
-		// Date type combo
-		final JPanel typePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
-		typePanel.add(new JLabel("Type:"), "align label");
-		typePanel.add(singleDateTypeCombo, "growx");
-		add(typePanel, "growx,wrap");
+		// date type
+		final JPanel typePanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(typePanel, "Type:", singleDateTypeCombo);
+		GUIHelper.addComponent(this, typePanel);
 
-		// Card panel for FULL_DATE, DECADE, CENTURY
-		final JPanel fullDatePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
-		fullDatePanel.add(new JLabel("Full date:"), "align label");
-		fullDatePanel.add(fullDateValueField, "growx");
+		// card panel for FULL_DATE, DECADE, CENTURY
+		final JPanel fullDatePanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(typePanel, "Full date:", fullDateValueField);
 
 		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow][right]rel[grow]"));
 		centuryPanel.add(new JLabel("Century:"), "align label");
@@ -163,25 +163,22 @@ public class QualifiedDatePanel extends JPanel{
 		centuryPanel.add(centuryPartCombo, "growx");
 		centuryOrdinalField.setToolTipText("e.g., 15 for 15th century");
 
-		final JPanel decadePanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
-		decadePanel.add(new JLabel("Decade:"), "align label");
-		decadePanel.add(decadeStartYearField, "growx");
+		final JPanel decadePanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(typePanel, "Decade:", decadeStartYearField);
 		decadeStartYearField.setToolTipText("e.g., 1490 for the 1490s");
 
 		cardPanel.add(fullDatePanel, DateType.FULL_DATE.name());
 		cardPanel.add(decadePanel, DateType.DECADE.name());
 		cardPanel.add(centuryPanel, DateType.CENTURY.name());
-		add(cardPanel, "growx,wrap");
+		GUIHelper.addComponent(this, cardPanel);
 
-		// Calendar
-		final JPanel calendarPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow]"));
-		calendarPanel.add(new JLabel("Calendar:"), "align label");
-		calendarCombo.setEditable(true);
-		calendarPanel.add(calendarCombo, "growx");
-		add(calendarPanel, "growx,wrap");
+		// calendar
+		final JPanel calendarPanel = GUIHelper.createLabelFieldPanel(0, "[]");
+		GUIHelper.addLabeledComponent(calendarPanel, "Calendar:", calendarCombo);
+		GUIHelper.addComponent(this, calendarPanel);
 
 		// Approximate
-		add(approxPanel, "growx,wrap");
+		GUIHelper.addComponent(this, approxPanel);
 
 		singleDateTypeCombo.addActionListener(e -> {
 			final DateType selected = (DateType)singleDateTypeCombo.getSelectedItem();
@@ -197,8 +194,7 @@ public class QualifiedDatePanel extends JPanel{
 		final DateType singleDateType = DateType.fromNode(singleDate);
 		singleDateTypeCombo.setSelectedItem(singleDateType);
 
-		final FLEFRecord approximate = record.getTheOnlyChild(QualifiedDatePanel.TAG_APPROXIMATE);
-		approxPanel.loadFromRecord(approximate);
+		approxPanel.loadFromRecord(record);
 
 		calendarCombo.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
 		bindingManager.load(singleDate);

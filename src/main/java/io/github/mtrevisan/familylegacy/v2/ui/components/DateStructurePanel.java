@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -118,9 +119,9 @@ public class DateStructurePanel extends JPanel{
 		// Tabbed pane for date types
 		final JPanel pointPanel = new JPanel(new MigLayout("ins 0,fillx"));
 		pointPanel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
-		final JPanel valueWrapper = new JPanel(new MigLayout("ins 7,fillx", "[right]rel[grow]"));
+		final JPanel valueWrapper = GUIHelper.createLabelFieldPanel(7, "[]");
 		valueWrapper.setBorder(BorderFactory.createTitledBorder("Date"));
-		valueWrapper.add(pointDateValuePanel, "growx");
+		GUIHelper.addComponent(valueWrapper, pointDateValuePanel);
 		pointPanel.add(valueWrapper, "growx");
 		tabbedPane.addTab("Point", pointPanel);
 		tabbedPane.addTab("Bounded", boundedDateValuePanel);

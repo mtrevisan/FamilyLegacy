@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
+import java.util.Locale;
 
 
 public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDialog>{
@@ -79,8 +80,8 @@ public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDi
 			if(StringUtils.isNotEmpty(system))
 				details.append(system);
 			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, TAG_PHONETIC, details);
-			return String.format("%s [%s]", value, TAG_PHONETIC);
+				return String.format("%s [%s: %s]", value, TAG_PHONETIC.toLowerCase(Locale.ROOT), details);
+			return String.format("%s [%s]", value, TAG_PHONETIC.toLowerCase(Locale.ROOT));
 		}
 		else if(TAG_TRANSCRIPTION.equals(tag)){
 			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
@@ -96,8 +97,8 @@ public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDi
 				details.append(type);
 			}
 			if(!details.isEmpty())
-				return String.format("%s [%s: %s]", value, TAG_TRANSCRIPTION, details);
-			return String.format("%s [%s]", value, TAG_TRANSCRIPTION);
+				return String.format("%s [%s: %s]", value, TAG_TRANSCRIPTION.toLowerCase(Locale.ROOT), details);
+			return String.format("%s [%s]", value, TAG_TRANSCRIPTION.toLowerCase(Locale.ROOT));
 		}
 
 		return "--]";

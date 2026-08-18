@@ -45,6 +45,11 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
+	default Class<? extends RecordTypeHandler<?>> getHandlerClass(){
+		return (Class<? extends RecordTypeHandler<?>>)getClass();
+	}
+
 	/**
 	 * Returns the label for printing.
 	 */

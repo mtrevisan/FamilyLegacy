@@ -37,7 +37,6 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -113,9 +112,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		@SuppressWarnings("unchecked")
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			(Class<? extends RecordTypeHandler<?>>)recordHandler.getClass());
+			recordHandler.getHandlerClass());
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			result[0] = selectedRecord;
@@ -154,17 +152,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(record, path);
-		final List<FLEFRecord> entities = new ArrayList<>();
-		for(final FLEFRecord citation : citations){
-			final String entityId = citation.getValue();
-			if(entityId != null){
-				final FLEFRecord entity = model.getRecordById(entityId);
-				if(entity != null)
-					entities.add(entity);
-			}
-		}
-		setItems(entities);
+		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+		setItems(referencedEntities);
 	}
 
 	public void save(final FLEFRecord record){

@@ -40,6 +40,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -74,6 +75,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	private final RelationType relationType;
 
 	private final RecordTypeHandler<?> handler;
+
+	private FLEFRecord parentRecord;
 
 	private String parentEntityId;
 	private String parentEntityPath;
@@ -195,9 +198,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		@SuppressWarnings("unchecked")
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			(Class<? extends RecordTypeHandler<?>>)handler.getClass());
+			handler.getHandlerClass());
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			result[0] = selectedRecord;
@@ -233,12 +235,17 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			record  = model.getRecordById(xref);
 
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
-		if(dialog instanceof RelationshipRecordDialog relationshipDialog
-				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityPath))
-			relationshipDialog.withSubject(parentEntityId, parentEntityPath);
 		dialog.setVisible(true);
 
-		// Return the same record (it was updated in place)
+		if(dialog.isSaved() && parentRecord != null){
+			load(parentRecord);
+
+			if(!items.contains(record))
+				// record was removed
+				return null;
+		}
+
+		// return the same record (it was updated in place)
 		return record;
 	}
 
@@ -251,8 +258,15 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> entities = handler.extractEntities(record, path);
-		setItems(entities);
+		parentRecord = record;
+
+		List<FLEFRecord> entities = Collections.emptyList();
+		if(relationType == RelationType.RECORD)
+			entities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+		else if(relationType == RelationType.STRUCTURE)
+			entities = handler.extractEntities(record, path);
+		if(!entities.isEmpty())
+			setItems(entities);
 	}
 
 	/**
@@ -266,6 +280,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return;
 
+		parentRecord = model.getRecordById(recordId);
+
 		final List<FLEFRecord> references = handler.findReferences(model, recordId, parentEntityPath);
 		setItems(references);
 	}
@@ -275,6 +291,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 		if(recordId == null)
 			return;
+
+		parentRecord = model.getRecordById(recordId);
 
 		final List<FLEFRecord> references = model.getRecordsByType(handler.getType()).stream()
 			.filter(reference -> {

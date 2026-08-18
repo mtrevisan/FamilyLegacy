@@ -201,18 +201,16 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		final FLEFRecord participant = record.getTheOnlyChild(TAG_CANDIDATE);
-		candidateField.load(participant != null? participant.getTheOnlyChild(): null);
+		final FLEFRecord participant = FLEFRecordHelper.extractRecordFromReference(record, TAG_CANDIDATE, model);
+		candidateField.load(participant);
 
 		components.load(record);
 
 
 		// load parent subject reference
-		final FLEFRecord subject = FLEFRecordHelper.findChild(record, TAG_SUBJECT);
-		if(subject != null){
-			final FLEFRecord subjectEntity = subject.getTheOnlyChild();
-			withParentEntity(subjectEntity.getValue(), subjectEntity.getTag());
-		}
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, TAG_SUBJECT, model);
+		if(subject != null)
+			withParentEntity(subject.getId(), subject.getTag());
 	}
 
 	@Override

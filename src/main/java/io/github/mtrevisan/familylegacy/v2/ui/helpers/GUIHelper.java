@@ -38,7 +38,6 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -370,8 +369,9 @@ public final class GUIHelper{
 		return new JPanel(createMigLayout(insets, rowConstraints));
 	}
 
-	public static void setLayoutLabelFieldPanel(final JDialog dialog, final int insets, final String rowConstraints){
-		dialog.setLayout(createMigLayout(insets, rowConstraints));
+	public static void setLayoutLabelFieldPanel(final Container container, final int insets,
+			final String rowConstraints){
+		container.setLayout(createMigLayout(insets, rowConstraints));
 	}
 
 	private static MigLayout createMigLayout(final int insets, final String rowConstraints){

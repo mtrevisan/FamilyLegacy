@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JOptionPane;
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -139,6 +140,63 @@ public final class FLEFRecordHelper{
 			result.addAll(findChildren(parent, path));
 		return result;
 	}
+
+	public static List<FLEFRecord> extractRecordsFromCitations(final FLEFRecord record, final String citationPath,
+			final FLEFModel model){
+		final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, citationPath);
+		final List<FLEFRecord> referencedRecords = new ArrayList<>(entities.size());
+		for(final FLEFRecord entity : entities){
+			final String referencedRecordId = entity.getValue();
+			if(StringUtils.isEmpty(referencedRecordId))
+				continue;
+
+			final FLEFRecord referencedRecord = model.getRecordById(referencedRecordId);
+			if(referencedRecord != null && !referencedRecord.isEmpty())
+				referencedRecords.add(referencedRecord);
+		}
+		return referencedRecords;
+	}
+
+	public static FLEFRecord extractRecordFromReference(final FLEFRecord record, final String referencePath,
+			final FLEFModel model){
+		final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, referencePath);
+		final int size = entities.size();
+		if(size > 1){
+			JOptionPane.showMessageDialog(null, "Record with more than one child: " + record,
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		if(size == 0)
+			return null;
+
+		final FLEFRecord referenceRecord = entities.getFirst();
+		final List<FLEFRecord> citations = referenceRecord.getChildren();
+		if(citations.size() != 1){
+			JOptionPane.showMessageDialog(null, "Expected exactly 1 record for " + referencePath,
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		final FLEFRecord citation = citations.getFirst();
+		final String referencedTag = citation.getTag();
+		final String referencedRecordId = citation.getValue();
+		if(StringUtils.isEmpty(referencedRecordId))
+			return null;
+
+		final FLEFRecord referencedRecord = model.getRecordById(referencedRecordId);
+		if(referencedRecord != null && !referencedRecord.getTag().equals(referencedTag)){
+			JOptionPane.showMessageDialog(null, "Referenced tag differs from record tag",
+				"Error", JOptionPane.ERROR_MESSAGE);
+
+			return null;
+		}
+
+		return (referencedRecord != null && !referencedRecord.isEmpty()? referencedRecord: null);
+	}
+
 
 	/**
 	 * Finds all children that match any of the given dot‑separated tag paths.
