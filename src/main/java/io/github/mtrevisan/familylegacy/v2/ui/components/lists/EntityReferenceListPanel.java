@@ -70,9 +70,15 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		STRUCTURE
 	}
 
+	public enum ActorType{
+		SUBJECT,
+		OBJECT
+	}
+
 
 	private final String path;
 	private final RelationType relationType;
+	private final ActorType actorType;
 
 	private final RecordTypeHandler<?> handler;
 
@@ -95,8 +101,14 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	public static <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel createForRecord(
 			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
 			final T handlerType){
+		return createForRecord(path, parent, panelTitle, model, handlerType, null);
+	}
+
+	public static <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel createForRecord(
+			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
+			final T handlerType, final ActorType actorType){
 		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerType,
-			RelationType.RECORD);
+			RelationType.RECORD, actorType);
 	}
 
 	/**
@@ -113,7 +125,14 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
 			final T handlerClass){
 		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerClass,
-			RelationType.STRUCTURE);
+			RelationType.STRUCTURE, null);
+	}
+
+	public static <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel createForStructure(
+			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
+			final T handlerClass, final ActorType actorType){
+		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerClass,
+			RelationType.STRUCTURE, actorType);
 	}
 
 
@@ -129,11 +148,12 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	protected <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel(final String path,
 			final Dialog parent, final String panelTitle, final FLEFModel model, final T handlerClass,
-			final RelationType relationType){
+			final RelationType relationType, final ActorType actorType){
 		super(parent, panelTitle, model);
 
 		this.path = path;
 		this.relationType = relationType;
+		this.actorType = actorType;
 		this.handler = HandlerRegistry.getHandler(handlerClass);
 	}
 
@@ -214,8 +234,12 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
 		if(dialog instanceof RelationshipRecordDialog relationshipDialog
 				&& relationType == RelationType.RECORD
-				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityPath))
-			relationshipDialog.withSubject(parentEntityId, parentEntityPath);
+				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityPath)){
+			if(actorType == ActorType.SUBJECT)
+				relationshipDialog.withSubject(parentEntityId, parentEntityPath);
+			else if(actorType == ActorType.OBJECT)
+				relationshipDialog.withObject(parentEntityId, parentEntityPath);
+		}
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);

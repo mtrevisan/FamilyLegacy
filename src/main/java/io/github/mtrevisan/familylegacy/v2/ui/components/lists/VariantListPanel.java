@@ -49,7 +49,7 @@ public class VariantListPanel extends EntityReferenceListPanel{
 
 
 	public VariantListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
-		super(path, parent, panelTitle, model, VariantHandler.class, RelationType.STRUCTURE);
+		super(path, parent, panelTitle, model, VariantHandler.class, RelationType.STRUCTURE, null);
 	}
 
 

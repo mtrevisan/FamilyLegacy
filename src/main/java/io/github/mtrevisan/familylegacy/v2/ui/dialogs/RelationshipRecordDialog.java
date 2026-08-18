@@ -98,12 +98,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -6390551689993360839L;
 
 
-	protected enum ActorType{
-		SUBJECT,
-		OBJECT
-	}
-
-
 	private static final String TAG_SUBJECT = "SUBJECT";
 	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_TYPE = "TYPE";
@@ -139,8 +133,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
-
-	private ActorType actorType;
 
 	private final ParticipantField subjectField;
 	private final BoundComboBox<String> subjectTypeCombo;
@@ -250,11 +242,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
-
 		// subject
 		GUIHelper.addLabeledComponent(propertiesPanel, "Subject*:", subjectField);
-		GUIHelper.setComponentVisible(subjectField, (showAll || actorType != ActorType.SUBJECT));
 
 		// (subject) type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Subject Type*:", subjectTypeCombo);
@@ -264,7 +253,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		// object
 		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
-		GUIHelper.setComponentVisible(objectField, (showAll || actorType != ActorType.OBJECT));
 
 		// status
 		GUIHelper.addLabeledComponent(propertiesPanel, "Status:", statusCombo);
@@ -368,7 +356,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
 			subjectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
-			actorType = ActorType.SUBJECT;
+
+			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
+			GUIHelper.setComponentVisible(subjectField, showAll);
+			GUIHelper.setComponentVisible(objectField, true);
 		}
 
 		refreshLayout();
@@ -381,7 +372,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
 			objectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
-			actorType = ActorType.OBJECT;
+
+			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
+			GUIHelper.setComponentVisible(subjectField, true);
+			GUIHelper.setComponentVisible(objectField, showAll);
 		}
 
 		refreshLayout();

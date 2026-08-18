@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationLis
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 
 import javax.swing.JPanel;
@@ -77,22 +78,38 @@ public final class RecordDialogComponents{
 			final FLEFModel model, final FLEFRecord record){
 		return switch(key){
 			case
-				// IndividualAttributeRecord (individual = this individual)
-				INDIVIDUAL_ATTRIBUTE,
-				// GroupAttributeRecord (group = this group)
-				GROUP_ATTRIBUTE,
-
 				// RelationshipRecord (subject = this individual)
 				// RelationshipRecord (subject = this group)
 				RELATIONSHIP_AS_SUBJECT,
+
+				// PlaceRelationshipRecord (subject = this place)
+				PLACE_RELATIONSHIP_AS_SUBJECT -> {
+					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(), owner,
+						cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.SUBJECT);
+					if(record != null)
+						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+					yield panel;
+				}
+
+			case
 				// RelationshipRecord (object = this individual)
 				// RelationshipRecord (object = this group)
 				RELATIONSHIP_AS_OBJECT,
 
-				// PlaceRelationshipRecord (subject = this place)
-				PLACE_RELATIONSHIP_AS_SUBJECT,
 				// PlaceRelationshipRecord (object = this place)
-				PLACE_RELATIONSHIP_AS_OBJECT,
+				PLACE_RELATIONSHIP_AS_OBJECT -> {
+					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(), owner,
+						cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.OBJECT);
+					if(record != null)
+						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+					yield panel;
+				}
+
+			case
+				// IndividualAttributeRecord (individual = this individual)
+				INDIVIDUAL_ATTRIBUTE,
+				// GroupAttributeRecord (group = this group)
+				GROUP_ATTRIBUTE,
 
 				// EventParticipationRecord (participant.individual = this individual)
 				// EventParticipationRecord (participant.group = this group)
