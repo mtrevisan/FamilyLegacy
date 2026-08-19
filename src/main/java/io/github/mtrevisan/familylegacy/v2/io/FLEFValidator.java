@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefini
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,6 +52,8 @@ public class FLEFValidator{
 
 	private static final String DOT = ".";
 	private static final String FIELD_HEADER = "header";
+
+	private static final String TAG_VOID = "VOID";
 
 
 	private final FLEFGrammar grammar;
@@ -239,19 +240,17 @@ public class FLEFValidator{
 			final String path = current.path();
 
 			// Verify reference node target resolution
-			if(record.isReference()){
-				if(record.isVoid()){
+			if(!TAG_VOID.equals(record.getValue())){
+				if(record.getChildren().isEmpty()){
 					if(record.getValue() != null && !record.getValue().isBlank())
 						errors.add(String.format("Void reference at '%s' must not specify a target identifier", path));
 				}
 				else{
 					final String targetId = record.getValue();
-					if(XRefHelper.isReference(targetId)){
-						final FLEFRecord target = model.getRecordById(targetId);
-						if(target == null)
-							errors.add(String.format("Unresolved cross-reference '%s' at '%s': target record does not exist",
-								targetId, path));
-					}
+					final FLEFRecord target = model.getRecordById(targetId);
+					if(target == null)
+						errors.add(String.format("Unresolved cross-reference '%s' at '%s': target record does not exist",
+							targetId, path));
 				}
 			}
 

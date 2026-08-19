@@ -176,9 +176,9 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, ResearchQuestionHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, ResearchQuestionHandler.class)
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, TAG_RESEARCH_ACTIVITY, "Research Activities", ResearchActivityHandler.class, ResearchQuestionHandler.class)
-			.withComponent(PanelKey.RESEARCH_TASK, TAG_RESEARCH_TASK, "Research Tasks", ResearchTaskHandler.class, ResearchQuestionHandler.class)
+			.withCitationComponent(PanelKey.RESEARCH_TASK, TAG_RESEARCH_TASK, TAG_TARGET, "Research Tasks", ResearchTaskHandler.class, ResearchQuestionHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -240,7 +240,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		final JPanel researchTaskPanel = components.getPanel(PanelKey.RESEARCH_TASK);
 		GUIHelper.addComponent(panel, researchTaskPanel);
 
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		return panel;

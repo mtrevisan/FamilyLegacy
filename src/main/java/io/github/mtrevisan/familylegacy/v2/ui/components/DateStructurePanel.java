@@ -102,7 +102,7 @@ public class DateStructurePanel extends JPanel{
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceHandler.class);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, TAG_SOURCE, parent, "Sources", model, SourceHandler.class);
 		qualifiers = new EvidenceQualifiersPanel(null, parent, "Evidence", model, null);
 
 

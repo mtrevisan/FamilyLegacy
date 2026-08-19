@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -131,7 +130,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]10[]");
 
 		contextField = new BoundTextField(TAG_CONTEXT);
-		resolvesPanel = EntityReferenceListPanel.createForStructure(TAG_RESOLVES, this, "Resolves", model, ConclusionTargetHandler.class);
+		resolvesPanel = EntityReferenceListPanel.createForRecord(TAG_RESOLVES, this, "Resolves", model, ConclusionTargetHandler.class);
 		resolvesPanel.addPropertyChangeListener(PROPERTY_CONCLUSION, evt -> updatePreferredCombo());
 		preferredCombo = new BoundComboBox<>(TAG_PREFERRED);
 		preferredCombo.setRenderer(new DefaultListCellRenderer(){
@@ -140,10 +139,10 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 					final boolean isSelected, final boolean cellHasFocus){
 				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
-				var conclusionTargetHandler = HandlerRegistry.getHandler(ConclusionTargetHandler.class);
-				final String displayText = (value != null && conclusionTargetHandler != null
-					? conclusionTargetHandler.getDisplayText((FLEFRecord)value, model)
-					: null);
+				var handler = HandlerRegistry.getHandler(ConclusionTargetHandler.class);
+				final String displayText = (value != null
+					? handler.getDisplayText((FLEFRecord)value, model)
+					: StringUtils.SPACE);
 				setText(displayText);
 
 				return this;
@@ -158,8 +157,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, ConclusionHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, ConclusionHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -200,7 +199,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	protected JPanel createResearchPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;
@@ -238,32 +237,28 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		updatePreferredCombo();
 
 		// preferred
-		final String prefRef = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED);
-		if(StringUtils.isNotEmpty(prefRef)){
+		final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromReference(record, TAG_PREFERRED, model);
+		if(preferred != null && !preferred.isEmpty())
 			// Find and select in combo
-			final FLEFRecord pref = model.getRecordById(prefRef);
-			preferredCombo.setSelectedItem(pref);
-			for(int i = 0; i < preferredCombo.getItemCount(); i ++){
-				final FLEFRecord item = preferredCombo.getItemAt(i);
-				if(item != null && item.getValue().equals(prefRef))
-					preferredCombo.setSelectedIndex(i);
-			}
-		}
+			preferredCombo.setSelectedItem(preferred);
 
 		components.load(record);
 	}
 
 	private void updatePreferredCombo(){
 		final FLEFRecord currentSelection = (FLEFRecord)preferredCombo.getSelectedItem();
-		final DefaultComboBoxModel<FLEFRecord> model = new DefaultComboBoxModel<>();
-		model.addElement(null);
-		for(final FLEFRecord resolve : resolvesPanel.getItems())
-			model.addElement(resolve);
+		final DefaultComboBoxModel<FLEFRecord> comboBoxModel = new DefaultComboBoxModel<>();
+		comboBoxModel.addElement(null);
+		for(final FLEFRecord resolve : resolvesPanel.getItems()){
+			final FLEFRecord item = model.getRecordById(resolve.getValue());
+			comboBoxModel.addElement(item);
+		}
 		preferredCombo.removeAllItems();
-		preferredCombo.setModel(model);
+		preferredCombo.setModel(comboBoxModel);
 
-		if(currentSelection != null && !currentSelection.isEmpty())
-			preferredCombo.setSelectedItem(currentSelection);
+		preferredCombo.setSelectedItem(currentSelection != null && !currentSelection.isEmpty()
+			? currentSelection
+			: null);
 	}
 
 	@Override
@@ -295,10 +290,9 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		resolvesPanel.save(record);
 
 		// preferred
-		FLEFRecordHelper.removeChildren(record, TAG_PREFERRED);
 		final FLEFRecord selectedPreferred = (FLEFRecord)preferredCombo.getSelectedItem();
 		if(selectedPreferred != null)
-			FLEFRecordHelper.updateChildValue(record, TAG_PREFERRED, XRefHelper.formatXRef(selectedPreferred.getValue()));
+			FLEFRecordHelper.updateChildValue(record, TAG_PREFERRED, selectedPreferred.getValue());
 	}
 
 

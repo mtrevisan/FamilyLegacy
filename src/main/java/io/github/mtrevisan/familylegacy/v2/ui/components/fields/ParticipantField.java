@@ -60,6 +60,7 @@ public class ParticipantField extends BoundTextField{
 
 	private final FLEFModel model;
 
+	private boolean isDirect;
 	private List<Class<? extends RecordTypeHandler<?>>> handlerTypes;
 
 	private FLEFRecord participantRecord;
@@ -75,6 +76,14 @@ public class ParticipantField extends BoundTextField{
 	 */
 	public static ParticipantField create(final String path, final Dialog parent, final FLEFModel model){
 		return new ParticipantField(path, parent, model);
+	}
+
+	public static ParticipantField create(final String path, final Dialog parent, final FLEFModel model,
+			final Class<? extends RecordTypeHandler<?>> handlerType){
+		final ParticipantField field = new ParticipantField(path, parent, model);
+		field.isDirect = true;
+		field.setHandlerTypes(handlerType);
+		return field;
 	}
 
 
@@ -94,9 +103,8 @@ public class ParticipantField extends BoundTextField{
 
 	private void initComponents(){
 		GUIHelper.installBehavior(this,
-			this::editItem,
-			null,
-			null,
+			this::editItem, null,
+			null, null,
 			builder -> {
 				builder.item("Add Existing…", this::addItem);
 				builder.separator();
@@ -187,7 +195,15 @@ public class ParticipantField extends BoundTextField{
 		if(record == null || record.isEmpty())
 			return;
 
-		setParticipant(record);
+		FLEFRecord participant = null;
+		if(isDirect){
+			final FLEFRecord participantCitation = FLEFRecordHelper.findChild(record, path);
+			if(participantCitation != null)
+				participant = model.getRecordById(participantCitation.getValue());
+		}
+		else
+			participant = FLEFRecordHelper.extractRecordFromReference(record, path, model);
+		setParticipant(participant);
 	}
 
 	/**
@@ -197,14 +213,20 @@ public class ParticipantField extends BoundTextField{
 	 * @param targetRecord	the record to save into
 	 */
 	public void saveReferences(final FLEFRecord targetRecord){
-		FLEFRecordHelper.removeChildren(targetRecord, path);
-
 		if(hasData()){
-			final FLEFRecord parentNode = FLEFRecord.createChildWithTag(path);
-			final String tag = participantRecord.getTag();
-			final String id = participantRecord.getFormattedId();
-			final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, id);
-			parentNode.addChild(child);
+			final FLEFRecord parentNode;
+			if(isDirect){
+				final String id = participantRecord.getFormattedId();
+				parentNode = FLEFRecord.createChildWithTag(path)
+					.setValue(id);
+			}
+			else{
+				final String tag = participantRecord.getTag();
+				final String id = participantRecord.getFormattedId();
+				final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, id);
+				parentNode = FLEFRecord.createChildWithTag(path)
+					.addChild(child);
+			}
 			targetRecord.addChild(parentNode);
 		}
 	}

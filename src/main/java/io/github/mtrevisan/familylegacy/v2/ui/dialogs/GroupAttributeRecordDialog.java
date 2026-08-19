@@ -155,9 +155,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, GroupAttributeHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupAttributeHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupAttributeHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupAttributeHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupAttributeHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
@@ -217,11 +217,11 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// conclusion
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		// research question
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;

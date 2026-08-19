@@ -62,16 +62,15 @@ public class FLEFModel{
 	}
 
 	public void addRecord(final FLEFRecord record){
-		String id = FLEFRecordHelper.getChildValue(record, "id");
-		if(id == null)
-			id = record.getId();
+		final String id = record.getId();
 		if(id != null){
+			record.setId(id);
+
 			if(recordsById.containsKey(id))
 				// Optionally remove existing record to allow replacement/update
 				removeRecord(id);
 
-			final String cleanId = XRefHelper.extractXRef(id);
-			recordsById.put(cleanId, record);
+			recordsById.put(id, record);
 		}
 
 		records.add(record);
@@ -87,16 +86,14 @@ public class FLEFModel{
 		if(id == null)
 			return null;
 
-		final String cleanId = XRefHelper.extractXRef(id);
-		return recordsById.get(cleanId);
+		return recordsById.get(id);
 	}
 
 	public void removeRecord(final String id){
 		if(id == null)
 			return;
 
-		final String cleanId = XRefHelper.extractXRef(id);
-		final FLEFRecord record = recordsById.remove(cleanId);
+		final FLEFRecord record = recordsById.remove(id);
 
 		if(record != null){
 			records.remove(record);
@@ -115,8 +112,7 @@ public class FLEFModel{
 		if(id == null)
 			return false;
 
-		final String cleanId = XRefHelper.extractXRef(id);
-		return recordsById.containsKey(cleanId);
+		return recordsById.containsKey(id);
 	}
 
 	public int getRecordCount(){

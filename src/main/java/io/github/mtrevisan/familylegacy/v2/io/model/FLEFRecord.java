@@ -44,6 +44,8 @@ public class FLEFRecord{
 
 	private static final String PARAM_ID = "id";
 
+	private static final String TAG_VOID = "VOID";
+
 
 	private String tag;
 
@@ -84,14 +86,14 @@ public class FLEFRecord{
 
 
 	public String getId(){
-		return XRefHelper.extractXRef(id);
+		return id;
 	}
 
 	public String findRecordId(){
 		String id = null;
 		for(final FLEFRecord child : children)
 			if(PARAM_ID.equals(child.getTag()))
-				id = XRefHelper.extractXRef(child.getValue());
+				id = child.getValue();
 		return id;
 	}
 
@@ -100,7 +102,7 @@ public class FLEFRecord{
 	}
 
 	public FLEFRecord setId(final String id){
-		this.id = XRefHelper.formatXRef(id);
+		this.id = id;
 
 		return this;
 	}
@@ -161,7 +163,7 @@ public class FLEFRecord{
 	}
 
 	public FLEFRecord addChild(final FLEFRecord child){
-		if(child == null || child.isEmpty())
+		if(child == null || child.isEmpty() && !TAG_VOID.equals(child.getTag()))
 			return this;
 
 		return forceAddChild(child);
@@ -238,21 +240,6 @@ public class FLEFRecord{
 
 	public boolean hasData(){
 		return (id != null && !id.isEmpty() || value != null && !value.isEmpty() || hasChildren());
-	}
-
-	/**
-	 * Checks whether this record's value is a reference to another record
-	 * (i.e. wrapped in @...@, but not the special @VOID@ constant).
-	 */
-	public boolean isReference(){
-		return XRefHelper.isReference(value);
-	}
-
-	/**
-	 * Checks whether this record's value is the special @VOID@ constant.
-	 */
-	public boolean isVoid(){
-		return XRefHelper.isVoidReference(value);
 	}
 
 	public boolean isEmpty(){

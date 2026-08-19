@@ -70,14 +70,13 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 		String contextDisplay = extractReferenceDisplay(record, model, TAG_CONTEXT);
 		if(StringUtils.isEmpty(contextDisplay))
 			contextDisplay = "Unknown Context";
-		sb.append("Context: ")
-			.append(contextDisplay);
+		sb.append(contextDisplay);
 
 		// 2. Extract the target reference (oneof: many possible types)
 		String targetDisplay = extractReferenceDisplay(record, model, TAG_TARGET);
 		if(StringUtils.isEmpty(targetDisplay))
 			targetDisplay = "Unknown Target";
-		sb.append(" → Target: ")
+		sb.append(" → ")
 			.append(targetDisplay);
 
 		// 3. Add impact type if present

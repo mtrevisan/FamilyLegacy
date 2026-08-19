@@ -99,9 +99,8 @@ public class IndividualField extends JPanel{
 			final Runnable newAction, final Runnable addAction, final Runnable editAction,
 			final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			editAction,
-			null,
-			null,
+			editAction, null,
+			null, null,
 			builder -> {
 				builder.item("Create New…", newAction);
 				builder.item("Add Existing…", addAction);
@@ -142,8 +141,6 @@ public class IndividualField extends JPanel{
 	}
 
 	public void saveReferences(final FLEFRecord targetRecord){
-		FLEFRecordHelper.removeChildren(targetRecord, path);
-
 		if(record != null)
 			FLEFRecordHelper.updateChildValue(targetRecord, path, record.getFormattedId());
 	}

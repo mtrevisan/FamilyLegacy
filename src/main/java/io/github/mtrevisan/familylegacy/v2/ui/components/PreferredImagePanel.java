@@ -117,9 +117,8 @@ public class PreferredImagePanel extends JPanel{
 		imageButton.setToolTipText("Left-click to select an image, right-click for options");
 
 		GUIHelper.installBehavior(imageButton,
-			null,
-			null,
-			null,
+			null, null,
+			null, null,
 			builder -> {
 				builder.item("Create New…", this::createNewItem);
 				builder.separator();
@@ -172,8 +171,6 @@ public class PreferredImagePanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
 		if(uri != null && !uri.isEmpty()){
 			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
 			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, uri);

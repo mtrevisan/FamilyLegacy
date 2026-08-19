@@ -126,8 +126,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, GroupHandler.class);
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		namePanel = EntityReferenceListPanel.createForStructure(
-			TAG_NAME, this, "Names", model, ClassifiedNameHandler.class);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names", model, ClassifiedNameHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
@@ -137,14 +136,14 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.GROUP_ATTRIBUTE, TAG_GROUP_ATTRIBUTE, "Group Attributes", GroupAttributeHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_AS_SUBJECT, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_AS_OBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -189,10 +188,10 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	protected JPanel createRelationshipsPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		final JPanel memberPanel = components.getPanel(PanelKey.RELATIONSHIP_AS_SUBJECT);
+		final JPanel memberPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, memberPanel);
 
-		final JPanel relationshipPanel = components.getPanel(PanelKey.RELATIONSHIP_AS_OBJECT);
+		final JPanel relationshipPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
 		GUIHelper.addComponent(panel, relationshipPanel);
 
 		return panel;
@@ -222,13 +221,13 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	protected JPanel createResearchPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
-		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS);
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE);
 		GUIHelper.addComponent(panel, identityHypothesisPanel);
 
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;

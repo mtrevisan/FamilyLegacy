@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualAttributeRecordDialog;
 import org.apache.commons.lang3.StringUtils;
 
@@ -71,7 +70,7 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 				final List<FLEFRecord> individuals = FLEFRecordHelper.findChildren(attribute, TAG_INDIVIDUAL);
 				for(final FLEFRecord individual : individuals){
 					final String resolveTag = individual.getTag();
-					final String resolveXRef = XRefHelper.extractXRef(individual.getValue());
+					final String resolveXRef = individual.getValue();
 					if(resolveTag.equals(parentEntityType) && resolveXRef.equals(recordId))
 						return true;
 

@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -61,6 +60,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private final String path;
+	private final String citationTag;
 
 	private final RecordTypeHandler<?> recordHandler;
 
@@ -69,16 +69,18 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	 * Constructs a CitationListPanel with all necessary behavior.
 	 *
 	 * @param path	the record path where citations are stored
+	 * @param citationTag	The tag containing the xref id of the cited record
 	 * @param parent	the parent dialog
 	 * @param panelTitle	the border title
 	 * @param model	the FLEF model
 	 * @param recordHandlerType	the type of the target entity handler
 	 */
-	public EntityCitationListPanel(final String path, final Dialog parent, final String panelTitle,
-			final FLEFModel model, final Class<? extends RecordTypeHandler<?>> recordHandlerType){
+	public EntityCitationListPanel(final String path, final String citationTag, final Dialog parent,
+			final String panelTitle, final FLEFModel model, final Class<? extends RecordTypeHandler<?>> recordHandlerType){
 		super(parent, panelTitle, model);
 
 		this.path = path;
+		this.citationTag = citationTag;
 
 		recordHandler = HandlerRegistry.getHandler(recordHandlerType);
 	}
@@ -89,9 +91,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
+			this::editItem, this::editTargetItem,
+			this::createNewItem, this::removeItem,
 			builder -> {
 				builder.item("Create New…", this::createNewItem);
 				builder.item("Add Existing…", this::addItem);
@@ -105,16 +106,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	@Override
-	protected String getDisplayText(final FLEFRecord citation){
-		final String entityId = findTargetEntityId(citation);
-		if(entityId != null){
-			final FLEFRecord entity = model.getRecordById(entityId);
-			if(entity != null)
-				return recordHandler.getDisplayText(entity, model);
-			return entityId;
-		}
-
-		return "--";
+	protected String getDisplayText(final FLEFRecord record){
+		return recordHandler.getDisplayText(record, model);
 	}
 
 	@Override
@@ -149,7 +142,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			if(newEntity != null){
 				final String newEntityId = newEntity.getId();
 				final FLEFRecord citation = FLEFRecord.createEmpty();
-				FLEFRecordHelper.updateChildValue(citation, recordHandler.getType(), XRefHelper.formatXRef(newEntityId));
+				FLEFRecordHelper.updateChildValue(citation, recordHandler.getType(), newEntityId);
 
 				final JDialog citationDialog = createCitationEditDialog(citation);
 				citationDialog.setVisible(true);
@@ -184,22 +177,19 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		if(idx == -1)
 			return;
 
-		final FLEFRecord citation = items.get(idx);
-		final String entityId = findTargetEntityId(citation);
-		if(entityId != null){
-			final FLEFRecord entity = model.getRecordById(entityId);
-			final JDialog dialog = createTargetEditDialog(entity);
-			dialog.setVisible(true);
+		final FLEFRecord entity = items.get(idx);
+		final JDialog dialog = createTargetEditDialog(entity);
+		dialog.setVisible(true);
 
-			if(isDialogSaved(dialog))
-				listModel.setElementAt(getDisplayText(citation), idx);
-		}
+		if(isDialogSaved(dialog))
+			listModel.setElementAt(getDisplayText(entity), idx);
 	}
 
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromReference(record, path,
+			citationTag, model);
 		setItems(referencedEntities);
 	}
 
@@ -215,7 +205,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 		for(final FLEFRecord child : citation.getChildren())
 			if(recordHandler.getType().equals(child.getTag()))
-				return XRefHelper.extractXRef(child.getValue());
+				return child.getValue();
 		return null;
 	}
 

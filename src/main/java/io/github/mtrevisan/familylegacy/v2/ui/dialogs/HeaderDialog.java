@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -225,8 +224,6 @@ public class HeaderDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.removeAllChildren(record);
-
 		if(dateField.isEmpty())
 			dateField.setText(LocalDate.now(ZoneOffset.UTC).toString());
 

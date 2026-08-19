@@ -80,6 +80,9 @@ public final class HandlerRegistry{
 	 */
 	public static RecordTypeHandler<?> getHandler(final String handlerClassType){
 		final Class<? extends RecordTypeHandler<?>> handlerClass = getHandlerClass(handlerClassType);
+		if(handlerClass == null)
+			return null;
+
 		return handlers.computeIfAbsent(handlerClass, k -> {
 			try{
 				return k.getDeclaredConstructor()
@@ -127,6 +130,9 @@ public final class HandlerRegistry{
 	 * @return the class that extends {@link RecordTypeHandler}, or {@code null} if not found
 	 */
 	public static Class<? extends RecordTypeHandler<?>> getHandlerClass(final String type){
+		if(type == null)
+			return null;
+
 		Class<? extends RecordTypeHandler<?>> handlerClass = HANDLER_MAP.get(type);
 		if(handlerClass == null){
 			scanHandlers(CauseHandler.class);
@@ -143,7 +149,8 @@ public final class HandlerRegistry{
 	 * @param sampleClass any class belonging to the package to scan
 	 */
 	private static void scanHandlers(final Class<?> sampleClass){
-		final String packageName = sampleClass.getPackage().getName();
+		final String packageName = sampleClass.getPackage()
+			.getName();
 		scanHandlers(packageName);
 	}
 
@@ -164,12 +171,13 @@ public final class HandlerRegistry{
 				final String protocol = resource.getProtocol();
 				if("file".equals(protocol)){
 					// File-system directory
-					final File directory = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8.name()));
+					final File directory = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8));
 					scanDirectory(packageName, directory);
 				}
 				else if("jar".equals(protocol)){
 					// JAR entry
-					final String jarPath = resource.getPath().substring(5, resource.getPath().indexOf("!"));
+					final String jarPath = resource.getPath()
+						.substring(5, resource.getPath().indexOf("!"));
 					scanJar(jarPath, packageName);
 				}
 				// Other protocols (e.g., "war", "bundle") are not handled for simplicity
@@ -221,7 +229,8 @@ public final class HandlerRegistry{
 				// Match class files directly under the package path (including subpackages)
 				if(name.startsWith(packagePath) && name.endsWith(".class") && !name.contains("$")){
 					// Convert path to fully-qualified class name
-					final String className = name.replace('/', '.').replace(".class", StringUtils.EMPTY);
+					final String className = name.replace('/', '.')
+						.replace(".class", StringUtils.EMPTY);
 					processClass(className);
 				}
 			}

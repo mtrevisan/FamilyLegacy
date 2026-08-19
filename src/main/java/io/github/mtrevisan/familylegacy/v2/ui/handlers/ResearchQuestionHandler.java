@@ -48,7 +48,7 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 
 	@Override
 	public String getLabel(){
-		return "Research Status";
+		return "Research Question";
 	}
 
 	@Override

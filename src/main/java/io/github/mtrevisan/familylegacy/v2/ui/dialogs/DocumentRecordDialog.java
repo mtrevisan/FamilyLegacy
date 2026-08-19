@@ -116,9 +116,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		fileField = new BoundTextField(TAG_FILE);
 		GUIHelper.installBehavior(fileField,
-			null,
-			null,
-			null,
+			null, null,
+			null, null,
 			builder -> {
 				builder.item("Set…", this::setNewItem);
 				builder.separator();
@@ -133,8 +132,8 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, DocumentHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, DocumentHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -191,7 +190,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
 		// research question
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;

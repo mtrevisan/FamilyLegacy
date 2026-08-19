@@ -79,9 +79,8 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
+			this::editItem, null,
+			this::createNewItem, this::removeItem,
 			builder -> {
 				builder.item("Create New…", this::createNewItem);
 				builder.separator();
@@ -93,8 +92,14 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord note){
+		final String date = FLEFRecordHelper.getChildValuesAsString(note, TAG_DATE);
 		final String comment = FLEFRecordHelper.getChildValuesAsString(note, noteTag);
-		return (comment != null? comment : "--");
+		final StringBuilder sb = new StringBuilder();
+		sb.append('(')
+			.append(date)
+			.append(") ")
+			.append(comment);
+		return sb.toString();
 	}
 
 	@Override
@@ -145,11 +150,10 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final String text = textArea.getText()
 			.trim();
-		if(result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)){
+		if(result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text))
 			FLEFRecordHelper.updateChildValue(record, noteTag, text);
-			return record;
-		}
-		return null;
+
+		return record;
 	}
 
 	/**
@@ -170,8 +174,6 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
 		final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, path);
 		for(final FLEFRecord item : getItems()){
 			final FLEFRecord date = FLEFRecordHelper.findChild(item, TAG_DATE);

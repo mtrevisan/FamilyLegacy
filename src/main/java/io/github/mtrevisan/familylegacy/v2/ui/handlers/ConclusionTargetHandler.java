@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 import java.util.ArrayList;
@@ -86,7 +86,7 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 					final FLEFRecord resolveCitation = resolve.getTheOnlyChild();
 					if(resolveCitation != null && !resolveCitation.isEmpty()){
 						final String resolveTag = resolveCitation.getTag();
-						final String resolveXRef = XRefHelper.extractXRef(resolveCitation.getValue());
+						final String resolveXRef = resolveCitation.getValue();
 						if(resolveTag.equals(parentEntityType) && resolveXRef.equals(recordId))
 							return true;
 					}
@@ -102,16 +102,7 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 			return "--";
 
 		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
-
-		if(ConclusionHandler.class.equals(handler.getClass()))
-			return handler.getDisplayText(record, model);
-
-		final String recordId = record.getValue();
-		final FLEFRecord parentRecord = model.getRecordById(recordId);
-		if(parentRecord == null)
-			return "--";
-
-		return handler.getDisplayText(parentRecord, model);
+		return (handler != null? handler.getDisplayText(record, model): StringUtils.EMPTY);
 	}
 
 	@Override

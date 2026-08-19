@@ -40,6 +40,9 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 	public static final String TYPE = "IDENTITY_HYPOTHESIS";
 	public static final String ID_PREFIX = "IH";
 
+	private static final String TAG_SUBJECT = "SUBJECT";
+	private static final String TAG_CANDIDATE = "CANDIDATE";
+
 
 	@Override
 	public String getType(){
@@ -64,18 +67,17 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 		String subjectId = null;
 		String candidateId = null;
 
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, "SUBJECT", model);
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, TAG_SUBJECT, model);
 		if(subject != null)
 			subjectId = subject.getId();
 
-		final FLEFRecord candidate = FLEFRecordHelper.extractRecordFromReference(record, "CANDIDATE", model);
+		final FLEFRecord candidate = FLEFRecordHelper.extractRecordFromReference(record, TAG_CANDIDATE, model);
 		if(candidate != null)
 			candidateId = candidate.getId();
 
-		if(subjectId != null && candidateId != null){
+		if(subjectId != null && candidateId != null)
 			return subjectId + " ↔ " + candidateId;
-		}
-		return record.getId() != null? record.getId(): "(unnamed)";
+		return (record.getId() != null? record.getId(): "(unnamed)");
 	}
 
 	@Override

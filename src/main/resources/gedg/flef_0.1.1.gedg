@@ -287,8 +287,8 @@ record IndividualAttributeRecord {
 // Implementations SHOULD validate participant types according to the EVENT type when such constraints are known.
 record EventParticipationRecord {
   id: LocalID
-  event: Xref<EventRecord>         // the event in which the entity participated
   participant: EventParticipant    // may reference any record type capable of participating in an event, including individuals, groups, or future extensible entities
+  event: Xref<EventRecord>         // the event in which the entity participated
   role?: enum {                    // optional because the role may be unknown or not applicable
     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
     landlord, tenant, soldier, commander, victim, survivor, accused, judge

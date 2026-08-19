@@ -377,8 +377,6 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Saves list elements into a target FLEFRecord path when {@code T} is {@code FLEFRecord}.
 	 */
 	public final void save(final FLEFRecord record, final String path){
-		FLEFRecordHelper.removeChildren(record, path);
-
 		if(items.isEmpty())
 			return;
 

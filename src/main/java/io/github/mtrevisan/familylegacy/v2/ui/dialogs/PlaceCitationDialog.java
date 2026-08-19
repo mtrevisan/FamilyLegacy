@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -102,7 +101,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, PlaceCitationHandler.class)
 			.build();
 
@@ -168,7 +167,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, XRefHelper.formatXRef(place.getText()));
+		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, place.getText());
 
 		components.save(record);
 	}

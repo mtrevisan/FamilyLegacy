@@ -36,6 +36,9 @@ import java.util.List;
  */
 public final class ReferenceType extends TypeDefinition{
 
+	private static final String TAG_VOID = "VOID";
+
+
 	private final String targetTypeName;
 	private final boolean voidable;
 
@@ -60,7 +63,8 @@ public final class ReferenceType extends TypeDefinition{
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 			final FLEFGrammar grammar, final List<String> errors){
 		// 1. Syntactic validation: Check if node is a reference format
-		if(!record.isReference()){
+		final FLEFRecord referencedRecord = model.getRecordById(record.getValue());
+		if(referencedRecord == null){
 			errors.add(String.format("Expected cross-reference at '%s'", contextPath));
 
 			return;
@@ -68,7 +72,7 @@ public final class ReferenceType extends TypeDefinition{
 
 		// 2. Syntactic validation: Check voidability
 		// A valid VOID reference has no target ID to resolve
-		if(record.isVoid() && !voidable)
+		if(TAG_VOID.equals(record.getTag()) && !voidable)
 			errors.add(String.format("Void reference not allowed at '%s'", contextPath));
 	}
 

@@ -101,13 +101,32 @@ public final class FLEFRecordHelper{
 	 * Finds all children with the given tag.
 	 *
 	 * @param parent	The parent record.
+	 * @param paths	The array of dot‑separated tag paths to search for (e.g. "[GROUP, ROOT.RESTRICTION[2].CODE]").
+	 * @return	A (unordered) list of matching child records.
+	 */
+	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String... paths){
+		final List<FLEFRecord> result = new ArrayList<>();
+		if(parent == null || paths == null)
+			return result;
+
+		for(final String path : paths)
+			result.addAll(findChildren(parent, path));
+		return result;
+	}
+
+	/**
+	 * Finds all children with the given tag.
+	 *
+	 * @param parent	The parent record.
 	 * @param path	The dot‑separated tag path to search for (e.g. "ROOT.RESTRICTION[2].CODE").
 	 * @return	A list of matching child records.
 	 */
 	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String path){
 		final List<FLEFRecord> result = new ArrayList<>();
-		if(parent == null || StringUtils.isEmpty(path))
+		if(parent == null)
 			return result;
+		if(StringUtils.isEmpty(path))
+			return parent.getChildren();
 
 		final String[] segments = StringUtils.split(path, '.');
 		final FLEFRecord targetParent = navigateToParent(parent, segments);
@@ -121,23 +140,6 @@ public final class FLEFRecordHelper{
 		for(final FLEFRecord child : targetParent.getChildren())
 			if(seg.tag.equals(child.getTag()))
 				result.add(child);
-		return result;
-	}
-
-	/**
-	 * Finds all children with the given tag.
-	 *
-	 * @param parent	The parent record.
-	 * @param paths	The array of dot‑separated tag paths to search for (e.g. "[GROUP, ROOT.RESTRICTION[2].CODE]").
-	 * @return	A (unordered) list of matching child records.
-	 */
-	public static List<FLEFRecord> findChildren(final FLEFRecord parent, final String... paths){
-		final List<FLEFRecord> result = new ArrayList<>();
-		if(parent == null || paths == null)
-			return result;
-
-		for(final String path : paths)
-			result.addAll(findChildren(parent, path));
 		return result;
 	}
 
@@ -182,11 +184,11 @@ public final class FLEFRecordHelper{
 
 		final FLEFRecord citation = citations.getFirst();
 		final String referencedTag = citation.getTag();
-		final String referencedRecordId = citation.getValue();
-		if(StringUtils.isEmpty(referencedRecordId))
+		final String referencedId = citation.getValue();
+		if(StringUtils.isEmpty(referencedId))
 			return null;
 
-		final FLEFRecord referencedRecord = model.getRecordById(referencedRecordId);
+		final FLEFRecord referencedRecord = model.getRecordById(referencedId);
 		if(referencedRecord != null && !referencedRecord.getTag().equals(referencedTag)){
 			JOptionPane.showMessageDialog(null, "Referenced tag differs from record tag",
 				"Error", JOptionPane.ERROR_MESSAGE);
@@ -195,6 +197,28 @@ public final class FLEFRecordHelper{
 		}
 
 		return (referencedRecord != null && !referencedRecord.isEmpty()? referencedRecord: null);
+	}
+
+	public static List<FLEFRecord> extractRecordsFromReference(final FLEFRecord record, final String recordReferenceTag,
+			final String referencePath, final FLEFModel model){
+		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(record, recordReferenceTag);
+		final List<FLEFRecord> entities = new ArrayList<>(citations.size());
+		for(final FLEFRecord citation : citations){
+			final FLEFRecord reference = (referencePath != null? citation.getTheOnlyChild(referencePath): citation);
+
+			final String entityTag = reference.getTag();
+			final String entityId = reference.getValue();
+			final FLEFRecord entity = model.getRecordById(entityId);
+			if(entity != null && !entity.getTag().equals(entityTag)){
+				JOptionPane.showMessageDialog(null, "Referenced tag differs from record tag",
+					"Error", JOptionPane.ERROR_MESSAGE);
+
+				return null;
+			}
+
+			entities.add(entity);
+		}
+		return entities;
 	}
 
 
@@ -206,7 +230,7 @@ public final class FLEFRecordHelper{
 	 * @param paths  An array of dot‑separated tag paths (e.g. {"ROOT.A.CODE", "ROOT.B.VALUE"}).
 	 * @return A list of matching child records, in global tree order, without duplicates.
 	 */
-	public static List<FLEFRecord> findChildrenOrdered(final FLEFRecord parent, final String[] paths){
+	public static List<FLEFRecord> findChildrenOrdered(final FLEFRecord parent, final String... paths){
 		final List<FLEFRecord> result = new ArrayList<>();
 		if(parent == null || paths == null || paths.length == 0)
 			return result;

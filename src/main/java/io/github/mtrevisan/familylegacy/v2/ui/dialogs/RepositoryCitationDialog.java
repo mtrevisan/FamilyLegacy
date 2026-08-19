@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -171,7 +170,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_REPOSITORY, XRefHelper.formatXRef(repository.getText()));
+		FLEFRecordHelper.updateChildValue(record, TAG_REPOSITORY, repository.getText());
 
 		components.save(record);
 	}

@@ -137,11 +137,11 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories", RepositoryCitationHandler.class, SourceHandler.class)
+			.withCitationComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, TAG_REPOSITORY, "Repositories", RepositoryCitationHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents", DocumentHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, SourceHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, SourceHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, TAG_RESEARCH_ACTIVITY, "Research Activities", ResearchActivityHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -193,11 +193,11 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
 		// conclusion
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		// research question
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		// research activity

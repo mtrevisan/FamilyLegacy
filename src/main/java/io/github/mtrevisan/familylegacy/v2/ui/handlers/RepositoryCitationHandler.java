@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryCitationDialog;
 
 import java.awt.Dialog;
@@ -74,7 +73,7 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 		if(record == null)
 			return "--";
 
-		final String xref = XRefHelper.extractXRef(FLEFRecordHelper.getChildValuesAsString(record, TAG_REPOSITORY));
+		final String xref = FLEFRecordHelper.getChildValuesAsString(record, TAG_REPOSITORY);
 		final FLEFRecord repository = model.getRecordById(xref);
 		final RecordTypeHandler<?> repositoryHandle = HandlerRegistry.getHandler(RepositoryHandler.class);
 		return repositoryHandle.getDisplayText(repository, model);

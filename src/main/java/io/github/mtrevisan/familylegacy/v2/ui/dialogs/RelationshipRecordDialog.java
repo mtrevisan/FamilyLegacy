@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -160,18 +159,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		subjectField = ParticipantField.create(TAG_SUBJECT, this, model);
 		subjectField.setHandlerTypes(IndividualHandler.class, GroupHandler.class);
-		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> {
-			updateTypeCombo();
-
-			refreshLayout();
-		});
+		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> updateTypeCombo());
 		objectField = ParticipantField.create(TAG_OBJECT, this, model);
 		objectField.setHandlerTypes(IndividualHandler.class, GroupHandler.class);
-		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> {
-			updateTypeCombo();
-
-			refreshLayout();
-		});
+		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> updateTypeCombo());
 		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
@@ -189,12 +180,12 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, RelationshipHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, RelationshipHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, RelationshipHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, RelationshipHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, RelationshipHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, RelationshipHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, RelationshipHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -285,14 +276,14 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createResearchPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// conclusion
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		// research question
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;
@@ -329,20 +320,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
-	private void refreshLayout(){
-		recreateMainPanel();
-
-		propertiesPanel.revalidate();
-		propertiesPanel.repaint();
-
-		pack();
-	}
-
-	private void recreateMainPanel(){
-		propertiesPanel.removeAll();
-		createPropertiesPanel();
-	}
-
 	@Override
 	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityPath){
 		JOptionPane.showMessageDialog(this, "Cannot set parent on Relationship Record Dialog.",
@@ -351,7 +328,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
-	public BaseRecordDialog withSubject(final String parentEntityId, final String parentEntityPath){
+	public RelationshipRecordDialog withSubject(final String parentEntityId, final String parentEntityPath){
 		super.withParentEntity(parentEntityId, parentEntityPath);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
@@ -362,12 +339,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			GUIHelper.setComponentVisible(objectField, true);
 		}
 
-		refreshLayout();
-
 		return this;
 	}
 
-	public BaseRecordDialog withObject(final String parentEntityId, final String parentEntityPath){
+	public RelationshipRecordDialog withObject(final String parentEntityId, final String parentEntityPath){
 		super.withParentEntity(parentEntityId, parentEntityPath);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
@@ -378,18 +353,14 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			GUIHelper.setComponentVisible(objectField, showAll);
 		}
 
-		refreshLayout();
-
 		return this;
 	}
 
 
 	@Override
 	protected void loadData(){
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, TAG_SUBJECT, model);
-		final FLEFRecord object = FLEFRecordHelper.extractRecordFromReference(record, TAG_OBJECT, model);
-		subjectField.load(subject);
-		objectField.load(object);
+		subjectField.load(record);
+		objectField.load(record);
 
 		components.load(record);
 

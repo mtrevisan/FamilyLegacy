@@ -76,7 +76,7 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 
 		final String role = FLEFRecordHelper.getChildValue(record, TAG_ROLE);
 		if(StringUtils.isNotEmpty(role))
-			sb.append(" (")
+			sb.append(" (as ")
 				.append(role)
 				.append(')');
 

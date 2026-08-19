@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,65 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class XRefHelper{
 
-	private static final String XREF_PREFIX = "@";
-	private static final String XREF_SUFFIX = "@";
-	private static final String XREF_VOID = XREF_PREFIX + "VOID" + XREF_SUFFIX;
-
-
 	private static final Map<String, Integer> RESERVED_IDS = new ConcurrentHashMap<>();
 
 
 	private XRefHelper(){}
 
-
-	/**
-	 * Formats a raw ID into an XREF reference (e.g., "N123" -> "@N123@").
-	 * If the ID is already formatted or null/blank, it is handled safely.
-	 *
-	 * @param xref	The raw ID to format.
-	 * @return	The formatted XREF string, or {@code null} if the input is blank.
-	 */
-	public static String formatXRef(final String xref){
-		if(StringUtils.isEmpty(xref))
-			return null;
-
-		return (isReference(xref)
-			? xref
-			: XREF_PREFIX + xref + XREF_SUFFIX);
-	}
-
-	/**
-	 * Extracts the raw ID from an XREF reference (e.g., "@N123@" -> "N123").
-	 *
-	 * @param xref	The XREF string to strip.
-	 * @return	The unformatted raw ID, or the original string if not an XREF.
-	 */
-	public static String extractXRef(final String xref){
-		return (isReference(xref)
-			? xref.substring(XREF_PREFIX.length(), xref.length() - XREF_SUFFIX.length())
-			: xref);
-	}
-
-	/**
-	 * Checks whether this record's value is a reference to another record
-	 * (i.e. wrapped in {@code @...@}, but not the special {@code @VOID@} constant).
-	 *
-	 * @param value	The value.
-	 */
-	public static boolean isReference(final String value){
-		return (value != null && value.startsWith(XREF_PREFIX) && value.endsWith(XREF_SUFFIX)
-			&& value.length() >= XREF_PREFIX.length() + XREF_SUFFIX.length()
-			&& !isVoidReference(value));
-	}
-
-	/**
-	 * Checks whether this record's value is the special {@code @VOID@} constant.
-	 *
-	 * @param value	The value.
-	 */
-	public static boolean isVoidReference(final String value){
-		return XREF_VOID.equals(value);
-	}
 
 	/**
 	 * Adds a child record representing a reference (XREF) to another record.
@@ -106,7 +50,7 @@ public class XRefHelper{
 		if(parent == null || tag == null || targetId == null)
 			return null;
 
-		final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, formatXRef(targetId));
+		final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, targetId);
 		parent.addChild(child);
 		return child;
 	}

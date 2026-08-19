@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -61,8 +60,8 @@ import java.util.function.Consumer;
  * <pre>
  * record EventParticipationRecord {
  *   id: LocalID
- *   event: Xref&lt;EventRecord&gt;
  *   participant: EntityParticipant
+ *   event: Xref&lt;EventRecord&gt;
  *   role?: enum {
  *     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
  *     landlord, tenant, soldier, commander, victim, survivor, accused, judge
@@ -114,8 +113,8 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final ParticipantField eventField;
 	private final ParticipantField participantField;
+	private final ParticipantField eventField;
 	private final BoundComboBox<String> roleCombo;
 
 
@@ -134,10 +133,9 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 
-		eventField = ParticipantField.create(TAG_EVENT, this, model);
-		eventField.setHandlerTypes(EventHandler.class);
 		participantField = ParticipantField.create(TAG_PARTICIPANT, this, model);
 		participantField.setHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+		eventField = ParticipantField.create(TAG_EVENT, this, model, EventHandler.class);
 		roleCombo = new BoundComboBox<>(TAG_ROLE, new String[]{
 			StringUtils.EMPTY,
 			"child", "parent", "spouse", "power_of_attorney", "prisoner", "witness",
@@ -150,9 +148,9 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, EventParticipationHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, EventParticipationHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, EventParticipationHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, EventParticipationHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, EventParticipationHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, EventParticipationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
@@ -168,11 +166,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		// event
-		GUIHelper.addLabeledComponent(propertiesPanel, "Event*:", eventField);
-
 		// participant
 		GUIHelper.addLabeledComponent(propertiesPanel, "Participant*:", participantField);
+
+		// event
+		GUIHelper.addLabeledComponent(propertiesPanel, "Event*:", eventField);
 
 		// role
 		GUIHelper.addLabeledComponent(propertiesPanel, "Role:", roleCombo);
@@ -198,10 +196,12 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	protected JPanel createResearchPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		// conclusion
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		// research question
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;
@@ -238,55 +238,57 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public void setEvent(final String eventId){
-		if(StringUtils.isNotEmpty(eventId)){
-			if(!confirmRecordExistsForType(eventId, EventHandler.class))
-				return;
+	public EventParticipationRecordDialog withEvent(final String eventId){
+		if(!confirmRecordExistsForType(eventId, EventHandler.class))
+			return this;
 
-			eventField.setParticipant(FLEFRecord.createMainRecord(eventId, null));
-			GUIHelper.setComponentVisible(eventField, false);
+		participantField.setParticipant(null);
+		GUIHelper.setComponentVisible(participantField, true);
 
-			participantField.setParticipant(null);
-			GUIHelper.setComponentVisible(participantField, true);
-		}
+		eventField.setParticipant(FLEFRecord.createMainRecord(eventId, HandlerRegistry.getHandlerType(EventHandler.class)));
+		GUIHelper.setComponentVisible(eventField, false);
+
+		return this;
 	}
 
-	public void setParticipant(final String participantId,
+	public EventParticipationRecordDialog withParticipant(final String participantId,
 			final Class<? extends RecordTypeHandler<?>> participantHandlerClass){
-		if(StringUtils.isNotEmpty(participantId)){
-			if(!confirmRecordExistsForType(participantId, participantHandlerClass))
-				return;
+		if(!confirmRecordExistsForType(participantId, participantHandlerClass))
+			return this;
 
-			eventField.setParticipant(FLEFRecord.createEmpty());
-			GUIHelper.setComponentVisible(eventField, true);
+		eventField.setParticipant(FLEFRecord.createEmpty());
+		GUIHelper.setComponentVisible(eventField, true);
 
-			participantField.setParticipant(FLEFRecord.createMainRecord(participantId, HandlerRegistry.getHandlerType(participantHandlerClass)));
-			GUIHelper.setComponentVisible(participantField, false);
-		}
+		participantField.setParticipant(FLEFRecord.createMainRecord(participantId, HandlerRegistry.getHandlerType(participantHandlerClass)));
+		GUIHelper.setComponentVisible(participantField, false);
+
+		return this;
 	}
 
 
 	@Override
 	protected void loadData(){
-		eventField.load(record);
 		participantField.load(record);
+		eventField.load(record);
 
-		bindingManager.load(record);
+		components.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(!eventField.hasData()){
-			GUIHelper.showValidationErrorAndFocus(this,
-				"Event is required.",
-				tabbedPane, propertiesPanel, eventField);
-			return false;
-		}
-
 		if(!participantField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Participant is required.",
 				tabbedPane, propertiesPanel, participantField);
+
+			return false;
+		}
+
+		if(!eventField.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Event is required.",
+				tabbedPane, propertiesPanel, eventField);
+
 			return false;
 		}
 
@@ -295,14 +297,10 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.removeChildren(record, TAG_EVENT);
-		FLEFRecordHelper.removeChildren(record, TAG_PARTICIPANT);
-		FLEFRecordHelper.removeChildren(record, TAG_ROLE);
-
-		eventField.saveReferences(record);
 		participantField.saveReferences(record);
+		eventField.saveReferences(record);
 
-		bindingManager.save(record);
+		components.save(record);
 	}
 
 

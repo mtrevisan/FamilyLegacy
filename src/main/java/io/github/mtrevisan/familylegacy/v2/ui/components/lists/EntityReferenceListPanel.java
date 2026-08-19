@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IdentityHypothesisRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
@@ -77,6 +77,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private final String path;
+	private final String referencePath;
 	private final RelationType relationType;
 	private final ActorType actorType;
 
@@ -85,7 +86,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	private FLEFRecord parentRecord;
 
 	private String parentEntityId;
-	private String parentEntityPath;
+	private String parentEntityTag;
 
 
 	/**
@@ -99,15 +100,14 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @return a new EntityReferenceListPanel in record mode
 	 */
 	public static <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel createForRecord(
-			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
-			final T handlerType){
+			final String path, final Dialog parent, final String panelTitle, final FLEFModel model, final T handlerType){
 		return createForRecord(path, parent, panelTitle, model, handlerType, null);
 	}
 
 	public static <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel createForRecord(
-			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
-			final T handlerType, final ActorType actorType){
-		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerType,
+			final String path, final Dialog parent, final String panelTitle, final FLEFModel model, final T handlerType,
+			final ActorType actorType){
+		return new EntityReferenceListPanel(path, null, parent, panelTitle, model, handlerType,
 			RelationType.RECORD, actorType);
 	}
 
@@ -122,16 +122,16 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @return a new EntityReferenceListPanel in structure mode
 	 */
 	public static <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel createForStructure(
-			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
-			final T handlerClass){
-		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerClass,
+			final String path, final Dialog parent, final String panelTitle,
+			final FLEFModel model, final T handlerClass){
+		return new EntityReferenceListPanel(path, null, parent, panelTitle, model, handlerClass,
 			RelationType.STRUCTURE, null);
 	}
 
 	public static <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel createForStructure(
-			final String path, final Dialog parent, final String panelTitle, final FLEFModel model,
-			final T handlerClass, final ActorType actorType){
-		return new EntityReferenceListPanel(path, parent, panelTitle, model, handlerClass,
+			final String path, final Dialog parent, final String panelTitle,
+			final FLEFModel model, final T handlerClass, final ActorType actorType){
+		return new EntityReferenceListPanel(path, null, parent, panelTitle, model, handlerClass,
 			RelationType.STRUCTURE, actorType);
 	}
 
@@ -147,11 +147,12 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param relationType	{@code true} for record mode (store only ID), {@code false} for structure mode
 	 */
 	protected <T extends Class<? extends RecordTypeHandler<?>>> EntityReferenceListPanel(final String path,
-			final Dialog parent, final String panelTitle, final FLEFModel model, final T handlerClass,
-			final RelationType relationType, final ActorType actorType){
+			final String referencePath, final Dialog parent, final String panelTitle, final FLEFModel model,
+			final T handlerClass, final RelationType relationType, final ActorType actorType){
 		super(parent, panelTitle, model);
 
 		this.path = path;
+		this.referencePath = referencePath;
 		this.relationType = relationType;
 		this.actorType = actorType;
 		this.handler = HandlerRegistry.getHandler(handlerClass);
@@ -162,12 +163,12 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 * This is used to automatically link new records to a parent entity.
 	 *
 	 * @param parentEntityId	the ID of the parent entity
-	 * @param parentEntityPath	the handler type of the parent entity
+	 * @param parentEntityTag	the handler type of the parent entity
 	 * @return this panel instance (for method chaining)
 	 */
-	public EntityReferenceListPanel withParentEntity(final String parentEntityId, final String parentEntityPath){
+	public EntityReferenceListPanel withParentEntity(final String parentEntityId, final String parentEntityTag){
 		this.parentEntityId = parentEntityId;
-		this.parentEntityPath = parentEntityPath;
+		this.parentEntityTag = parentEntityTag;
 
 		return this;
 	}
@@ -181,9 +182,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			? createMenuItemsForRecord()
 			: createMenuItemsForStructure());
 		GUIHelper.installBehavior(list,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
+			this::editItem, null,
+			this::createNewItem, this::removeItem,
 			menuItems
 		);
 	}
@@ -234,19 +234,23 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		final BaseRecordDialog dialog = handler.createNewDialog(parent, model);
 		if(dialog instanceof RelationshipRecordDialog relationshipDialog
 				&& relationType == RelationType.RECORD
-				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityPath)){
+				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag)){
 			if(actorType == ActorType.SUBJECT)
-				relationshipDialog.withSubject(parentEntityId, parentEntityPath);
+				relationshipDialog.withSubject(parentEntityId, parentEntityTag);
 			else if(actorType == ActorType.OBJECT)
-				relationshipDialog.withObject(parentEntityId, parentEntityPath);
+				relationshipDialog.withObject(parentEntityId, parentEntityTag);
 		}
+		else if(dialog instanceof IdentityHypothesisRecordDialog identityHypothesisDialog
+				&& relationType == RelationType.RECORD
+				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag))
+			identityHypothesisDialog.withParentEntity(parentEntityId, parentEntityTag);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
 	@Override
-	protected FLEFRecord showEditDialog(FLEFRecord record){
+	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
 			JOptionPane.showMessageDialog(parent, handler.getLabel() + " not found", "Error",
 				JOptionPane.ERROR_MESSAGE);
@@ -254,15 +258,14 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final String xref = record.getValue();
-		if(XRefHelper.isReference(xref))
-			record  = model.getRecordById(xref);
-
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved() && parentRecord != null){
-			load(parentRecord);
+			if(relationType == RelationType.RECORD)
+				loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
+			else
+				load(parentRecord);
 
 			if(!items.contains(record))
 				// record was removed
@@ -282,11 +285,11 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		parentRecord = record;
+		parentRecord = FLEFRecord.createMainRecord(record.getId(), record.getTag());
 
 		List<FLEFRecord> entities = Collections.emptyList();
 		if(relationType == RelationType.RECORD)
-			entities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+			entities = FLEFRecordHelper.extractRecordsFromReference(record, path, referencePath, model);
 		else if(relationType == RelationType.STRUCTURE)
 			entities = handler.extractEntities(record, path);
 		if(!entities.isEmpty())
@@ -304,9 +307,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return;
 
-		parentRecord = model.getRecordById(recordId);
+		parentRecord = FLEFRecord.createMainRecord(recordId, null);
 
-		final List<FLEFRecord> references = handler.findReferences(model, recordId, parentEntityPath);
+		final List<FLEFRecord> references = handler.findReferences(model, recordId, parentEntityTag);
 		setItems(references);
 	}
 
@@ -316,17 +319,18 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return;
 
-		parentRecord = model.getRecordById(recordId);
+		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
 
 		final List<FLEFRecord> references = model.getRecordsByType(handler.getType()).stream()
 			.filter(reference -> {
-				final List<FLEFRecord> actors = FLEFRecordHelper.findChildren(reference, actorTags);
-				for(final FLEFRecord actor : actors){
-					final FLEFRecord entity = actor.getTheOnlyChild();
-					final FLEFRecord parentRecord = (entity != null? entity: actor);
-					final String tag = parentRecord.getTag();
-					final String value = parentRecord.getValue();
-					return (Objects.equals(parentEntityPath, tag) && recordId.equals(XRefHelper.extractXRef(value)));
+				for(final String actorTag : actorTags){
+					final FLEFRecord actor = FLEFRecordHelper.extractRecordFromReference(reference, actorTag, model);
+					if(actor == null)
+						return false;
+
+					final String tag = actor.getTag();
+					final String id = actor.getId();
+					return (Objects.equals(parentEntityTag, tag) && recordId.equals(id));
 				}
 				return false;
 			})
@@ -343,12 +347,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
-		if(relationType == RelationType.RECORD){
-			FLEFRecordHelper.removeChildren(record, path);
-
+		if(relationType == RelationType.RECORD)
 			for(final FLEFRecord item : getItems())
 				FLEFRecordHelper.addChild(record, path, item.getFormattedId());
-		}
 		else if(ConclusionTargetHandler.class.equals(handler.getClass())){
 			final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_RESOLVES);
 			super.save(parentRecord, path);
@@ -358,8 +359,6 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void saveReferences(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
 		for(final FLEFRecord item : getItems())
 			FLEFRecordHelper.addChild(record, path, item.getFormattedId());
 	}

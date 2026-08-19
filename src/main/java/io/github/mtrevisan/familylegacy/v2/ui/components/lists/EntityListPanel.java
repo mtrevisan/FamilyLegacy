@@ -87,9 +87,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
+			this::editItem, null,
+			this::createNewItem, this::removeItem,
 			builder -> {
 				builder.item("Create New…", this::createNewItem);
 				builder.item("Add Existing…", this::addItem);
@@ -161,8 +160,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void saveReferences(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, path);
-
 		for(final FLEFRecord item : getItems())
 			FLEFRecordHelper.addChild(record, path, item.getFormattedId());
 	}

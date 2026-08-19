@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -213,12 +212,6 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.removeChildren(record, TAG_DESCRIPTION);
-		FLEFRecordHelper.removeChildren(record, TAG_STATUS);
-		FLEFRecordHelper.removeChildren(record, TAG_PRIORITY);
-		FLEFRecordHelper.removeChildren(record, TAG_OUTCOME);
-		FLEFRecordHelper.removeChildren(record, TAG_CREATED_BY);
-
 		components.save(record);
 
 		questionPanel.save(record);

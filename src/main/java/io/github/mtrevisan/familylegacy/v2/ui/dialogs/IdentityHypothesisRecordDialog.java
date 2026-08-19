@@ -128,9 +128,9 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IdentityHypothesisHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IdentityHypothesisHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, IdentityHypothesisHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -174,10 +174,10 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	protected JPanel createResearchPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;
@@ -201,16 +201,14 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		final FLEFRecord participant = FLEFRecordHelper.extractRecordFromReference(record, TAG_CANDIDATE, model);
-		candidateField.load(participant);
-
-		components.load(record);
-
-
 		// load parent subject reference
 		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, TAG_SUBJECT, model);
 		if(subject != null)
 			withParentEntity(subject.getId(), subject.getTag());
+
+		candidateField.load(record);
+
+		components.load(record);
 	}
 
 	@Override
@@ -231,7 +229,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		// Subject and candidate must be different records
+		// subject and candidate must be different records
 		final String subjectId = parentEntity.getText();
 		final FLEFRecord candidate = candidateField.getParticipantRecord();
 		final String candidateId = (candidate != null? candidate.getId(): null);
@@ -248,10 +246,9 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.removeChildren(record, TAG_SUBJECT);
-		FLEFRecordHelper.removeChildren(record, TAG_CANDIDATE);
-		FLEFRecordHelper.removeChildren(record, TAG_COMMENT);
-
+		// save parent subject reference
+		FLEFRecordHelper.getOrCreateTargetNode(record, TAG_SUBJECT)
+			.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
 		candidateField.saveReferences(record);
 
 		// Note: This will also save the subjectField (via bindingManager) and other common panels

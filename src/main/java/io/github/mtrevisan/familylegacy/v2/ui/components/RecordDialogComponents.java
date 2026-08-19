@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationLis
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 
 import javax.swing.JPanel;
@@ -80,12 +79,12 @@ public final class RecordDialogComponents{
 			case
 				// RelationshipRecord (subject = this individual)
 				// RelationshipRecord (subject = this group)
-				RELATIONSHIP_AS_SUBJECT,
+				RELATIONSHIP_ON_SUBJECT,
 
 				// PlaceRelationshipRecord (subject = this place)
-				PLACE_RELATIONSHIP_AS_SUBJECT -> {
-					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(), owner,
-						cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.SUBJECT);
+				PLACE_RELATIONSHIP_ON_SUBJECT -> {
+					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
+						owner, cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.SUBJECT);
 					if(record != null)
 						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 					yield panel;
@@ -94,12 +93,12 @@ public final class RecordDialogComponents{
 			case
 				// RelationshipRecord (object = this individual)
 				// RelationshipRecord (object = this group)
-				RELATIONSHIP_AS_OBJECT,
+				RELATIONSHIP_ON_OBJECT,
 
 				// PlaceRelationshipRecord (object = this place)
-				PLACE_RELATIONSHIP_AS_OBJECT -> {
-					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(), owner,
-						cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.OBJECT);
+				PLACE_RELATIONSHIP_ON_OBJECT -> {
+					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
+						owner, cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.OBJECT);
 					if(record != null)
 						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 					yield panel;
@@ -142,11 +141,11 @@ public final class RecordDialogComponents{
 				// ConclusionRecord (resolves = this relationship)
 				// ConclusionRecord (resolves = this place)
 				// ConclusionRecord (resolves = this norm)
-				CONCLUSION,
+				CONCLUSION_ON_RESOLVES,
 				// IdentityHypothesisRecord (subject/candidate = this individual)
 				// IdentityHypothesisRecord (subject/candidate = this group)
 				// IdentityHypothesisRecord (subject/candidate = this place)
-				IDENTITY_HYPOTHESIS,
+				IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE,
 				// ResearchQuestionRecord (target.individual = this individual)
 				// ResearchQuestionRecord (target.group = this group)
 				// ResearchQuestionRecord (target.individual_attribute = this attribute)
@@ -159,9 +158,9 @@ public final class RecordDialogComponents{
 				// ResearchQuestionRecord (target.place_relationship = this relationship)
 				// ResearchQuestionRecord (target.place = this place)
 				// ResearchQuestionRecord (target.cultural_norm = this norm)
-				RESEARCH_QUESTION -> {
-					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(), owner,
-						cfg.title(), model, cfg.handlerClass());
+				RESEARCH_QUESTION_ON_TARGET -> {
+					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
+						owner, cfg.title(), model, cfg.handlerClass());
 					if(record != null)
 						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 					yield panel;
@@ -169,8 +168,8 @@ public final class RecordDialogComponents{
 
 			// EventParticipationRecord (event = this event)
 			case EVENT_PARTICIPATION_ON_EVENT -> {
-				final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(), owner,
-					cfg.title(), model, cfg.handlerClass());
+				final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
+					owner, cfg.title(), model, cfg.handlerClass());
 				if(record != null)
 					panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 				yield panel;
@@ -181,14 +180,14 @@ public final class RecordDialogComponents{
 				RESEARCH_ACTIVITY_ON_SOURCE,
 				// ResearchActivityRecord (question contains this question)
 				RESEARCH_ACTIVITY_ON_QUESTION,
-				DOCUMENT,
 				// ResearchTaskRecord (question contains this question)
 				RESEARCH_TASK ->
 				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model, cfg.handlerClass());
 
-			case REPOSITORY,
+			case PLACE,
+				  REPOSITORY,
 				  SOURCE ->
-				new EntityCitationListPanel(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
+				new EntityCitationListPanel(cfg.tag(), cfg.citationTag(), owner, cfg.title(), model, cfg.handlerType());
 
 			// SourceRecord (repository references this repository)
 			case SOURCE_ON_REPOSITORY ->
@@ -197,7 +196,9 @@ public final class RecordDialogComponents{
 			case EVIDENCE -> new EvidenceQualifiersPanel(cfg.tag(), owner, cfg.title(), model, HandlerRegistry.getHandlerType(cfg.handlerType()));
 
 			// embedded reference
-			case CONTEXT_IMPACT, NOTE ->
+			case CONTEXT_IMPACT,
+				  NOTE,
+				  DOCUMENT ->
 				new EntityListPanel(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
 
 			case PRIVACY -> new PrivacyPanel(cfg.tag(), owner);
@@ -229,17 +230,17 @@ public final class RecordDialogComponents{
 		if(groupAttribute != null)
 			groupAttribute.loadReference(record.getId());
 
-		final EntityReferenceListPanel relationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_AS_SUBJECT));
+		final EntityReferenceListPanel relationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT));
 		if(relationshipAsSubject != null)
 			relationshipAsSubject.loadReferenceWithType(record.getId(), "SUBJECT");
-		final EntityReferenceListPanel relationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_AS_OBJECT));
+		final EntityReferenceListPanel relationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_ON_OBJECT));
 		if(relationshipAsObject != null)
 			relationshipAsObject.loadReferenceWithType(record.getId(), "OBJECT");
 
-		final EntityReferenceListPanel placeRelationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_AS_SUBJECT));
+		final EntityReferenceListPanel placeRelationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT));
 		if(placeRelationshipAsSubject != null)
 			placeRelationshipAsSubject.loadReferenceWithType(record.getId(), "SUBJECT");
-		final EntityReferenceListPanel placeRelationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_AS_OBJECT));
+		final EntityReferenceListPanel placeRelationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT));
 		if(placeRelationshipAsObject != null)
 			placeRelationshipAsObject.loadReferenceWithType(record.getId(), "OBJECT");
 
@@ -260,21 +261,25 @@ public final class RecordDialogComponents{
 		if(contextOnContext != null)
 			contextOnContext.loadReferenceWithType(record.getId(), "CONTEXT");
 
-		final EntityReferenceListPanel conclusion = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION));
+		final EntityReferenceListPanel conclusion = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESOLVES));
 		if(conclusion != null)
 			conclusion.loadReferenceWithType(record.getId(), "RESOLVES");
-		final EntityReferenceListPanel identityHypothesis = ((EntityReferenceListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS));
+		final EntityReferenceListPanel identityHypothesis = ((EntityReferenceListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE));
 		if(identityHypothesis != null)
 			identityHypothesis.loadReferenceWithType(record.getId(), "SUBJECT", "CANDIDATE");
-		final EntityReferenceListPanel researchQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION));
+		final EntityReferenceListPanel researchQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));
 		if(researchQuestion != null)
 			researchQuestion.loadReferenceWithType(record.getId(), "TARGET");
 		final EntityReferenceListPanel researchActivityOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION));
 		if(researchActivityOnQuestion != null)
-			researchActivityOnQuestion.loadReferenceWithType(record.getId(), "TARGET");
+			researchActivityOnQuestion.loadReferenceWithType(record.getId(), "QUESTION");
 		final EntityReferenceListPanel researchActivityOnSource = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE));
 		if(researchActivityOnSource != null)
 			researchActivityOnSource.loadReferenceWithType(record.getId(), "SOURCE");
+
+		final EntityCitationListPanel place = ((EntityCitationListPanel)getPanel(PanelKey.PLACE));
+		if(place != null)
+			place.load(record);
 
 		final EntityCitationListPanel repository = ((EntityCitationListPanel)getPanel(PanelKey.REPOSITORY));
 		if(repository != null)
@@ -287,7 +292,7 @@ public final class RecordDialogComponents{
 		if(sourceOnRepository != null)
 			sourceOnRepository.load(record);
 
-		final EntityReferenceListPanel document = ((EntityReferenceListPanel)getPanel(PanelKey.DOCUMENT));
+		final EntityListPanel document = ((EntityListPanel)getPanel(PanelKey.DOCUMENT));
 		if(document != null)
 			document.load(record);
 
@@ -326,17 +331,17 @@ public final class RecordDialogComponents{
 		if(groupAttribute != null)
 			groupAttribute.save(record);
 
-		final EntityReferenceListPanel relationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_AS_SUBJECT));
+		final EntityReferenceListPanel relationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT));
 		if(relationshipAsSubject != null)
 			relationshipAsSubject.save(record);
-		final EntityReferenceListPanel relationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_AS_OBJECT));
+		final EntityReferenceListPanel relationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.RELATIONSHIP_ON_OBJECT));
 		if(relationshipAsObject != null)
 			relationshipAsObject.save(record);
 
-		final EntityReferenceListPanel placeRelationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_AS_SUBJECT));
+		final EntityReferenceListPanel placeRelationshipAsSubject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT));
 		if(placeRelationshipAsSubject != null)
 			placeRelationshipAsSubject.save(record);
-		final EntityReferenceListPanel placeRelationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_AS_OBJECT));
+		final EntityReferenceListPanel placeRelationshipAsObject = ((EntityReferenceListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT));
 		if(placeRelationshipAsObject != null)
 			placeRelationshipAsObject.save(record);
 
@@ -357,13 +362,13 @@ public final class RecordDialogComponents{
 		if(contextOnContext != null)
 			contextOnContext.save(record);
 
-		final EntityReferenceListPanel conclusion = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION));
+		final EntityReferenceListPanel conclusion = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESOLVES));
 		if(conclusion != null)
 			conclusion.save(record);
-		final EntityReferenceListPanel identityHypothesis = ((EntityReferenceListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS));
+		final EntityReferenceListPanel identityHypothesis = ((EntityReferenceListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE));
 		if(identityHypothesis != null)
 			identityHypothesis.save(record);
-		final EntityReferenceListPanel researchQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION));
+		final EntityReferenceListPanel researchQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));
 		if(researchQuestion != null)
 			researchQuestion.save(record);
 		final EntityReferenceListPanel researchActivityOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION));
@@ -372,6 +377,10 @@ public final class RecordDialogComponents{
 		final EntityReferenceListPanel researchActivityOnSource = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE));
 		if(researchActivityOnSource != null)
 			researchActivityOnSource.save(record);
+
+		final EntityCitationListPanel place = ((EntityCitationListPanel)getPanel(PanelKey.PLACE));
+		if(place != null)
+			place.save(record);
 
 		final EntityCitationListPanel repository = ((EntityCitationListPanel)getPanel(PanelKey.REPOSITORY));
 		if(repository != null)
@@ -384,7 +393,7 @@ public final class RecordDialogComponents{
 		if(sourceOnRepository != null)
 			sourceOnRepository.save(record);
 
-		final EntityReferenceListPanel document = ((EntityReferenceListPanel)getPanel(PanelKey.DOCUMENT));
+		final EntityListPanel document = ((EntityListPanel)getPanel(PanelKey.DOCUMENT));
 		if(document != null)
 			document.save(record);
 

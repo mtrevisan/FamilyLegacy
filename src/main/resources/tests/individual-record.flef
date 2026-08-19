@@ -1,0 +1,244 @@
+records {
+	INDIVIDUAL I1 {
+		NAME {
+			TYPE legal
+			PART {
+				TYPE given
+				VALUE first name
+				VARIANT {
+					PHONETIC {
+						SYSTEM ipa
+						VALUE genki
+					}
+				}
+				VARIANT {
+					TRANSCRIPTION {
+						SYSTEM rōmaji
+						TYPE romanized
+						VALUE nòme
+					}
+				}
+			}
+		}
+		NAME {
+			TYPE maiden
+			CULTURAL_NORM CN1
+			SOURCE S1
+			NOTE N1
+			PART {
+				TYPE given
+				VALUE nòme
+				VARIANT {
+					TRANSCRIPTION {
+						SYSTEM rōmaji
+						TYPE latinized
+						VALUE trans
+					}
+				}
+			}
+		}
+		SEX female
+		SOURCE {
+			SOURCE S1
+			LOCATION there
+			EXTRACT {
+			    TEXT ext
+			    TYPE editorial
+			    LOCALE en-US
+			}
+		}
+		NOTE N1
+		PRIVACY {
+		    LEVEL restricted
+		    REASON because
+		    EXPIRES 2010-01-01
+		}
+		AUDIT {
+		    CREATION {
+		        DATE 1990-02-02
+		        COMMENT creation comment
+		    }
+		    UPDATE {
+		        DATE 1995-03-03
+		        COMMENT first update
+		    }
+		    UPDATE {
+		        DATE 2000-04-04
+		        COMMENT second update
+		    }
+		}
+	}
+
+	INDIVIDUAL I2 {
+	}
+
+	INDIVIDUAL I3 {
+	}
+
+	INDIVIDUAL_ATTRIBUTE IA1 {
+		INDIVIDUAL I1
+		TYPE residence
+		VALUE attr
+		VALID_FROM {
+			VALUE {
+				POINT {
+					SINGLE_DATE {
+						FULL_DATE {
+							VALUE 2001-02-03
+							CALENDAR gregorian
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE {
+				POINT {
+					SINGLE_DATE {
+						DECADE {
+							START_YEAR 1940
+							CALENDAR julian
+						}
+					}
+					APPROXIMATE {
+						BASIS calculated
+						CULTURAL_NORM CN1
+						MARGIN P2Y
+					}
+				}
+			}
+		}
+	}
+
+	RELATIONSHIP RL1 {
+		TYPE group_member
+		SUBJECT {
+			INDIVIDUAL I1
+		}
+		OBJECT {
+			GROUP G1
+		}
+	}
+
+	RELATIONSHIP RL2 {
+		TYPE custom
+		ROLE president
+		SUBJECT {
+			GROUP G2
+		}
+		OBJECT {
+			INDIVIDUAL I1
+		}
+	}
+
+	EVENT_PARTICIPATION EP1 {
+		PARTICIPANT {
+			INDIVIDUAL I1
+		}
+		EVENT E1
+		ROLE spouse
+	}
+
+	CONTEXT_IMPACT CI1 {
+		CONTEXT {
+			CULTURAL_NORM CN1
+		}
+		TARGET {
+			INDIVIDUAL I1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE high significance
+	}
+
+	CONCLUSION CC1 {
+		CONTEXT death cause
+		PROOF_STATUS proven
+		NARRATIVE narr
+		DATE 2010-07-07
+		RESOLVES {
+			INDIVIDUAL I1
+		}
+		PREFERRED {
+			INDIVIDUAL I1
+		}
+	}
+
+	IDENTITY_HYPOTHESIS IH1 {
+		SUBJECT {
+			INDIVIDUAL I1
+		}
+		CANDIDATE {
+			INDIVIDUAL I2
+		}
+	}
+
+	IDENTITY_HYPOTHESIS IH2 {
+		SUBJECT {
+			INDIVIDUAL I3
+		}
+		CANDIDATE {
+			INDIVIDUAL I1
+		}
+	}
+
+	RESEARCH_QUESTION RQ1 {
+		TITLE rq title
+		QUESTION is?
+		TARGET {
+			INDIVIDUAL I1
+		}
+		STATUS open
+	}
+
+	RESEARCH_QUESTION RQ2 {
+		TITLE void rq title
+		QUESTION is void?
+		TARGET {
+			VOID {
+			}
+		}
+		STATUS closed
+	}
+
+	SOURCE S1 {
+		TITLE {
+			VALUE src title
+		}
+	}
+
+	NOTE N1 {
+		TITLE note 1 title
+		VALUE note 1
+		MIME text/plain
+		LOCALE it-IT
+		TRANSLATION {
+		    VALUE nòda
+		    LOCALE vec-IT
+		}
+	}
+
+	GROUP G1 {
+	}
+
+	GROUP G2 {
+	}
+
+	CULTURAL_NORM CN1 {
+		TITLE cult norm title
+	}
+
+	EVENT E1 {
+		TYPE epidemic
+		TITLE cholera
+	}
+}

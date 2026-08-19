@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -200,7 +199,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -368,15 +367,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		// clear existing children to avoid duplication
-		FLEFRecordHelper.removeChildren(record, TAG_ACTION);
-		FLEFRecordHelper.removeChildren(record, TAG_TARGET);
-		FLEFRecordHelper.removeChildren(record, TAG_SEARCH_SCOPE_TYPE);
-		FLEFRecordHelper.removeChildren(record, TAG_SEARCH_SCOPE_DETAIL);
-		FLEFRecordHelper.removeChildren(record, TAG_OBSERVATION);
-		FLEFRecordHelper.removeChildren(record, TAG_CONCLUSION);
-		FLEFRecordHelper.removeChildren(record, TAG_PARENT);
-
 		dateField.save(record);
 
 		components.save(record);

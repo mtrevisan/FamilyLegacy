@@ -211,7 +211,7 @@ public abstract class BaseRecordDialog extends JDialog{
 		String id = record.getId();
 		if(id == null)
 			// in case of a citation
-			id = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, handler.getCitedType()));
+			id = FLEFRecordHelper.getChildValue(record, handler.getCitedType());
 
 		if(id != null)
 			sb.append(StringUtils.SPACE)

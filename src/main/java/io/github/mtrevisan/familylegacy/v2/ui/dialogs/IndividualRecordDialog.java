@@ -48,8 +48,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /* TESTED edit */
@@ -135,14 +137,14 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, TAG_INDIVIDUAL_ATTRIBUTE, "Individual Attributes", IndividualAttributeHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_AS_SUBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_AS_OBJECT, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, IndividualHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, IndividualHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IndividualHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, IndividualHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IndividualHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -187,10 +189,10 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	protected JPanel createRelationshipsPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_AS_SUBJECT);
+		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
 
-		final JPanel relationshipAsObjectPanel = components.getPanel(PanelKey.RELATIONSHIP_AS_OBJECT);
+		final JPanel relationshipAsObjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
 		GUIHelper.addComponent(panel, relationshipAsObjectPanel);
 
 		return panel;
@@ -220,13 +222,13 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	protected JPanel createResearchPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
-		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS);
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE);
 		GUIHelper.addComponent(panel, identityHypothesisPanel);
 
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;
@@ -280,194 +282,11 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		individual.addChild(FLEFRecord.createChildWithTag("NAME")
-			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "legal"))
-			.addChild(FLEFRecord.createChildWithTag("PART")
-				.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "given"))
-				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "first name"))
-				.addChild(FLEFRecord.createChildWithTag("VARIANT")
-					.addChild(FLEFRecord.createChildWithTag("PHONETIC")
-						.addChild(FLEFRecord.createChildWithTagAndValue("SYSTEM", "ipa"))
-						.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "genki"))
-					)
-				)
-				.addChild(FLEFRecord.createChildWithTag("VARIANT")
-					.addChild(FLEFRecord.createChildWithTag("TRANSCRIPTION")
-						.addChild(FLEFRecord.createChildWithTagAndValue("SYSTEM", "rōmaji"))
-						.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "romanized"))
-						.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "nòme"))
-					)
-				)
-			)
-		);
-		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "female"));
-		individual.addChild(FLEFRecord.createChildWithTag("SOURCE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
-		);
-		individual.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
-		individual.addChild(FLEFRecord.createChildWithTag("NAME")
-			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "maiden"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "CN1"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "S1"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "N1"))
-			.addChild(FLEFRecord.createChildWithTag("PART")
-				.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "given"))
-				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "nòme"))
-				.addChild(FLEFRecord.createChildWithTag("VARIANT")
-					.addChild(FLEFRecord.createChildWithTag("TRANSCRIPTION")
-						.addChild(FLEFRecord.createChildWithTagAndValue("SYSTEM", "rōmaji"))
-						.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "latinized"))
-						.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "trans"))
-					)
-				)
-			)
-		);
-
-		final FLEFRecord individualAttribute = FLEFRecord.createMainRecord("IA1", "INDIVIDUAL_ATTRIBUTE");
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"));
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "residence"));
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "attr"));
-		individualAttribute.addChild(FLEFRecord.createChildWithTag("VALID_FROM")
-			.addChild(FLEFRecord.createChildWithTag("VALUE")
-				.addChild(FLEFRecord.createChildWithTag("POINT")
-					.addChild(FLEFRecord.createChildWithTag("SINGLE_DATE")
-						.addChild(FLEFRecord.createChildWithTag("FULL_DATE")
-							.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "2001-02-03"))
-							.addChild(FLEFRecord.createChildWithTagAndValue("CALENDAR", "gregorian"))
-						)
-					)
-				)
-			)
-			.addChild(FLEFRecord.createChildWithTagAndValue("ORIGINAL_TEXT", "original text"))
-			.addChild(FLEFRecord.createChildWithTag("SOURCE")
-				.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
-				.addChild(FLEFRecord.createChildWithTagAndValue("LOCATION", "src loc"))
-			)
-			.addChild(FLEFRecord.createChildWithTag("EVIDENCE")
-				.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE_TYPE", "derived"))
-				.addChild(FLEFRecord.createChildWithTagAndValue("INFORMATION_TYPE", "secondary"))
-				.addChild(FLEFRecord.createChildWithTagAndValue("EVIDENCE_TYPE", "indirect"))
-			)
-		);
-		individualAttribute.addChild(FLEFRecord.createChildWithTag("VALID_TO")
-			.addChild(FLEFRecord.createChildWithTag("VALUE")
-				.addChild(FLEFRecord.createChildWithTag("POINT")
-					.addChild(FLEFRecord.createChildWithTag("SINGLE_DATE")
-						.addChild(FLEFRecord.createChildWithTag("DECADE")
-							.addChild(FLEFRecord.createChildWithTagAndValue("START_YEAR", "1940"))
-							.addChild(FLEFRecord.createChildWithTagAndValue("CALENDAR", "julian"))
-						)
-					)
-					.addChild(FLEFRecord.createChildWithTag("APPROXIMATE")
-						.addChild(FLEFRecord.createChildWithTagAndValue("BASIS", "calculated"))
-						.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
-						.addChild(FLEFRecord.createChildWithTagAndValue("MARGIN", "P2Y"))
-					)
-				)
-			)
-		);
-
-		final FLEFRecord relationship1 = FLEFRecord.createMainRecord("RL1", "RELATIONSHIP")
-			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "group_member"));
-		relationship1.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-		relationship1.addChild(FLEFRecord.createChildWithTag("OBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-		final FLEFRecord relationship2 = FLEFRecord.createMainRecord("RL2", "RELATIONSHIP")
-			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "custom"))
-			.addChild(FLEFRecord.createChildWithTagAndValue("ROLE", "president"));
-		relationship2.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G2@"))
-		);
-		relationship2.addChild(FLEFRecord.createChildWithTag("OBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-
-		final FLEFRecord eventParticipation1 = FLEFRecord.createMainRecord("EP1", "EVENT_PARTICIPATION");
-		eventParticipation1.addChild(FLEFRecord.createChildWithTagAndValue("EVENT", "@E1@"));
-		eventParticipation1.addChild(FLEFRecord.createChildWithTag("PARTICIPANT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-
-		final FLEFRecord contextImpact1 = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("CONTEXT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
-		);
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-
-		final FLEFRecord conclusion1 = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion1.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "death cause"));
-		conclusion1.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-
-		final FLEFRecord identityHypothesis1 = FLEFRecord.createMainRecord("IH1", "IDENTITY_HYPOTHESIS");
-		identityHypothesis1.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-		identityHypothesis1.addChild(FLEFRecord.createChildWithTag("CANDIDATE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I2@"))
-		);
-		final FLEFRecord identityHypothesis2 = FLEFRecord.createMainRecord("IH2", "IDENTITY_HYPOTHESIS");
-		identityHypothesis2.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I3@"))
-		);
-		identityHypothesis2.addChild(FLEFRecord.createChildWithTag("CANDIDATE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-
-		final FLEFRecord researchQuestion1 = FLEFRecord.createMainRecord("RQ1", "RESEARCH_QUESTION");
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "rq title"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("QUESTION", "is?"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("STATUS", "open"));
-
-		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
-		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "src title"))
-		);
-
-		final FLEFRecord note1 = FLEFRecord.createMainRecord("N1", "NOTE");
-		note1.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "note 1"));
-
-		final FLEFRecord group1 = FLEFRecord.createMainRecord("G1", "GROUP");
-		final FLEFRecord group2 = FLEFRecord.createMainRecord("G2", "GROUP");
-
-		final FLEFRecord culturalNorm1 = FLEFRecord.createMainRecord("CN1", "CULTURAL_NORM");
-		culturalNorm1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "cult norm title"));
-
-		final FLEFRecord event1 = FLEFRecord.createMainRecord("E1", "EVENT");
-		event1.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "epidemic"));
-		event1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "cholera"));
-
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(individualAttribute);
-			model.addRecord(individual);
-			model.addRecord(relationship1);
-			model.addRecord(relationship2);
-			model.addRecord(eventParticipation1);
-			model.addRecord(contextImpact1);
-			model.addRecord(conclusion1);
-			model.addRecord(identityHypothesis1);
-			model.addRecord(identityHypothesis2);
-			model.addRecord(researchQuestion1);
-			model.addRecord(source1);
-			model.addRecord(note1);
-			model.addRecord(group1);
-			model.addRecord(group2);
-			model.addRecord(culturalNorm1);
-			model.addRecord(event1);
-		};
-		GUIHelper.launch(IndividualRecordDialog::createEdit, modelFiller, individual);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = IndividualRecordDialog.class.getResourceAsStream("/tests/individual-record.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(IndividualRecordDialog::createEdit, content, "I1");
+		}
 	}
 
 }

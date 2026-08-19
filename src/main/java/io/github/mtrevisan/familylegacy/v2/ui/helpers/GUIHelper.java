@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -167,7 +168,8 @@ public final class GUIHelper{
 	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
 	public static void installBehavior(final JComponent component,
-			final Runnable doubleClickAction, final Runnable keyInsertAction, final Runnable keyDeleteAction,
+			final Runnable doubleClickAction, final Runnable shiftDoubleClickAction,
+			final Runnable keyInsertAction, final Runnable keyDeleteAction,
 			final Consumer<MenuBuilder> menuBuilder){
 		component.setBackground(COLOR_BACKGROUND);
 		component.setToolTipText(TOOLTIP_TEXT);
@@ -186,8 +188,12 @@ public final class GUIHelper{
 		component.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent me){
-				if(me.getClickCount() == 2 && doubleClickAction != null && hasSelection.get())
-					doubleClickAction.run();
+				if(me.getClickCount() == 2 && hasSelection.get()){
+					if(shiftDoubleClickAction != null && me.isShiftDown())
+						shiftDoubleClickAction.run();
+					else if(doubleClickAction != null)
+						doubleClickAction.run();
+				}
 			}
 
 			@Override
@@ -609,29 +615,44 @@ public final class GUIHelper{
 	 * @param dialogFactory	Reference to the dialog's own {@code createNew(Dialog, FLEFModel)} factory method.
 	 */
 	public static void launch(final CreateNewFunction dialogFactory){
-		launch(dialogFactory, model -> {});
+		final FLEFModel model = new FLEFModel();
+
+		launch(dialogFactory, model);
 	}
 
 	public static void launch(final EditFunction dialogFactory, final FLEFRecord record){
-		final CreateNewFunction createNewFn = (dialog, model) -> dialogFactory.apply(dialog, model, record);
-		launch(createNewFn, model -> {});
+		final FLEFModel model = new FLEFModel();
+
+		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, model);
 	}
 
 	public static void launch(final EditFunction dialogFactory, final Consumer<FLEFModel> modelFiller,
 			final FLEFRecord record){
-		final CreateNewFunction createNewFn = (dialog, model) -> dialogFactory.apply(dialog, model, record);
-		launch(createNewFn, modelFiller);
+		final FLEFModel model = new FLEFModel();
+		modelFiller.accept(model);
+
+		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, model);
 	}
 
-	public static void launch(final CreateNewFunction dialogFactory, final Consumer<FLEFModel> modelFiller){
+
+	public static void launch(final EditFunction dialogFactory, final String content, final String recordId){
+		final FLEFParser parser = new FLEFParser();
+		final FLEFModel model = parser.parse(content);
+
+		final FLEFRecord record = model.getRecordById(recordId);
+
+		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
+		launch(createNewFn, model);
+	}
+
+	public static void launch(final CreateNewFunction dialogFactory, final FLEFModel model){
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
 
-		final FLEFModel model = new FLEFModel();
-
-		modelFiller.accept(model);
 
 		SwingUtilities.invokeLater(() -> {
 			final BaseRecordDialog dialog = dialogFactory.apply(null, model);

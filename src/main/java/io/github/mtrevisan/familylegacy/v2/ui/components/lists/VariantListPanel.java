@@ -49,7 +49,8 @@ public class VariantListPanel extends EntityReferenceListPanel{
 
 
 	public VariantListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
-		super(path, parent, panelTitle, model, VariantHandler.class, RelationType.STRUCTURE, null);
+		super(path, null, parent, panelTitle, model, VariantHandler.class, RelationType.STRUCTURE,
+			null);
 	}
 
 
@@ -67,9 +68,6 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, TAG_PHONETIC);
-		FLEFRecordHelper.removeChildren(record, TAG_TRANSCRIPTION);
-
 		for(final FLEFRecord item : getItems())
 			record.addChild(item);
 	}

@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.fields;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
@@ -106,9 +105,8 @@ public class PlaceCitationField extends JPanel{
 			final Runnable createNewAction, final Runnable addAction, final Runnable editAction,
 			final Runnable editCitationAction, final Runnable clearAction){
 		GUIHelper.installBehavior(field,
-			editAction,
-			null,
-			null,
+			editCitationAction, editAction,
+			null, null,
 			builder -> {
 				builder.item("Create New…", createNewAction);
 				builder.item("Add Existing…", addAction);
@@ -150,8 +148,6 @@ public class PlaceCitationField extends JPanel{
 	}
 
 	public void saveReferences(final FLEFRecord targetRecord){
-		FLEFRecordHelper.removeChildren(targetRecord, path);
-
 		if(record != null)
 			FLEFRecordHelper.updateChildValue(targetRecord, path, record.getFormattedId());
 	}
@@ -169,7 +165,7 @@ public class PlaceCitationField extends JPanel{
 			if(newRecord != null){
 				final String newPlaceId = newRecord.getId();
 				final FLEFRecord placeCitation = FLEFRecord.createEmpty();
-				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, XRefHelper.formatXRef(newPlaceId));
+				FLEFRecordHelper.updateChildValue(placeCitation, TAG_PLACE, newPlaceId);
 
 				final RecordTypeHandler<?> placeCitationHandler = HandlerRegistry.getHandler(PlaceCitationHandler.class);
 				final PlaceCitationDialog citationDialog = (PlaceCitationDialog)placeCitationHandler.createEditDialog(parent, model, placeCitation);
@@ -205,7 +201,7 @@ public class PlaceCitationField extends JPanel{
 			return;
 		}
 
-		final String placeId = XRefHelper.extractXRef(FLEFRecordHelper.getChildValue(record, TAG_PLACE));
+		final String placeId = FLEFRecordHelper.getChildValue(record, TAG_PLACE);
 		final FLEFRecord place = model.getRecordById(placeId);
 
 		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);

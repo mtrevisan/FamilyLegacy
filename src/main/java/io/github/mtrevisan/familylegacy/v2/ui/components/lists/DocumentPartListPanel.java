@@ -84,9 +84,8 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			this::editCrop,
-			null,
-			this::removeItem,
+			this::editCrop, null,
+			null, this::removeItem,
 			builder -> {
 				builder.item("Add Existing…", this::addItem);
 				builder.separator();
@@ -252,8 +251,6 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param record	the record to save to
 	 */
 	public void saveReferences(final FLEFRecord record){
-		FLEFRecordHelper.removeChildren(record, TAG_DOCUMENT);
-
 		for(final FLEFRecord documentPart : getItems()){
 			final FLEFRecord part = FLEFRecord.createChildWithTag(TAG_DOCUMENT_PART);
 			part.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DOCUMENT, documentPart.getId()));

@@ -44,6 +44,7 @@ public final class RecordDialogBuilder{
 	 */
 	public record EntityReferenceConfig(
 		String tag,
+		String citationTag,
 		String title,
 		Class<? extends RecordTypeHandler<?>> handlerClass,
 		Class<? extends RecordTypeHandler<?>> handlerType
@@ -67,7 +68,12 @@ public final class RecordDialogBuilder{
 
 	public <T extends Class<? extends RecordTypeHandler<?>>> RecordDialogBuilder withComponent(final PanelKey key,
 			final String tag, final String title, final T handlerClass, final T handlerType){
-		configs.put(key, new EntityReferenceConfig(tag, title, handlerClass, handlerType));
+		return withCitationComponent(key, tag, null, title, handlerClass, handlerType);
+	}
+
+	public <T extends Class<? extends RecordTypeHandler<?>>> RecordDialogBuilder withCitationComponent(final PanelKey key,
+			final String tag, final String citationTag, final String title, final T handlerClass, final T handlerType){
+		configs.put(key, new EntityReferenceConfig(tag, citationTag, title, handlerClass, handlerType));
 
 		return this;
 	}

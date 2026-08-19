@@ -61,10 +61,8 @@ public class PrivacyPanel extends JPanel{
 	private static final long serialVersionUID = -8538135290834556765L;
 
 
-	private static final String DOT = ".";
-
 	private static final String TAG_LEVEL = "LEVEL";
-	private static final String TAG_RATIONALE = "RATIONALE";
+	private static final String TAG_REASON = "REASON";
 	private static final String TAG_EXPIRES = "EXPIRES";
 
 
@@ -76,7 +74,7 @@ public class PrivacyPanel extends JPanel{
 	private final BindingManager bindingManager = new BindingManager();
 
 	private final BoundComboBox<String> levelCombo;
-	private final BoundTextArea rationaleArea;
+	private final BoundTextArea reasonArea;
 	private final BoundTextField expiresField;
 
 
@@ -90,11 +88,11 @@ public class PrivacyPanel extends JPanel{
 
 		this.path = path;
 
-		levelCombo = new BoundComboBox<>(path + DOT + TAG_LEVEL, new String[]{
+		levelCombo = new BoundComboBox<>(TAG_LEVEL, new String[]{
 			"public", "restricted", "confidential"});
-		rationaleArea = new BoundTextArea(path + DOT + TAG_RATIONALE, 3, 25);
-		rationaleArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
-		expiresField = new BoundTextField(path + DOT + TAG_EXPIRES);
+		reasonArea = new BoundTextArea(TAG_REASON, 3, 25);
+		reasonArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
+		expiresField = new BoundTextField(TAG_EXPIRES);
 
 
 		initComponents();
@@ -103,7 +101,7 @@ public class PrivacyPanel extends JPanel{
 
 	private void initComponents(){
 		bindingManager.bind(levelCombo);
-		bindingManager.bind(rationaleArea);
+		bindingManager.bind(reasonArea);
 		bindingManager.bind(expiresField);
 
 
@@ -113,8 +111,8 @@ public class PrivacyPanel extends JPanel{
 		// level
 		GUIHelper.addLabeledComponent(this, "Level*:", levelCombo);
 
-		// rationale
-		GUIHelper.addLabeledComponent(this, "Rationale:", rationaleArea);
+		// reason
+		GUIHelper.addLabeledComponent(this, "Reason:", reasonArea);
 
 		// expires
 		GUIHelper.addLabeledComponent(this, "Expires:", expiresField);
@@ -129,11 +127,11 @@ public class PrivacyPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final FLEFRecord restriction = FLEFRecordHelper.findChild(record, path);
-		if(restriction == null)
+		final FLEFRecord privacy = FLEFRecordHelper.findChild(record, path);
+		if(privacy == null)
 			return;
 
-		bindingManager.load(restriction);
+		bindingManager.load(privacy);
 	}
 
 
@@ -143,9 +141,8 @@ public class PrivacyPanel extends JPanel{
 	 * @param record	an existing RESTRICTION record to update, or {@code null} to create a new one
 	 */
 	public void save(final FLEFRecord record){
-		FLEFRecordHelper.removeChild(record, path);
-
-		bindingManager.save(record);
+		if(validateData())
+			bindingManager.save(record);
 	}
 
 
@@ -183,7 +180,7 @@ public class PrivacyPanel extends JPanel{
 	 */
 	public void clear(){
 		levelCombo.setSelectedIndex(0);
-		rationaleArea.setText(StringUtils.EMPTY);
+		reasonArea.setText(StringUtils.EMPTY);
 		expiresField.setText(StringUtils.EMPTY);
 	}
 

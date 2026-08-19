@@ -70,9 +70,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		super.initComponents();
 
 		GUIHelper.installBehavior(list,
-			this::editItem,
-			this::createNewItem,
-			this::removeItem,
+			this::editItem, null,
+			this::createNewItem, this::removeItem,
 			builder -> {
 				builder.item("Create New…", this::createNewItem);
 				builder.separator();

@@ -150,14 +150,14 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_AS_SUBJECT, TAG_PLACE_RELATIONSHIP, "Members", PlaceRelationshipHandler.class, PlaceHandler.class)
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_AS_OBJECT, TAG_PLACE_RELATIONSHIP, "Relationships", PlaceRelationshipHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, TAG_PLACE_RELATIONSHIP, "Members", PlaceRelationshipHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, TAG_PLACE_RELATIONSHIP, "Relationships", PlaceRelationshipHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PlaceHandler.class)
-			.withComponent(PanelKey.CONCLUSION, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceHandler.class)
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, PlaceHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceHandler.class)
+			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -197,10 +197,10 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	protected JPanel createRelationshipsPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		final JPanel placeRelationshipAsSubjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_AS_SUBJECT);
+		final JPanel placeRelationshipAsSubjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, placeRelationshipAsSubjectPanel);
 
-		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_AS_OBJECT);
+		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT);
 		GUIHelper.addComponent(panel, placeRelationshipAsObjectPanel);
 
 		return panel;
@@ -231,15 +231,15 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		// conclusion
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		// identity hypothesis
-		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS);
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE);
 		GUIHelper.addComponent(panel, identityHypothesisPanel);
 
 		// research question
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;
