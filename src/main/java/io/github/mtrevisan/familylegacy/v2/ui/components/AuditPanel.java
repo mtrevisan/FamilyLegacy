@@ -68,7 +68,7 @@ public class AuditPanel extends JPanel{
 
 	public static final String TAG_AUDIT = "AUDIT";
 	public static final String TAG_AUDIT_CREATION = TAG_AUDIT + DOT + "CREATION";
-	public static final String TAG_AUDIT_UPDATE = TAG_AUDIT + DOT + "UPDATE";
+	public static final String TAG_UPDATE = "UPDATE";
 	public static final String TAG_DATE = "DATE";
 	public static final String TAG_COMMENT = "COMMENT";
 
@@ -90,8 +90,7 @@ public class AuditPanel extends JPanel{
 		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 
 		creationCommentArea = new BoundTextArea(TAG_AUDIT_CREATION + DOT + TAG_COMMENT, 3, 25);
-		updateListPanel = new BasicNoteListPanel(TAG_AUDIT_UPDATE, parent, "Updates",
-			true, TAG_COMMENT);
+		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates", true, TAG_COMMENT);
 
 
 		initComponents();
@@ -130,7 +129,8 @@ public class AuditPanel extends JPanel{
 		bindingManager.load(record);
 
 		// update.comment
-		updateListPanel.load(record);
+		final FLEFRecord audit = FLEFRecordHelper.findChild(record, TAG_AUDIT);
+		updateListPanel.load(audit);
 	}
 
 	/**
@@ -148,7 +148,8 @@ public class AuditPanel extends JPanel{
 		bindingManager.save(record);
 
 		// update
-		updateListPanel.save(record);
+		final FLEFRecord audit = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_AUDIT);
+		updateListPanel.save(audit);
 	}
 
 	public void clear(){

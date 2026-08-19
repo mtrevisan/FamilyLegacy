@@ -174,14 +174,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
-		final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, path);
-		for(final FLEFRecord item : getItems()){
-			final FLEFRecord date = FLEFRecordHelper.findChild(item, TAG_DATE);
-			final FLEFRecord text = FLEFRecordHelper.findChild(item, noteTag);
-			if(saveDate)
-				parentRecord.addChild(date);
-			parentRecord.addChild(text);
-		}
+		record.addChildren(getItems());
 	}
 
 }

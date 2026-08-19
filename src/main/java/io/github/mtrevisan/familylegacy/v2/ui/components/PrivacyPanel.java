@@ -61,9 +61,12 @@ public class PrivacyPanel extends JPanel{
 	private static final long serialVersionUID = -8538135290834556765L;
 
 
-	private static final String TAG_LEVEL = "LEVEL";
-	private static final String TAG_REASON = "REASON";
-	private static final String TAG_EXPIRES = "EXPIRES";
+	private static final String DOT = ".";
+
+	private static final String TAG_PRIVACY = "PRIVACY";
+	private static final String TAG_PRIVACY_LEVEL = TAG_PRIVACY + DOT + "LEVEL";
+	private static final String TAG_PRIVACY_REASON = TAG_PRIVACY + DOT + "REASON";
+	private static final String TAG_PRIVACY_EXPIRES = TAG_PRIVACY + DOT + "EXPIRES";
 
 
 	private final Dialog parent;
@@ -88,11 +91,11 @@ public class PrivacyPanel extends JPanel{
 
 		this.path = path;
 
-		levelCombo = new BoundComboBox<>(TAG_LEVEL, new String[]{
+		levelCombo = new BoundComboBox<>(TAG_PRIVACY_LEVEL, new String[]{
 			"public", "restricted", "confidential"});
-		reasonArea = new BoundTextArea(TAG_REASON, 3, 25);
+		reasonArea = new BoundTextArea(TAG_PRIVACY_REASON, 3, 25);
 		reasonArea.setToolTipText("e.g., 'Living individual', 'Repository license forbids redistribution'");
-		expiresField = new BoundTextField(TAG_EXPIRES);
+		expiresField = new BoundTextField(TAG_PRIVACY_EXPIRES);
 
 
 		initComponents();
@@ -127,11 +130,7 @@ public class PrivacyPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final FLEFRecord privacy = FLEFRecordHelper.findChild(record, path);
-		if(privacy == null)
-			return;
-
-		bindingManager.load(privacy);
+		bindingManager.load(record);
 	}
 
 
