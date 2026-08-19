@@ -1,5 +1,14 @@
 records {
 	INDIVIDUAL I1 {
+        PREFERRED_IMAGE {
+            URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+            CROP {
+                X 178
+                Y 0
+                WIDTH 123
+                HEIGHT 130
+            }
+        }
 		NAME {
 			TYPE legal
 			PART {

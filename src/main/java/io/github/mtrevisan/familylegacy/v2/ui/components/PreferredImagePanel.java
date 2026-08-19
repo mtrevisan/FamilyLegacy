@@ -142,9 +142,13 @@ public class PreferredImagePanel extends JPanel{
 		if(preferredImage == null)
 			return;
 
-		uri = FLEFRecordHelper.findChild(preferredImage, TAG_URI)
-			.getValue();
+		uri = FLEFRecordHelper.getChildValuesAsString(preferredImage, TAG_URI);
 		loadCropRectangle(preferredImage);
+
+		try{
+			cropDialog.loadData(uri, cropRect);
+		}
+		catch(final IOException ignored){}
 
 		updatePreferredImage();
 	}
@@ -161,7 +165,7 @@ public class PreferredImagePanel extends JPanel{
 			if(x >= 0 && y >= 0 && width >= 0 && height >= 0)
 				cropRect = new Rectangle(x, y, width, height);
 		}
-		catch(Exception ignored){}
+		catch(final Exception ignored){}
 	}
 
 	/**
