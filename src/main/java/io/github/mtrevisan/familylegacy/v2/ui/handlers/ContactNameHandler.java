@@ -80,7 +80,7 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 		final StringBuilder fullName = new StringBuilder();
 
 		final String val = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		if(val != null && !val.isBlank()){
+		if(StringUtils.isNotEmpty(val)){
 			if(!fullName.isEmpty())
 				fullName.append(StringUtils.SPACE);
 			fullName.append(val);

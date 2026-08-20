@@ -137,7 +137,7 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withCitationComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, TAG_REPOSITORY, "Repositories", RepositoryCitationHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories", RepositoryCitationHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents", DocumentHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, SourceHandler.class)

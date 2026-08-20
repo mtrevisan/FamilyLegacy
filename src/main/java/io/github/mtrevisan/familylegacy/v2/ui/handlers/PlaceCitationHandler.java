@@ -43,6 +43,9 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 	private static final String TAG_PLACE = "PLACE";
 
 
+	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;
@@ -69,13 +72,17 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 	}
 
 	@Override
+	public RecordTypeHandler<?> getParentHandler(){
+		return HandlerRegistry.getHandler(PlaceHandler.class);
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return "--";
 
-		final String xref = FLEFRecordHelper.getChildValuesAsString(record, TAG_PLACE);
+		final String xref = FLEFRecordHelper.getChildValue(record, TAG_PLACE);
 		final FLEFRecord place = model.getRecordById(xref);
-		final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
 		return placeHandler.getDisplayText(place, model);
 	}
 

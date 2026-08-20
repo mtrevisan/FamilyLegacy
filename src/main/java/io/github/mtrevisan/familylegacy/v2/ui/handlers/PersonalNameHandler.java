@@ -91,7 +91,7 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 
 		for(final FLEFRecord part : parts){
 			final String val = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
-			if(val != null && !val.isBlank()){
+			if(StringUtils.isNotEmpty(val)){
 				if(!fullName.isEmpty())
 					fullName.append(StringUtils.SPACE);
 				fullName.append(val);
@@ -104,7 +104,7 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 
 		result = GUIHelper.limitTextLength(result);
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		if(type != null && !type.isBlank())
+		if(StringUtils.isNotEmpty(type))
 			result += " (" + type + ")";
 
 		return result;

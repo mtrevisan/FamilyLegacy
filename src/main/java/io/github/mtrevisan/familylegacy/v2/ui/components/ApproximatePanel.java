@@ -156,7 +156,7 @@ public class ApproximatePanel extends JPanel{
 		final FLEFRecord approx = FLEFRecord.createChildWithTag(path);
 
 		final String basis = (String)basisCombo.getSelectedItem();
-		if(basis != null && !basis.isEmpty())
+		if(StringUtils.isNotEmpty(basis))
 			FLEFRecordHelper.updateChildValue(approx, TAG_BASIS, basis);
 
 		culturalNormPanel.save(parent);
@@ -188,14 +188,18 @@ public class ApproximatePanel extends JPanel{
 			if(basis == null || basis.isEmpty()){
 				JOptionPane.showMessageDialog(this, "Basis is required when Approximate is selected.",
 					"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 				return false;
 			}
+
 			if("conventional".equals(basis) && culturalNormPanel.isEmpty()){
 				JOptionPane.showMessageDialog(this, "Cultural Norm is required when Basis is 'conventional'.",
 					"Validation Error", JOptionPane.ERROR_MESSAGE);
+
 				return false;
 			}
 		}
+
 		return true;
 	}
 

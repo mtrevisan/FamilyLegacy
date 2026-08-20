@@ -1,16 +1,17 @@
 records {
 	INDIVIDUAL I1 {
-        PREFERRED_IMAGE {
-            URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
-            CROP {
-                X 178
-                Y 0
-                WIDTH 123
-                HEIGHT 130
-            }
-        }
+		PREFERRED_IMAGE {
+			URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+			CROP {
+				X 178
+				Y 0
+				WIDTH 123
+				HEIGHT 130
+			}
+		}
 		NAME {
 			TYPE legal
+			LOCALE de
 			PART {
 				TYPE given
 				VALUE first name
@@ -51,30 +52,30 @@ records {
 			SOURCE S1
 			LOCATION there
 			EXTRACT {
-			    TEXT ext
-			    TYPE editorial
-			    LOCALE en-US
+				TEXT ext
+				TYPE summarized
+				LOCALE en-US
 			}
 		}
 		NOTE N1
 		PRIVACY {
-		    LEVEL restricted
-		    REASON because
-		    EXPIRES 2010-01-01
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
 		}
 		AUDIT {
-		    CREATION {
-		        DATE 1990-02-02
-		        COMMENT creation comment
-		    }
-		    UPDATE {
-		        DATE 1995-03-03
-		        COMMENT first update
-		    }
-		    UPDATE {
-		        DATE 2000-04-04
-		        COMMENT second update
-		    }
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 
@@ -143,7 +144,7 @@ records {
 		TYPE custom
 		ROLE president
 		SUBJECT {
-			GROUP G2
+			GROUP G1
 		}
 		OBJECT {
 			INDIVIDUAL I1
@@ -158,6 +159,14 @@ records {
 		ROLE spouse
 	}
 
+	EVENT_PARTICIPATION EP2 {
+		PARTICIPANT {
+			GROUP G1
+		}
+		EVENT E2
+		ROLE whatever
+	}
+
 	CONTEXT_IMPACT CI1 {
 		CONTEXT {
 			CULTURAL_NORM CN1
@@ -169,17 +178,41 @@ records {
 		SIGNIFICANCE high significance
 	}
 
+	CONTEXT_IMPACT CI2 {
+		CONTEXT {
+			CULTURAL_NORM CN1
+		}
+		TARGET {
+			GROUP G1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE high significance
+	}
+
 	CONCLUSION CC1 {
 		CONTEXT death cause
 		PROOF_STATUS proven
 		NARRATIVE narr
-		DATE 2010-07-07
 		RESOLVES {
 			INDIVIDUAL I1
 		}
 		PREFERRED {
 			INDIVIDUAL I1
 		}
+		RESEARCH RQ1
+	}
+
+	CONCLUSION CC2 {
+		CONTEXT death cause
+		PROOF_STATUS proven
+		NARRATIVE narr for group
+		RESOLVES {
+			GROUP G1
+		}
+		PREFERRED {
+			GROUP G1
+		}
+		RESEARCH RQ1
 	}
 
 	IDENTITY_HYPOTHESIS IH1 {
@@ -189,6 +222,9 @@ records {
 		CANDIDATE {
 			INDIVIDUAL I2
 		}
+		COMMENT """
+maybe the same
+person"""
 	}
 
 	IDENTITY_HYPOTHESIS IH2 {
@@ -197,6 +233,15 @@ records {
 		}
 		CANDIDATE {
 			INDIVIDUAL I1
+		}
+	}
+
+	IDENTITY_HYPOTHESIS IH3 {
+		SUBJECT {
+			GROUP G1
+		}
+		CANDIDATE {
+			GROUP G2
 		}
 	}
 
@@ -213,15 +258,68 @@ records {
 		TITLE void rq title
 		QUESTION is void?
 		TARGET {
-			VOID {
-			}
+			VOID
 		}
 		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ3 {
+		TITLE void rq title group
+		QUESTION is group?
+		TARGET {
+			GROUP G1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_ACTIVITY RA1 {
+		QUESTION RQ1
+		QUESTION RQ2
+		ACTIVITY_TYPE review
+		STATUS in_progress
+		ACTION do things
+		TARGET {
+			INDIVIDUAL I1
+		}
+		SEARCH_SCOPE {
+			TYPE index_only
+			DETAIL page 25
+		}
+		RESULT positive
+		OBSERVATION observed something
+		CONCLUSION concluded something else
+		SOURCE {
+			SOURCE S1
+			LOCATION there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		TASK RT1
+	}
+
+	RESEARCH_TASK RT1 {
+		DESCRIPTION correct individual 1
+		QUESTION RQ1
+		QUESTION RQ2
+		CREATED_BY RA1
+		STATUS in_progress
+		PRIORITY low
+		DUE_DATE 2020-05-05
+		OUTCOME expected outcome
 	}
 
 	SOURCE S1 {
 		TITLE {
 			VALUE src title
+		}
+	}
+
+	SOURCE S2 {
+		TITLE {
+			VALUE src title for group
 		}
 	}
 
@@ -231,15 +329,53 @@ records {
 		MIME text/plain
 		LOCALE it-IT
 		TRANSLATION {
-		    VALUE nòda
-		    LOCALE vec-IT
+			VALUE nòda
+			LOCALE vec-IT
 		}
 	}
 
 	GROUP G1 {
+		PREFERRED_IMAGE {
+			URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+			CROP {
+				X 380
+				Y 22
+				WIDTH 64
+				HEIGHT 81
+			}
+		}
+		NAME {
+			TYPE legal
+			TEXT {
+				VALUE household group
+				LOCALE it-IT
+				VARIANT {
+					PHONETIC {
+						SYSTEM canIPA
+						VALUE kaxa
+					}
+				}
+			}
+		}
+		TYPE household
+		SOURCE {
+			SOURCE S2
+		}
+		NOTE N1
+		AUDIT {
+			CREATION {
+				DATE 2026-08-20T17:53:50Z
+			}
+		}
 	}
 
 	GROUP G2 {
+	}
+
+	GROUP_ATTRIBUTE GA1 {
+		GROUP G1
+		TYPE residence
+		VALUE group attr value
 	}
 
 	CULTURAL_NORM CN1 {
@@ -248,6 +384,16 @@ records {
 
 	EVENT E1 {
 		TYPE epidemic
-		TITLE cholera
+		DESCRIPTION cholera
+	}
+
+	EVENT E2 {
+		TYPE deed
+		DESCRIPTION something groupy
+		AGENCY government
+		CAUSE {
+			VALUE cause value
+		}
+		SOURCE S1
 	}
 }

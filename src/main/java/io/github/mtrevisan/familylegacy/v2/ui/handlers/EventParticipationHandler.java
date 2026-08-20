@@ -43,6 +43,9 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 	private static final String TAG_EVENT = "EVENT";
 
 
+	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.class);
+
+
 	@Override
 	public String getLabel(){
 		return "Event Participation";
@@ -66,7 +69,7 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 		final StringBuilder sb = new StringBuilder();
 
 		String participantText = null;
-		final FLEFRecord participant = FLEFRecordHelper.extractRecordFromReference(record, TAG_PARTICIPANT, model);
+		final FLEFRecord participant = FLEFRecordHelper.extractRecordFromXRef(record, TAG_PARTICIPANT, model);
 		if(participant != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(participant.getTag());
 			if(handler != null)
@@ -83,12 +86,9 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 		final String eventRef = FLEFRecordHelper.getChildValue(record, TAG_EVENT);
 		if(StringUtils.isNotEmpty(eventRef)){
 			final FLEFRecord eventRecord = model.getRecordById(eventRef);
-			if(eventRecord != null){
-				final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.class);
-				if(eventHandler != null)
-					sb.append(" in ")
-						.append(eventHandler.getDisplayText(eventRecord, model));
-			}
+			if(eventRecord != null)
+				sb.append(" in ")
+					.append(eventHandler.getDisplayText(eventRecord, model));
 		}
 
 		final String id = record.getId();

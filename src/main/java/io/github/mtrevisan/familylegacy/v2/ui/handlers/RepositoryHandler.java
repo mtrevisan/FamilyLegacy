@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RepositoryRecordDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -60,17 +61,11 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 
 
 	@Override
-	public RecordTypeHandler<?> getCitationHandler(){
-		return HandlerRegistry.getHandler(RepositoryCitationHandler.class);
-	}
-
-	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 		String id = record.getId();
-		if(name != null && !name.isEmpty()){
+		if(StringUtils.isNotEmpty(name))
 			return name + " [" + id + "]";
-		}
 		return "[" + record.getId() + "]";
 	}
 

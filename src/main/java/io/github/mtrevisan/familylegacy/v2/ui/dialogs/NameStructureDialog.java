@@ -34,11 +34,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -78,6 +78,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
+	private final JPanel propertiesPanel;
+
 	private final BoundTextField valueField;
 	private final VariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
@@ -96,6 +98,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ClassifiedNameHandler.class);
 
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]");
+
 		valueField = new BoundTextField(TAG_VALUE);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
@@ -106,7 +110,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.build();
 
@@ -120,8 +124,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]");
-
 		// value
 		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
 
@@ -165,10 +167,9 @@ public class NameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(valueField.isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				"Name value cannot be empty.", "Validation Error",
-				JOptionPane.ERROR_MESSAGE);
-			valueField.requestFocus();
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Name value cannot be empty.",
+				tabbedPane, propertiesPanel, valueField);
 
 			return false;
 		}

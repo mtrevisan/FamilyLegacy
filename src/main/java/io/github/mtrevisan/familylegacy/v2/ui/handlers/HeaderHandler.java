@@ -60,11 +60,6 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 	}
 
 	@Override
-	public RecordTypeHandler<?> getCitationHandler(){
-		return HandlerRegistry.getHandler(PlaceCitationHandler.class);
-	}
-
-	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		return "Header";
 	}

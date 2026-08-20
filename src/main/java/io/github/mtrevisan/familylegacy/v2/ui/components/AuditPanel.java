@@ -90,7 +90,7 @@ public class AuditPanel extends JPanel{
 		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 
 		creationCommentArea = new BoundTextArea(TAG_AUDIT_CREATION + DOT + TAG_COMMENT, 3, 25);
-		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates", true, TAG_COMMENT);
+		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates", TAG_COMMENT);
 
 
 		initComponents();

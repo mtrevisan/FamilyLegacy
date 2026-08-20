@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ClassifiedNameStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -84,11 +85,11 @@ public class ClassifiedNameHandler extends AbstractRecordTypeHandler<ClassifiedN
 		final FLEFRecord textValue = FLEFRecordHelper.findChild(record, TAG_TEXT);
 		if(textValue != null){
 			String value = FLEFRecordHelper.getChildValue(textValue, TAG_VALUE);
-			if(value != null && !value.isEmpty()){
+			if(StringUtils.isNotEmpty(value)){
 				value = GUIHelper.limitTextLength(value);
 
 				final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-				if(type != null && !type.isEmpty())
+				if(StringUtils.isNotEmpty(type))
 					value += " (" + type + ")";
 
 				return value;

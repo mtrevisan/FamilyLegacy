@@ -34,7 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
@@ -89,25 +88,21 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplayText(final FLEFRecord item){
-		if(item == null)
-			return "--";
-
-		final String text = FLEFRecordHelper.getChildValue(item, TAG_TEXT);
-		final String type = FLEFRecordHelper.getChildValue(item, TAG_TYPE);
-		final String locale = FLEFRecordHelper.getChildValue(item, TAG_LOCALE);
+	protected String getDisplayText(final FLEFRecord record){
+		final String text = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String locale = FLEFRecordHelper.getChildValue(record, TAG_LOCALE);
 
 		final StringBuilder sb = new StringBuilder();
 		if(StringUtils.isNotEmpty(locale))
 			sb.append('[')
 				.append(locale)
 				.append("] ");
-
 		if(StringUtils.isNotEmpty(text))
 			sb.append(GUIHelper.limitTextLength(text));
 		else{
 			// First document_part
-			final FLEFRecord documentPart = FLEFRecordHelper.findChildren(item, TAG_DOCUMENT_PART).stream()
+			final FLEFRecord documentPart = FLEFRecordHelper.findChildren(record, TAG_DOCUMENT_PART).stream()
 				.findFirst()
 				.orElse(null);
 			if(documentPart != null){
@@ -157,23 +152,16 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
-		if(record == null){
-			JOptionPane.showMessageDialog(parent, "Extract Entry not found", "Error",
-				JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
 		return showExtractDialog(record);
 	}
 
 	/**
 	 * Shows the extract dialog for creating or editing an extract.
 	 *
-	 * @param initial	the initial extract record, or {@code null} for a new extract
+	 * @param record	the initial extract record, or {@code null} for a new extract
 	 * @return the created/updated extract record, or {@code null} if canceled
 	 */
-	private FLEFRecord showExtractDialog(final FLEFRecord initial){
+	private FLEFRecord showExtractDialog(final FLEFRecord record){
 		final DocumentPartListPanel documentPartPanel = new DocumentPartListPanel(TAG_DOCUMENT_PART, parent, "Document Parts", model);
 		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
@@ -182,28 +170,39 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
 		localeCombo.setEditable(true);
-		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes",
-			false, TAG_NOTE);
+		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes", TAG_NOTE);
 
-		loadExtractData(initial, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
-		final JDialog dialog = new JDialog(parent, initial == null? "Add Extract": "Edit Extract", true);
+		loadExtractData(record, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
+
+
+		final JDialog dialog = new JDialog(parent, record == null? "Add Extract": "Edit Extract", Dialog.ModalityType.APPLICATION_MODAL);
 		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
-		final FLEFRecord[] result = {null};
+		final FLEFRecord[] result = {record};
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			() -> {
 				if(!validExtractData(dialog, documentPartPanel, textArea))
 					return;
 
-				final FLEFRecord res = FLEFRecord.createEmpty();
-				documentPartPanel.saveReferences(res);
-				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TEXT, textArea.getText()));
-				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, (String)typeCombo.getSelectedItem()));
-				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
-				for(final FLEFRecord note : basicNote.getItems())
-					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_NOTE, FLEFRecordHelper.getChildValuesAsString(note, TAG_COMMENT)));
-				result[0] = res;
+				if(record == null){
+					final FLEFRecord res = FLEFRecord.createEmpty();
+					documentPartPanel.saveReferences(res);
+					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TEXT, textArea.getText()));
+					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, (String)typeCombo.getSelectedItem()));
+					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
+					for(final FLEFRecord note : basicNote.getItems())
+						res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_NOTE, FLEFRecordHelper.getChildValue(note, TAG_COMMENT)));
+					result[0] = res;
+				}
+				else{
+					documentPartPanel.saveReferences(record);
+					FLEFRecordHelper.updateChildValue(record, TAG_TEXT, textArea.getText());
+					FLEFRecordHelper.updateChildValue(record, TAG_TYPE, (String)typeCombo.getSelectedItem());
+					FLEFRecordHelper.updateChildValue(record, TAG_LOCALE, (String)localeCombo.getSelectedItem());
+					for(final FLEFRecord note : basicNote.getItems())
+						FLEFRecordHelper.updateChildValue(record, TAG_NOTE, FLEFRecordHelper.getChildValue(note, TAG_COMMENT));
+				}
 
 				dialog.dispose();
 			},

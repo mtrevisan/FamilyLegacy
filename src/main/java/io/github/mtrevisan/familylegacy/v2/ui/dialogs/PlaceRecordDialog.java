@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -157,7 +158,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceHandler.class)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)

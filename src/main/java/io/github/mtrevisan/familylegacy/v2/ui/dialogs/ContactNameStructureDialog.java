@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -65,6 +64,8 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
+	private final JPanel propertiesPanel;
+
 	private final BoundTextField valueField;
 	private final VariantListPanel variantPanel;
 
@@ -82,6 +83,8 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	private ContactNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ContactNameHandler.class);
 
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+
 		valueField = new BoundTextField(TAG_VALUE);
 		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
 
@@ -98,8 +101,6 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
-
 		// value
 		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
 
@@ -120,10 +121,9 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(valueField.isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				"Name value cannot be empty.", "Validation Error",
-				JOptionPane.ERROR_MESSAGE);
-			valueField.requestFocus();
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Name value cannot be empty.",
+				tabbedPane, propertiesPanel, valueField);
 
 			return false;
 		}

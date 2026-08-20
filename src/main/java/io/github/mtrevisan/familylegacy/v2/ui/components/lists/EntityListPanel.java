@@ -151,7 +151,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromReference(record, path, model);
 		setItems(referencedEntities);
 	}
 

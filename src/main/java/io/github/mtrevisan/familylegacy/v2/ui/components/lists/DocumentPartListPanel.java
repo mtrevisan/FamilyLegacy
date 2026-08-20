@@ -125,7 +125,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		catch(final NumberFormatException ignored){}
 		final String documentId = documentPart.getId();
 		final FLEFRecord document = model.getRecordById(documentId);
-		final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
+		final String uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
 
 		try{
 			cropDialog.loadData(uri, imageCropRect);
@@ -174,7 +174,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			final FLEFRecord document = model.getRecordById(selectedRecord.getId());
 			if(document != null && !items.contains(document)){
-				final String uri = FLEFRecordHelper.getChildValuesAsString(document, TAG_FILE);
+				final String uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
 
 				try{
 					cropDialog.loadData(uri, null);
@@ -239,7 +239,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromCitations(record, path, model);
+		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromReference(record, path, model);
 		setItems(referencedEntities);
 	}
 

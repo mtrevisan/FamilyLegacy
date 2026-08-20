@@ -202,7 +202,7 @@ public class ParticipantField extends BoundTextField{
 				participant = model.getRecordById(participantCitation.getValue());
 		}
 		else
-			participant = FLEFRecordHelper.extractRecordFromReference(record, path, model);
+			participant = FLEFRecordHelper.extractRecordFromXRef(record, path, model);
 		setParticipant(participant);
 	}
 

@@ -40,6 +40,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -157,7 +158,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, GroupAttributeHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupAttributeHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupAttributeHandler.class)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
@@ -286,7 +287,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 
 		// load parent group reference
-		final String groupId = FLEFRecordHelper.getChildValuesAsString(record, TAG_GROUP);
+		final String groupId = FLEFRecordHelper.getChildValue(record, TAG_GROUP);
 		withParentEntity(groupId, GroupHandler.TYPE);
 	}
 

@@ -181,13 +181,13 @@ public final class RecordDialogComponents{
 				// ResearchActivityRecord (question contains this question)
 				RESEARCH_ACTIVITY_ON_QUESTION,
 				// ResearchTaskRecord (question contains this question)
-				RESEARCH_TASK ->
+				RESEARCH_TASK_ON_QUESTION ->
 				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model, cfg.handlerClass());
 
 			case PLACE,
 				  REPOSITORY,
 				  SOURCE ->
-				new EntityCitationListPanel(cfg.tag(), cfg.citationTag(), owner, cfg.title(), model, cfg.handlerType());
+				new EntityCitationListPanel(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
 
 			// SourceRecord (repository references this repository)
 			case SOURCE_ON_REPOSITORY ->
@@ -271,8 +271,10 @@ public final class RecordDialogComponents{
 		if(researchQuestion != null)
 			researchQuestion.loadReferenceWithType(record.getId(), "TARGET");
 		final EntityReferenceListPanel researchActivityOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION));
-		if(researchActivityOnQuestion != null)
-			researchActivityOnQuestion.loadReferenceWithType(record.getId(), "QUESTION");
+		if(researchActivityOnQuestion != null){
+			researchActivityOnQuestion.withParentEntity(record.getId(), record.getTag());
+			researchActivityOnQuestion.loadCitationsWithType(record.getId(), "QUESTION");
+		}
 		final EntityReferenceListPanel researchActivityOnSource = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE));
 		if(researchActivityOnSource != null)
 			researchActivityOnSource.loadReferenceWithType(record.getId(), "SOURCE");
@@ -296,9 +298,11 @@ public final class RecordDialogComponents{
 		if(document != null)
 			document.load(record);
 
-		final EntityReferenceListPanel researchTask = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_TASK));
-		if(researchTask != null)
-			researchTask.load(record);
+		final EntityReferenceListPanel researchTaskOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_TASK_ON_QUESTION));
+		if(researchTaskOnQuestion != null){
+			researchTaskOnQuestion.withParentEntity(record.getId(), record.getTag());
+			researchTaskOnQuestion.loadCitationsWithType(record.getId(), "QUESTION");
+		}
 
 		final EntityListPanel note = ((EntityListPanel)getPanel(PanelKey.NOTE));
 		if(note != null)
@@ -397,7 +401,7 @@ public final class RecordDialogComponents{
 		if(document != null)
 			document.save(record);
 
-		final EntityReferenceListPanel researchTask = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_TASK));
+		final EntityReferenceListPanel researchTask = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_TASK_ON_QUESTION));
 		if(researchTask != null)
 			researchTask.save(record);
 

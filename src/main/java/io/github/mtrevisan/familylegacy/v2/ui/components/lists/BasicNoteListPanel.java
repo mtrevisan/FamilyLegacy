@@ -26,11 +26,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
-import javax.swing.JTextArea;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.time.Instant;
@@ -53,24 +55,21 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final String path;
 
-	private final boolean saveDate;
-	private final String noteTag;
+	private final String recordTag;
 
 
 	/**
 	 * Constructs a BasicNoteListPanel with a titled border.
 	 *
 	 * @param parent	the parent dialog
-	 * @param borderTitle	the border title, or {@code null} for no border
+	 * @param panelTitle	the border title, or {@code null} for no border
 	 */
-	public BasicNoteListPanel(final String path, final Dialog parent, final String borderTitle,
-			final boolean saveDate, final String noteTag){
-		super(parent, borderTitle, null);
+	public BasicNoteListPanel(final String path, final Dialog parent, final String panelTitle, final String recordTag){
+		super(parent, panelTitle, null);
 
 		this.path = path;
 
-		this.saveDate = saveDate;
-		this.noteTag = noteTag;
+		this.recordTag = recordTag;
 	}
 
 
@@ -91,15 +90,10 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	@Override
-	protected String getDisplayText(final FLEFRecord note){
-		final String date = FLEFRecordHelper.getChildValuesAsString(note, TAG_DATE);
-		final String comment = FLEFRecordHelper.getChildValuesAsString(note, noteTag);
-		final StringBuilder sb = new StringBuilder();
-		sb.append('(')
-			.append(date)
-			.append(") ")
-			.append(comment);
-		return sb.toString();
+	protected String getDisplayText(final FLEFRecord record){
+		final String date = FLEFRecordHelper.getChildValue(record, TAG_DATE);
+		final String comment = FLEFRecordHelper.getChildValue(record, recordTag);
+		return "(" + date + ") " + comment;
 	}
 
 	@Override
@@ -109,51 +103,68 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final JTextArea textArea = new JTextArea(10, 50);
-		textArea.setLineWrap(true);
-		textArea.setWrapStyleWord(true);
-
-		final int result = JOptionPane.showConfirmDialog(
-			parent,
-			GUIHelper.createScrollPane(textArea),
-			"Add Note",
-			JOptionPane.OK_CANCEL_OPTION,
-			JOptionPane.PLAIN_MESSAGE
-		);
-
-		final String text = textArea.getText()
-			.trim();
-		if(result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text)){
-			final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path);
-			final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-			newNote.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DATE, creationDate));
-			newNote.addChild(FLEFRecord.createChildWithTagAndValue(noteTag, text));
-			return newNote;
-		}
-		return null;
+		return showNoteDialog(null);
 	}
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
-		final String displayText = getDisplayText(record);
-		final JTextArea textArea = new JTextArea(displayText, 10, 50);
-		textArea.setLineWrap(true);
-		textArea.setWrapStyleWord(true);
+		return showNoteDialog(record);
+	}
 
-		final int result = JOptionPane.showConfirmDialog(
-			parent,
-			GUIHelper.createScrollPane(textArea),
-			"Edit Note",
-			JOptionPane.OK_CANCEL_OPTION,
-			JOptionPane.PLAIN_MESSAGE
-		);
+	private FLEFRecord showNoteDialog(final FLEFRecord record){
+		final String note = FLEFRecordHelper.getChildValue(record, recordTag);
 
-		final String text = textArea.getText()
-			.trim();
-		if(result == JOptionPane.OK_OPTION && StringUtils.isNotEmpty(text))
-			FLEFRecordHelper.updateChildValue(record, noteTag, text);
 
-		return record;
+		final JDialog dialog = new JDialog(parent, (record == null? "Add Note": "Edit Note"), Dialog.ModalityType.APPLICATION_MODAL);
+		GUIHelper.setLayoutLabelFieldPanel(dialog, 10, "[]");
+
+		final BoundTextArea textArea = new BoundTextArea(recordTag, 10, 50);
+		if(record != null)
+			textArea.setText(note);
+
+		GUIHelper.addComponent(dialog, textArea);
+
+
+		final FLEFRecord[] result = {record};
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+			() -> {
+				if(!validNoteData(textArea))
+					return;
+
+				final String text = textArea.getText()
+					.trim();
+				if(record == null){
+					final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path);
+					final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
+					newNote.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DATE, creationDate));
+					newNote.addChild(FLEFRecord.createChildWithTagAndValue(recordTag, text));
+					result[0] = newNote;
+				}
+				else
+					FLEFRecordHelper.updateChildValue(record, recordTag, text);
+
+				dialog.dispose();
+			},
+			dialog::dispose);
+		dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+		dialog.pack();
+		dialog.setLocationRelativeTo(parent);
+		dialog.setVisible(true);
+
+		return result[0];
+	}
+
+	protected boolean validNoteData(final BoundTextArea textArea){
+		if(StringUtils.isEmpty(textArea.getText().trim())){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Note is required.",
+				null, null, textArea);
+
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

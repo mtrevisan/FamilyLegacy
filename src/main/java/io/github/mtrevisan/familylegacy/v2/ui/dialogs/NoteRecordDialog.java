@@ -34,6 +34,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TranslationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -120,11 +121,11 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
-		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations", model);
+		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations");
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();

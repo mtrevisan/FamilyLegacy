@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.NoteRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -60,7 +61,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteRecordDialog>{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		String id = record.getId();
-		if(value != null && !value.isEmpty())
+		if(StringUtils.isNotEmpty(value))
 			return GUIHelper.limitTextLength(value) + " [" + id + "]";
 		return "[" + id + "]";
 	}

@@ -35,11 +35,16 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.io.Serial;
 
 
 public class DateDialog extends JDialog{
 
-	private final DateStructurePanel dateValuePanel;
+	@Serial
+	private static final long serialVersionUID = 4594342471311960844L;
+
+
+	private final DateStructurePanel datePanel;
 
 	private FLEFRecord result;
 	private boolean saved;
@@ -73,11 +78,11 @@ public class DateDialog extends JDialog{
 	}
 
 
-	private DateDialog(final Dialog parent, final FLEFModel model, final String title, final FLEFRecord initialDate){
+	private DateDialog(final Dialog parent, final FLEFModel model, final String title, final FLEFRecord record){
 		super(parent, title, ModalityType.APPLICATION_MODAL);
 
-		dateValuePanel = new DateStructurePanel(this, model);
-		dateValuePanel.load(initialDate);
+		datePanel = new DateStructurePanel(this, model);
+		datePanel.load(record);
 
 
 		initComponents();
@@ -93,13 +98,13 @@ public class DateDialog extends JDialog{
 
 		// Date panel
 		final JPanel dateWrapper = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addComponent(dateWrapper, dateValuePanel);
+		GUIHelper.addComponent(dateWrapper, datePanel);
 		GUIHelper.addComponent(this, dateWrapper);
 
 		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
 			() -> {
-				if(dateValuePanel.validateData()){
-					result = dateValuePanel.save();
+				if(datePanel.validateData()){
+					result = datePanel.save();
 					saved = true;
 
 					dispose();
@@ -130,23 +135,6 @@ public class DateDialog extends JDialog{
 	 */
 	public boolean isSaved(){
 		return saved;
-	}
-
-	/**
-	 * Convenience method to show the dialog and return the selected date record.
-	 *
-	 * @param parent	the parent dialog
-	 * @param model	the FLEF model
-	 * @param title	the dialog title
-	 * @param initialDate	the initial DATE_STRUCTURE record (can be null)
-	 * @return the saved DATE_STRUCTURE record, or null
-	 */
-	public static FLEFRecord showDateDialog(final Dialog parent, final FLEFModel model, final String title,
-			final FLEFRecord initialDate){
-		final DateDialog dialog = createEdit(parent, model, title, initialDate);
-		dialog.setVisible(true);
-
-		return (dialog.isSaved()? dialog.getRecord(): null);
 	}
 
 

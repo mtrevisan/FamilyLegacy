@@ -76,7 +76,7 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 		return null;
 	}
 
-	default RecordTypeHandler<?> getCitationHandler(){
+	default RecordTypeHandler<?> getParentHandler(){
 		return null;
 	}
 

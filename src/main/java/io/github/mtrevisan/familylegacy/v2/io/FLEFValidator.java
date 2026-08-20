@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefini
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -242,7 +243,7 @@ public class FLEFValidator{
 			// Verify reference node target resolution
 			if(!TAG_VOID.equals(record.getValue())){
 				if(record.getChildren().isEmpty()){
-					if(record.getValue() != null && !record.getValue().isBlank())
+					if(StringUtils.isNotEmpty(record.getValue()))
 						errors.add(String.format("Void reference at '%s' must not specify a target identifier", path));
 				}
 				else{

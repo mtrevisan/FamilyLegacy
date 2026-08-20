@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -60,6 +61,7 @@ import java.io.Serial;
  *     regnal, slave_name
  *   } | Text
  *   part+: PartStructure
+ *   locale?: LocaleCode
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
@@ -92,6 +94,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_PART = "PART";
+	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
@@ -103,6 +106,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	private final BoundComboBox<String> typeCombo;
 	private final EntityReferenceListPanel partPanel;
+	private final BoundComboBox<String> localeCombo;
 
 
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -118,7 +122,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PersonalNameHandler.class);
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -135,15 +139,21 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		});
 		typeCombo.setEditable(true);
 		partPanel = EntityReferenceListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.class);
+		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
+			StringUtils.EMPTY,
+			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
+		});
+		localeCombo.setEditable(true);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PersonalNameHandler.class)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.build();
 
 		components.bind(typeCombo);
+		components.bind(localeCombo);
 
 
 		finalizeDialog(parent);
@@ -157,6 +167,9 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 		// parts
 		GUIHelper.addComponent(propertiesPanel, partPanel);
+
+		// locale
+		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);
 
 		return propertiesPanel;
 	}

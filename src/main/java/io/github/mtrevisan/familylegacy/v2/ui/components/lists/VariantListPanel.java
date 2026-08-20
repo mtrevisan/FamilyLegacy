@@ -44,8 +44,6 @@ public class VariantListPanel extends EntityReferenceListPanel{
 
 
 	private static final String TAG_VARIANT = "VARIANT";
-	private static final String TAG_PHONETIC = "PHONETIC";
-	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 
 
 	public VariantListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){

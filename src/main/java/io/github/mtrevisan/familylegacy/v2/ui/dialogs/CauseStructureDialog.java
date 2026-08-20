@@ -61,6 +61,8 @@ public class CauseStructureDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
+	private final JPanel propertiesPanel;
+
 	private final BoundTextField valueField;
 
 
@@ -75,6 +77,8 @@ public class CauseStructureDialog extends BaseRecordDialog{
 
 	private CauseStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, CauseHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]");
 
 		valueField = new BoundTextField(TAG_VALUE);
 
@@ -92,16 +96,14 @@ public class CauseStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(0, "[]10[]");
-
 		// value:
-		GUIHelper.addLabeledComponent(panel, "Value:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Value:", valueField);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
-		GUIHelper.addComponent(panel, evidencePanel);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
-		return panel;
+		return propertiesPanel;
 	}
 
 
@@ -115,10 +117,11 @@ public class CauseStructureDialog extends BaseRecordDialog{
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Value cannot be empty.",
-				null, null, valueField);
+				tabbedPane, propertiesPanel, valueField);
 
 			return false;
 		}
+
 		return true;
 	}
 

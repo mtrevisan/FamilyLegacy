@@ -37,7 +37,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -76,7 +75,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField repository;
+	private final BoundTextField repositoryField;
 	private final BoundTextField locationField;
 
 
@@ -95,7 +94,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		repository = new BoundTextField(TAG_REPOSITORY);
+		repositoryField = new BoundTextField(TAG_REPOSITORY);
 		locationField = new BoundTextField(TAG_LOCATION);
 
 		// Build common panels using the builder
@@ -103,7 +102,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.build();
 
-		components.bind(repository);
+		components.bind(repositoryField);
 		components.bind(locationField);
 
 
@@ -135,7 +134,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			if(!confirmRecordExistsForType(repositoryId, RepositoryHandler.class))
 				return;
 
-			repository.setText(repositoryId);
+			repositoryField.setText(repositoryId);
 
 			refreshLayout();
 		}
@@ -156,11 +155,10 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(repository.getText())){
-			JOptionPane.showMessageDialog(null,
-				"Repository is required for a citation.\n" +
-					"Please select a repository record.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+		if(repositoryField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Repository cannot be empty.",
+				tabbedPane, propertiesPanel, repositoryField);
 
 			return false;
 		}
@@ -170,7 +168,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_REPOSITORY, repository.getText());
+		FLEFRecordHelper.updateChildValue(record, TAG_REPOSITORY, repositoryField.getText());
 
 		components.save(record);
 	}

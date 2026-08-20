@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.imageio.ImageIO;
 import javax.swing.Icon;
@@ -76,6 +77,8 @@ public class PreferredImagePanel extends JPanel{
 	private static final String TAG_HEIGHT = "HEIGHT";
 
 	public static final Icon PLACEHOLDER_ICON = createPlaceholderIcon();
+
+	private static final int MAX_DIMENSION_SIZE = 80;
 
 
 	private final ImageCropDialog cropDialog;
@@ -142,7 +145,7 @@ public class PreferredImagePanel extends JPanel{
 		if(preferredImage == null)
 			return;
 
-		uri = FLEFRecordHelper.getChildValuesAsString(preferredImage, TAG_URI);
+		uri = FLEFRecordHelper.getChildValue(preferredImage, TAG_URI);
 		loadCropRectangle(preferredImage);
 
 		try{
@@ -175,7 +178,7 @@ public class PreferredImagePanel extends JPanel{
 	 * @param record	the record to save into
 	 */
 	public void save(final FLEFRecord record){
-		if(uri != null && !uri.isEmpty()){
+		if(StringUtils.isNotEmpty(uri)){
 			final FLEFRecord preferredImage = FLEFRecordHelper.getOrCreateTargetNode(record, path);
 			FLEFRecordHelper.updateChildValue(preferredImage, TAG_URI, uri);
 			if(cropRect != null && !cropRect.isEmpty()){
@@ -194,7 +197,7 @@ public class PreferredImagePanel extends JPanel{
 	 * @return {@code true} if an image is selected, {@code false} otherwise
 	 */
 	public boolean hasImage(){
-		return (uri != null && !uri.isEmpty());
+		return StringUtils.isNotEmpty(uri);
 	}
 
 	/**
@@ -281,7 +284,17 @@ public class PreferredImagePanel extends JPanel{
 				if(!validCrop.isEmpty())
 					source = img.getSubimage(validCrop.x, validCrop.y, validCrop.width, validCrop.height);
 			}
-			final Image scaled = source.getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+
+			final int origWidth = source.getWidth();
+			final int origHeight = source.getHeight();
+			int newWidth = MAX_DIMENSION_SIZE;
+			int newHeight = MAX_DIMENSION_SIZE;
+			if(origWidth > origHeight)
+				newHeight = (int)(origHeight * (double)MAX_DIMENSION_SIZE / origWidth);
+			else
+				newWidth = (int)(origWidth * (double)MAX_DIMENSION_SIZE / origHeight);
+			final Image scaled = source.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+
 			imageButton.setIcon(new ImageIcon(scaled));
 		}
 		else
@@ -297,9 +310,8 @@ public class PreferredImagePanel extends JPanel{
 				"Are you sure you want to remove the preferred image?",
 				"Confirm Removal",
 				JOptionPane.YES_NO_OPTION);
-			if(response == JOptionPane.YES_OPTION){
+			if(response == JOptionPane.YES_OPTION)
 				clearImage();
-			}
 		}
 	}
 

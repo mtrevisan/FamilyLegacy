@@ -70,10 +70,10 @@ public class FLEFWriter{
 
 
 	/**
-	 * Creates a writer with default 2-space indentation.
+	 * Creates a writer with default tab indentation.
 	 */
 	public static FLEFWriter create(){
-		return new FLEFWriter("  ");
+		return new FLEFWriter("\t");
 	}
 
 	/**
@@ -133,7 +133,9 @@ public class FLEFWriter{
 			writer.write(TAG_OPEN_CURLY_BRACE);
 			writer.write(StringUtils.LF);
 			for(int i = 0; i < records.size(); i++){
-				writeRecord(records.get(i), writer, 1);
+				final FLEFRecord record = records.get(i);
+
+				writeRecord(record, writer, 1);
 				if(i < records.size() - 1)
 					writer.write(StringUtils.LF);
 			}
@@ -167,8 +169,9 @@ public class FLEFWriter{
 			final List<FLEFRecord> children = rec.getChildren();
 
 			if(rec.hasChildren() && current.childIndex < children.size()){
-				final FLEFRecord child = children.get(current.childIndex++);
-				if(child != null && child.hasData()){
+				final FLEFRecord child = children.get(current.childIndex ++);
+
+				if(child != null && (StringUtils.isNotEmpty(child.getTag()) || child.hasData())){
 					final int nextIndent = current.indentLevel + 1;
 					writeRecordHeader(child, writer, nextIndent);
 					if(child.hasChildren())
@@ -177,7 +180,7 @@ public class FLEFWriter{
 			}
 			else{
 				// All children processed or leaf node reached
-				if(rec.hasChildren()){
+				if(rec.hasChildren() || rec.getFormattedId() != null && !rec.getFormattedId().isEmpty()){
 					writeIndent(writer, current.indentLevel);
 					writer.write(TAG_CLOSE_CURLY_BRACE);
 					writer.write(StringUtils.LF);
@@ -198,30 +201,33 @@ public class FLEFWriter{
 
 		// Optional record ID
 		final String formattedId = record.getFormattedId();
-		if(formattedId != null && !formattedId.isEmpty()){
+		if(StringUtils.isNotEmpty(formattedId)){
 			writer.write(StringUtils.SPACE);
 			writer.write(formattedId);
 		}
 
 		// Record value (supports single-line and multiline formatting)
-		final String val = record.getValue();
-		if(val != null){
-			if(isMultiline(val)){
+		final String value = record.getValue();
+		if(value != null){
+			if(isMultiline(value)){
 				writer.write(StringUtils.SPACE);
 				writer.write(TAG_VALUE_MULTILINE);
+				// Always start the content on a new line
 				writer.write(StringUtils.LF);
-				writeMultilineValue(val, writer, indentLevel + 1);
-				writeIndent(writer, indentLevel);
+
+				// Write content lines with zero indentation (no extra indent)
+				writeMultilineValue(value, writer, 0);
+
 				writer.write(TAG_VALUE_MULTILINE);
 			}
 			else{
 				writer.write(StringUtils.SPACE);
-				writer.write(val);
+				writer.write(value);
 			}
 		}
 
 		// Child block hierarchy start
-		if(record.hasChildren()){
+		if(record.hasChildren() || StringUtils.isNotEmpty(formattedId)){
 			writer.write(StringUtils.SPACE);
 			writer.write(TAG_OPEN_CURLY_BRACE);
 		}
@@ -230,10 +236,13 @@ public class FLEFWriter{
 
 	private void writeMultilineValue(final String text, final Writer writer, final int indentLevel) throws IOException{
 		final String[] lines = text.split("\r?\n", -1);
-		for(final String line : lines){
+		for(int i = 0, length = lines.length; i < length; i ++){
+			final String line = lines[i];
+
 			writeIndent(writer, indentLevel);
 			writer.write(line);
-			writer.write(StringUtils.LF);
+			if(i < lines.length - 1)
+				writer.write(StringUtils.LF);
 		}
 	}
 

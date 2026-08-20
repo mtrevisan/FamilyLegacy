@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -102,7 +102,7 @@ public class DateStructurePanel extends JPanel{
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, TAG_SOURCE, parent, "Sources", model, SourceHandler.class);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceCitationHandler.class);
 		qualifiers = new EvidenceQualifiersPanel(null, parent, "Evidence", model, null);
 
 

@@ -68,14 +68,14 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromReference(record, TAG_SUBJECT, model);
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromXRef(record, TAG_SUBJECT, model);
 		String subjectDisplayText = "--";
 		if(subject != null){
 			final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
 			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
-		final FLEFRecord object = FLEFRecordHelper.extractRecordFromReference(record, TAG_OBJECT, model);
+		final FLEFRecord object = FLEFRecordHelper.extractRecordFromXRef(record, TAG_OBJECT, model);
 		String objectDisplayText = "--";
 		if(object != null){
 			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());

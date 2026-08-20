@@ -141,8 +141,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
 		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME);
 		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
-		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER_NOTE, this, "Notes",
-			false, TAG_NOTE);
+		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER_NOTE, this, "Notes", TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
 
 		// Build common panels using the builder

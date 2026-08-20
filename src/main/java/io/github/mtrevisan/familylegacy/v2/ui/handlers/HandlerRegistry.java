@@ -145,6 +145,16 @@ public final class HandlerRegistry{
 	/**
 	 * Scans the package containing the given class for all classes that extend
 	 * {@link RecordTypeHandler}.
+	 */
+	public static void scanHandlers(){
+		final String packageName = CauseHandler.class.getPackage()
+			.getName();
+		scanHandlers(packageName);
+	}
+
+	/**
+	 * Scans the package containing the given class for all classes that extend
+	 * {@link RecordTypeHandler}.
 	 *
 	 * @param sampleClass any class belonging to the package to scan
 	 */
@@ -254,7 +264,7 @@ public final class HandlerRegistry{
 				final Class<? extends RecordTypeHandler<?>> handlerClass =
 					(Class<? extends RecordTypeHandler<?>>)clazz;
 				final String type = getTypeConstant(handlerClass);
-				if(type != null && !type.isEmpty())
+				if(StringUtils.isNotEmpty(type))
 					HANDLER_MAP.put(type, handlerClass);
 			}
 		}

@@ -46,11 +46,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -139,7 +139,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, IndividualAttributeHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -198,18 +198,18 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(!contextField.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Context is required.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+		if(contextField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Context cannot be empty.",
+				tabbedPane, propertiesPanel, contextField);
 
 			return false;
 		}
 
-		if(!targetField.hasData()){
-			JOptionPane.showMessageDialog(this,
-				"Target is required.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+		if(targetField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Target cannot be empty.",
+				tabbedPane, propertiesPanel, targetField);
 
 			return false;
 		}

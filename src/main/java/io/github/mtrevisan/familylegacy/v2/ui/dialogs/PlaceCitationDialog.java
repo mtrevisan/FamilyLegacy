@@ -33,11 +33,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -78,7 +78,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField place;
+	private final BoundTextField placeField;
 	private final BoundTextField originalTextField;
 
 
@@ -96,16 +96,16 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		place = new BoundTextField(TAG_PLACE);
+		placeField = new BoundTextField(TAG_PLACE);
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, PlaceCitationHandler.class)
 			.build();
 
-		components.bind(place);
+		components.bind(placeField);
 		components.bind(originalTextField);
 
 
@@ -141,7 +141,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			if(!confirmRecordExistsForType(placeId, PlaceHandler.class))
 				return;
 
-			place.setText(placeId);
+			placeField.setText(placeId);
 		}
 	}
 
@@ -153,11 +153,10 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(place.getText())){
-			JOptionPane.showMessageDialog(null,
-				"Place is required for a citation.\n" +
-					"Please select a place record.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+		if(placeField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Place cannot be empty.",
+				tabbedPane, propertiesPanel, placeField);
 
 			return false;
 		}
@@ -167,7 +166,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, place.getText());
+		FLEFRecordHelper.updateChildValue(record, TAG_PLACE, placeField.getText());
 
 		components.save(record);
 	}

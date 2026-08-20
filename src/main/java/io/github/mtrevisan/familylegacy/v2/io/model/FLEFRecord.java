@@ -239,7 +239,7 @@ public class FLEFRecord{
 	}
 
 	public boolean hasData(){
-		return (id != null && !id.isEmpty() || value != null && !value.isEmpty() || hasChildren());
+		return (StringUtils.isNotEmpty(id) || StringUtils.isNotEmpty(value) || hasChildren());
 	}
 
 	public boolean isEmpty(){

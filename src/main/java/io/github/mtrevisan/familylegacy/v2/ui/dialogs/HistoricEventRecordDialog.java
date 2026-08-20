@@ -38,6 +38,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -128,7 +129,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, HistoricEventHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, HistoricEventHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, HistoricEventHandler.class)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, HistoricEventHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)

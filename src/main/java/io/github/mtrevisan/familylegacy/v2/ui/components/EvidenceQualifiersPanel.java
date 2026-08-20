@@ -82,7 +82,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 */
 	public EvidenceQualifiersPanel(final String path, final Dialog parent, final String panelTitle,
 			final FLEFModel model, final String recordHandlerType){
-		this.path = (path != null && !path.isEmpty())? path + DOT: StringUtils.EMPTY;
+		this.path = (StringUtils.isNotEmpty(path)? path + DOT: StringUtils.EMPTY);
 
 		GUIHelper.setLayoutLabelFieldPanel(this, 5, "[]5[]5[]");
 		setBorder(BorderFactory.createTitledBorder(panelTitle));

@@ -43,6 +43,9 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 	private static final String TAG_SOURCE = "SOURCE";
 
 
+	private final RecordTypeHandler<?> sourceHandle = HandlerRegistry.getHandler(SourceHandler.class);
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;
@@ -69,13 +72,17 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 	}
 
 	@Override
+	public RecordTypeHandler<?> getParentHandler(){
+		return HandlerRegistry.getHandler(SourceHandler.class);
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return "--";
 
-		final String xref = FLEFRecordHelper.getChildValuesAsString(record, TAG_SOURCE);
+		final String xref = FLEFRecordHelper.getChildValue(record, TAG_SOURCE);
 		final FLEFRecord source = model.getRecordById(xref);
-		final RecordTypeHandler<?> sourceHandle = HandlerRegistry.getHandler(SourceCitationHandler.class);
 		return sourceHandle.getDisplayText(source, model);
 	}
 

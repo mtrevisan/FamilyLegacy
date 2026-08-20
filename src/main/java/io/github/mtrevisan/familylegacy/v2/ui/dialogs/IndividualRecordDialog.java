@@ -42,6 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +55,7 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* TESTED edit */
+/* TESTED */
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -144,7 +145,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IndividualHandler.class)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -283,7 +284,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = IndividualRecordDialog.class.getResourceAsStream("/tests/individual-record.flef")){
+		try(final InputStream is = IndividualRecordDialog.class.getResourceAsStream("/tests/test.flef")){
 			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 			GUIHelper.launch(IndividualRecordDialog::createEdit, content, "I1");
 		}

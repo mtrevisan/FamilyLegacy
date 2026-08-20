@@ -42,16 +42,20 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
+/* ONGOING */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -143,7 +147,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupHandler.class)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -281,103 +285,11 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord groupAttribute = FLEFRecord.createMainRecord("GA1", "GROUP_ATTRIBUTE");
-		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"));
-		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "residence"));
-
-		final FLEFRecord relationship1 = FLEFRecord.createMainRecord("RL1", "RELATIONSHIP")
-			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "associate"));
-		relationship1.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-		relationship1.addChild(FLEFRecord.createChildWithTag("OBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-		final FLEFRecord relationship2 = FLEFRecord.createMainRecord("RL2", "RELATIONSHIP")
-			.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "custom"));
-		relationship2.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-		relationship2.addChild(FLEFRecord.createChildWithTag("OBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-
-		final FLEFRecord group1 = FLEFRecord.createMainRecord("G1", "GROUP");
-		group1.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "household"));
-		group1.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
-		final FLEFRecord group2 = FLEFRecord.createMainRecord("G2", "GROUP");
-
-		final FLEFRecord note1 = FLEFRecord.createMainRecord("N1", "NOTE");
-		note1.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Group note"));
-
-		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
-		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Group source"))
-		);
-
-		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "male"));
-
-		final FLEFRecord eventParticipation1 = FLEFRecord.createMainRecord("EP1", "EVENT_PARTICIPATION");
-		eventParticipation1.addChild(FLEFRecord.createChildWithTag("PARTICIPANT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-
-		final FLEFRecord contextImpact1 = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("CONTEXT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
-		);
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-
-		final FLEFRecord conclusion1 = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion1.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "death cause"));
-		conclusion1.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-
-		final FLEFRecord identityHypothesis1 = FLEFRecord.createMainRecord("IH1", "IDENTITY_HYPOTHESIS");
-		identityHypothesis1.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-		identityHypothesis1.addChild(FLEFRecord.createChildWithTag("CANDIDATE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G2@"))
-		);
-		final FLEFRecord identityHypothesis2 = FLEFRecord.createMainRecord("IH2", "IDENTITY_HYPOTHESIS");
-		identityHypothesis2.addChild(FLEFRecord.createChildWithTag("SUBJECT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G3@"))
-		);
-		identityHypothesis2.addChild(FLEFRecord.createChildWithTag("CANDIDATE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-
-		final FLEFRecord researchQuestion1 = FLEFRecord.createMainRecord("RQ1", "RESEARCH_QUESTION");
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "rq title"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("QUESTION", "is?"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"))
-		);
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("STATUS", "open"));
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(groupAttribute);
-			model.addRecord(relationship1);
-			model.addRecord(relationship2);
-			model.addRecord(group1);
-			model.addRecord(group2);
-			model.addRecord(note1);
-			model.addRecord(source1);
-			model.addRecord(individual);
-			model.addRecord(eventParticipation1);
-			model.addRecord(contextImpact1);
-			model.addRecord(conclusion1);
-			model.addRecord(identityHypothesis1);
-			model.addRecord(identityHypothesis2);
-			model.addRecord(researchQuestion1);
-		};
-		GUIHelper.launch(GroupRecordDialog::createEdit, modelFiller, group1);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = GroupRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(GroupRecordDialog::createEdit, content, "G1");
+		}
 	}
 
 }

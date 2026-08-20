@@ -265,7 +265,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			if(relationType == RelationType.RECORD)
 				loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
 			else
-				load(parentRecord);
+				load(model.getRecordById(parentRecord.getId()));
 
 			if(!items.contains(record))
 				// record was removed
@@ -289,7 +289,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 		List<FLEFRecord> entities = Collections.emptyList();
 		if(relationType == RelationType.RECORD)
-			entities = FLEFRecordHelper.extractRecordsFromReference(record, path, referencePath, model);
+			entities = FLEFRecordHelper.extractRecordsFromTarget(record, path, referencePath, model);
 		else if(relationType == RelationType.STRUCTURE)
 			entities = handler.extractEntities(record, path);
 		if(!entities.isEmpty())
@@ -308,6 +308,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		parentRecord = FLEFRecord.createMainRecord(recordId, null);
+		isReference = true;
 
 		final List<FLEFRecord> references = handler.findReferences(model, recordId, parentEntityTag);
 		setItems(references);
@@ -320,17 +321,52 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
+		isReference = true;
 
 		final List<FLEFRecord> references = model.getRecordsByType(handler.getType()).stream()
 			.filter(reference -> {
 				for(final String actorTag : actorTags){
-					final FLEFRecord actor = FLEFRecordHelper.extractRecordFromReference(reference, actorTag, model);
+					final FLEFRecord actor = FLEFRecordHelper.extractRecordFromXRef(reference, actorTag, model);
 					if(actor == null)
 						return false;
 
 					final String tag = actor.getTag();
 					final String id = actor.getId();
 					return (Objects.equals(parentEntityTag, tag) && recordId.equals(id));
+				}
+				return false;
+			})
+			.toList();
+		setItems(references);
+	}
+
+	public void loadCitationsWithType(final String recordId, final String... actorTags){
+		clear();
+
+		if(recordId == null)
+			return;
+
+		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
+		isReference = true;
+
+		final List<FLEFRecord> references = model.getRecordsByType(handler.getType()).stream()
+			.filter(reference -> {
+				for(final String actorTag : actorTags){
+					final List<FLEFRecord> actors = FLEFRecordHelper.extractRecordsFromReference(reference, actorTag, model);
+					if(actors.isEmpty())
+						return false;
+
+					boolean present = false;
+					for(final FLEFRecord actor : actors){
+						final String tag = actor.getTag();
+						final String id = actor.getId();
+						if(Objects.equals(parentEntityTag, tag) && recordId.equals(id)){
+							present = true;
+
+							break;
+						}
+					}
+					return present;
 				}
 				return false;
 			})
@@ -347,6 +383,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 * @param record	the record to save to
 	 */
 	public void save(final FLEFRecord record){
+		if(isReference)
+			return;
+
 		if(relationType == RelationType.RECORD)
 			for(final FLEFRecord item : getItems())
 				FLEFRecordHelper.addChild(record, path, item.getFormattedId());
@@ -359,6 +398,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public void saveReferences(final FLEFRecord record){
+		if(isReference)
+			return;
+
 		for(final FLEFRecord item : getItems())
 			FLEFRecordHelper.addChild(record, path, item.getFormattedId());
 	}

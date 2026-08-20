@@ -33,17 +33,16 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -63,7 +62,6 @@ import java.util.function.Consumer;
  *   context: Text
  *   proof_status: enum { unresearched, conflicting_evidence, supported, proven, disproven }
  *   narrative?: Text
- *   date?: Date
  *   resolves*: ConclusionTarget
  *   preferred?: ConclusionTarget
  *   research*: Xref&lt;ResearchQuestionRecord&gt;
@@ -76,7 +74,7 @@ import java.util.function.Consumer;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): context, proof status, narrative, date, resolves, preferred
+ * Tab 1 (Properties): context, proof status, narrative, resolves, preferred
  * Tab 6 (Research): research
  * Tab 7 (Sources): source
  * Tab 9 (Privacy): privacy
@@ -94,7 +92,6 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private static final String TAG_CONTEXT = "CONTEXT";
 	private static final String TAG_PROOF_STATUS = "PROOF_STATUS";
 	private static final String TAG_NARRATIVE = "NARRATIVE";
-	private static final String TAG_DATE = "DATE";
 	private static final String TAG_RESOLVES = "RESOLVES";
 	private static final String TAG_PREFERRED = "PREFERRED";
 	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
@@ -112,7 +109,6 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<FLEFRecord> preferredCombo;
 	private final BoundComboBox<String> proofStatusCombo;
 	private final BoundTextArea narrativeArea;
-	private final DateField dateField;
 
 
 	public static ConclusionRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -127,7 +123,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private ConclusionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ConclusionHandler.class);
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		contextField = new BoundTextField(TAG_CONTEXT);
 		resolvesPanel = EntityReferenceListPanel.createForRecord(TAG_RESOLVES, this, "Resolves", model, ConclusionTargetHandler.class);
@@ -153,12 +149,11 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			"unresearched", "conflicting_evidence", "supported", "proven", "disproven"
 		});
 		narrativeArea = new BoundTextArea(TAG_NARRATIVE, 5, 30);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Conclusion Date", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, ConclusionHandler.class)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -182,9 +177,6 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		// narrative
 		GUIHelper.addLabeledComponent(propertiesPanel, "Narrative:", narrativeArea);
-
-		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, "Date:", dateField);
 
 		// resolves
 		GUIHelper.addComponent(propertiesPanel, resolvesPanel);
@@ -232,12 +224,11 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		proofStatusCombo.setSelectedItem(FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS));
 		narrativeArea.setText(FLEFRecordHelper.getChildValue(record, TAG_NARRATIVE));
 
-		dateField.load(record);
 		resolvesPanel.load(record);
 		updatePreferredCombo();
 
 		// preferred
-		final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromReference(record, TAG_PREFERRED, model);
+		final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromXRef(record, TAG_PREFERRED, model);
 		if(preferred != null && !preferred.isEmpty())
 			// Find and select in combo
 			preferredCombo.setSelectedItem(preferred);
@@ -246,28 +237,16 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	}
 
 	private void updatePreferredCombo(){
-		final FLEFRecord currentSelection = (FLEFRecord)preferredCombo.getSelectedItem();
-		final DefaultComboBoxModel<FLEFRecord> comboBoxModel = new DefaultComboBoxModel<>();
-		comboBoxModel.addElement(null);
-		for(final FLEFRecord resolve : resolvesPanel.getItems()){
-			final FLEFRecord item = model.getRecordById(resolve.getValue());
-			comboBoxModel.addElement(item);
-		}
-		preferredCombo.removeAllItems();
-		preferredCombo.setModel(comboBoxModel);
-
-		preferredCombo.setSelectedItem(currentSelection != null && !currentSelection.isEmpty()
-			? currentSelection
-			: null);
+		preferredCombo.updateItems(resolvesPanel.getItems());
 	}
 
 	@Override
 	protected boolean validData(){
-		String context = contextField.getText();
-		if(context.isEmpty()){
+		if(contextField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Context is required.",
 				tabbedPane, propertiesPanel, contextField);
+
 			return false;
 		}
 
@@ -286,7 +265,6 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		components.save(record);
 
-		dateField.save(record);
 		resolvesPanel.save(record);
 
 		// preferred

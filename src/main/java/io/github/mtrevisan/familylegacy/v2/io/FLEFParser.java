@@ -201,18 +201,165 @@ public class FLEFParser{
 	 */
 	private String readMultilineString(){
 		expectTripleQuotes();
-
 		advanceBy(3);
+
+		// Find the closing triple quotes
 		final int end = text.indexOf(TAG_VALUE_MULTILINE, position);
 		if(end < 0)
 			throw error("Unterminated multiline string");
 
-		final String value = text.substring(position, end);
+		// Extract the raw content between the delimiters
+		final String raw = text.substring(position, end);
+		// Compute the leading whitespace (indent) of the line containing the closing delimiter
+		int closeIndent = 0;
+		int startOfCloseLine = end;
+		// Find the start of the line that contains the closing quotes
+		while(startOfCloseLine > 0 && text.charAt(startOfCloseLine - 1) != '\n')
+			startOfCloseLine --;
+		// The line content from startOfCloseLine to 'end' is the closing line (including the triple quotes)
+		final String closeLine = text.substring(startOfCloseLine, end);
+		closeIndent = countLeadingWhitespace(closeLine);
+
+		// Move position past the closing delimiter and normalize the trailing newline
 		position = end + 3;
 
 		skipLineBreak();
 
-		return value;
+		return normalizeTextBlock(raw, closeIndent);
+	}
+
+	/**
+	 * Normalizes a raw text block content (enclosed in """) according to Java text block rules.
+	 * <p>
+	 * This method performs the following transformations:
+	 * <ol>
+	 *   <li>Normalizes line endings: all {@code \r\n} and {@code \r} are converted to {@code \n}.</li>
+	 *   <li>Strips the leading newline if the content starts with one (the opening delimiter
+	 *       is typically followed by a newline).</li>
+	 *   <li>Determines the minimum indentation (incidental indentation) across all non-blank lines,
+	 *       including the indentation of the closing delimiter line.</li>
+	 *   <li>Removes this minimum indentation from every line.</li>
+	 *   <li>Translates standard escape sequences: {@code \\}, {@code \"}, {@code \n}, {@code \r}, {@code \t}, {@code \s}.</li>
+	 * </ol>
+	 *
+	 * @param raw the raw string read between the triple quotes (including the leading/trailing newlines)
+	 * @param closeIndent  the number of leading whitespace characters on the closing delimiter line
+	 * @return the normalized content, ready to be stored as the record value
+	 */
+	private String normalizeTextBlock(final String raw, final int closeIndent){
+		// Step 1: Normalize line endings to LF only
+		String normalized = raw.replace("\r\n", "\n")
+			.replace('\r', '\n');
+
+		// Step 2: Remove the leading newline if present (the opening """ is usually followed by \n)
+		if(normalized.startsWith("\n"))
+			normalized = normalized.substring(1);
+
+		// Step 3: Split into lines (keep trailing empty lines)
+		final String[] lines = normalized.split("\n", -1);
+
+		// Step 4: Calculate the minimum indentation among all non‑blank content lines
+		// and also consider the indentation of the closing delimiter line.
+		int minIndent = closeIndent;
+		for(final String line : lines){
+			// Ignore lines that consist solely of whitespace when computing the minimum indent
+			if(line.trim().isEmpty())
+				continue;
+
+			final int leading = countLeadingWhitespace(line);
+			if(leading < minIndent)
+				minIndent = leading;
+		}
+		// If the block consists only of blank lines, set minIndent to 0
+		if(minIndent == Integer.MAX_VALUE)
+			minIndent = 0;
+
+		// Step 5: Strip the minimum indentation from each line
+		final StringBuilder result = new StringBuilder();
+		for(int i = 0; i < lines.length; i ++){
+			final String line = lines[i];
+			if(i > 0)
+				result.append('\n');
+			// Remove the minIndent only if the line is long enough
+			if(!line.isEmpty() && line.length() >= minIndent)
+				// Ensure we don't remove partial whitespace; strip exactly minIndent characters
+				result.append(line, minIndent, line.length());
+			else
+				result.append(line);
+		}
+
+		// Step 6: Translate escape sequences (handle \", \\, \n, \r, \t, \s)
+		return translateEscapes(result.toString());
+	}
+
+	/**
+	 * Counts the number of leading whitespace characters (spaces and tabs).
+	 *
+	 * @param str the string to examine
+	 * @return the number of leading whitespace characters
+	 */
+	private int countLeadingWhitespace(final String str){
+		int count = 0;
+		for(int i = 0; i < str.length(); i ++){
+			char c = str.charAt(i);
+			if(c == ' ' || c == '\t')
+				count ++;
+			else
+				break;
+		}
+		return count;
+	}
+
+	/**
+	 * Translates standard escape sequences found in a text block.
+	 * <p>
+	 * Supports: {@code \\} -> {@code \}, {@code \"} -> {@code "}, {@code \n} -> newline,
+	 * {@code \r} -> carriage return, {@code \t} -> tab, {@code \s} -> space.
+	 * Unrecognized escapes are left unchanged (e.g., {@code \x} remains {@code \x}).
+	 *
+	 * @param input the string potentially containing escape sequences
+	 * @return the string with escapes translated
+	 */
+	private String translateEscapes(final String input){
+		final StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < input.length(); i ++){
+			final char c = input.charAt(i);
+			if(c == '\\' && i + 1 < input.length()){
+				char next = input.charAt(i + 1);
+				switch(next){
+					case 'n' -> {
+						sb.append('\n');
+						i ++;
+					}
+					case 'r' -> {
+						sb.append('\r');
+						i ++;
+					}
+					case 't' -> {
+						sb.append('\t');
+						i ++;
+					}
+					case 's' -> {
+						sb.append(' ');
+						i ++;
+					}
+					case '"' -> {
+						sb.append('"');
+						i ++;
+					}
+					case '\\' -> {
+						sb.append('\\');
+						i ++;
+					}
+					default ->
+						// Unknown escape: leave both characters as-is
+						sb.append(c);
+				}
+			}
+			else
+				sb.append(c);
+		}
+		return sb.toString();
 	}
 
 

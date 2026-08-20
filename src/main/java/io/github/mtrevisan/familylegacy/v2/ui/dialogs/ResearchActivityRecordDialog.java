@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -49,6 +48,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -68,7 +68,6 @@ import java.io.Serial;
  * record ResearchActivityRecord {
  *   id: LocalID
  *   question*: Xref&lt;ResearchQuestionRecord&gt;
- *   date: Date
  *   activity_type: enum { search, review, analysis, correspondence, interview, hypothesis }
  *   status: enum { planned, in_progress, completed, abandoned }
  *   action: Text
@@ -84,7 +83,7 @@ import java.io.Serial;
  *   conclusion?: Text
  *   conclusion_confidence?: enum { low, medium, high }
  *
- *   source*: Xref&lt;SourceRecord&gt;
+ *   source*: SourceCitation
  *   parent?: Xref&lt;ResearchActivityRecord&gt;
  *   task*: Xref&lt;ResearchTaskRecord&gt;
  *   privacy?: PrivacyStructure
@@ -93,7 +92,7 @@ import java.io.Serial;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): question, date, activity_type, status, action, target, search_scope, result, observation, conclusion, conclusion_confidence, parent, task
+ * Tab 1 (Properties): question, activity_type, status, action, target, search_scope, result, observation, conclusion, conclusion_confidence, parent, task
  * Tab 7 (Sources): source
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
@@ -107,7 +106,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private static final String DOT = ".";
 
 	private static final String TAG_QUESTION = "QUESTION";
-	private static final String TAG_DATE = "DATE";
 	private static final String TAG_ACTIVITY_TYPE = "ACTIVITY_TYPE";
 	private static final String TAG_STATUS = "STATUS";
 	private static final String TAG_ACTION = "ACTION";
@@ -131,7 +129,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final EntityReferenceListPanel questionPanel;
-	private final DateField dateField;
 	private final BoundComboBox<String> activityTypeCombo;
 	private final BoundComboBox<String> statusCombo;
 	private final BoundTextArea actionArea;
@@ -159,12 +156,11 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private ResearchActivityRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		super(parent, model, record, ResearchActivityHandler.class);
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
 		// Initialize components
 		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.class)
 			.withParentEntity(this.record.getId(), ResearchActivityHandler.TYPE);
-		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Activity Date", model);
 		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
 			"search", "review", "analysis", "correspondence", "interview", "hypothesis"
 		});
@@ -199,7 +195,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -223,9 +219,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	protected JPanel createPropertiesPanel(){
 		// question
 		GUIHelper.addComponent(propertiesPanel, questionPanel);
-
-		// date
-		GUIHelper.addLabeledComponent(propertiesPanel, "Date*:", dateField);
 
 		// activity type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Activity Type*:", activityTypeCombo);
@@ -272,7 +265,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel conclusionPanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		conclusionPanel.setBorder(BorderFactory.createTitledBorder("Conclusion"));
 		// conclusion
-		GUIHelper.addComponent(conclusionPanel, conclusionConfidenceCombo);
+		GUIHelper.addComponent(conclusionPanel, conclusionArea);
 		// confidence
 		GUIHelper.addLabeledComponent(conclusionPanel, "Confidence:",  conclusionConfidenceCombo);
 		GUIHelper.addComponent(panel, conclusionPanel);
@@ -317,8 +310,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		dateField.load(record);
-
 		components.load(record);
 
 		targetField.load(record);
@@ -329,14 +320,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(!dateField.hasData()){
-			GUIHelper.showValidationErrorAndFocus(this,
-				"Date is required.",
-				tabbedPane, propertiesPanel, dateField);
-
-			return false;
-		}
-
 		if(activityTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Activity type is required.",
@@ -367,8 +350,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		dateField.save(record);
-
 		components.save(record);
 
 		targetField.saveReferences(record);

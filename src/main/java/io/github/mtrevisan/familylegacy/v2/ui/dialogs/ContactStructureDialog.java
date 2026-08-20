@@ -81,6 +81,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
+	private final JPanel propertiesPanel;
+
 	private final BoundTextField addressField;
 	private final BoundComboBox<String> typeCombo;
 	private final EntityReferenceListPanel namePanel;
@@ -97,6 +99,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	private ContactStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ContactHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 
 		addressField = new BoundTextField(TAG_ADDRESS);
 		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
@@ -122,12 +126,13 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
-
+		// address
 		GUIHelper.addLabeledComponent(propertiesPanel, "Address*:", addressField);
 
+		// type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
 
+		// name
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
 		return propertiesPanel;
@@ -166,10 +171,11 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		if(addressField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Address cannot be empty.",
-				null, null, addressField);
+				tabbedPane, propertiesPanel, addressField);
 
 			return false;
 		}
+
 		return true;
 	}
 

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -653,6 +654,7 @@ public final class GUIHelper{
 		}
 		catch(final Exception ignored){}
 
+		HandlerRegistry.scanHandlers();
 
 		SwingUtilities.invokeLater(() -> {
 			final BaseRecordDialog dialog = dialogFactory.apply(null, model);

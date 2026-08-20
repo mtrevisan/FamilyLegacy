@@ -43,7 +43,6 @@ import java.awt.FlowLayout;
 import java.io.Serial;
 
 
-/* TESTED edit */
 /**
  * Dialog for editing a {@code TEXT_VALUE_VARIANT} according to FLEF 0.1.1.
  * <p>
@@ -96,6 +95,8 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
+	private final JPanel propertiesPanel;
+
 	private final JRadioButton phoneticRadio = new JRadioButton("Phonetic", true);
 	private final JRadioButton transcriptionRadio = new JRadioButton("Transcription");
 	private final BoundTextField phoneticSystemField;
@@ -115,6 +116,8 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, VariantHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
 
 		phoneticSystemField = new BoundTextField(TAG_PHONETIC + DOT + TAG_SYSTEM);
 		phoneticSystemField.setToolTipText("e.g., 'ipa', 'rōmaji', 'pinyin', 'wadegiles'");
@@ -159,8 +162,6 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
-
 		final ButtonGroup group = new ButtonGroup();
 		group.add(phoneticRadio);
 		group.add(transcriptionRadio);
@@ -169,22 +170,22 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		radioPanel.add(phoneticRadio);
 		radioPanel.add(transcriptionRadio);
 
-		GUIHelper.addLabeledComponent(panel, "Variant Kind:", radioPanel);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Variant Kind:", radioPanel);
 
-		panel.add(new JLabel("System*:"), "align label");
-		panel.add(phoneticSystemField, "growx,wrap");
-		panel.add(transcriptionSystemCombo, "growx,wrap");
+		propertiesPanel.add(new JLabel("System*:"), "align label");
+		propertiesPanel.add(phoneticSystemField, "growx,wrap");
+		propertiesPanel.add(transcriptionSystemCombo, "growx,wrap");
 
-		GUIHelper.addLabeledComponent(panel, "Type:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
 
-		GUIHelper.addLabeledComponent(panel, "Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueField);
 
 		phoneticRadio.addActionListener(e -> updateFieldsState());
 		transcriptionRadio.addActionListener(e -> updateFieldsState());
 
 		updateFieldsState();
 
-		return panel;
+		return propertiesPanel;
 	}
 
 
@@ -226,7 +227,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		if(phoneticRadio.isSelected() && phoneticSystemField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"System is required.",
-				null, null, phoneticSystemField);
+				tabbedPane, propertiesPanel, phoneticSystemField);
 
 			return false;
 		}
@@ -234,7 +235,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		if(transcriptionRadio.isSelected() && !transcriptionSystemCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"System cannot be empty.",
-				null, null, transcriptionSystemCombo);
+				tabbedPane, propertiesPanel, transcriptionSystemCombo);
 
 			return false;
 		}
@@ -242,7 +243,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Value is required.",
-				null, null, valueField);
+				tabbedPane, propertiesPanel, valueField);
 
 			return false;
 		}

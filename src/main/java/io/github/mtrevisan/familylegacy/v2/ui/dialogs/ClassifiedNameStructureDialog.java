@@ -34,11 +34,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -96,6 +96,8 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
+	private final JPanel propertiesPanel;
+
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
 	private final VariantListPanel variantPanel;
@@ -114,6 +116,8 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 	private ClassifiedNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ClassifiedNameHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
 		valueField = new BoundTextField(TAG_VALUE);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
@@ -145,7 +149,7 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withCitationComponent(PanelKey.SOURCE, TAG_SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.build();
 
@@ -160,8 +164,6 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
-
 		// value
 		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
 
@@ -208,10 +210,9 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 	@Override
 	protected boolean validData(){
 		if(valueField.isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				"Name value cannot be empty.", "Validation Error",
-				JOptionPane.ERROR_MESSAGE);
-			valueField.requestFocus();
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Name value is required.",
+				tabbedPane, propertiesPanel, valueField);
 
 			return false;
 		}

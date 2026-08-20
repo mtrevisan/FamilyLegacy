@@ -38,7 +38,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -99,7 +98,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField source;
+	private final BoundTextField sourceField;
 	private final BoundTextField locationField;
 	private final ExtractListPanel extractPanel;
 
@@ -118,7 +117,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		source = new BoundTextField(TAG_SOURCE);
+		sourceField = new BoundTextField(TAG_SOURCE);
 		locationField = new BoundTextField(TAG_LOCATION);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
 
@@ -129,7 +128,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.build();
 
-		components.bind(source);
+		components.bind(sourceField);
 		components.bind(locationField);
 
 
@@ -173,7 +172,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			if(!confirmRecordExistsForType(sourceId, SourceHandler.class))
 				return;
 
-			source.setText(sourceId);
+			sourceField.setText(sourceId);
 		}
 	}
 
@@ -187,11 +186,10 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(source.getText())){
-			JOptionPane.showMessageDialog(null,
-				"Source is required for a citation.\n" +
-					"Please select a source record.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+		if(sourceField.isEmpty()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"Source cannot be empty.",
+				tabbedPane, propertiesPanel, sourceField);
 
 			return false;
 		}

@@ -60,7 +60,6 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 	private final String path;
-	private final String citationTag;
 
 	private final RecordTypeHandler<?> recordHandler;
 
@@ -69,18 +68,16 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	 * Constructs a CitationListPanel with all necessary behavior.
 	 *
 	 * @param path	the record path where citations are stored
-	 * @param citationTag	The tag containing the xref id of the cited record
 	 * @param parent	the parent dialog
 	 * @param panelTitle	the border title
 	 * @param model	the FLEF model
 	 * @param recordHandlerType	the type of the target entity handler
 	 */
-	public EntityCitationListPanel(final String path, final String citationTag, final Dialog parent,
+	public EntityCitationListPanel(final String path, final Dialog parent,
 			final String panelTitle, final FLEFModel model, final Class<? extends RecordTypeHandler<?>> recordHandlerType){
 		super(parent, panelTitle, model);
 
 		this.path = path;
-		this.citationTag = citationTag;
 
 		recordHandler = HandlerRegistry.getHandler(recordHandlerType);
 	}
@@ -133,7 +130,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final JDialog newEntityDialog = recordHandler.createNewDialog(parent, model);
+		final RecordTypeHandler<?> parentRecordHandler = recordHandler.getParentHandler();
+		final JDialog newEntityDialog = parentRecordHandler.createNewDialog(parent, model);
 		newEntityDialog.setVisible(true);
 
 		FLEFRecord newCitation = null;
@@ -142,7 +140,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 			if(newEntity != null){
 				final String newEntityId = newEntity.getId();
 				final FLEFRecord citation = FLEFRecord.createEmpty();
-				FLEFRecordHelper.updateChildValue(citation, recordHandler.getType(), newEntityId);
+				FLEFRecordHelper.updateChildValue(citation, parentRecordHandler.getType(), newEntityId);
 
 				final JDialog citationDialog = createCitationEditDialog(citation);
 				citationDialog.setVisible(true);
@@ -159,7 +157,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
 		if(record == null){
-			JOptionPane.showMessageDialog(parent, recordHandler.getCitationHandler().getLabel() + " not found",
+			JOptionPane.showMessageDialog(parent, recordHandler.getLabel() + " not found",
 				"Error",
 				JOptionPane.ERROR_MESSAGE);
 
@@ -177,7 +175,10 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 		if(idx == -1)
 			return;
 
-		final FLEFRecord entity = items.get(idx);
+		final FLEFRecord citation = items.get(idx);
+		final RecordTypeHandler<?> parentRecordHandler = recordHandler.getParentHandler();
+		final String recordId = FLEFRecordHelper.getChildValue(citation, parentRecordHandler.getType());
+		final FLEFRecord entity = model.getRecordById(recordId);
 		final JDialog dialog = createTargetEditDialog(entity);
 		dialog.setVisible(true);
 
@@ -188,9 +189,8 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromReference(record, path,
-			citationTag, model);
-		setItems(referencedEntities);
+		final List<FLEFRecord> citations = FLEFRecordHelper.findChildren(record, path);
+		setItems(citations);
 	}
 
 	/**
@@ -222,12 +222,12 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	public JDialog createCitationEditDialog(final FLEFRecord citation){
-		var citationHandler = recordHandler.getCitationHandler();
-		return citationHandler.createEditDialog(parent, model, citation);
+		return recordHandler.createEditDialog(parent, model, citation);
 	}
 
 	public JDialog createTargetEditDialog(final FLEFRecord entity){
-		return recordHandler.createEditDialog(parent, model, entity);
+		final RecordTypeHandler<?> parentRecordHandler = recordHandler.getParentHandler();
+		return parentRecordHandler.createEditDialog(parent, model, entity);
 	}
 
 }

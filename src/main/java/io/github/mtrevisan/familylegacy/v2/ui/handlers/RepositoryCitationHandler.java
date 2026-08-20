@@ -43,6 +43,9 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 
 
+	private final RecordTypeHandler<?> repositoryHandle = HandlerRegistry.getHandler(RepositoryHandler.class);
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;
@@ -69,13 +72,17 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 	}
 
 	@Override
+	public RecordTypeHandler<?> getParentHandler(){
+		return HandlerRegistry.getHandler(RepositoryHandler.class);
+	}
+
+	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return "--";
 
-		final String xref = FLEFRecordHelper.getChildValuesAsString(record, TAG_REPOSITORY);
+		final String xref = FLEFRecordHelper.getChildValue(record, TAG_REPOSITORY);
 		final FLEFRecord repository = model.getRecordById(xref);
-		final RecordTypeHandler<?> repositoryHandle = HandlerRegistry.getHandler(RepositoryHandler.class);
 		return repositoryHandle.getDisplayText(repository, model);
 	}
 

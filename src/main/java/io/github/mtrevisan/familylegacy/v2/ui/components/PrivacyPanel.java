@@ -25,7 +25,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
@@ -33,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.Serial;
@@ -112,7 +110,7 @@ public class PrivacyPanel extends JPanel{
 		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]10[]10[]");
 
 		// level
-		GUIHelper.addLabeledComponent(this, "Level*:", levelCombo);
+		GUIHelper.addLabeledComponent(this, "Level:", levelCombo);
 
 		// reason
 		GUIHelper.addLabeledComponent(this, "Reason:", reasonArea);
@@ -152,24 +150,13 @@ public class PrivacyPanel extends JPanel{
 	 */
 	public boolean hasData(){
 		final String level = (String)levelCombo.getSelectedItem();
-		return (level != null && !level.isEmpty());
+		return StringUtils.isNotEmpty(level);
 	}
 
 	/**
 	 * Validates the required fields and the format of the EXPIRES date.
-	 *
-	 * @return {@code true} if LEVEL is selected and EXPIRES (if present) is a valid ISO 8601 date,
-	 * otherwise {@code false}
 	 */
 	public boolean validateData(){
-		final String level = (String)levelCombo.getSelectedItem();
-		if(level == null || level.isEmpty()){
-			JOptionPane.showMessageDialog(parent, "Restriction LEVEL is required.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
-
-			return false;
-		}
-
 		return true;
 	}
 

@@ -40,7 +40,6 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
-/* TESTED edit */
 /**
  * Structure:
  * <pre>
@@ -72,6 +71,8 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
+	private final JPanel propertiesPanel;
+
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
 	private final VariantListPanel variantPanel;
@@ -88,6 +89,8 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PartHandler.class);
+
+		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -116,18 +119,16 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
-
 		// type
-		GUIHelper.addLabeledComponent(panel, "Part Type*:", typeCombo);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Part Type*:", typeCombo);
 
 		// value
-		GUIHelper.addLabeledComponent(panel, "Value*:", valueField);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueField);
 
 		// variant
-		GUIHelper.addComponent(panel, variantPanel);
+		GUIHelper.addComponent(propertiesPanel, variantPanel);
 
-		return panel;
+		return propertiesPanel;
 	}
 
 
@@ -143,10 +144,11 @@ public class PartStructureDialog extends BaseRecordDialog{
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Value cannot be empty.",
-				null, null, valueField);
+				tabbedPane, propertiesPanel, valueField);
 
 			return false;
 		}
+
 		return true;
 	}
 

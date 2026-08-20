@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRecordDialog;
+import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -63,14 +64,9 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	}
 
 	@Override
-	public RecordTypeHandler<?> getCitationHandler(){
-		return HandlerRegistry.getHandler(PlaceCitationHandler.class);
-	}
-
-	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME + DOT + TAG_TEXT + DOT + TAG_VALUE);
-		if(value != null && !value.isEmpty()){
+		if(StringUtils.isNotEmpty(value)){
 			final String id = record.getId();
 			return value + " [" + id + "]";
 		}

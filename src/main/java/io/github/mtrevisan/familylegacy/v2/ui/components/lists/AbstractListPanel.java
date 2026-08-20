@@ -77,6 +77,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	protected final JList<String> list = GUIHelper.createList(listModel);
 	protected final List<T> items = new ArrayList<>();
 
+	protected boolean isReference;
+
 
 	/**
 	 * Constructs an {@code AbstractListPanel} with a title.
