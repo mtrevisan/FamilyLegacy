@@ -157,6 +157,40 @@ records {
 		}
 		EVENT E1
 		ROLE spouse
+		SOURCE {
+			SOURCE S1
+			LOCATION there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	EVENT_PARTICIPATION EP2 {

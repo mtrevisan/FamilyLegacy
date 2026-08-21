@@ -241,7 +241,6 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		if(!confirmRecordExistsForType(eventId, EventHandler.class))
 			return this;
 
-		participantField.setParticipant(null);
 		GUIHelper.setComponentVisible(participantField, true);
 
 		eventField.setParticipant(FLEFRecord.createMainRecord(eventId, HandlerRegistry.getHandlerType(EventHandler.class)));
@@ -250,15 +249,14 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
-	public EventParticipationRecordDialog withParticipant(final String participantId,
-			final Class<? extends RecordTypeHandler<?>> participantHandlerClass){
-		if(!confirmRecordExistsForType(participantId, participantHandlerClass))
+	public EventParticipationRecordDialog withParticipant(final String participantId, final String participantHandlerType){
+		final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerType);
+		if(!confirmRecordExistsForType(participantId, participantHandler.getHandlerClass()))
 			return this;
 
-		eventField.setParticipant(FLEFRecord.createEmpty());
 		GUIHelper.setComponentVisible(eventField, true);
 
-		participantField.setParticipant(FLEFRecord.createMainRecord(participantId, HandlerRegistry.getHandlerType(participantHandlerClass)));
+		participantField.setParticipant(FLEFRecord.createMainRecord(participantId, participantHandler.getType()));
 		GUIHelper.setComponentVisible(participantField, false);
 
 		return this;

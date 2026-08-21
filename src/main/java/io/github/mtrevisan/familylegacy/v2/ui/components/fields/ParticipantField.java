@@ -120,9 +120,10 @@ public class ParticipantField extends BoundTextField{
 		String value = null;
 		if(participantRecord != null && !participantRecord.isEmpty()){
 			final FLEFRecord participant = model.getRecordById(participantRecord.getId());
-			final RecordTypeHandler<?> handler = findHandler(participantRecord.getTag());
-			if(participant != null && handler != null)
+			if(participant != null){
+				final RecordTypeHandler<?> handler = findHandler(participantRecord.getTag());
 				value = handler.getDisplayText(participant, model);
+			}
 		}
 		setText(value);
 	}
@@ -271,7 +272,7 @@ public class ParticipantField extends BoundTextField{
 	private RecordTypeHandler<?> findHandler(final String type){
 		for(final Class<? extends RecordTypeHandler<?>> headerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(headerType);
-			if(handler != null && handler.getType().equalsIgnoreCase(type))
+			if(handler.getType().equalsIgnoreCase(type))
 				return handler;
 		}
 		return null;
