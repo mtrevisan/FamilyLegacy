@@ -56,7 +56,7 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> variants = FLEFRecordHelper.findChildren(record, TAG_VARIANT);
+		final List<FLEFRecord> variants = FLEFRecordHelper.extractStructures(record, TAG_VARIANT);
 		setItems(variants);
 	}
 

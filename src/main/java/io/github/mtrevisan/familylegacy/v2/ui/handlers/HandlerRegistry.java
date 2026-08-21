@@ -30,10 +30,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,33 +52,67 @@ public final class HandlerRegistry{
 	private static final Map<String, Class<? extends RecordTypeHandler<?>>> HANDLER_MAP = new ConcurrentHashMap<>();
 
 
+	// Flag to ensure scanning happens only once and completes before any getter returns
+	private static volatile boolean initialized;
+	private static final Object LOCK = new Object();
+
+
 	private HandlerRegistry(){}
 
 
 	/**
+	 * Ensures the handler registry is fully initialized.
+	 * This method blocks until scanning is complete.
+	 */
+	private static void ensureInitialized(){
+		if(initialized)
+			return;
+
+		synchronized(LOCK){
+			if(initialized)
+				return;
+
+			// Perform the scan synchronously
+			scanHandlers();
+			initialized = true;
+		}
+	}
+
+
+	/**
 	 * Returns the handler for the given record type.
+	 * <p>
+	 * Ensures the registry is initialized before accessing it.
 	 *
 	 * @param handlerClass	The handler class (e.g., IndividualHandler.class).
-	 * @return	The handler, or {@code null} if not able to return a class.
+	 * @return	The handler, or {@code null} if not able to instantiate.
 	 */
 	public static RecordTypeHandler<?> getHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){
+		ensureInitialized();
+
 		return handlers.computeIfAbsent(handlerClass, k -> {
 			try{
 				return k.getDeclaredConstructor()
 					.newInstance();
 			}
-			catch(final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored){}
+			catch(final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored){
+System.out.println("no handler for " + k.getSimpleName() + ", " + ignored);
+			}
 			return null;
 		});
 	}
 
 	/**
 	 * Returns the handler for the given record type.
+	 * <p>
+	 * Ensures the registry is initialized before accessing it.
 	 *
 	 * @param handlerClassType	The record type (e.g., "INDIVIDUAL").
 	 * @return	The handler, or {@code null} if not able to return a class.
 	 */
 	public static RecordTypeHandler<?> getHandler(final String handlerClassType){
+		ensureInitialized();
+
 		final Class<? extends RecordTypeHandler<?>> handlerClass = getHandlerClass(handlerClassType);
 		if(handlerClass == null)
 			return null;
@@ -95,16 +129,13 @@ public final class HandlerRegistry{
 
 	/**
 	 * Checks if a handler is registered for the given type.
+	 * <p>
+	 * Ensures the registry is initialized before checking.
 	 */
 	public static boolean isRegistered(final Class<? extends RecordTypeHandler<?>> handlerClass){
-		return handlers.containsKey(handlerClass);
-	}
+		ensureInitialized();
 
-	/**
-	 * Returns all registered handlers.
-	 */
-	public static Map<Class<? extends RecordTypeHandler<?>>, RecordTypeHandler<?>> getHandlers(){
-		return Collections.unmodifiableMap(handlers);
+		return handlers.containsKey(handlerClass);
 	}
 
 
@@ -125,21 +156,24 @@ public final class HandlerRegistry{
 
 	/**
 	 * Retrieves the handler class for the given type.
+	 * <p>
+	 * Ensures the registry is initialized before accessing it.
 	 *
 	 * @param type the handler type (e.g., "INDIVIDUAL", "SOURCE")
 	 * @return the class that extends {@link RecordTypeHandler}, or {@code null} if not found
 	 */
 	public static Class<? extends RecordTypeHandler<?>> getHandlerClass(final String type){
-		if(type == null)
-			return null;
+		ensureInitialized();
 
-		Class<? extends RecordTypeHandler<?>> handlerClass = HANDLER_MAP.get(type);
-		if(handlerClass == null){
-			scanHandlers(CauseHandler.class);
+		return getHandlerClassInternal(type);
+	}
 
-			handlerClass = HANDLER_MAP.get(type);
-		}
-		return handlerClass;
+	/**
+	 * Internal method that does NOT trigger initialization.
+	 * Used internally after initialization is guaranteed.
+	 */
+	private static Class<? extends RecordTypeHandler<?>> getHandlerClassInternal(final String type){
+		return (type != null? HANDLER_MAP.get(type): null);
 	}
 
 	/**
@@ -259,7 +293,8 @@ public final class HandlerRegistry{
 	private static void processClass(final String className){
 		try{
 			final Class<?> clazz = Class.forName(className);
-			if(RecordTypeHandler.class.isAssignableFrom(clazz) && !clazz.isInterface()){
+			if(RecordTypeHandler.class.isAssignableFrom(clazz) && !clazz.isInterface()
+					&& !Modifier.isAbstract(clazz.getModifiers())){
 				@SuppressWarnings("unchecked")
 				final Class<? extends RecordTypeHandler<?>> handlerClass =
 					(Class<? extends RecordTypeHandler<?>>)clazz;

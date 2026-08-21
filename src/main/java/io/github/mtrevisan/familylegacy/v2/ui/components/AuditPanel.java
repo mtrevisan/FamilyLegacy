@@ -101,7 +101,7 @@ public class AuditPanel extends JPanel{
 		bindingManager.bind(creationCommentArea);
 
 
-		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]10[]");
+		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]15[]");
 
 		creationPanel.setBorder(new TitledBorder("Creation Comment"));
 		creationPanel.add(GUIHelper.createScrollPane(creationCommentArea), "growx");

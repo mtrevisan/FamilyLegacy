@@ -131,7 +131,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IdentityHypothesisHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IdentityHypothesisHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, IdentityHypothesisHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -202,10 +202,12 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		// load parent subject reference
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromXRef(record, TAG_SUBJECT, model);
-		if(subject != null)
-			withParentEntity(subject.getId(), subject.getTag());
+		if(record.hasChildren()){
+			// load parent subject reference
+			final FLEFRecord subject = FLEFRecordHelper.extractRecordFromOneOfReference(record, TAG_SUBJECT, model);
+			if(subject != null)
+				withParentEntity(subject.getId(), subject.getTag());
+		}
 
 		candidateField.load(record);
 

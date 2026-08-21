@@ -50,6 +50,7 @@ import javax.swing.JRootPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
@@ -99,6 +100,7 @@ public final class GUIHelper{
 	private static final String PLACEHOLDER_LIST = "(no items)";
 	private static final String PLACEHOLDER_TEXT = "(right-click to set)";
 	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
+	private static final String TOOLTIP_DUAL_ACTION_TEXT = "Right-click for actions, double‑click to edit citation, shift+double-click to edit record";
 
 	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
 
@@ -173,7 +175,7 @@ public final class GUIHelper{
 			final Runnable keyInsertAction, final Runnable keyDeleteAction,
 			final Consumer<MenuBuilder> menuBuilder){
 		component.setBackground(COLOR_BACKGROUND);
-		component.setToolTipText(TOOLTIP_TEXT);
+		component.setToolTipText(shiftDoubleClickAction == null? TOOLTIP_TEXT: TOOLTIP_DUAL_ACTION_TEXT);
 		if(component instanceof JTextComponent field)
 			field.setEditable(false);
 		else if(component instanceof JList<?> list)
@@ -222,6 +224,15 @@ public final class GUIHelper{
 				popup.show(component, me.getX(), me.getY());
 			}
 		});
+
+		if(shiftDoubleClickAction != null){
+			if(component instanceof JList<?> list)
+				// Global Shift listener to change cursor even without focus
+				DualActionListEnhancer.install(list);
+			else if(component instanceof JTextField field)
+				// Global Shift listener to change cursor even without focus
+				DualActionTextFieldEnhancer.install(field);
+		}
 
 		// Keyboard shortcuts
 		if(keyInsertAction != null)

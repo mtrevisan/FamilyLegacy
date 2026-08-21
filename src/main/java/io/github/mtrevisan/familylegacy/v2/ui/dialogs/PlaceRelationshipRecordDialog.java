@@ -65,7 +65,7 @@ import java.io.Serial;
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
  *   source*: SourceCitation
- *   note*: Text
+ *   note*: Xref&lt;NoteRecord&gt;
  *   audit: AuditStructure
  * }
  * </pre>
@@ -142,7 +142,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, RelationshipHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceRelationshipHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceRelationshipHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();

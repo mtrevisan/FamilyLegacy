@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
@@ -35,11 +36,14 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.io.Serial;
 import java.util.EnumMap;
 import java.util.Map;
@@ -152,25 +156,26 @@ public class QualifiedDatePanel extends JPanel{
 		GUIHelper.addLabeledComponent(typePanel, "Type:", singleDateTypeCombo);
 		GUIHelper.addComponent(this, typePanel);
 
-		// card panel for FULL_DATE, DECADE, CENTURY
+		// card panel for FULL_DATE, DECADE, CENTURY:
 		final JPanel fullDatePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(typePanel, "Full date:", fullDateValueField);
-
-		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx", "[right]rel[grow][right]rel[grow]"));
-		centuryPanel.add(new JLabel("Century:"), "align label");
-		centuryPanel.add(centuryOrdinalField, "growx");
-		centuryPanel.add(new JLabel("Part:"), "align label");
-		centuryPanel.add(centuryPartCombo, "growx");
-		centuryOrdinalField.setToolTipText("e.g., 15 for 15th century");
+		GUIHelper.addLabeledComponent(fullDatePanel, "Full date:", fullDateValueField);
 
 		final JPanel decadePanel = GUIHelper.createLabelFieldPanel(0, "[]");
-		GUIHelper.addLabeledComponent(typePanel, "Decade:", decadeStartYearField);
+		GUIHelper.addLabeledComponent(decadePanel, "Decade:", decadeStartYearField);
 		decadeStartYearField.setToolTipText("e.g., 1490 for the 1490s");
+
+//		final JPanel centuryPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]");
+		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx,wrap 2", "[right]rel[grow,fill]"));
+		GUIHelper.addLabeledComponent(centuryPanel, "Century:", centuryOrdinalField);
+		GUIHelper.addLabeledComponent(centuryPanel, "Part:", centuryPartCombo);
+		centuryOrdinalField.setToolTipText("e.g., 15 for 15th century");
 
 		cardPanel.add(fullDatePanel, DateType.FULL_DATE.name());
 		cardPanel.add(decadePanel, DateType.DECADE.name());
 		cardPanel.add(centuryPanel, DateType.CENTURY.name());
 		GUIHelper.addComponent(this, cardPanel);
+
+		updateCardPanelHeight();
 
 		// calendar
 		final JPanel calendarPanel = GUIHelper.createLabelFieldPanel(0, "[]");
@@ -182,15 +187,52 @@ public class QualifiedDatePanel extends JPanel{
 
 		singleDateTypeCombo.addActionListener(e -> {
 			final DateType selected = (DateType)singleDateTypeCombo.getSelectedItem();
-			if(selected != null)
+			if(selected != null){
+				GUIHelper.setComponentVisible(fullDateValueField, (selected == DateType.FULL_DATE));
+				GUIHelper.setComponentVisible(decadeStartYearField, (selected == DateType.DECADE));
+				GUIHelper.setComponentVisible(centuryOrdinalField, (selected == DateType.CENTURY));
+				GUIHelper.setComponentVisible(centuryPartCombo, (selected == DateType.CENTURY));
+
 				cardLayout.show(cardPanel, selected.name());
+
+				updateCardPanelHeight();
+
+				SwingUtilities.invokeLater(() -> {
+					final Container parent = cardPanel.getParent();
+					if(parent != null){
+						parent.revalidate();
+						parent.repaint();
+					}
+				});
+			}
 		});
+	}
+
+	private void updateCardPanelHeight(){
+		int maxHeight = 0;
+		for(final Component card : cardPanel.getComponents()){
+			// Force layout to calculate preferred sizes
+			final Dimension preferredSize = card.getPreferredSize();
+			if(preferredSize == null)
+				continue;
+
+			final int h = preferredSize.height;
+			if(h > maxHeight)
+				maxHeight = h;
+		}
+		// Set the cardPanel to always have this height
+		cardPanel.setPreferredSize(new Dimension(cardPanel.getPreferredSize().width, maxHeight));
+		cardPanel.setMinimumSize(new Dimension(cardPanel.getMinimumSize().width, maxHeight));
+		cardPanel.setMaximumSize(new Dimension(cardPanel.getMaximumSize().width, maxHeight));
+		cardPanel.revalidate();
+		cardPanel.repaint();
 	}
 
 	public void load(final FLEFRecord record){
 		clear();
 
-		final FLEFRecord singleDate = record.getTheOnlyChild(TAG_SINGLE_DATE);
+		final FLEFRecord singleDate = FLEFRecordHelper.extractStructures(record, TAG_SINGLE_DATE)
+			.getFirst();
 		final DateType singleDateType = DateType.fromNode(singleDate);
 		singleDateTypeCombo.setSelectedItem(singleDateType);
 

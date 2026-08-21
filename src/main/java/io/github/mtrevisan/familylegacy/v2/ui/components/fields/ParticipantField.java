@@ -195,15 +195,14 @@ public class ParticipantField extends BoundTextField{
 		if(record == null || record.isEmpty())
 			return;
 
-		FLEFRecord participant = null;
-		if(isDirect){
-			final FLEFRecord participantCitation = FLEFRecordHelper.findChild(record, path);
-			if(participantCitation != null)
-				participant = model.getRecordById(participantCitation.getValue());
+		if(record.hasChildren()){
+			FLEFRecord participant;
+			if(isDirect)
+				participant = FLEFRecordHelper.extractRecordFromReference(record, path, model);
+			else
+				participant = FLEFRecordHelper.extractRecordFromOneOfReference(record, path, model);
+			setParticipant(participant);
 		}
-		else
-			participant = FLEFRecordHelper.extractRecordFromXRef(record, path, model);
-		setParticipant(participant);
 	}
 
 	/**

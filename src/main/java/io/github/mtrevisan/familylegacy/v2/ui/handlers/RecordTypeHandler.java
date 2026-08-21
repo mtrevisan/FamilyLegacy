@@ -81,7 +81,7 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	}
 
 	default List<FLEFRecord> extractEntities(final FLEFRecord record, final String path){
-		return FLEFRecordHelper.findChildren(record, path);
+		return FLEFRecordHelper.extractStructures(record, path);
 	}
 
 	default List<FLEFRecord> findReferences(final FLEFModel model, final String recordId,

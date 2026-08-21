@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -61,7 +60,7 @@ import java.util.function.Consumer;
  * <pre>
  * record EventParticipationRecord {
  *   id: LocalID
- *   participant: EntityParticipant
+ *   participant: EventParticipant
  *   event: Xref&lt;EventRecord&gt;
  *   role?: enum {
  *     child, parent, spouse, power_of_attorney, prisoner, witness, officiant, informant, executor, grantor, grantee,
@@ -74,9 +73,10 @@ import java.util.function.Consumer;
  *   audit: AuditStructure
  * }
  *
- * EntityParticipant = oneof {
+ * EventParticipant = oneof {
  *   individual: Xref&lt;IndividualRecord&gt;
  *   group: Xref&lt;GroupRecord&gt;
+ *   place: Xref&lt;PlaceRecord&gt;
  * }
  * </pre>
  * <p>
@@ -111,8 +111,6 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
-
-	private final BindingManager bindingManager = new BindingManager();
 
 	private final ParticipantField participantField;
 	private final ParticipantField eventField;
@@ -151,7 +149,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, EventParticipationHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, EventParticipationHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, EventParticipationHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, EventParticipationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)

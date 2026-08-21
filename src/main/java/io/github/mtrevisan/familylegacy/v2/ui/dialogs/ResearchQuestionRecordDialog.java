@@ -33,24 +33,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchQuestionStatusPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -135,7 +123,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 	private final BoundTextField titleField;
 	private final BoundTextArea questionArea;
-	private final ParticipantField targetField;
+	private final EntityReferenceListPanel targetPanel;
 	private final ResearchQuestionStatusPanel statusPanel;
 	private final BoundTextArea conclusionArea;
 	private final BoundComboBox<String> conclusionConfidenceCombo;
@@ -160,11 +148,12 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		titleField = new BoundTextField(TAG_TITLE);
 		questionArea = new BoundTextArea(TAG_QUESTION, 3, 30);
-		targetField = ParticipantField.create(TAG_TARGET, this, model);
-		targetField.setHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
-			EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
-			GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
-			IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
+		targetPanel = EntityReferenceListPanel.createForRecord(TAG_TARGET, this, "Target", model, ConclusionTargetHandler.class);
+		//TODO
+//		targetPanel.setHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
+//			EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
+//			GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
+//			IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
 		statusPanel = new ResearchQuestionStatusPanel();
 		conclusionArea = new BoundTextArea(TAG_CONCLUSION, 3, 30);
 		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
@@ -204,7 +193,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, "Question*:", questionArea);
 
 		// target
-		GUIHelper.addLabeledComponent(propertiesPanel, "Target:", targetField);
+		GUIHelper.addComponent(propertiesPanel, targetPanel);
 
 		// status
 		GUIHelper.addLabeledComponent(propertiesPanel, "Status*:", statusPanel);
@@ -261,7 +250,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		components.load(record);
 
-		targetField.load(record);
+		targetPanel.load(record);
 		statusPanel.load(record);
 	}
 
@@ -293,7 +282,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		components.save(record);
 
-		targetField.saveReferences(record);
+		targetPanel.saveReferences(record);
 		statusPanel.save(record);
 	}
 

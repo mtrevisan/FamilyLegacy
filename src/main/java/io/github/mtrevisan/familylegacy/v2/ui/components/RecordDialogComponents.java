@@ -221,6 +221,9 @@ public final class RecordDialogComponents{
 	 * Loads data from the given record into all panels.
 	 */
 	public void load(final FLEFRecord record){
+		if(!record.hasChildren())
+			return;
+
 		bindingManager.load(record);
 
 		final EntityReferenceListPanel individualAttribute = ((EntityReferenceListPanel)getPanel(PanelKey.INDIVIDUAL_ATTRIBUTE));
@@ -249,7 +252,7 @@ public final class RecordDialogComponents{
 			eventParticipationOnParticipant.loadReferenceWithType(record.getId(), "PARTICIPANT");
 		final EntityReferenceListPanel eventParticipationOnEvent = ((EntityReferenceListPanel)getPanel(PanelKey.EVENT_PARTICIPATION_ON_EVENT));
 		if(eventParticipationOnEvent != null)
-			eventParticipationOnEvent.loadReferenceWithType(record.getId(), "EVENT");
+			eventParticipationOnEvent.loadCitationsWithType(record.getId(), "EVENT");
 
 		final EntityListPanel contextImpact = ((EntityListPanel)getPanel(PanelKey.CONTEXT_IMPACT));
 		if(contextImpact != null)

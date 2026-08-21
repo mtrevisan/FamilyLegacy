@@ -67,7 +67,6 @@ import java.time.ZoneOffset;
  *   date: Date
  *   copyright?: Text
  *   submitter?: struct {
- *     name: Text
  *     contact*: ContactStructure
  *     note*: Text
  *   }
@@ -100,7 +99,6 @@ public class HeaderDialog extends BaseRecordDialog{
 	private static final String TAG_DATE = "DATE";
 	private static final String TAG_COPYRIGHT = "COPYRIGHT";
 	private static final String TAG_SUBMITTER = "SUBMITTER";
-	private static final String TAG_SUBMITTER_NAME = TAG_SUBMITTER + DOT + TAG_NAME;
 	private static final String TAG_SUBMITTER_CONTACT = TAG_SUBMITTER + DOT + "CONTACT";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_SUBMITTER_NOTE = TAG_SUBMITTER + DOT + TAG_NOTE;
@@ -120,7 +118,6 @@ public class HeaderDialog extends BaseRecordDialog{
 
 	private final BoundTextArea copyrightArea;
 
-	private final BoundTextField submitterNameField;
 	private final EntityReferenceListPanel submitterContactListPanel;
 	private final BasicNoteListPanel submitterNotePanel;
 
@@ -139,7 +136,6 @@ public class HeaderDialog extends BaseRecordDialog{
 		dateField = new BoundTextField(TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
-		submitterNameField = new BoundTextField(TAG_SUBMITTER_NAME);
 		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
 		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER_NOTE, this, "Notes", TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
@@ -157,7 +153,6 @@ public class HeaderDialog extends BaseRecordDialog{
 		components.bind(sourceCorporateField);
 		components.bind(dateField);
 		components.bind(copyrightArea);
-		components.bind(submitterNameField);
 		components.bind(scopeArea);
 
 
@@ -198,10 +193,7 @@ public class HeaderDialog extends BaseRecordDialog{
 	}
 
 	private JPanel createSubmitterPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
-
-		// name
-		GUIHelper.addLabeledComponent(panel, "Name:", submitterNameField);
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// contact
 		GUIHelper.addComponent(panel, submitterContactListPanel);

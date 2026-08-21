@@ -26,11 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.JOptionPane;
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,6 +43,9 @@ import java.util.stream.Collectors;
  * Provides common operations for finding, adding, and updating child records.
  */
 public final class FLEFRecordHelper{
+
+	private static final String TAG_VOID = "VOID";
+
 
 	private record Segment(String tag, int index){
 		static Segment parse(final String segment){
@@ -144,121 +145,133 @@ public final class FLEFRecordHelper{
 		return result;
 	}
 
-	/* extract `note*: Xref<NoteRecord>` | EntityListPanel */
+	/*
+	extract (xref):
+		- `event: Xref<EventRecord>` | ParticipantField
+	*/
+	public static FLEFRecord extractRecordFromReference(final FLEFRecord record, final String referencePath,
+			final FLEFModel model){
+		final List<FLEFRecord> records = extractRecordsFromReference(record, referencePath, model);
+		return (!records.isEmpty()? records.getFirst(): null);
+	}
+
+	/*
+	extract (xref):
+		- `note*: Xref<NoteRecord>` | EntityListPanel
+		- `event: Xref<EventRecord>` | ParticipantField
+	*/
 	public static List<FLEFRecord> extractRecordsFromReference(final FLEFRecord record, final String referencePath,
 			final FLEFModel model){
-		final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, referencePath);
-		final List<FLEFRecord> referencedRecords = new ArrayList<>(entities.size());
-		for(final FLEFRecord entity : entities){
-			final String referencedRecordId = entity.getValue();
-			if(StringUtils.isEmpty(referencedRecordId))
-				continue;
+		final List<FLEFRecord> references = FLEFRecordHelper.findChildren(record, referencePath);
+		final List<FLEFRecord> referencedRecords = new ArrayList<>(references.size());
+		for(final FLEFRecord reference : references){
+			final String referencedId = reference.getValue();
+			if(StringUtils.isEmpty(referencedId)){
+				System.err.println("No referenced ID found from reference " + reference + " from record " + record);
 
-			final FLEFRecord referencedRecord = model.getRecordById(referencedRecordId);
+				continue;
+			}
+
+			final FLEFRecord referencedRecord = model.getRecordById(referencedId);
 			if(referencedRecord != null && !referencedRecord.isEmpty())
 				referencedRecords.add(referencedRecord);
 		}
 		return referencedRecords;
 	}
 
-	/* extract `subject: RelationshipParticipant`? */
-	public static FLEFRecord extractRecordFromXRef(final FLEFRecord record, final String referenceTag,
-			final FLEFModel model){
-		final List<FLEFRecord> entities = FLEFRecordHelper.findChildren(record, referenceTag);
-		final int size = entities.size();
-		if(size > 1){
-			JOptionPane.showMessageDialog(null, "Record with more than one child: " + record,
-				"Error", JOptionPane.ERROR_MESSAGE);
+	/*
+	extract (struct):
+		- `contact*: ContactStructure` | EntityReferenceListPanel | EntityReferenceListPanel.createForStructure
+		- `extract*: ExtractStructure` | ExtractListPanel | EntityReferenceListPanel.createForStructure
+		- `name*: ClassifiedNameStructure|PersonalNameStructure`, `name+: ClassifiedNameStructure`,
+			`part+: PartStructure`, `title+: NameStructure` | EntityReferenceListPanel.createForStructure
 
-			return null;
-		}
+	extract (oneof struct):
+		- `variant*: TextValueVariant` | VariantListPanel
+		- `single_date: SingleDate` | <VOID>
+		- `value: DateValue` | <VOID>
 
-		if(size == 0)
-			return null;
-
-		final FLEFRecord referenceRecord = entities.getFirst();
-		//FIXME
-		final List<FLEFRecord> citations;
-		if("SOURCE".equals(referenceTag) || "PLACE".equals(referenceTag) || "REPOSITORY".equals(referenceTag))
-			citations = FLEFRecordHelper.findChildren(referenceRecord, referenceTag);
-		else
-			citations = referenceRecord.getChildren();
-		if(citations.size() != 1){
-			JOptionPane.showMessageDialog(null, "Expected exactly one record for " + referenceTag,
-				"Error", JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
-		final FLEFRecord citation = citations.getFirst();
-		final String referencedTag = citation.getTag();
-		final String referencedId = citation.getValue();
-		if(StringUtils.isEmpty(referencedId))
-			return null;
-
-		final FLEFRecord referencedRecord = model.getRecordById(referencedId);
-		if(referencedRecord != null && !referencedRecord.getTag().equals(referencedTag)){
-			JOptionPane.showMessageDialog(null, "Referenced tag differs from record tag",
-				"Error", JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
-		return (referencedRecord != null && !referencedRecord.isEmpty()? referencedRecord: null);
+	extract (plain):
+		- `note*: Text` | ExtractListPanel | EntityReferenceListPanel.createForStructure
+	*/
+	public static List<FLEFRecord> extractStructures(final FLEFRecord record, final String path){
+		return FLEFRecordHelper.findChildren(record, path);
 	}
 
-/*
-xref:
-note*: Xref<NoteRecord> | EntityListPanel
+	/*
+	extract (xref + struct):
+		- `place?: PlaceCitation` | PlaceCitationField
+	*/
+	public static FLEFRecord extractStructureWithReference(final FLEFRecord record, final String path){
+		final List<FLEFRecord> records = FLEFRecordHelper.findChildren(record, path);
+		return (!records.isEmpty()? records.getFirst(): null);
+	}
 
-struct:
-contact*: ContactStructure | EntityReferenceListPanel
-extract*: ExtractStructure | ExtractListPanel
-name*: ClassifiedNameStructure | EntityReferenceListPanel.createForStructure
-name*: PersonalNameStructure | EntityReferenceListPanel.createForStructure
-name+: ClassifiedNameStructure | EntityReferenceListPanel.createForStructure
-part+: PartStructure | EntityReferenceListPanel.createForStructure
-title+: NameStructure | EntityReferenceListPanel.createForStructure
+	/*
+	extract (xref + struct):
+		- `repository*: RepositoryCitation` | EntityCitationListPanel
+		- `source*: SourceCitation` | EntityCitationListPanel
+	*/
+	public static List<FLEFRecord> extractStructuresWithReference(final FLEFRecord record, final String path){
+		return FLEFRecordHelper.findChildren(record, path);
+	}
 
-xref + struct:
-repository*: RepositoryCitation | .withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories", RepositoryCitationHandler.class, SourceHandler.class)
-source*: SourceCitation | .withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+	public static FLEFRecord extractRecordFromOneOfReference(final FLEFRecord record, final String referencePath,
+			final FLEFModel model){
+		final List<FLEFRecord> records = extractRecordsFromOneOfReference(record, referencePath, model);
+		return (!records.isEmpty()? records.getFirst(): null);
+	}
 
-oneof xref:
-resolves*: ConclusionTarget | EntityReferenceListPanel.createForRecord
-target*: ResearchTarget | something wrong on ResearchQuestionRecordDialog
-
-oneof struct:
-variant*: TextValueVariant | VariantListPanel
-
-plain:
-note*: Text
-*/
-	/* extract `resolves*: ConclusionTarget` (if referencePath = null) */
-	public static List<FLEFRecord> extractRecordsFromTarget(final FLEFRecord record, final String recordReferenceTag,
-			final String referencePath, final FLEFModel model){
-		final FLEFRecord citationParent = FLEFRecordHelper.findChild(record, recordReferenceTag);
-		final List<FLEFRecord> citations = (citationParent != null? citationParent.getChildren(): Collections.emptyList());
-		final List<FLEFRecord> referencedRecords = new ArrayList<>(citations.size());
-		for(final FLEFRecord citation : citations){
-			final FLEFRecord reference = (referencePath != null? citation.getTheOnlyChild(referencePath): citation);
-
-			final String referenceTag = reference.getTag();
-			final String referenceId = reference.getValue();
-			final FLEFRecord referencedRecord = model.getRecordById(referenceId);
-			if(referencedRecord == null)
+	/*
+	extract (oneof xref):
+		- `resolves*: ConclusionTarget` | EntityReferenceListPanel.createForRecord
+		- `target*: ResearchTarget` | EntityReferenceListPanel.createForRecord
+		- `subject/candidate: IdentityCandidate` | ParticipantField
+		- `object/subject: RelationshipParticipant` | ParticipantField
+		- `context: ContextSource` | ParticipantField
+		- `target: ImpactTarget` | ParticipantField
+		- `participant: EventParticipant` | ParticipantField
+		- `target?: ResearchTarget` | ParticipantField
+		- `preferred?: ConclusionTarget` | <VOID>
+	*/
+	public static List<FLEFRecord> extractRecordsFromOneOfReference(final FLEFRecord record, final String referencePath,
+			final FLEFModel model){
+		final List<FLEFRecord> references = FLEFRecordHelper.findChildren(record, referencePath);
+		final List<FLEFRecord> referencedRecords = new ArrayList<>(references.size());
+		for(FLEFRecord reference : references){
+			final int size = reference.getChildren()
+				.size();
+			if(size == 0)
 				continue;
+			if(size > 1){
+				System.err.println("Record with more than one " + referencePath + ": " + record);
 
-			if(!referencedRecord.getTag().equals(referenceTag)){
-				JOptionPane.showMessageDialog(null, "Referenced tag differs from record tag",
-					"Error", JOptionPane.ERROR_MESSAGE);
-
-				return null;
+				continue;
 			}
 
-			if(!referencedRecord.isEmpty())
-				referencedRecords.add(referencedRecord);
+			reference = reference.getTheOnlyChild();
+
+			final String referencedTag = reference.getTag();
+			if(TAG_VOID.equals(referencedTag))
+				continue;
+
+			final String referencedId = reference.getValue();
+			if(StringUtils.isEmpty(referencedId)){
+				System.err.println("No referenced ID found from reference " + reference + " from record " + record);
+
+				continue;
+			}
+
+			final FLEFRecord referencedRecord = model.getRecordById(referencedId);
+			if(referencedRecord != null && !referencedRecord.getTag().equals(referencedTag)){
+				System.err.println("Referenced tag differs from reference " + reference + " from record " + record);
+
+				continue;
+			}
+
+			referencedRecords.add(referencedRecord);
 		}
+
 		return referencedRecords;
 	}
 

@@ -69,7 +69,8 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 		final StringBuilder sb = new StringBuilder();
 
 		String participantText = null;
-		final FLEFRecord participant = FLEFRecordHelper.extractRecordFromXRef(record, TAG_PARTICIPANT, model);
+		final FLEFRecord participant = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_PARTICIPANT, model)
+			.getFirst();
 		if(participant != null){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(participant.getTag());
 			if(handler != null)

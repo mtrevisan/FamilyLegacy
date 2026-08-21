@@ -102,7 +102,7 @@ public class DateStructurePanel extends JPanel{
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources", model, SourceCitationHandler.class);
+		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources with Citations", model, SourceCitationHandler.class);
 		qualifiers = new EvidenceQualifiersPanel(null, parent, "Evidence", model, null);
 
 
@@ -166,7 +166,8 @@ public class DateStructurePanel extends JPanel{
 		clear();
 
 		// Load the date value: POINT, BOUNDED, or SPANNING
-		final FLEFRecord value = record.getTheOnlyChild(TAG_VALUE);
+		final FLEFRecord value = FLEFRecordHelper.extractStructures(record, TAG_VALUE)
+			.getFirst();
 		final FLEFRecord point = FLEFRecordHelper.findChild(value, TAG_POINT);
 		if(point != null){
 			tabbedPane.setSelectedIndex(0);

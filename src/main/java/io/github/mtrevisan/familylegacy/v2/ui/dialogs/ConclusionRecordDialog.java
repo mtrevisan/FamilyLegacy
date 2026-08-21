@@ -153,7 +153,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, ConclusionHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -227,11 +227,13 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		resolvesPanel.load(record);
 		updatePreferredCombo();
 
-		// preferred
-		final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromXRef(record, TAG_PREFERRED, model);
-		if(preferred != null && !preferred.isEmpty())
-			// Find and select in combo
-			preferredCombo.setSelectedItem(preferred);
+		if(record.hasChildren()){
+			// preferred
+			final FLEFRecord preferred = FLEFRecordHelper.extractRecordFromOneOfReference(record, TAG_PREFERRED, model);
+			if(preferred != null && !preferred.isEmpty())
+				// Find and select in combo
+				preferredCombo.setSelectedItem(preferred);
+		}
 
 		components.load(record);
 	}

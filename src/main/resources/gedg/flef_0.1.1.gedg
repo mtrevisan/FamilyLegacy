@@ -86,7 +86,6 @@ struct Header {
   date: Date         // the date this source was created
   copyright?: Text   // a copyright statement needed to protect the copyrights of the submitter of this file
   submitter?: struct {
-    name: Text                   // the name of the submitter formatted for display and address generation
     contact*: ContactStructure   // contact information for the submitter (phone, email, web, etc.)
     note*: Text                  // any notes related to the submitter
   }
@@ -568,7 +567,7 @@ record PlaceRelationshipRecord {
   valid_from?: DateStructure    // the date from which this place relationship is known or believed to have been valid
   valid_to?: DateStructure      // the date until which this place relationship is known or believed to have been valid
   source*: SourceCitation       // a list of source citations supporting the existence, interpretation, or dating of this place relationship
-  note*: Text                   // a note containing commentary, interpretation, or discussion related to this place relationship
+  note*: Xref<NoteRecord>       // a note containing commentary, interpretation, or discussion related to this place relationship
   audit: AuditStructure
 }
 

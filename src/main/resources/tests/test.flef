@@ -362,9 +362,23 @@ person"""
 			SOURCE S2
 		}
 		NOTE N1
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
 		AUDIT {
 			CREATION {
-				DATE 2026-08-20T17:53:50Z
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
 			}
 		}
 	}
@@ -385,6 +399,56 @@ person"""
 	EVENT E1 {
 		TYPE epidemic
 		DESCRIPTION cholera
+		DATE {
+			VALUE {
+				POINT {
+					SINGLE_DATE {
+						CENTURY {
+							ORDINAL 19
+							PART late
+							CALENDAR gregorian
+						}
+					}
+				}
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via
+		}
+		AGENCY the morgue
+		CAUSE {
+			VALUE brain tumor
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE negative
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	EVENT E2 {
@@ -395,5 +459,19 @@ person"""
 			VALUE cause value
 		}
 		SOURCE S1
+	}
+
+	PLACE P1 {
+		NAME {
+			TYPE official
+			TEXT {
+				VALUE a certain place
+				LOCALE en-UK
+			}
+		}
+		TYPE building
+		MAP {
+			COORDINATES 45.65 12.19
+		}
 	}
 }

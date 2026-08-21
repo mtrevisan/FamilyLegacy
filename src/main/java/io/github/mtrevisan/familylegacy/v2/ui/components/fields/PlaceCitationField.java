@@ -143,7 +143,7 @@ public class PlaceCitationField extends JPanel{
 		if(targetRecord == null || targetRecord.isEmpty())
 			return;
 
-		final FLEFRecord child = FLEFRecordHelper.findChild(targetRecord, path);
+		final FLEFRecord child = FLEFRecordHelper.extractStructureWithReference(targetRecord, path);
 		setRecord(child);
 	}
 

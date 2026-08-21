@@ -232,17 +232,17 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		GUIHelper.addComponent(dialog, basicNote);
 	}
 
-	private static void loadExtractData(final FLEFRecord initial, final DocumentPartListPanel documentPartPanel,
+	private static void loadExtractData(final FLEFRecord record, final DocumentPartListPanel documentPartPanel,
 			final BoundTextArea textArea, final BoundComboBox<String> typeCombo, final BoundComboBox<String> localeCombo,
 			final BasicNoteListPanel basicNote){
-		if(initial == null)
+		if(record == null)
 			return;
 
-		final List<FLEFRecord> documentParts = FLEFRecordHelper.findChildren(initial, TAG_DOCUMENT_PART);
-		final String text = FLEFRecordHelper.getChildValue(initial, TAG_TEXT);
-		final String type = FLEFRecordHelper.getChildValue(initial, TAG_TYPE);
-		final String locale = FLEFRecordHelper.getChildValue(initial, TAG_LOCALE);
-		final List<String> notes = FLEFRecordHelper.findChildren(initial, TAG_NOTE).stream()
+		final List<FLEFRecord> documentParts = FLEFRecordHelper.findChildren(record, TAG_DOCUMENT_PART);
+		final String text = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String locale = FLEFRecordHelper.getChildValue(record, TAG_LOCALE);
+		final List<String> notes = FLEFRecordHelper.findChildren(record, TAG_NOTE).stream()
 			.map(FLEFRecord::getValue)
 			.toList();
 
@@ -272,7 +272,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> extracts = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> extracts = FLEFRecordHelper.extractStructures(record, path);
 		setItems(extracts);
 	}
 

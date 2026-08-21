@@ -63,8 +63,8 @@ import java.util.List;
  * <pre>
  * record RelationshipRecord {
  *   id: LocalID
- *   subject: EntityParticipant
- *   object: EntityParticipant
+ *   subject: RelationshipParticipant
+ *   object: RelationshipParticipant
  *   type: enum { biological_child, adoptive_child, foster_child, guarded_child, step_child, civil_spouse, religious_spouse, customary_spouse, cohabiting_partner, engaged_partner, group_member, associate } | Text
  *   role?: Text
  *   status?: enum { active, ended, unknown }
@@ -77,7 +77,7 @@ import java.util.List;
  *   audit: AuditStructure
  * }
  *
- * EntityParticipant = oneof {
+ * RelationshipParticipant = oneof {
  *   individual: Xref&lt;IndividualRecord&gt;
  *   group: Xref&lt;GroupRecord&gt;
  * }
@@ -184,7 +184,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, RelationshipHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, RelationshipHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, RelationshipHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, RelationshipHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)

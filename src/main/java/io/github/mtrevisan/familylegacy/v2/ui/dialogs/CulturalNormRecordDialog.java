@@ -163,7 +163,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, CulturalNormHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, CulturalNormHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, CulturalNormHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, CulturalNormHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -189,7 +189,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 		// place panel:
 		final JPanel placePanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
-		placePanel.setBorder(new TitledBorder("Place"));
+		placePanel.setBorder(new TitledBorder("Place with Citation"));
 		GUIHelper.addComponent(placePanel, placeCitationField);
 		GUIHelper.addComponent(placePanel, placeEvidencePanel);
 		GUIHelper.addComponent(propertiesPanel, placePanel);

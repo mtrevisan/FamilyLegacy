@@ -147,7 +147,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -162,7 +162,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]10[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]20[]10[]");
 
 		// preferred image
 		panel.add(preferredImagePanel, "span 2,growx,align center");
@@ -190,7 +190,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createRelationshipsPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
 
 		final JPanel memberPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, memberPanel);
@@ -223,7 +223,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createResearchPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]15[]");
 
 		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);

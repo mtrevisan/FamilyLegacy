@@ -148,7 +148,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.CONTEXT_IMPACT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PersonalNameHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.build();
 

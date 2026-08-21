@@ -175,7 +175,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> notes = FLEFRecordHelper.findChildren(record, path);
+		final List<FLEFRecord> notes = FLEFRecordHelper.extractStructures(record, path);
 		setItems(notes);
 	}
 

@@ -289,9 +289,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 		List<FLEFRecord> entities = Collections.emptyList();
 		if(relationType == RelationType.RECORD)
-			entities = FLEFRecordHelper.extractRecordsFromTarget(record, path, referencePath, model);
+			entities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, path, model);
 		else if(relationType == RelationType.STRUCTURE)
-			entities = handler.extractEntities(record, path);
+			entities = FLEFRecordHelper.extractStructures(record, path);
 		if(!entities.isEmpty())
 			setItems(entities);
 	}
@@ -326,13 +326,16 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		final List<FLEFRecord> references = model.getRecordsByType(handler.getType()).stream()
 			.filter(reference -> {
 				for(final String actorTag : actorTags){
-					final FLEFRecord actor = FLEFRecordHelper.extractRecordFromXRef(reference, actorTag, model);
-					if(actor == null)
+					final List<FLEFRecord> actors = FLEFRecordHelper.extractRecordsFromOneOfReference(reference, actorTag, model);
+					if(actors.isEmpty())
 						return false;
 
-					final String tag = actor.getTag();
-					final String id = actor.getId();
-					return (Objects.equals(parentEntityTag, tag) && recordId.equals(id));
+					for(final FLEFRecord actor : actors){
+						final String tag = actor.getTag();
+						final String id = actor.getId();
+						if(Objects.equals(parentEntityTag, tag) && recordId.equals(id))
+							return true;
+					}
 				}
 				return false;
 			})
@@ -356,17 +359,12 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 					if(actors.isEmpty())
 						return false;
 
-					boolean present = false;
 					for(final FLEFRecord actor : actors){
 						final String tag = actor.getTag();
 						final String id = actor.getId();
-						if(Objects.equals(parentEntityTag, tag) && recordId.equals(id)){
-							present = true;
-
-							break;
-						}
+						if(Objects.equals(parentEntityTag, tag) && recordId.equals(id))
+							return true;
 					}
-					return present;
 				}
 				return false;
 			})

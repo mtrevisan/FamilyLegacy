@@ -67,11 +67,13 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 		String subjectId = null;
 		String candidateId = null;
 
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordFromXRef(record, TAG_SUBJECT, model);
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_SUBJECT, model)
+			.getFirst();
 		if(subject != null)
 			subjectId = subject.getId();
 
-		final FLEFRecord candidate = FLEFRecordHelper.extractRecordFromXRef(record, TAG_CANDIDATE, model);
+		final FLEFRecord candidate = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_CANDIDATE, model)
+			.getFirst();
 		if(candidate != null)
 			candidateId = candidate.getId();
 

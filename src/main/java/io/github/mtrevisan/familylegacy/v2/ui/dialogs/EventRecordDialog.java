@@ -49,8 +49,10 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -106,7 +108,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private static final String DOT = ".";
 
 	private static final String TAG_TYPE = "TYPE";
-	private static final String TAG_TITLE = "TITLE";
+	private static final String TAG_DESCRIPTION = "DESCRIPTION";
 	private static final String TAG_DATE = "DATE";
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_AGENCY = "AGENCY";
@@ -148,7 +150,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private EventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, EventHandler.class);
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -162,7 +164,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 			"divorce", "annulment"
 		});
 		typeCombo.setEditable(true);
-		titleArea = new BoundTextArea(TAG_TITLE, 3, 25);
+		titleArea = new BoundTextArea(TAG_DESCRIPTION, 3, 25);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		agencyField = new BoundTextField(TAG_AGENCY);
@@ -175,7 +177,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, EventHandler.class)
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_EVENT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, EventHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, EventHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, EventHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
@@ -245,7 +247,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createResearchPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
 
 		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
@@ -328,16 +330,11 @@ public class EventRecordDialog extends BaseRecordDialog{
 
 
 
-	public static void main(final String[] args){
-		final FLEFRecord event = FLEFRecord.createMainRecord("E1", "EVENT");
-		event.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "famine"));
-		event.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "title"));
-
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(event);
-		};
-		GUIHelper.launch(EventRecordDialog::createEdit, modelFiller, event);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = EventRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(EventRecordDialog::createEdit, content, "E1");
+		}
 	}
 
 }
