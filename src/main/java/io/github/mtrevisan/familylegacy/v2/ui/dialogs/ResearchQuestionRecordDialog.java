@@ -149,7 +149,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		titleField = new BoundTextField(TAG_TITLE);
 		questionArea = new BoundTextArea(TAG_QUESTION, 3, 30);
 		targetPanel = EntityReferenceListPanel.createForRecord(TAG_TARGET, this, "Target", model, ConclusionTargetHandler.class);
-		//TODO
+		//TODO see also ConclusionRecordDialog.resolvesPanel
 //		targetPanel.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 //			EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 //			GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
