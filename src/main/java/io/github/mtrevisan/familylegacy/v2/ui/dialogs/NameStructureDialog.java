@@ -51,7 +51,7 @@ import java.io.Serial;
  * <pre>
  * struct NameStructure {
  *   value: Text
- *   locale?: LocaleCode
+ *   locale?: LocaleCode | Text
  *   variant*: TextValueVariant
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;

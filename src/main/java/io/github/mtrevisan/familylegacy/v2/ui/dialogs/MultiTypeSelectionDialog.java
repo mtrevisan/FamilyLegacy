@@ -121,8 +121,6 @@ public class MultiTypeSelectionDialog extends JDialog{
 		selectButton = new JButton("Select");
 
 
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-
 		initComponents();
 
 		loadRecordsForType(getSelectedHandler());
@@ -162,8 +160,6 @@ public class MultiTypeSelectionDialog extends JDialog{
 
 	private void initComponents(){
 		setLayout(new MigLayout("ins 10,fillx,filly", "[grow]", "[][grow][]"));
-
-		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
 		// Top panel: type combo (if more than one) + search field
 		final JPanel topPanel = GUIHelper.createLabelFieldPanel(0, (typeCombo != null? "[]10[]": "[]"));

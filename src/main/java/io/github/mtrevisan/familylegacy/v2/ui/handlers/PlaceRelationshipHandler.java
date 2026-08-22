@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRelationshipRecordDialog;
-import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
@@ -40,9 +39,9 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 	private static final String DOT = ".";
 
-	private static final String TAG_NAME = "NAME";
-	private static final String TAG_TEXT = "TEXT";
-	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_SUBJECT = "SUBJECT";
+	private static final String TAG_OBJECT = "OBJECT";
+	private static final String TAG_TYPE = "TYPE";
 
 
 	@Override
@@ -62,12 +61,36 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME + DOT + TAG_TEXT + DOT + TAG_VALUE);
-		if(StringUtils.isNotEmpty(value)){
-			final String id = record.getId();
-			return value + " [" + id + "]";
+		final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_SUBJECT, model)
+			.getFirst();
+		String subjectDisplayText = "--";
+		if(subject != null){
+			final RecordTypeHandler<?> subjectHandler = HandlerRegistry.getHandler(subject.getTag());
+			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
-		return "[" + record.getId() + "]";
+
+		final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_OBJECT, model)
+			.getFirst();
+		String objectDisplayText = "--";
+		if(object != null){
+			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
+			objectDisplayText = objectHandler.getDisplayText(object, model);
+		}
+
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+
+		final String id = record.getId();
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append(subjectDisplayText)
+			.append(" is related to ")
+			.append(objectDisplayText)
+			.append(" as ")
+			.append(type)
+			.append(" [")
+			.append(id)
+			.append(']');
+		return sb.toString();
 	}
 
 	@Override

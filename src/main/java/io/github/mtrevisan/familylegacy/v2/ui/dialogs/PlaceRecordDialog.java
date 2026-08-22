@@ -50,10 +50,13 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -299,32 +302,11 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-//		GUIHelper.launch(PlaceRecordDialog::createNew, modelFiller);
-
-		final FLEFRecord conclusion = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "fdgh"));
-		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("PLACE", "@P1@"))
-		);
-		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G2@"))
-		);
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("PREFERRED", "@P1@"));
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("PROOF_STATUS", "supported"));
-		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-		place.addChild(FLEFRecord.createChildWithTag("NAME")
-			.addChild(FLEFRecord.createChildWithTag("TEXT")
-				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "f"))
-			)
-		);
-		place.addChild(FLEFRecord.createChildWithTagAndValue("CONCLUSION", conclusion.getId()));
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(conclusion);
-			model.addRecord(place);
-		};
-		GUIHelper.launch(PlaceRecordDialog::createEdit, modelFiller, place);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = PlaceRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(PlaceRecordDialog::createEdit, content, "P1");
+		}
 	}
 
 }

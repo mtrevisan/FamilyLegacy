@@ -29,11 +29,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.IndividualField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -41,9 +42,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -89,7 +94,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final EntityReferenceListPanel namePanel;
-	private final IndividualField custodianField;
+	private final ParticipantField custodianField;
 	private final PlaceCitationField placeCitationField;
 	private final EntityReferenceListPanel contactPanel;
 
@@ -110,7 +115,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model)
 			.withHandlerTypes(ClassifiedNameHandler.class);
-		custodianField = IndividualField.create(TAG_CUSTODIAN, this, model);
+		custodianField = ParticipantField.create(TAG_CUSTODIAN, this, model, IndividualHandler.class);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 		contactPanel = EntityReferenceListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model)
 			.withHandlerTypes(ContactHandler.class);
@@ -178,6 +183,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
+		components.load(record);
+
 		namePanel.load(record);
 		custodianField.load(record);
 		placeCitationField.load(record);
@@ -199,6 +206,8 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
+		components.save(record);
+
 		namePanel.save(record);
 		custodianField.saveReferences(record);
 		placeCitationField.saveReferences(record);
@@ -206,8 +215,11 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		GUIHelper.launch(RepositoryRecordDialog::createNew);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = RepositoryRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(RepositoryRecordDialog::createEdit, content, "R1");
+		}
 	}
 
 }

@@ -155,6 +155,9 @@ public class ResearchQuestionStatusPanel extends JPanel{
 	public void load(final FLEFRecord record){
 		bindingManager.load(record);
 
+		if(record == null || record.isEmpty())
+			return;
+
 		if(!statusCombo.isEnabled())
 			statusCombo.setSelectedItem(STATUS_OPEN);
 	}

@@ -145,6 +145,7 @@ public final class FLEFRecordHelper{
 		return result;
 	}
 
+
 	/*
 	extract (xref):
 		- `event: Xref<EventRecord>` | ParticipantField
@@ -158,7 +159,6 @@ public final class FLEFRecordHelper{
 	/*
 	extract (xref):
 		- `note*: Xref<NoteRecord>` | EntityListPanel
-		- `event: Xref<EventRecord>` | ParticipantField
 	*/
 	public static List<FLEFRecord> extractRecordsFromReference(final FLEFRecord record, final String referencePath,
 			final FLEFModel model){
@@ -179,6 +179,7 @@ public final class FLEFRecordHelper{
 		return referencedRecords;
 	}
 
+
 	/*
 	extract (struct):
 		- `contact*: ContactStructure` | EntityReferenceListPanel | EntityReferenceListPanel.createForStructure
@@ -198,6 +199,7 @@ public final class FLEFRecordHelper{
 		return FLEFRecordHelper.findChildren(record, path);
 	}
 
+
 	/*
 	extract (xref + struct):
 		- `place?: PlaceCitation` | PlaceCitationField
@@ -216,6 +218,17 @@ public final class FLEFRecordHelper{
 		return FLEFRecordHelper.findChildren(record, path);
 	}
 
+
+	/*
+	extract (oneof xref):
+		- `subject/candidate: IdentityCandidate` | ParticipantField
+		- `object/subject: RelationshipParticipant` | ParticipantField
+		- `context: ContextSource` | ParticipantField
+		- `target: ImpactTarget` | ParticipantField
+		- `participant: EventParticipant` | ParticipantField
+		- `target?: ResearchTarget` | ParticipantField
+		- `preferred?: ConclusionTarget` | <VOID>
+	*/
 	public static FLEFRecord extractRecordFromOneOfReference(final FLEFRecord record, final String referencePath,
 			final FLEFModel model){
 		final List<FLEFRecord> records = extractRecordsFromOneOfReference(record, referencePath, model);
@@ -226,13 +239,6 @@ public final class FLEFRecordHelper{
 	extract (oneof xref):
 		- `resolves*: ConclusionTarget` | EntityReferenceListPanel.createForRecord
 		- `target*: ResearchTarget` | EntityReferenceListPanel.createForRecord
-		- `subject/candidate: IdentityCandidate` | ParticipantField
-		- `object/subject: RelationshipParticipant` | ParticipantField
-		- `context: ContextSource` | ParticipantField
-		- `target: ImpactTarget` | ParticipantField
-		- `participant: EventParticipant` | ParticipantField
-		- `target?: ResearchTarget` | ParticipantField
-		- `preferred?: ConclusionTarget` | <VOID>
 	*/
 	public static List<FLEFRecord> extractRecordsFromOneOfReference(final FLEFRecord record, final String referencePath,
 			final FLEFModel model){

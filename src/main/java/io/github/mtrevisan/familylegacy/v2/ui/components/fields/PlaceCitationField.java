@@ -36,11 +36,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.List;
 
 
 /**
@@ -111,7 +113,7 @@ public class PlaceCitationField extends JPanel{
 				builder.item("Create New…", createNewAction);
 				builder.item("Add Existing…", addAction);
 				builder.separator();
-				builder.selectionSensitiveItem("Edit…", editAction);
+				builder.selectionSensitiveItem("Edit Record…", editAction);
 				builder.selectionSensitiveItem("Edit Citation…", editCitationAction);
 				builder.selectionSensitiveItem("Clear", clearAction);
 			}
@@ -148,8 +150,15 @@ public class PlaceCitationField extends JPanel{
 	}
 
 	public void saveReferences(final FLEFRecord targetRecord){
-		if(record != null)
-			FLEFRecordHelper.updateChildValue(targetRecord, path, record.getFormattedId());
+		final List<FLEFRecord> recordItems = record.getChildren();
+		if(StringUtils.isEmpty(path)){
+			targetRecord.addChildren(recordItems);
+
+			return;
+		}
+
+		final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(targetRecord, path);
+		parent.addChildren(recordItems);
 	}
 
 	/**

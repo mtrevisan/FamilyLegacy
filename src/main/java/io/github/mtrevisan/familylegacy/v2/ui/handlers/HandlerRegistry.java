@@ -52,31 +52,7 @@ public final class HandlerRegistry{
 	private static final Map<String, Class<? extends RecordTypeHandler<?>>> HANDLER_MAP = new ConcurrentHashMap<>();
 
 
-	// Flag to ensure scanning happens only once and completes before any getter returns
-	private static volatile boolean initialized;
-	private static final Object LOCK = new Object();
-
-
 	private HandlerRegistry(){}
-
-
-	/**
-	 * Ensures the handler registry is fully initialized.
-	 * This method blocks until scanning is complete.
-	 */
-	private static void ensureInitialized(){
-		if(initialized)
-			return;
-
-		synchronized(LOCK){
-			if(initialized)
-				return;
-
-			// Perform the scan synchronously
-			scanHandlers();
-			initialized = true;
-		}
-	}
 
 
 	/**
@@ -88,16 +64,12 @@ public final class HandlerRegistry{
 	 * @return	The handler, or {@code null} if not able to instantiate.
 	 */
 	public static RecordTypeHandler<?> getHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){
-		ensureInitialized();
-
 		return handlers.computeIfAbsent(handlerClass, k -> {
 			try{
 				return k.getDeclaredConstructor()
 					.newInstance();
 			}
-			catch(final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored){
-System.out.println("no handler for " + k.getSimpleName() + ", " + ignored);
-			}
+			catch(final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored){}
 			return null;
 		});
 	}
@@ -111,8 +83,6 @@ System.out.println("no handler for " + k.getSimpleName() + ", " + ignored);
 	 * @return	The handler, or {@code null} if not able to return a class.
 	 */
 	public static RecordTypeHandler<?> getHandler(final String handlerClassType){
-		ensureInitialized();
-
 		final Class<? extends RecordTypeHandler<?>> handlerClass = getHandlerClass(handlerClassType);
 		if(handlerClass == null)
 			return null;
@@ -133,8 +103,6 @@ System.out.println("no handler for " + k.getSimpleName() + ", " + ignored);
 	 * Ensures the registry is initialized before checking.
 	 */
 	public static boolean isRegistered(final Class<? extends RecordTypeHandler<?>> handlerClass){
-		ensureInitialized();
-
 		return handlers.containsKey(handlerClass);
 	}
 
@@ -163,8 +131,6 @@ System.out.println("no handler for " + k.getSimpleName() + ", " + ignored);
 	 * @return the class that extends {@link RecordTypeHandler}, or {@code null} if not found
 	 */
 	public static Class<? extends RecordTypeHandler<?>> getHandlerClass(final String type){
-		ensureInitialized();
-
 		return getHandlerClassInternal(type);
 	}
 

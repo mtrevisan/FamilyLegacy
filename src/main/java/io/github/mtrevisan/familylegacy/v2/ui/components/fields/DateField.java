@@ -149,6 +149,9 @@ public class DateField extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
+		if(record == null || record.isEmpty())
+			return;
+
 		final FLEFRecord child = FLEFRecordHelper.findChild(record, path);
 		setRecord(child);
 	}

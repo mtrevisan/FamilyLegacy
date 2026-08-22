@@ -141,6 +141,9 @@ public class PreferredImagePanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clearImage();
 
+		if(record == null || record.isEmpty())
+			return;
+
 		final FLEFRecord preferredImage = FLEFRecordHelper.findChild(record, path);
 		if(preferredImage == null)
 			return;

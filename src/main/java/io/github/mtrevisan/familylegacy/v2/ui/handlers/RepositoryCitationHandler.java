@@ -83,7 +83,7 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 
 		final String xref = FLEFRecordHelper.getChildValue(record, TAG_REPOSITORY);
 		final FLEFRecord repository = model.getRecordById(xref);
-		return repositoryHandle.getDisplayText(repository, model);
+		return "❝ " + repositoryHandle.getDisplayText(repository, model);
 	}
 
 	@Override

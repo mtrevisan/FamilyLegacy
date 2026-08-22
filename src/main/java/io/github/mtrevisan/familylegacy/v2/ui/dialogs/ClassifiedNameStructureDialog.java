@@ -65,7 +65,7 @@ import java.io.Serial;
  * struct NameStructure {
  *   value: Text
  *   variant*: TextValueVariant
- *   locale?: LocaleCode
+ *   locale?: LocaleCode | Text
  *   date?: DateStructure
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
@@ -87,11 +87,11 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_TEXT = "TEXT";
-	public static final String TAG_VALUE = TAG_TEXT + DOT + "VALUE";
-	private static final String TAG_VARIANT = TAG_TEXT + DOT + "VARIANT";
-	private static final String TAG_LOCALE = TAG_TEXT + DOT + "LOCALE";
-	private static final String TAG_NOTE = TAG_TEXT + DOT + "NOTE";
-	private static final String TAG_SOURCE = TAG_TEXT + DOT + "SOURCE";
+	public static final String TAG_TEXT_VALUE = TAG_TEXT + DOT + "VALUE";
+	private static final String TAG_TEXT_VARIANT = TAG_TEXT + DOT + "VARIANT";
+	private static final String TAG_TEXT_LOCALE = TAG_TEXT + DOT + "LOCALE";
+	private static final String TAG_TEXT_NOTE = TAG_TEXT + DOT + "NOTE";
+	private static final String TAG_TEXT_SOURCE = TAG_TEXT + DOT + "SOURCE";
 
 
 	private final RecordDialogComponents components;
@@ -119,7 +119,7 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
-		valueField = new BoundTextField(TAG_VALUE);
+		valueField = new BoundTextField(TAG_TEXT_VALUE);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			// official and legal names
@@ -140,8 +140,8 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 			"administrative", "archival"
 		});
 		typeCombo.setEditable(true);
-		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
-		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
+		variantPanel = new VariantListPanel(TAG_TEXT_VARIANT, this, "Variant", model);
+		localeCombo = new BoundComboBox<>(TAG_TEXT_LOCALE, new String[]{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
 		});
@@ -149,8 +149,8 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_TEXT_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_TEXT_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.build();
 
 		components.bind(valueField);

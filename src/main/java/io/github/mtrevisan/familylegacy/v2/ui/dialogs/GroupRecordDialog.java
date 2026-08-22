@@ -55,7 +55,7 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* ONGOING */
+/* DONE */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>

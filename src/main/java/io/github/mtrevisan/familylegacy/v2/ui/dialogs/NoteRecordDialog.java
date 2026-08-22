@@ -41,9 +41,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -54,10 +58,10 @@ import java.io.Serial;
  *   title?: Text
  *   value: Text
  *   mime?: Text
- *   locale?: LocaleCode
+ *   locale?: LocaleCode | Text
  *   translation*: struct {
  *     value: Text
- *     locale?: LocaleCode
+ *     locale?: LocaleCode | Text
  *   }
  *   source*: SourceCitation
  *   privacy?: PrivacyStructure
@@ -121,6 +125,7 @@ public class NoteRecordDialog extends BaseRecordDialog{
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		localeCombo.setEditable(true);
 		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations");
 
 		// Build common panels using the builder
@@ -209,8 +214,11 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		GUIHelper.launch(NoteRecordDialog::createNew);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = NoteRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(NoteRecordDialog::createEdit, content, "N1");
+		}
 	}
 
 }

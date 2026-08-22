@@ -83,7 +83,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 		final String xref = FLEFRecordHelper.getChildValue(record, TAG_PLACE);
 		final FLEFRecord place = model.getRecordById(xref);
-		return placeHandler.getDisplayText(place, model);
+		return "❝ " + placeHandler.getDisplayText(place, model);
 	}
 
 	@Override

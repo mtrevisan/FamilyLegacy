@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.EventParticipationRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IdentityHypothesisRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PlaceRelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.RelationshipRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -81,7 +82,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 
-	private final String path;
+	protected final String path;
 	private final RelationType relationType;
 	private final ActorType actorType;
 
@@ -207,6 +208,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
 			if(handler == null){
+				HandlerRegistry.getHandler(handlerType);
 				JOptionPane.showMessageDialog(this, "Handler for " + handlerType
 						+ " not loaded.",
 					"Error", JOptionPane.ERROR_MESSAGE);
@@ -272,14 +274,15 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showEditDialog(final FLEFRecord record){
-		final RecordTypeHandler<?> handler = findHandler(record.getTag());
 		if(record == null){
-			JOptionPane.showMessageDialog(parent, handler.getLabel() + " not found", "Error",
+			JOptionPane.showMessageDialog(parent, "Record not found",
+				"Error",
 				JOptionPane.ERROR_MESSAGE);
 
 			return null;
 		}
 
+		final RecordTypeHandler<?> handler = findHandler(record.getTag());
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
 		getDialogSetup().accept(dialog);
 		dialog.setVisible(true);
@@ -309,6 +312,14 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 				else if(actorType == ActorType.OBJECT)
 					relationshipDialog.withObject(parentEntityId, parentEntityTag);
 			}
+			else if(recordDialog instanceof PlaceRelationshipRecordDialog placeRelationshipDialog
+					&& relationType == RelationType.RECORD
+					&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag)){
+				if(actorType == ActorType.SUBJECT)
+					placeRelationshipDialog.withSubject(parentEntityId, parentEntityTag);
+				else if(actorType == ActorType.OBJECT)
+					placeRelationshipDialog.withObject(parentEntityId, parentEntityTag);
+			}
 			else if(recordDialog instanceof IdentityHypothesisRecordDialog identityHypothesisDialog
 					&& relationType == RelationType.RECORD
 					&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag))
@@ -330,6 +341,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	public void load(final FLEFRecord record){
 		clear();
+
+		if(record == null || record.isEmpty())
+			return;
 
 		parentRecord = FLEFRecord.createMainRecord(record.getId(), record.getTag());
 
@@ -376,8 +390,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		isReference = true;
 
 		final List<FLEFRecord> references = new ArrayList<>();
-		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes)
-			references.addAll(model.getRecordsByType(HandlerRegistry.getHandlerType(handler)).stream()
+		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
+			final List<FLEFRecord> handlerReferences = model.getRecordsByType(HandlerRegistry.getHandlerType(handler)).stream()
 				.filter(reference -> {
 					for(final String actorTag : actorTags){
 						final List<FLEFRecord> actors = FLEFRecordHelper.extractRecordsFromOneOfReference(reference, actorTag, model);
@@ -393,7 +407,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 					}
 					return false;
 				})
-				.toList());
+				.toList();
+			references.addAll(handlerReferences);
+		}
 		setItems(references);
 	}
 
@@ -407,8 +423,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		isReference = true;
 
 		final List<FLEFRecord> references = new ArrayList<>();
-		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes)
-				references.addAll(model.getRecordsByType(HandlerRegistry.getHandlerType(handler)).stream()
+		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
+			final List<FLEFRecord> handlerReferences = model.getRecordsByType(HandlerRegistry.getHandlerType(handler)).stream()
 				.filter(reference -> {
 					for(final String actorTag : actorTags){
 						final List<FLEFRecord> actors = FLEFRecordHelper.extractRecordsFromReference(reference, actorTag, model);
@@ -424,7 +440,43 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 					}
 					return false;
 				})
-				.toList());
+				.toList();
+			references.addAll(handlerReferences);
+		}
+		setItems(references);
+	}
+
+	public void loadCitationsWithType2(final String recordId, final String... actorTags){
+		clear();
+
+		if(recordId == null)
+			return;
+
+		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
+		isReference = true;
+
+		final List<FLEFRecord> references = new ArrayList<>();
+		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
+			final List<FLEFRecord> handlerReferences = model.getRecordsByType(HandlerRegistry.getHandlerType(handler)).stream()
+				.filter(reference -> {
+					for(final String actorTag : actorTags){
+						final List<FLEFRecord> actors = FLEFRecordHelper.extractStructures(reference, actorTag);
+						if(actors.isEmpty())
+							return false;
+
+						for(final FLEFRecord actor : actors){
+							final FLEFRecord ref = FLEFRecordHelper.findChild(actor, parentEntityTag);
+							final String tag = ref.getTag();
+							final String id = ref.getValue();
+							if(Objects.equals(parentEntityTag, tag) && recordId.equals(id))
+								return true;
+						}
+					}
+					return false;
+				})
+				.toList();
+			references.addAll(handlerReferences);
+		}
 		setItems(references);
 	}
 

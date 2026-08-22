@@ -68,7 +68,7 @@ import java.io.Serial;
  *   }
  *   text?: Text
  *   type?: enum { verbatim, summarized, translated, normalized }
- *   locale?: LocaleCode
+ *   locale?: LocaleCode | Text
  *   note*: Text
  *
  *   require one_of(document_part, text)

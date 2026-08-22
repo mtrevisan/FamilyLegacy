@@ -134,7 +134,7 @@ struct PersonalNameStructure {
     // https://github.com/FamilySearch/gedcomx/blob/master/specifications/name-part-qualifiers-specification.md
   } | Text
   part+: PartStructure   // The order of PART elements is significant and reflects the culturally appropriate representation of the full name (e.g., 'given' then 'family' for Western names, 'family' then 'given' for East Asian names). No semantic ordering is implied by the individual part types. Consumers must preserve the original order.
-  locale?: LocaleCode
+  locale?: LocaleCode | Text
   cultural_norm*: Xref<CulturalNormRecord>
   source*: SourceCitation
   note*: Xref<NoteRecord>
@@ -411,7 +411,7 @@ struct ClassifiedNameStructure {
 // patronymics, titles, or lineage elements.
 struct NameStructure {
   value: Text                   // the primary textual value
-  locale?: LocaleCode
+  locale?: LocaleCode | Text
   variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
   source*: SourceCitation
   note*: Xref<NoteRecord>
@@ -555,8 +555,12 @@ struct PlaceCitation {
 // Relationships are directional: `administrative_part_of(Treviso -> Veneto)` is NOT equivalent to `administrative_part_of(Veneto -> Treviso)`.
 record PlaceRelationshipRecord {
   id: LocalID
-  subject: Xref<PlaceRecord>    // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT.
-  object: Xref<PlaceRecord>     // the place to which the subject is related
+  subject: {
+    place: Xref<PlaceRecord>    // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT.
+  }
+  object: {
+    place: Xref<PlaceRecord>     // the place to which the subject is related
+  }
   type: enum {
     administrative_part_of,   // subject is part of an administrative jurisdiction, e.g., Treviso → Veneto
     geographic_part_of,       // subject is geographically contained within another place
@@ -568,6 +572,7 @@ record PlaceRelationshipRecord {
   valid_to?: DateStructure      // the date until which this place relationship is known or believed to have been valid
   source*: SourceCitation       // a list of source citations supporting the existence, interpretation, or dating of this place relationship
   note*: Xref<NoteRecord>       // a note containing commentary, interpretation, or discussion related to this place relationship
+  evidence?: EvidenceQualifiers
   audit: AuditStructure
 }
 
@@ -582,10 +587,10 @@ record NoteRecord {
   title?: Text   // note title
   value: Text    // comments or opinions from the submitter. If markdown, references to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](confidential)`, and this last marks text that SHOULD be hidden when confidential information is suppressed.
   mime?: Text    // e.g., text/html, text/markdown
-  locale?: LocaleCode
+  locale?: LocaleCode | Text
   translation*: struct {
     value: Text   // a translated version of the note
-    locale?: LocaleCode
+    locale?: LocaleCode | Text
   }
   source*: SourceCitation
   privacy?: PrivacyStructure
@@ -818,7 +823,7 @@ struct ExtractStructure {
     translated,   // The text is a translation of source content into another language. The meaning should be preserved, but the wording differs from the source because of the language conversion.
     normalized    // The text has been regularized for readability or analysis while remaining in the same language. Examples include expanding abbreviations, modernizing spelling, standardizing capitalization, converting archaic letter forms, or regularizing date and name formats.
   }
-  locale?: LocaleCode
+  locale?: LocaleCode | Text
   note*: Text
 
   require at_least_one(document_part, text)
@@ -918,7 +923,7 @@ struct Approximate {
     conventional,   // deduced by applying a cultural norm typical of the period/place
     unspecified
   }
-  cultural_norm?: Xref<CulturalNormRecord>   // mandatory in practice when basis = 'conventional': it is the record that justifies the estimate
+  cultural_norm*: Xref<CulturalNormRecord>   // mandatory in practice when basis = 'conventional': it is the record that justifies the estimate
   margin?: Duration                          // e.g., 'P2Y' = plus/minus 2 years, when the margin is quantifiable
 
   require if basis == conventional: cultural_norm

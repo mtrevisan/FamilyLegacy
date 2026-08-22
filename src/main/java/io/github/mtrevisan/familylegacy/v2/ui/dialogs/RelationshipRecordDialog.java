@@ -323,7 +323,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	@Override
 	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityPath){
-		JOptionPane.showMessageDialog(this, "Cannot set parent on Relationship Record Dialog.",
+		JOptionPane.showMessageDialog(this, "Cannot set parent on a Relationship Record.",
 			"Error", JOptionPane.ERROR_MESSAGE);
 
 		return this;

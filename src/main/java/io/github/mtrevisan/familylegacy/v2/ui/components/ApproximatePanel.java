@@ -54,7 +54,7 @@ import java.io.Serial;
  *     conventional,
  *     unspecified
  *   }
- *   cultural_norm?: Xref&lt;CulturalNormRecord&gt;
+ *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   margin?: Duration
  *   require if basis == conventional: cultural_norm
  * }

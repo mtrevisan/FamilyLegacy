@@ -180,12 +180,12 @@ public final class RecordDialogComponents{
 			}
 
 			case
-				// ResearchActivityRecord (source contains this source)
-				RESEARCH_ACTIVITY_ON_SOURCE,
-				// ResearchActivityRecord (question contains this question)
-				RESEARCH_ACTIVITY_ON_QUESTION,
-				// ResearchTaskRecord (question contains this question)
-				RESEARCH_TASK_ON_QUESTION ->
+					// ResearchActivityRecord (source contains this source)
+					RESEARCH_ACTIVITY_ON_SOURCE,
+					// ResearchActivityRecord (question contains this question)
+					RESEARCH_ACTIVITY_ON_QUESTION,
+					// ResearchTaskRecord (question contains this question)
+					RESEARCH_TASK_ON_QUESTION ->
 				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model)
 					.withHandlerTypes(cfg.handlerClass());
 
@@ -280,13 +280,13 @@ public final class RecordDialogComponents{
 		if(researchQuestion != null)
 			researchQuestion.loadReferenceWithType(record.getId(), "TARGET");
 		final EntityReferenceListPanel researchActivityOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION));
-		if(researchActivityOnQuestion != null){
-			researchActivityOnQuestion.withParentEntity(record.getId(), record.getTag());
-			researchActivityOnQuestion.loadCitationsWithType(record.getId(), "QUESTION");
-		}
+		if(researchActivityOnQuestion != null)
+			researchActivityOnQuestion.loadCitationsWithType2(record.getId(), "QUESTION");
 		final EntityReferenceListPanel researchActivityOnSource = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE));
-		if(researchActivityOnSource != null)
-			researchActivityOnSource.loadReferenceWithType(record.getId(), "SOURCE");
+		if(researchActivityOnSource != null){
+			researchActivityOnSource.withParentEntity(record.getId(), record.getTag());
+			researchActivityOnSource.loadCitationsWithType2(record.getId(), "SOURCE");
+		}
 
 		final EntityCitationListPanel place = ((EntityCitationListPanel)getPanel(PanelKey.PLACE));
 		if(place != null)
@@ -299,9 +299,11 @@ public final class RecordDialogComponents{
 		final EntityCitationListPanel source = ((EntityCitationListPanel)getPanel(PanelKey.SOURCE));
 		if(source != null)
 			source.load(record);
-		final EntityCitationListPanel sourceOnRepository = ((EntityCitationListPanel)getPanel(PanelKey.SOURCE_ON_REPOSITORY));
-		if(sourceOnRepository != null)
-			sourceOnRepository.load(record);
+		final EntityReferenceListPanel sourceOnRepository = ((EntityReferenceListPanel)getPanel(PanelKey.SOURCE_ON_REPOSITORY));
+		if(sourceOnRepository != null){
+			sourceOnRepository.withParentEntity(record.getId(), record.getTag());
+			sourceOnRepository.loadCitationsWithType(record.getId(), "REPOSITORY");
+		}
 
 		final EntityListPanel document = ((EntityListPanel)getPanel(PanelKey.DOCUMENT));
 		if(document != null)
@@ -402,7 +404,7 @@ public final class RecordDialogComponents{
 		final EntityCitationListPanel source = ((EntityCitationListPanel)getPanel(PanelKey.SOURCE));
 		if(source != null)
 			source.save(record);
-		final EntityCitationListPanel sourceOnRepository = ((EntityCitationListPanel)getPanel(PanelKey.SOURCE_ON_REPOSITORY));
+		final EntityReferenceListPanel sourceOnRepository = ((EntityReferenceListPanel)getPanel(PanelKey.SOURCE_ON_REPOSITORY));
 		if(sourceOnRepository != null)
 			sourceOnRepository.save(record);
 

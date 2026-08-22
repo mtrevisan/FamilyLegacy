@@ -48,9 +48,13 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -282,8 +286,11 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		GUIHelper.launch(CulturalNormRecordDialog::createNew);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = CulturalNormRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(CulturalNormRecordDialog::createEdit, content, "CN1");
+		}
 	}
 
 }

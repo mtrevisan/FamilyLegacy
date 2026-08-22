@@ -83,7 +83,7 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 		final String xref = FLEFRecordHelper.getChildValue(record, TAG_SOURCE);
 		final FLEFRecord source = model.getRecordById(xref);
-		return sourceHandle.getDisplayText(source, model);
+		return "❝ " + sourceHandle.getDisplayText(source, model);
 	}
 
 	@Override

@@ -43,9 +43,6 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	private static final long serialVersionUID = -298718064629353117L;
 
 
-	private static final String TAG_VARIANT = "VARIANT";
-
-
 	public VariantListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){
 		super(path, parent, panelTitle, model, RelationType.STRUCTURE, null);
 
@@ -57,7 +54,10 @@ public class VariantListPanel extends EntityReferenceListPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
-		final List<FLEFRecord> variants = FLEFRecordHelper.extractStructures(record, TAG_VARIANT);
+		if(record == null || record.isEmpty())
+			return;
+
+		final List<FLEFRecord> variants = FLEFRecordHelper.extractStructures(record, path);
 		setItems(variants);
 	}
 

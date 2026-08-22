@@ -132,7 +132,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog.getRootPane(),
 			() -> {
 				if(!validTranslationData(valueArea))
 					return;
@@ -173,6 +173,9 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public void load(final FLEFRecord record){
 		clear();
+
+		if(record == null || record.isEmpty())
+			return;
 
 		final List<FLEFRecord> translations = new ArrayList<>();
 		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, path)){

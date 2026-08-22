@@ -141,8 +141,7 @@ public class PlaceField extends JPanel{
 	}
 
 	public void saveReferences(final FLEFRecord targetRecord){
-		if(record != null)
-			FLEFRecordHelper.updateChildValue(targetRecord, path, record.getFormattedId());
+		FLEFRecordHelper.updateChildValue(targetRecord, path, record.getFormattedId());
 	}
 
 	private FLEFRecord createNew(){

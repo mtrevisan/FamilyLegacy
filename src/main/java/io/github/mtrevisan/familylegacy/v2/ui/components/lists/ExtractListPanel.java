@@ -180,7 +180,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog.getRootPane(),
 			() -> {
 				if(!validExtractData(dialog, documentPartPanel, textArea))
 					return;
@@ -271,6 +271,9 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public void load(final FLEFRecord record){
 		clear();
+
+		if(record == null || record.isEmpty())
+			return;
 
 		final List<FLEFRecord> extracts = FLEFRecordHelper.extractStructures(record, path);
 		setItems(extracts);

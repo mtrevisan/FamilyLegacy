@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.BorderFactory;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -66,6 +67,7 @@ import java.io.Serial;
  *   valid_to?: DateStructure
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
+ *   evidence?: EvidenceQualifiers
  *   audit: AuditStructure
  * }
  * </pre>
@@ -84,16 +86,14 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -4588274864438851179L;
 
 
-	private static final String DOT = ".";
-
-	private static final String TAG_PLACE = "PLACE";
-	private static final String TAG_SUBJECT_PLACE = "SUBJECT" + DOT + TAG_PLACE;
-	private static final String TAG_OBJECT_PLACE = "OBJECT" + DOT + TAG_PLACE;
+	private static final String TAG_SUBJECT = "SUBJECT";
+	private static final String TAG_OBJECT = "OBJECT";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
+	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_AUDIT = "AUDIT";
 	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
@@ -104,8 +104,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 	private final RecordDialogComponents components;
 
-	private final PlaceField subjectField;
-	private final PlaceField objectField;
+	private final ParticipantField subjectField;
+	private final ParticipantField objectField;
 	private final BoundComboBox<String> typeCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
@@ -124,10 +124,12 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private PlaceRelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, PlaceRelationshipHandler.class);
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		subjectField = PlaceField.create(TAG_SUBJECT_PLACE, this, model);
-		objectField = PlaceField.create(TAG_OBJECT_PLACE, this, model);
+		subjectField = ParticipantField.create(TAG_SUBJECT, this, model)
+			.withHandlerTypes(PlaceHandler.class);
+		objectField = ParticipantField.create(TAG_OBJECT, this, model)
+			.withHandlerTypes(PlaceHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"administrative_part_of", "geographic_part_of", "ecclesiastical_part_of", "judicial_part_of",
@@ -144,6 +146,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceRelationshipHandler.class)
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, RelationshipHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
 
@@ -173,6 +176,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		// valid to
 		GUIHelper.addLabeledComponent(validityPanel, "Valid To:", validToField);
 		GUIHelper.addComponent(propertiesPanel, validityPanel);
+
+		// evidence
+		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
+		GUIHelper.addComponent(propertiesPanel, evidencePanel);
 
 		return propertiesPanel;
 	}
@@ -226,23 +233,40 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public void setSubject(final String placeId){
-		if(StringUtils.isNotEmpty(placeId)){
-			if(!confirmRecordExistsForType(placeId, PlaceHandler.class))
-				return;
+	@Override
+	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityPath){
+		JOptionPane.showMessageDialog(this, "Cannot set parent on a Place Relationship Record.",
+			"Error", JOptionPane.ERROR_MESSAGE);
 
-			subjectField.setRecord(FLEFRecord.createMainRecord(placeId, null));
-			GUIHelper.setComponentVisible(subjectField, false);
-
-			refreshLayout();
-		}
+		return this;
 	}
 
-	private void refreshLayout(){
-		propertiesPanel.revalidate();
-		propertiesPanel.repaint();
+	public PlaceRelationshipRecordDialog withSubject(final String placeId, final String placePath){
+		super.withParentEntity(placeId, placePath);
 
-		pack();
+		if(parentEntity != null && !parentEntity.isEmpty()){
+			subjectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+
+			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
+			GUIHelper.setComponentVisible(subjectField, showAll);
+			GUIHelper.setComponentVisible(objectField, true);
+		}
+
+		return this;
+	}
+
+	public PlaceRelationshipRecordDialog withObject(final String parentEntityId, final String parentEntityPath){
+		super.withParentEntity(parentEntityId, parentEntityPath);
+
+		if(parentEntity != null && !parentEntity.isEmpty()){
+			objectField.setParticipant(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+
+			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
+			GUIHelper.setComponentVisible(subjectField, true);
+			GUIHelper.setComponentVisible(objectField, showAll);
+		}
+
+		return this;
 	}
 
 

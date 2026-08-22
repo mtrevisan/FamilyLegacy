@@ -55,7 +55,7 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* TESTED */
+/* DONE */
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.1.
  * <p>

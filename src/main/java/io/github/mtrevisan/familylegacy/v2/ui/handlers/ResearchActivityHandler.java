@@ -44,7 +44,6 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 
 	private static final String TAG_ACTION = "ACTION";
 	private static final String TAG_ACTIVITY_TYPE = "ACTIVITY_TYPE";
-	private static final String TAG_DATE = "DATE";
 
 
 	@Override
@@ -67,15 +66,12 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 		if(record == null)
 			return "--";
 
-		String action = FLEFRecordHelper.getChildValue(record, TAG_ACTION);
-		String type = FLEFRecordHelper.getChildValue(record, TAG_ACTIVITY_TYPE);
-		String date = FLEFRecordHelper.getChildValue(record, TAG_DATE);
+		final String action = FLEFRecordHelper.getChildValue(record, TAG_ACTION);
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_ACTIVITY_TYPE);
 		if(StringUtils.isNotEmpty(action)){
 			String display = GUIHelper.limitTextLength(action);
 			if(StringUtils.isNotEmpty(type))
 				display += " [" + type + "]";
-			if(StringUtils.isNotEmpty(date))
-				display += " (" + date + ")";
 			return display;
 		}
 		return record.getId() != null? record.getId(): "(unnamed)";

@@ -61,7 +61,7 @@ import java.io.Serial;
  *     regnal, slave_name
  *   } | Text
  *   part+: PartStructure
- *   locale?: LocaleCode
+ *   locale?: LocaleCode | Text
  *   cultural_norm*: Xref&lt;CulturalNormRecord&gt;
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;

@@ -39,6 +39,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -47,10 +48,13 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
+/* DONE */
 /**
  * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -138,9 +142,9 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories with Citations", RepositoryCitationHandler.class, SourceHandler.class)
-			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents", DocumentHandler.class, SourceHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, SourceHandler.class)
+			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories with Citations", RepositoryHandler.class, RepositoryCitationHandler.class)
+			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents", DocumentHandler.class, DocumentHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, SourceHandler.class)
 			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, TAG_RESEARCH_ACTIVITY, "Research Activities", ResearchActivityHandler.class, SourceHandler.class)
@@ -258,34 +262,11 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord source = FLEFRecord.createMainRecord("S1", "SOURCE");
-		source.addChild(FLEFRecord.createChildWithTagAndValue("AUTHOR", "auth"));
-		source.addChild(FLEFRecord.createChildWithTagAndValue("PUBLISHER", "pub"));
-		source.addChild(FLEFRecord.createChildWithTag("DATE")
-			.addChild(FLEFRecord.createChildWithTag("VALUE")
-				.addChild(FLEFRecord.createChildWithTag("POINT")
-					.addChild(FLEFRecord.createChildWithTag("SINGLE_DATE")
-//						.addChild(FLEFRecord.createChildWithTag("FULL_DATE")
-//							.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "2001-01-01"))
-//						)
-//						.addChild(FLEFRecord.createChildWithTag("DECADE")
-//							.addChild(FLEFRecord.createChildWithTagAndValue("START_YEAR", "1940"))
-//						)
-						.addChild(FLEFRecord.createChildWithTag("CENTURY")
-							.addChild(FLEFRecord.createChildWithTagAndValue("ORDINAL", "19"))
-							.addChild(FLEFRecord.createChildWithTagAndValue("PART", "second_quarter"))
-						)
-					)
-				)
-			)
-		);
-
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(source);
-		};
-		GUIHelper.launch(SourceRecordDialog::createEdit, modelFiller, source);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = SourceRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(SourceRecordDialog::createEdit, content, "S1");
+		}
 	}
 
 }

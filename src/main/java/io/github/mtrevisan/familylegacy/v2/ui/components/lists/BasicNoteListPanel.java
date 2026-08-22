@@ -126,7 +126,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog.getRootPane(),
 			() -> {
 				if(!validNoteData(textArea))
 					return;
@@ -174,6 +174,9 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	public void load(final FLEFRecord record){
 		clear();
+
+		if(record == null || record.isEmpty())
+			return;
 
 		final List<FLEFRecord> notes = FLEFRecordHelper.extractStructures(record, path);
 		setItems(notes);

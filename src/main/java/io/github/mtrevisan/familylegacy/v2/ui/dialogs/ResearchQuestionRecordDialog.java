@@ -45,6 +45,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
@@ -163,8 +164,9 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		targetPanel = EntityReferenceListPanel.createForRecord(TAG_TARGET, this, "Target", model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
-				GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
-				IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
+				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
+				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class,
+				HistoricEventHandler.class);
 		statusPanel = new ResearchQuestionStatusPanel();
 		conclusionArea = new BoundTextArea(TAG_CONCLUSION, 3, 30);
 		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{

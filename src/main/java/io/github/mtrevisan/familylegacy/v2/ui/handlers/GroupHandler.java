@@ -60,14 +60,14 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 			return "--";
 
 		// Locate the first populated NAME structure
-		final String formattedName = FLEFRecordHelper.getChildValue(record, "NAME.TEXT.VALUE");
+		final String name = FLEFRecordHelper.getChildValue(record, "NAME.TEXT.VALUE");
 
 		final String type = FLEFRecordHelper.getChildValue(record, "TYPE");
 
 		final String id = record.getId();
 		final StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotEmpty(formattedName))
-			sb.append(formattedName);
+		if(StringUtils.isNotEmpty(name))
+			sb.append(name);
 		if(StringUtils.isNotEmpty(type)){
 			if(!sb.isEmpty())
 				sb.append(' ');

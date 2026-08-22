@@ -239,6 +239,9 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
+		if(record == null || record.isEmpty())
+			return;
+
 		final List<FLEFRecord> referencedEntities = FLEFRecordHelper.extractRecordsFromReference(record, path, model);
 		setItems(referencedEntities);
 	}

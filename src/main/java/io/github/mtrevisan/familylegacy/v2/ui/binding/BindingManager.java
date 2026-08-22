@@ -60,6 +60,9 @@ public class BindingManager{
 	 * @param record	the record to read from
 	 */
 	public void load(final FLEFRecord record){
+		if(record == null || record.isEmpty())
+			return;
+
 		for(final PathBound comp : boundComponents){
 			if(comp.isReadOnly())
 				continue;

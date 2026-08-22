@@ -231,6 +231,9 @@ public class QualifiedDatePanel extends JPanel{
 	public void load(final FLEFRecord record){
 		clear();
 
+		if(record == null || record.isEmpty())
+			return;
+
 		final FLEFRecord singleDate = FLEFRecordHelper.extractStructures(record, TAG_SINGLE_DATE)
 			.getFirst();
 		final DateType singleDateType = DateType.fromNode(singleDate);

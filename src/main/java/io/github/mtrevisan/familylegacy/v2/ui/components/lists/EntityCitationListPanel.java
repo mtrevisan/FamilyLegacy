@@ -189,6 +189,9 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	public void load(final FLEFRecord record){
 		clear();
 
+		if(record == null || record.isEmpty())
+			return;
+
 		final List<FLEFRecord> citations = FLEFRecordHelper.extractStructuresWithReference(record, path);
 		setItems(citations);
 	}

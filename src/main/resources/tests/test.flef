@@ -201,6 +201,14 @@ records {
 		ROLE whatever
 	}
 
+	EVENT_PARTICIPATION EP3 {
+		PARTICIPANT {
+			PLACE P1
+		}
+		EVENT E2
+		ROLE whatever event
+	}
+
 	CONTEXT_IMPACT CI1 {
 		CONTEXT {
 			CULTURAL_NORM CN1
@@ -221,6 +229,33 @@ records {
 		}
 		IMPACT_TYPE causes
 		SIGNIFICANCE high significance
+	}
+
+	CONTEXT_IMPACT CI3 {
+		CONTEXT {
+			CULTURAL_NORM CN1
+		}
+		TARGET {
+			EVENT E1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+	}
+
+	CONTEXT_IMPACT CI4 {
+		CONTEXT {
+			CULTURAL_NORM CN1
+		}
+		TARGET {
+			PLACE P1
+		}
+		IMPACT_TYPE motivates
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
 	}
 
 	CONCLUSION CC1 {
@@ -245,6 +280,58 @@ records {
 		}
 		PREFERRED {
 			GROUP G1
+		}
+		RESEARCH RQ1
+	}
+
+	CONCLUSION CC3 {
+		CONTEXT death cause
+		PROOF_STATUS proven
+		NARRATIVE narr for event
+		RESOLVES {
+			EVENT E1
+		}
+		PREFERRED {
+			EVENT E1
+		}
+		RESEARCH RQ1
+	}
+
+	CONCLUSION CC4 {
+		CONTEXT place cause
+		PROOF_STATUS proven
+		NARRATIVE narr for place
+		RESOLVES {
+			PLACE P1
+		}
+		PREFERRED {
+			PLACE P1
+		}
+		RESEARCH RQ1
+	}
+
+	CONCLUSION CC5 {
+		CONTEXT cn cause
+		PROOF_STATUS proven
+		NARRATIVE narr for cn
+		RESOLVES {
+			CULTURAL_NORM CN1
+		}
+		PREFERRED {
+			CULTURAL_NORM CN1
+		}
+		RESEARCH RQ1
+	}
+
+	CONCLUSION CC6 {
+		CONTEXT src cause
+		PROOF_STATUS proven
+		NARRATIVE narr for src
+		RESOLVES {
+			SOURCE S1
+		}
+		PREFERRED {
+			SOURCE S1
 		}
 		RESEARCH RQ1
 	}
@@ -279,6 +366,21 @@ person"""
 		}
 	}
 
+	IDENTITY_HYPOTHESIS IH4 {
+		SUBJECT {
+			PLACE P1
+		}
+		CANDIDATE {
+			PLACE P2
+		}
+		COMMENT same place?
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
 	RESEARCH_QUESTION RQ1 {
 		TITLE rq title
 		QUESTION is?
@@ -302,6 +404,42 @@ person"""
 		QUESTION is group?
 		TARGET {
 			GROUP G1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ4 {
+		TITLE void rq title event
+		QUESTION is event?
+		TARGET {
+			EVENT E1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ5 {
+		TITLE void rq title place
+		QUESTION is place?
+		TARGET {
+			PLACE P1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ6 {
+		TITLE cn rq title place
+		QUESTION is place?
+		TARGET {
+			CULTURAL_NORM CN1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ7 {
+		TITLE cn rq title source
+		QUESTION is src?
+		TARGET {
+			SOURCE S1
 		}
 		STATUS closed
 	}
@@ -349,6 +487,56 @@ person"""
 		TITLE {
 			VALUE src title
 		}
+		AUTHOR author
+		PUBLISHER pub
+		DATE {
+			VALUE {
+				POINT {
+					SINGLE_DATE {
+						FULL_DATE {
+							VALUE 2001-01-01
+							CALENDAR gregorian
+						}
+					}
+				}
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		MEDIA_TYPE book
+		REPOSITORY {
+			REPOSITORY R1
+			LOCATION shelf 1
+			NOTE repo note
+		}
+		DOCUMENT D1
+		NOTE N1
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	SOURCE S2 {
@@ -362,6 +550,28 @@ person"""
 		VALUE note 1
 		MIME text/plain
 		LOCALE it-IT
+		SOURCE {
+			SOURCE S1
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 		TRANSLATION {
 			VALUE nòda
 			LOCALE vec-IT
@@ -428,28 +638,100 @@ person"""
 
 	CULTURAL_NORM CN1 {
 		TITLE cult norm title
+		RULE_TYPE marriage_practice
+		SOURCE {
+			SOURCE S1
+			LOCATION src loc
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		AUDIT {
+			CREATION {
+				DATE 2026-08-22T15:53:49Z
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_FROM {
+			VALUE {
+				BOUNDED {
+					NOT_BEFORE {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					NOT_AFTER {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE {
+				SPANNING {
+					FROM {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					TO {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
 	}
 
 	EVENT E1 {
 		TYPE epidemic
 		DESCRIPTION cholera
-		DATE {
-			VALUE {
-				POINT {
-					SINGLE_DATE {
-						CENTURY {
-							ORDINAL 19
-							PART late
-							CALENDAR gregorian
-						}
-					}
-				}
-			}
-		}
-		PLACE {
-			PLACE P1
-			ORIGINAL_TEXT kel pòsto là via
-		}
 		AGENCY the morgue
 		CAUSE {
 			VALUE brain tumor
@@ -459,6 +741,16 @@ person"""
 				EVIDENCE_TYPE negative
 			}
 		}
+		SOURCE {
+			SOURCE S1
+			LOCATION over there
+			EXTRACT {
+				TEXT ext event
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE N1
 		EVIDENCE {
 			SOURCE_TYPE original
 			INFORMATION_TYPE primary
@@ -483,6 +775,23 @@ person"""
 				COMMENT second update
 			}
 		}
+		DATE {
+			VALUE {
+				POINT {
+					SINGLE_DATE {
+						CENTURY {
+							ORDINAL 19
+							PART late
+							CALENDAR gregorian
+						}
+					}
+				}
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via
+		}
 	}
 
 	EVENT E2 {
@@ -497,15 +806,289 @@ person"""
 
 	PLACE P1 {
 		NAME {
-			TYPE official
 			TEXT {
 				VALUE a certain place
 				LOCALE en-UK
+			}
+			TYPE official
+			VARIANT {
+				PHONETIC {
+					SYSTEM place var sys
+					VALUE place var val
+				}
 			}
 		}
 		TYPE building
 		MAP {
 			COORDINATES 45.65 12.19
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		SOURCE {
+			SOURCE S1
+			LOCATION src place loc
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	PLACE P2 {
+		NAME {
+			TEXT {
+				VALUE a parent place
+			}
+			TYPE official
+		}
+		TYPE cadastral_part_of
+	}
+
+	PLACE_RELATIONSHIP PR1 {
+		TYPE group_member place
+		SUBJECT {
+			PLACE P1
+		}
+		OBJECT {
+			PLACE P2
+		}
+		VALID_FROM {
+			VALUE {
+				BOUNDED {
+					NOT_BEFORE {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					NOT_AFTER {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE {
+				SPANNING {
+					FROM {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					TO {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		SOURCE {
+			SOURCE S1
+			LOCATION src loc place rel
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+	}
+
+	PLACE_RELATIONSHIP PR2 {
+		TYPE group_member inverse place
+		SUBJECT {
+			PLACE P2
+		}
+		OBJECT {
+			PLACE P1
+		}
+	}
+
+	REPOSITORY R1 {
+		NOTE N1
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		NAME {
+			TYPE colonial
+			TEXT {
+				VALUE name
+				LOCALE de
+				VARIANT {
+					PHONETIC {
+						SYSTEM canIPA
+						VALUE kaxa
+					}
+				}
+				SOURCE {
+					SOURCE S1
+					LOCATION there
+					EXTRACT {
+						TEXT ext
+						TYPE summarized
+						LOCALE en-US
+					}
+				}
+				NOTE N1
+			}
+		}
+		CUSTODIAN I1
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT sto pòsto kuà
+		}
+		CONTACT {
+			ADDRESS addr
+			TYPE email
+			NAME {
+				VALUE contact name
+				VARIANT {
+					PHONETIC {
+						SYSTEM ipa
+						VALUE contact name genki
+					}
+				}
+				VARIANT {
+					TRANSCRIPTION {
+						SYSTEM rōmaji
+						TYPE romanized
+						VALUE contact name nòme
+					}
+				}
+			}
+			NOTE contact note
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+		}
+	}
+
+	DOCUMENT D1 {
+		FILE C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+		MAPPING planar
+		DESCRIPTION doc desc
+		NOTE N1
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 }
