@@ -123,13 +123,12 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	 */
 	public static EntityReferenceListPanel createForStructure(final String path, final Dialog parent,
 			final String panelTitle, final FLEFModel model){
-		return new EntityReferenceListPanel(path, parent, panelTitle, model, RelationType.STRUCTURE, null);
+		return createForStructure(path, parent, panelTitle, model, null);
 	}
 
 	public static EntityReferenceListPanel createForStructure(final String path, final Dialog parent,
 			final String panelTitle, final FLEFModel model, final ActorType actorType){
-		return new EntityReferenceListPanel(path, parent, panelTitle, model,
-			RelationType.STRUCTURE, actorType);
+		return new EntityReferenceListPanel(path, parent, panelTitle, model, RelationType.STRUCTURE, actorType);
 	}
 
 
@@ -151,6 +150,16 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		this.actorType = actorType;
 
 		handlerTypes = Collections.emptyList();
+
+
+		final Consumer<GUIHelper.MenuBuilder> menuItems = (relationType == RelationType.RECORD
+			? createMenuItemsForRecord()
+			: createMenuItemsForStructure());
+		GUIHelper.installBehavior(list,
+			this::editItem, null,
+			this::createNewItem, this::removeItem,
+			menuItems
+		);
 	}
 
 	/**
@@ -168,20 +177,6 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		return this;
 	}
 
-
-	@Override
-	protected void initComponents(){
-		super.initComponents();
-
-		final Consumer<GUIHelper.MenuBuilder> menuItems = (relationType == RelationType.RECORD
-			? createMenuItemsForRecord()
-			: createMenuItemsForStructure());
-		GUIHelper.installBehavior(list,
-			this::editItem, null,
-			this::createNewItem, this::removeItem,
-			menuItems
-		);
-	}
 
 	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForRecord(){
 		return builder -> {
@@ -496,6 +491,9 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private RecordTypeHandler<?> findHandler(final String type){
+		if(handlerTypes.size() == 1)
+			return HandlerRegistry.getHandler(handlerTypes.getFirst());
+
 		for(final Class<? extends RecordTypeHandler<?>> headerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(headerType);
 			if(handler.getType().equalsIgnoreCase(type))
