@@ -251,13 +251,6 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 
 		final RecordTypeHandler<?> selectedHandler = HandlerRegistry.getHandler(selectedHandlerClass);
-		if(selectedHandler == null){
-			JOptionPane.showMessageDialog(parent, "Handler for " + selectedHandlerClass + " not loaded.",
-				"Error", JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
 		final BaseRecordDialog dialog = selectedHandler.createNewDialog(parent, model);
 		if(dialog instanceof RelationshipRecordDialog relationshipDialog
 				&& relationType == RelationType.RECORD
