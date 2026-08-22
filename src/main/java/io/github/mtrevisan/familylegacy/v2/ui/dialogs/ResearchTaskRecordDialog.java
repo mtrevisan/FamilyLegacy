@@ -118,7 +118,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.class)
 			.withParentEntity(this.record.getId(), ResearchTaskHandler.TYPE);
 		createdByField = ParticipantField.create(TAG_CREATED_BY, this, model);
-		createdByField.setHandlerTypes(ResearchActivityHandler.class);
+		createdByField.withHandlerTypes(ResearchActivityHandler.class);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
 			"open", "in_progress", "completed", "abandoned"});
 		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{

@@ -121,10 +121,10 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
 		contextField = ParticipantField.create(TAG_CONTEXT, this, model);
-		contextField.setHandlerTypes(CulturalNormHandler.class, HistoricEventHandler.class);
+		contextField.withHandlerTypes(CulturalNormHandler.class, HistoricEventHandler.class);
 
 		targetField = ParticipantField.create(TAG_TARGET, this, model);
-		targetField.setHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, EventHandler.class,
+		targetField.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, EventHandler.class,
 			RelationshipHandler.class, IndividualAttributeHandler.class, GroupAttributeHandler.class,
 			ConclusionHandler.class, EventParticipationHandler.class, PlaceRelationshipHandler.class,
 			IdentityHypothesisHandler.class);

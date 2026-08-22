@@ -133,7 +133,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 
 		participantField = ParticipantField.create(TAG_PARTICIPANT, this, model);
-		participantField.setHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+		participantField.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		eventField = ParticipantField.create(TAG_EVENT, this, model, EventHandler.class);
 		roleCombo = new BoundComboBox<>(TAG_ROLE, new String[]{
 			StringUtils.EMPTY,

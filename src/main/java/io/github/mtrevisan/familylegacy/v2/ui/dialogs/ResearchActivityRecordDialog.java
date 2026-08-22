@@ -169,7 +169,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		});
 		actionArea = new BoundTextArea(TAG_ACTION, 3, 30);
 		targetField = ParticipantField.create(TAG_TARGET, this, model);
-		targetField.setHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
+		targetField.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 			EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
 			GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
 			IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
@@ -190,7 +190,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
 		parentField = ParticipantField.create(TAG_PARENT, this, model);
-		parentField.setHandlerTypes(ResearchActivityHandler.class);
+		parentField.withHandlerTypes(ResearchActivityHandler.class);
 		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model, ResearchTaskHandler.class);
 
 		// Build common panels using the builder
