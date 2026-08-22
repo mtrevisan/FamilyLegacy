@@ -110,7 +110,7 @@ public class EntityCitationListPanel extends AbstractListPanel<FLEFRecord>{
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, null,
 			recordHandler.getHandlerClass());
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();

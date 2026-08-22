@@ -234,7 +234,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			handlerTypes.toArray(Class[]::new));
+				handlerTypes.toArray(Class[]::new))
+			.withSetupDialog(getDialogSetup());
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			result[0] = selectedRecord;
@@ -246,59 +247,26 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected FLEFRecord showCreateNewDialog(){
-		final Class<? extends RecordTypeHandler<?>> selectedHandlerClass = getHandlerClassForNew();
-		if(selectedHandlerClass == null)
-			return null;
-
-		final RecordTypeHandler<?> selectedHandler = HandlerRegistry.getHandler(selectedHandlerClass);
-		final BaseRecordDialog dialog = selectedHandler.createNewDialog(parent, model);
-		if(dialog instanceof RelationshipRecordDialog relationshipDialog
-				&& relationType == RelationType.RECORD
-				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag)){
-			if(actorType == ActorType.SUBJECT)
-				relationshipDialog.withSubject(parentEntityId, parentEntityTag);
-			else if(actorType == ActorType.OBJECT)
-				relationshipDialog.withObject(parentEntityId, parentEntityTag);
-		}
-		else if(dialog instanceof IdentityHypothesisRecordDialog identityHypothesisDialog
-				&& relationType == RelationType.RECORD
-				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag))
-			identityHypothesisDialog.withParentEntity(parentEntityId, parentEntityTag);
-		else if(dialog instanceof EventParticipationRecordDialog eventParticipationRecordDialog){
-			if(actorType == ActorType.PARTICIPANT)
-				eventParticipationRecordDialog.withParticipant(parentEntityId, parentEntityTag);
-			else if(actorType == ActorType.EVENT)
-				eventParticipationRecordDialog.withEvent(parentEntityId);
-		}
-		dialog.setVisible(true);
-
-		return (dialog.isSaved()? dialog.getRecord(): null);
-	}
-
-	/**
-	 * Returns the handler class to use for creating a new record.
-	 * If {@link #handlerTypes} has exactly one element, returns that.
-	 * If it has multiple, shows a selection dialog and returns the chosen class.
-	 * If empty, uses the single {@code handler}.
-	 */
-	private Class<? extends RecordTypeHandler<?>> getHandlerClassForNew(){
 		if(!handlerTypes.isEmpty()){
-			if(handlerTypes.size() == 1)
-				return handlerTypes.getFirst();
+			if(handlerTypes.size() == 1){
+				// Single type: show creation dialog
+				final RecordTypeHandler<?> selectedHandler = HandlerRegistry.getHandler(handlerTypes.getFirst());
+				final BaseRecordDialog dialog = selectedHandler.createNewDialog(parent, model);
+				getDialogSetup().accept(dialog);
+				dialog.setVisible(true);
+
+				return (dialog.isSaved()? dialog.getRecord(): null);
+			}
 
 			// Multiple types: show selection dialog
 			final MultiTypeSelectionDialog selectionDialog = new MultiTypeSelectionDialog(parent, model,
-				handlerTypes.toArray(Class[]::new));
+					handlerTypes.toArray(Class[]::new))
+				.withSetupDialog(getDialogSetup());
 			selectionDialog.setVisible(true);
 
-			final FLEFRecord selectedRecord = selectionDialog.getSelectedRecord();
-			if(selectedRecord != null)
-				for(final Class<? extends RecordTypeHandler<?>> cls : handlerTypes){
-					final RecordTypeHandler<?> h = HandlerRegistry.getHandler(cls);
-					if(h != null && h.getType().equalsIgnoreCase(selectedRecord.getTag()))
-						return cls;
-				}
+			return selectionDialog.getSelectedRecord();
 		}
+
 		return null;
 	}
 
@@ -313,24 +281,7 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 
 		final BaseRecordDialog dialog = handler.createEditDialog(parent, model, record);
-		if(dialog instanceof RelationshipRecordDialog relationshipDialog
-				&& relationType == RelationType.RECORD
-				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag)){
-			if(actorType == ActorType.SUBJECT)
-				relationshipDialog.withSubject(parentEntityId, parentEntityTag);
-			else if(actorType == ActorType.OBJECT)
-				relationshipDialog.withObject(parentEntityId, parentEntityTag);
-		}
-		else if(dialog instanceof IdentityHypothesisRecordDialog identityHypothesisDialog
-				&& relationType == RelationType.RECORD
-				&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag))
-			identityHypothesisDialog.withParentEntity(parentEntityId, parentEntityTag);
-		else if(dialog instanceof EventParticipationRecordDialog eventParticipationRecordDialog){
-			if(actorType == ActorType.PARTICIPANT)
-				eventParticipationRecordDialog.withParticipant(parentEntityId, parentEntityTag);
-			else if(actorType == ActorType.EVENT)
-				eventParticipationRecordDialog.withEvent(parentEntityId);
-		}
+		getDialogSetup().accept(dialog);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved() && parentRecord != null){
@@ -346,6 +297,29 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 
 		// return the same record (it was updated in place)
 		return record;
+	}
+
+	private Consumer<BaseRecordDialog> getDialogSetup(){
+		return recordDialog -> {
+			if(recordDialog instanceof RelationshipRecordDialog relationshipDialog
+					&& relationType == RelationType.RECORD
+					&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag)){
+				if(actorType == ActorType.SUBJECT)
+					relationshipDialog.withSubject(parentEntityId, parentEntityTag);
+				else if(actorType == ActorType.OBJECT)
+					relationshipDialog.withObject(parentEntityId, parentEntityTag);
+			}
+			else if(recordDialog instanceof IdentityHypothesisRecordDialog identityHypothesisDialog
+					&& relationType == RelationType.RECORD
+					&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag))
+				identityHypothesisDialog.withParentEntity(parentEntityId, parentEntityTag);
+			else if(recordDialog instanceof EventParticipationRecordDialog eventParticipationRecordDialog){
+				if(actorType == ActorType.PARTICIPANT)
+					eventParticipationRecordDialog.withParticipant(parentEntityId, parentEntityTag);
+				else if(actorType == ActorType.EVENT)
+					eventParticipationRecordDialog.withEvent(parentEntityId);
+			}
+		};
 	}
 
 
@@ -366,6 +340,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			entities = FLEFRecordHelper.extractStructures(record, path);
 		if(!entities.isEmpty())
 			setItems(entities);
+
+		withParentEntity(record.getId(), record.getTag());
 	}
 
 	/**

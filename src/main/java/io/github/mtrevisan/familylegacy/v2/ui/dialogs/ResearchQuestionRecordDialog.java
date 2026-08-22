@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchQuestionStatusPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;

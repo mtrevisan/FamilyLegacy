@@ -58,6 +58,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 
 /**
@@ -76,6 +77,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private final FLEFModel model;
 	// non-null if only one type
 	private final RecordTypeHandler<?> defaultType;
+
+	private Consumer<BaseRecordDialog> setupDialog;
 
 	private final JComboBox<RecordTypeHandler<?>> typeCombo;
 	private final JTextField searchField;
@@ -109,6 +112,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 			.toArray(value -> new RecordTypeHandler<?>[handlerTypes.length]);
 		defaultType = (handlerTypes.length == 1? handlers[0]: null);
 
+
 		// UI components (typeCombo may remain null if only one type)
 		typeCombo = (handlerTypes.length > 1? createTypeCombo(handlers): null);
 		searchField = new JTextField(null);
@@ -126,6 +130,12 @@ public class MultiTypeSelectionDialog extends JDialog{
 		pack();
 
 		setLocationRelativeTo(parent);
+	}
+
+	public MultiTypeSelectionDialog withSetupDialog(final Consumer<BaseRecordDialog> setupDialog){
+		this.setupDialog = setupDialog;
+
+		return this;
 	}
 
 	private JComboBox<RecordTypeHandler<?>> createTypeCombo(final RecordTypeHandler<?>[] handlers){
@@ -285,6 +295,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private void createNewRecord(){
 		final RecordTypeHandler<?> handler = getSelectedHandler();
 		final BaseRecordDialog dialog = handler.createNewDialog(this, model);
+		if(setupDialog != null)
+			setupDialog.accept(dialog);
 		dialog.setVisible(true);
 
 		FLEFRecord newRecord = null;
