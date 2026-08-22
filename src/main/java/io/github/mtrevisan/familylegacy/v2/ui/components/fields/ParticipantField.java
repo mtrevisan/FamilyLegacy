@@ -82,7 +82,7 @@ public class ParticipantField extends BoundTextField{
 			final Class<? extends RecordTypeHandler<?>> handlerType){
 		final ParticipantField field = new ParticipantField(path, parent, model);
 		field.isDirect = true;
-		field.setHandlerTypes(handlerType);
+		field.withHandlerTypes(handlerType);
 		return field;
 	}
 
@@ -134,7 +134,7 @@ public class ParticipantField extends BoundTextField{
 	 * @param handlerTypes the record types this field can accept
 	 */
 	@SafeVarargs
-	public final void setHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+	public final ParticipantField withHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
 			if(handler == null){
@@ -142,11 +142,13 @@ public class ParticipantField extends BoundTextField{
 						+ " not loaded.",
 					"Error", JOptionPane.ERROR_MESSAGE);
 
-				return;
+				return this;
 			}
 		}
 
 		this.handlerTypes = List.of(handlerTypes);
+
+		return this;
 	}
 
 	/**

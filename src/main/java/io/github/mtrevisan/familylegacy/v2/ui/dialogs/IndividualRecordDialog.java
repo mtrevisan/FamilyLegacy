@@ -131,7 +131,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, IndividualHandler.class);
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		personalNamePanel = EntityReferenceListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.class);
+		personalNamePanel = EntityReferenceListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model)
+			.withHandlerTypes(PersonalNameHandler.class);
 		sexCombo = new BoundComboBox<>(TAG_SEX, new String[]{
 			StringUtils.EMPTY,
 			"male", "female", "unknown"});

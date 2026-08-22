@@ -138,7 +138,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			"regnal", "slave_name"
 		});
 		typeCombo.setEditable(true);
-		partPanel = EntityReferenceListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.class);
+		partPanel = EntityReferenceListPanel.createForStructure(TAG_PART, this, "Parts*", model)
+			.withHandlerTypes(PartHandler.class);
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"

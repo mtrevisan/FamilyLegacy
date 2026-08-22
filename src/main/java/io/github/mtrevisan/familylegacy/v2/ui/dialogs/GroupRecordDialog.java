@@ -130,7 +130,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, GroupHandler.class);
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names", model, ClassifiedNameHandler.class);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names", model)
+			.withHandlerTypes(ClassifiedNameHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"family", "household", "neighbourhood", "fraternity", "club", "literary_society",

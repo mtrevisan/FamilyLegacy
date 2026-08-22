@@ -158,11 +158,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
 
-		subjectField = ParticipantField.create(TAG_SUBJECT, this, model);
-		subjectField.setHandlerTypes(IndividualHandler.class, GroupHandler.class);
+		subjectField = ParticipantField.create(TAG_SUBJECT, this, model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		subjectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> updateTypeCombo());
-		objectField = ParticipantField.create(TAG_OBJECT, this, model);
-		objectField.setHandlerTypes(IndividualHandler.class, GroupHandler.class);
+		objectField = ParticipantField.create(TAG_OBJECT, this, model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		objectField.addPropertyChangeListener(ParticipantField.PROPERTY_PARTICIPANT_CHANGED, e -> updateTypeCombo());
 		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,

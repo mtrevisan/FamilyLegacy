@@ -126,7 +126,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		contextField = new BoundTextField(TAG_CONTEXT);
-		resolvesPanel = EntityReferenceListPanel.createForRecord(TAG_RESOLVES, this, "Resolves", model, ConclusionTargetHandler.class);
+		resolvesPanel = EntityReferenceListPanel.createForRecord(TAG_RESOLVES, this, "Resolves", model)
+			.withHandlerTypes(ConclusionTargetHandler.class);
 		resolvesPanel.addPropertyChangeListener(PROPERTY_CONCLUSION, evt -> updatePreferredCombo());
 		preferredCombo = new BoundComboBox<>(TAG_PREFERRED);
 		preferredCombo.setRenderer(new DefaultListCellRenderer(){

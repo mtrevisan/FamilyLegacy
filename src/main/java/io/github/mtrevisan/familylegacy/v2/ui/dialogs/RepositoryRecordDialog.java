@@ -108,10 +108,12 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
-		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.class);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model)
+			.withHandlerTypes(ClassifiedNameHandler.class);
 		custodianField = IndividualField.create(TAG_CUSTODIAN, this, model);
 		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
-		contactPanel = EntityReferenceListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.class);
+		contactPanel = EntityReferenceListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model)
+			.withHandlerTypes(ContactHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

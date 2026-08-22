@@ -136,7 +136,8 @@ public class HeaderDialog extends BaseRecordDialog{
 		dateField = new BoundTextField(TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
-		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
+		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model)
+			.withHandlerTypes(ContactHandler.class);
 		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER_NOTE, this, "Notes", TAG_NOTE);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
 
