@@ -123,7 +123,8 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private SourceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, SourceHandler.class);
 
-		titlePanel = EntityReferenceListPanel.createForStructure(TAG_TITLE, this, "Title*", model, NameHandler.class);
+		titlePanel = EntityReferenceListPanel.createForStructure(TAG_TITLE, this, "Title*", model)
+			.withHandlerTypes(NameHandler.class);
 		authorField = new BoundTextField(TAG_AUTHOR);
 		publisherField = new BoundTextField(TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid Date", model);

@@ -137,7 +137,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 
-		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.class);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Names*", model)
+			.withHandlerTypes(ClassifiedNameHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"address", "building", "street", "hamlet", "village", "town",

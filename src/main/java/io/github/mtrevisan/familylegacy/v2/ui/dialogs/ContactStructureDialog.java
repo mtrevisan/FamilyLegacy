@@ -107,7 +107,8 @@ public class ContactStructureDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
-		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Name", model, ContactNameHandler.class);
+		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Name", model)
+			.withHandlerTypes(ContactNameHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

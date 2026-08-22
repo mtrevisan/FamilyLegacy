@@ -122,8 +122,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		candidateField = ParticipantField.create(TAG_CANDIDATE, this, model);
-		candidateField.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+		candidateField = ParticipantField.create(TAG_CANDIDATE, this, model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
 
 		// Build common panels using the builder

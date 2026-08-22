@@ -159,7 +159,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
 		// Initialize components
-		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model, ResearchQuestionHandler.class)
+		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model)
+			.withHandlerTypes(ResearchQuestionHandler.class)
 			.withParentEntity(this.record.getId(), ResearchActivityHandler.TYPE);
 		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
 			"search", "review", "analysis", "correspondence", "interview", "hypothesis"
@@ -168,11 +169,11 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			"planned", "in_progress", "completed", "abandoned"
 		});
 		actionArea = new BoundTextArea(TAG_ACTION, 3, 30);
-		targetField = ParticipantField.create(TAG_TARGET, this, model);
-		targetField.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
-			EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
-			GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
-			IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
+		targetField = ParticipantField.create(TAG_TARGET, this, model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
+				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
+				GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
+				IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
 		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, new String[]{
 			"entire_source",
 			"index_only",
@@ -189,9 +190,10 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
-		parentField = ParticipantField.create(TAG_PARENT, this, model);
-		parentField.withHandlerTypes(ResearchActivityHandler.class);
-		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model, ResearchTaskHandler.class);
+		parentField = ParticipantField.create(TAG_PARENT, this, model)
+			.withHandlerTypes(ResearchActivityHandler.class);
+		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model)
+			.withHandlerTypes(ResearchTaskHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

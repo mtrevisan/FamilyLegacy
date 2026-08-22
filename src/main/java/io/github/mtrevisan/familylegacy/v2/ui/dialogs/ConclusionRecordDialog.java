@@ -36,7 +36,19 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionTargetHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -126,7 +138,11 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
 		contextField = new BoundTextField(TAG_CONTEXT);
-		resolvesPanel = EntityReferenceListPanel.createForRecord(TAG_RESOLVES, this, "Resolves", model, ConclusionTargetHandler.class);
+		resolvesPanel = EntityReferenceListPanel.createForRecord(TAG_RESOLVES, this, "Resolves", model)
+			.withHandlerTypes(EventHandler.class, EventParticipationHandler.class, RelationshipHandler.class,
+				IndividualHandler.class, IndividualAttributeHandler.class, GroupHandler.class, GroupAttributeHandler.class,
+				IdentityHypothesisHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
+				CulturalNormHandler.class, HistoricEventHandler.class);
 		resolvesPanel.addPropertyChangeListener(PROPERTY_CONCLUSION, evt -> updatePreferredCombo());
 		preferredCombo = new BoundComboBox<>(TAG_PREFERRED);
 		preferredCombo.setRenderer(new DefaultListCellRenderer(){

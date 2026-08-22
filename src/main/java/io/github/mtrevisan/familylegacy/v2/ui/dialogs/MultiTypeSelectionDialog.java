@@ -58,6 +58,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 
 /**
@@ -76,6 +77,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private final FLEFModel model;
 	// non-null if only one type
 	private final RecordTypeHandler<?> defaultType;
+
+	private Consumer<BaseRecordDialog> setupDialog;
 
 	private final JComboBox<RecordTypeHandler<?>> typeCombo;
 	private final JTextField searchField;
@@ -109,6 +112,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 			.toArray(value -> new RecordTypeHandler<?>[handlerTypes.length]);
 		defaultType = (handlerTypes.length == 1? handlers[0]: null);
 
+
 		// UI components (typeCombo may remain null if only one type)
 		typeCombo = (handlerTypes.length > 1? createTypeCombo(handlers): null);
 		searchField = new JTextField(null);
@@ -121,11 +125,17 @@ public class MultiTypeSelectionDialog extends JDialog{
 
 		initComponents();
 
-		loadRecordsForType(getSelectedDescriptor());
+		loadRecordsForType(getSelectedHandler());
 
 		pack();
 
 		setLocationRelativeTo(parent);
+	}
+
+	public MultiTypeSelectionDialog withSetupDialog(final Consumer<BaseRecordDialog> setupDialog){
+		this.setupDialog = setupDialog;
+
+		return this;
 	}
 
 	private JComboBox<RecordTypeHandler<?>> createTypeCombo(final RecordTypeHandler<?>[] handlers){
@@ -143,7 +153,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 			}
 		});
 		combo.addActionListener(e -> {
-			loadRecordsForType(getSelectedDescriptor());
+			loadRecordsForType(getSelectedHandler());
 
 			searchField.setText(StringUtils.EMPTY);
 		});
@@ -219,11 +229,11 @@ public class MultiTypeSelectionDialog extends JDialog{
 	}
 
 	private void updateWindowTitle(){
-		final RecordTypeHandler<?> desc = getSelectedDescriptor();
+		final RecordTypeHandler<?> desc = getSelectedHandler();
 		setTitle("Select " + (desc != null? desc.getLabel(): "Record"));
 	}
 
-	private RecordTypeHandler<?> getSelectedDescriptor(){
+	private RecordTypeHandler<?> getSelectedHandler(){
 		if(defaultType != null)
 			return defaultType;
 
@@ -247,7 +257,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 		final String text = searchField.getText()
 			.trim()
 			.toLowerCase();
-		final RecordTypeHandler<?> desc = getSelectedDescriptor();
+		final RecordTypeHandler<?> desc = getSelectedHandler();
 		if(desc == null)
 			return;
 		for(final FLEFRecord record : allRecords){
@@ -275,7 +285,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 			list.setEnabled(true);
 			selectButton.setEnabled(true);
 			for(final FLEFRecord record : filteredRecords){
-				final RecordTypeHandler<?> desc = getSelectedDescriptor();
+				final RecordTypeHandler<?> desc = getSelectedHandler();
 				final String displayText = desc.getDisplayText(record, model);
 				listModel.addElement(displayText);
 			}
@@ -283,20 +293,19 @@ public class MultiTypeSelectionDialog extends JDialog{
 	}
 
 	private void createNewRecord(){
-		final RecordTypeHandler<?> desc = getSelectedDescriptor();
-		if(desc == null)
-			return;
-
-		final BaseRecordDialog createDialog = desc.createNewDialog(this, model);
-		createDialog.setVisible(true);
+		final RecordTypeHandler<?> handler = getSelectedHandler();
+		final BaseRecordDialog dialog = handler.createNewDialog(this, model);
+		if(setupDialog != null)
+			setupDialog.accept(dialog);
+		dialog.setVisible(true);
 
 		FLEFRecord newRecord = null;
-		if(createDialog.isSaved())
-			newRecord = createDialog.getRecord();
+		if(dialog.isSaved())
+			newRecord = dialog.getRecord();
 
 		if(newRecord != null){
 			// Reload the list for the current type and select the new record
-			loadRecordsForType(desc);
+			loadRecordsForType(handler);
 
 			final int idx = filteredRecords.indexOf(newRecord);
 			if(idx >= 0){
@@ -304,7 +313,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 				list.ensureIndexIsVisible(idx);
 			}
 
-			selectedType = desc.getType();
+			selectedType = handler.getType();
 			selectedRecord = newRecord;
 			confirmed = true;
 
@@ -317,7 +326,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private void selectAndClose(){
 		final int idx = list.getSelectedIndex();
 		if(idx >= 0 && idx < filteredRecords.size()){
-			final RecordTypeHandler<?> desc = getSelectedDescriptor();
+			final RecordTypeHandler<?> desc = getSelectedHandler();
 			if(desc != null){
 				selectedType = desc.getType();
 				selectedRecord = filteredRecords.get(idx);

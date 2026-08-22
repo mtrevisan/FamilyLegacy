@@ -120,14 +120,14 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
-		contextField = ParticipantField.create(TAG_CONTEXT, this, model);
-		contextField.withHandlerTypes(CulturalNormHandler.class, HistoricEventHandler.class);
+		contextField = ParticipantField.create(TAG_CONTEXT, this, model)
+			.withHandlerTypes(CulturalNormHandler.class, HistoricEventHandler.class);
 
-		targetField = ParticipantField.create(TAG_TARGET, this, model);
-		targetField.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, EventHandler.class,
-			RelationshipHandler.class, IndividualAttributeHandler.class, GroupAttributeHandler.class,
-			ConclusionHandler.class, EventParticipationHandler.class, PlaceRelationshipHandler.class,
-			IdentityHypothesisHandler.class);
+		targetField = ParticipantField.create(TAG_TARGET, this, model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class, EventHandler.class,
+				RelationshipHandler.class, IndividualAttributeHandler.class, GroupAttributeHandler.class,
+				ConclusionHandler.class, EventParticipationHandler.class, PlaceRelationshipHandler.class,
+				IdentityHypothesisHandler.class);
 
 		impactTypeCombo = new BoundComboBox<>(TAG_IMPACT_TYPE, new String[]{
 			StringUtils.EMPTY,

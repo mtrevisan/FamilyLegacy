@@ -84,7 +84,8 @@ public final class RecordDialogComponents{
 				// PlaceRelationshipRecord (subject = this place)
 				PLACE_RELATIONSHIP_ON_SUBJECT -> {
 					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
-						owner, cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.SUBJECT);
+							owner, cfg.title(), model, EntityReferenceListPanel.ActorType.SUBJECT)
+						.withHandlerTypes(cfg.handlerClass());
 					if(record != null)
 						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 					yield panel;
@@ -98,7 +99,8 @@ public final class RecordDialogComponents{
 				// PlaceRelationshipRecord (object = this place)
 				PLACE_RELATIONSHIP_ON_OBJECT -> {
 					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
-						owner, cfg.title(), model, cfg.handlerClass(), EntityReferenceListPanel.ActorType.OBJECT);
+							owner, cfg.title(), model, EntityReferenceListPanel.ActorType.OBJECT)
+						.withHandlerTypes(cfg.handlerClass());
 					if(record != null)
 						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 					yield panel;
@@ -160,7 +162,8 @@ public final class RecordDialogComponents{
 				// ResearchQuestionRecord (target.cultural_norm = this norm)
 				RESEARCH_QUESTION_ON_TARGET -> {
 					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
-						owner, cfg.title(), model, cfg.handlerClass());
+							owner, cfg.title(), model)
+						.withHandlerTypes(cfg.handlerClass());
 					if(record != null)
 						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 					yield panel;
@@ -169,7 +172,8 @@ public final class RecordDialogComponents{
 			// EventParticipationRecord (event = this event)
 			case EVENT_PARTICIPATION_ON_EVENT -> {
 				final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
-					owner, cfg.title(), model, cfg.handlerClass());
+						owner, cfg.title(), model, EntityReferenceListPanel.ActorType.EVENT)
+					.withHandlerTypes(cfg.handlerClass());
 				if(record != null)
 					panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 				yield panel;
@@ -182,7 +186,8 @@ public final class RecordDialogComponents{
 				RESEARCH_ACTIVITY_ON_QUESTION,
 				// ResearchTaskRecord (question contains this question)
 				RESEARCH_TASK_ON_QUESTION ->
-				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model, cfg.handlerClass());
+				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model)
+					.withHandlerTypes(cfg.handlerClass());
 
 			case PLACE,
 				  REPOSITORY,
@@ -191,7 +196,8 @@ public final class RecordDialogComponents{
 
 			// SourceRecord (repository references this repository)
 			case SOURCE_ON_REPOSITORY ->
-				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model, cfg.handlerClass());
+				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model)
+					.withHandlerTypes(cfg.handlerClass());
 
 			case EVIDENCE -> new EvidenceQualifiersPanel(cfg.tag(), owner, cfg.title(), model, HandlerRegistry.getHandlerType(cfg.handlerType()));
 
