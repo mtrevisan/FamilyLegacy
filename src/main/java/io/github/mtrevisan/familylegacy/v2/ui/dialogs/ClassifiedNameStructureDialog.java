@@ -31,7 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
@@ -100,7 +100,7 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
-	private final VariantListPanel variantPanel;
+	private final TextValueVariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
 
 
@@ -140,7 +140,7 @@ public class ClassifiedNameStructureDialog extends BaseRecordDialog{
 			"administrative", "archival"
 		});
 		typeCombo.setEditable(true);
-		variantPanel = new VariantListPanel(TAG_TEXT_VARIANT, this, "Variant", model);
+		variantPanel = new TextValueVariantListPanel(TAG_TEXT_VARIANT, this, "Variant", model);
 		localeCombo = new BoundComboBox<>(TAG_TEXT_LOCALE, new String[]{
 			StringUtils.EMPTY,
 			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"

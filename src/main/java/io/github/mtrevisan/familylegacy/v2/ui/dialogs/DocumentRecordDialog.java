@@ -35,8 +35,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -48,11 +48,12 @@ import javax.swing.JPanel;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Dialog;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
-/* ONGOING */
 /**
  * Dialog for editing a {@code DOCUMENT_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -71,7 +72,7 @@ import java.util.function.Consumer;
  * <p>
  * Tabs:
  * Tab 1 (Properties): file, mapping, description
- * Tab 6 (Research): ResearchQuestionRecord (target.document = this document)
+ * Tab 6 (Research): ResearchQuestionRecord (target[document] = this document)
  * Tab 7 (Sources): SourceRecord (document contains this document)
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -135,7 +136,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, DocumentHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, TAG_SOURCE, "Sources", SourceHandler.class, RepositoryHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -202,7 +203,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	protected JPanel createSourcesPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
+		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE_ON_DOCUMENT);
 		GUIHelper.addComponent(panel, sourcePanel);
 
 		return panel;
@@ -253,13 +254,11 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord document = FLEFRecord.createMainRecord("D1", "DOCUMENT");
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(document);
-		};
-		GUIHelper.launch(DocumentRecordDialog::createEdit, modelFiller, document);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = DocumentRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(DocumentRecordDialog::createEdit, content, "D1");
+		}
 	}
 
 }

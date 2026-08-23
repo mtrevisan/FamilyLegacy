@@ -116,7 +116,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final JDialog dialog = new JDialog(parent, (record == null? "Add Note": "Edit Note"), Dialog.ModalityType.APPLICATION_MODAL);
-		GUIHelper.setLayoutLabelFieldPanel(dialog, 10, "[]");
+		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]"));
 
 		final BoundTextArea textArea = new BoundTextArea(recordTag, 10, 50);
 		if(record != null)
@@ -126,7 +126,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog.getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog.getRootPane(),
 			() -> {
 				if(!validNoteData(textArea))
 					return;

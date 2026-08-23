@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
@@ -120,7 +119,7 @@ public abstract class BaseRecordDialog extends JDialog{
 				&& researchPanel == null && findingsPanel == null && referencesPanel == null && sourcesPanel == null
 				&& notesPanel == null && privacyPanel == null &&  auditPanel == null){
 			// No optional panels, just show the properties panel
-			GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]");
+			setLayout(GUIHelper.createLabelFieldLayout(0, "[]"));
 			GUIHelper.addComponent(this, propertiesPanel);
 		}
 		else{
@@ -284,7 +283,7 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(getRootPane(),
 			this::save,
 			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -314,8 +313,6 @@ public abstract class BaseRecordDialog extends JDialog{
 				model.addRecord(record);
 			isSaved = true;
 
-// TODO to be removed
-System.out.println(FLEFWriter.create().writeToString(model));
 			dispose();
 		}
 	}
@@ -365,7 +362,7 @@ System.out.println(FLEFWriter.create().writeToString(model));
 	}
 
 	protected void addChild(final String tag, final String value){
-		FLEFRecordHelper.addChild(record, tag, value);
+		FLEFRecordHelper.addChildValue(record, tag, value);
 	}
 
 

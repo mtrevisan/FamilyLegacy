@@ -58,11 +58,10 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -79,7 +78,6 @@ import java.util.function.Consumer;
  *   conclusion?: Text
  *   conclusion_confidence?: enum { low, medium, high }
  *   rationale?: Text
- *   created: Date
  *   closed?: Date
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -121,7 +119,6 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private static final String TAG_TARGET = "TARGET";
 	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
 	private static final String TAG_RATIONALE = "RATIONALE";
-	private static final String TAG_CREATED = "CREATED";
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
@@ -141,7 +138,6 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea conclusionArea;
 	private final BoundComboBox<String> conclusionConfidenceCombo;
 	private final BoundTextArea rationaleArea;
-	private final BoundTextField createdField;
 
 
 	public static ResearchQuestionRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -173,13 +169,11 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
 		rationaleArea = new BoundTextArea(TAG_RATIONALE, 3, 30);
-		createdField = new BoundTextField(TAG_CREATED);
-		createdField.setEditable(false);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, ResearchQuestionHandler.class)
-			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, TAG_RESEARCH_ACTIVITY, "Research Activities", ResearchActivityHandler.class, ResearchQuestionHandler.class)
+			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, ResearchQuestionHandler.class)
+			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, TAG_RESEARCH_ACTIVITY, "Research Activities", ResearchActivityHandler.class, ResearchActivityHandler.class)
 			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, TAG_RESEARCH_TASK, "Research Tasks", ResearchTaskHandler.class, ResearchQuestionHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -190,7 +184,6 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		components.bind(conclusionArea);
 		components.bind(conclusionConfidenceCombo);
 		components.bind(rationaleArea);
-		components.bind(createdField);
 
 
 		finalizeDialog(parent);
@@ -223,9 +216,6 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		// rationale
 		GUIHelper.addLabeledComponent(propertiesPanel, "Rationale:", rationaleArea);
 
-		// created
-		//hidden
-
 		// closed
 		//calculated
 
@@ -242,7 +232,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		final JPanel researchTaskPanel = components.getPanel(PanelKey.RESEARCH_TASK_ON_QUESTION);
 		GUIHelper.addComponent(panel, researchTaskPanel);
 
-		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
+		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESEARCH);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		return panel;
@@ -288,25 +278,18 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		if(createdField.isEmpty()){
-			final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-			createdField.setText(creationDate);
-		}
-
 		components.save(record);
 
-		targetPanel.saveReferences(record);
+		targetPanel.saveReferencesWithVoid2(record);
 		statusPanel.save(record);
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord document = FLEFRecord.createMainRecord("D1", "DOCUMENT");
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(document);
-		};
-		GUIHelper.launch(ResearchQuestionRecordDialog::createEdit, modelFiller, document);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = ResearchQuestionRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(ResearchQuestionRecordDialog::createEdit, content, "RQ1");
+		}
 	}
 
 }

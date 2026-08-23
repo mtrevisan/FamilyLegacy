@@ -32,7 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.PlaceCitationField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
@@ -45,8 +45,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -67,8 +69,8 @@ import java.util.function.Consumer;
  * <p>
  * Tabs:
  * Tab 1 (Properties): type, title, date, place, evidence
- * Tab 5 (Context): ContextImpactRecord (context.historic_event = this historic event)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this historic event), ResearchQuestionRecord (target.historic_event = this historic event)
+ * Tab 5 (Context): ContextImpactRecord (context[historic_event] = this historic event)
+ * Tab 6 (Research): ConclusionRecord (resolves = this historic event), ResearchQuestionRecord (target[historic_event] = this historic event)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 10 (Audit): audit
@@ -97,7 +99,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField titleField;
 	private final DateField dateField;
-	private final PlaceField placeField;
+	private final PlaceCitationField placeCitationField;
 
 
 	public static HistoricEventRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -122,7 +124,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		typeCombo.setEditable(true);
 		titleField = new BoundTextField(TAG_TITLE);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
-		placeField = PlaceField.create(TAG_PLACE, this, model);
+		placeCitationField = PlaceCitationField.create(TAG_PLACE, this, model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -157,7 +159,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, "Date:", dateField);
 
 		// place
-		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeField);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Place:", placeCitationField);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);
@@ -222,7 +224,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		components.load(record);
 
 		dateField.load(record);
-		placeField.load(record);
+		placeCitationField.load(record);
 	}
 
 	@Override
@@ -230,17 +232,15 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		components.save(record);
 
 		dateField.save(record);
-		placeField.saveReferences(record);
+		placeCitationField.saveReferences(record);
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord document = FLEFRecord.createMainRecord("D1", "DOCUMENT");
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(document);
-		};
-		GUIHelper.launch(HistoricEventRecordDialog::createEdit, modelFiller, document);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = HistoricEventRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(HistoricEventRecordDialog::createEdit, content, "HE1");
+		}
 	}
 
 }

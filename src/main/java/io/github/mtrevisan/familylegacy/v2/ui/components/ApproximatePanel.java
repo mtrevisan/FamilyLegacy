@@ -93,7 +93,7 @@ public class ApproximatePanel extends JPanel{
 
 
 	private void initComponents(){
-		GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]5[]");
+		setLayout(GUIHelper.createLabelFieldLayout(0, "[]5[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		GUIHelper.addComponent(this, approximateCheck);

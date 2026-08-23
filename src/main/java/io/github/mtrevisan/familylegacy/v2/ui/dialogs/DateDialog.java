@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DateStructurePanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
@@ -94,14 +95,14 @@ public class DateDialog extends JDialog{
 
 
 	private void initComponents(){
-		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[grow][]");
+		setLayout(GUIHelper.createLabelFieldLayout(10, "[grow][]"));
 
 		// Date panel
 		final JPanel dateWrapper = GUIHelper.createLabelFieldPanel(0, "[]");
 		GUIHelper.addComponent(dateWrapper, datePanel);
 		GUIHelper.addComponent(this, dateWrapper);
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(getRootPane(),
 			() -> {
 				if(datePanel.validateData()){
 					result = datePanel.save();
@@ -143,6 +144,8 @@ public class DateDialog extends JDialog{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
+
+		HandlerRegistry.scanHandlers();
 
 		final FLEFModel model = new FLEFModel();
 

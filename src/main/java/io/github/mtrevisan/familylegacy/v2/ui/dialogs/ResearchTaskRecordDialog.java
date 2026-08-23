@@ -28,12 +28,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
@@ -42,8 +41,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -92,11 +93,10 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final BoundTextArea descriptionArea;
-	private final EntityReferenceListPanel questionPanel;
 	private final ParticipantField createdByField;
 	private final BoundComboBox<String> statusCombo;
 	private final BoundComboBox<String> priorityCombo;
-	private final DateField dueDateField;
+	private final BoundTextField dueDateField;
 	private final BoundTextArea outcomeArea;
 
 
@@ -115,21 +115,18 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 30);
-		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model)
-			.withHandlerTypes(ResearchQuestionHandler.class)
-			.withParentEntity(this.record.getId(), ResearchTaskHandler.TYPE);
-		createdByField = ParticipantField.create(TAG_CREATED_BY, this, model)
-			.withHandlerTypes(ResearchActivityHandler.class);
+		createdByField = ParticipantField.create(TAG_CREATED_BY, this, model, ResearchActivityHandler.class);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
 			"open", "in_progress", "completed", "abandoned"});
 		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{
 			StringUtils.EMPTY,
 			"low", "normal", "high"});
-		dueDateField = DateField.createWithWrapperTag(TAG_DUE_DATE, this, "Due Date", model);
+		dueDateField = new BoundTextField(TAG_DUE_DATE);
 		outcomeArea = new BoundTextArea(TAG_OUTCOME, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions", ResearchQuestionHandler.class, ResearchQuestionHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
@@ -137,6 +134,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		components.bind(descriptionArea);
 		components.bind(statusCombo);
 		components.bind(priorityCombo);
+		components.bind(dueDateField);
 		components.bind(outcomeArea);
 
 
@@ -150,7 +148,8 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 		GUIHelper.addLabeledComponent(propertiesPanel, "Description*:", descriptionArea);
 
 		// question
-		GUIHelper.addComponent(propertiesPanel, questionPanel);
+		final JPanel notePanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(propertiesPanel, notePanel);
 
 		// created by
 		GUIHelper.addLabeledComponent(propertiesPanel, "Created By:", createdByField);
@@ -185,9 +184,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		components.load(record);
 
-		questionPanel.load(record);
 		createdByField.load(record);
-		dueDateField.load(record);
 	}
 
 	@Override
@@ -215,19 +212,15 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		components.save(record);
 
-		questionPanel.save(record);
 		createdByField.saveReferences(record);
-		dueDateField.save(record);
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord document = FLEFRecord.createMainRecord("D1", "DOCUMENT");
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(document);
-		};
-		GUIHelper.launch(ResearchTaskRecordDialog::createEdit, modelFiller, document);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = ResearchTaskRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(ResearchTaskRecordDialog::createEdit, content, "RT1");
+		}
 	}
 
 }

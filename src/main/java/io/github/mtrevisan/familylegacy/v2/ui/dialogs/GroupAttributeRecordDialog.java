@@ -49,8 +49,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -87,8 +89,8 @@ import java.util.function.Consumer;
  * <p>
  * Tabs:
  * Tab 1 (Properties): group, type, value, valid_from, valid_to, place, evidence
- * Tab 5 (Context): ContextImpactRecord (target.group_attribute = this attribute)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this attribute), ResearchQuestionRecord (target.group_attribute = this attribute)
+ * Tab 5 (Context): ContextImpactRecord (target[group_attribute] = this attribute)
+ * Tab 6 (Research): ConclusionRecord (resolves = this attribute), ResearchQuestionRecord (target[group_attribute] = this attribute)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -279,21 +281,21 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
+		// load parent group reference
+		final String groupId = FLEFRecordHelper.getChildValue(record, TAG_GROUP);
+		withParentEntity(groupId, GroupHandler.TYPE);
+
+
 		validFromField.load(record);
 		validToField.load(record);
 		placeField.load(record);
 
 		components.load(record);
-
-
-		// load parent group reference
-		final String groupId = FLEFRecordHelper.getChildValue(record, TAG_GROUP);
-		withParentEntity(groupId, GroupHandler.TYPE);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(parentEntity.getPath()) || StringUtils.isEmpty(parentEntity.getText())){
+		if(parentEntity.isEmpty()){
 			JOptionPane.showMessageDialog(null,
 				"Parent Group is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -301,7 +303,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(StringUtils.isEmpty((String)typeCombo.getSelectedItem())){
+		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type cannot be empty.",
 				tabbedPane, propertiesPanel, typeCombo);
@@ -314,6 +316,9 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
+		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
+
+
 		validFromField.save(record);
 		validToField.save(record);
 		placeField.saveReferences(record);
@@ -322,57 +327,11 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord groupAttribute = FLEFRecord.createMainRecord("GA1", "GROUP_ATTRIBUTE");
-		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("GROUP", "@G1@"));
-		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "residence"));
-		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "123 Main St"));
-		groupAttribute.addChild(FLEFRecord.createChildWithTag("SOURCE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
-		);
-		groupAttribute.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
-
-		final FLEFRecord group1 = FLEFRecord.createMainRecord("G1", "GROUP");
-
-		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
-		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Attribute source")));
-
-		final FLEFRecord contextImpact1 = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("CONTEXT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
-		);
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP_ATTRIBUTE", "@GA1@"))
-		);
-
-		final FLEFRecord conclusion1 = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion1.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "death cause"));
-		conclusion1.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP_ATTRIBUTE", "@GA1@"))
-		);
-
-		final FLEFRecord researchQuestion1 = FLEFRecord.createMainRecord("RQ1", "RESEARCH_QUESTION");
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "rq title"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("QUESTION", "is?"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("GROUP_ATTRIBUTE", "@GA1@"))
-		);
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("STATUS", "open"));
-
-		final FLEFRecord note1 = FLEFRecord.createMainRecord("N1", "NOTE");
-		note1.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Ind attr note"));
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(groupAttribute);
-			model.addRecord(group1);
-			model.addRecord(source1);
-			model.addRecord(contextImpact1);
-			model.addRecord(conclusion1);
-			model.addRecord(researchQuestion1);
-			model.addRecord(note1);
-		};
-		GUIHelper.launch(GroupAttributeRecordDialog::createEdit, modelFiller, groupAttribute);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = GroupAttributeRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(GroupAttributeRecordDialog::createEdit, content, "GA1");
+		}
 	}
 
 }

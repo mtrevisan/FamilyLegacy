@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.VariantHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -115,7 +115,7 @@ public class TextValueVariantDialog extends BaseRecordDialog{
 
 
 	private TextValueVariantDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, VariantHandler.class);
+		super(parent, model, record, TextValueVariantHandler.class);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
 

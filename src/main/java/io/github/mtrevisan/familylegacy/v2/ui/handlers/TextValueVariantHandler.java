@@ -34,7 +34,7 @@ import java.awt.Dialog;
 import java.util.Locale;
 
 
-public class VariantHandler extends AbstractRecordTypeHandler<TextValueVariantDialog>{
+public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValueVariantDialog>{
 
 	public static final String TYPE = "TEXT_VALUE_VARIANT";
 

@@ -147,7 +147,7 @@ public final class HandlerRegistry{
 	 * {@link RecordTypeHandler}.
 	 */
 	public static void scanHandlers(){
-		final String packageName = CauseHandler.class.getPackage()
+		final String packageName = AbstractRecordTypeHandler.class.getPackage()
 			.getName();
 		scanHandlers(packageName);
 	}

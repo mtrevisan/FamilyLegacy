@@ -87,7 +87,7 @@ struct Header {
   copyright?: Text   // a copyright statement needed to protect the copyrights of the submitter of this file
   submitter?: struct {
     contact*: ContactStructure   // contact information for the submitter (phone, email, web, etc.)
-    note*: Text                  // any notes related to the submitter
+    note?: Text                  // any notes related to the submitter
   }
   scope?: Text       // a brief description of the file's genealogical scope (e.g., "Ancestors of John Doe")
 }
@@ -1021,7 +1021,6 @@ record ResearchQuestionRecord {
   conclusion?: Text         // current conclusion or answer based on available evidence
   conclusion_confidence?: enum { low, medium, high }
   rationale?: Text          // explanation supporting the conclusion
-  created: Date
   closed?: Date             // date the question was resolved or disproven
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -1137,8 +1136,10 @@ record ConclusionRecord {
   narrative?: Text                          // a discursive text that explains the logical reasoning, the sources evaluated and the reason why this conclusion was chosen
   resolves*: ConclusionTarget               // a pointer to one or more conflicting assertions or hypotheses. When PROOF_STATUS is DISPROVEN, RESOLVES SHOULD normally contain at least two targets.
   preferred?: ConclusionTarget              // the assertion or hypothesis judged most likely to be correct. If the conclusion is purely negative (e.g., "none of the hypotheses are valid"), this field can be omitted. When present, PREFERRED MUST be one of the records listed in RESOLVES. When PROOF_STATUS is DISPROVEN, PREFERRED SHOULD normally be omitted.
-  research*: Xref<ResearchQuestionRecord>   // references to research questions that led to this conclusion
+  question*: Xref<ResearchQuestionRecord>   // references to research questions that led to this conclusion
   source*: SourceCitation                   // any sources that support the conclusion itself (e.g., a methodology treatise, or a secondary source that has already resolved the conflict)
+  privacy?: PrivacyStructure
+  audit: AuditStructure
   
   require preferred in resolves
 }

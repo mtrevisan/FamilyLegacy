@@ -384,15 +384,10 @@ public final class GUIHelper{
 	 * @return	A new JPanel with the specified layout
 	 */
 	public static JPanel createLabelFieldPanel(final int insets, final String rowConstraints){
-		return new JPanel(createMigLayout(insets, rowConstraints));
+		return new JPanel(createLabelFieldLayout(insets, rowConstraints));
 	}
 
-	public static void setLayoutLabelFieldPanel(final Container container, final int insets,
-			final String rowConstraints){
-		container.setLayout(createMigLayout(insets, rowConstraints));
-	}
-
-	private static MigLayout createMigLayout(final int insets, final String rowConstraints){
+	public static MigLayout createLabelFieldLayout(final int insets, final String rowConstraints){
 		return new MigLayout("ins " + insets + ",hidemode 3,fillx,top,wrap 2",
 			"[right]rel[grow,fill]",
 			rowConstraints);
@@ -568,7 +563,8 @@ public final class GUIHelper{
 	}
 
 
-	public static JPanel createButtonPanel(final JRootPane rootPane, final Runnable save, final Runnable cancel){
+	public static JPanel createSaveCancelButtonPanel(final JRootPane rootPane, final Runnable save,
+			final Runnable cancel){
 		final JButton saveButton = new JButton("Save");
 		final JButton cancelButton = new JButton("Cancel");
 
@@ -583,6 +579,38 @@ public final class GUIHelper{
 		final Action escapeAction = new AbstractAction(){
 			@Serial
 			private static final long serialVersionUID = 8267350842047854519L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				cancel.run();
+			}
+		};
+		cancelButton.addActionListener(escapeAction);
+		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+			.put(ESCAPE_STROKE, "escape");
+		rootPane.getActionMap()
+			.put("escape", escapeAction);
+
+		return buttonPanel;
+	}
+
+	public static JPanel createNewSelectCancelButtonPanel(final JRootPane rootPane, final Runnable createNew,
+			final Runnable select, final Runnable cancel){
+		final JButton createNewButton = new JButton("Create New…");
+		final JButton selectButton = new JButton("Select");
+		final JButton cancelButton = new JButton("Cancel");
+
+		final JPanel buttonPanel = new JPanel(new MigLayout("ins 0,fillx", "[left][grow,fill][right]", "[]"));
+		buttonPanel.add(createNewButton, "cell 0 0,left");
+		buttonPanel.add(selectButton, "cell 2 0,split 2,right");
+		buttonPanel.add(cancelButton, "cell 2 0,right");
+
+		createNewButton.addActionListener(e -> createNew.run());
+		selectButton.addActionListener(e -> select.run());
+
+		final Action escapeAction = new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -2257752682016633238L;
 
 			@Override
 			public void actionPerformed(final ActionEvent e){
@@ -670,8 +698,6 @@ public final class GUIHelper{
 		SwingUtilities.invokeLater(() -> {
 			final BaseRecordDialog dialog = dialogFactory.apply(null, model);
 			dialog.setVisible(true);
-
-			dialog.save();
 
 			System.out.println(FLEFWriter.create().writeToString(model));
 		});

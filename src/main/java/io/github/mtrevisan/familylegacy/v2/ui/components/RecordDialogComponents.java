@@ -112,23 +112,23 @@ public final class RecordDialogComponents{
 				// GroupAttributeRecord (group = this group)
 				GROUP_ATTRIBUTE,
 
-				// EventParticipationRecord (participant.individual = this individual)
-				// EventParticipationRecord (participant.group = this group)
-				// EventParticipationRecord (participant.place = this place)
+				// EventParticipationRecord (participant[individual] = this individual)
+				// EventParticipationRecord (participant[group] = this group)
+				// EventParticipationRecord (participant[place] = this place)
 				EVENT_PARTICIPATION_ON_PARTICIPANT,
 
-				// ContextImpactRecord (target.individual = this individual)
-				// ContextImpactRecord (target.group = this group)
-				// ContextImpactRecord (target.individual_attribute = this attribute)
-				// ContextImpactRecord (target.identity_hypothesis = this hypothesis)
-				// ContextImpactRecord (target.event = this event)
-				// ContextImpactRecord (target.event_participation = this participation)
-				// ContextImpactRecord (target.relationship = this relationship)
-				// ContextImpactRecord (target.place_relationship = this relationship)
-				// ContextImpactRecord (target.place = this place)
+				// ContextImpactRecord (target[individual] = this individual)
+				// ContextImpactRecord (target[group] = this group)
+				// ContextImpactRecord (target[individual_attribute] = this attribute)
+				// ContextImpactRecord (target[identity_hypothesis] = this hypothesis)
+				// ContextImpactRecord (target[event] = this event)
+				// ContextImpactRecord (target[event_participation] = this participation)
+				// ContextImpactRecord (target[relationship] = this relationship)
+				// ContextImpactRecord (target[place_relationship] = this relationship)
+				// ContextImpactRecord (target[place] = this place)
 				CONTEXT_IMPACT_ON_TARGET,
-				// ContextImpactRecord (context.historic_event = this historic event)
-				// ContextImpactRecord (context.cultural_norm = this norm)
+				// ContextImpactRecord (context[historic_event] = this historic event)
+				// ContextImpactRecord (context[cultural_norm] = this norm)
 				CONTEXT_IMPACT_ON_CONTEXT,
 
 				// ConclusionRecord (resolves = this individual)
@@ -144,22 +144,24 @@ public final class RecordDialogComponents{
 				// ConclusionRecord (resolves = this place)
 				// ConclusionRecord (resolves = this norm)
 				CONCLUSION_ON_RESOLVES,
+				// ConclusionRecord (research contains this question)
+				CONCLUSION_ON_RESEARCH,
 				// IdentityHypothesisRecord (subject/candidate = this individual)
 				// IdentityHypothesisRecord (subject/candidate = this group)
 				// IdentityHypothesisRecord (subject/candidate = this place)
 				IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE,
-				// ResearchQuestionRecord (target.individual = this individual)
-				// ResearchQuestionRecord (target.group = this group)
-				// ResearchQuestionRecord (target.individual_attribute = this attribute)
-				// ResearchQuestionRecord (target.source = this source)
-				// ResearchQuestionRecord (target.event = this event)
-				// ResearchQuestionRecord (target.event_participation = this participation)
-				// ResearchQuestionRecord (target.document = this document)
-				// ResearchQuestionRecord (target.historic_event = this historic event)
-				// ResearchQuestionRecord (target.relationship = this relationship)
-				// ResearchQuestionRecord (target.place_relationship = this relationship)
-				// ResearchQuestionRecord (target.place = this place)
-				// ResearchQuestionRecord (target.cultural_norm = this norm)
+				// ResearchQuestionRecord (target[individual] = this individual)
+				// ResearchQuestionRecord (target[group] = this group)
+				// ResearchQuestionRecord (target[individual_attribute] = this attribute)
+				// ResearchQuestionRecord (target[source] = this source)
+				// ResearchQuestionRecord (target[event] = this event)
+				// ResearchQuestionRecord (target[event_participation] = this participation)
+				// ResearchQuestionRecord (target[document] = this document)
+				// ResearchQuestionRecord (target[historic_event] = this historic event)
+				// ResearchQuestionRecord (target[relationship] = this relationship)
+				// ResearchQuestionRecord (target[place_relationship] = this relationship)
+				// ResearchQuestionRecord (target[place] = this place)
+				// ResearchQuestionRecord (target[cultural_norm] = this norm)
 				RESEARCH_QUESTION_ON_TARGET -> {
 					final EntityReferenceListPanel panel = EntityReferenceListPanel.createForRecord(cfg.tag(),
 							owner, cfg.title(), model)
@@ -194,8 +196,11 @@ public final class RecordDialogComponents{
 				  SOURCE ->
 				new EntityCitationListPanel(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
 
-			// SourceRecord (repository references this repository)
-			case SOURCE_ON_REPOSITORY ->
+			case
+					// SourceRecord (repository references this repository)
+					SOURCE_ON_REPOSITORY,
+					// SourceRecord (document references this document)
+					SOURCE_ON_DOCUMENT ->
 				EntityReferenceListPanel.createForRecord(cfg.tag(), owner, cfg.title(), model)
 					.withHandlerTypes(cfg.handlerClass());
 
@@ -204,7 +209,9 @@ public final class RecordDialogComponents{
 			// embedded reference
 			case CONTEXT_IMPACT,
 				  NOTE,
-				  DOCUMENT ->
+				  DOCUMENT,
+				  RESEARCH_QUESTION,
+				  TASK ->
 				new EntityListPanel(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
 
 			case PRIVACY -> new PrivacyPanel(cfg.tag(), owner);
@@ -257,8 +264,10 @@ public final class RecordDialogComponents{
 		if(eventParticipationOnParticipant != null)
 			eventParticipationOnParticipant.loadReferenceWithType(record.getId(), "PARTICIPANT");
 		final EntityReferenceListPanel eventParticipationOnEvent = ((EntityReferenceListPanel)getPanel(PanelKey.EVENT_PARTICIPATION_ON_EVENT));
-		if(eventParticipationOnEvent != null)
+		if(eventParticipationOnEvent != null){
+			eventParticipationOnEvent.withParentEntity(record.getId(), record.getTag());
 			eventParticipationOnEvent.loadCitationsWithType(record.getId(), "EVENT");
+		}
 
 		final EntityListPanel contextImpact = ((EntityListPanel)getPanel(PanelKey.CONTEXT_IMPACT));
 		if(contextImpact != null)
@@ -270,18 +279,28 @@ public final class RecordDialogComponents{
 		if(contextOnContext != null)
 			contextOnContext.loadReferenceWithType(record.getId(), "CONTEXT");
 
-		final EntityReferenceListPanel conclusion = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESOLVES));
-		if(conclusion != null)
-			conclusion.loadReferenceWithType(record.getId(), "RESOLVES");
+		final EntityReferenceListPanel conclusionOnResolves = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESOLVES));
+		if(conclusionOnResolves != null)
+			conclusionOnResolves.loadReferenceWithType(record.getId(), "RESOLVES");
+		final EntityReferenceListPanel conclusionOnResearch = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESEARCH));
+		if(conclusionOnResearch != null){
+			conclusionOnResearch.withParentEntity(record.getId(), record.getTag());
+			conclusionOnResearch.loadCitationsWithType(record.getId(), "RESEARCH");
+		}
 		final EntityReferenceListPanel identityHypothesis = ((EntityReferenceListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE));
 		if(identityHypothesis != null)
 			identityHypothesis.loadReferenceWithType(record.getId(), "SUBJECT", "CANDIDATE");
-		final EntityReferenceListPanel researchQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));
-		if(researchQuestion != null)
-			researchQuestion.loadReferenceWithType(record.getId(), "TARGET");
+		final EntityReferenceListPanel researchQuestionOnTarget = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));
+		if(researchQuestionOnTarget != null)
+			researchQuestionOnTarget.loadReferenceWithType(record.getId(), "TARGET");
 		final EntityReferenceListPanel researchActivityOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION));
-		if(researchActivityOnQuestion != null)
-			researchActivityOnQuestion.loadCitationsWithType2(record.getId(), "QUESTION");
+		if(researchActivityOnQuestion != null){
+			String tag = record.getTag();
+			if("RESEARCH_QUESTION".equalsIgnoreCase(tag))
+				tag = "QUESTION";
+			researchActivityOnQuestion.withParentEntity(record.getId(), tag);
+			researchActivityOnQuestion.loadCitationsWithType3(record.getId(), "QUESTION");
+		}
 		final EntityReferenceListPanel researchActivityOnSource = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE));
 		if(researchActivityOnSource != null){
 			researchActivityOnSource.withParentEntity(record.getId(), record.getTag());
@@ -302,12 +321,21 @@ public final class RecordDialogComponents{
 		final EntityReferenceListPanel sourceOnRepository = ((EntityReferenceListPanel)getPanel(PanelKey.SOURCE_ON_REPOSITORY));
 		if(sourceOnRepository != null){
 			sourceOnRepository.withParentEntity(record.getId(), record.getTag());
-			sourceOnRepository.loadCitationsWithType(record.getId(), "REPOSITORY");
+			sourceOnRepository.loadCitationsWithType2(record.getId(), "REPOSITORY");
+		}
+		final EntityReferenceListPanel sourceOnDocument = ((EntityReferenceListPanel)getPanel(PanelKey.SOURCE_ON_DOCUMENT));
+		if(sourceOnDocument != null){
+			sourceOnDocument.withParentEntity(record.getId(), record.getTag());
+			sourceOnDocument.loadCitationsWithType3(record.getId(), "DOCUMENT");
 		}
 
 		final EntityListPanel document = ((EntityListPanel)getPanel(PanelKey.DOCUMENT));
 		if(document != null)
 			document.load(record);
+
+		final EntityListPanel researchQuestion = ((EntityListPanel)getPanel(PanelKey.RESEARCH_QUESTION));
+		if(researchQuestion != null)
+			researchQuestion.load(record);
 
 		final EntityReferenceListPanel researchTaskOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_TASK_ON_QUESTION));
 		if(researchTaskOnQuestion != null){
@@ -318,6 +346,10 @@ public final class RecordDialogComponents{
 		final EntityListPanel note = ((EntityListPanel)getPanel(PanelKey.NOTE));
 		if(note != null)
 			note.load(record);
+
+		final EntityListPanel task = ((EntityListPanel)getPanel(PanelKey.TASK));
+		if(task != null)
+			task.load(record);
 
 		final EvidenceQualifiersPanel evidence = ((EvidenceQualifiersPanel)getPanel(PanelKey.EVIDENCE));
 		if(evidence != null)
@@ -377,15 +409,18 @@ public final class RecordDialogComponents{
 		if(contextOnContext != null)
 			contextOnContext.save(record);
 
-		final EntityReferenceListPanel conclusion = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESOLVES));
-		if(conclusion != null)
-			conclusion.save(record);
+		final EntityReferenceListPanel conclusionOnResolves = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESOLVES));
+		if(conclusionOnResolves != null)
+			conclusionOnResolves.save(record);
+		final EntityReferenceListPanel conclusionOnResearch = ((EntityReferenceListPanel)getPanel(PanelKey.CONCLUSION_ON_RESEARCH));
+		if(conclusionOnResearch != null)
+			conclusionOnResearch.saveReferencesWithVoid2(record);
 		final EntityReferenceListPanel identityHypothesis = ((EntityReferenceListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE));
 		if(identityHypothesis != null)
 			identityHypothesis.save(record);
-		final EntityReferenceListPanel researchQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));
-		if(researchQuestion != null)
-			researchQuestion.save(record);
+		final EntityReferenceListPanel researchQuestionOnTarget = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));
+		if(researchQuestionOnTarget != null)
+			researchQuestionOnTarget.save(record);
 		final EntityReferenceListPanel researchActivityOnQuestion = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION));
 		if(researchActivityOnQuestion != null)
 			researchActivityOnQuestion.save(record);
@@ -407,10 +442,17 @@ public final class RecordDialogComponents{
 		final EntityReferenceListPanel sourceOnRepository = ((EntityReferenceListPanel)getPanel(PanelKey.SOURCE_ON_REPOSITORY));
 		if(sourceOnRepository != null)
 			sourceOnRepository.save(record);
+		final EntityReferenceListPanel sourceOnDocument = ((EntityReferenceListPanel)getPanel(PanelKey.SOURCE_ON_DOCUMENT));
+		if(sourceOnDocument != null)
+			sourceOnDocument.save(record);
 
 		final EntityListPanel document = ((EntityListPanel)getPanel(PanelKey.DOCUMENT));
 		if(document != null)
 			document.save(record);
+
+		final EntityListPanel researchQuestion = ((EntityListPanel)getPanel(PanelKey.RESEARCH_QUESTION));
+		if(researchQuestion != null)
+			researchQuestion.saveReferences(record);
 
 		final EntityReferenceListPanel researchTask = ((EntityReferenceListPanel)getPanel(PanelKey.RESEARCH_TASK_ON_QUESTION));
 		if(researchTask != null)
@@ -419,6 +461,10 @@ public final class RecordDialogComponents{
 		final EntityListPanel note = ((EntityListPanel)getPanel(PanelKey.NOTE));
 		if(note != null)
 			note.saveReferences(record);
+
+		final EntityListPanel task = ((EntityListPanel)getPanel(PanelKey.TASK));
+		if(task != null)
+			task.saveReferences(record);
 
 		final EvidenceQualifiersPanel evidence = ((EvidenceQualifiersPanel)getPanel(PanelKey.EVIDENCE));
 		if(evidence != null)

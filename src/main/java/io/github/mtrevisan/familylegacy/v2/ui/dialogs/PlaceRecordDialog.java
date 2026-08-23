@@ -56,7 +56,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code PLACE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -84,9 +83,9 @@ import java.nio.charset.StandardCharsets;
  * Tabs:
  * Tab 1 (Properties): name, type, map, evidence
  * Tab 3 (Relationships): PlaceRelationshipRecord (subject = this place), PlaceRelationshipRecord (object = this place)
- * Tab 4 (Participations): EventParticipationRecord (participant.place = this place)
- * Tab 5 (Context): ContextImpactRecord (target.place = this place)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this place), IdentityHypothesisRecord (subject/candidate = this place), ResearchQuestionRecord (target.place = this place)
+ * Tab 4 (Participations): EventParticipationRecord (participant[place] = this place)
+ * Tab 5 (Context): ContextImpactRecord (target[place] = this place)
+ * Tab 6 (Research): ConclusionRecord (resolves = this place), IdentityHypothesisRecord (subject/candidate = this place), ResearchQuestionRecord (target[place] = this place)
  * Tab 7 (Sources): source
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit

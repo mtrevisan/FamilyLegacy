@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
@@ -180,6 +181,8 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		}
 		catch(final Exception ignored){}
 
+		HandlerRegistry.scanHandlers();
+
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
@@ -187,7 +190,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			model.addRecord(repository);
 
 //			final FLEFRecord repositoryCitation = FLEFRecord.createEmpty();
-//			repositoryCitation.addChild(FLEFRecord.createChildWithValue(TAG_REPOSITORY, "R1"));
+//			repositoryCitation.addChild(FLEFRecord.createChildWithTagAndValue(TAG_REPOSITORY, "R1"));
 //			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createEdit(null, model, repositoryCitation);
 			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createNew(null, model);
 			dialog.setRepository("R1");

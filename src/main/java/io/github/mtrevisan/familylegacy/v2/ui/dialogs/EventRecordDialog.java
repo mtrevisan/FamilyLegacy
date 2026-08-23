@@ -55,7 +55,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* DONE */
 /**
  * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -93,8 +92,8 @@ import java.nio.charset.StandardCharsets;
  * Tabs:
  * Tab 1 (Properties): type, description, date, place, agency, cause, evidence
  * Tab 4 (Participations): EventParticipationRecord (event = this event)
- * Tab 5 (Context): ContextImpactRecord (target.event = this event)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this event), ResearchQuestionRecord (target.event = this event)
+ * Tab 5 (Context): ContextImpactRecord (target[event] = this event)
+ * Tab 6 (Research): ConclusionRecord (resolves = this event), ResearchQuestionRecord (target[event] = this event)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy

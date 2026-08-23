@@ -106,7 +106,7 @@ public class ParticipantField extends BoundTextField{
 			this::editItem, null,
 			null, null,
 			builder -> {
-				builder.item("Add Existing…", this::addItem);
+				builder.item("Set…", this::addItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit…", this::editItem);
 				builder.selectionSensitiveItem("Clear", this::clear);
@@ -198,14 +198,12 @@ public class ParticipantField extends BoundTextField{
 		if(record == null || record.isEmpty())
 			return;
 
-		if(record.hasChildren()){
-			FLEFRecord participant;
-			if(isDirect)
-				participant = FLEFRecordHelper.extractRecordFromReference(record, path, model);
-			else
-				participant = FLEFRecordHelper.extractRecordFromOneOfReference(record, path, model);
-			setParticipant(participant);
-		}
+		FLEFRecord participant;
+		if(isDirect)
+			participant = FLEFRecordHelper.extractRecordFromReference(record, path, model);
+		else
+			participant = FLEFRecordHelper.extractRecordFromOneOfReference(record, path, model);
+		setParticipant(participant);
 	}
 
 	/**
@@ -231,6 +229,24 @@ public class ParticipantField extends BoundTextField{
 			}
 			targetRecord.addChild(parentNode);
 		}
+	}
+
+	/**
+	 * Saves the current participant into the target record.
+	 * Removes any existing child with the given path and adds a new one.
+	 *
+	 * @param targetRecord	the record to save into
+	 */
+	public void saveReferencesWithVoid(final FLEFRecord targetRecord){
+		if(!hasData()){
+			//TODO to be tested
+			final FLEFRecord child = FLEFRecord.createChildWithTag("VOID");
+			final FLEFRecord itemRecord = FLEFRecord.createChildWithTag(path)
+				.addChild(child);
+			targetRecord.addChild(itemRecord);
+		}
+		else
+			saveReferences(targetRecord);
 	}
 
 	private void addItem(){

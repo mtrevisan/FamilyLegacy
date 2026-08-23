@@ -49,8 +49,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -79,8 +81,8 @@ import java.util.function.Consumer;
  * <p>
  * Tabs:
  * Tab 1 (Properties): individual, type, value, valid_from, valid_to, place, evidence
- * Tab 5 (Context): ContextImpactRecord (target.individual_attribute = this attribute)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this attribute), ResearchQuestionRecord (target.individual_attribute = this attribute)
+ * Tab 5 (Context): ContextImpactRecord (target[individual_attribute] = this attribute)
+ * Tab 6 (Research): ConclusionRecord (resolves = this attribute), ResearchQuestionRecord (target[individual_attribute] = this attribute)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -270,21 +272,21 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
+		// load parent individual reference
+		final String individualId = FLEFRecordHelper.getChildValue(record, TAG_INDIVIDUAL);
+		withParentEntity(individualId, IndividualHandler.TYPE);
+
+
 		validFromField.load(record);
 		validToField.load(record);
 		placeCitationField.load(record);
 
 		components.load(record);
-
-
-		// load parent individual reference
-		final String individualId = FLEFRecordHelper.getChildValue(record, TAG_INDIVIDUAL);
-		withParentEntity(individualId, IndividualHandler.TYPE);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(StringUtils.isEmpty(parentEntity.getPath()) || StringUtils.isEmpty(parentEntity.getText())){
+		if(parentEntity.isEmpty()){
 			JOptionPane.showMessageDialog(null,
 				"Parent Individual is required.",
 				"Validation Error", JOptionPane.ERROR_MESSAGE);
@@ -292,7 +294,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(StringUtils.isEmpty((String)typeCombo.getSelectedItem())){
+		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Type cannot be empty.",
 				tabbedPane, propertiesPanel, typeCombo);
@@ -305,6 +307,9 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
+		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
+
+
 		validFromField.save(record);
 		validToField.save(record);
 		placeCitationField.saveReferences(record);
@@ -313,58 +318,11 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "male"));
-
-		final FLEFRecord individualAttribute = FLEFRecord.createMainRecord("IA1", "INDIVIDUAL_ATTRIBUTE");
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"));
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "occupation"));
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "farmer"));
-		individualAttribute.addChild(FLEFRecord.createChildWithTag("SOURCE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("SOURCE", "@S1@"))
-		);
-		individualAttribute.addChild(FLEFRecord.createChildWithTagAndValue("NOTE", "@N1@"));
-
-		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
-		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
-			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Source for attribute")));
-
-		final FLEFRecord contextImpact1 = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("CONTEXT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@"))
-		);
-		contextImpact1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL_ATTRIBUTE", "@IA1@"))
-		);
-
-		final FLEFRecord conclusion1 = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion1.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "death cause"));
-		conclusion1.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL_ATTRIBUTE", "@IA1@"))
-		);
-
-		final FLEFRecord researchQuestion1 = FLEFRecord.createMainRecord("RQ1", "RESEARCH_QUESTION");
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("TITLE", "rq title"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("QUESTION", "is?"));
-		researchQuestion1.addChild(FLEFRecord.createChildWithTag("TARGET")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL_ATTRIBUTE", "@IA1@"))
-		);
-		researchQuestion1.addChild(FLEFRecord.createChildWithTagAndValue("STATUS", "open"));
-
-		final FLEFRecord note1 = FLEFRecord.createMainRecord("N1", "NOTE");
-		note1.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Ind attr note"));
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(individual);
-			model.addRecord(individualAttribute);
-			model.addRecord(source1);
-			model.addRecord(contextImpact1);
-			model.addRecord(conclusion1);
-			model.addRecord(researchQuestion1);
-			model.addRecord(note1);
-		};
-		GUIHelper.launch(IndividualAttributeRecordDialog::createEdit, modelFiller, individualAttribute);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = IndividualAttributeRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(IndividualAttributeRecordDialog::createEdit, content, "IA1");
+		}
 	}
 
 }

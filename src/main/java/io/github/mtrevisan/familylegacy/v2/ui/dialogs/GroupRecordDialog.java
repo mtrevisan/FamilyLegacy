@@ -55,7 +55,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code GROUP_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -80,9 +79,9 @@ import java.nio.charset.StandardCharsets;
  * Tab 1 (Properties): name, type, preferred_image
  * Tab 2 (Attributes): GroupAttributeRecord (group = this group)
  * Tab 3 (Relationships): RelationshipRecord (subject = this group), RelationshipRecord (object = this group)
- * Tab 4 (Participations): EventParticipationRecord (participant.group = this group)
- * Tab 5 (Context): ContextImpactRecord (target.group = this group)
- * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (subject/candidate = this group), ResearchQuestionRecord (target.group = this group)
+ * Tab 4 (Participations): EventParticipationRecord (participant[group] = this group)
+ * Tab 5 (Context): ContextImpactRecord (target[group] = this group)
+ * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (subject/candidate = this group), ResearchQuestionRecord (target[group] = this group)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy

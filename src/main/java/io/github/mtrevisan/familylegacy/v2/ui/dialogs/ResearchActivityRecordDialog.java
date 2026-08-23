@@ -32,7 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.ParticipantField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -43,6 +42,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
@@ -57,7 +57,10 @@ import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -128,7 +131,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final EntityReferenceListPanel questionPanel;
 	private final BoundComboBox<String> activityTypeCombo;
 	private final BoundComboBox<String> statusCombo;
 	private final BoundTextArea actionArea;
@@ -140,7 +142,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea conclusionArea;
 	private final BoundComboBox<String> conclusionConfidenceCombo;
 	private final ParticipantField parentField;
-	private final EntityReferenceListPanel taskPanel;
 
 
 	public static ResearchActivityRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -159,9 +160,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
 		// Initialize components
-		questionPanel = EntityReferenceListPanel.createForRecord(TAG_QUESTION, this, "Research Questions", model)
-			.withHandlerTypes(ResearchQuestionHandler.class)
-			.withParentEntity(this.record.getId(), ResearchActivityHandler.TYPE);
 		activityTypeCombo = new BoundComboBox<>(TAG_ACTIVITY_TYPE, new String[]{
 			"search", "review", "analysis", "correspondence", "interview", "hypothesis"
 		});
@@ -169,11 +167,12 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			"planned", "in_progress", "completed", "abandoned"
 		});
 		actionArea = new BoundTextArea(TAG_ACTION, 3, 30);
+
 		targetField = ParticipantField.create(TAG_TARGET, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, EventHandler.class,
 				EventParticipationHandler.class, RelationshipHandler.class, IndividualAttributeHandler.class,
-				GroupAttributeHandler.class, PlaceRelationshipHandler.class, SourceHandler.class, DocumentHandler.class,
-				IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
+				GroupAttributeHandler.class, PlaceHandler.class, PlaceRelationshipHandler.class, SourceHandler.class,
+				DocumentHandler.class, IdentityHypothesisHandler.class, CulturalNormHandler.class, HistoricEventHandler.class);
 		searchScopeTypeCombo = new BoundComboBox<>(TAG_SEARCH_SCOPE_TYPE, new String[]{
 			"entire_source",
 			"index_only",
@@ -181,6 +180,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			"selected_entries"
 		});
 		searchScopeDetailArea = new BoundTextArea(TAG_SEARCH_SCOPE_DETAIL, 3, 30);
+
 		resultCombo = new BoundComboBox<>(TAG_RESULT, new String[]{
 			StringUtils.EMPTY,
 			"positive", "negative", "inconclusive", "conflicting", "unavailable"
@@ -190,13 +190,13 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		conclusionConfidenceCombo = new BoundComboBox<>(TAG_CONCLUSION_CONFIDENCE, new String[]{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
-		parentField = ParticipantField.create(TAG_PARENT, this, model)
-			.withHandlerTypes(ResearchActivityHandler.class);
-		taskPanel = EntityReferenceListPanel.createForStructure(TAG_TASK, this, "Tasks", model)
-			.withHandlerTypes(ResearchTaskHandler.class);
+
+		parentField = ParticipantField.create(TAG_PARENT, this, model, ResearchActivityHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions", ResearchQuestionHandler.class, ResearchQuestionHandler.class)
+			.withComponent(PanelKey.TASK, TAG_TASK, "Tasks", ResearchTaskHandler.class, ResearchTaskHandler.class)
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -220,7 +220,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// question
-		GUIHelper.addComponent(propertiesPanel, questionPanel);
+		final JPanel notePanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
+		GUIHelper.addComponent(propertiesPanel, notePanel);
 
 		// activity type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Activity Type*:", activityTypeCombo);
@@ -284,6 +285,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		panel.add(parentField, "growx,wrap");
 
 		// task
+		final JPanel taskPanel = components.getPanel(PanelKey.TASK);
 		panel.add(taskPanel, "span 2,growx");
 
 		return panel;
@@ -316,13 +318,11 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		targetField.load(record);
 		parentField.load(record);
-		questionPanel.load(record);
-		taskPanel.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(activityTypeCombo.isValued()){
+		if(!activityTypeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Activity type is required.",
 				tabbedPane, propertiesPanel, activityTypeCombo);
@@ -330,7 +330,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(statusCombo.isValued()){
+		if(!statusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Status is required.",
 				tabbedPane, propertiesPanel, statusCombo);
@@ -354,15 +354,16 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	protected void saveData(){
 		components.save(record);
 
-		targetField.saveReferences(record);
+		targetField.saveReferencesWithVoid(record);
 		parentField.saveReferences(record);
-		questionPanel.save(record);
-		taskPanel.save(record);
 	}
 
 
-	public static void main(final String[] args){
-		GUIHelper.launch(ResearchActivityRecordDialog::createNew);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = ResearchActivityRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(ResearchActivityRecordDialog::createEdit, content, "RA1");
+		}
 	}
 
 }

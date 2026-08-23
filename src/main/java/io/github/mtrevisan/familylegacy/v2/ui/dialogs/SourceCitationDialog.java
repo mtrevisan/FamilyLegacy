@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.ExtractListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -211,6 +212,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		}
 		catch(final Exception ignored){}
 
+		HandlerRegistry.scanHandlers();
+
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
@@ -218,7 +221,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			model.addRecord(source);
 
 //			final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
-//			sourceCitation.addChild(FLEFRecord.createChildWithValue(TAG_SOURCE, "S1"));
+//			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue(TAG_SOURCE, "S1"));
 //			final SourceCitationDialog dialog = SourceCitationDialog.createEdit(null, model, sourceCitation);
 			final SourceCitationDialog dialog = SourceCitationDialog.createNew(null, model);
 			dialog.setSource("S1");

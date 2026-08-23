@@ -48,7 +48,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code REPOSITORY_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -122,7 +121,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, TAG_SOURCE, "Sources", SourceHandler.class, RepositoryHandler.class)
+			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, TAG_SOURCE, "Sources with Citations", SourceHandler.class, RepositoryHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)

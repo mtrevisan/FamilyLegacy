@@ -60,8 +60,10 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -76,7 +78,7 @@ import java.util.function.Consumer;
  *   narrative?: Text
  *   resolves*: ConclusionTarget
  *   preferred?: ConclusionTarget
- *   research*: Xref&lt;ResearchQuestionRecord&gt;
+ *   question*: Xref&lt;ResearchQuestionRecord&gt;
  *   source*: SourceCitation
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -106,7 +108,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	private static final String TAG_NARRATIVE = "NARRATIVE";
 	private static final String TAG_RESOLVES = "RESOLVES";
 	private static final String TAG_PREFERRED = "PREFERRED";
-	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
+	private static final String TAG_QUESTION = "QUESTION";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
@@ -168,7 +170,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, ConclusionHandler.class)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions", ResearchQuestionHandler.class, ResearchQuestionHandler.class)
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
@@ -207,7 +209,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	protected JPanel createResearchPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
-		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
+		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
 		return panel;
@@ -236,9 +238,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		contextField.setText(FLEFRecordHelper.getChildValue(record, TAG_CONTEXT));
-		proofStatusCombo.setSelectedItem(FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS));
-		narrativeArea.setText(FLEFRecordHelper.getChildValue(record, TAG_NARRATIVE));
+		components.load(record);
 
 		resolvesPanel.load(record);
 		updatePreferredCombo();
@@ -250,8 +250,6 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 				// Find and select in combo
 				preferredCombo.setSelectedItem(preferred);
 		}
-
-		components.load(record);
 	}
 
 	private void updatePreferredCombo(){
@@ -268,8 +266,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		String proofStatus = (String)proofStatusCombo.getSelectedItem();
-		if(StringUtils.isEmpty(proofStatus)){
+		if(!proofStatusCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Proof status is required.",
 				tabbedPane, propertiesPanel, proofStatusCombo);
@@ -292,32 +289,11 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-//		GUIHelper.launch(ConclusionRecordDialog::createNew);
-
-		final FLEFRecord conclusion = FLEFRecord.createMainRecord("CC1", "CONCLUSION");
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("CONTEXT", "fdgh"));
-		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("PLACE", "@P1@"))
-		);
-		conclusion.addChild(FLEFRecord.createChildWithTag("RESOLVES")
-			.addChild(FLEFRecord.createChildWithTagAndValue("PLACE", "@P2@"))
-		);
-		conclusion.addChild(FLEFRecord.createChildWithTagAndValue("PROOF_STATUS", "proven"));
-
-		final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-		place.addChild(FLEFRecord.createChildWithTag("NAME")
-			.addChild(FLEFRecord.createChildWithTag("TEXT")
-				.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "f"))
-			)
-		);
-		place.addChild(FLEFRecord.createChildWithTagAndValue("CONCLUSION", conclusion.getId()));
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(conclusion);
-			model.addRecord(place);
-		};
-		GUIHelper.launch(ConclusionRecordDialog::createEdit, modelFiller, conclusion);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = ConclusionRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(ConclusionRecordDialog::createEdit, content, "CC1");
+		}
 	}
 
 }

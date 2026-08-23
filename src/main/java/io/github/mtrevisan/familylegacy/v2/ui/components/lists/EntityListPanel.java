@@ -164,7 +164,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	public void saveReferences(final FLEFRecord record){
 		for(final FLEFRecord item : getItems())
-			FLEFRecordHelper.addChild(record, path, item.getFormattedId());
+			FLEFRecordHelper.addChildValue(record, path, item.getFormattedId());
 	}
 
 	public boolean isDialogSaved(final JDialog dialog){

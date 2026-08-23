@@ -54,7 +54,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code SOURCE_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -78,7 +77,7 @@ import java.nio.charset.StandardCharsets;
  * <p>
  * Tabs:
  * Tab 1 (Properties): title, author, publisher, date, place, media_type, repository, document
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this source), ResearchQuestionRecord (target.source = this source), ResearchActivityRecord (source contains this source)
+ * Tab 6 (Research): ConclusionRecord (resolves = this source), ResearchQuestionRecord (target[source] = this source), ResearchActivityRecord (source contains this source)
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit

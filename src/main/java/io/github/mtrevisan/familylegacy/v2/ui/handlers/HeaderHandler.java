@@ -71,7 +71,7 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 
 	@Override
 	public HeaderDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return new HeaderDialog(parent, model);
+		return new HeaderDialog(parent, model, null);
 	}
 
 }

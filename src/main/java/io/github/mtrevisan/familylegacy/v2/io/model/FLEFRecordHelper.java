@@ -396,42 +396,74 @@ public final class FLEFRecordHelper{
 		}
 
 		final FLEFRecord existing = getOrCreateTargetNode(parent, path);
-		if(existing != null)
-			existing.setValue(value);
-		else
-			addChild(parent, path, value);
+		assert existing != null : "Cannot update the value of a non-existent record";
+		assert findChildren(parent, path).size() != 1 : "Cannot update the value of a non-single record";
+		existing.setValue(value);
 	}
 
 	/**
 	 * Adds a single child with the given tag and value, if value is not empty.
+	 * The path specifies the full tag path for the new child (including its tag).
+	 * The parent container is automatically created if it does not exist.
 	 *
-	 * @param parent	The parent record.
-	 * @param path	The dot‑separated tag path for the new child (e.g. "ROOT.RESTRICTION[2].CODE").
-	 * @param value	The value to set (ignored if {@code null} or empty).
+	 * @param parent The parent record.
+	 * @param path   The dot‑separated path to the new child (e.g. "RESOLVES.CONCLUSION").
+	 * @param value  The value to set (ignored if {@code null} or empty).
 	 */
-	public static void addChild(final FLEFRecord parent, final String path, final String value){
-		if(StringUtils.isEmpty(value))
+	public static void addChildValue(final FLEFRecord parent, final String path, final String value){
+		if(StringUtils.isEmpty(value) || parent == null)
 			return;
 
-		final FLEFRecord target = getOrCreateTargetNode(parent, path);
-		if(target != null)
-			target.setValue(value);
+		final String[] segments = StringUtils.split(path, '.');
+		// The last segment is the new child's tag (with optional index)
+		final Segment lastSegment = Segment.parse(segments[segments.length - 1]);
+		if(lastSegment == null)
+			return;
+		final String childTag = lastSegment.tag();
+
+		// Parent path is everything except the last segment
+		final String parentPath = (segments.length > 1
+			? StringUtils.join(segments, '.', 0, segments.length - 1)
+			: StringUtils.EMPTY);
+
+		// Get or create the parent container
+		final FLEFRecord container = (StringUtils.isEmpty(parentPath)
+			? parent
+			: getOrCreateTargetNode(parent, parentPath));
+		if(container == null)
+			return;
+
+		// Create the new child and add it to the container
+		final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(childTag, value);
+		container.addChild(child);
 	}
 
 	/**
-	 * Adds a single child with the given tag and value, if child is not empty.
+	 * Adds a single child to the parent container specified by the path.
+	 * The path specifies the full tag path for the new child (including its tag).
+	 * The parent container is automatically created if it does not exist.
 	 *
-	 * @param parent	The parent record.
-	 * @param path	The dot‑separated tag path for the new child (e.g. "ROOT.RESTRICTION[2].CODE").
-	 * @param child	The child to add (ignored if {@code null} or empty).
+	 * @param parent The parent record.
+	 * @param path   The dot‑separated path to the new child (e.g. "RESOLVES.CONCLUSION").
+	 * @param child  The child record to add (ignored if {@code null} or empty).
 	 */
 	public static void addChild(final FLEFRecord parent, final String path, final FLEFRecord child){
-		if(child == null || child.isEmpty())
+		if(child == null || child.isEmpty() || parent == null)
 			return;
 
-		final FLEFRecord target = getOrCreateTargetNode(parent, path);
-		if(target != null)
-			target.addChild(child);
+		// Split path into parent path and child tag (child tag is only used for the parent container)
+		final int lastDot = path.lastIndexOf('.');
+		final String parentPath = (lastDot >= 0? path.substring(0, lastDot): StringUtils.EMPTY);
+
+		// Get or create the parent container
+		final FLEFRecord container = (StringUtils.isEmpty(parentPath)
+			? parent
+			: getOrCreateTargetNode(parent, parentPath));
+		if(container == null)
+			return;
+
+		// Add the child to the container
+		container.addChild(child);
 	}
 
 	/**

@@ -84,7 +84,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 			final FLEFModel model, final String recordHandlerType){
 		this.path = (StringUtils.isNotEmpty(path)? path + DOT: StringUtils.EMPTY);
 
-		GUIHelper.setLayoutLabelFieldPanel(this, 5, "[]5[]5[]");
+		setLayout(GUIHelper.createLabelFieldLayout(5, "[]5[]5[]"));
 		setBorder(BorderFactory.createTitledBorder(panelTitle));
 
 		sourceTypeCombo = new JComboBox<>(new String[]{

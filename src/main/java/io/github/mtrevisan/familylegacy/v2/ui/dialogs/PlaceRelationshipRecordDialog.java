@@ -37,7 +37,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -47,10 +46,11 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -74,8 +74,8 @@ import java.io.Serial;
  * <p>
  * Tabs:
  * Tab 1 (Properties): subject, object, type, valid_from, valid_to
- * Tab 5 (Context): ContextImpactRecord (target.place_relationship = this relationship)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this relationship), ResearchQuestionRecord (target.place_relationship = this relationship)
+ * Tab 5 (Context): ContextImpactRecord (target[place_relationship] = this relationship)
+ * Tab 6 (Research): ConclusionRecord (resolves = this relationship), ResearchQuestionRecord (target[place_relationship] = this relationship)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 10 (Audit): audit
@@ -141,12 +141,12 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, RelationshipHandler.class)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PlaceRelationshipHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceRelationshipHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceRelationshipHandler.class)
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, RelationshipHandler.class)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, PlaceRelationshipHandler.class)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
 
@@ -322,22 +322,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = PlaceRelationshipRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(PlaceRelationshipRecordDialog::createEdit, content, "PR1");
 		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final FLEFRecord place = FLEFRecord.createMainRecord("P1", "PLACE");
-			model.addRecord(place);
-
-			final PlaceRelationshipRecordDialog dialog = PlaceRelationshipRecordDialog.createNew(null, model);
-//			dialog.setSubject("P1");
-			dialog.setVisible(true);
-		});
 	}
 
 }

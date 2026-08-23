@@ -25,25 +25,24 @@
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.BasicNoteListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HeaderHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 
@@ -119,12 +118,12 @@ public class HeaderDialog extends BaseRecordDialog{
 	private final BoundTextArea copyrightArea;
 
 	private final EntityReferenceListPanel submitterContactListPanel;
-	private final BasicNoteListPanel submitterNotePanel;
+	private final BoundTextArea submitterNoteArea;
 
 	private final BoundTextArea scopeArea;
 
 
-	public HeaderDialog(final Dialog parent, final FLEFModel model){
+	public HeaderDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, model.getHeader(), HeaderHandler.class);
 
 		protocolNameField = new BoundTextField(TAG_PROTOCOL_NAME, "Family LEgacy Format");
@@ -138,12 +137,11 @@ public class HeaderDialog extends BaseRecordDialog{
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
 		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model)
 			.withHandlerTypes(ContactHandler.class);
-		submitterNotePanel = new BasicNoteListPanel(TAG_SUBMITTER_NOTE, this, "Notes", TAG_NOTE);
+		submitterNoteArea = new BoundTextArea(TAG_SUBMITTER_NOTE, 3, 25);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.build();
 
 		components.bind(protocolNameField);
@@ -154,6 +152,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		components.bind(sourceCorporateField);
 		components.bind(dateField);
 		components.bind(copyrightArea);
+		components.bind(submitterNoteArea);
 		components.bind(scopeArea);
 
 
@@ -163,14 +162,14 @@ public class HeaderDialog extends BaseRecordDialog{
 
 	@Override
 	protected void initComponents(){
-		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[grow]");
+		setLayout(GUIHelper.createLabelFieldLayout(10, "[grow]"));
 
 		final JTabbedPane tabbedPane = new JTabbedPane();
 		tabbedPane.addTab("Properties", createPropertiesPanel());
 		tabbedPane.addTab("Submitter", createSubmitterPanel());
 		GUIHelper.addComponent(this, tabbedPane);
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(getRootPane(),
 			this::save,
 			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -200,7 +199,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, submitterContactListPanel);
 
 		// note
-		GUIHelper.addComponent(panel, submitterNotePanel);
+		GUIHelper.addLabeledComponent(panel, "Note:", submitterNoteArea);
 
 		return panel;
 	}
@@ -211,7 +210,6 @@ public class HeaderDialog extends BaseRecordDialog{
 		components.load(record);
 
 		submitterContactListPanel.load(record);
-		submitterNotePanel.load(record);
 	}
 
 	@Override
@@ -222,22 +220,14 @@ public class HeaderDialog extends BaseRecordDialog{
 		components.save(record);
 
 		submitterContactListPanel.save(record);
-		submitterNotePanel.save(record);
 	}
 
 
-	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = HeaderDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(HeaderDialog::new, content, null);
 		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final HeaderDialog dialog = new HeaderDialog(null, model);
-			dialog.setVisible(true);
-		});
 	}
 
 }

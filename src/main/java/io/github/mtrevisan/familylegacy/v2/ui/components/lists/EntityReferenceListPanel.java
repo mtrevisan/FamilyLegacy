@@ -226,6 +226,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 	protected String getDisplayText(final FLEFRecord record){
 		if(record != null){
 			final RecordTypeHandler<?> handler = findHandler(record.getTag());
+			if(handler == null)
+				return "...";
 			return handler.getDisplayText(record, model);
 		}
 
@@ -480,6 +482,39 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		setItems(references);
 	}
 
+	public void loadCitationsWithType3(final String recordId, final String... actorTags){
+		clear();
+
+		if(recordId == null)
+			return;
+
+		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
+		isReference = true;
+
+		final List<FLEFRecord> references = new ArrayList<>();
+		for(final Class<? extends RecordTypeHandler<?>> handler : handlerTypes){
+			final List<FLEFRecord> handlerReferences = model.getRecordsByType(HandlerRegistry.getHandlerType(handler)).stream()
+				.filter(reference -> {
+					for(final String actorTag : actorTags){
+						final List<FLEFRecord> actors = FLEFRecordHelper.extractStructures(reference, actorTag);
+						if(actors.isEmpty())
+							return false;
+
+						for(final FLEFRecord actor : actors){
+							final String tag = actor.getTag();
+							final String id = actor.getValue();
+							if(Objects.equals(parentEntityTag, tag) && recordId.equals(id))
+								return true;
+						}
+					}
+					return false;
+				})
+				.toList();
+			references.addAll(handlerReferences);
+		}
+		setItems(references);
+	}
+
 	/**
 	 * Saves the current entities to the given record.
 	 * <p>
@@ -493,8 +528,8 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		if(relationType == RelationType.RECORD)
-			for(final FLEFRecord item : getItems())
-				FLEFRecordHelper.addChild(record, path, item.getFormattedId());
+			for(final FLEFRecord item : items)
+				FLEFRecordHelper.addChildValue(record, path, item.getFormattedId());
 		else if(handlerTypes.size() == 1 && ConclusionTargetHandler.class.equals(handlerTypes.getFirst())){
 			final FLEFRecord parentRecord = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_RESOLVES);
 			super.save(parentRecord, path);
@@ -507,8 +542,29 @@ public class EntityReferenceListPanel extends AbstractListPanel<FLEFRecord>{
 		if(isReference)
 			return;
 
-		for(final FLEFRecord item : getItems())
-			FLEFRecordHelper.addChild(record, path, item.getFormattedId());
+		for(final FLEFRecord item : items)
+			FLEFRecordHelper.addChildValue(record, path, item.getFormattedId());
+	}
+
+	public void saveReferencesWithVoid2(final FLEFRecord record){
+		if(isReference)
+			return;
+
+		if(items.isEmpty()){
+			final FLEFRecord child = FLEFRecord.createChildWithTag("VOID");
+			final FLEFRecord itemRecord = FLEFRecord.createChildWithTag(path)
+				.addChild(child);
+			record.addChild(itemRecord);
+		}
+		else
+			for(final FLEFRecord item : items){
+				final String tag = item.getTag();
+				final String id = item.getFormattedId();
+				final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, id);
+				final FLEFRecord itemRecord = FLEFRecord.createChildWithTag(path)
+					.addChild(child);
+				record.addChild(itemRecord);
+			}
 	}
 
 	private RecordTypeHandler<?> findHandler(final String type){

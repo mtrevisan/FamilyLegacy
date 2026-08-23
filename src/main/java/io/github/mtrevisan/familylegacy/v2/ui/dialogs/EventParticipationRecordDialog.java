@@ -49,8 +49,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
-import java.util.function.Consumer;
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -82,8 +84,8 @@ import java.util.function.Consumer;
  * <p>
  * Tabs:
  * Tab 1 (Properties): event, participant, role, evidence
- * Tab 5 (Context): ContextImpactRecord (target.event_participation = this participation)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this participation), ResearchQuestionRecord (target.event_participation = this participation)
+ * Tab 5 (Context): ContextImpactRecord (target[event_participation] = this participation)
+ * Tab 6 (Research): ConclusionRecord (resolves = this participation), ResearchQuestionRecord (target[event_participation] = this participation)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -301,26 +303,11 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		final FLEFRecord eventParticipation = FLEFRecord.createMainRecord("EP1", "EVENT_PARTICIPATION");
-		eventParticipation.addChild(FLEFRecord.createChildWithTagAndValue("EVENT", "@E1@"));
-		eventParticipation.addChild(FLEFRecord.createChildWithTagAndValue("ROLE", "child"));
-		eventParticipation.addChild(FLEFRecord.createChildWithTag("PARTICIPANT")
-			.addChild(FLEFRecord.createChildWithTagAndValue("INDIVIDUAL", "@I1@"))
-		);
-
-		final FLEFRecord event1 = FLEFRecord.createMainRecord("E1", "EVENT");
-		event1.addChild(FLEFRecord.createChildWithTagAndValue("TYPE", "war"));
-
-		final FLEFRecord individual1 = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-
-
-		final Consumer<FLEFModel> modelFiller = model -> {
-			model.addRecord(eventParticipation);
-			model.addRecord(event1);
-			model.addRecord(individual1);
-		};
-		GUIHelper.launch(EventParticipationRecordDialog::createEdit, modelFiller, eventParticipation);
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = EventParticipationRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(EventParticipationRecordDialog::createEdit, content, "EP1");
+		}
 	}
 
 }

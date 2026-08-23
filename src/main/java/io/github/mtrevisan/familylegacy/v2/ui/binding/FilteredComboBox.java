@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.binding;
 
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultComboBoxModel;
@@ -190,6 +191,8 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
+
+		HandlerRegistry.scanHandlers();
 
 		// Extract BCP 47 language tags (e.g. "en-US - English (United States)")
 		final TreeSet<String> languageCodes = new TreeSet<>(Comparator.naturalOrder());

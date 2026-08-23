@@ -101,7 +101,7 @@ public class AuditPanel extends JPanel{
 		bindingManager.bind(creationCommentArea);
 
 
-		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]15[]");
+		setLayout(GUIHelper.createLabelFieldLayout(10, "[]15[]"));
 
 		creationPanel.setBorder(new TitledBorder("Creation Comment"));
 		creationPanel.add(GUIHelper.createScrollPane(creationCommentArea), "growx");
@@ -146,7 +146,7 @@ public class AuditPanel extends JPanel{
 		final FLEFRecord creation = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_AUDIT_CREATION);
 		if(StringUtils.isBlank(creationDate))
 			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-		FLEFRecordHelper.addChild(creation, TAG_DATE, creationDate);
+		FLEFRecordHelper.addChildValue(creation, TAG_DATE, creationDate);
 
 		bindingManager.save(record);
 

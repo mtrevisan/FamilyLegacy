@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -34,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -86,6 +86,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private final BoundTextField addressField;
 	private final BoundComboBox<String> typeCombo;
 	private final EntityReferenceListPanel namePanel;
+	private final BoundTextArea noteArea;
 
 
 	public static ContactStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -100,7 +101,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private ContactStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ContactHandler.class);
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 
 		addressField = new BoundTextField(TAG_ADDRESS);
 		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
@@ -109,16 +110,17 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		});
 		namePanel = EntityReferenceListPanel.createForStructure(TAG_NAME, this, "Name", model)
 			.withHandlerTypes(ContactNameHandler.class);
+		noteArea = new BoundTextArea(TAG_NOTE, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
 
 		components.bind(addressField);
 		components.bind(typeCombo);
+		components.bind(noteArea);
 
 
 		finalizeDialog(parent);
@@ -136,17 +138,10 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		// name
 		GUIHelper.addComponent(propertiesPanel, namePanel);
 
+		// note
+		GUIHelper.addLabeledComponent(propertiesPanel, "Note", noteArea);
+
 		return propertiesPanel;
-	}
-
-	@Override
-	protected JPanel createNotesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
-
-		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
-		GUIHelper.addComponent(panel, notePanel);
-
-		return panel;
 	}
 
 	@Override

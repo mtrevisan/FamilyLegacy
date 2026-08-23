@@ -119,7 +119,7 @@ public class DateField extends JPanel{
 			editAction, null,
 			null, null,
 			builder -> {
-				builder.item("Set Date…", newAction);
+				builder.item("Set…", newAction);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit…", editAction);
 				builder.selectionSensitiveItem("Clear", clearAction);

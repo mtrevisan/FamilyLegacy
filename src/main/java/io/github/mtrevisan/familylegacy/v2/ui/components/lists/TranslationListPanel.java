@@ -115,7 +115,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final JDialog dialog = new JDialog(parent, (record == null? "Add Translation": "Edit Translation"), Dialog.ModalityType.APPLICATION_MODAL);
-		GUIHelper.setLayoutLabelFieldPanel(dialog, 10, "[]10[]");
+		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]"));
 
 		final BoundTextArea valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
 		if(record != null)
@@ -132,7 +132,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog.getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog.getRootPane(),
 			() -> {
 				if(!validTranslationData(valueArea))
 					return;

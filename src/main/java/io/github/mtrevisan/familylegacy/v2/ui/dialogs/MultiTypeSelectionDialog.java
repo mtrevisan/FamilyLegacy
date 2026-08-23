@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
@@ -38,7 +37,6 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JList;
@@ -84,7 +82,6 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private final JTextField searchField;
 	private final DefaultListModel<String> listModel;
 	private final JList<String> list;
-	private final JButton selectButton;
 
 	private List<FLEFRecord> allRecords = new ArrayList<>();
 	private final List<FLEFRecord> filteredRecords = new ArrayList<>();
@@ -118,7 +115,6 @@ public class MultiTypeSelectionDialog extends JDialog{
 		searchField = new JTextField(null);
 		listModel = new DefaultListModel<>();
 		list = new JList<>(listModel);
-		selectButton = new JButton("Select");
 
 
 		initComponents();
@@ -159,7 +155,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 	}
 
 	private void initComponents(){
-		setLayout(new MigLayout("ins 10,fillx,filly", "[grow]", "[][grow][]"));
+		setLayout(new MigLayout("ins 10,fill", "[grow,fill]", "[][grow][]"));
 
 		// Top panel: type combo (if more than one) + search field
 		final JPanel topPanel = GUIHelper.createLabelFieldPanel(0, (typeCombo != null? "[]10[]": "[]"));
@@ -172,17 +168,15 @@ public class MultiTypeSelectionDialog extends JDialog{
 		// Center panel
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(list);
 		scrollPane.setBorder(BorderFactory.createTitledBorder("Records"));
-		add(scrollPane, "grow,wrap");
+		add(scrollPane, "grow,push,wrap");
 
 
 		// Bottom panel
-		final JPanel bottomPanel = new JPanel(new MigLayout("ins 0,fillx", "[grow,left][grow,right]"));
-		final JButton cancelButton = new JButton("Cancel");
-		final JButton createNewButton = new JButton("Create New…");
-		bottomPanel.add(createNewButton, "left");
-		bottomPanel.add(selectButton, "right");
-		bottomPanel.add(cancelButton, "right");
-		add(bottomPanel, "growx,wrap");
+		final JPanel bottomPanel = GUIHelper.createNewSelectCancelButtonPanel(getRootPane(),
+			this::createNewRecord,
+			this::selectAndClose,
+			this::dispose);
+		add(bottomPanel, "growx");
 
 
 		if(typeCombo != null)
@@ -215,13 +209,6 @@ public class MultiTypeSelectionDialog extends JDialog{
 					selectAndClose();
 			}
 		});
-		selectButton.addActionListener(e -> selectAndClose());
-
-		// Cancel / close handlers
-		cancelButton.addActionListener(e -> dispose());
-
-		// Create new record
-		createNewButton.addActionListener(e -> createNewRecord());
 	}
 
 	private void updateWindowTitle(){
@@ -275,11 +262,11 @@ public class MultiTypeSelectionDialog extends JDialog{
 		if(filteredRecords.isEmpty()){
 			listModel.addElement("[No matching records]");
 			list.setEnabled(false);
-			selectButton.setEnabled(false);
+//			selectButton.setEnabled(false);
 		}
 		else{
 			list.setEnabled(true);
-			selectButton.setEnabled(true);
+//			selectButton.setEnabled(true);
 			for(final FLEFRecord record : filteredRecords){
 				final RecordTypeHandler<?> desc = getSelectedHandler();
 				final String displayText = desc.getDisplayText(record, model);
@@ -358,6 +345,8 @@ public class MultiTypeSelectionDialog extends JDialog{
 		}
 		catch(final Exception ignored){}
 
+		HandlerRegistry.scanHandlers();
+
 		final FLEFModel model = new FLEFModel();
 		final List<Class<? extends RecordTypeHandler<?>>> handlerTypes = List.of(
 			IndividualHandler.class, GroupHandler.class);
@@ -367,8 +356,6 @@ public class MultiTypeSelectionDialog extends JDialog{
 			final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(null, model,
 				handlerTypes.toArray(Class[]::new));
 			dialog.setVisible(true);
-
-			System.out.println(FLEFWriter.create().writeToString(model));
 		});
 	}
 

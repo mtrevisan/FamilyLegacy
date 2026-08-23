@@ -22,61 +22,54 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.handlers;
+package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.CauseStructureDialog;
-import org.apache.commons.lang3.StringUtils;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 
 import java.awt.Dialog;
+import java.io.Serial;
+import java.util.List;
 
 
-public class CauseHandler extends AbstractRecordTypeHandler<CauseStructureDialog>{
+/**
+ * Panel for managing variants (phonetic and transcription) of a record.
+ */
+public class TextValueVariantListPanel extends EntityReferenceListPanel{
 
-	public static final String TYPE = "CAUSE";
+	@Serial
+	private static final long serialVersionUID = -298718064629353117L;
 
-	private static final String TAG_VALUE = "VALUE";
 
+	public TextValueVariantListPanel(final String path, final Dialog parent, final String panelTitle,
+			final FLEFModel model){
+		super(path, parent, panelTitle, model, RelationType.STRUCTURE, null);
 
-	@Override
-	public boolean isTopLevelEntity(){
-		return false;
+		withHandlerTypes(TextValueVariantHandler.class);
 	}
 
+
 	@Override
-	public String getLabel(){
-		return "Cause";
+	public void load(final FLEFRecord record){
+		clear();
+
+		if(record == null || record.isEmpty())
+			return;
+
+		final List<FLEFRecord> variants = FLEFRecordHelper.extractStructures(record, path);
+		setItems(variants);
 	}
 
-	@Override
-	public String getType(){
-		return TYPE;
-	}
-
-	@Override
-	public String getIdPrefix(){
-		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		if(record == null)
-			return "--";
-
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		return (StringUtils.isNotEmpty(value)? value: record.getId());
-	}
-
-	@Override
-	public CauseStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return CauseStructureDialog.createNew(parent, model);
-	}
-
-	@Override
-	public CauseStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return CauseStructureDialog.createEdit(parent, model, record);
+	/**
+	 * Saves the current variants to the given record.
+	 *
+	 * @param record	the record to save to
+	 */
+	public void save(final FLEFRecord record){
+		for(final FLEFRecord item : getItems())
+			record.addChild(item);
 	}
 
 }

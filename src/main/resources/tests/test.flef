@@ -1,3 +1,83 @@
+header {
+	PROTOCOL {
+		NAME Family LEgacy Format
+		VERSION 0.1.1
+	}
+	SOURCE {
+		SYSTEM_ID FamilyLegacy
+		NAME FL
+		VERSION 0.1
+		CORPORATE (c) Mauro Trevisan
+	}
+	DATE 2026-07-31
+	COPYRIGHT 2026 (c) Mauro Trevisan
+	SUBMITTER {
+		NOTE submitter note
+		CONTACT {
+			ADDRESS my phone number
+			TYPE phone
+			NAME {
+				VALUE Mario Rossi
+				VARIANT {
+					TRANSCRIPTION {
+						SYSTEM rōmaji
+						TYPE romanized
+						VALUE nòme
+					}
+				}
+			}
+			NOTE phone note
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+		}
+		CONTACT {
+			ADDRESS my email number
+			TYPE email
+			NAME {
+				VALUE email
+			}
+			NOTE email note
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+		}
+	}
+	SCOPE history of my family
+}
+
 records {
 	INDIVIDUAL I1 {
 		PREFERRED_IMAGE {
@@ -128,15 +208,158 @@ records {
 				}
 			}
 		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		SOURCE {
+			SOURCE S1
+			LOCATION there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RELATIONSHIP RL1 {
-		TYPE group_member
 		SUBJECT {
 			INDIVIDUAL I1
 		}
 		OBJECT {
 			GROUP G1
+		}
+		TYPE group_member
+		ROLE president
+		STATUS ended
+		SOURCE {
+			SOURCE S1
+			LOCATION there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE original
+			INFORMATION_TYPE primary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		VALID_FROM {
+			VALUE {
+				BOUNDED {
+					NOT_BEFORE {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					NOT_AFTER {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE {
+				SPANNING {
+					FROM {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					TO {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
 		}
 	}
 
@@ -218,6 +441,34 @@ records {
 		}
 		IMPACT_TYPE causes
 		SIGNIFICANCE high significance
+		SOURCE {
+			SOURCE S1
+			LOCATION there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONTEXT_IMPACT CI2 {
@@ -258,6 +509,118 @@ records {
 		}
 	}
 
+	CONTEXT_IMPACT CI5 {
+		CONTEXT {
+			HISTORIC_EVENT HE1
+		}
+		TARGET {
+			PLACE P1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
+	CONTEXT_IMPACT CI6 {
+		CONTEXT {
+			HISTORIC_EVENT HE1
+		}
+		TARGET {
+			RELATIONSHIP RL1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
+	CONTEXT_IMPACT CI7 {
+		CONTEXT {
+			HISTORIC_EVENT HE1
+		}
+		TARGET {
+			EVENT_PARTICIPATION EP1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
+	CONTEXT_IMPACT CI8 {
+		CONTEXT {
+			HISTORIC_EVENT HE1
+		}
+		TARGET {
+			GROUP_ATTRIBUTE GA1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
+	CONTEXT_IMPACT CI9 {
+		CONTEXT {
+			HISTORIC_EVENT HE1
+		}
+		TARGET {
+			INDIVIDUAL_ATTRIBUTE IA1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
+	CONTEXT_IMPACT C20 {
+		CONTEXT {
+			HISTORIC_EVENT HE1
+		}
+		TARGET {
+			IDENTITY_HYPOTHESIS IH1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
+	CONTEXT_IMPACT C21 {
+		CONTEXT {
+			HISTORIC_EVENT HE1
+		}
+		TARGET {
+			PLACE_RELATIONSHIP PR1
+		}
+		IMPACT_TYPE causes
+		SIGNIFICANCE low significance
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+	}
+
 	CONCLUSION CC1 {
 		CONTEXT death cause
 		PROOF_STATUS proven
@@ -268,7 +631,35 @@ records {
 		PREFERRED {
 			INDIVIDUAL I1
 		}
-		RESEARCH RQ1
+		QUESTION RQ1
+		SOURCE {
+			SOURCE S1
+			LOCATION there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC2 {
@@ -281,7 +672,7 @@ records {
 		PREFERRED {
 			GROUP G1
 		}
-		RESEARCH RQ1
+		QUESTION RQ1
 	}
 
 	CONCLUSION CC3 {
@@ -294,7 +685,7 @@ records {
 		PREFERRED {
 			EVENT E1
 		}
-		RESEARCH RQ1
+		QUESTION RQ1
 	}
 
 	CONCLUSION CC4 {
@@ -307,7 +698,7 @@ records {
 		PREFERRED {
 			PLACE P1
 		}
-		RESEARCH RQ1
+		QUESTION RQ1
 	}
 
 	CONCLUSION CC5 {
@@ -320,7 +711,7 @@ records {
 		PREFERRED {
 			CULTURAL_NORM CN1
 		}
-		RESEARCH RQ1
+		QUESTION RQ1
 	}
 
 	CONCLUSION CC6 {
@@ -333,7 +724,98 @@ records {
 		PREFERRED {
 			SOURCE S1
 		}
-		RESEARCH RQ1
+		QUESTION RQ1
+	}
+
+	CONCLUSION CC7 {
+		CONTEXT src hist evt
+		PROOF_STATUS proven
+		NARRATIVE narr for he
+		RESOLVES {
+			HISTORIC_EVENT HE1
+		}
+		PREFERRED {
+			HISTORIC_EVENT HE1
+		}
+		QUESTION RQ1
+	}
+
+	CONCLUSION CC8 {
+		CONTEXT src hist rl
+		PROOF_STATUS proven
+		NARRATIVE narr for rl
+		RESOLVES {
+			RELATIONSHIP RL1
+		}
+		PREFERRED {
+			RELATIONSHIP RL1
+		}
+		QUESTION RQ1
+	}
+
+	CONCLUSION CC9 {
+		CONTEXT src hist ep
+		PROOF_STATUS proven
+		NARRATIVE narr for ep
+		RESOLVES {
+			EVENT_PARTICIPATION EP1
+		}
+		PREFERRED {
+			EVENT_PARTICIPATION EP1
+		}
+		QUESTION RQ1
+	}
+
+	CONCLUSION CC10 {
+		CONTEXT src hist ga
+		PROOF_STATUS proven
+		NARRATIVE narr for ga
+		RESOLVES {
+			GROUP_ATTRIBUTE GA1
+		}
+		PREFERRED {
+			GROUP_ATTRIBUTE GA1
+		}
+		QUESTION RQ1
+	}
+
+	CONCLUSION CC11 {
+		CONTEXT src hist ia
+		PROOF_STATUS proven
+		NARRATIVE narr for ia
+		RESOLVES {
+			INDIVIDUAL_ATTRIBUTE IA1
+		}
+		PREFERRED {
+			INDIVIDUAL_ATTRIBUTE IA1
+		}
+		QUESTION RQ1
+	}
+
+	CONCLUSION CC12 {
+		CONTEXT src hist ih
+		PROOF_STATUS proven
+		NARRATIVE narr for ih
+		RESOLVES {
+			IDENTITY_HYPOTHESIS IH1
+		}
+		PREFERRED {
+			IDENTITY_HYPOTHESIS IH1
+		}
+		QUESTION RQ1
+	}
+
+	CONCLUSION CC13 {
+		CONTEXT src hist pr
+		PROOF_STATUS proven
+		NARRATIVE narr for pr
+		RESOLVES {
+			PLACE_RELATIONSHIP PR1
+		}
+		PREFERRED {
+			PLACE_RELATIONSHIP PR1
+		}
+		QUESTION RQ1
 	}
 
 	IDENTITY_HYPOTHESIS IH1 {
@@ -346,6 +828,35 @@ records {
 		COMMENT """
 maybe the same
 person"""
+		SOURCE {
+			SOURCE S1
+			LOCATION there for activity
+			EXTRACT {
+				TEXT ext2
+				TYPE summarized
+				LOCALE en-US
+			}
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	IDENTITY_HYPOTHESIS IH2 {
@@ -384,10 +895,33 @@ person"""
 	RESEARCH_QUESTION RQ1 {
 		TITLE rq title
 		QUESTION is?
+		CONCLUSION it must be true
+		CONCLUSION_CONFIDENCE medium
+		RATIONALE rationale of question
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 		TARGET {
 			INDIVIDUAL I1
 		}
 		STATUS open
+		CLOSED 2010-10-10
 	}
 
 	RESEARCH_QUESTION RQ2 {
@@ -444,15 +978,82 @@ person"""
 		STATUS closed
 	}
 
+	RESEARCH_QUESTION RQ8 {
+		TITLE cn rq title doc
+		QUESTION is doc?
+		TARGET {
+			DOCUMENT D1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ9 {
+		TITLE cn rq title he
+		QUESTION is he?
+		TARGET {
+			HISTORIC_EVENT HE1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ10 {
+		TITLE cn rq title rl
+		QUESTION is rl?
+		TARGET {
+			RELATIONSHIP RL1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ11 {
+		TITLE cn rq title ep
+		QUESTION is ep?
+		TARGET {
+			EVENT_PARTICIPATION EP1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ12 {
+		TITLE cn rq title ga
+		QUESTION is ga?
+		TARGET {
+			GROUP_ATTRIBUTE GA1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ13 {
+		TITLE cn rq title ia
+		QUESTION is ia?
+		TARGET {
+			INDIVIDUAL_ATTRIBUTE IA1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ14 {
+		TITLE cn rq title ih
+		QUESTION is ih?
+		TARGET {
+			IDENTITY_HYPOTHESIS IH1
+		}
+		STATUS closed
+	}
+
+	RESEARCH_QUESTION RQ15 {
+		TITLE cn rq title pr
+		QUESTION is pr?
+		TARGET {
+			PLACE_RELATIONSHIP PR1
+		}
+		STATUS closed
+	}
+
 	RESEARCH_ACTIVITY RA1 {
-		QUESTION RQ1
-		QUESTION RQ2
 		ACTIVITY_TYPE review
 		STATUS in_progress
 		ACTION do things
-		TARGET {
-			INDIVIDUAL I1
-		}
 		SEARCH_SCOPE {
 			TYPE index_only
 			DETAIL page 25
@@ -460,6 +1061,7 @@ person"""
 		RESULT positive
 		OBSERVATION observed something
 		CONCLUSION concluded something else
+		CONCLUSION_CONFIDENCE high
 		SOURCE {
 			SOURCE S1
 			LOCATION there for activity
@@ -469,18 +1071,68 @@ person"""
 				LOCALE en-US
 			}
 		}
+		QUESTION RQ1
+		QUESTION RQ2
 		TASK RT1
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		TARGET {
+			INDIVIDUAL I1
+		}
+		PARENT RA2
+	}
+
+	RESEARCH_ACTIVITY RA2 {
+		ACTIVITY_TYPE review
+		STATUS in_progress
+		ACTION do something in order to proceed
 	}
 
 	RESEARCH_TASK RT1 {
 		DESCRIPTION correct individual 1
-		QUESTION RQ1
-		QUESTION RQ2
-		CREATED_BY RA1
 		STATUS in_progress
 		PRIORITY low
 		DUE_DATE 2020-05-05
 		OUTCOME expected outcome
+		QUESTION RQ1
+		QUESTION RQ2
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		CREATED_BY RA1
 	}
 
 	SOURCE S1 {
@@ -578,6 +1230,11 @@ person"""
 		}
 	}
 
+	NOTE N2 {
+		TITLE note 1 title
+		VALUE note 1
+	}
+
 	GROUP G1 {
 		PREFERRED_IMAGE {
 			URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
@@ -599,6 +1256,10 @@ person"""
 						VALUE kaxa
 					}
 				}
+				SOURCE {
+					SOURCE S1
+				}
+				NOTE N1
 			}
 		}
 		TYPE household
@@ -632,8 +1293,101 @@ person"""
 
 	GROUP_ATTRIBUTE GA1 {
 		GROUP G1
+		VALID_FROM {
+			VALUE {
+				BOUNDED {
+					NOT_BEFORE {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					NOT_AFTER {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		VALID_TO {
+			VALUE {
+				SPANNING {
+					FROM {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-01-01
+								CALENDAR gregorian
+							}
+						}
+					}
+					TO {
+						SINGLE_DATE {
+							FULL_DATE {
+								VALUE 2001-02-02
+								CALENDAR gregorian
+							}
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
 		TYPE residence
 		VALUE group attr value
+		SOURCE {
+			SOURCE S1
+			LOCATION src loc
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		PRIVACY {
+			LEVEL restricted
+			REASON because
+			EXPIRES 2010-01-01
+		}
+		AUDIT {
+			CREATION {
+				DATE 2026-08-22T15:53:49Z
+			}
+		}
 	}
 
 	CULTURAL_NORM CN1 {
@@ -868,12 +1622,36 @@ person"""
 	}
 
 	PLACE_RELATIONSHIP PR1 {
-		TYPE group_member place
 		SUBJECT {
 			PLACE P1
 		}
 		OBJECT {
 			PLACE P2
+		}
+		TYPE group_member place
+		SOURCE {
+			SOURCE S1
+			LOCATION src loc place rel
+		}
+		NOTE N1
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 		VALID_FROM {
 			VALUE {
@@ -937,30 +1715,6 @@ person"""
 				SOURCE_TYPE derived
 				INFORMATION_TYPE secondary
 				EVIDENCE_TYPE indirect
-			}
-		}
-		SOURCE {
-			SOURCE S1
-			LOCATION src loc place rel
-		}
-		NOTE N1
-		EVIDENCE {
-			SOURCE_TYPE derived
-			INFORMATION_TYPE secondary
-			EVIDENCE_TYPE indirect
-		}
-		AUDIT {
-			CREATION {
-				DATE 1990-02-02
-				COMMENT creation comment
-			}
-			UPDATE {
-				DATE 1995-03-03
-				COMMENT first update
-			}
-			UPDATE {
-				DATE 2000-04-04
-				COMMENT second update
 			}
 		}
 	}
@@ -1027,22 +1781,6 @@ person"""
 		CONTACT {
 			ADDRESS addr
 			TYPE email
-			NAME {
-				VALUE contact name
-				VARIANT {
-					PHONETIC {
-						SYSTEM ipa
-						VALUE contact name genki
-					}
-				}
-				VARIANT {
-					TRANSCRIPTION {
-						SYSTEM rōmaji
-						TYPE romanized
-						VALUE contact name nòme
-					}
-				}
-			}
 			NOTE contact note
 			PRIVACY {
 				LEVEL restricted
@@ -1061,6 +1799,22 @@ person"""
 				UPDATE {
 					DATE 2000-04-04
 					COMMENT second update
+				}
+			}
+			NAME {
+				VALUE contact name
+				VARIANT {
+					PHONETIC {
+						SYSTEM ipa
+						VALUE contact name genki
+					}
+				}
+				VARIANT {
+					TRANSCRIPTION {
+						SYSTEM rōmaji
+						TYPE romanized
+						VALUE contact name nòme
+					}
 				}
 			}
 		}
@@ -1088,6 +1842,67 @@ person"""
 			UPDATE {
 				DATE 2000-04-04
 				COMMENT second update
+			}
+		}
+	}
+
+	HISTORIC_EVENT HE1 {
+		TYPE famine
+		TITLE black plague
+		SOURCE {
+			SOURCE S1
+			LOCATION src he
+		}
+		NOTE N1
+		NOTE N2
+		EVIDENCE {
+			SOURCE_TYPE derived
+			INFORMATION_TYPE secondary
+			EVIDENCE_TYPE indirect
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
+		DATE {
+			VALUE {
+				POINT {
+					SINGLE_DATE {
+						FULL_DATE {
+							VALUE 2001-02-03
+							CALENDAR gregorian
+						}
+					}
+				}
+			}
+			ORIGINAL_TEXT original text
+			SOURCE {
+				SOURCE S1
+				LOCATION src loc
+			}
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
+			}
+		}
+		PLACE {
+			PLACE P1
+			ORIGINAL_TEXT kel pòsto là via, de la nòrma
+			EVIDENCE {
+				SOURCE_TYPE derived
+				INFORMATION_TYPE secondary
+				EVIDENCE_TYPE indirect
 			}
 		}
 	}

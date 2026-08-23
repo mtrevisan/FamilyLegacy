@@ -107,7 +107,7 @@ public class PrivacyPanel extends JPanel{
 
 
 
-		GUIHelper.setLayoutLabelFieldPanel(this, 10, "[]10[]10[]");
+		setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]10[]"));
 
 		// level
 		GUIHelper.addLabeledComponent(this, "Level:", levelCombo);

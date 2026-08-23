@@ -30,7 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.VariantListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -75,7 +75,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	private final BoundComboBox<String> typeCombo;
 	private final BoundTextField valueField;
-	private final VariantListPanel variantPanel;
+	private final TextValueVariantListPanel variantPanel;
 
 
 	public static PartStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -103,7 +103,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 		});
 		typeCombo.setEditable(true);
 		valueField = new BoundTextField(TAG_VALUE);
-		variantPanel = new VariantListPanel(TAG_VARIANT, this, "Variant", model);
+		variantPanel = new TextValueVariantListPanel(TAG_VARIANT, this, "Variant", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)

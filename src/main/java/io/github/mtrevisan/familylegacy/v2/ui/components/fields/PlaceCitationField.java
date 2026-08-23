@@ -45,6 +45,7 @@ import java.io.Serial;
 import java.util.List;
 
 
+/* TODO ParticipantField? */
 /**
  * Component for selecting and displaying place citations.
  */
@@ -70,10 +71,6 @@ public class PlaceCitationField extends JPanel{
 
 
 	public static PlaceCitationField create(final String path, final Dialog parent, final FLEFModel model){
-		return new PlaceCitationField(path, parent, model);
-	}
-
-	public static PlaceCitationField createWithWrapperTag(final String path, final Dialog parent, final FLEFModel model){
 		return new PlaceCitationField(path, parent, model);
 	}
 

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
@@ -178,6 +179,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		}
 		catch(final Exception ignored){}
 
+		HandlerRegistry.scanHandlers();
+
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
@@ -185,7 +188,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			model.addRecord(place);
 
 //			final FLEFRecord placeCitation = FLEFRecord.createEmpty();
-//			placeCitation.addChild(FLEFRecord.createChildWithValue(TAG_PLACE, "P1"));
+//			placeCitation.addChild(FLEFRecord.createChildWithTagAndValue(TAG_PLACE, "P1"));
 //			final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(null, model, placeCitation);
 			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model);
 			dialog.setPlace("P1");

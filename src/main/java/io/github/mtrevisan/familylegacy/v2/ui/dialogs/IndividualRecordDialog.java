@@ -55,7 +55,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* DONE */
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -80,9 +79,9 @@ import java.nio.charset.StandardCharsets;
  * Tab 1 (Properties): name, sex, preferred_image
  * Tab 2 (Attributes): IndividualAttributeRecord (individual = this individual)
  * Tab 3 (Relationships): RelationshipRecord (subject = this individual), RelationshipRecord (object = this individual)
- * Tab 4 (Participations): EventParticipationRecord (participant.individual = this individual)
- * Tab 5 (Context): ContextImpactRecord (target.individual = this individual)
- * Tab 6 (Research): ConclusionRecord (resolves = this individual), IdentityHypothesisRecord (subject/candidate = this individual), ResearchQuestionRecord (target.individual = this individual)
+ * Tab 4 (Participations): EventParticipationRecord (participant[individual] = this individual)
+ * Tab 5 (Context): ContextImpactRecord (target[individual] = this individual)
+ * Tab 6 (Research): ConclusionRecord (resolves = this individual), IdentityHypothesisRecord (subject/candidate = this individual), ResearchQuestionRecord (target[individual] = this individual)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy

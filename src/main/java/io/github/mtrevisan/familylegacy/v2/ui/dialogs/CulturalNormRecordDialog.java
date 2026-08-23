@@ -54,7 +54,6 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 
 
-/* DONE */
 /**
  * Dialog for editing a {@code CULTURAL_NORM_RECORD} according to FLEF 0.1.1.
  * <p>
@@ -85,8 +84,8 @@ import java.nio.charset.StandardCharsets;
  * <p>
  * Tabs:
  * Tab 1 (Properties): title, rule_type, place, valid_from, valid_to, evidence
- * Tab 5 (Context): ContextImpactRecord (context.cultural_norm = this norm)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this norm), ResearchQuestionRecord (target.cultural_norm = this norm)
+ * Tab 5 (Context): ContextImpactRecord (context[cultural_norm] = this norm)
+ * Tab 6 (Research): ConclusionRecord (resolves = this norm), ResearchQuestionRecord (target[cultural_norm] = this norm)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 10 (Audit): audit

@@ -48,10 +48,11 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import java.awt.Dialog;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
@@ -85,8 +86,8 @@ import java.util.List;
  * <p>
  * Tabs:
  * Tab 1 (Properties): subject, object, type, role, status, valid_from, valid_to, evidence
- * Tab 5 (Context): ContextImpactRecord (target.relationship = this relationship)
- * Tab 6 (Research): ConclusionRecord (resolves/preferred = this relationship), ResearchQuestionRecord (target.relationship = this relationship)
+ * Tab 5 (Context): ContextImpactRecord (target[relationship] = this relationship)
+ * Tab 6 (Research): ConclusionRecord (resolves = this relationship), ResearchQuestionRecord (target[relationship] = this relationship)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -420,22 +421,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args){
-		try{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+	public static void main(final String[] args) throws IOException{
+		try(final InputStream is = RelationshipRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+			GUIHelper.launch(RelationshipRecordDialog::createEdit, content, "RL1");
 		}
-		catch(final Exception ignored){}
-
-		final FLEFModel model = new FLEFModel();
-
-		SwingUtilities.invokeLater(() -> {
-			final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
-			model.addRecord(individual);
-
-			final RelationshipRecordDialog dialog = RelationshipRecordDialog.createNew(null, model);
-//			dialog.setSubject("I1", IndividualHandler.TYPE);
-			dialog.setVisible(true);
-		});
 	}
 
 }

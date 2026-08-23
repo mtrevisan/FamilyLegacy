@@ -90,13 +90,13 @@ public class ImageCropDialog extends JDialog{
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
-		GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]");
+		setLayout(GUIHelper.createLabelFieldLayout(0, "[]"));
 
 		final JPanel recordPanel = GUIHelper.createLabelFieldPanel(0, "[grow,fill]");
 		GUIHelper.addComponent(recordPanel, imageHolder);
 		add(recordPanel, "grow,push");
 
-		final JPanel buttonPanel = GUIHelper.createButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(getRootPane(),
 			this::save,
 			() -> setVisible(false));
 		add(buttonPanel, BorderLayout.SOUTH);

@@ -148,7 +148,7 @@ public class QualifiedDatePanel extends JPanel{
 		bindingManager.bind(calendarCombo);
 
 
-		GUIHelper.setLayoutLabelFieldPanel(this, 0, "[]10[]10[]20[]");
+		setLayout(GUIHelper.createLabelFieldLayout(0, "[]10[]10[]20[]"));
 		setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
 
 		// date type
@@ -164,7 +164,6 @@ public class QualifiedDatePanel extends JPanel{
 		GUIHelper.addLabeledComponent(decadePanel, "Decade:", decadeStartYearField);
 		decadeStartYearField.setToolTipText("e.g., 1490 for the 1490s");
 
-//		final JPanel centuryPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]");
 		final JPanel centuryPanel = new JPanel(new MigLayout("ins 0,fillx,wrap 2", "[right]rel[grow,fill]"));
 		GUIHelper.addLabeledComponent(centuryPanel, "Century:", centuryOrdinalField);
 		GUIHelper.addLabeledComponent(centuryPanel, "Part:", centuryPartCombo);
