@@ -24,9 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.helpers.MessageFormatter;
+import org.slf4j.helpers.NOPLoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -44,6 +46,13 @@ import java.util.Properties;
 public final class JavaHelper{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(JavaHelper.class);
+
+	static{
+		//check whether an optional SLF4J binding is available
+		final ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
+		if(loggerFactory == null || loggerFactory.getClass().equals(NOPLoggerFactory.class))
+			System.out.println("[WARN] SLF4J: No logger is defined, NO LOG will be printed!");
+	}
 
 
 	private JavaHelper(){}
