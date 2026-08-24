@@ -35,7 +35,7 @@ import java.awt.Dialog;
 
 
 /**
- * Handler for {@code CLASSIFIED_NAME_STRUCTURE} entities according to FLEF 0.1.1.
+ * Handler for {@code CLASSIFIED_NAME_STRUCTURE} entities according to FLEF 0.1.2.
  * <p>
  * This handler provides the necessary operations for managing name structures:
  * creation, editing, display name generation, and type identification.

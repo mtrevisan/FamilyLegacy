@@ -58,7 +58,7 @@ import java.nio.charset.StandardCharsets;
 
 
 /**
- * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing a {@code GROUP_ATTRIBUTE_RECORD} according to FLEF 0.1.2.
  * <p>
  * Structure:
  * <pre>

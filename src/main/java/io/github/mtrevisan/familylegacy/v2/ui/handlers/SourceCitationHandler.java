@@ -33,7 +33,7 @@ import java.awt.Dialog;
 
 
 /**
- * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.1.
+ * Handler for {@code SOURCE_CITATION} entities according to FLEF 0.1.2.
  */
 public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitationDialog>{
 

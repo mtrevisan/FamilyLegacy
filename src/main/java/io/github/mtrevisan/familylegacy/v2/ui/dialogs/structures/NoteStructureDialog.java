@@ -22,7 +22,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
+package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -49,11 +49,11 @@ import java.nio.charset.StandardCharsets;
 
 
 /**
- * Dialog for editing a {@code NOTE_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing a {@code NOTE_STRUCTURE} according to FLEF 0.1.2.
  * <p>
  * Structure:
  * <pre>
- * record NoteRecord {
+ * struct NoteStructure {
  *   id: LocalID
  *   title?: Text
  *   value: Text
@@ -75,7 +75,7 @@ import java.nio.charset.StandardCharsets;
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
  */
-public class NoteRecordDialog extends BaseRecordDialog{
+public class NoteStructureDialog extends BaseRecordDialog{
 
 	@Serial
 	private static final long serialVersionUID = -4670126000119212975L;
@@ -102,16 +102,16 @@ public class NoteRecordDialog extends BaseRecordDialog{
 	private final TranslationListPanel translationPanel;
 
 
-	public static NoteRecordDialog createNew(final Dialog parent, final FLEFModel model){
-		return createNew(parent, model, NoteRecordDialog::new);
+	public static NoteStructureDialog createNew(final Dialog parent, final FLEFModel model){
+		return createNew(parent, model, NoteStructureDialog::new);
 	}
 
-	public static NoteRecordDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return createEdit(parent, model, record, NoteRecordDialog::new);
+	public static NoteStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createEdit(parent, model, record, NoteStructureDialog::new);
 	}
 
 
-	private NoteRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	private NoteStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, NoteHandler.class);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");
@@ -215,9 +215,9 @@ public class NoteRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = NoteRecordDialog.class.getResourceAsStream("/tests/test.flef")){
+		try(final InputStream is = NoteStructureDialog.class.getResourceAsStream("/tests/test.flef")){
 			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(NoteRecordDialog::createEdit, content, "N1");
+			GUIHelper.launch(NoteStructureDialog::createEdit, content, "N1");
 		}
 	}
 

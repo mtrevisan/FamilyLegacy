@@ -90,9 +90,9 @@ public class FLEFModel{
 		return recordsById.get(id);
 	}
 
-	public void removeRecord(final String id){
+	public FLEFRecord removeRecord(final String id){
 		if(id == null)
-			return;
+			return null;
 
 		final FLEFRecord record = recordsById.remove(id);
 
@@ -107,6 +107,8 @@ public class FLEFModel{
 					recordsByType.remove(type);
 			}
 		}
+
+		return record;
 	}
 
 	public boolean hasRecord(final String id){

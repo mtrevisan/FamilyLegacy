@@ -14,6 +14,7 @@
 // - blocked_by relationships SHOULD form a DAG.
 // - follow_up relationships SHOULD be acyclic.
 
+// TODO all "note*: Xref<NoteRecord>" should be a reference to a note?
 
 // ============================================================
 // Base scalar types
@@ -779,7 +780,7 @@ record SourceRecord {
   } | Text
   repository*: RepositoryCitation
   document*: Xref<DocumentRecord>   // a document reference to the auxiliary data to be linked to this context
-  note*: Xref<NoteRecord>           // may contain information to identify a book (author, publisher, ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
+  note*: Xref<NoteRecord>           // may contain information to identify a book (ISBN code, ...), a digital archive (website name, creator, ...), a microfilm (record title, record file, collection, film UUID, roll number, ...), etc.
   privacy?: PrivacyStructure
   audit: AuditStructure
 }

@@ -58,7 +58,7 @@ import java.nio.charset.StandardCharsets;
 
 
 /**
- * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing an {@code EVENT_RECORD} according to FLEF 0.1.2.
  * <p>
  * Structure:
  * <pre>

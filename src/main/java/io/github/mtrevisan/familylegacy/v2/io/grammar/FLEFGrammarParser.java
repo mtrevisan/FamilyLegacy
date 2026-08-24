@@ -621,7 +621,7 @@ public final class FLEFGrammarParser{
 
 
 	public static void main(final String[] args) throws Exception{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.1.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.2.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		System.out.println("File definition: " + (grammar.getFileDefinition() != null

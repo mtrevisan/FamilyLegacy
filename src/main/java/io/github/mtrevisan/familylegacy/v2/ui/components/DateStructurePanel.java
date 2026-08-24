@@ -49,7 +49,7 @@ import java.io.Serial;
 
 
 /**
- * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.1.
+ * Panel for editing a {@code DATE_STRUCTURE} according to FLEF 0.1.2.
  * <p>
  * Structure:
  * <pre>

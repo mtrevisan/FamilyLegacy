@@ -43,7 +43,7 @@ import java.time.temporal.ChronoUnit;
 
 
 /**
- * Panel for editing a {@code MODIFICATION_STRUCTURE} according to FLEF 0.1.1.
+ * Panel for editing a {@code MODIFICATION_STRUCTURE} according to FLEF 0.1.2.
  * <p>
  * Structure:
  * <pre>

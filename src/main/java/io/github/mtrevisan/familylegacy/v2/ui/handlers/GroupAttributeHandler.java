@@ -36,7 +36,7 @@ import java.util.List;
 
 
 /**
- * Handler for {@code GROUP_ATTRIBUTE_RECORD} entities according to FLEF 0.1.1.
+ * Handler for {@code GROUP_ATTRIBUTE_RECORD} entities according to FLEF 0.1.2.
  */
 public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttributeRecordDialog>{
 

@@ -36,7 +36,7 @@ import java.util.List;
 
 
 /**
- * Handler for {@code INDIVIDUAL_ATTRIBUTE_RECORD} entities according to FLEF 0.1.1.
+ * Handler for {@code INDIVIDUAL_ATTRIBUTE_RECORD} entities according to FLEF 0.1.2.
  */
 public class IndividualAttributeHandler extends AbstractRecordTypeHandler<IndividualAttributeRecordDialog>{
 

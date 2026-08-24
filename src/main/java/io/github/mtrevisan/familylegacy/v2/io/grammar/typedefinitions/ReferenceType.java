@@ -66,7 +66,7 @@ public final class ReferenceType extends TypeDefinition{
 		// 1. Syntactic validation: Check if node is a reference format
 		final FLEFRecord referencedRecord = model.getRecordById(record.getValue());
 		if(referencedRecord == null){
-			errors.add(String.format("Expected cross-reference at '%s'", contextPath));
+			errors.add(String.format("Expected cross-reference at '%s' for record %s", contextPath, record));
 
 			return;
 		}

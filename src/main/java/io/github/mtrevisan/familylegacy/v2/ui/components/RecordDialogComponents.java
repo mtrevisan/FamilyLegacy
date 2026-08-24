@@ -205,9 +205,11 @@ public final class RecordDialogComponents{
 
 			case EVIDENCE -> new EvidenceQualifiersPanel(cfg.tag(), owner, cfg.title(), model, HandlerRegistry.getHandlerType(cfg.handlerType()));
 
+			case NOTE ->
+				EntityListPanel.createForStructure(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
+
 			// embedded reference
 			case CONTEXT_IMPACT,
-				  NOTE,
 				  DOCUMENT,
 				  RESEARCH_QUESTION,
 				  TASK ->

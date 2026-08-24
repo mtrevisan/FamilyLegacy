@@ -59,7 +59,7 @@ import java.util.function.Consumer;
 
 
 /**
- * Dialog for editing a {@code CONTEXT_IMPACT_RECORD} according to FLEF 0.1.1.
+ * Dialog for editing a {@code CONTEXT_IMPACT_RECORD} according to FLEF 0.1.2.
  * <p>
  * Structure:
  * <pre>

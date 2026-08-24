@@ -361,7 +361,7 @@ public class FLEFValidator{
 
 
 	public static void main(final String[] args) throws Exception{
-		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.1.gedg");
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.2.gedg");
 		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
 
 		final FLEFParser parser = new FLEFParser();
@@ -369,7 +369,7 @@ public class FLEFValidator{
 			header {
 			  protocol {
 			    name Family LEgacy Format
-			    version 0.1.1
+			    version 0.1.2
 			  }
 			  source {
 			    system_id MyGenealogySoftware

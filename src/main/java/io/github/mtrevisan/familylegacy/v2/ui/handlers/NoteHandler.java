@@ -27,20 +27,24 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.NoteRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import java.awt.Dialog;
 
 
-public class NoteHandler extends AbstractRecordTypeHandler<NoteRecordDialog>{
+public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	public static final String TYPE = "NOTE";
-	public static final String ID_PREFIX = "N";
 
 	private static final String TAG_VALUE = "VALUE";
 
+
+	@Override
+	public boolean isTopLevelEntity(){
+		return false;
+	}
 
 	@Override
 	public String getLabel(){
@@ -54,27 +58,26 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteRecordDialog>{
 
 	@Override
 	public String getIdPrefix(){
-		return ID_PREFIX;
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		String id = record.getId();
 		if(StringUtils.isNotEmpty(value))
-			return GUIHelper.limitTextLength(value) + " [" + id + "]";
-		return "[" + id + "]";
+			return GUIHelper.limitTextLength(value);
+		return "...";
 	}
 
 	@Override
-	public NoteRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return NoteRecordDialog.createNew(parent, model);
+	public NoteStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return NoteStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public NoteRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public NoteStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return NoteRecordDialog.createEdit(parent, model, record);
+		return NoteStructureDialog.createEdit(parent, model, record);
 	}
 
 }

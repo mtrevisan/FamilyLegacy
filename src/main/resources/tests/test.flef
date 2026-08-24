@@ -1,7 +1,7 @@
 header {
 	PROTOCOL {
 		NAME Family LEgacy Format
-		VERSION 0.1.1
+		VERSION 0.1.2
 	}
 	SOURCE {
 		SYSTEM_ID FamilyLegacy
@@ -122,7 +122,38 @@ records {
 					LOCALE en-US
 				}
 			}
-			NOTE N1
+			NOTE {
+				TITLE note 1 title
+				VALUE note 1
+				MIME text/plain
+				LOCALE it-IT
+				SOURCE {
+					SOURCE S1
+				}
+				PRIVACY {
+					LEVEL restricted
+					REASON because
+					EXPIRES 2010-01-01
+				}
+				AUDIT {
+					CREATION {
+						DATE 1990-02-02
+						COMMENT creation comment
+					}
+					UPDATE {
+						DATE 1995-03-03
+						COMMENT first update
+					}
+					UPDATE {
+						DATE 2000-04-04
+						COMMENT second update
+					}
+				}
+				TRANSLATION {
+					VALUE nòda
+					LOCALE vec-IT
+				}
+			}
 			PART {
 				TYPE given
 				VALUE nòme
@@ -145,7 +176,38 @@ records {
 				LOCALE en-US
 			}
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		PRIVACY {
 			LEVEL restricted
 			REASON because
@@ -262,7 +324,38 @@ records {
 				LOCALE en-US
 			}
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE original
 			INFORMATION_TYPE primary
@@ -308,7 +401,38 @@ records {
 				LOCALE en-US
 			}
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE original
 			INFORMATION_TYPE primary
@@ -439,7 +563,38 @@ records {
 				LOCALE en-US
 			}
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE original
 			INFORMATION_TYPE primary
@@ -1223,7 +1378,38 @@ person"""
 				LOCALE en-US
 			}
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -1356,7 +1542,7 @@ person"""
 		TITLE void rq title
 		QUESTION is void?
 		TARGET {
-			VOID { }
+			VOID
 		}
 		STATUS resolved
 		AUDIT {
@@ -1814,7 +2000,38 @@ person"""
 			NOTE repo note
 		}
 		DOCUMENT D1
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		PRIVACY {
 			LEVEL restricted
 			REASON because
@@ -1856,58 +2073,6 @@ person"""
 		}
 	}
 
-	NOTE N1 {
-		TITLE note 1 title
-		VALUE note 1
-		MIME text/plain
-		LOCALE it-IT
-		SOURCE {
-			SOURCE S1
-		}
-		PRIVACY {
-			LEVEL restricted
-			REASON because
-			EXPIRES 2010-01-01
-		}
-		AUDIT {
-			CREATION {
-				DATE 1990-02-02
-				COMMENT creation comment
-			}
-			UPDATE {
-				DATE 1995-03-03
-				COMMENT first update
-			}
-			UPDATE {
-				DATE 2000-04-04
-				COMMENT second update
-			}
-		}
-		TRANSLATION {
-			VALUE nòda
-			LOCALE vec-IT
-		}
-	}
-
-	NOTE N2 {
-		TITLE note 1 title
-		VALUE note 1
-		AUDIT {
-			CREATION {
-				DATE 1990-02-02
-				COMMENT creation comment
-			}
-			UPDATE {
-				DATE 1995-03-03
-				COMMENT first update
-			}
-			UPDATE {
-				DATE 2000-04-04
-				COMMENT second update
-			}
-		}
-	}
-
 	GROUP G1 {
 		PREFERRED_IMAGE {
 			URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
@@ -1932,14 +2097,76 @@ person"""
 				SOURCE {
 					SOURCE S1
 				}
-				NOTE N1
+				NOTE {
+					TITLE note 1 title
+					VALUE note 1
+					MIME text/plain
+					LOCALE it-IT
+					SOURCE {
+						SOURCE S1
+					}
+					PRIVACY {
+						LEVEL restricted
+						REASON because
+						EXPIRES 2010-01-01
+					}
+					AUDIT {
+						CREATION {
+							DATE 1990-02-02
+							COMMENT creation comment
+						}
+						UPDATE {
+							DATE 1995-03-03
+							COMMENT first update
+						}
+						UPDATE {
+							DATE 2000-04-04
+							COMMENT second update
+						}
+					}
+					TRANSLATION {
+						VALUE nòda
+						LOCALE vec-IT
+					}
+				}
 			}
 		}
 		TYPE household
 		SOURCE {
 			SOURCE S2
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		PRIVACY {
 			LEVEL restricted
 			REASON because
@@ -2059,7 +2286,38 @@ person"""
 			SOURCE S1
 			LOCATION src loc
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -2084,7 +2342,38 @@ person"""
 			SOURCE S1
 			LOCATION src loc
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -2191,7 +2480,38 @@ person"""
 				LOCALE en-US
 			}
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE original
 			INFORMATION_TYPE primary
@@ -2350,7 +2670,38 @@ person"""
 			SOURCE S1
 			LOCATION src loc place rel
 		}
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -2461,7 +2812,38 @@ person"""
 	}
 
 	REPOSITORY R1 {
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		PRIVACY {
 			LEVEL restricted
 			REASON because
@@ -2501,7 +2883,38 @@ person"""
 						LOCALE en-US
 					}
 				}
-				NOTE N1
+				NOTE {
+					TITLE note 1 title
+					VALUE note 1
+					MIME text/plain
+					LOCALE it-IT
+					SOURCE {
+						SOURCE S1
+					}
+					PRIVACY {
+						LEVEL restricted
+						REASON because
+						EXPIRES 2010-01-01
+					}
+					AUDIT {
+						CREATION {
+							DATE 1990-02-02
+							COMMENT creation comment
+						}
+						UPDATE {
+							DATE 1995-03-03
+							COMMENT first update
+						}
+						UPDATE {
+							DATE 2000-04-04
+							COMMENT second update
+						}
+					}
+					TRANSLATION {
+						VALUE nòda
+						LOCALE vec-IT
+					}
+				}
 			}
 		}
 		CUSTODIAN I1
@@ -2555,7 +2968,38 @@ person"""
 		FILE C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
 		MAPPING planar
 		DESCRIPTION doc desc
-		NOTE N1
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
 		PRIVACY {
 			LEVEL restricted
 			REASON because
@@ -2584,8 +3028,56 @@ person"""
 			SOURCE S1
 			LOCATION src he
 		}
-		NOTE N1
-		NOTE N2
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			MIME text/plain
+			LOCALE it-IT
+			SOURCE {
+				SOURCE S1
+			}
+			PRIVACY {
+				LEVEL restricted
+				REASON because
+				EXPIRES 2010-01-01
+			}
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+			TRANSLATION {
+				VALUE nòda
+				LOCALE vec-IT
+			}
+		}
+		NOTE {
+			TITLE note 1 title
+			VALUE note 1
+			AUDIT {
+				CREATION {
+					DATE 1990-02-02
+					COMMENT creation comment
+				}
+				UPDATE {
+					DATE 1995-03-03
+					COMMENT first update
+				}
+				UPDATE {
+					DATE 2000-04-04
+					COMMENT second update
+				}
+			}
+		}
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
