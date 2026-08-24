@@ -27,8 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.IndividualRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.awt.Dialog;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	private String buildNameFromParts(final FLEFRecord nameRecord){
 		final List<String> parts = new ArrayList<>();
 		for(final FLEFRecord child : nameRecord.getChildren())
-			if(TAG_PART.equals(child.getTag())){
+			if(Strings.CI.equals(TAG_PART, child.getTag())){
 				final String value = getTextValueFromPart(child);
 				if(StringUtils.isNotEmpty(value))
 					parts.add(value);
@@ -101,7 +102,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 	 */
 	private String getTextValueFromPart(final FLEFRecord partRecord){
 		for(final FLEFRecord textValueChild : partRecord.getChildren())
-			if(TAG_VALUE.equals(textValueChild.getTag())){
+			if(Strings.CI.equals(TAG_VALUE, textValueChild.getTag())){
 				final String val = textValueChild.getValue();
 				if(StringUtils.isNotBlank(val))
 					return val.trim();

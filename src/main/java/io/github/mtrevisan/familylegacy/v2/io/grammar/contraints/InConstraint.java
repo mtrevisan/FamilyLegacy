@@ -59,9 +59,16 @@ public final class InConstraint extends Constraint{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 			final List<String> errors){
-		final FLEFRecord fieldChild = FLEFRecordHelper.findChild(record, field);
+		FLEFRecord fieldChild = FLEFRecordHelper.findChild(record, field);
 		if(fieldChild == null)
 			return;
+		if(fieldChild.getChildren().size() != 1 || fieldChild.getTheOnlyChild().isEmpty()){
+			errors.add(String.format("Constraint violation at '%s': field '%s' is empty",
+				contextPath, fieldChild));
+
+			return;
+		}
+		fieldChild = fieldChild.getTheOnlyChild();
 
 		final FLEFRecord containerChild = FLEFRecordHelper.findChild(record, containerField);
 		if(containerChild == null){
@@ -82,8 +89,8 @@ public final class InConstraint extends Constraint{
 		boolean found = false;
 		for(final FLEFRecord child : containerChild.getChildren())
 			if(fieldValue.equals(child.getValue())){
-
 				found = true;
+
 				break;
 			}
 

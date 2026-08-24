@@ -26,18 +26,16 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 
 import java.awt.Dialog;
 import java.io.Serial;
-import java.util.List;
 
 
 /**
  * Panel for managing variants (phonetic and transcription) of a record.
  */
-public class TextValueVariantListPanel extends EntityReferenceListPanel{
+public class TextValueVariantListPanel extends EntityListPanel{
 
 	@Serial
 	private static final long serialVersionUID = -298718064629353117L;
@@ -45,22 +43,11 @@ public class TextValueVariantListPanel extends EntityReferenceListPanel{
 
 	public TextValueVariantListPanel(final String path, final Dialog parent, final String panelTitle,
 			final FLEFModel model){
-		super(path, parent, panelTitle, model, RelationType.STRUCTURE, null);
+		super(path, parent, panelTitle, model, ListType.STRUCTURE, null);
 
 		withHandlerTypes(TextValueVariantHandler.class);
 	}
 
-
-	@Override
-	public void load(final FLEFRecord record){
-		clear();
-
-		if(record == null || record.isEmpty())
-			return;
-
-		final List<FLEFRecord> variants = FLEFRecordHelper.extractStructures(record, path);
-		setItems(variants);
-	}
 
 	/**
 	 * Saves the current variants to the given record.

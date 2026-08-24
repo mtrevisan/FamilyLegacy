@@ -29,11 +29,13 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.Strings;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Locale;
 
 
 public class FLEFParser{
@@ -64,9 +66,9 @@ public class FLEFParser{
 			final FLEFRecord record = parseRecord();
 
 			final String tag = record.getTag();
-			if(FIELD_HEADER.equalsIgnoreCase(tag))
+			if(Strings.CI.equals(FIELD_HEADER, tag))
 				root.setHeader(record);
-			else if(FIELD_RECORDS.equalsIgnoreCase(tag)){
+			else if(Strings.CI.equals(FIELD_RECORDS, tag)){
 				for(final FLEFRecord child : record.getChildren())
 					root.addRecord(child);
 			}
@@ -80,7 +82,8 @@ public class FLEFParser{
 	}
 
 	private FLEFRecord parseRecord(){
-		final String tag = readIdentifier();
+		final String tag = readIdentifier()
+			.toLowerCase(Locale.ROOT);
 		final FLEFRecord record = FLEFRecord.createChildWithTag(tag);
 
 		skipSpaces();

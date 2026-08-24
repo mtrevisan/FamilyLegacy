@@ -27,14 +27,15 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.TextValueVariantDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.TextValueVariantStructureDialog;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.awt.Dialog;
 import java.util.Locale;
 
 
-public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValueVariantDialog>{
+public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValueVariantStructureDialog>{
 
 	public static final String TYPE = "TEXT_VALUE_VARIANT";
 
@@ -83,7 +84,7 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 				return String.format("%s [%s: %s]", value, TAG_PHONETIC.toLowerCase(Locale.ROOT), details);
 			return String.format("%s [%s]", value, TAG_PHONETIC.toLowerCase(Locale.ROOT));
 		}
-		else if(TAG_TRANSCRIPTION.equals(tag)){
+		else if(Strings.CI.equals(TAG_TRANSCRIPTION, tag)){
 			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
 			final String type = FLEFRecordHelper.getChildValue(variant, TAG_TYPE);
 			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
@@ -105,14 +106,14 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 	}
 
 	@Override
-	public TextValueVariantDialog createNewDialog(final Dialog parent, final FLEFModel model){
-		return TextValueVariantDialog.createNew(parent, model);
+	public TextValueVariantStructureDialog createNewDialog(final Dialog parent, final FLEFModel model){
+		return TextValueVariantStructureDialog.createNew(parent, model);
 	}
 
 	@Override
-	public TextValueVariantDialog createEditDialog(final Dialog parent, final FLEFModel model,
+	public TextValueVariantStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record){
-		return TextValueVariantDialog.createEdit(parent, model, record);
+		return TextValueVariantStructureDialog.createEdit(parent, model, record);
 	}
 
 }

@@ -113,7 +113,15 @@ records {
 		NAME {
 			TYPE maiden
 			CULTURAL_NORM CN1
-			SOURCE S1
+			SOURCE {
+				SOURCE S1
+				LOCATION there
+				EXTRACT {
+					TEXT ext
+					TYPE summarized
+					LOCALE en-US
+				}
+			}
 			NOTE N1
 			PART {
 				TYPE given
@@ -160,15 +168,41 @@ records {
 	}
 
 	INDIVIDUAL I2 {
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	INDIVIDUAL I3 {
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	INDIVIDUAL_ATTRIBUTE IA1 {
 		INDIVIDUAL I1
-		TYPE residence
-		VALUE attr
 		VALID_FROM {
 			VALUE {
 				POINT {
@@ -217,6 +251,8 @@ records {
 				EVIDENCE_TYPE indirect
 			}
 		}
+		TYPE residence
+		VALUE attr
 		SOURCE {
 			SOURCE S1
 			LOCATION there for activity
@@ -372,6 +408,20 @@ records {
 		OBJECT {
 			INDIVIDUAL I1
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	EVENT_PARTICIPATION EP1 {
@@ -422,6 +472,20 @@ records {
 		}
 		EVENT E2
 		ROLE whatever
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	EVENT_PARTICIPATION EP3 {
@@ -430,6 +494,20 @@ records {
 		}
 		EVENT E2
 		ROLE whatever event
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONTEXT_IMPACT CI1 {
@@ -480,6 +558,20 @@ records {
 		}
 		IMPACT_TYPE causes
 		SIGNIFICANCE high significance
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONTEXT_IMPACT CI3 {
@@ -491,6 +583,20 @@ records {
 		}
 		IMPACT_TYPE causes
 		SIGNIFICANCE low significance
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONTEXT_IMPACT CI4 {
@@ -506,6 +612,20 @@ records {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 
@@ -523,6 +643,20 @@ records {
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONTEXT_IMPACT CI6 {
@@ -538,6 +672,20 @@ records {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 
@@ -555,6 +703,20 @@ records {
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONTEXT_IMPACT CI8 {
@@ -570,6 +732,20 @@ records {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 
@@ -587,9 +763,23 @@ records {
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
-	CONTEXT_IMPACT C20 {
+	CONTEXT_IMPACT CI10 {
 		CONTEXT {
 			HISTORIC_EVENT HE1
 		}
@@ -603,9 +793,23 @@ records {
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
-	CONTEXT_IMPACT C21 {
+	CONTEXT_IMPACT CI11 {
 		CONTEXT {
 			HISTORIC_EVENT HE1
 		}
@@ -619,6 +823,20 @@ records {
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC1 {
@@ -631,7 +849,7 @@ records {
 		PREFERRED {
 			INDIVIDUAL I1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
 		SOURCE {
 			SOURCE S1
 			LOCATION there for activity
@@ -672,7 +890,21 @@ records {
 		PREFERRED {
 			GROUP G1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC3 {
@@ -685,7 +917,21 @@ records {
 		PREFERRED {
 			EVENT E1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC4 {
@@ -698,7 +944,21 @@ records {
 		PREFERRED {
 			PLACE P1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC5 {
@@ -711,7 +971,21 @@ records {
 		PREFERRED {
 			CULTURAL_NORM CN1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC6 {
@@ -724,7 +998,21 @@ records {
 		PREFERRED {
 			SOURCE S1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC7 {
@@ -737,7 +1025,21 @@ records {
 		PREFERRED {
 			HISTORIC_EVENT HE1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC8 {
@@ -750,7 +1052,21 @@ records {
 		PREFERRED {
 			RELATIONSHIP RL1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC9 {
@@ -763,7 +1079,21 @@ records {
 		PREFERRED {
 			EVENT_PARTICIPATION EP1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC10 {
@@ -776,7 +1106,21 @@ records {
 		PREFERRED {
 			GROUP_ATTRIBUTE GA1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC11 {
@@ -789,7 +1133,21 @@ records {
 		PREFERRED {
 			INDIVIDUAL_ATTRIBUTE IA1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC12 {
@@ -802,7 +1160,21 @@ records {
 		PREFERRED {
 			IDENTITY_HYPOTHESIS IH1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	CONCLUSION CC13 {
@@ -815,7 +1187,21 @@ records {
 		PREFERRED {
 			PLACE_RELATIONSHIP PR1
 		}
-		QUESTION RQ1
+		RESEARCH RQ1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	IDENTITY_HYPOTHESIS IH1 {
@@ -866,6 +1252,20 @@ person"""
 		CANDIDATE {
 			INDIVIDUAL I1
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	IDENTITY_HYPOTHESIS IH3 {
@@ -874,6 +1274,20 @@ person"""
 		}
 		CANDIDATE {
 			GROUP G2
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 
@@ -889,6 +1303,20 @@ person"""
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
 			EVIDENCE_TYPE negative
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 
@@ -928,9 +1356,23 @@ person"""
 		TITLE void rq title
 		QUESTION is void?
 		TARGET {
-			VOID
+			VOID { }
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ3 {
@@ -939,7 +1381,21 @@ person"""
 		TARGET {
 			GROUP G1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ4 {
@@ -948,7 +1404,21 @@ person"""
 		TARGET {
 			EVENT E1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ5 {
@@ -957,7 +1427,21 @@ person"""
 		TARGET {
 			PLACE P1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ6 {
@@ -966,7 +1450,21 @@ person"""
 		TARGET {
 			CULTURAL_NORM CN1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ7 {
@@ -975,7 +1473,21 @@ person"""
 		TARGET {
 			SOURCE S1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ8 {
@@ -984,7 +1496,21 @@ person"""
 		TARGET {
 			DOCUMENT D1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ9 {
@@ -993,7 +1519,21 @@ person"""
 		TARGET {
 			HISTORIC_EVENT HE1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ10 {
@@ -1002,7 +1542,21 @@ person"""
 		TARGET {
 			RELATIONSHIP RL1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ11 {
@@ -1011,7 +1565,21 @@ person"""
 		TARGET {
 			EVENT_PARTICIPATION EP1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ12 {
@@ -1020,7 +1588,21 @@ person"""
 		TARGET {
 			GROUP_ATTRIBUTE GA1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ13 {
@@ -1029,7 +1611,21 @@ person"""
 		TARGET {
 			INDIVIDUAL_ATTRIBUTE IA1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ14 {
@@ -1038,7 +1634,21 @@ person"""
 		TARGET {
 			IDENTITY_HYPOTHESIS IH1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_QUESTION RQ15 {
@@ -1047,7 +1657,21 @@ person"""
 		TARGET {
 			PLACE_RELATIONSHIP PR1
 		}
-		STATUS closed
+		STATUS resolved
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_ACTIVITY RA1 {
@@ -1103,6 +1727,20 @@ person"""
 		ACTIVITY_TYPE review
 		STATUS in_progress
 		ACTION do something in order to proceed
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	RESEARCH_TASK RT1 {
@@ -1138,6 +1776,13 @@ person"""
 	SOURCE S1 {
 		TITLE {
 			VALUE src title
+			LOCALE it-IT
+			VARIANT {
+				PHONETIC {
+					SYSTEM canIPA
+					VALUE kaxa
+				}
+			}
 		}
 		AUTHOR author
 		PUBLISHER pub
@@ -1195,6 +1840,20 @@ person"""
 		TITLE {
 			VALUE src title for group
 		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	NOTE N1 {
@@ -1233,6 +1892,20 @@ person"""
 	NOTE N2 {
 		TITLE note 1 title
 		VALUE note 1
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	GROUP G1 {
@@ -1289,6 +1962,20 @@ person"""
 	}
 
 	GROUP G2 {
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	GROUP_ATTRIBUTE GA1 {
@@ -1555,7 +2242,23 @@ person"""
 		CAUSE {
 			VALUE cause value
 		}
-		SOURCE S1
+		SOURCE {
+			SOURCE S1
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	PLACE P1 {
@@ -1619,6 +2322,20 @@ person"""
 			TYPE official
 		}
 		TYPE cadastral_part_of
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
+		}
 	}
 
 	PLACE_RELATIONSHIP PR1 {
@@ -1726,6 +2443,20 @@ person"""
 		}
 		OBJECT {
 			PLACE P1
+		}
+		AUDIT {
+			CREATION {
+				DATE 1990-02-02
+				COMMENT creation comment
+			}
+			UPDATE {
+				DATE 1995-03-03
+				COMMENT first update
+			}
+			UPDATE {
+				DATE 2000-04-04
+				COMMENT second update
+			}
 		}
 	}
 

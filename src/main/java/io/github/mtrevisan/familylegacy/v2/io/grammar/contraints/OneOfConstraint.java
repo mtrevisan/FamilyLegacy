@@ -56,10 +56,10 @@ public final class OneOfConstraint extends Constraint{
 			if(FLEFRecordHelper.findChild(record, fieldName) != null)
 				count ++;
 
-		if(count != 1)
+		if(count == 0)
 			errors.add(String.format(
-				"Constraint violation at '%s': expected exactly one of %s, but found %d",
-				contextPath, fields, count
+				"Constraint violation at '%s': expected at least one of %s",
+				contextPath, fields
 			));
 	}
 

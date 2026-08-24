@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.AbstractMap;
 import java.util.ArrayDeque;
@@ -33,6 +34,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,7 +55,8 @@ public final class FLEFRecordHelper{
 			if(startArrayIndex < 0)
 				return new Segment(segment, 0);
 
-			final String tag = segment.substring(0, startArrayIndex);
+			final String tag = segment.substring(0, startArrayIndex)
+				.toLowerCase(Locale.ROOT);
 			final int endArrayIndex = segment.indexOf(']', startArrayIndex);
 			final int index;
 			try{
@@ -140,7 +143,7 @@ public final class FLEFRecordHelper{
 			return result;
 
 		for(final FLEFRecord child : targetParent.getChildren())
-			if(seg.tag.equals(child.getTag()))
+			if(Strings.CI.equals(seg.tag, child.getTag()))
 				result.add(child);
 		return result;
 	}
@@ -182,10 +185,10 @@ public final class FLEFRecordHelper{
 
 	/*
 	extract (struct):
-		- `contact*: ContactStructure` | EntityReferenceListPanel | EntityReferenceListPanel.createForStructure
-		- `extract*: ExtractStructure` | ExtractListPanel | EntityReferenceListPanel.createForStructure
+		- `contact*: ContactStructure` | EntityListPanel | EntityListPanel.createForStructure
+		- `extract*: ExtractStructure` | ExtractListPanel | EntityListPanel.createForStructure
 		- `name*: ClassifiedNameStructure|PersonalNameStructure`, `name+: ClassifiedNameStructure`,
-			`part+: PartStructure`, `title+: NameStructure` | EntityReferenceListPanel.createForStructure
+			`part+: PartStructure`, `title+: NameStructure` | EntityListPanel.createForStructure
 
 	extract (oneof struct):
 		- `variant*: TextValueVariant` | VariantListPanel
@@ -193,7 +196,7 @@ public final class FLEFRecordHelper{
 		- `value: DateValue` | <VOID>
 
 	extract (plain):
-		- `note*: Text` | ExtractListPanel | EntityReferenceListPanel.createForStructure
+		- `note*: Text` | ExtractListPanel | EntityListPanel.createForStructure
 	*/
 	public static List<FLEFRecord> extractStructures(final FLEFRecord record, final String path){
 		return FLEFRecordHelper.findChildren(record, path);
@@ -237,8 +240,8 @@ public final class FLEFRecordHelper{
 
 	/*
 	extract (oneof xref):
-		- `resolves*: ConclusionTarget` | EntityReferenceListPanel.createForRecord
-		- `target*: ResearchTarget` | EntityReferenceListPanel.createForRecord
+		- `resolves*: ConclusionTarget` | EntityListPanel.createForRecord
+		- `target*: ResearchTarget` | EntityListPanel.createForRecord
 	*/
 	public static List<FLEFRecord> extractRecordsFromOneOfReference(final FLEFRecord record, final String referencePath,
 			final FLEFModel model){
@@ -258,7 +261,7 @@ public final class FLEFRecordHelper{
 			reference = reference.getTheOnlyChild();
 
 			final String referencedTag = reference.getTag();
-			if(TAG_VOID.equals(referencedTag))
+			if(Strings.CI.equals(TAG_VOID, referencedTag))
 				continue;
 
 			final String referencedId = reference.getValue();
@@ -269,7 +272,7 @@ public final class FLEFRecordHelper{
 			}
 
 			final FLEFRecord referencedRecord = model.getRecordById(referencedId);
-			if(referencedRecord != null && !referencedRecord.getTag().equals(referencedTag)){
+			if(referencedRecord != null && !Strings.CI.equals(referencedRecord.getTag(), referencedTag)){
 				System.err.println("Referenced tag differs from reference " + reference + " from record " + record);
 
 				continue;
@@ -558,7 +561,7 @@ public final class FLEFRecordHelper{
 		final FLEFRecord targetParent = navigateToParent(parent, segments);
 		if(targetParent != null)
 			targetParent.getChildren()
-				.removeIf(child -> lastSegment.tag.equals(child.getTag()));
+				.removeIf(child -> Strings.CI.equals(lastSegment.tag, child.getTag()));
 
 		return true;
 	}
@@ -580,14 +583,14 @@ public final class FLEFRecordHelper{
 			// find the first child with that tag
 			current = null;
 			for(final FLEFRecord child : children)
-				if(segment.tag.equals(child.getTag()))
+				if(Strings.CI.equals(segment.tag, child.getTag()))
 					current = child;
 		}
 		else{
 			int occurrence = 0;
 			FLEFRecord found = null;
 			for(final FLEFRecord child : children)
-				if(segment.tag.equals(child.getTag())){
+				if(Strings.CI.equals(segment.tag, child.getTag())){
 					if(occurrence == segment.index){
 						found = child;
 
@@ -604,7 +607,7 @@ public final class FLEFRecordHelper{
 		int occurrence = 0;
 		FLEFRecord found = null;
 		for(final FLEFRecord child : current.getChildren()){
-			if(segment.tag.equals(child.getTag())){
+			if(Strings.CI.equals(segment.tag, child.getTag())){
 				if(occurrence == segment.index){
 					found = child;
 

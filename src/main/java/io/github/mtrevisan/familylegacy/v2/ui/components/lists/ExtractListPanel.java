@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -68,6 +68,9 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		super(parent, panelTitle, model);
 
 		this.path = path;
+
+
+		initComponents();
 	}
 
 
@@ -180,7 +183,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog.getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog,
 			() -> {
 				if(!validExtractData(dialog, documentPartPanel, textArea))
 					return;

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -79,7 +80,7 @@ public class FLEFModel{
 	}
 
 	public List<FLEFRecord> getRecordsByType(final String type){
-		return recordsByType.getOrDefault(type, List.of());
+		return recordsByType.getOrDefault(type.toLowerCase(Locale.ROOT), List.of());
 	}
 
 	public FLEFRecord getRecordById(final String id){

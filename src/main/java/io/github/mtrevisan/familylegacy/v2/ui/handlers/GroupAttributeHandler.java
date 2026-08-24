@@ -27,8 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.GroupAttributeRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.GroupAttributeRecordDialog;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.awt.Dialog;
 import java.util.List;
@@ -71,7 +72,7 @@ public class GroupAttributeHandler extends AbstractRecordTypeHandler<GroupAttrib
 				for(final FLEFRecord group : groups){
 					final String resolveTag = group.getTag();
 					final String resolveXRef = group.getValue();
-					if(resolveTag.equals(parentEntityType) && resolveXRef.equals(recordId))
+					if(Strings.CI.equals(resolveTag, parentEntityType) && resolveXRef.equals(recordId))
 						return true;
 
 					break;

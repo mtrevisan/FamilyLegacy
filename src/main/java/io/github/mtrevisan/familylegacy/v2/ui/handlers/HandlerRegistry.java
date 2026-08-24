@@ -35,6 +35,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarEntry;
@@ -266,7 +267,7 @@ public final class HandlerRegistry{
 					(Class<? extends RecordTypeHandler<?>>)clazz;
 				final String type = getTypeConstant(handlerClass);
 				if(StringUtils.isNotEmpty(type))
-					HANDLER_MAP.put(type, handlerClass);
+					HANDLER_MAP.put(type.toLowerCase(Locale.ROOT), handlerClass);
 			}
 		}
 		catch(final ClassNotFoundException ignored){

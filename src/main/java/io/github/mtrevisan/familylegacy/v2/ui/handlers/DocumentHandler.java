@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DocumentRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.DocumentRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import org.apache.commons.lang3.StringUtils;
 

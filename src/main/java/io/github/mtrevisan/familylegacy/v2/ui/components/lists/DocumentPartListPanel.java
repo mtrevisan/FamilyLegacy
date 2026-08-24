@@ -76,6 +76,9 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		this.path = path;
 
 		cropDialog = ImageCropDialog.create(parent);
+
+
+		initComponents();
 	}
 
 

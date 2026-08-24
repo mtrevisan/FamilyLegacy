@@ -25,10 +25,14 @@
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
+import io.github.mtrevisan.familylegacy.v2.io.FLEFValidator;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFWriter;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
@@ -40,6 +44,7 @@ import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -73,7 +78,12 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
 import java.io.Serial;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -360,13 +370,13 @@ public final class GUIHelper{
 
 	private static JPopupMenu buildPopup(final List<MenuEntry> entries){
 		final JPopupMenu popup = new JPopupMenu();
-		for(final MenuEntry e : entries){
-			if(e.isSeparator)
+		for(final MenuEntry entry : entries){
+			if(entry.isSeparator)
 				popup.addSeparator();
 			else{
-				final JMenuItem item = new JMenuItem(e.label);
-				item.addActionListener(ev -> e.action.run());
-				item.setEnabled(e.enabledCondition.get());
+				final JMenuItem item = new JMenuItem(entry.label);
+				item.addActionListener(ev -> entry.action.run());
+				item.setEnabled(entry.enabledCondition.get());
 				popup.add(item);
 			}
 		}
@@ -563,7 +573,7 @@ public final class GUIHelper{
 	}
 
 
-	public static JPanel createSaveCancelButtonPanel(final JRootPane rootPane, final Runnable save,
+	public static JPanel createSaveCancelButtonPanel(final JDialog dialog, final Runnable save,
 			final Runnable cancel){
 		final JButton saveButton = new JButton("Save");
 		final JButton cancelButton = new JButton("Cancel");
@@ -574,6 +584,7 @@ public final class GUIHelper{
 
 		saveButton.addActionListener(e -> save.run());
 
+		final JRootPane rootPane = dialog.getRootPane();
 		rootPane.setDefaultButton(saveButton);
 
 		final Action escapeAction = new AbstractAction(){
@@ -590,6 +601,14 @@ public final class GUIHelper{
 			.put(ESCAPE_STROKE, "escape");
 		rootPane.getActionMap()
 			.put("escape", escapeAction);
+
+		dialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
+		dialog.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(final WindowEvent e){
+				cancel.run();
+			}
+		});
 
 		return buttonPanel;
 	}
@@ -677,14 +696,39 @@ public final class GUIHelper{
 	}
 
 
-	public static void launch(final EditFunction dialogFactory, final String content, final String recordId){
+	public static void launch(final EditFunction dialogFactory, final String content, final String recordId)
+			throws IOException{
 		final FLEFParser parser = new FLEFParser();
 		final FLEFModel model = parser.parse(content);
+
+		validate(model);
 
 		final FLEFRecord record = model.getRecordById(recordId);
 
 		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
 		launch(createNewFn, model);
+	}
+
+	private static void validate(FLEFModel model) throws IOException{
+		final Path path = Paths.get("src/main/resources/gedg/flef_0.1.1.gedg");
+		final FLEFGrammar grammar = FLEFGrammarParser.parse(path);
+		for(final String warning : grammar.getParseWarnings())
+			System.err.println(warning);
+
+		final FLEFGrammarValidator.ValidationResult validationResult = FLEFGrammarValidator.validate(grammar);
+		for(final String error : validationResult.errors())
+			System.err.println(error);
+		for(final String warning : validationResult.warnings())
+			System.err.println(warning);
+
+		final FLEFValidator validator = new FLEFValidator(grammar);
+		final List<String> errorsSchema = validator.validateSchema(model);
+		for(final String error : errorsSchema)
+			System.err.println(error);
+
+		final List<String> errorsIntegrity = validator.validateIntegrity(model);
+		for(final String error : errorsIntegrity)
+			System.err.println(error);
 	}
 
 	public static void launch(final CreateNewFunction dialogFactory, final FLEFModel model){

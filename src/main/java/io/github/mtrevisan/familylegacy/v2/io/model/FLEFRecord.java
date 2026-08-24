@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.JOptionPane;
 import java.util.ArrayDeque;
@@ -32,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -41,8 +43,6 @@ import java.util.Objects;
  * A record has an ID (optional), a type, a list of children, and can have a tag/value.
  */
 public class FLEFRecord{
-
-	private static final String PARAM_ID = "id";
 
 	private static final String TAG_VOID = "VOID";
 
@@ -89,14 +89,6 @@ public class FLEFRecord{
 		return id;
 	}
 
-	public String findRecordId(){
-		String id = null;
-		for(final FLEFRecord child : children)
-			if(PARAM_ID.equals(child.getTag()))
-				id = child.getValue();
-		return id;
-	}
-
 	public String getFormattedId(){
 		return id;
 	}
@@ -112,7 +104,7 @@ public class FLEFRecord{
 	}
 
 	public FLEFRecord setTag(final String tag){
-		this.tag = tag;
+		this.tag = (tag != null ? tag.toLowerCase(Locale.ROOT) : null);
 
 		return this;
 	}
@@ -135,7 +127,8 @@ public class FLEFRecord{
 		final List<FLEFRecord> taggedChildren = FLEFRecordHelper.findChildren(this, tag);
 		final int size = taggedChildren.size();
 		if(size > 1){
-			JOptionPane.showMessageDialog(null, "Record with more than one child: " + this,
+			JOptionPane.showMessageDialog(null,
+				"Record with more than one child: " + this,
 				"Error", JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -147,7 +140,8 @@ public class FLEFRecord{
 	public FLEFRecord getTheOnlyChild(){
 		final int size = children.size();
 		if(size > 1){
-			JOptionPane.showMessageDialog(null, "Record with more than one child: " + this,
+			JOptionPane.showMessageDialog(null,
+				"Record with more than one child: " + this,
 				"Error", JOptionPane.ERROR_MESSAGE);
 
 			return null;
@@ -158,12 +152,12 @@ public class FLEFRecord{
 
 	public long countChildrenWithTag(final String tag){
 		return children.stream()
-			.filter(c -> tag.equals(c.getTag()))
+			.filter(c -> Strings.CI.equals(tag, c.getTag()))
 			.count();
 	}
 
 	public FLEFRecord addChild(final FLEFRecord child){
-		if(child == null || child.isEmpty() && !TAG_VOID.equals(child.getTag()))
+		if(child == null || child.isEmpty() && !Strings.CI.equals(TAG_VOID, child.getTag()))
 			return this;
 
 		return forceAddChild(child);
@@ -220,7 +214,7 @@ public class FLEFRecord{
 	private List<FLEFRecord> removeChildren(final String tag){
 		final List<FLEFRecord> removed = new ArrayList<>();
 		children.removeIf(child -> {
-			if(tag.equals(child.getTag())){
+			if(Strings.CI.equals(tag, child.getTag())){
 				removed.add(child);
 				return true;
 			}
@@ -243,7 +237,7 @@ public class FLEFRecord{
 	}
 
 	public boolean isEmpty(){
-		return (StringUtils.isEmpty(id) && StringUtils.isEmpty(value) && children.isEmpty());
+		return (StringUtils.isEmpty(tag) && StringUtils.isEmpty(id) && StringUtils.isEmpty(value) && children.isEmpty());
 	}
 
 

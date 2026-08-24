@@ -41,6 +41,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.StructType
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefinition;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.UnionType;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -304,9 +305,9 @@ public final class FLEFGrammarParser{
 		FieldDefinition header = null;
 		FieldDefinition records = null;
 		for(final FieldDefinition fd : body.fields()){
-			if(FIELD_HEADER.equals(fd.name()))
+			if(Strings.CI.equals(FIELD_HEADER, fd.name()))
 				header = fd;
-			else if(FIELD_RECORDS.equals(fd.name()))
+			else if(Strings.CI.equals(FIELD_RECORDS, fd.name()))
 				records = fd;
 		}
 		if(header == null || records == null)

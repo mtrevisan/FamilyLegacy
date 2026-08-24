@@ -27,8 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.io.model.XRefHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -43,6 +42,9 @@ import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -53,6 +55,9 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6460878052412992481L;
+
+
+	private static final Map<String, Integer> RESERVED_IDS = new ConcurrentHashMap<>();
 
 
 	protected final RecordTypeHandler<?> handler;
@@ -278,14 +283,24 @@ public abstract class BaseRecordDialog extends JDialog{
 	 *
 	 * @param tabbedPane	The dialog's fully-populated tabbed pane.
 	 */
+	@SuppressWarnings("DataFlowIssue")
 	protected void finalizeLayout(final JTabbedPane tabbedPane){
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
 		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
 			this::save,
-			this::dispose);
+			() -> {
+				if(isNew){
+					try{
+						RESERVED_IDS.compute(handler.getIdPrefix(), (k, currentReservedId) -> currentReservedId - 1);
+					}
+					catch(final UnsupportedOperationException ignored){}
+				}
+
+				dispose();
+			});
 		add(buttonPanel, BorderLayout.SOUTH);
 	}
 
@@ -340,8 +355,36 @@ public abstract class BaseRecordDialog extends JDialog{
 		return FLEFRecord.createMainRecord(generateNewId(), handler.getType());
 	}
 
+	/**
+	 * Generates and reserves a new unique ID.
+	 * <p>
+	 * The generated ID is guaranteed to be unique among both persisted records and IDs already reserved by open dialogs.
+	 *
+	 * @return	A new unique ID.
+	 */
 	private String generateNewId(){
-		return XRefHelper.generateNewId(model, handler.getType(), handler.getIdPrefix());
+		final String prefix = handler.getIdPrefix();
+		Integer next = RESERVED_IDS.get(prefix);
+		if(next == null)
+			next = model.getRecordsByType(handler.getType()).stream()
+				.map(FLEFRecord::getId)
+				.filter(Objects::nonNull)
+				.filter(id -> id.startsWith(prefix))
+				.mapToInt(id -> {
+					try{
+						return Integer.parseInt(id.substring(prefix.length()));
+					}
+					catch(NumberFormatException ignored){
+						return 0;
+					}
+				})
+				.max()
+				.orElse(0);
+		next ++;
+
+		RESERVED_IDS.put(prefix, next);
+
+		return prefix + next;
 	}
 
 
@@ -398,7 +441,8 @@ public abstract class BaseRecordDialog extends JDialog{
 			final Class<? extends RecordTypeHandler<?>> participantHandlerClass){
 		if(model.getRecordById(participantId) == null){
 			final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerClass);
-			JOptionPane.showMessageDialog(this, "Unknown " + participantHandler.getLabel() + " ID.",
+			JOptionPane.showMessageDialog(this,
+				"Unknown " + participantHandler.getLabel() + " ID.",
 				"Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;

@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -77,15 +77,14 @@ public class ApproximatePanel extends JPanel{
 	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{
 		StringUtils.EMPTY,
 		"stated", "calculated", "conventional", "unspecified"});
-	private final EntityReferenceListPanel culturalNormPanel;
+	private final EntityListPanel culturalNormPanel;
 	private final JTextField marginField = new JTextField(null);
 
 
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
 		this.path = path;
 
-		culturalNormPanel = EntityReferenceListPanel.createForRecord(TAG_CULTURAL_NORM, parent, "Cultural Norms", model)
-			.withHandlerTypes(CulturalNormHandler.class);
+		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.class);
 
 
 		initComponents();

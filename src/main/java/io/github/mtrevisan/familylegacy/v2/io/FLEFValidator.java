@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefini
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,8 +53,6 @@ public class FLEFValidator{
 
 	private static final String DOT = ".";
 	private static final String FIELD_HEADER = "header";
-
-	private static final String TAG_VOID = "VOID";
 
 
 	private final FLEFGrammar grammar;
@@ -178,7 +176,7 @@ public class FLEFValidator{
 		collectDeclaredIds(model, declaredIds, errors);
 
 		// 2. Second Pass: Verify cross-reference resolution against declared IDs
-		verifyReferences(model, errors);
+		verifyReferences(declaredIds, model, errors);
 
 		return errors;
 	}
@@ -205,7 +203,7 @@ public class FLEFValidator{
 			final String path = current.path();
 
 			// Check if this record defines an ID
-			final String id = record.findRecordId();
+			final String id = record.getId();
 			if(id != null && !declaredIds.add(id))
 				errors.add(String.format("Duplicate record ID '%s' found at '%s'", id, path));
 
@@ -222,47 +220,11 @@ public class FLEFValidator{
 	/**
 	 * Iteratively traverses all records in the FLEFModel to verify cross-reference resolution.
 	 */
-	private void verifyReferences(final FLEFModel model, final List<String> errors){
-		record TraversalNode(FLEFRecord record, String path){}
-
-		final Deque<TraversalNode> stack = new ArrayDeque<>();
-
-		// Push all top-level records from the model onto the stack
-		final List<FLEFRecord> topLevelRecords = model.getRecords();
-		for(int i = topLevelRecords.size() - 1; i >= 0; i --){
-			final FLEFRecord topRecord = topLevelRecords.get(i);
-			final String path = topRecord.getTag();
-			stack.push(new TraversalNode(topRecord, path));
-		}
-
-		while(!stack.isEmpty()){
-			final TraversalNode current = stack.pop();
-			final FLEFRecord record = current.record();
-			final String path = current.path();
-
-			// Verify reference node target resolution
-			if(!TAG_VOID.equals(record.getValue())){
-				if(record.getChildren().isEmpty()){
-					if(StringUtils.isNotEmpty(record.getValue()))
-						errors.add(String.format("Void reference at '%s' must not specify a target identifier", path));
-				}
-				else{
-					final String targetId = record.getValue();
-					final FLEFRecord target = model.getRecordById(targetId);
-					if(target == null)
-						errors.add(String.format("Unresolved cross-reference '%s' at '%s': target record does not exist",
-							targetId, path));
-				}
-			}
-
-			// Push children onto the stack in reverse order
-			final List<FLEFRecord> children = record.getChildren();
-			for(int i = children.size() - 1; i >= 0; i --){
-				final FLEFRecord child = children.get(i);
-				final String childPath = path + DOT + child.getTag();
-				stack.push(new TraversalNode(child, childPath));
-			}
-		}
+	private void verifyReferences(final Set<String> declaredIds, final FLEFModel model, final List<String> errors){
+		for(final String declaredId : declaredIds)
+			if(!model.hasRecord(declaredId))
+				errors.add(String.format("Unresolved cross-reference '%s': target record does not exist",
+					declaredId));
 	}
 
 
@@ -287,19 +249,19 @@ public class FLEFValidator{
 			final String contextPath = "records." + tag;
 
 			// IndividualRecord: birth date must be before death date
-			if("individual".equalsIgnoreCase(tag))
+			if(Strings.CI.equals("individual", tag))
 				validateIndividualDates(record, contextPath, errors);
 
 			// RelationshipRecord: valid_from must be before valid_to
-			if("relationship".equalsIgnoreCase(tag))
+			if(Strings.CI.equals("relationship", tag))
 				validateRelationshipDates(record, contextPath, errors);
 
 			// IdentityHypothesisRecord: subject != candidate
-			if("identity_hypothesis".equalsIgnoreCase(tag))
+			if(Strings.CI.equals("identity_hypothesis", tag))
 				validateIdentityHypothesis(record, contextPath, model, errors);
 
 			// EventParticipationRecord: event and participant must be valid
-			if("event_participation".equalsIgnoreCase(tag))
+			if(Strings.CI.equals("event_participation", tag))
 				validateEventParticipation(record, contextPath, model, errors);
 		}
 

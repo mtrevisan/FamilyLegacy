@@ -27,9 +27,10 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.PartStructureDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.PartStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.awt.Dialog;
 
@@ -85,7 +86,7 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 		// If it is a low-level element with no meaningful ID, the variant count is shown
 		int variantCount = 0;
 		for(final FLEFRecord child : record.getChildren())
-			if(TAG_PHONETIC.equals(child.getTag()) || TAG_TRANSCRIPTION.equals(child.getTag()))
+			if(Strings.CI.equals(TAG_PHONETIC, child.getTag()) || Strings.CI.equals(TAG_TRANSCRIPTION, child.getTag()))
 				variantCount ++;
 
 		if(variantCount > 0)

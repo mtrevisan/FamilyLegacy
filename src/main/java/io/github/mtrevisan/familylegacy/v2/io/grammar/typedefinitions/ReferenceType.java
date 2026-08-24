@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammar;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 
@@ -72,7 +73,7 @@ public final class ReferenceType extends TypeDefinition{
 
 		// 2. Syntactic validation: Check voidability
 		// A valid VOID reference has no target ID to resolve
-		if(TAG_VOID.equals(record.getTag()) && !voidable)
+		if(Strings.CI.equals(TAG_VOID, record.getTag()) && !voidable)
 			errors.add(String.format("Void reference not allowed at '%s'", contextPath));
 	}
 

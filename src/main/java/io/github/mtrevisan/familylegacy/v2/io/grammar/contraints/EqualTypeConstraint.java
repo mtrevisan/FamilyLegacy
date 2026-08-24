@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 
@@ -54,10 +55,22 @@ public final class EqualTypeConstraint extends Constraint{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 			final List<String> errors){
-		final FLEFRecord field1 = FLEFRecordHelper.findChild(record, fields.get(0));
-		final FLEFRecord field2 = FLEFRecordHelper.findChild(record, fields.get(1));
-		if(field1 == null || field2 == null)
+		FLEFRecord field1 = FLEFRecordHelper.findChild(record, fields.get(0));
+		if(field1.getChildren().size() != 1 || field1.getTheOnlyChild().isEmpty()){
+			errors.add(String.format("Constraint violation at '%s': field '%s' is empty",
+				contextPath, field1));
+
 			return;
+		}
+		field1 = field1.getTheOnlyChild();
+		FLEFRecord field2 = FLEFRecordHelper.findChild(record, fields.get(1));
+		if(field2.getChildren().size() != 1 || field2.getTheOnlyChild().isEmpty()){
+			errors.add(String.format("Constraint violation at '%s': field '%s' is empty",
+				contextPath, field2));
+
+			return;
+		}
+		field2 = field2.getTheOnlyChild();
 
 		final String ref1 = field1.getValue();
 		final String ref2 = field2.getValue();
@@ -75,7 +88,7 @@ public final class EqualTypeConstraint extends Constraint{
 
 		final String type1 = target1.getTag();
 		final String type2 = target2.getTag();
-		if(!type1.equals(type2))
+		if(!Strings.CI.equals(type1, type2))
 			errors.add(String.format(
 				"Constraint violation at '%s': %s (%s) and %s (%s) must be of the same type",
 				contextPath, fields.get(0), type1, fields.get(1), type2));

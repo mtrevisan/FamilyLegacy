@@ -92,9 +92,6 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		this.title = title;
 
 		this.model = model;
-
-
-		initComponents();
 	}
 
 	/**
@@ -257,6 +254,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(idx == -1)
 			return;
 
+		//TODO instead of "Remove this item?", show displayText of record
 		final int confirm = JOptionPane.showConfirmDialog(parent,
 			"Remove this item?", "Confirm",
 			JOptionPane.YES_NO_OPTION);

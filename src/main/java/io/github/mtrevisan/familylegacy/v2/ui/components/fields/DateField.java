@@ -27,7 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.fields;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DateDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.DateStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -38,6 +38,7 @@ import java.awt.Dialog;
 import java.io.Serial;
 
 
+//TODO ParticipantField?
 /**
  * Component for selecting and displaying dates.
  */
@@ -164,7 +165,7 @@ public class DateField extends JPanel{
 	}
 
 	private void createNew(){
-		final DateDialog dialog = DateDialog.createNew(parent, model, dialogTitle);
+		final DateStructureDialog dialog = DateStructureDialog.createNew(parent, model, dialogTitle);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())
@@ -178,7 +179,7 @@ public class DateField extends JPanel{
 			return;
 		}
 
-		final DateDialog dialog = DateDialog.createEdit(parent, model, dialogTitle, record);
+		final DateStructureDialog dialog = DateStructureDialog.createEdit(parent, model, dialogTitle, record);
 		dialog.setVisible(true);
 
 		if(dialog.isSaved())

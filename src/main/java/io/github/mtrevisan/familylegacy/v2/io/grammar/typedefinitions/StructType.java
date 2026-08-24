@@ -29,6 +29,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.List;
 
@@ -63,9 +64,8 @@ public class StructType extends TypeDefinition{
 
 	public FieldDefinition getField(final String name){
 		for(final FieldDefinition f : fields)
-			if(f.name().equals(name)){
+			if(Strings.CI.equals(f.name(), name))
 				return f;
-			}
 		return null;
 	}
 
@@ -79,7 +79,7 @@ public class StructType extends TypeDefinition{
 
 			// Extract all child AST records matching the current field definition name
 			final List<FLEFRecord> children = record.getChildren().stream()
-				.filter(c -> c.getTag().equals(fieldName))
+				.filter(c -> Strings.CI.equals(c.getTag(), fieldName))
 				.toList();
 
 			// 1. Validate cardinality constraints (?, *, +, required)

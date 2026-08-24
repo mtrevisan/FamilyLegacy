@@ -26,11 +26,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityReferenceListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HeaderHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -117,7 +117,7 @@ public class HeaderDialog extends BaseRecordDialog{
 
 	private final BoundTextArea copyrightArea;
 
-	private final EntityReferenceListPanel submitterContactListPanel;
+	private final EntityListPanel submitterContactListPanel;
 	private final BoundTextArea submitterNoteArea;
 
 	private final BoundTextArea scopeArea;
@@ -135,8 +135,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		dateField = new BoundTextField(TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
-		submitterContactListPanel = EntityReferenceListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model)
-			.withHandlerTypes(ContactHandler.class);
+		submitterContactListPanel = EntityListPanel.createForStructure(TAG_SUBMITTER_CONTACT, this, "Contacts", model, ContactHandler.class);
 		submitterNoteArea = new BoundTextArea(TAG_SUBMITTER_NOTE, 3, 25);
 		scopeArea = new BoundTextArea(TAG_SCOPE, 3, 25);
 
@@ -169,7 +168,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Submitter", createSubmitterPanel());
 		GUIHelper.addComponent(this, tabbedPane);
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
 			this::save,
 			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);

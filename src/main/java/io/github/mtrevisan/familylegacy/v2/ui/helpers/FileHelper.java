@@ -151,6 +151,7 @@ public final class FileHelper{
 				case OPEN:
 					desktop.open((File)parameter);
 					done = true;
+
 					break;
 
 				case BROWSE:
@@ -158,6 +159,7 @@ public final class FileHelper{
 						desktop.browse(new URI((String)parameter));
 						done = true;
 					}
+
 					break;
 
 				case MAIL:

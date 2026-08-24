@@ -28,9 +28,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import org.apache.commons.lang3.Strings;
 
 import java.awt.Dialog;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -67,15 +67,6 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 	}
 
 	@Override
-	public List<FLEFRecord> extractEntities(final FLEFRecord record, final String path){
-		final List<FLEFRecord> resolves = FLEFRecordHelper.findChildren(record, path);
-		final List<FLEFRecord> entities = new ArrayList<>(resolves.size());
-		for(final FLEFRecord resolve : resolves)
-			entities.add(resolve.getChildren().getFirst());
-		return entities;
-	}
-
-	@Override
 	public List<FLEFRecord> findReferences(final FLEFModel model, final String recordId,
 			final String parentEntityType){
 		return model.getRecordsByType(ConclusionHandler.TYPE).stream()
@@ -86,7 +77,7 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 					if(resolveCitation != null && !resolveCitation.isEmpty()){
 						final String resolveTag = resolveCitation.getTag();
 						final String resolveXRef = resolveCitation.getValue();
-						if(resolveTag.equals(parentEntityType) && resolveXRef.equals(recordId))
+						if(Strings.CI.equals(resolveTag, parentEntityType) && resolveXRef.equals(recordId))
 							return true;
 					}
 				}

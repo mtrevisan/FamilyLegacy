@@ -96,7 +96,7 @@ public class ImageCropDialog extends JDialog{
 		GUIHelper.addComponent(recordPanel, imageHolder);
 		add(recordPanel, "grow,push");
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
 			this::save,
 			() -> setVisible(false));
 		add(buttonPanel, BorderLayout.SOUTH);

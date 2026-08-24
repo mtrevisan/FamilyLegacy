@@ -26,7 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -70,6 +70,9 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 		this.path = path;
 
 		this.recordTag = recordTag;
+
+
+		initComponents();
 	}
 
 
@@ -126,7 +129,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog.getRootPane(),
+		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog,
 			() -> {
 				if(!validNoteData(textArea))
 					return;

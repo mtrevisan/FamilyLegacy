@@ -27,9 +27,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityCitationListPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -93,7 +93,7 @@ public class DateStructurePanel extends JPanel{
 	private final SpanningDatePanel spanningDateValuePanel;
 
 	private final BoundTextField originalTextField;
-	private final EntityCitationListPanel sourcePanel;
+	private final EntityListPanel sourcePanel;
 	private final EvidenceQualifiersPanel qualifiers;
 
 
@@ -103,7 +103,7 @@ public class DateStructurePanel extends JPanel{
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
-		sourcePanel = new EntityCitationListPanel(TAG_SOURCE, parent, "Sources with Citations", model, SourceCitationHandler.class);
+		sourcePanel = EntityListPanel.createForCitationWrapper(TAG_SOURCE, parent, "Sources with Citations", model, SourceCitationHandler.class);
 		qualifiers = new EvidenceQualifiersPanel(null, parent, "Evidence", model, null);
 
 

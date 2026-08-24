@@ -73,8 +73,8 @@ public final class UnionType extends TypeDefinition{
 
 		// Ensure the record tag matches one of the defined union branches
 		if(targetType == null){
-			errors.add(String.format("Invalid union choice '%s' under '%s'. Expected one of: %s",
-				tag, contextPath, choices.keySet()));
+			errors.add(String.format("Invalid union choice '%s' under '%s'. Expected one of: %s, found %s",
+				tag, contextPath, choices.keySet(), tag));
 
 			return;
 		}

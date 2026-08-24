@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 
 import java.awt.Dialog;
@@ -78,10 +77,6 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 
 	default RecordTypeHandler<?> getParentHandler(){
 		return null;
-	}
-
-	default List<FLEFRecord> extractEntities(final FLEFRecord record, final String path){
-		return FLEFRecordHelper.extractStructures(record, path);
 	}
 
 	default List<FLEFRecord> findReferences(final FLEFModel model, final String recordId,

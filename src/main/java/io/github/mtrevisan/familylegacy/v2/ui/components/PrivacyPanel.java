@@ -25,10 +25,10 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BindingManager;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundComboBox;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextArea;
-import io.github.mtrevisan.familylegacy.v2.ui.binding.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
