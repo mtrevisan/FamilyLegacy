@@ -53,6 +53,7 @@ public final class ResourceHelper{
 
 	private ResourceHelper(){}
 
+
 	public static ImageIcon getOriginalImage(final String filename){
 		URL imgURL = ResourceHelper.class.getResource(filename);
 		if(imgURL == null){
@@ -67,6 +68,7 @@ public final class ResourceHelper{
 		}
 		return new ImageIcon(imgURL);
 	}
+
 
 	public static ImageIcon getImage(final String filename, final Dimension newDimension){
 		return getImage(getOriginalImage(filename), newDimension.width, newDimension.height);
@@ -96,6 +98,7 @@ public final class ResourceHelper{
 		return null;
 	}
 
+
 	private static BufferedImage toBufferedImage(final ImageIcon icon){
 		if(icon == null)
 			return null;
@@ -114,26 +117,6 @@ public final class ResourceHelper{
 		return buffered;
 	}
 
-	public static ImageIcon getImageFixedHeight(final String filename, final int height){
-		return getImageFixedHeight(getOriginalImage(filename), height);
-	}
-
-
-	private static ImageIcon getImageFixedHeight(final ImageIcon icon, final int height){
-		try{
-			final BufferedImage original = toBufferedImage(icon);
-			final BufferedImage scaled = Thumbnails.of(original)
-				.height(height)
-				.asBufferedImage();
-
-			return new ImageIcon(scaled);
-		}
-		catch(final Exception e){
-			LOGGER.error(null, e);
-		}
-		return null;
-	}
-
 	public static BufferedImage toBufferedImage(final Image img){
 		if(img instanceof BufferedImage)
 			return (BufferedImage)img;
@@ -150,6 +133,27 @@ public final class ResourceHelper{
 		//return the buffered image
 		return bimage;
 	}
+
+
+	public static ImageIcon getImageFixedHeight(final String filename, final int height){
+		return getImageFixedHeight(getOriginalImage(filename), height);
+	}
+
+	private static ImageIcon getImageFixedHeight(final ImageIcon icon, final int height){
+		try{
+			final BufferedImage original = toBufferedImage(icon);
+			final BufferedImage scaled = Thumbnails.of(original)
+				.height(height)
+				.asBufferedImage();
+
+			return new ImageIcon(scaled);
+		}
+		catch(final Exception e){
+			LOGGER.error(null, e);
+		}
+		return null;
+	}
+
 
 	public static BufferedImage readImage(final File file) throws IOException{
 		if(!file.exists())

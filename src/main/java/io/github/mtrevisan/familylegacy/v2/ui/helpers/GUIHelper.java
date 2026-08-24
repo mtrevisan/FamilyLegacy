@@ -66,10 +66,8 @@ import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
-import java.awt.Dialog;
 import java.awt.FlowLayout;
 import java.awt.FontMetrics;
-import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -297,15 +295,6 @@ public final class GUIHelper{
 		component.repaint();
 	}
 
-	public static void timed(final int delay, final Runnable runnable){
-		SwingUtilities.invokeLater(() -> {
-			final Timer timer = new Timer(delay, e -> runnable.run());
-			timer.setRepeats(false);
-			timer.start();
-		});
-
-	}
-
 
 	public static String limitTextLength(final String text){
 		return (text.length() > 50? text.substring(0, 49) + "…": text);
@@ -441,19 +430,6 @@ public final class GUIHelper{
 			parent.revalidate();
 			parent.repaint();
 		}
-	}
-
-
-	/**
-	 * Returns the parent frame of this panel.
-	 *
-	 * @return the parent frame, or {@code null} if not found
-	 */
-	public static Frame getParentFrame(final Dialog dialog){
-		Container parent = dialog.getParent();
-		while(parent != null && !(parent instanceof Frame))
-			parent = parent.getParent();
-		return (Frame)parent;
 	}
 
 
@@ -694,7 +670,6 @@ public final class GUIHelper{
 		final CreateNewFunction createNewFn = (dialog, model2) -> dialogFactory.apply(dialog, model, record);
 		launch(createNewFn, model);
 	}
-
 
 	public static void launch(final EditFunction dialogFactory, final String content, final String recordId)
 			throws IOException{
