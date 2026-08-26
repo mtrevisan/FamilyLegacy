@@ -120,9 +120,9 @@ public abstract class BaseRecordDialog extends JDialog{
 		final JPanel privacyPanel = createPrivacyPanel();
 		final JPanel auditPanel = createAuditPanel();
 
-		if(attributesPanel == null &&  relationshipsPanel == null && participationsPanel == null && contextPanel == null
+		if(attributesPanel == null && relationshipsPanel == null && participationsPanel == null && contextPanel == null
 				&& researchPanel == null && findingsPanel == null && referencesPanel == null && sourcesPanel == null
-				&& notesPanel == null && privacyPanel == null &&  auditPanel == null){
+				&& notesPanel == null && privacyPanel == null && auditPanel == null){
 			// No optional panels, just show the properties panel
 			setLayout(GUIHelper.createLabelFieldLayout(0, "[]"));
 			GUIHelper.addComponent(this, propertiesPanel);
@@ -150,7 +150,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 *
 	 * @param tabbedPane the tabbed pane
 	 * @param title      the tab title
-	 * @param panel      the panel to add (may be {@code null})
+	 * @param panel      the panel to add (maybe {@code null})
 	 */
 	private void addTabIfNotNull(final JTabbedPane tabbedPane, final String title, final JPanel panel){
 		if(panel != null)
@@ -281,7 +281,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 * finalizeLayout(tabbedPane);
 	 * </pre>
 	 *
-	 * @param tabbedPane	The dialog's fully-populated tabbed pane.
+	 * @param tabbedPane	The dialog's fully populated tabbed pane.
 	 */
 	@SuppressWarnings("DataFlowIssue")
 	protected void finalizeLayout(final JTabbedPane tabbedPane){

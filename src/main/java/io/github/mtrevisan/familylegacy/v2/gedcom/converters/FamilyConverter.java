@@ -98,6 +98,7 @@ public class FamilyConverter{
 		// Create GroupRecord
 		FLEFRecord group = FLEFRecord.createChildWithTag("group");
 		group.setId(cleanFamId);
+		group.addChild(FLEFRecord.createChildWithTagAndValue("type", "family"));
 		familyMap.put(cleanFamId, group);
 
 		// Create a link object for later resolution
@@ -171,7 +172,7 @@ public class FamilyConverter{
 
 		// Add all sources and notes directly to the group (they are not link-specific)
 		for(GEDCOMNode sourNode : link.sourNodes){
-			FLEFRecord sourCitation = structParser.parseSourceCitation(sourNode, model);
+			FLEFRecord sourCitation = structParser.parseSourceCitation(sourNode, model, famXref, "group");
 			if(sourCitation != null) group.addChild(sourCitation);
 		}
 		for(GEDCOMNode noteNode : link.noteNodes){
@@ -304,12 +305,9 @@ public class FamilyConverter{
 			}
 			if(docRecord == null){
 				docRecord = createDocumentRecord(objNode);
-				if(docRecord != null){
-					model.addRecord(docRecord);
-					multimediaMap.put(docRecord.getId(), docRecord);
-				}
+				model.addRecord(docRecord);
+				multimediaMap.put(docRecord.getId(), docRecord);
 			}
-			if(docRecord == null) continue;
 
 			// 2. If primary: create preferred_image
 			if(objNode == preferredObj){
@@ -345,17 +343,15 @@ public class FamilyConverter{
 			else{
 				// 3. Non-primary: create a SourceRecord and link it to the group
 				FLEFRecord sourceRecord = createSourceRecordFromDocument(docRecord, objNode);
-				if(sourceRecord != null){
-					model.addRecord(sourceRecord);
-					sourceMap.put(sourceRecord.getId(), sourceRecord);
+				model.addRecord(sourceRecord);
+				sourceMap.put(sourceRecord.getId(), sourceRecord);
 
-					// Create SourceCitation for the group
-					FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source_citation");
-					FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
-					sourceRef.setValue(sourceRecord.getId());
-					sourceCitation.addChild(sourceRef);
-					group.addChild(sourceCitation);
-				}
+				// Create SourceCitation for the group
+				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
+				FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
+				sourceRef.setValue(sourceRecord.getId());
+				sourceCitation.addChild(sourceRef);
+				group.addChild(sourceCitation);
 			}
 		}
 	}

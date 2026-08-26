@@ -134,7 +134,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	 */
 	@Override
 	public void clear(){
-		// In read-only mode, we just deselect (or keep the current item) but we shouldn't throw an exception
+		// In read-only mode, we just deselect (or keep the current item), but we shouldn't throw an exception
 		if(!readOnly)
 			setText(null);
 

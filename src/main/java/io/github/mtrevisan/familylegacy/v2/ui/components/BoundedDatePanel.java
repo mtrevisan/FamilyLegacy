@@ -43,8 +43,8 @@ import java.io.Serial;
  * Structure:
  * <pre>
  * struct BoundedDate {
- *   not_before?: QualifiedDate
- *   not_after?: QualifiedDate
+ *   not_before?: SingleDate
+ *   not_after?: SingleDate
  *
  *   require one_of(not_before, not_after)
  * }
@@ -60,13 +60,13 @@ public class BoundedDatePanel extends JPanel{
 	private static final String TAG_NOT_BEFORE = "NOT_BEFORE";
 	private static final String TAG_NOT_AFTER = "NOT_AFTER";
 
-	private final QualifiedDatePanel notBeforePanel;
-	private final QualifiedDatePanel notAfterPanel;
+	private final SingleDatePanel notBeforePanel;
+	private final SingleDatePanel notAfterPanel;
 
 
 	public BoundedDatePanel(final Dialog parent, final FLEFModel model){
-		this.notBeforePanel = new QualifiedDatePanel(parent, model);
-		this.notAfterPanel = new QualifiedDatePanel(parent, model);
+		this.notBeforePanel = new SingleDatePanel(parent, model);
+		this.notAfterPanel = new SingleDatePanel(parent, model);
 
 
 		initComponents();

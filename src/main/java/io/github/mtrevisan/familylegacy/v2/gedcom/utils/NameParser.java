@@ -92,7 +92,7 @@ public class NameParser {
 	 * Parses the inline name format "given /surname/" and adds "part" elements.
 	 */
 	private void parseInlineName(String raw, FLEFRecord nameRec) {
-		String given = "";
+		String given;
 		String surname = "";
 		int slash1 = raw.indexOf('/');
 		int slash2 = raw.indexOf('/', slash1 + 1);

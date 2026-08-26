@@ -46,7 +46,7 @@ public class PlaceCache{
 				phonetic.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
 				phonetic.addChild(FLEFRecord.createChildWithTagAndValue("value", fone.getValue()));
 				variant.addChild(phonetic);
-				nameRec.addChild(variant); // variant is under NameStructure? Actually variant* is under NameStructure, so add to textRec? Wait: NameStructure has variant* field directly. So we should add variant to the nameRec? Actually the variant is under NameStructure, not under ClassifiedNameStructure. In FLEF, NameStructure has variant*: TextValueVariant. So we should add variant directly to the NameStructure (textRec) but textRec is a NameStructure? Actually textRec is the NameStructure (tag "text"). So we add variant to textRec.
+				nameRec.addChild(variant);
 				textRec.addChild(variant);
 			}
 

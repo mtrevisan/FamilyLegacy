@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -290,10 +291,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = CulturalNormRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(CulturalNormRecordDialog::createEdit, content, "CN1");
-		}
+		GUIHelper.launch(CulturalNormRecordDialog::createEdit, "/tests/test.flef", "CN1");
 	}
 
 }

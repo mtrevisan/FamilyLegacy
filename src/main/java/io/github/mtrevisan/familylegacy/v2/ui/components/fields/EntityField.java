@@ -85,7 +85,7 @@ public class EntityField extends BoundTextField{
 
 
 	/**
-	 * @param path	the path used for binding (may be null if binding is handled externally
+	 * @param path	the path used for binding (it may be {@code null} if binding is handled externally
 	 * @param parent	the parent dialog
 	 * @param model	the FLEF model
 	 * @return a new instance
@@ -183,7 +183,7 @@ public class EntityField extends BoundTextField{
 	 */
 	@SafeVarargs
 	public final EntityField withHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
-		assert !this.handlerTypes.isEmpty(): "Cannot assign handler type more than one time";
+		assert this.handlerTypes.isEmpty(): "Cannot assign handler type more than one time";
 
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
@@ -224,7 +224,7 @@ public class EntityField extends BoundTextField{
 	/**
 	 * Sets the current entity and updates the display.
 	 *
-	 * @param record	the entity record (may be null)
+	 * @param record	the entity record (it may be {@code null})
 	 */
 	public void setEntity(final FLEFRecord record){
 		entityRef = record;
@@ -240,7 +240,7 @@ public class EntityField extends BoundTextField{
 	}
 
 	/**
-	 * Returns whether a entity is selected.
+	 * Returns whether an entity is selected.
 	 *
 	 * @return	Whether a non-empty entity is set.
 	 */
@@ -467,7 +467,7 @@ public class EntityField extends BoundTextField{
 	@Override
 	public String toString(){
 		final StringBuilder sb = new StringBuilder(super.toString());
-		if(entityRef != null &&  !entityRef.isEmpty())
+		if(entityRef != null && !entityRef.isEmpty())
 			sb.append(", entity: ")
 				.append(entityRef);
 		return sb.toString();

@@ -1,6 +1,5 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
-
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 
 import java.io.BufferedReader;
@@ -12,12 +11,6 @@ import java.util.Deque;
 import java.util.List;
 
 
-/**
- * Parser for GEDCOM 5.5.1 files.
- * It reads the file line by line, splits into level, tag, and value,
- * handles cross‑references (@...@), and assembles a tree of GEDCOMNode objects.
- * CONC and CONT lines are concatenated into the value of the preceding node.
- */
 public class GEDCOMParser{
 
 	public List<GEDCOMNode> parse(Reader reader) throws IOException{
@@ -28,68 +21,70 @@ public class GEDCOMParser{
 		GEDCOMNode lastNode = null;
 
 		while((line = br.readLine()) != null){
+			// Rimuove il BOM UTF-8 se presente al primo livello
+			if(!line.isEmpty() && line.charAt(0) == '\uFEFF'){
+				line = line.substring(1);
+			}
 			line = line.trim();
-			if(line.isEmpty()) continue;
+			if(line.isEmpty()){
+				continue;
+			}
 
-			// Parse level, tag, value
 			int firstSpace = line.indexOf(' ');
-			if(firstSpace == -1) continue;
+			if(firstSpace == -1){
+				continue;
+			}
+
 			int level;
 			try{
 				level = Integer.parseInt(line.substring(0, firstSpace));
 			}
 			catch(NumberFormatException e){
-				continue; // skip malformed
+				continue;
 			}
-			String rest = line.substring(firstSpace + 1).trim();
 
-			// Check for cross‑reference tag (e.g., @I123@)
-			String tag, value = null;
+			String rest = line.substring(firstSpace + 1).trim();
+			String tag;
+			String value = null;
 			String xref = null;
-			if(rest.startsWith("@") && rest.indexOf('@', 1) > 1){
+
+			if(rest.startsWith("@")){
 				int endXref = rest.indexOf('@', 1);
-				xref = IDNormalizer.clean(rest.substring(0, endXref + 1));
-				rest = rest.substring(endXref + 1).trim();
-				int space = rest.indexOf(' ');
-				if(space == -1){
-					tag = rest;
-					value = null;
+				if(endXref > 1){
+					xref = IDNormalizer.clean(rest.substring(0, endXref + 1));
+					rest = rest.substring(endXref + 1).trim();
 				}
-				else{
-					tag = rest.substring(0, space);
-					value = rest.substring(space + 1).trim();
-				}
+			}
+
+			int space = rest.indexOf(' ');
+			if(space == -1){
+				tag = rest;
 			}
 			else{
-				int space = rest.indexOf(' ');
-				if(space == -1){
-					tag = rest;
-					value = null;
-				}
-				else{
-					tag = rest.substring(0, space);
-					value = rest.substring(space + 1).trim();
-				}
+				tag = rest.substring(0, space);
+				value = rest.substring(space + 1); // Preserva gli spazi iniziali del valore
 			}
 
-			// Handle CONC / CONT lines
-			if(tag.equals("CONC") || tag.equals("CONT")){
+			// Concatenazione CONC / CONT esatta senza inserire spazi arbitrari
+			if("CONC".equals(tag) || "CONT".equals(tag)){
 				if(lastNode != null){
-					String current = lastNode.getValue();
-					if(current == null) current = "";
-					if(tag.equals("CONC")){
-						current += (value != null? value: "");
+					String current = lastNode.getValue() != null ? lastNode.getValue() : "";
+					String appendVal = value != null ? value : "";
+					if("CONC".equals(tag)){
+						current += appendVal;
 					}
 					else{
-						current += "\n" + (value != null? value: "");
+						current += "\n" + appendVal;
 					}
 					lastNode.setValue(current);
 				}
-				continue; // do not create a node for CONC/CONT
+				continue;
 			}
 
 			GEDCOMNode node = new GEDCOMNode(level, tag, value);
-			if(xref != null) node.setXrefId(xref);
+			if(xref != null){
+				node.setXrefId(xref);
+			}
 
 			if(level == 0){
 				roots.add(node);
@@ -104,7 +99,7 @@ public class GEDCOMParser{
 					stack.peek().addChild(node);
 				}
 				else{
-					roots.add(node); // fallback
+					roots.add(node);
 				}
 				stack.push(node);
 			}

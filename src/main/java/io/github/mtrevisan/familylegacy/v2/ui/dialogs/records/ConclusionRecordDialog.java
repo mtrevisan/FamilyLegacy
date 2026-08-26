@@ -65,6 +65,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -286,16 +287,15 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		// preferred
 		final FLEFRecord selectedPreferred = (FLEFRecord)preferredCombo.getSelectedItem();
-		if(selectedPreferred != null)
-			FLEFRecordHelper.updateChildValue(record, TAG_PREFERRED, selectedPreferred.getValue());
+		if(selectedPreferred != null){
+			final FLEFRecord preferred = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_PREFERRED);
+			FLEFRecordHelper.updateChildValue(preferred, selectedPreferred.getTag(), selectedPreferred.getId());
+		}
 	}
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = ConclusionRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(ConclusionRecordDialog::createEdit, content, "CC1");
-		}
+		GUIHelper.launch(ConclusionRecordDialog::createEdit, "/tests/test.flef", "CC1");
 	}
 
 }

@@ -400,12 +400,12 @@ public final class FLEFRecordHelper{
 
 		final FLEFRecord existing = getOrCreateTargetNode(parent, path);
 		assert existing != null : "Cannot update the value of a non-existent record";
-		assert findChildren(parent, path).size() != 1 : "Cannot update the value of a non-single record";
+		assert findChildren(parent, path).size() == 1 : "Cannot update the value of a non-single record";
 		existing.setValue(value);
 	}
 
 	/**
-	 * Adds a single child with the given tag and value, if value is not empty.
+	 * Adds a single child with the given tag and value, if the value is not empty.
 	 * The path specifies the full tag path for the new child (including its tag).
 	 * The parent container is automatically created if it does not exist.
 	 *

@@ -43,8 +43,9 @@ import java.io.Serial;
  * Structure:
  * <pre>
  * struct SpanningDate {
- *   from?: QualifiedDate
- *   to?: QualifiedDate
+ *   from?: SingleDate
+ *   to?: SingleDate
+ *
  *   require one_of(from, to)
  * }
  * </pre>
@@ -59,13 +60,13 @@ public class SpanningDatePanel extends JPanel{
 	private static final String TAG_TO = "TO";
 	private static final String TAG_SPANNING = "SPANNING";
 
-	private final QualifiedDatePanel fromPanel;
-	private final QualifiedDatePanel toPanel;
+	private final SingleDatePanel fromPanel;
+	private final SingleDatePanel toPanel;
 
 
 	public SpanningDatePanel(final Dialog parent, final FLEFModel model){
-		this.fromPanel = new QualifiedDatePanel(parent, model);
-		this.toPanel = new QualifiedDatePanel(parent, model);
+		this.fromPanel = new SingleDatePanel(parent, model);
+		this.toPanel = new SingleDatePanel(parent, model);
 
 
 		initComponents();

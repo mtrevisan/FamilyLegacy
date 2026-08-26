@@ -191,8 +191,8 @@ public final class RecordDialogComponents{
 					.withHandlerTypes(cfg.handlerClass());
 
 			case PLACE,
-				  REPOSITORY,
-				  SOURCE ->
+					REPOSITORY,
+					SOURCE ->
 				EntityListPanel.createForCitationWrapper(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
 
 			case
@@ -210,12 +210,12 @@ public final class RecordDialogComponents{
 
 			// embedded reference
 			case CONTEXT_IMPACT,
-				  DOCUMENT,
-				  RESEARCH_QUESTION,
-				  TASK ->
+					DOCUMENT,
+					RESEARCH_QUESTION,
+					TASK ->
 				EntityListPanel.createForEntityReference(cfg.tag(), owner, cfg.title(), model, cfg.handlerType());
 
-			case PRIVACY -> new PrivacyPanel(cfg.tag(), owner);
+			case PRIVACY -> new PrivacyPanel(cfg.tag());
 
 			case AUDIT -> new AuditPanel(owner);
 		};

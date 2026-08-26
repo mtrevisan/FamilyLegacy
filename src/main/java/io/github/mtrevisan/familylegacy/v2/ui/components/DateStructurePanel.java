@@ -61,7 +61,7 @@ import java.io.Serial;
  * }
  *
  * DateValue = oneof {
- *   point: QualifiedDate
+ *   point: SingleDate
  *   bounded: BoundedDate
  *   spanning: SpanningDate
  * }
@@ -88,7 +88,7 @@ public class DateStructurePanel extends JPanel{
 
 	private final BindingManager bindingManager = new BindingManager();
 
-	private final QualifiedDatePanel pointDateValuePanel;
+	private final SingleDatePanel pointDateValuePanel;
 	private final BoundedDatePanel boundedDateValuePanel;
 	private final SpanningDatePanel spanningDateValuePanel;
 
@@ -98,7 +98,7 @@ public class DateStructurePanel extends JPanel{
 
 
 	public DateStructurePanel(final Dialog parent, final FLEFModel model){
-		pointDateValuePanel = new QualifiedDatePanel(parent, model);
+		pointDateValuePanel = new SingleDatePanel(parent, model);
 		boundedDateValuePanel = new BoundedDatePanel(parent, model);
 		spanningDateValuePanel = new SpanningDatePanel(parent, model);
 

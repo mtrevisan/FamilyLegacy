@@ -221,9 +221,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord source = FLEFRecord.createMainRecord("S1", TAG_SOURCE);
 			model.addRecord(source);
 
-//			final FLEFRecord sourceCitation = FLEFRecord.createEmpty();
-//			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue(TAG_SOURCE, "S1"));
-//			final SourceCitationDialog dialog = SourceCitationDialog.createEdit(null, model, sourceCitation);
 			final SourceCitationDialog dialog = SourceCitationDialog.createNew(null, model);
 			dialog.setSource("S1");
 			dialog.setVisible(true);

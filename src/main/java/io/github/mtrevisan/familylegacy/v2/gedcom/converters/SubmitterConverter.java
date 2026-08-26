@@ -50,7 +50,7 @@ public class SubmitterConverter{
 	/**
 	 * Converts a GEDCOM SUBM node into an FLEF submitter structure.
 	 *
-	 * @param subNode the GEDCOM node with tag "SUBM"
+	 * @param subNode the GEDCOM node with the tag "SUBM"
 	 */
 	public void convert(GEDCOMNode subNode){
 		String xref = subNode.getXrefId();

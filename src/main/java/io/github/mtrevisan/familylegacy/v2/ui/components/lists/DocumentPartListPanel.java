@@ -106,7 +106,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	 *   <li>Gets the selected document part from the list</li>
 	 *   <li>Extracts the current crop rectangle (if any)</li>
 	 *   <li>Loads the image and shows the crop dialog</li>
-	 *   <li>If crop is confirmed, updates the crop rectangle</li>
+	 *   <li>If a crop is confirmed, updates the crop rectangle</li>
 	 * </ol>
 	 */
 	private void editCrop(){

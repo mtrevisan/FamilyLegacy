@@ -81,16 +81,7 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 
 		final String id = record.getId();
 
-		final StringBuilder sb = new StringBuilder();
-		sb.append(subjectDisplayText)
-			.append(" is related to ")
-			.append(objectDisplayText)
-			.append(" as ")
-			.append(type)
-			.append(" [")
-			.append(id)
-			.append(']');
-		return sb.toString();
+		return subjectDisplayText + " is related to " + objectDisplayText + " as " + type + " [" + id + ']';
 	}
 
 	@Override

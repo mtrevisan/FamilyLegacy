@@ -61,7 +61,7 @@ public final class HandlerRegistry{
 	 * <p>
 	 * Ensures the registry is initialized before accessing it.
 	 *
-	 * @param handlerClass	The handler class (e.g., IndividualHandler.class).
+	 * @param handlerClass	The handler class (e.g., {@code IndividualHandler.class}).
 	 * @return	The handler, or {@code null} if not able to instantiate.
 	 */
 	public static RecordTypeHandler<?> getHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){
@@ -169,7 +169,7 @@ public final class HandlerRegistry{
 	 * Scans the specified package for all classes that extend {@link RecordTypeHandler}.
 	 * For each found class, it reads the static {@code TYPE} field and stores the mapping.
 	 *
-	 * @param packageName the package to scan (e.g., "io.github.mtrevisan.familylegacy.v2.ui.handlers")
+	 * @param packageName the package to scan (e.g., "{@code io.github.mtrevisan.familylegacy.v2.ui.handlers}")
 	 */
 	private static void scanHandlers(final String packageName){
 		final String packagePath = packageName.replace('.', '/');
@@ -228,7 +228,7 @@ public final class HandlerRegistry{
 	 * Scans a JAR file for classes in the specified package.
 	 *
 	 * @param jarPath     the path to the JAR file
-	 * @param packageName the package name to scan (e.g., "io.github...handlers")
+	 * @param packageName the package name to scan (e.g., "{@code io.github...handlers}")
 	 */
 	private static void scanJar(final String jarPath, final String packageName){
 		try(final JarFile jarFile = new JarFile(jarPath)){

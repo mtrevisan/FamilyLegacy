@@ -188,9 +188,6 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			final FLEFRecord place = FLEFRecord.createMainRecord("P1", TAG_PLACE);
 			model.addRecord(place);
 
-//			final FLEFRecord placeCitation = FLEFRecord.createEmpty();
-//			placeCitation.addChild(FLEFRecord.createChildWithTagAndValue(TAG_PLACE, "P1"));
-//			final PlaceCitationDialog dialog = PlaceCitationDialog.createEdit(null, model, placeCitation);
 			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model);
 			dialog.setPlace("P1");
 			dialog.setVisible(true);

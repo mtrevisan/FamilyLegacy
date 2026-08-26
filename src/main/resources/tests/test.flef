@@ -7,10 +7,10 @@ header {
 		SYSTEM_ID FamilyLegacy
 		NAME FL
 		VERSION 0.1
-		CORPORATE (c) Mauro Trevisan
+		CORPORATE Mauro Trevisan
 	}
 	DATE 2026-07-31
-	COPYRIGHT 2026 (c) Mauro Trevisan
+	COPYRIGHT © 2026 Mauro Trevisan
 	SUBMITTER {
 		NOTE submitter note
 		CONTACT {
@@ -267,14 +267,12 @@ records {
 		INDIVIDUAL I1
 		VALID_FROM {
 			VALUE {
-				POINT {
-					SINGLE_DATE {
-						FULL_DATE {
-							VALUE 2001-02-03
-							CALENDAR gregorian
-						}
-					}
-				}
+			    POINT {
+                    FULL_DATE {
+                        VALUE 2001-02-03
+                        CALENDAR gregorian
+                    }
+                }
 			}
 			ORIGINAL_TEXT original text
 			SOURCE {
@@ -289,19 +287,17 @@ records {
 		}
 		VALID_TO {
 			VALUE {
-				POINT {
-					SINGLE_DATE {
-						DECADE {
-							START_YEAR 1940
-							CALENDAR julian
-						}
-					}
-					APPROXIMATE {
-						BASIS calculated
-						CULTURAL_NORM CN1
-						MARGIN P2Y
-					}
-				}
+			    POINT {
+                    DECADE {
+                        START_YEAR 1940
+                        CALENDAR julian
+                        APPROXIMATE {
+                            BASIS calculated
+                            CULTURAL_NORM CN1
+                            MARGIN P2Y
+                        }
+                    }
+                }
 			}
 		}
 		PLACE {
@@ -461,19 +457,15 @@ records {
 			VALUE {
 				BOUNDED {
 					NOT_BEFORE {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
-						}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
+                        }
 					}
 					NOT_AFTER {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
 						}
 					}
 				}
@@ -493,19 +485,15 @@ records {
 			VALUE {
 				SPANNING {
 					FROM {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
-						}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
+                        }
 					}
 					TO {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
 						}
 					}
 				}
@@ -1974,13 +1962,11 @@ person"""
 		PUBLISHER pub
 		DATE {
 			VALUE {
-				POINT {
-					SINGLE_DATE {
-						FULL_DATE {
-							VALUE 2001-01-01
-							CALENDAR gregorian
-						}
-					}
+                POINT {
+                    FULL_DATE {
+                        VALUE 2001-01-01
+                        CALENDAR gregorian
+                    }
 				}
 			}
 		}
@@ -2211,19 +2197,15 @@ person"""
 			VALUE {
 				BOUNDED {
 					NOT_BEFORE {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
-						}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
+                        }
 					}
 					NOT_AFTER {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
 						}
 					}
 				}
@@ -2243,19 +2225,15 @@ person"""
 			VALUE {
 				SPANNING {
 					FROM {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
 						}
 					}
 					TO {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
 						}
 					}
 				}
@@ -2397,20 +2375,16 @@ person"""
 			VALUE {
 				BOUNDED {
 					NOT_BEFORE {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
 						}
 					}
 					NOT_AFTER {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
-						}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
+                        }
 					}
 				}
 			}
@@ -2429,20 +2403,16 @@ person"""
 			VALUE {
 				SPANNING {
 					FROM {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
-						}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
+                        }
 					}
 					TO {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
-						}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
+                        }
 					}
 				}
 			}
@@ -2538,14 +2508,12 @@ person"""
 		}
 		DATE {
 			VALUE {
-				POINT {
-					SINGLE_DATE {
-						CENTURY {
-							ORDINAL 19
-							PART late
-							CALENDAR gregorian
-						}
-					}
+                POINT {
+                    CENTURY {
+                        ORDINAL 19
+                        PART late
+                        CALENDAR gregorian
+                    }
 				}
 			}
 		}
@@ -2725,19 +2693,15 @@ person"""
 			VALUE {
 				BOUNDED {
 					NOT_BEFORE {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
 						}
 					}
 					NOT_AFTER {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
 						}
 					}
 				}
@@ -2757,19 +2721,15 @@ person"""
 			VALUE {
 				SPANNING {
 					FROM {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-01-01
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-01-01
+                            CALENDAR gregorian
 						}
 					}
 					TO {
-						SINGLE_DATE {
-							FULL_DATE {
-								VALUE 2001-02-02
-								CALENDAR gregorian
-							}
+                        FULL_DATE {
+                            VALUE 2001-02-02
+                            CALENDAR gregorian
 						}
 					}
 				}
@@ -3099,14 +3059,12 @@ person"""
 		}
 		DATE {
 			VALUE {
-				POINT {
-					SINGLE_DATE {
-						FULL_DATE {
-							VALUE 2001-02-03
-							CALENDAR gregorian
-						}
-					}
-				}
+			    POINT {
+                    FULL_DATE {
+                        VALUE 2001-02-03
+                        CALENDAR gregorian
+                    }
+                }
 			}
 			ORIGINAL_TEXT original text
 			SOURCE {

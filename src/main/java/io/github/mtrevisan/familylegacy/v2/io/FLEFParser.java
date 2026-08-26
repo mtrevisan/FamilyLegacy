@@ -56,7 +56,8 @@ public class FLEFParser{
 
 	public FLEFModel parse(final String text){
 		this.text = text;
-		this.length = text.length();
+		length = text.length();
+		position = 0;
 
 		final FLEFModel root = new FLEFModel();
 
@@ -213,15 +214,14 @@ public class FLEFParser{
 
 		// Extract the raw content between the delimiters
 		final String raw = text.substring(position, end);
-		// Compute the leading whitespace (indent) of the line containing the closing delimiter
-		int closeIndent = 0;
 		int startOfCloseLine = end;
 		// Find the start of the line that contains the closing quotes
 		while(startOfCloseLine > 0 && text.charAt(startOfCloseLine - 1) != '\n')
 			startOfCloseLine --;
 		// The line content from startOfCloseLine to 'end' is the closing line (including the triple quotes)
 		final String closeLine = text.substring(startOfCloseLine, end);
-		closeIndent = countLeadingWhitespace(closeLine);
+		// Compute the leading whitespace (indent) of the line containing the closing delimiter
+		final int closeIndent = countLeadingWhitespace(closeLine);
 
 		// Move position past the closing delimiter and normalize the trailing newline
 		position = end + 3;

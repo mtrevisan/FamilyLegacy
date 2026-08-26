@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -305,10 +306,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = EventParticipationRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(EventParticipationRecordDialog::createEdit, content, "EP1");
-		}
+		GUIHelper.launch(EventParticipationRecordDialog::createEdit, "/tests/test.flef", "EP1");
 	}
 
 }

@@ -55,6 +55,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -128,7 +129,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 	public static IndividualAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, IndividualAttributeRecordDialog::new);
 	}
 
@@ -254,21 +255,25 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public void setIndividual(final String individualId){
+	public IndividualAttributeRecordDialog withIndividual(final String individualId){
 		if(StringUtils.isNotEmpty(individualId)){
 			if(!confirmRecordExistsForType(individualId, IndividualHandler.class))
-				return;
+				return this;
 
 			withParentEntity(individualId, IndividualHandler.TYPE);
 			refreshLayout();
 		}
+
+		return this;
 	}
 
 	private void refreshLayout(){
-		propertiesPanel.revalidate();
-		propertiesPanel.repaint();
+		if(isShowing()){
+			propertiesPanel.revalidate();
+			propertiesPanel.repaint();
 
-		pack();
+			pack();
+		}
 	}
 
 
@@ -321,10 +326,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = IndividualAttributeRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(IndividualAttributeRecordDialog::createEdit, content, "IA1");
-		}
+		GUIHelper.launch(IndividualAttributeRecordDialog::createEdit, "/tests/test.flef", "IA1");
 	}
 
 }

@@ -79,7 +79,7 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 		sb.append(" → ")
 			.append(targetDisplay);
 
-		// 3. Add impact type if present
+		// 3. Add an impact type if present
 		final String impactType = FLEFRecordHelper.getChildValue(record, TAG_IMPACT_TYPE);
 		if(StringUtils.isNotEmpty(impactType))
 			sb.append(" (")
@@ -104,7 +104,7 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 	/**
 	 * Helper method to extract the display text of a reference node.
 	 * The node with the given tag is expected to have a single child
-	 * whose value is an Xref to another record.
+	 * whose value is a Xref to another record.
 	 *
 	 * @param record the parent record
 	 * @param model  the model to resolve references

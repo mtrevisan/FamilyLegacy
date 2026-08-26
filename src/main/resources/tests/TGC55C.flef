@@ -1,0 +1,6373 @@
+header {
+	protocol {
+		name Family LEgacy Format
+		version 0.1.2
+	}
+	source {
+		system_id GEDitCOM
+		version 2.9.4
+		name GEDitCOM
+		corporate RSAC Software
+	}
+	date 1 JAN 1998
+	copyright © 1997 by H. Eichmann, parts © 1999-2000 by J. A. Nairn.
+	scope """
+This file demonstrates all tags that are allowed in GEDCOM 5.5. Here are some comments about the HEADER recordand comments about where to look for information on the other 9 types of GEDCOM records. Most other records willhave their own notes that describe what to look for in that record and what to hope the importing software will find.
+
+Many applications will fail to import these notes. The notes are therefore also provided with the files as a plain-text"Read-Me" file.
+
+--------------------------
+The HEADER Record:
+     This record has all possible tags for a HEADER record. In uses one custom tag ("_HME") to see what the softwarewill say about custom tags.
+
+--------------------------
+INDIVIDUAL Records:
+     This file has a small number of INDIVIDUAL records. The record named "Joseph Tag Torture" has all possibletags for an INDIVIDUAL record. All remaining  individuals have less tags. Some test specific features; for example:
+
+     Name: Standard GEDCOM Filelinks
+     Name: Nonstandard Multimedia Filelinks
+     Name: General Custom Filelinks
+     Name: Extra URL Filelinks
+          These records link to multimedia files mentioned by the GEDCOM standard and to a variety of other types ofmultimedia files, general files, or URL names.
+
+     Name: Chris Locked Torture
+          Has a "locked" restriction (RESN) tag - should not be able to edit this record it. This record has one set of notesthat is used to test line breaking in notes and a few other text-parsing features of the GEDCOM software. Read thosenotes to see what they are testing.
+
+     Name: Sandy Privacy Torture
+          Has a "privacy" restriction (RESN) tag. Is the tag recognized and how is the record displayed and/or printed?
+
+     Name: Chris Locked Torture
+     Name: Sandy Privacy Torture
+     Name: Pat Smith Torture
+          The three children in this file have unknown sex (no SEX tag). An ancestor tree from each should give fivegenerations of ancestors.
+
+     Name: Charlie Accented ANSEL
+     Name: Lucy Special ANSEL
+          The notes in these records use all possible special characters in the ANSEL character set. The header of this filedenotes this file as using the ANSEL character set. The importing software should handle these special characters in areasonable way.
+
+     Name: Torture GEDCOM Matriarch
+           All individuals in this file are related and all are descendants (or spouses of descendants) of Torture GEDCOMMatriarch. A descendant tree or report from this individual should show five generations of descendants.
+
+--------------------------
+FAMILY Records:
+     The FAMILY record for "Joseph Tag Torture" (husband) and "Mary First Jones" (wife) has all tags allowed infamily records. All other family records use only a few tags and are used to provide records for extra family links inother records.
+
+--------------------------
+SOURCE Records:
+     There are two SOURCE records in this file. The "Everything You Every Wanted to Know about GEDCOM Tags"source has all possible GEDCOM tags for a SOURCE record. The other source only has only a few tags.
+
+--------------------------
+REPOSITORY Record:
+     There is just one REPOSITORY record and it uses all possible tags for such a record.
+
+--------------------------
+SUBMITTER Records:
+     This file has three SUBMITTER records. The "John A. Nairn" record has all tags allowed in such records. Thesecond and third submitter are to test how programs input files with multiple submitters. The GEDCOM standard doesnot allow for notes in SUBMITTER records. Look in the "Main Submitter" to verify all address data comes through,that all three phone numbers appear, and that the multimedia file link is preserved.
+
+--------------------------
+MULTIMEDIA OBJECT Record:
+     The one MULTIMEDIA record has all possible tags and even has encoded data for a small image of a flower. Thereare no known GEDCOM programs that can read or write such records. The record is included here to test howprograms might respond to finding multimedia records present. There are possible plans to eliminate encodedmultimedia objects in the next version of GEDCOM. In the future all multimedia will be included by links to other files.To test current file links and extended file links, see the "Filelinks" family records described above.
+
+--------------------------
+SUBMISSION Record:
+     The one (maximum allowed) SUBMISSION record in this file has all possible tags for such a record.
+
+--------------------------
+NOTE Records:
+     This file has many NOTE records. These are all linked to other records.
+
+--------------------------
+TRLR Records:
+     This file ends in the standard TRLR record.
+
+--------------------------
+ADDITIONAL NOTES
+     This file was originally created by H. Eichmann at <h.eichmann@@mbox.iqo.uni-hannover.de> and posted on theInternet.
+
+(NOTE: email addresses are listed here with double "at" signs. A rule of GEDCOM parsing is that these should beconverted to single "at" at signs, but not many programs follow that rule. In addition, that rule is not needed and may beabandoned in a future version of GEDCOM).
+
+This original file was extensively modified by J. A. Nairn using GEDitCOM 2.9.4 (1999-2001) at<support@@geditcom.com> and posted on the Internet at <http://www.geditcom.com>. Some changes included manymore notes, the use or more tags, extensive testing of multimedia file links, and some notes to test all special ANSELcharacters.
+
+Feel free to copy and use this GEDCOM file for any  non-commercial purpose.
+
+For selecting the allowed tags, the GEDCOM standard Release 5.5 (2 JAN 1996) was used. Copyright: The Church ofJesus Christ of Latter-Day Saints, <gedcom@@gedcom.org>.
+
+You can download the GEDCOM 5.5 specs from: <ftp.gedcom.com/pub/genealogy/gedcom>. You can read theGEDCOM 5.5 specs on the Internet at <http://homepages.rootsweb.com/~pmcbride/gedcom/55gctoc.htm>."""
+}
+
+records {
+	place P1 {
+		name {
+			text {
+				value Las Vegas, Nevada USA
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event E1 {
+		type other
+		description Event type cited in source
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP1 {
+		participant {
+			individual PERSON1
+		}
+		event E1
+		role role in cited event
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	place P2 {
+		name {
+			text {
+				value The place
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	place P3 {
+		name {
+			text {
+				value New York, New York, USA
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	place P4 {
+		name {
+			text {
+				value Salt Lake City, UT, USA
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S24 {
+		title {
+			value """
+This source is embedded in the record instead of being a link to aseparate SOURCE record.
+The source description can use any number of lines"""
+		}
+		note {
+			value """
+Verbatim text: Text from a source. The preferred approach is to cite sources bylinks to SOURCE records.
+Here is a new line of text from the source."""
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value How does software handle embedded SOURCE records on import? Such sourcecitations are common in old GEDCOM files. More modern GEDCOM files shoulduse source citations to SOURCE records.
+			audit {
+				creation {
+					date 12 Mar 2000T10:56:56
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	place P5 {
+		name {
+			text {
+				value London, UK
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	place P6 {
+		name {
+			text {
+				value Chicago, IL, USA
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event E2 {
+		type other
+		description Event type cited in source
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL1 {
+		subject {
+			individual PERSON1
+		}
+		object {
+			individual PERSON2
+		}
+		type civil_spouse
+		status ended
+		audit {
+			creation {
+				date 11 Jan 2001T16:18:40
+			}
+		}
+	}
+
+	relationship RL2 {
+		subject {
+			individual PERSON3
+		}
+		object {
+			individual PERSON1
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL3 {
+		subject {
+			individual PERSON3
+		}
+		object {
+			individual PERSON2
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL4 {
+		subject {
+			individual PERSON4
+		}
+		object {
+			individual PERSON1
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL5 {
+		subject {
+			individual PERSON4
+		}
+		object {
+			individual PERSON2
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event E3 {
+		type annulment
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP2 {
+		participant {
+			individual PERSON1
+		}
+		event E3
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP3 {
+		participant {
+			individual PERSON2
+		}
+		event E3
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E4 {
+		type enga
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		agency None
+		cause {
+			value Desire
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Sample text from engagement source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about this engagement source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Engagement event note (an event of recording or announcing an agreement betweentwo people to become married).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value Age at event: 42
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP4 {
+		participant {
+			individual PERSON1
+		}
+		event E4
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP5 {
+		participant {
+			individual PERSON2
+		}
+		event E4
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E5 {
+		type even
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Sample text from generic family event source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about this generic family event source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Generic family vent note (a noteworthy happening related to an individual, a group, oran organization).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP6 {
+		participant {
+			individual PERSON1
+		}
+		event E5
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP7 {
+		participant {
+			individual PERSON2
+		}
+		event E5
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E6 {
+		type marc
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Sample text from marriage contract source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about this marriage contract source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Marriage contract event note (an event of recording a formal agreement of marriage,including the prenuptial agreement in which marriage partners reach agreement aboutthe property rights of one or both, securing property to their children).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP8 {
+		participant {
+			individual PERSON1
+		}
+		event E6
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP9 {
+		participant {
+			individual PERSON2
+		}
+		event E6
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E7 {
+		type marb
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Sample text from marriage banns source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about this marriage banns source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Marriage banns event note (an event of an official public notice given that two peopleintend to marry).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP10 {
+		participant {
+			individual PERSON1
+		}
+		event E7
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP11 {
+		participant {
+			individual PERSON2
+		}
+		event E7
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E8 {
+		type mars
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Sample text from marriage settlement source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about this marriage settlement source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Marriage settlement event note (an event of creating an agreement between twopeople contemplating marriage, at which time they agree to release or modifyproperty rights that would otherwise arise from the marriage).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP12 {
+		participant {
+			individual PERSON1
+		}
+		event E8
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP13 {
+		participant {
+			individual PERSON2
+		}
+		event E8
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E9 {
+		type div
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Sample text from divorce source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about this divorce source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Divorce event note (an event of dissolving a marriage through civil action).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP14 {
+		participant {
+			individual PERSON1
+		}
+		event E9
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP15 {
+		participant {
+			individual PERSON2
+		}
+		event E9
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E10 {
+		type man and wife
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		agency Catholic Church
+		cause {
+			value Love
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Text from marriage source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about the marriage source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Marriage event note (a legal, common-law, or customary event of creating a familyunit of a man and a woman as husband and wife).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP16 {
+		participant {
+			individual PERSON1
+		}
+		event E10
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP17 {
+		participant {
+			individual PERSON2
+		}
+		event E10
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event E11 {
+		type marl
+		date {
+			value {
+				point {
+					full_date {
+						value 31 DEC 1997
+						calendar gregorian
+					}
+				}
+			}
+		}
+		place {
+			place P2
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Sample text from marriage license source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type direct
+			}
+			note {
+				value A note about this marriage license source.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value Marriage license event note (an event of obtaining a legal license to marry).
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	event_participation EP18 {
+		participant {
+			individual PERSON1
+		}
+		event E11
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	event_participation EP19 {
+		participant {
+			individual PERSON2
+		}
+		event E11
+		role spouse
+		audit {
+			creation {
+				date 2026-08-26
+			}
+		}
+	}
+
+	relationship RL6 {
+		subject {
+			individual PERSON1
+		}
+		object {
+			individual PERSON5
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL7 {
+		subject {
+			individual PERSON1
+		}
+		object {
+			individual PERSON6
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL8 {
+		subject {
+			individual PERSON1
+		}
+		object {
+			individual PERSON8
+		}
+		type civil_spouse
+		status active
+		audit {
+			creation {
+				date 13 Jun 2000T17:01:46
+			}
+		}
+	}
+
+	relationship RL9 {
+		subject {
+			individual PERSON7
+		}
+		object {
+			individual PERSON1
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL10 {
+		subject {
+			individual PERSON7
+		}
+		object {
+			individual PERSON8
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL11 {
+		subject {
+			individual I9
+		}
+		object {
+			individual I15
+		}
+		type civil_spouse
+		status active
+		audit {
+			creation {
+				date 11 Jan 2001T16:50:37
+			}
+		}
+	}
+
+	relationship RL12 {
+		subject {
+			individual I10
+		}
+		object {
+			individual I9
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL13 {
+		subject {
+			individual I10
+		}
+		object {
+			individual I15
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL14 {
+		subject {
+			individual I11
+		}
+		object {
+			individual I9
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL15 {
+		subject {
+			individual I11
+		}
+		object {
+			individual I15
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL16 {
+		subject {
+			individual I12
+		}
+		object {
+			individual I9
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL17 {
+		subject {
+			individual I12
+		}
+		object {
+			individual I15
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL18 {
+		subject {
+			individual I14
+		}
+		object {
+			individual I13
+		}
+		type civil_spouse
+		status active
+		audit {
+			creation {
+				date 11 Jan 2001T16:51:48
+			}
+		}
+	}
+
+	relationship RL19 {
+		subject {
+			individual PERSON5
+		}
+		object {
+			individual I14
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL20 {
+		subject {
+			individual PERSON5
+		}
+		object {
+			individual I13
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	relationship RL21 {
+		subject {
+			individual I14
+		}
+		object {
+			individual I10
+		}
+		type biological_child
+		status active
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	individual PERSON4 {
+		name {
+			text {
+				value Sandy Privacy Torture
+			}
+			part {
+				type given
+				value Sandy Privacy
+			}
+			part {
+				type surname
+				value Torture
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 15 FEB 2000
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P6
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Sandy Privacy Torture" INDIVIDUAL Record.
+
+This record has a restriction setting of "privacy." In public applications ofGEDCOM files, "privacy" records should be hidden from all viewing and printing. Itis less clear how GEDCOM software on your own PC reading your own copies ofGEDCOM files should treat "privacy" records. At a minimum, it should import andpreserve the "privacy" setting."""
+			audit {
+				creation {
+					date 11 Jan 2001T15:36:50
+				}
+			}
+		}
+		privacy {
+			level restricted
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T15:56:15
+			}
+		}
+	}
+
+	individual PERSON3 {
+		name {
+			text {
+				value Chris Locked Torture
+			}
+			part {
+				type given
+				value Chris Locked
+			}
+			part {
+				type surname
+				value Torture
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value MAR 1999
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P1
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Chris Locked Torture" record.
+
+These notes test line breaking in note records with multiple lines. These notes are fora locked individual and thus you should not be able to edit them.
+
+TEST #1: Line breaks in the middle of a word
+     These lines appear together. The word TEST should appear as a single word andnot be broken onto two lines.
+
+TEST #2: Translation of "at" signs
+     The GEDCOM standard says the "@@" sign should appear in any text in the fileas double "@@@@" signs. This recommendation is superfluous, because there isnever a case when an "@@" sign in data can be confused with other GEDCOM usesof the "@@" sign. The question here is how does the software import:
+
+     A single @@ sign in some notes entered by using two characters.
+
+If all "at" signs above appear above as 2 or 4 at signs, that GEDCOM software is notconverting double at signs to single at signs.
+
+TEST #3: Bad line breaks between word but a forgotten space
+     A little below, the words "End" and "Start" are on two lines in the note record.The line with "End," however, forgot the required trailing blank. Thus, a properimporting of these bad notes should combine the two words with no space between"End" and "Start". Here is EndStart as described above. They should appear as oneword.
+
+TEST #4: Blank lines
+     The above paragraphs should have blank lines between them."""
+			audit {
+				creation {
+					date 11 Jan 2001T15:35:25
+				}
+			}
+		}
+		privacy {
+			level restricted
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T15:55:43
+				comment This date is the last time this record was changed
+			}
+		}
+	}
+
+	individual PERSON2 {
+		name {
+			text {
+				value Mary First Jones
+			}
+			part {
+				type given
+				value Mary First
+			}
+			part {
+				type surname
+				value Jones
+			}
+		}
+		sex female
+		event {
+			type death
+			date {
+				value {
+					bounded {
+						not_before {
+							full_date {
+								value 2000
+								calendar gregorian
+							}
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					bounded {
+						not_after {
+							full_date {
+								value 1970
+								calendar gregorian
+							}
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Mary First Jones" INDIVIDUAL Record.
+
+This record is used to provide the first wife to "Joseph Tag Torture." Not many othertags are used."""
+			audit {
+				creation {
+					date 11 Jan 2001T15:38:17
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T15:58:16
+			}
+		}
+	}
+
+	individual PERSON1 {
+		name {
+			text {
+				value Joseph Tag Torture
+			}
+			part {
+				type given
+				value Joseph
+			}
+			part {
+				type surname
+				value Torture
+			}
+			part {
+				type prefix
+				value Prof.
+			}
+			part {
+				type suffix
+				value Jr.
+			}
+			part {
+				type surname_prefix
+				value Le
+			}
+			part {
+				type nickname
+				value Joe
+			}
+			source {
+				source SOURCE1
+				location 42
+			}
+			note {
+				value """
+These are notes about the first NAME structure in this record. These notes areembedded in the INDIVIDUAL record itself.
+
+The second name structure in this record uses all possible tags for a personal namestructure.
+
+NOTE: many applications are confused by two NAME structures."""
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		name {
+			text {
+				value William John Smith
+			}
+			part {
+				type given
+				value William John
+			}
+			part {
+				type surname
+				value Smith
+			}
+			source {
+				source SOURCE1
+				location 55
+				date {
+					value {
+						point {
+							full_date {
+								value 1 JAN 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value """
+Verbatim text: Here is some text from the source specific to this sourcecitation.
+Here is more text but on a new line."""
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type negative
+				}
+				note {
+					value """
+This source citation has all fields possible in a source citation to a separate SOURCErecord. Besides the link to the SOURCE record there are possible fields about thiscitation (e.g., PAGE, TEXT, etc.)
+
+These notes on the source citation are in a separate NOTE record."""
+					audit {
+						creation {
+							date 13 Jun 2000T16:02:33
+						}
+					}
+				}
+			}
+			note {
+				value """
+This is a second personal NAME structure in a single INDIVIDUAL recordwhich is allowed in GEDCOM. This second NAME structure has all possiblefields for a NAME structure.
+
+These notes are embedded in the INDIVIDUAL record."""
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		sex male
+		event {
+			type buri
+			date {
+				value {
+					point {
+						full_date {
+							value 5 VEND 0010
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some burial source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A burial source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Burial event note (the event of the proper disposing of the mortal remains of adeceased person).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type basm
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some Bas Mitzvah source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A Bas Mitzvah source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Bas Mitzvah event note (the ceremonial event held when a Jewish girl reaches age 13,also known as "Bat Mitzvah").
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type slow
+			date {
+				value {
+					point {
+						full_date {
+							value 15 JAN 2001
+							calendar gregorian
+						}
+						approximate {
+							basis stated
+						}
+					}
+				}
+			}
+			place {
+				place P3
+			}
+			agency none
+			cause {
+				value Cancer
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some death source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A death source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value A death event note.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			note {
+				value Age at event: 76
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type bapm
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+						approximate {
+							basis stated
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			agency The Church
+			cause {
+				value Birth
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Sample baptism Source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A baptism source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value A baptism event note (the event of baptism (not LDS), performed in infancy or later. See also BAPL and CHR).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			note {
+				value Age at event: 3 months
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type grad
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some graduation source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A graduation source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Graduation event note (an event of awarding educational diplomas or degrees toindividuals).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type natu
+			date {
+				value {
+					point {
+						full_date {
+							value 5 AUG 1100 B.C.
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some naturalization source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A naturalization source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Naturalization event note (the event of obtaining citizenship).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type adop
+			date {
+				value {
+					bounded {
+						not_after {
+							full_date {
+								value 31 DEC 1997
+								calendar gregorian
+							}
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some adoption source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An adoption source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Adoption event note (pertaining to creation of a child-parent relationship that doesnot exist biologically).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type ordn
+			date {
+				value {
+					point {
+						full_date {
+							value (No idea of the date)
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some ordination source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An ordination source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Ordination event note (a religious event of receiving authority to act in religiousmatters).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type bles
+			date {
+				value {
+					bounded {
+						not_after {
+							full_date {
+								value 31 DEC 1997
+								calendar gregorian
+							}
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some blessing source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A blessing source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Blessing event note (a religious event of bestowing divine care or intercession.Sometimes given in connection with a naming ceremony)
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type cremation
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type barm
+			date {
+				value {
+					bounded {
+						not_before {
+							full_date {
+								value 31 DEC 1997
+								calendar gregorian
+							}
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some Bar Mitzvah source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A Bar Mitzvah source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Bar Mitzvah event note (the ceremonial event held when a Jewish boy reaches age13).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type even
+			date {
+				value {
+					point {
+						full_date {
+							value 5 MAY 0005
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some generic event source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A generic event source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Generic event note (a noteworthy happening related to an individual, a group, or anorganization). The TYPE tag specifies the type of event.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type immi
+			date {
+				value {
+					point {
+						full_date {
+							value DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some immigration source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An immigration source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Immigration event note (an event of entering into a new locality with the intent ofresiding there).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type will
+			date {
+				value {
+					point {
+						full_date {
+							value INT 2 TVT 5758 (interpreted Hebrew date)
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some will source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A will source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Will event note (a legal document treated as an event, by which a person disposes ofhis or her estate, to take effect after death. The event date is the date the will wassigned while the person was alive. See also Probate).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type prob
+			date {
+				value {
+					point {
+						full_date {
+							value 25 SVN 5757 TO 26 IYR 5757
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some probate source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A probate source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Probate event note (an event of judicial determination of the validity of a will. Mayindicate several related court activities over several dates).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type normal
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1965
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P4
+			}
+			agency none
+			source {
+				source SOURCE1
+				location 42
+				evidence {
+					evidence_type indirect
+				}
+				note {
+					value Some notes about this birth source citation which are embedded in the citationstructure itself.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value """
+Some specific note about the birth event.
+
+These notes are in a separate NOTE record. These notes also have their own sourcecitation structure."""
+				source {
+					source SR2
+					location 102
+					date {
+						value {
+							point {
+								full_date {
+									value 1 JUN 1945
+									calendar gregorian
+								}
+							}
+						}
+					}
+					note {
+						value Verbatim text: Here is some text from the source. The source is about the notesfor the birth event.
+						audit {
+							creation {
+								date 2026-08-26T00:00:00Z
+								comment From GEDCOM conversion
+							}
+						}
+					}
+					evidence {
+						evidence_type direct
+					}
+					note {
+						value """
+These are notes in a NOTE record. It is a bit redundant, but you can add sourcecitations directly to NOTE records in addition to adding source citations to theinitial GEDCOM structure that the notes are about.
+
+This example source citation in a NOTE record has all possible source citationfields filled in."""
+						audit {
+							creation {
+								date 9 Jun 1999T13:16:57
+							}
+						}
+					}
+				}
+				audit {
+					creation {
+						date 18 Jun 2000T1:09:46
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type conf
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997 TO 2 JAN 1998
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some CONF Source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A CONF Source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value CONFIRMATION event note (the religious event (not LDS) of conferring the gift of the Holy Ghost and, among protestants, full church membership).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type fcom
+			date {
+				value {
+					point {
+						full_date {
+							value INT 31 DEC 1997 (a test)
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some first communion source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An first communion source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value First communion event note (a religious rite, the first act of sharing in the Lord'ssupper as part of church worship).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type emig
+			date {
+				value {
+					point {
+						full_date {
+							value 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some emigration source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An emigration source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Emigration event note (an event of leaving one's homeland with the intent of residingelsewhere).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type reti
+			date {
+				value {
+					point {
+						full_date {
+							value 11 NIVO 0006
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some retirement source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A retirement source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Retirement event note (an event of exiting an occupational relationship with anemployer after a qualifying time period).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type cens
+			date {
+				value {
+					point {
+						full_date {
+							value 2 TVT 5758
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some census source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A census source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Census event note (the event of the periodic count of the population for a designatedlocality, such as a national or state Census).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type chra
+			date {
+				value {
+					bounded {
+						not_before {
+							full_date {
+								value 31 DEC 1997
+								calendar gregorian
+							}
+						}
+						not_after {
+							full_date {
+								value 1 FEB 1998
+								calendar gregorian
+							}
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some christening source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A christening source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Adult christening event note (the religious event (not LDS) of baptizing and/ornaming an adult person).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type cast
+			value Cast name
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some caste name source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A caste name source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Caste name attribute note (the name of an individual's rank or status in society, basedon racial or religious differences, or differences in wealth, inherited rank, profession,occupation, etc).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type phys
+			value Physical description
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some physical description source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A physical description source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Physical description attribute note (the physical characteristics of a person, place, orthing).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type nmr
+			value 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some number of marriages source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An number of marriages source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Number of marriages attribute note.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type titl
+			value Nobility title
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some title source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A title source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value """
+Title attribute note (a description of a specific writing or other work, such as the titleof a book when used in a source context, or a formal designation used by anindividual in connection with positions of royalty or other social status,
+such as Grand Duke)."""
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type nchi
+			value 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some number of children source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value Am number of children source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Number of children attribute note.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type reli
+			value Religion
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some religion source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A religion source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Religion attribute note (a religious denomination to which a person is affiliated or forwhich a record applies).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type occu
+			value Occupation
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some occupation source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An occupation source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Occupation attribute note (the type of work or profession of an individual).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type occu
+			value Another occupation
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1998
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some occupation source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An occupation source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Occupation attribute note. This is the second occupation attribute in the record.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type educ
+			value Education
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some education source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An education source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Education attribute note (indicator of a level of education attained).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type prop
+			value Possessions
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some possessions source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A possessions source note.
+					audit {
+						creation {
+							date 18 Jun 2000T1:37:42
+						}
+					}
+				}
+			}
+			note {
+				value Possessions or property attribute note (pertaining to possessions such as real estateor other property of interest).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type resi
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some residence source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value A residence source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Residence attribute note (the act of dwelling at an address for a period of time).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type nati
+			value National or tribe origin
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some nationality source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An nationality source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Nationality attribute note (the national heritage of an individual).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type ssn
+			value 6942
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some Social security number source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An Social security number source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value Social security number attribute note (a number assigned by the United States SocialSecurity Administration. Used for tax identification purposes).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		individual_attribute {
+			type idno
+			value 6942
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1997
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P2
+			}
+			source {
+				source SOURCE1
+				location 42
+				date {
+					value {
+						point {
+							full_date {
+								value 31 DEC 1900
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Some national identification number source text.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+				note {
+					value An national identification number source note.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+			}
+			note {
+				value National identification number attribute note (a number assigned to identify a personwithin some significant external system).
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		source {
+			source S23
+		}
+		note {
+			value """
+Comments on "Joseph Tag Torture" INDIVIDUAL Record.
+
+This record contains all possible types of data that can be stored in an INDIVIDUAL (INDI)GEDCOM record. Here are some comments on the data tested here and things to look forwhen this file is imported into any GEDCOM application:
+
+1. This record has two NAME structures. How will a program handle this type of data whichis allowed in GEDCOM? (Because some GEDCOM files get very bothered by a secondname, the files TGC551.ged and TGC551LF files are identical to the TGC55.ged andTGC55LF.ged files except only one name structure is used for this individual - hence the "1"in their names).
+
+2. The first NAME structure has all possible subordinate tags for a NAME structureincluding source and notes a source citation and some notes. The second NAME structure(when used) has a source citation and some notes. Are these all imported?
+
+3. The Birth and Death events use all possible fields including subordinate tags, sources,multimedia links (in Birth), and notes. The birth data has an attached family link which issometimes needed in case of ambiguous parentage.
+
+4. This individual has two spouses. The links to the spouses have attached notes.
+
+5. This individual has two sets of parents - natural parents and adoptive parents. Each parentlink has attached notes. The adoptive parents has a subordinate pedigree (PEDI) tag.
+
+6. This individual has all possible events (including a generic event or EVEN structure). TheGEDCOM tags for the events are given in the TYPE tag of each event. Some comments are:
+     a. The baptism record has all possible tags for event detail.
+     b. There are 2 christening records to see how programs react to duplicate events (whichare allowed).
+     c. The adoption event has a family link to give more information about adoptive parentage.
+     d. The cremation event (CREM) has no data except a "Y" in the first line to indicate thatthe event has occurred. The importing software should keep this event in this record eventhough it contains no data (The GEDCOM tag is not in this TYPE tag).
+     e. The LDS Baptism event tests all possible detail tags for an LDS ordinance.
+     f. The LDS confirmation has no data except a "Y" in the first line to indicate that the eventhas occurred. The importing software should keep this event in this record even though itcontains no data.
+     g. The date fields in the various events test the possible GEDCOM methods forexpressing dates, approximate dates, date ranges, and interpreted dates. There are also a fewHebrew dates, French Republic dates. and "B.C" dates.
+
+7. The residence structure use all possible subordinate tags in the address part of theresidence.
+
+8. This individual has all possible attributes. The GEDCOM tags for the attributes are givenin the TYPE tag of each attribute. Some notes are:
+     a. There are 2 occupation attributes to test how programs handle multiple tags of the sametype (which is allowed).
+     b. The first OCCU attribute uses all possible subordinate tags for an attribute.
+
+9. This record has three note structures. The first is this set of notes which is in a separateNOTE record. The other two are NOTE structures embedded in the record. Are all importedand kept separate? Furthermore, the two embedded note structures have subordinate sourcecitations. The second set of notes has a source citation to a SOURCE record and the third setof notes has an embedded source citation.
+
+10. This record has three source citations. Two are citations to a SOURCE record; one is anembedded source citation (used in older GEDCOM files).
+
+11. This record has one link to a multimedia file. For more testing of multimedia links, seethe "Standard GEDCOM Filelinks," "Nonstandard Multimedia Filelinks," "General CustomFilelinks," and "Extra URL Filelinks" INDIVIDUAL records.
+
+12. This individual has one alias and two associations. All possible tags in the firstassociation link are used.
+
+13. This record is linked to a submitter and to two submitters with interest in the ancestorsand descendants of this individual.
+
+14. This record has all remaining tags allowed in individual records for user referencenumber, record ID, record file number, ancestral file number, and the changed date."""
+			audit {
+				creation {
+					date 12 Jan 2001T0:36:39
+				}
+			}
+		}
+		note {
+			value """
+This is a second set of notes for this single individual record. It is embedded in theINDIVIDUAL record instead of being in a separate NOTE record.
+
+These notes also have a source citation to a SOURCE record. In GEDCOMthis source can only be a single line and links to a SOURCE record."""
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value Alias: I9
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value Associated with: I9 (Relation: Has multimedia links)
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value Associated with: PERSON5 (Relation: Father)
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value Ancestor interest: @SUBMITTER@
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value Descendant interest: @SUBMITTER@
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value REFN: User reference number
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value RFN: Record File Number
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value AFN: Ancestral File Number
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: Some sample text from the first source on this record.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type negative
+			}
+			note {
+				value A source note.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		source {
+			source SR2
+			note {
+				value This is a second source citation in this record.
+				audit {
+					creation {
+						date 6 Mar 2000T22:18:51
+					}
+				}
+			}
+		}
+		source {
+			source S24
+			note {
+				value How does software handle embedded SOURCE records on import? Such sourcecitations are common in old GEDCOM files. More modern GEDCOM files shoulduse source citations to SOURCE records.
+				audit {
+					creation {
+						date 12 Mar 2000T10:56:56
+					}
+				}
+			}
+		}
+		audit {
+			creation {
+				date 12 Feb 2001T19:16:42
+			}
+		}
+	}
+
+	individual I11 {
+		name {
+			text {
+				value General Custom Filelinks
+			}
+			part {
+				type given
+				value General Custom
+			}
+			part {
+				type surname
+				value Filelinks
+			}
+		}
+		sex male
+		event {
+			type death
+			date {
+				value {
+					point {
+						full_date {
+							value 7 DEC 1941
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 1872
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		source {
+			source S5
+		}
+		source {
+			source S6
+		}
+		source {
+			source S7
+		}
+		source {
+			source S8
+		}
+		note {
+			value """
+Comments on "General Custom Filelinks" INDIVIDUAL Record.
+
+File links in GEDCOM are created by having an OBJE structure with the path nameto the file in a subordinate FILE tag and the format of the file in a subordinateFORM tag. It does not make sense to limit file links to the small set of multimediafile types mentioned in the GEDCOM standard (see INDIVIDUAL record"Standard GEDCOM Filelinks" for those file types). The INDIVIDUAL record"Nonstandard Multimedia Filelinks" has sample links to other types of multimedia files notincluded in the standard GEDCOM list. This INDIVIDUAL record has links tosome non-multimedia files types.
+
+What will a genealogy program do when it encounters such logical extensions toGEDCOM file links? Good programs will follow the links. Weaker programs willsimply delete them from your file (it is bad manners to delete someone's data)."""
+			audit {
+				creation {
+					date 20 Jun 2000T1:06:34
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:01:03
+			}
+		}
+	}
+
+	individual I10 {
+		name {
+			text {
+				value Nonstandard Multimedia Filelinks
+			}
+			part {
+				type given
+				value Nonstandard Multimedia
+			}
+			part {
+				type surname
+				value Filelinks
+			}
+		}
+		sex female
+		event {
+			type death
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 1870
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		source {
+			source S9
+		}
+		source {
+			source S10
+		}
+		source {
+			source S11
+		}
+		source {
+			source S12
+		}
+		source {
+			source S13
+		}
+		source {
+			source S14
+		}
+		source {
+			source S15
+		}
+		note {
+			value """
+Comments on "Nonstandard Multimedia Filelinks" INDIVIDUAL Record.
+
+File links in GEDCOM are created by having an OBJE structure with the path nameto the file in a subordinate FILE tag and the format of the file in a subordinateFORM tag. It does not make sense to limit file links to the small set of file typesmentioned in the GEDCOM standard (see INDIVIDUAL record "Standard GEDCOM Filelinks"for those file types). This INDIVIDUAL record has links toother types of multimedia files including movie files, other image file types, and someMacintosh file types.
+
+What will a genealogy program do when in encounters to logical extensions toGEDCOM file links? Good programs will follow the links. Weaker programs willsimply delete them from your file (it is bad manners to delete someone's data).
+
+Some other possible multimedia file type not yet linked to this record are:
+   avi - Microsoft movie file
+   midi - sound file
+   mp3 - music file"""
+			audit {
+				creation {
+					date 11 Jan 2001T15:43:04
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:00:39
+			}
+		}
+	}
+
+	individual I13 {
+		name {
+			text {
+				value Lucy Special ANSEL
+			}
+			part {
+				type given
+				value Lucy Special
+			}
+			part {
+				type surname
+				value ANSEL
+			}
+		}
+		sex female
+		event {
+			type death
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1990
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 12 AUG 1905
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Lucy Special ANSEL" INDIVIDUAL Record.
+
+The following are the special characters supported by the ANSEL character set. The first two lettersare the Hex code. The following text describes the character.Finally, that character, or a character as close as possible to thatcharacter, should appear in the parentheses.
+
+A1 slash l - uppercase (Ł)
+A2 slash o - uppercase (Ø)
+A3 slash d - uppercase (Ð)
+A4 thorn - uppercase (Þ)
+A5 ligature ae - uppercase (Æ)
+A6 ligature oe - uppercase (Œ)
+A7 single prime (ʹ)
+A8 middle dot (·)
+A9 musical flat (♭)
+AA registered sign (®)
+AB plus-or-minus (±)
+AC hook o - uppercase (Ơ)
+AD hook u - uppercase (Ư)
+AE left half ring (ʾ)
+BO right half ring (°)
+B1 slash l - lowercase (ł)
+B2 slash o - lowercase (ø)
+B3 slash d - lowercase (đ)
+B4 thorn - lowercase (þ)
+B5 ligature ae - lowercase (æ)
+B6 ligature oe - lowercase (œ)
+B7 double prime (ʺ)
+B8 dotless i - lowercase (ı)
+B9 british pound (£)
+BA eth (ð)
+BC hook o - lowercase (ơ)
+BD hook u - lowercase (ư)
+BE empty box - LDS extension (�)
+BF black box - LDS extensions (�)
+CO degree sign (°)
+C1 script l (ℓ)
+C2 phonograph copyright mark (℗)
+C3 copyright symbol (©)
+C4 musical sharp (♯)
+C5 inverted question mark (¿)
+C6 inverted exclamation mark (¡)
+CD midline e - LDS extension (�)
+CE midline o - LDS extension (�)
+CF es zet (ß)"""
+			audit {
+				creation {
+					date 13 Jun 2000T16:28:45
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:00:23
+			}
+		}
+	}
+
+	individual I12 {
+		name {
+			text {
+				value Extra URL Filelinks
+			}
+			part {
+				type given
+				value Extra URL
+			}
+			part {
+				type surname
+				value Filelinks
+			}
+		}
+		sex female
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 1875
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		source {
+			source S1
+		}
+		source {
+			source S2
+		}
+		source {
+			source S3
+		}
+		source {
+			source S4
+		}
+		note {
+			value """
+Comments on "Extra URL Filelinks" INDIVIDUAL Record.
+
+File links in GEDCOM are created by having an OBJE structure with the path nameto the file in a subordinate FILE tag and the format of the file in a subordinateFORM tag. It does not make sense to limit file links to the small set of multimediafile types mentioned in the GEDCOM standard (see INDIVIDUAL record"Standard GEDCOM Filelinks" for those file types) or even to limit them to localfiles. This INDIVIDUAL record has a series of links with universal resourcelocators (URL) in the FILE tag and the file "URL" in the FORM tag.
+
+The sample URL links include links to a web sites, a link to an FTP site, and a link tosend email.
+
+This extension of file links to URL links is non-standard GEDCOM. What will agenealogy program do when in encounters URL file links? Cleaver programs willfind the file on the Internet using your default browser, FTP program, or emailprogram. Weaker programs will simply delete them from your file (it is bad mannersto delete someone's data)."""
+			audit {
+				creation {
+					date 20 Jun 2000T1:09:48
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:01:19
+			}
+		}
+	}
+
+	individual I15 {
+		name {
+			text {
+				value Torture GEDCOM Matriarch
+			}
+			part {
+				type given
+				value Torture GEDCOM
+			}
+			part {
+				type surname
+				value Matriarch
+			}
+		}
+		sex female
+		event {
+			type death
+			date {
+				value {
+					point {
+						full_date {
+							value 15 JUN 1915
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 12 FEB 1840
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:01:59
+			}
+		}
+	}
+
+	individual I14 {
+		name {
+			text {
+				value Charlie Accented ANSEL
+			}
+			part {
+				type given
+				value Charlie Accented
+			}
+			part {
+				type surname
+				value ANSEL
+			}
+		}
+		sex male
+		event {
+			type death
+			date {
+				value {
+					point {
+						full_date {
+							value 5 JUL 1974
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 15 JUN 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Charlie Accented ANSEL" INDIVIDUAL Record.
+
+To represent accented characters, the ANSEL character set uses two-byte codes. Thefirst byte is E0 to FB or FE (hexadecimal); the second byte is the letter to beaccented.
+
+These notes have all possible accented characters. How many of the characters arerepresented correctly? Even programs that fully support ANSEL will not draw allthese accented characters correctly. Many of them correspond to accents that can notbe found in any langauge and therefore do not correspond to any computer fonts.
+
+code: E0 (Unicode: hook above, 0309) low rising tone mark
+     Ả̉B̉C̉DẺ̉F̉G̉HỈ̉J̉K̉L̉M
+     ̉NỎ̉P̉Q̉R̉S̉TỦ̉V̉W̉XỶ̉Z
+     ả̉b̉c̉dẻ̉f̉g̉hỉ̉j̉k̉l̉m
+     ̉nỏ̉p̉q̉r̉s̉tủ̉v̉w̉xỷ̉z
+
+code: E1 (Unicode: grave, 0300) grave accent
+     À̀B̀C̀DÈ̀F̀G̀HÌ̀J̀K̀L̀M
+     ̀NÒ̀P̀Q̀R̀S̀TÙ̀VẀ̀XỲ̀Z
+     à̀b̀c̀dè̀f̀g̀hì̀j̀k̀l̀m
+     ̀nò̀p̀q̀r̀s̀tù̀vẁ̀xỳ̀z
+
+code: E2 (Unicode: acute, 0301) acute accent:
+     Á́BĆ́DÉ́FǴ́HÍ́JḰĹḾ
+     ŃÓṔ́QŔŚ́TÚ́VẂ́XÝŹ
+     á́bć́dé́fǵ́hí́jḱĺḿ
+     ńíṕ́qŕś́tú́vẃ́xýź
+
+code: E3 (Unicode: circumflex, 0302) circumflex accent
+     Â̂BĈ̂DÊ̂FĜĤÎĴ̂K̂L̂M
+     ̂NÔ̂P̂Q̂RŜ̂TÛ̂VŴ̂XŶẐ
+     â̂bĉ̂dê̂fĝĥîĵ̂k̂l̂m
+     ̂nô̂p̂q̂rŝ̂tû̂vŵ̂xŷẑ
+
+code: E4 (Unicode: tilde, 0303) tilde
+     Ã̃B̃C̃DẼ̃F̃G̃HĨ̃J̃K̃L̃M
+     ÑÕ̃P̃Q̃R̃S̃TŨṼ̃W̃XỸ̃Z
+     Ñ̃b̃c̃dẽ̃f̃g̃hĩ̃j̃k̃l̃m
+     ñõ̃p̃q̃r̃s̃tũṽ̃w̃xỹ̃z
+
+code: E5 (Unicode: macron, 0304) macron
+     Ā̄B̄C̄DĒ̄FḠ̄HĪ̄J̄K̄L̄M
+     ̄NŌ̄P̄Q̄R̄S̄TŪ̄V̄W̄X̄ȲZ
+     ā̄b̄c̄dē̄fḡ̄hī̄j̄k̄l̄m
+     ̄nō̄p̄q̄r̄s̄tū̄v̄w̄x̄ȳz
+
+code: E6 (Unicode: breve, 0306) breve
+     Ă̆B̆C̆DĔ̆FĞ̆HĬ̆J̆K̆L̆M
+     ̆NŎ̆P̆Q̆R̆S̆TŬ̆V̆W̆X̆Y̆Z
+     ă̆b̆c̆dĕ̆fğ̆hĭ̆j̆k̆l̆m
+     ̆nŏ̆p̆q̆r̆s̆tŭ̆v̆w̆x̆y̆z
+
+code: E7 (Unicode: dot above, 0307) dot above
+     ̇AḂĊḊĖḞĠḢİ̇J̇K̇LṀ
+     Ṅ̇OṖ̇QṘṠṪ̇U̇VẆẊẎŻ
+     ̇aḃċḋėḟġḣ̇i̇j̇k̇lṁ
+     ṅ̇oṗ̇qṙṡṫ̇u̇vẇẋẏż
+
+code: E8 (Unicode: diaeresis, 0308) umlaut (dieresis)
+     Ä�B�C�DË�F�GḦÏ�J�K�L�M
+     �NÖ�P�Q�R�S�TÜ�VẄẌŸ�Z
+     ä�b�c�dë�f�gḧï�j�k�l�m
+     �nö�p�q�r�sẗü�vẅẍÿ�z
+
+code: E9 (Unicode: caron, 030C) hacek
+     Ǎ̌BČĎĚ̌FǦ̌HǏ̌JǨĽ̌M
+     ŇǑ̌P̌QŘŠŤǓ̌V̌W̌X̌YŽ
+     ǎ̌bčďě̌fǧ̌hǐǰǩľ̌m
+     ňǒ̌p̌qřšťǔ̌v̌w̌x̌yž
+
+code: EA (Unicode: ring above, 030A) circle above (angstrom)
+     Å̊B̊C̊D̊E̊F̊G̊H̊I̊J̊K̊L̊M
+     ̊N̊O̊P̊Q̊R̊S̊T̊ŮV̊W̊X̊Y̊Z
+     å̊b̊c̊d̊e̊f̊g̊h̊i̊j̊k̊l̊m
+     ̊n̊o̊p̊q̊r̊s̊tů̊vẘ̊xẙ̊z
+
+code: EB (Unicode: ligature left half, FE20) ligature, left half
+     ︠A︠B︠C︠D︠E︠F︠G︠H︠I︠J︠K︠L︠M
+     ︠N︠O︠P︠Q︠R︠S︠T︠U︠V︠W︠X︠Y︠Z
+     ︠a︠b︠c︠d︠e︠f︠g︠h︠i︠j︠k︠l︠m
+     ︠n︠o︠p︠q︠r︠s︠t︠u︠v︠w︠x︠y︠z
+
+code: EC (Unicode: ligature right half, FE21) ligature, right half
+     ︡A︡B︡C︡D︡E︡F︡G︡H︡I︡J︡K︡L︡M
+     ︡N︡O︡P︡Q︡R︡S︡T︡U︡V︡W︡X︡Y︡Z
+     ︡a︡b︡c︡d︡e︡f︡g︡h︡i︡j︡k︡l︡m
+     ︡n︡o︡p︡q︡r︡s︡t︡u︡v︡w︡x︡y︡z
+
+code: ED (Unicode: comma above right, 0315) high comma, off center
+     ̕A̕B̕C̕D̕E̕F̕G̕H̕I̕J̕K̕L̕M
+     ̕N̕O̕P̕Q̕R̕S̕T̕U̕V̕W̕X̕Y̕Z
+     ̕a̕b̕c̕d̕e̕f̕g̕h̕i̕j̕k̕l̕m
+     ̕n̕o̕p̕q̕r̕s̕t̕u̕v̕w̕x̕y̕z
+
+code: EE (Unicode: double acute, 030B) double acute accent
+     ̋A̋B̋C̋D̋E̋F̋G̋H̋I̋J̋K̋L̋M
+     ̋NŐ̋P̋Q̋R̋S̋TŰ̋V̋W̋X̋Y̋Z
+     ̋a̋b̋c̋d̋e̋f̋g̋h̋i̋j̋k̋l̋m
+     ̋nő̋p̋q̋r̋s̋tű̋v̋w̋x̋y̋z
+
+code: EF (Unicode: candrabindu, 0310) candrabindu
+     ̐A̐B̐C̐D̐E̐F̐G̐H̐I̐J̐K̐L̐M
+     ̐N̐O̐P̐Q̐R̐S̐T̐U̐V̐W̐X̐Y̐Z
+     ̐a̐b̐c̐d̐e̐f̐g̐h̐i̐j̐k̐l̐m
+     ̐n̐o̐p̐q̐r̐s̐t̐u̐v̐w̐x̐y̐z
+
+code: F0 (Unicode: cedilla, 0327) cedilla
+     ̧A̧BÇḐ̧ȨFĢḨ̧I̧JĶĻ̧M
+     Ņ̧O̧P̧QŖŞŢ̧U̧V̧W̧X̧Y̧Z
+     ̧a̧bçḑ̧ȩfģḩ̧i̧jķļ̧m
+     ņ̧o̧p̧qŗşţ̧u̧v̧w̧x̧y̧z
+
+code: F1 (Unicode: ogonek, 0328) right hook
+     Ą̨B̨C̨DĘ̨F̨G̨HĮ̨J̨K̨L̨M
+     ̨NǪ̨P̨Q̨R̨S̨TŲ̨V̨W̨X̨Y̨Z
+     ą̨b̨c̨dę̨f̨g̨hį̨j̨k̨l̨m
+     ̨nǫ̨p̨q̨r̨s̨tų̨v̨w̨x̨y̨z
+
+code: F2 (Unicode: dot below, 0323) dot below
+     ẠḄ̣CḌẸ̣F̣GḤỊ̣JḲḶṂ
+     ṆỌ̣P̣QṚṢṬỤṾẈ̣XỴẒ
+     ạḅ̣cḍẹ̣f̣gḥị̣jḳḷṃ
+     ṇọ̣p̣qṛṣṭụṿẉ̣xỵẓ
+
+code: F3 (Unicode: diaeresis below, 0324) double dot below
+     ̤A̤B̤C̤D̤E̤F̤G̤H̤I̤J̤K̤L̤M
+     ̤N̤O̤P̤Q̤R̤S̤TṲ̤V̤W̤X̤Y̤Z
+     ̤a̤b̤c̤d̤e̤f̤g̤h̤i̤j̤k̤l̤m
+     ̤n̤o̤p̤q̤r̤s̤tṳ̤v̤w̤x̤y̤z
+
+code: F4 (Unicode: ring below, 0325) circle below
+     Ḁ̥B̥C̥D̥E̥F̥G̥H̥I̥J̥K̥L̥M
+     ̥N̥O̥P̥Q̥R̥S̥T̥U̥V̥W̥X̥Y̥Z
+     ḁ̥b̥c̥d̥e̥f̥g̥h̥i̥j̥k̥l̥m
+     ̥n̥o̥p̥q̥r̥s̥t̥u̥v̥w̥x̥y̥z
+
+code: F5 (Unicode: double low line, 0333) double underscore
+     ̳A̳B̳C̳D̳E̳F̳G̳H̳I̳J̳K̳L̳M
+     ̳N̳O̳P̳Q̳R̳S̳T̳U̳V̳W̳X̳Y̳Z
+     ̳a̳b̳c̳d̳e̳f̳g̳h̳i̳j̳k̳l̳m
+     ̳n̳o̳p̳q̳r̳s̳t̳u̳v̳w̳x̳y̳z
+
+code: F6 (Unicode: line below, 0332) underscore
+     ̲A̲B̲C̲D̲E̲F̲G̲H̲I̲J̲K̲L̲M
+     ̲N̲O̲P̲Q̲R̲S̲T̲U̲V̲W̲X̲Y̲Z
+     ̲a̲b̲c̲d̲e̲f̲g̲h̲i̲j̲k̲l̲m
+     ̲n̲o̲p̲q̲r̲s̲t̲u̲v̲w̲x̲y̲z
+
+code: F7 (Unicode: comma below, 0326) left hook
+     ̦A̦B̦C̦D̦E̦F̦G̦H̦I̦J̦K̦L̦M
+     ̦N̦O̦P̦Q̦R̦ȘȚU̦V̦W̦X̦Y̦Z
+     ̦a̦b̦c̦d̦e̦f̦g̦h̦i̦j̦k̦l̦m
+     ̦n̦o̦p̦q̦r̦șțu̦v̦w̦x̦y̦z
+
+code: F8 (Unicode: left half ring below, 031C) right cedilla
+     ̜A̜B̜C̜D̜E̜F̜G̜H̜I̜J̜K̜L̜M
+     ̜N̜O̜P̜Q̜R̜S̜T̜U̜V̜W̜X̜Y̜Z
+     ̜a̜b̜c̜d̜e̜f̜g̜h̜i̜j̜k̜l̜m
+     ̜n̜o̜p̜q̜r̜s̜t̜u̜v̜w̜x̜y̜z
+
+code: F9 (Unicode: breve below, 032E) half circle below
+     ̮A̮B̮C̮D̮E̮F̮GḪ̮I̮J̮K̮L̮M
+     ̮N̮O̮P̮Q̮R̮S̮T̮U̮V̮W̮X̮Y̮Z
+     ̮a̮b̮c̮d̮e̮f̮gḫ̮i̮j̮k̮l̮m
+     ̮n̮o̮p̮q̮r̮s̮t̮u̮v̮w̮x̮y̮z
+
+code: FA (Unicode: double tilde left half, FE22) double tilde, left half
+     ︢A︢B︢C︢D︢E︢F︢G︢H︢I︢J︢K︢L︢M
+     ︢N︢O︢P︢Q︢R︢S︢T︢U︢V︢W︢X︢Y︢Z
+     ︢a︢b︢c︢d︢e︢f︢g︢h︢i︢j︢k︢l︢m
+     ︢n︢o︢p︢q︢r︢s︢t︢u︢v︢w︢x︢y︢z
+
+code: FB (Unicode: double tilde right half, FE23) double tilde, right half
+     ︣A︣B︣C︣D︣E︣F︣G︣H︣I︣J︣K︣L︣M
+     ︣N︣O︣P︣Q︣R︣S︣T︣U︣V︣W︣X︣Y︣Z
+     ︣a︣b︣c︣d︣e︣f︣g︣h︣i︣j︣k︣l︣m
+     ︣n︣o︣p︣q︣r︣s︣t︣u︣v︣w︣x︣y︣z
+
+code: FE (Unicode: comma above, 0313) high comma, centered
+     ̓A̓B̓C̓D̓E̓F̓G̓H̓I̓J̓K̓L̓M
+     ̓N̓O̓P̓Q̓R̓S̓T̓U̓V̓W̓X̓Y̓Z
+     ̓a̓b̓c̓d̓e̓f̓g̓h̓i̓j̓k̓l̓m
+     ̓n̓o̓p̓q̓r̓s̓t̓u̓v̓w̓x̓y̓z"""
+			audit {
+				creation {
+					date 12 Jan 2001T0:32:24
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:00:06
+			}
+		}
+	}
+
+	individual I9 {
+		name {
+			text {
+				value Standard GEDCOM Filelinks
+			}
+			part {
+				type given
+				value Standard GEDCOM
+			}
+			part {
+				type surname
+				value Filelinks
+			}
+		}
+		sex male
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 1835
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		source {
+			source S16
+		}
+		source {
+			source S17
+		}
+		source {
+			source S18
+		}
+		source {
+			source S19
+		}
+		source {
+			source S20
+		}
+		source {
+			source S21
+		}
+		source {
+			source S22
+		}
+		note {
+			value """
+Comments on "Standard GEDCOM Filelinks" INDIVIDUAL Record.
+
+The GEDCOM standard lets you link records to multimedia objects kept in separatefiles. When GEDCOM 5.5 was released, it only mentioned allowing links to a smallnumber of multimedia files types and some of them are Windows-only file types.The recommended list is
+
+     bmp - Windows but map file
+     gif - Bit map, 256 color GIF files (common on the Internet)
+     jpeg - Bit-mapped files developed for photographs (also common on the Internet)
+     ole - Linked object
+     pcx - Windows paintbrush file
+     tiff - Tagged image format file
+     wav - Windows sound file
+
+This INDIVIDUAL record has links to this limited set of multimedia files (exceptfor ole). These links are created by having an OBJE structure with the path name tothe file in a subordinate FILE tag and the format of the file in a subordinate FORMtag.
+
+It does not make sense to limit files links to this small set of file types. It does notallow for future file types and, for example, it ignores movie files types. You can visitthe "Nonstandard Multimedia Filelinks" record to see links to other types of multimedia files.You can visit the "General Custom Filelinks" and the "Extra URL Filelinks" records to see links toany file type and to universal resource locators.
+
+NOTE: The path names for the linked files here are just the file names. A goodGEDCOM program should search for the files and might look first in the samefolder as this test GEDCOM file. A weaker program might be unable to locate thesefiles and you will have to enter the full path names.
+
+EMBEDDED Multimedia Object:
+     GEDCOM 5.5 has a method for encoding multimedia objects and storing them inMULTIMEDIA Records. This INDIVIDUAL has a link to such an embeddedobject. The object has encoded data, written using the GEDCOM 5.5 encodingalgorithm, for the image of a small flower. To my knowledge, there are no genealogyprograms that can actually read and decode such objects. The main reason forinclusion of the object here is to see how programs will treat this record. Goodprograms will leave them in the file (it is bad manners to delete someone's data). Badprograms will simple delete the object from the file."""
+			note {
+				value REFN: User Reference Number
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 11 Jan 2001T15:41:51
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:02:06
+			}
+		}
+	}
+
+	individual PERSON8 {
+		name {
+			text {
+				value Elizabeth Second Smith
+			}
+			part {
+				type given
+				value Elizabeth Second
+			}
+			part {
+				type surname
+				value Smith
+			}
+		}
+		sex female
+		event {
+			type death
+			date {
+				value {
+					point {
+						full_date {
+							value APR 2000 TO 5 MAR 2001
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					bounded {
+						not_before {
+							full_date {
+								value MAY 1979
+								calendar gregorian
+							}
+						}
+						not_after {
+							full_date {
+								value AUG 1979
+								calendar gregorian
+							}
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Elizabeth Second Smith" INDIVIDUAL Record.
+
+This record is used to provide a second wife to "Joseph Tag Torture." Not manyother tags are used."""
+			audit {
+				creation {
+					date 11 Jan 2001T15:38:55
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T15:58:58
+			}
+		}
+	}
+
+	individual PERSON7 {
+		name {
+			text {
+				value Pat Smith Torture
+			}
+			part {
+				type given
+				value Pat Smith
+			}
+			part {
+				type surname
+				value Torture
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 1 JAN 2001
+							calendar gregorian
+						}
+					}
+				}
+			}
+			place {
+				place P5
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Pat Smith Torture" INDIVIDUAL Record.
+
+The record simply provides a child to "Joseph Tag Torture" in his family with "Mary FirstJones" as his spouse."""
+			audit {
+				creation {
+					date 11 Jan 2001T15:40:04
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T15:56:49
+			}
+		}
+	}
+
+	individual PERSON6 {
+		name {
+			text {
+				value Teresa Mary Caregiver
+			}
+			part {
+				type given
+				value Teresa Mary
+			}
+			part {
+				type surname
+				value Caregiver
+			}
+		}
+		sex female
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 6 JUN 1944
+							calendar gregorian
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Teresa Mary Caregiver" INDIVIDUAL Record.
+
+This record is the adoptive mother of "Joseph Tag Torture". She is linked to a familyrecord, but there is no husband in that record."""
+			audit {
+				creation {
+					date 13 Jun 2000T17:14:28
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:03:05
+			}
+		}
+	}
+
+	individual PERSON5 {
+		name {
+			text {
+				value William Joseph Torture
+			}
+			part {
+				type given
+				value William Joseph
+			}
+			part {
+				type surname
+				value Torture
+			}
+		}
+		sex male
+		event {
+			type death
+			date {
+				value {
+					point {
+						full_date {
+							value INT 1995 (from estimated age)
+							calendar gregorian
+						}
+					}
+				}
+			}
+			cause {
+				value Old age
+			}
+			note {
+				value Age at event: 65
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		event {
+			type birth
+			date {
+				value {
+					point {
+						full_date {
+							value 1930
+							calendar gregorian
+						}
+						approximate {
+							basis stated
+						}
+					}
+				}
+			}
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value """
+Comments on "William Joseph Torture" INDIVIDUAL Record.
+
+This record is the natural father of "Joseph Tag Torture". He is linked to a familyrecord, but there is no wife in that record."""
+			audit {
+				creation {
+					date 11 Jan 2001T15:31:12
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T15:59:40
+			}
+		}
+	}
+
+	group FAMILY2 {
+		type family
+		audit {
+			creation {
+				date 13 Jun 2000T17:01:46
+			}
+		}
+		note {
+			value """
+Comments on "Joseph Tag Torture-Elizabeth Second Smith" FAMILY Record.
+
+This record has a second marriage for "Joseph Tag Torture" and the family has onechild."""
+			audit {
+				creation {
+					date 11 Jan 2001T16:50:21
+				}
+			}
+		}
+		name {
+			text {
+				value Family of Joseph and Elizabeth Second
+			}
+		}
+	}
+
+	group F6 {
+		type family
+		audit {
+			creation {
+				date 11 Jan 2001T16:51:48
+			}
+		}
+		note {
+			value """
+Comments on "Charlie Accented ANSEL-Lucy Special ANSEL" FAMILY Record.
+
+The two spouses in this family test reading of the ANSEL character set."""
+			audit {
+				creation {
+					date 11 Jan 2001T16:52:38
+				}
+			}
+		}
+		name {
+			text {
+				value Family of Charlie Accented and Lucy Special
+			}
+		}
+	}
+
+	group F7 {
+		type family
+		audit {
+			creation {
+				date 11 Jan 2001T16:52:53
+			}
+		}
+		note {
+			value """
+Comments on "<unknown>-Nonstandard Multimedia Filelinks" FAMILY Record.
+
+The record is simply used to make family connections between records in this file."""
+			audit {
+				creation {
+					date 11 Jan 2001T16:53:38
+				}
+			}
+		}
+		name {
+			text {
+				value Family of  and Nonstandard Multimedia
+			}
+		}
+	}
+
+	group FAMILY1 {
+		type family
+		note {
+			value Number of children: 42
+			audit {
+				creation {
+					date 11 Jan 2001T16:18:40
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:18:40
+			}
+		}
+		source {
+			source SOURCE1
+			location 42
+			date {
+				value {
+					point {
+						full_date {
+							value 31 DEC 1900
+							calendar gregorian
+						}
+					}
+				}
+			}
+			note {
+				value Verbatim text: A sample text from a source of this family
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+			evidence {
+				evidence_type negative
+			}
+			note {
+				value A note this source on the FAMILY record.
+				audit {
+					creation {
+						date 2026-08-26T00:00:00Z
+						comment From GEDCOM conversion
+					}
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Joseph Tag Torture-Mary First Jones" FAMILY Record.
+
+This record contains all possible types of data that can be stored in a FAMILY(FAM) GEDCOM record. Here are some comments on the data tested here andthings to look for when this file is imported into any GEDCOM application:
+
+1. The marriage event (MARR) uses all possible tags for such a structure includingnotes, sources, and a link to a multimedia file.
+
+2. This family has two children.
+
+3. This family has all possible family events (including a generic event or EVENstructure). Some notes are:
+     a. The engaged structure has all possible tags for event detail.
+     b. The annulment event (ANUL) has no data except a "Y" in the first line toindicate that the event has occurred. The importing software should keep this event inthis record even though it contains no data.
+     c. The LDS Spouse Sealing event tests all possible detail tags for an LDS.
+     d. The TYPE tag of each event has the name of the GEDCOM tag for that event.There is no TYPE tag in the annulment event because that structure is empty.
+
+4. This record has this one note structure which is to a set of embedded notes (andwhich you are reading now).
+
+5. This record has one source citation.
+
+6. This record is linked a submitter.
+
+7. This record has all remaining tags allowed in FAMILY records for user referencenumber, record ID, and the changed date."""
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		name {
+			text {
+				value Family of Joseph and Mary First
+			}
+		}
+		source {
+			source S25
+		}
+	}
+
+	group ADOPTIVE_PARENTS {
+		type family
+		audit {
+			creation {
+				date 13 Jun 2000T17:01:18
+			}
+		}
+		note {
+			value """
+Comments on "<unknown>-Teresa Mary Caregiver" FAMILY Record.
+
+This record has the adoptive mother of "Joseph Tag Torture." The husband is notknown."""
+			audit {
+				creation {
+					date 11 Jan 2001T16:50:06
+				}
+			}
+		}
+		name {
+			text {
+				value Family of  and Teresa Mary
+			}
+		}
+	}
+
+	group PARENTS {
+		type family
+		audit {
+			creation {
+				date 13 Jun 2000T17:00:35
+			}
+		}
+		note {
+			value """
+Comments on "William Joseph Torture-<unknown>" FAMILY Record.
+
+This record has the natural father of "Joseph Tag Torture." The wife is not known."""
+			audit {
+				creation {
+					date 11 Jan 2001T16:49:33
+				}
+			}
+		}
+		name {
+			text {
+				value Family of William Joseph
+			}
+		}
+	}
+
+	group F5 {
+		type family
+		audit {
+			creation {
+				date 11 Jan 2001T16:50:37
+			}
+		}
+		note {
+			value """
+Comments on "Standard GEDCOM Filelinks-Torture GEDCOM Matriarch"FAMILY record.
+
+The children in this family test logical extensions to the GEDCOM method forlinking to a multimedia file."""
+			audit {
+				creation {
+					date 11 Jan 2001T16:51:33
+				}
+			}
+		}
+		name {
+			text {
+				value Family of Standard GEDCOM and Torture GEDCOM
+			}
+		}
+	}
+
+	source S3 {
+		title {
+			value GEDitCOM Macintosh genealogy software home page
+		}
+		document D3
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S4 {
+		title {
+			value Email comments on this GEDCOM file to here
+		}
+		document D4
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S5 {
+		title {
+			value Plain TEXT document
+		}
+		document D5
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S6 {
+		title {
+			value Microsoft Word document
+		}
+		document D6
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S7 {
+		title {
+			value Rich text format document
+		}
+		document D7
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S8 {
+		title {
+			value Portable document format file
+		}
+		document D8
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S9 {
+		title {
+			value Macintosh PICT file
+		}
+		document D9
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S20 {
+		title {
+			value Windows paint brush file
+		}
+		document D20
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S22 {
+		title {
+			value Image
+		}
+		document D22
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S21 {
+		title {
+			value Windows sound File
+		}
+		document D21
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S23 {
+		title {
+			value GIF Image File
+		}
+		document D23
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S25 {
+		title {
+			value BMP Image File
+		}
+		document D25
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S11 {
+		title {
+			value TGA image file
+		}
+		document D11
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source SR2 {
+		title {
+			value All I Know About GEDCOM, I Learned on the Internet
+		}
+		author Second Source Author
+		note {
+			value Abbreviation: What I Know About GEDCOM
+			audit {
+				creation {
+					date 11 Jan 2001T16:21:39
+				}
+			}
+		}
+		note {
+			value """
+Comments on "All I Know About GEDCOM, I Learned on the Internet" SOURCE record.
+
+This is another SOURCE record. How does the importing software handle multiplesources in the GEDCOM file? This source only fills a few GEDCOM structures."""
+			audit {
+				creation {
+					date 12 Mar 2000T12:46:21
+				}
+			}
+		}
+		audit {
+			creation {
+				date 11 Jan 2001T16:21:39
+			}
+		}
+	}
+
+	source S10 {
+		title {
+			value Macintosh MacPaint file
+		}
+		document D10
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S13 {
+		title {
+			value QuickTime movie file
+		}
+		document D13
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S12 {
+		title {
+			value Macintosh sound file
+		}
+		document D12
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S15 {
+		title {
+			value Mpeg Movie File
+		}
+		document D15
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S14 {
+		title {
+			value Adobe Photoshop file
+		}
+		document D14
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S17 {
+		title {
+			value GIF image file
+		}
+		document D17
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S16 {
+		title {
+			value Windows bit mapped image file
+		}
+		document D16
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S19 {
+		title {
+			value Tagged image format file
+		}
+		document D19
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S18 {
+		title {
+			value JPEG image file
+		}
+		document D18
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source S1 {
+		title {
+			value GEDCOM 5.5 documentation web site
+		}
+		document D1
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	source SOURCE1 {
+		title {
+			value """
+Everything You Every Wanted to Know about GEDCOM Tags, ButWere Afraid to Ask!
+You can start new lines in this field too."""
+		}
+		author """
+Author or Authorss of this Source using multiple lines ifnecessary.
+Here is a new line in this field"""
+		publisher """
+Details of the publisher of this source using multiple linesif necessary.
+Here is a new line in this field"""
+		document D24
+		note {
+			value Abbreviation: All About GEDCOM Tags
+			audit {
+				creation {
+					date 14 Jan 2001T14:29:25
+				}
+			}
+		}
+		note {
+			value """
+Verbatim text: This section is used to generic text from the course. It will usually be aquote from the text that is relevant to the use of this source in the currentGEDCOM file.
+
+It may use as many lines as needed."""
+			audit {
+				creation {
+					date 14 Jan 2001T14:29:25
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Everything You Every Wanted to Know about GEDCOM Tags" SOURCE Record.
+
+This is a set of notes about this SOURCE record. These notes are for anything elseneeded. There are other places to enter notes about the storage of the source (in theRepository link) and about the data in the source (in the DATA structure).
+
+This particular SOURCE record uses all possible GEDCOM tags for a SOURCErecord. Some things to check are:
+
+1. Are the separate notes structures in the Repository link and the DATA structurepreserved on importing?
+
+2. Does the software recognize two sets of event types in the DATA structure?
+
+3. Are the multimedia links preserved?
+
+4. This record as two sets of notes - this one in a separate record and a second oneembedded in the SOURCE record. Are they both imported and kept separate?"""
+			audit {
+				creation {
+					date 13 Jun 2000T17:04:24
+				}
+			}
+		}
+		note {
+			value These are notes embedded in the SOURCE Record instead of in a separate NOTERECORD.
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		note {
+			value REFN: User Reference Number
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 14 Jan 2001T14:29:25
+			}
+		}
+	}
+
+	source S2 {
+		title {
+			value FTP site with many GEDCOM files
+		}
+		document D2
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	repository R1 {
+		name {
+			text {
+				value Family History Library
+			}
+		}
+		contact {
+			address """
+35 North West Temple
+Salt Lake City, UT 84111
+USA
+35 North West Temple
+Across the street from Temple Square
+Salt Lake City
+Utah
+84111
+USA"""
+			audit {
+				creation {
+					date 12 Mar 2000T10:36:02
+				}
+			}
+		}
+		note {
+			value """
+Comments on "Family History Library" REPOSITORY Record.
+
+This record uses all possible GEDCOM tags for a REPOSITORY record. Somethings to look for are:
+
+1. The address is specified twice. Once in a multi-line address record and once inseparate lines. The first method is usually enough. The second method is to be morespecific about parts of the address. Is everything imported?
+
+2. There are multiple phone numbers. Are they all imported?"""
+			source {
+				source SOURCE1
+				location 1
+				date {
+					value {
+						point {
+							full_date {
+								value 1 MAY 1999
+								calendar gregorian
+							}
+						}
+					}
+				}
+				note {
+					value Verbatim text: Text from the source about this repository.
+					audit {
+						creation {
+							date 2026-08-26T00:00:00Z
+							comment From GEDCOM conversion
+						}
+					}
+				}
+				evidence {
+					evidence_type direct
+				}
+			}
+			audit {
+				creation {
+					date 12 Mar 2000T11:44:05
+				}
+			}
+		}
+		note {
+			value REFN: User Ref Number
+			audit {
+				creation {
+					date 2026-08-26T00:00:00Z
+					comment From GEDCOM conversion
+				}
+			}
+		}
+		audit {
+			creation {
+				date 12 Mar 2000T10:36:02
+			}
+		}
+	}
+
+	document D21 {
+		file force.wav
+		description Windows sound File
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D20 {
+		file ImgFile.PCX
+		description Windows paint brush file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D23 {
+		file ImgFile.GIF
+		description GIF Image File
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D22 {
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D25 {
+		file ImgFile.BMP
+		description BMP Image File
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D24 {
+		file ImgFile.JPG
+		description JPEG image file link
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D10 {
+		file ImgFile.MAC
+		description Macintosh MacPaint file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D12 {
+		file enthist.aif
+		description Macintosh sound file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D11 {
+		file ImgFile.TGA
+		description TGA image file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D14 {
+		file ImgFile.PSD
+		description Adobe Photoshop file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D13 {
+		file suntun.mov
+		description QuickTime movie file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D16 {
+		file ImgFile.BMP
+		description Windows bit mapped image file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D15 {
+		file top.mpg
+		description Mpeg Movie File
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D18 {
+		file ImgFile.JPG
+		description JPEG image file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D17 {
+		file ImgFile.GIF
+		description GIF image file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D1 {
+		file http://homepages.rootsweb.com/~pmcbride/gedcom/55gctoc.htm
+		description GEDCOM 5.5 documentation web site
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D19 {
+		file ImgFile.TIF
+		description Tagged image format file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D2 {
+		file ftp://ftp.genealogy.org/genealogy/GEDCOM/
+		description FTP site with many GEDCOM files
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D3 {
+		file http://www.geditcom.com
+		description GEDitCOM Macintosh genealogy software home page
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D4 {
+		file mailto:support@geditcom.com
+		description Email comments on this GEDCOM file to here
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D5 {
+		file Document.tex
+		description Plain TEXT document
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D6 {
+		file Document.DOC
+		description Microsoft Word document
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D7 {
+		file Document.RTF
+		description Rich text format document
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D8 {
+		file Document.pdf
+		description Portable document format file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+
+	document D9 {
+		file ImgFile.PIC
+		description Macintosh PICT file
+		audit {
+			creation {
+				date 2026-08-26T00:00:00Z
+				comment From GEDCOM conversion
+			}
+		}
+	}
+}

@@ -2,7 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -114,7 +114,7 @@ public final class Deduplicator{
 	 * @param newId the replacement ID
 	 */
 	private static void updateReferences(FLEFModel model, String oldId, String newId){
-		if(StringUtils.equals(oldId, newId)) return;
+		if(Strings.CS.equals(oldId, newId)) return;
 
 		Deque<FLEFRecord> stack = new ArrayDeque<>();
 

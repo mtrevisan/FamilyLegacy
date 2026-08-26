@@ -116,7 +116,7 @@ public final class FileHelper{
 		else if(SystemUtils.IS_OS_MAC)
 			builder = new ProcessBuilder("open", absolutePath);
 		else
-			LOGGER.warn("Cannot issue command to open file {}, OS not recognized ({})", file.getName(), SystemUtils.OS_NAME);
+			LOGGER.warn("Cannot issue command to browse {}, OS not recognized ({})", file.getName(), SystemUtils.OS_NAME);
 
 		return (builder != null && runOSCommand(builder));
 	}

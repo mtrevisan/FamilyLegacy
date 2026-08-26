@@ -7,8 +7,8 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.StringReader;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
@@ -16,21 +16,20 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class GEDCOMConverterMain{
 
 	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>
 	public static void main(String[] args) throws IOException{
-		String inputResource = "/tests/TGMZ.ged";
-		String outputPath = "src/main/resources/tests/TGMZ.flef";
+		String inputResource = "/tests/TGC55C.ged";
+		String outputPath = "src/main/resources/tests/TGC55C.flef";
 
 		String gedcomContent;
-		try(InputStream is = GEDCOMToFLEFConverter.class.getResourceAsStream(inputResource)){
-			if(is == null){
-				throw new IOException("Resource not found: " + inputResource);
-			}
-			gedcomContent = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+		try(BufferedReader br = GedcomHelper.getBufferedReader(GEDCOMToFLEFConverter.class.getResourceAsStream(inputResource))){
+			gedcomContent = br.lines()
+				.collect(Collectors.joining(System.lineSeparator()));
 		}
 
 		// Parse GEDCOM

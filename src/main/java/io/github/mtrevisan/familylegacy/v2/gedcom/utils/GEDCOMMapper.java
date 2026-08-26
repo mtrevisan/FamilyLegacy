@@ -225,7 +225,10 @@ public final class GEDCOMMapper{
 		// ------------------------------
 		PRIVACY_LEVEL_MAP.put("PUBLIC", "public");
 		PRIVACY_LEVEL_MAP.put("RESTRICTED", "restricted");
-		PRIVACY_LEVEL_MAP.put("CONFIDENTIAL", "confidential");
+		PRIVACY_LEVEL_MAP.put("PRIVACY", "restricted");         // RESN privacy: dati personali riservati
+		PRIVACY_LEVEL_MAP.put("PRIVATE", "restricted");         // RESN privacy: dati personali riservati
+		PRIVACY_LEVEL_MAP.put("LOCKED", "restricted");	 // RESN locked: impedisce modifiche/accesso in scrittura
+		PRIVACY_LEVEL_MAP.put("CONFIDENTIAL", "confidential"); // RESN confidential (estensione standard GEDCOM)
 
 		// ------------------------------
 		// Research activity types (non ancora usati ma utili per estensione)
@@ -260,63 +263,96 @@ public final class GEDCOMMapper{
 	}
 
 	public static String mapSex(String gedcomSex){
-		if(gedcomSex == null) return "unknown";
+		if(gedcomSex == null){
+			return "unknown";
+		}
 		return SEX_MAP.getOrDefault(gedcomSex.toUpperCase(Locale.ROOT), "unknown");
 	}
 
 	public static String mapMediaType(String gedcomMedia){
-		if(gedcomMedia == null) return null;
+		if(gedcomMedia == null){
+			return null;
+		}
 		return MEDIA_TYPE_MAP.getOrDefault(gedcomMedia.toUpperCase(Locale.ROOT), gedcomMedia.toLowerCase(Locale.ROOT));
 	}
 
 	public static String mapRelationshipType(String gedcomType){
-		if(gedcomType == null) return "associate";
+		if(gedcomType == null){
+			return "associate";
+		}
 		return RELATIONSHIP_TYPE_MAP.getOrDefault(gedcomType.toLowerCase(Locale.ROOT), gedcomType.toLowerCase(Locale.ROOT));
 	}
 
 	public static String mapRole(String gedcomRole){
-		if(gedcomRole == null) return null;
+		if(gedcomRole == null){
+			return null;
+		}
 		return ROLE_MAP.getOrDefault(gedcomRole.toUpperCase(Locale.ROOT), gedcomRole.toLowerCase(Locale.ROOT));
 	}
 
 	public static String mapStatus(String gedcomStatus){
-		if(gedcomStatus == null) return null;
+		if(gedcomStatus == null){
+			return null;
+		}
 		return STATUS_MAP.getOrDefault(gedcomStatus.toUpperCase(Locale.ROOT), null);
 	}
 
 	public static String mapCalendar(String gedcomCalendar){
-		if(gedcomCalendar == null) return "gregorian";
+		if(gedcomCalendar == null){
+			return "gregorian";
+		}
 		return CALENDAR_MAP.getOrDefault(gedcomCalendar.toUpperCase(Locale.ROOT), gedcomCalendar.toLowerCase(Locale.ROOT));
 	}
 
 	public static String mapCenturyPart(String gedcomPart){
-		if(gedcomPart == null) return null;
+		if(gedcomPart == null){
+			return null;
+		}
 		return CENTURY_PART_MAP.getOrDefault(gedcomPart.toUpperCase(Locale.ROOT), null);
 	}
 
 	public static String mapBasis(String gedcomBasis){
-		if(gedcomBasis == null) return "unspecified";
+		if(gedcomBasis == null){
+			return "unspecified";
+		}
 		return BASIS_MAP.getOrDefault(gedcomBasis.toUpperCase(Locale.ROOT), "unspecified");
 	}
 
 	public static String mapSourceType(String gedcomSourceType){
-		if(gedcomSourceType == null) return null;
+		if(gedcomSourceType == null){
+			return null;
+		}
 		return SOURCE_TYPE_MAP.getOrDefault(gedcomSourceType.toUpperCase(Locale.ROOT), null);
 	}
 
 	public static String mapInfoType(String gedcomInfoType){
-		if(gedcomInfoType == null) return null;
+		if(gedcomInfoType == null){
+			return null;
+		}
 		return INFO_TYPE_MAP.getOrDefault(gedcomInfoType.toUpperCase(Locale.ROOT), null);
 	}
 
 	public static String mapEvidenceType(String gedcomEvidenceType){
-		if(gedcomEvidenceType == null) return null;
+		if(gedcomEvidenceType == null){
+			return null;
+		}
 		return EVIDENCE_TYPE_MAP.getOrDefault(gedcomEvidenceType.toUpperCase(Locale.ROOT), null);
 	}
 
+	/**
+	 * Maps GEDCOM RESN (restriction notice) tag values to FLEF privacy levels.
+	 *
+	 * @param gedcomLevel the raw value of the RESN tag (e.g., "locked", "privacy")
+	 * @return the mapped FLEF privacy level string ("restricted", "private", "confidential", or "public")
+	 */
 	public static String mapPrivacyLevel(String gedcomLevel){
-		if(gedcomLevel == null) return "public";
-		return PRIVACY_LEVEL_MAP.getOrDefault(gedcomLevel.toUpperCase(Locale.ROOT), "public");
+		if(gedcomLevel == null || gedcomLevel.isBlank()){
+			return "public";
+		}
+
+		// Gestione di valori multipli separati da spazio (es. "privacy locked")
+		String cleanLevel = gedcomLevel.trim().toUpperCase(Locale.ROOT);
+		return PRIVACY_LEVEL_MAP.getOrDefault(cleanLevel, "public");
 	}
 
 	private GEDCOMMapper(){

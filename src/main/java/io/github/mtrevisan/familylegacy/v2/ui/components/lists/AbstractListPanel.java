@@ -300,7 +300,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Override to add custom validation.
 	 *
 	 * @param item	The item to validate.
-	 * @return	Whether is valid.
+	 * @return	Whether it is valid.
 	 */
 	protected boolean validateItem(final T item){
 		return true;
@@ -327,7 +327,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	/**
 	 * Returns whether the list is empty.
 	 *
-	 * @return	Whether is empty.
+	 * @return	Whether it is empty.
 	 */
 	public final boolean isEmpty(){
 		return items.isEmpty();

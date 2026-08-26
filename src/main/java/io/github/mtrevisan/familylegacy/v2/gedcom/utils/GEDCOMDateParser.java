@@ -49,26 +49,26 @@ public final class GEDCOMDateParser{
 						builder.approximate(true);
 						// Treat as a point date with approximate qualifier
 						builder.type(DateInfo.Type.POINT);
-						builder.value(normalizeSimpleDate(fromPart));
+						builder.value(fromPart);
 						break;
 					case "BEF":
 						builder.type(DateInfo.Type.BOUNDED);
-						builder.notAfter(normalizeSimpleDate(fromPart));
+						builder.notAfter(fromPart);
 						break;
 					case "AFT":
 						builder.type(DateInfo.Type.BOUNDED);
-						builder.notBefore(normalizeSimpleDate(fromPart));
+						builder.notBefore(fromPart);
 						break;
 					case "BET":
 						if(toPart != null){
 							builder.type(DateInfo.Type.BOUNDED);
-							builder.notBefore(normalizeSimpleDate(fromPart));
-							builder.notAfter(normalizeSimpleDate(toPart));
+							builder.notBefore(fromPart);
+							builder.notAfter(toPart);
 						}
 						else{
 							// Fallback: treat as point
 							builder.type(DateInfo.Type.POINT);
-							builder.value(normalizeSimpleDate(fromPart));
+							builder.value(fromPart);
 						}
 						break;
 					case "FROM":
@@ -78,47 +78,37 @@ public final class GEDCOMDateParser{
 						String toDate = m.group("to");
 						if(qualifier.equals("FROM") && toDate != null){
 							builder.type(DateInfo.Type.SPANNING);
-							builder.from(normalizeSimpleDate(fromDate));
-							builder.to(normalizeSimpleDate(toDate));
+							builder.from(fromDate);
+							builder.to(toDate);
 						}
 						else if(qualifier.equals("TO") && fromDate != null){
 							builder.type(DateInfo.Type.BOUNDED);
-							builder.notAfter(normalizeSimpleDate(fromDate));
+							builder.notAfter(fromDate);
 						}
 						else{
 							// Fallback: point
 							builder.type(DateInfo.Type.POINT);
-							builder.value(normalizeSimpleDate(fromPart));
+							builder.value(fromPart);
 						}
 						break;
 					default:
 						builder.type(DateInfo.Type.POINT);
-						builder.value(normalizeSimpleDate(trimmed));
+						builder.value(trimmed);
 				}
 			}
 			else{
 				// No qualifier: simple date
 				builder.type(DateInfo.Type.POINT);
-				builder.value(normalizeSimpleDate(trimmed));
+				builder.value(trimmed);
 			}
 		}
 		else{
 			// No qualifier match: treat as simple date
 			builder.type(DateInfo.Type.POINT);
-			builder.value(normalizeSimpleDate(trimmed));
+			builder.value(trimmed);
 		}
 
 		return builder.build();
-	}
-
-	/**
-	 * Normalizes a simple date (e.g., "2 APR 1956" -> "1956-04-02").
-	 * Returns the ISO date string, or the original if parsing fails.
-	 */
-	private static String normalizeSimpleDate(String date){
-		if(StringUtils.isBlank(date)) return null;
-		String iso = new DateNormalizer().normalize(date.trim());
-		return iso != null? iso: date.trim();
 	}
 
 }

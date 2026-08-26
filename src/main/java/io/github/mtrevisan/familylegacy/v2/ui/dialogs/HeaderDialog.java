@@ -45,6 +45,7 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.Objects;
 
 
 /**
@@ -223,10 +224,7 @@ public class HeaderDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = HeaderDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(HeaderDialog::new, content, null);
-		}
+		GUIHelper.launch(HeaderDialog::new, "/tests/test.flef", null);
 	}
 
 }

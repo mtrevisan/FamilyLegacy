@@ -57,6 +57,7 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -425,10 +426,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = RelationshipRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(RelationshipRecordDialog::createEdit, content, "RL1");
-		}
+		GUIHelper.launch(RelationshipRecordDialog::createEdit, "/tests/test.flef", "RL1");
 	}
 
 }

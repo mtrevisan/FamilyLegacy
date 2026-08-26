@@ -3,7 +3,10 @@ package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 
@@ -47,7 +50,8 @@ public class ReferenceResolver{
 
 		rel.addChild(FLEFRecord.createChildWithTag("audit")
 			.addChild(FLEFRecord.createChildWithTag("creation")
-				.addChild(FLEFRecord.createChildWithTagAndValue("date", LocalDate.now().toString()))
+				.addChild(FLEFRecord.createChildWithTagAndValue("date", DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.DAYS))))
+				.addChild(FLEFRecord.createChildWithTagAndValue("comment", "From GEDCOM conversion"))
 			)
 		);
 		model.addRecord(rel);

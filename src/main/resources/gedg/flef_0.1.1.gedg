@@ -14,7 +14,6 @@
 // - blocked_by relationships SHOULD form a DAG.
 // - follow_up relationships SHOULD be acyclic.
 
-// TODO all "note*: Xref<NoteRecord>" should be a reference to a note?
 
 // ============================================================
 // Base scalar types

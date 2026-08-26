@@ -33,7 +33,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
-import java.awt.Dialog;
 import java.io.Serial;
 
 
@@ -67,8 +66,6 @@ public class PrivacyPanel extends JPanel{
 	private static final String TAG_PRIVACY_EXPIRES = TAG_PRIVACY + DOT + "EXPIRES";
 
 
-	private final Dialog parent;
-
 	private final String path;
 
 
@@ -82,11 +79,8 @@ public class PrivacyPanel extends JPanel{
 	/**
 	 * Constructs a new RestrictionPanel.
 	 *
-	 * @param parent	the parent dialog (used for showing message dialogs)
 	 */
-	public PrivacyPanel(final String path, final Dialog parent){
-		this.parent = parent;
-
+	public PrivacyPanel(final String path){
 		this.path = path;
 
 		levelCombo = new BoundComboBox<>(TAG_PRIVACY_LEVEL, new String[]{

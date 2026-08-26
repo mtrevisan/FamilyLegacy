@@ -33,7 +33,7 @@ public final class DualActionTextFieldEnhancer extends AbstractDualActionEnhance
 	protected void installComponentSpecificBehavior(){
 		// For JTextField, we don't need motion tracking because isOverValidTarget()
 		// simply returns mouseInside (which is updated by the base class via mouseEntered/Exited).
-		// However, we do need a motion listener to update cursor when mouse moves inside
+		// However, we do need a motion listener to update the cursor when the mouse moves inside
 		// (in case the mouse enters while Shift is already held).
 		final JTextField textField = (JTextField)component;
 		textField.addMouseMotionListener(new MouseMotionAdapter(){

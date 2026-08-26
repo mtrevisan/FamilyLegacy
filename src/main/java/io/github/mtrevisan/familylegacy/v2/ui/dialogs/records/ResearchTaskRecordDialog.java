@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -218,10 +219,7 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = ResearchTaskRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(ResearchTaskRecordDialog::createEdit, content, "RT1");
-		}
+		GUIHelper.launch(ResearchTaskRecordDialog::createEdit, "/tests/test.flef", "RT1");
 	}
 
 }

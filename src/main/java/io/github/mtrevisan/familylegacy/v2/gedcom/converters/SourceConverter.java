@@ -68,7 +68,7 @@ public class SourceConverter{
 	/**
 	 * Converts a GEDCOM SOUR node into an FLEF SourceRecord.
 	 *
-	 * @param sourNode the GEDCOM node with tag "SOUR"
+	 * @param sourNode the GEDCOM node with the tag "SOUR"
 	 */
 	public void convert(GEDCOMNode sourNode){
 		String xref = sourNode.getXrefId();
@@ -216,12 +216,9 @@ public class SourceConverter{
 			}
 			if(docRecord == null){
 				docRecord = createDocumentRecord(objNode);
-				if(docRecord != null){
-					model.addRecord(docRecord);
-					multimediaMap.put(docRecord.getId(), docRecord);
-				}
+				model.addRecord(docRecord);
+				multimediaMap.put(docRecord.getId(), docRecord);
 			}
-			if(docRecord == null) continue;
 
 			// 2. Add document reference to the source
 			FLEFRecord docRef = FLEFRecord.createChildWithTag("document");

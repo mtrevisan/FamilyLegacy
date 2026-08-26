@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
@@ -54,29 +53,26 @@ import java.util.Map;
  * <p>
  * Structure:
  * <pre>
- * struct QualifiedDate {
- *   single_date: SingleDate
- *   approximate?: Approximate
- * }
- *
- * SingleDate = oneof {
  *   full_date: struct {
  *     value: HistoricalDate
+ *     approximate?: Approximate
  *     calendar: CalendarType | Text
  *   }
  *   decade: struct {
  *     start_year: Int
+ *     approximate?: Approximate
  *     calendar: CalendarType | Text
  *   }
  *   century: struct {
  *     ordinal: Int
  *     part?: CenturyPart
+ *     approximate?: Approximate
  *     calendar: CalendarType | Text
  *   }
  * }
  * </pre>
  */
-public class QualifiedDatePanel extends JPanel{
+public class SingleDatePanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = 3393161879295516317L;
@@ -84,7 +80,6 @@ public class QualifiedDatePanel extends JPanel{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_SINGLE_DATE = "SINGLE_DATE";
 	private static final String TAG_APPROXIMATE = "APPROXIMATE";
 
 	private static final String TAG_FULL_DATE = "FULL_DATE";
@@ -96,8 +91,6 @@ public class QualifiedDatePanel extends JPanel{
 	private static final String TAG_ORDINAL = "ORDINAL";
 	private static final String TAG_PART = "PART";
 	private static final String TAG_CALENDAR = "CALENDAR";
-
-	private static final String TAG_POINT = "POINT";
 
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -116,7 +109,7 @@ public class QualifiedDatePanel extends JPanel{
 	private final Map<DateType, BoundTextField> fieldMap = new EnumMap<>(DateType.class);
 
 
-	public QualifiedDatePanel(final Dialog parent, final FLEFModel model){
+	public SingleDatePanel(final Dialog parent, final FLEFModel model){
 		fullDateValueField = new BoundTextField(TAG_FULL_DATE + DOT + TAG_VALUE);
 		decadeStartYearField = new BoundTextField(TAG_DECADE + DOT + TAG_START_YEAR);
 		centuryOrdinalField = new BoundTextField(TAG_CENTURY + DOT + TAG_ORDINAL);
@@ -223,6 +216,7 @@ public class QualifiedDatePanel extends JPanel{
 		cardPanel.setPreferredSize(new Dimension(cardPanel.getPreferredSize().width, maxHeight));
 		cardPanel.setMinimumSize(new Dimension(cardPanel.getMinimumSize().width, maxHeight));
 		cardPanel.setMaximumSize(new Dimension(cardPanel.getMaximumSize().width, maxHeight));
+
 		cardPanel.revalidate();
 		cardPanel.repaint();
 	}
@@ -233,15 +227,15 @@ public class QualifiedDatePanel extends JPanel{
 		if(record == null || record.isEmpty())
 			return;
 
-		final FLEFRecord singleDate = FLEFRecordHelper.extractStructures(record, TAG_SINGLE_DATE)
-			.getFirst();
-		final DateType singleDateType = DateType.fromNode(singleDate);
+		final DateType singleDateType = DateType.fromNode(record);
 		singleDateTypeCombo.setSelectedItem(singleDateType);
+
+		approxPanel.setPath(singleDateType.getTagName() + DOT + TAG_APPROXIMATE);
+		calendarCombo.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
 
 		approxPanel.loadFromRecord(record);
 
-		calendarCombo.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
-		bindingManager.load(singleDate);
+		bindingManager.load(record);
 
 		cardLayout.show(cardPanel, singleDateType.name());
 	}
@@ -263,13 +257,14 @@ public class QualifiedDatePanel extends JPanel{
 				field.setText(StringUtils.EMPTY);
 		});
 
-		final DateType selectedType = (DateType)singleDateTypeCombo.getSelectedItem();
-		if(selectedType != DateType.CENTURY)
+		final DateType singleDateType = (DateType)singleDateTypeCombo.getSelectedItem();
+		if(singleDateType != DateType.CENTURY)
 			centuryPartCombo.setText(StringUtils.EMPTY);
 
-		final FLEFRecord record = FLEFRecord.createChildWithTag(TAG_POINT);
-		centuryPartCombo.setPath(selectedType.getTagName() + DOT + TAG_PART);
-		calendarCombo.setPath(selectedType.getTagName() + DOT + TAG_CALENDAR);
+		approxPanel.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
+		calendarCombo.setPath(singleDateType.getTagName() + DOT + TAG_CALENDAR);
+
+		final FLEFRecord record = FLEFRecord.createChildWithTag(TAG_VALUE);
 
 		bindingManager.save(record);
 

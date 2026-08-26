@@ -35,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -79,11 +80,14 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
@@ -173,9 +177,9 @@ public final class GUIHelper{
 	 * each time it is shown, so enabled states are always current.
 	 *
 	 * @param component	The component to enhance.
-	 * @param doubleClickAction	Action invoked on double‑click (may be {@code null}).
-	 * @param keyInsertAction	Action invoked by the INSERT key (may be {@code null}).
-	 * @param keyDeleteAction	Action invoked by the DELETE key (may be {@code null}).
+	 * @param doubleClickAction	Action invoked on double‑click (it may be {@code null}).
+	 * @param keyInsertAction	Action invoked by the INSERT key (it may be {@code null}).
+	 * @param keyDeleteAction	Action invoked by the DELETE key (it may be {@code null}).
 	 * @param menuBuilder	Consumer that defines the popup menu structure.
 	 */
 	public static void installBehavior(final JComponent component,
@@ -291,8 +295,10 @@ public final class GUIHelper{
 			component.setForeground(COLOR_FOREGROUND_DISABLED);
 		}
 
-		component.revalidate();
-		component.repaint();
+		if(component.isShowing()){
+			component.revalidate();
+			component.repaint();
+		}
 	}
 
 
@@ -302,6 +308,9 @@ public final class GUIHelper{
 
 	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
 			final Supplier<String> getText, final Consumer<String> setText){
+		if(!component.isShowing())
+			return;
+
 		if(hasData.get()){
 			setText.accept(getText.get());
 			component.setForeground(COLOR_FOREGROUND_ENABLED);
@@ -426,7 +435,7 @@ public final class GUIHelper{
 		field.setVisible(visible);
 
 		final Container parent = field.getParent();
-		if(parent != null){
+		if(parent != null && parent.isShowing()){
 			parent.revalidate();
 			parent.repaint();
 		}
@@ -671,8 +680,13 @@ public final class GUIHelper{
 		launch(createNewFn, model);
 	}
 
-	public static void launch(final EditFunction dialogFactory, final String content, final String recordId)
+	public static void launch(final EditFunction dialogFactory, final String modelUri, final String recordId)
 			throws IOException{
+		final String content;
+		try(final InputStream is = NoteStructureDialog.class.getResourceAsStream(modelUri)){
+			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
+		}
+
 		final FLEFParser parser = new FLEFParser();
 		final FLEFModel model = parser.parse(content);
 

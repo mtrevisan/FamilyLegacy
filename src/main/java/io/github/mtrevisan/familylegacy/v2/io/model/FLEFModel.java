@@ -26,9 +26,11 @@ package io.github.mtrevisan.familylegacy.v2.io.model;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 
@@ -126,6 +128,32 @@ public class FLEFModel{
 		return recordsByType.keySet();
 	}
 
+
+	@Override
+	public boolean equals(final Object obj){
+		if(this == obj)
+			return true;
+		if(obj == null || getClass() != obj.getClass())
+			return false;
+
+		final FLEFModel other = (FLEFModel)obj;
+		return (Objects.equals(header, other.header)
+			&& Objects.equals(new HashSet<>(records), new HashSet<>(other.records)));
+	}
+
+	@Override
+	public int hashCode(){
+		int hash = Objects.hash(header);
+		hash = 31 * hash + childrenHash(records);
+		return hash;
+	}
+
+	private int childrenHash(final List<FLEFRecord> children){
+		int result = 0;
+		for(final FLEFRecord child : children)
+			result ^= child.hashCode();
+		return result;
+	}
 
 	@Override
 	public String toString(){

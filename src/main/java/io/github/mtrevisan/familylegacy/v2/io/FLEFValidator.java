@@ -236,7 +236,7 @@ public class FLEFValidator{
 	 * Validates business/logical rules that are not captured by the grammar constraints.
 	 * <p>
 	 * Examples:
-	 * - Death date must not precede birth date.
+	 * - Death date must not precede birthdate.
 	 * - A relationship's {@code valid_from} must be before {@code valid_to} (if both present).
 	 * - Identity hypotheses must refer to distinct records.
 	 */
@@ -248,7 +248,7 @@ public class FLEFValidator{
 			final String tag = record.getTag();
 			final String contextPath = "records." + tag;
 
-			// IndividualRecord: birth date must be before death date
+			// IndividualRecord: birthdate must be before death date
 			if(Strings.CI.equals("individual", tag))
 				validateIndividualDates(record, contextPath, errors);
 

@@ -54,6 +54,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -284,10 +285,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = IndividualRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(IndividualRecordDialog::createEdit, content, "I1");
-		}
+		GUIHelper.launch(IndividualRecordDialog::createEdit, "/tests/test.flef", "I1");
 	}
 
 }

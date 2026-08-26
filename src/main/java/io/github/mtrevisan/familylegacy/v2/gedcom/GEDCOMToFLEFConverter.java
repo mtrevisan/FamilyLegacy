@@ -4,6 +4,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.converters.FamilyConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.HeaderConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.IndividualConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.MultimediaConverter;
+import io.github.mtrevisan.familylegacy.v2.gedcom.converters.NoteConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.RepositoryConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.SourceConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.SubmitterConverter;
@@ -12,7 +13,10 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.ReferenceResolver;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,7 +45,7 @@ public class GEDCOMToFLEFConverter {
 	private final Map<String, FLEFRecord> repositoryMap = new HashMap<>();
 	private final Map<String, FLEFRecord> multimediaMap = new HashMap<>();
 	private final Map<String, FLEFRecord> submitterMap = new HashMap<>();
-	private final Map<String, String> noteMap = new HashMap<>();
+	private final Map<String, FLEFRecord> noteMap = new HashMap<>();
 
 	private final PlaceCache placeCache = new PlaceCache(model);
 	private final ReferenceResolver referenceResolver = new ReferenceResolver(model, individualMap, familyMap);
@@ -70,6 +74,8 @@ public class GEDCOMToFLEFConverter {
 			model, multimediaMap, placeCache);
 		SubmitterConverter submitterConverter = new SubmitterConverter(
 			model, submitterMap, placeCache);
+		NoteConverter noteConverter = new NoteConverter(
+			model, noteMap);
 
 		// ---- 3. First pass: parse all records ----
 		for (GEDCOMNode node : roots) {
@@ -81,7 +87,7 @@ public class GEDCOMToFLEFConverter {
 				case "REPO" -> repositoryConverter.convert(node);
 				case "OBJE" -> multimediaConverter.convert(node);
 				case "SUBM" -> submitterConverter.convert(node);
-				// NOTE records are processed inline; they are not top‑level records.
+				case "NOTE" -> noteConverter.convert(node);
 				// SUBN (submission records) are ignored.
 				default -> { /* ignore unknown top‑level tags */ }
 			}
@@ -101,9 +107,77 @@ public class GEDCOMToFLEFConverter {
 		multimediaMap.values().forEach(model::addRecord);
 		// Submitters are not added as top‑level records; they are included in the header.
 
+		inlineNotes(model, noteMap);
+
 		// ---- 7. (Optional) Deduplicate records – if needed, call Deduplicator.deduplicate(model) ----
 
 		return model;
+	}
+
+	/**
+	 * Replaces note references with embedded copies of the referenced notes.
+	 *
+	 * A note reference is a child with tag "note" and a value containing
+	 * the ID of a note record present in noteMap:
+	 *
+	 *     note N123
+	 *
+	 * It becomes:
+	 *
+	 *     note {
+	 *         ...
+	 *     }
+	 *
+	 * The referenced note record is deep-copied so that modifications to the
+	 * embedded note do not affect the original note record.
+	 *
+	 * @param model   The FLEF model.
+	 * @param noteMap Map of note IDs to note records.
+	 */
+	public static void inlineNotes(final FLEFModel model, final Map<String, FLEFRecord> noteMap){
+		for(final FLEFRecord record : model.getRecords())
+			inlineNotes(record, noteMap);
+	}
+
+	private static void inlineNotes(final FLEFRecord root, final Map<String, FLEFRecord> noteMap){
+		final Deque<FLEFRecord> stack = new ArrayDeque<>();
+		stack.push(root);
+
+		while(!stack.isEmpty()){
+			final FLEFRecord current = stack.pop();
+
+			final List<FLEFRecord> children = current.getChildren();
+
+			for(int i = 0; i < children.size(); i++){
+				final FLEFRecord child = children.get(i);
+
+				if("note".equalsIgnoreCase(child.getTag())){
+					String childValue = FLEFRecordHelper.getChildValuesAsString(child, "value");
+
+					if(childValue != null){
+						if(childValue.length() > 2)
+							childValue = childValue.substring(1, childValue.length() - 1);
+						final FLEFRecord referencedNote = noteMap.get(childValue);
+
+						if(referencedNote != null){
+							final FLEFRecord copy = FLEFRecord.createEmpty();
+							referencedNote.deepCopyTo(copy);
+
+							child.getChildren()
+								.clear();
+							for(FLEFRecord copyChild : copy.getChildren())
+								child.addChild(copyChild);
+
+							// Continue traversal inside the copied note.
+							stack.push(copy);
+							continue;
+						}
+					}
+				}
+
+				stack.push(child);
+			}
+		}
 	}
 
 	/**

@@ -48,17 +48,16 @@ public class DateField extends JPanel{
 	private static final long serialVersionUID = 4495716172290856838L;
 
 
-	private static final String TAG_FULL_DATE = "FULL_DATE";
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_START_YEAR = "START_YEAR";
 	private static final String TAG_POINT = "POINT";
 	private static final String TAG_BOUNDED = "BOUNDED";
 	private static final String TAG_SPANNING = "SPANNING";
-	private static final String TAG_SINGLE_DATE = "SINGLE_DATE";
 	private static final String TAG_APPROXIMATE = "APPROXIMATE";
 	private static final String TAG_BASIS = "BASIS";
 	private static final String TAG_MARGIN = "MARGIN";
 	private static final String TAG_CALENDAR = "CALENDAR";
+	private static final String TAG_FULL_DATE = "FULL_DATE";
 	private static final String TAG_DECADE = "DECADE";
 	private static final String TAG_CENTURY = "CENTURY";
 	private static final String TAG_ORDINAL = "ORDINAL";
@@ -209,7 +208,7 @@ public class DateField extends JPanel{
 		// Check for POINT
 		final FLEFRecord value = FLEFRecordHelper.findChild(dateValueNode, TAG_POINT);
 		if(value != null)
-			return getQualifiedDateDisplayText(value);
+			return getDateDisplayText(value);
 
 		// Check for BOUNDED
 		final FLEFRecord bounded = FLEFRecordHelper.findChild(dateValueNode, TAG_BOUNDED);
@@ -225,12 +224,11 @@ public class DateField extends JPanel{
 	}
 
 	/**
-	 * Extracts a single date string from a node that may contain ISO, CENTURY, or DECADE
+	 * Extracts a single date string from a node that may contain FULL_DATE, DECADE, or CENTURY
 	 * and optional APPROXIMATE.
 	 */
-	private static String getQualifiedDateDisplayText(final FLEFRecord node){
-		final FLEFRecord singleDate = FLEFRecordHelper.findChild(node, TAG_SINGLE_DATE);
-		final StringBuilder dateStr = new StringBuilder(getSingleDateDisplayText(singleDate));
+	private static String getDateDisplayText(final FLEFRecord node){
+		final StringBuilder dateStr = new StringBuilder(getSingleDateDisplayText(node));
 		if(dateStr.isEmpty())
 			return "[empty]";
 
@@ -256,7 +254,7 @@ public class DateField extends JPanel{
 	}
 
 	/**
-	 * Extracts the actual date value from FULL_DATE, CENTURY, or DECADE (including CALENDAR).
+	 * Extracts the actual date value from FULL_DATE, DECADE, or CENTURY (including CALENDAR).
 	 */
 	private static String getSingleDateDisplayText(final FLEFRecord parent){
 		final FLEFRecord fullDate = parent.getTheOnlyChild(TAG_FULL_DATE);
@@ -290,8 +288,10 @@ public class DateField extends JPanel{
 	}
 
 	private static String getBoundedDisplayText(final FLEFRecord boundedNode){
-		final String notBefore = getQualifiedDateDisplayText(boundedNode, TAG_NOT_BEFORE);
-		final String notAfter = getQualifiedDateDisplayText(boundedNode, TAG_NOT_AFTER);
+		final FLEFRecord notBeforeRecord = boundedNode.getTheOnlyChild(TAG_NOT_BEFORE);
+		final String notBefore = getSingleDateDisplayText(notBeforeRecord);
+		final FLEFRecord notAfterRecord = boundedNode.getTheOnlyChild(TAG_NOT_AFTER);
+		final String notAfter = getSingleDateDisplayText(notAfterRecord);
 		if(!notBefore.isEmpty() && !notAfter.isEmpty())
 			return "between " + notBefore + " and " + notAfter;
 		if(!notBefore.isEmpty())
@@ -302,8 +302,10 @@ public class DateField extends JPanel{
 	}
 
 	private static String getSpanningDisplayText(final FLEFRecord spanningNode){
-		final String from = getQualifiedDateDisplayText(spanningNode, TAG_FROM);
-		final String to = getQualifiedDateDisplayText(spanningNode, TAG_TO);
+		final FLEFRecord fromRecord = spanningNode.getTheOnlyChild(TAG_FROM);
+		final String from = getSingleDateDisplayText(fromRecord);
+		final FLEFRecord toRecord = spanningNode.getTheOnlyChild(TAG_TO);
+		final String to = getSingleDateDisplayText(toRecord);
 		if(!from.isEmpty() && !to.isEmpty())
 			return "from " + from + " to " + to;
 		if(!from.isEmpty())
@@ -311,15 +313,6 @@ public class DateField extends JPanel{
 		if(!to.isEmpty())
 			return "until " + to;
 		return "[spanning]";
-	}
-
-	/**
-	 * Extracts the date string from a bound endpoint node (NOT_BEFORE, NOT_AFTER, FROM, TO).
-	 * The endpoint node contains ISO/CENTURY/DECADE and optional APPROXIMATE.
-	 */
-	private static String getQualifiedDateDisplayText(final FLEFRecord parent, final String childTag){
-		final FLEFRecord child = parent.getTheOnlyChild(childTag);
-		return getQualifiedDateDisplayText(child);
 	}
 
 

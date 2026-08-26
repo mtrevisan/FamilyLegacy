@@ -143,10 +143,12 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	}
 
 	private void refreshLayout(){
-		propertiesPanel.revalidate();
-		propertiesPanel.repaint();
+		if(isShowing()){
+			propertiesPanel.revalidate();
+			propertiesPanel.repaint();
 
-		pack();
+			pack();
+		}
 	}
 
 
@@ -190,9 +192,6 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			final FLEFRecord repository = FLEFRecord.createMainRecord("R1", TAG_REPOSITORY);
 			model.addRecord(repository);
 
-//			final FLEFRecord repositoryCitation = FLEFRecord.createEmpty();
-//			repositoryCitation.addChild(FLEFRecord.createChildWithTagAndValue(TAG_REPOSITORY, "R1"));
-//			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createEdit(null, model, repositoryCitation);
 			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createNew(null, model);
 			dialog.setRepository("R1");
 			dialog.setVisible(true);

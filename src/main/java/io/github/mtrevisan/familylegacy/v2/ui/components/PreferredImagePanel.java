@@ -53,7 +53,7 @@ import java.io.Serial;
 
 /**
  * Panel for selecting and managing a preferred image associated with a record.
- * The image is referenced via a Source record, and can be cropped.
+ * The image is referenced via a Source record and can be cropped.
  * <p>
  * Structure:
  * <pre>

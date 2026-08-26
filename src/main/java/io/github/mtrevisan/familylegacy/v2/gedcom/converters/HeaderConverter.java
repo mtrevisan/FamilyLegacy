@@ -1,7 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.DateNormalizer;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
@@ -44,7 +43,7 @@ public class HeaderConverter{
 		// ---- Date (transmission date) ----
 		GEDCOMNode dateNode = findFirstChild(headNode, "DATE");
 		if(dateNode != null){
-			String iso = new DateNormalizer().normalize(dateNode.getValue());
+			String iso = dateNode.getValue();
 			if(iso != null) header.addChild(FLEFRecord.createChildWithTagAndValue("date", iso));
 		}
 
@@ -60,67 +59,67 @@ public class HeaderConverter{
 			header.addChild(FLEFRecord.createChildWithTagAndValue("scope", noteNode.getValue()));
 		}
 
-		// ---- DEST (receiving system) ----
-		GEDCOMNode destNode = findFirstChild(headNode, "DEST");
-		if(destNode != null && destNode.getValue() != null){
-			// No direct mapping; store as note
-			FLEFRecord note = FLEFRecord.createChildWithTag("note");
-			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Destination: " + destNode.getValue()));
-			header.addChild(note);
-		}
+//		// ---- DEST (receiving system) ----
+//		GEDCOMNode destNode = findFirstChild(headNode, "DEST");
+//		if(destNode != null && destNode.getValue() != null){
+//			// No direct mapping; store as note
+//			FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Destination: " + destNode.getValue()));
+//			header.addChild(note);
+//		}
 
-		// ---- FILE (GEDCOM file name) ----
-		GEDCOMNode fileNode = findFirstChild(headNode, "FILE");
-		if(fileNode != null && fileNode.getValue() != null){
-			// Store as note
-			FLEFRecord note = FLEFRecord.createChildWithTag("note");
-			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "File: " + fileNode.getValue()));
-			header.addChild(note);
-		}
+//		// ---- FILE (GEDCOM file name) ----
+//		GEDCOMNode fileNode = findFirstChild(headNode, "FILE");
+//		if(fileNode != null && fileNode.getValue() != null){
+//			// Store as note
+//			FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "File: " + fileNode.getValue()));
+//			header.addChild(note);
+//		}
 
-		// ---- GEDC (GEDCOM version and form) ----
-		GEDCOMNode gedcNode = findFirstChild(headNode, "GEDC");
-		if(gedcNode != null){
-			GEDCOMNode vers = findFirstChild(gedcNode, "VERS");
-			GEDCOMNode form = findFirstChild(gedcNode, "FORM");
-			if(vers != null && vers.getValue() != null){
-				FLEFRecord note = FLEFRecord.createChildWithTag("note");
-				note.addChild(FLEFRecord.createChildWithTagAndValue("value", "GEDCOM version: " + vers.getValue()));
-				header.addChild(note);
-			}
-			if(form != null && form.getValue() != null){
-				FLEFRecord note = FLEFRecord.createChildWithTag("note");
-				note.addChild(FLEFRecord.createChildWithTagAndValue("value", "GEDCOM form: " + form.getValue()));
-				header.addChild(note);
-			}
-		}
+//		// ---- GEDC (GEDCOM version and form) ----
+//		GEDCOMNode gedcNode = findFirstChild(headNode, "GEDC");
+//		if(gedcNode != null){
+//			GEDCOMNode vers = findFirstChild(gedcNode, "VERS");
+//			GEDCOMNode form = findFirstChild(gedcNode, "FORM");
+//			if(vers != null && vers.getValue() != null){
+//				FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//				note.addChild(FLEFRecord.createChildWithTagAndValue("value", "GEDCOM version: " + vers.getValue()));
+//				header.addChild(note);
+//			}
+//			if(form != null && form.getValue() != null){
+//				FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//				note.addChild(FLEFRecord.createChildWithTagAndValue("value", "GEDCOM form: " + form.getValue()));
+//				header.addChild(note);
+//			}
+//		}
 
-		// ---- CHAR (character set) ----
-		GEDCOMNode charNode = findFirstChild(headNode, "CHAR");
-		if(charNode != null && charNode.getValue() != null){
-			FLEFRecord note = FLEFRecord.createChildWithTag("note");
-			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Character set: " + charNode.getValue()));
-			header.addChild(note);
-		}
+//		// ---- CHAR (character set) ----
+//		GEDCOMNode charNode = findFirstChild(headNode, "CHAR");
+//		if(charNode != null && charNode.getValue() != null){
+//			FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Character set: " + charNode.getValue()));
+//			header.addChild(note);
+//		}
 
-		// ---- LANG (language) ----
-		GEDCOMNode langNode = findFirstChild(headNode, "LANG");
-		if(langNode != null && langNode.getValue() != null){
-			FLEFRecord note = FLEFRecord.createChildWithTag("note");
-			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Language: " + langNode.getValue()));
-			header.addChild(note);
-		}
+//		// ---- LANG (language) ----
+//		GEDCOMNode langNode = findFirstChild(headNode, "LANG");
+//		if(langNode != null && langNode.getValue() != null){
+//			FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Language: " + langNode.getValue()));
+//			header.addChild(note);
+//		}
 
-		// ---- PLAC (place hierarchy format) ----
-		GEDCOMNode placNode = findFirstChild(headNode, "PLAC");
-		if(placNode != null){
-			GEDCOMNode formNode = findFirstChild(placNode, "FORM");
-			if(formNode != null && formNode.getValue() != null){
-				FLEFRecord note = FLEFRecord.createChildWithTag("note");
-				note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Place hierarchy: " + formNode.getValue()));
-				header.addChild(note);
-			}
-		}
+//		// ---- PLAC (place hierarchy format) ----
+//		GEDCOMNode placNode = findFirstChild(headNode, "PLAC");
+//		if(placNode != null){
+//			GEDCOMNode formNode = findFirstChild(placNode, "FORM");
+//			if(formNode != null && formNode.getValue() != null){
+//				FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//				note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Place hierarchy: " + formNode.getValue()));
+//				header.addChild(note);
+//			}
+//		}
 
 		// ---- Submitter (will be added later) ----
 		model.setHeader(header);

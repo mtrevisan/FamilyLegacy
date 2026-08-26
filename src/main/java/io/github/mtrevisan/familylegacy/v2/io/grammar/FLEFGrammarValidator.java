@@ -50,7 +50,7 @@ import java.util.Set;
  * on the {@code file} definition.
  * <p>
  * Parsing (syntax) and validation (semantics) are intentionally separate steps, mirroring a typical compiler
- * pipeline: {@link FLEFGrammarParser} never fails on a semantically-invalid-but-syntactically-correct grammar.
+ * pipeline: {@link FLEFGrammarParser} never fails on a semantically invalid but syntactically correct grammar.
  */
 public final class FLEFGrammarValidator{
 
@@ -127,23 +127,16 @@ public final class FLEFGrammarValidator{
 	 * Validates a type as it's *used* somewhere (a field type, a union choice, an alternative), recursing into anonymous types.
 	 */
 	private void validateTypeUsage(final TypeDefinition type, final String context){
-		if(type == null){
-			errors.add(context + ": missing type");
-
-			return;
+		switch(type){
+			case null -> errors.add(context + ": missing type");
+			case ScalarType scalar -> checkTypeReference(scalar.getName(), context);
+			case ReferenceType ref -> checkTypeReference(ref.getTargetTypeName(), context + " (Xref target)");
+			case StructType struct -> validateStructLike(struct, context);
+			case UnionType union -> validateUnion(union, context);
+			case EnumType enumType -> validateEnum(enumType, context);
+			case AlternationType alt -> validateAlternation(alt, context);
+			default -> {}
 		}
-		if(type instanceof ScalarType scalar)
-			checkTypeReference(scalar.getName(), context);
-		else if(type instanceof ReferenceType ref)
-			checkTypeReference(ref.getTargetTypeName(), context + " (Xref target)");
-		else if(type instanceof StructType struct)
-			validateStructLike(struct, context);
-		else if(type instanceof UnionType union)
-			validateUnion(union, context);
-		else if(type instanceof EnumType enumType)
-			validateEnum(enumType, context);
-		else if(type instanceof AlternationType alt)
-			validateAlternation(alt, context);
 	}
 
 	private void validateStructLike(final StructType struct, final String context){

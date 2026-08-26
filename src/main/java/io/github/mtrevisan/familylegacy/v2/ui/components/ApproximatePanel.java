@@ -71,7 +71,7 @@ public class ApproximatePanel extends JPanel{
 	private static final String TAG_MARGIN = "MARGIN";
 
 
-	private final String path;
+	private String path;
 
 	private final JCheckBox approximateCheck = new JCheckBox("Approximate");
 	private final JComboBox<String> basisCombo = new JComboBox<>(new String[]{
@@ -122,6 +122,10 @@ public class ApproximatePanel extends JPanel{
 		marginField.setEnabled(enabled);
 	}
 
+	public void setPath(final String path){
+		this.path = path;
+	}
+
 	public void loadFromRecord(final FLEFRecord record){
 		clear();
 
@@ -144,7 +148,7 @@ public class ApproximatePanel extends JPanel{
 
 	/**
 	 * Saves the approximate data into an APPROXIMATE child of the given parent record.
-	 * If the check box is not selected, does nothing.
+	 * If the checkbox is not selected, it does nothing.
 	 *
 	 * @param parent	the parent record (e.g., VALUE, NOT_BEFORE, etc.)
 	 */

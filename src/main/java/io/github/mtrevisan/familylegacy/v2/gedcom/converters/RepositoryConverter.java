@@ -58,7 +58,7 @@ public class RepositoryConverter{
 	/**
 	 * Converts a GEDCOM REPO node into an FLEF RepositoryRecord.
 	 *
-	 * @param repoNode the GEDCOM node with tag "REPO"
+	 * @param repoNode the GEDCOM node with the tag "REPO"
 	 */
 	public void convert(GEDCOMNode repoNode){
 		String xref = repoNode.getXrefId();
@@ -134,16 +134,12 @@ public class RepositoryConverter{
 			}
 			if(docRecord == null){
 				docRecord = createDocumentRecord(objNode);
-				if(docRecord != null){
-					model.addRecord(docRecord);
-					multimediaMap.put(docRecord.getId(), docRecord);
-				}
+				model.addRecord(docRecord);
+				multimediaMap.put(docRecord.getId(), docRecord);
 			}
-			if(docRecord != null){
-				FLEFRecord docRef = FLEFRecord.createChildWithTag("document");
-				docRef.setValue(docRecord.getId());
-				repo.addChild(docRef);
-			}
+			FLEFRecord docRef = FLEFRecord.createChildWithTag("document");
+			docRef.setValue(docRecord.getId());
+			repo.addChild(docRef);
 		}
 
 		// ---- 7. Notes (GEDCOM NOTE) – inline NoteStructure with audit ----
@@ -155,7 +151,7 @@ public class RepositoryConverter{
 		// ---- 8. Extra fields (RIN, REFN) as inline notes with audit ----
 		for(GEDCOMNode child : repoNode.getChildren()){
 			String tag = child.getTag();
-			if(tag.equals("RIN") || tag.equals("REFN")){
+			if(/*tag.equals("RIN") ||*/ tag.equals("REFN")){
 				if(child.getValue() != null){
 					String text = tag + ": " + child.getValue();
 					FLEFRecord note = structParser.createNoteStruct(text, child);

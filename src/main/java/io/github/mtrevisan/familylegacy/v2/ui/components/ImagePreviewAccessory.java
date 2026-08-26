@@ -86,13 +86,11 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 			previewImage.setRectangularImage(null);
 
 			if(selectedFile != null && selectedFile.isFile()){
-				final File requestedFile = selectedFile;
-
 				loaderWorker = new SwingWorker<>(){
 					@Override
 					protected BufferedImage doInBackground(){
 						try{
-							final BufferedImage image = ImageIO.read(requestedFile);
+							final BufferedImage image = ImageIO.read(selectedFile);
 							if(image == null || isCancelled())
 								return null;
 
@@ -109,7 +107,7 @@ public class ImagePreviewAccessory extends JPanel implements PropertyChangeListe
 							return;
 
 						// Ignore stale workers that completed after another file was already selected
-						if(!requestedFile.equals(currentSelectedFile))
+						if(!selectedFile.equals(currentSelectedFile))
 							return;
 
 						try{

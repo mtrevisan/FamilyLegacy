@@ -253,11 +253,6 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(handler == null)
 			return "--";
 
-		// For citation wrapper, we want to display the target entity's text, not the citation itself.
-		if(type == ListType.CITATION_WRAPPER)
-			return handler.getDisplayText(record, model);
-
-		// For all other types, display the entity itself
 		return handler.getDisplayText(record, model);
 	}
 
@@ -273,6 +268,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		}
 
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
+		@SuppressWarnings("unchecked")
 		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, cleaned.toArray(Class[]::new))
 			.withSetupDialog(getDialogSetup());
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
@@ -315,6 +311,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			}
 			else{
 				// Multiple types: show selection dialog and then create based on selection
+				@SuppressWarnings("unchecked")
 				final MultiTypeSelectionDialog selectionDialog = new MultiTypeSelectionDialog(parent, model,
 						handlerTypes.toArray(Class[]::new))
 					.withSetupDialog(getDialogSetup());
@@ -450,28 +447,14 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		dialog.setVisible(true);
 
 		if(dialog.isSaved()){
-			// If the panel was loaded via reverse lookup, we may need to reload the list
-			if(isReference){
-				// Reload using the appropriate reverse lookup method
-				if(parentRecord != null){
-					// Use the stored parent record info to reload
-					if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
-						loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
-					// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
-					// Fallback: reload from the parent record if available
-					else
-						load(model.getRecordById(parentRecord.getId()));
-				}
-			}
-			else{
-				// If loaded from a parent record, we might need to refresh the list
-				if(parentRecord != null){
-					// Reload the parent record to reflect changes
-					if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
-						loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
-					else
-						load(model.getRecordById(parentRecord.getId()));
-				}
+			if(parentRecord != null){
+				// Use the stored parent record info to reload
+				if(type == ListType.ENTITY_REFERENCE || type == ListType.ONEOF_REFERENCE)
+					loadReferenceWithType(parentRecord.getId(), StringUtils.split(parentRecord.getTag(), '|'));
+				// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
+				// Fallback: reload from the parent record if available
+				else
+					load(model.getRecordById(parentRecord.getId()));
 			}
 
 			// Check if the record is still in the list; if not, it was removed.
@@ -526,7 +509,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final String entityId = entity.getId();
 		final FLEFRecord citation = FLEFRecord.createEmpty();
-		final RecordTypeHandler<?> handler = findHandler(HandlerRegistry.getHandlerType(handlerTypes.get(0)));
+		final RecordTypeHandler<?> handler = findHandler(HandlerRegistry.getHandlerType(handlerTypes.getFirst()));
 		final String citedType = handler.getCitedType();
 		if(citedType != null)
 			FLEFRecordHelper.updateChildValue(citation, citedType, entityId);

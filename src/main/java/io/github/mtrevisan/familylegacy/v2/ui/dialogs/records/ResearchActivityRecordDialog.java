@@ -62,6 +62,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -272,7 +273,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		// conclusion
 		GUIHelper.addComponent(conclusionPanel, conclusionArea);
 		// confidence
-		GUIHelper.addLabeledComponent(conclusionPanel, "Confidence:",  conclusionConfidenceCombo);
+		GUIHelper.addLabeledComponent(conclusionPanel, "Confidence:", conclusionConfidenceCombo);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		return panel;
@@ -362,10 +363,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = ResearchActivityRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(ResearchActivityRecordDialog::createEdit, content, "RA1");
-		}
+		GUIHelper.launch(ResearchActivityRecordDialog::createEdit, "/tests/test.flef", "RA1");
 	}
 
 }

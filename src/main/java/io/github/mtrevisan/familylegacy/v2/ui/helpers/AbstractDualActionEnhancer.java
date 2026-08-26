@@ -97,7 +97,7 @@ public abstract class AbstractDualActionEnhancer{
 	}
 
 	/**
-	 * Updates the cursor based on Shift state and whether the mouse is
+	 * Updates the cursor based on the Shift state and whether the mouse is
 	 * inside the component AND over a valid target (delegated to subclass).
 	 */
 	protected void updateCursor(){

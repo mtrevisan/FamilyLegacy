@@ -483,7 +483,7 @@ record RelationshipRecord {
     group_member,         // (Individual -> Group) membership in a group
     associate             // (Individual -> Individual | Individual -> Group | Group -> Group) general association
   } | Text
-  role?: Text                   // the function, position, capacity or responsibility held by the subject within the relationship (e.g., 'president', 'member', 'resident', 'head of household', 'tribal leader')
+  role?: Text                   // the function, position, capacity or responsibility held by the subject within the relationship (e.g., 'father', 'mother', 'child', 'president', 'member', 'resident', 'head of household', 'tribal leader')
   status?: enum {
     active,   // relationship currently exists
     ended,    // relationship no longer exists
@@ -868,33 +868,25 @@ struct DateStructure {
 // embedded
 // Represents the nature of a date assertion. A date can be a single point, an uncertainty interval, or a duration spanning an actual period of time.
 DateValue = oneof {
-  point: QualifiedDate     // a single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence.
+  point: SingleDate        // a single point in time. Unless marked as APPROXIMATE, the value is accepted as recorded, derived, or concluded from the available evidence.
   bounded: BoundedDate     // the exact date is unknown but is known to fall within the specified interval. The interval represents uncertainty about the date itself, not the duration of the fact.
   spanning: SpanningDate   // the fact itself extends across the specified interval. Unlike BoundedDate, the interval does not represent uncertainty about a date; it represents the actual duration of the event, status, relationship, or condition.
 }
 
 // embedded
 struct BoundedDate {
-  not_before?: QualifiedDate
-  not_after?: QualifiedDate
+  not_before?: SingleDate
+  not_after?: SingleDate
 
   require one_of(not_before, not_after)   // At least one of NOT_BEFORE or NOT_AFTER is required. An omitted bound represents an open-ended limit. When both bounds are present, NOT_BEFORE MUST be <= NOT_AFTER.
 }
 
 // embedded
 struct SpanningDate {
-  from?: QualifiedDate
-  to?: QualifiedDate
+  from?: SingleDate
+  to?: SingleDate
 
   require one_of(from, to)   // At least one of FROM or TO is required. An omitted bound represents an open-ended limit. When both bounds are present, FROM MUST be <= TO.
-}
-
-// embedded
-// A normalized date assertion representing a single point in time. The value may originate from a direct source statement, a calculation,
-// an inference, or a researcher conclusion. APPROXIMATE indicates that uncertainty remains about the asserted date.
-struct QualifiedDate {
-  single_date: SingleDate
-  approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
 }
 
 // embedded
@@ -909,8 +901,6 @@ struct Approximate {
   }
   cultural_norm*: Xref<CulturalNormRecord>   // mandatory in practice when basis = 'conventional': it is the record that justifies the estimate
   margin?: Duration                          // e.g., 'P2Y' = plus/minus 2 years, when the margin is quantifiable
-
-  require if basis == conventional: cultural_norm
 }
 
 // embedded
@@ -918,16 +908,19 @@ struct Approximate {
 // and is not inferred from formatting conventions.
 SingleDate = oneof {
   full_date: struct {
-    value: HistoricalDate   // a historical date
+    value: HistoricalDate      // a historical date
+    approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
     calendar: CalendarType | Text
   }
   decade: struct {
     start_year: Int   // a decade identified by its starting year. For example, 1490 represents the decade commonly referred to as the '1490s'
+    approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
     calendar: CalendarType | Text
   }
   century: struct {
     ordinal: Int         // a century designation, such as 15 for the 15th century
     part?: CenturyPart   // an optional subdivision of the century
+    approximate?: Approximate   // Qualifies the precision of this date. The underlying date remains the asserted value; APPROXIMATE describes uncertainty about that value.
     calendar: CalendarType | Text
   }
 }

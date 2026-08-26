@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 
 /**
@@ -239,10 +240,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		try(final InputStream is = HistoricEventRecordDialog.class.getResourceAsStream("/tests/test.flef")){
-			final String content = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-			GUIHelper.launch(HistoricEventRecordDialog::createEdit, content, "HE1");
-		}
+		GUIHelper.launch(HistoricEventRecordDialog::createEdit, "/tests/test.flef", "HE1");
 	}
 
 }

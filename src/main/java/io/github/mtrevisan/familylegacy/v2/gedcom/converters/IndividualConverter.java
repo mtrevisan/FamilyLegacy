@@ -97,7 +97,7 @@ public class IndividualConverter {
 
 		// ---- Names ----
 		for (GEDCOMNode nameNode : structParser.findChildren(indiNode, "NAME")) {
-			FLEFRecord nameRec = structParser.parsePersonalNameStructure(nameNode);
+			FLEFRecord nameRec = structParser.parsePersonalNameStructure(nameNode, model, xref, "individual");
 			if (nameRec != null) indi.addChild(nameRec);
 		}
 
@@ -138,7 +138,7 @@ public class IndividualConverter {
 
 		// ---- Sources (SOUR) ----
 		for (GEDCOMNode sourNode : structParser.findChildren(indiNode, "SOUR")) {
-			FLEFRecord sourCitation = structParser.parseSourceCitation(sourNode, model);
+			FLEFRecord sourCitation = structParser.parseSourceCitation(sourNode, model, xref, "individual");
 			if (sourCitation != null) indi.addChild(sourCitation);
 		}
 
@@ -189,12 +189,9 @@ public class IndividualConverter {
 			}
 			if (docRecord == null) {
 				docRecord = createDocumentRecord(objNode);
-				if (docRecord != null) {
-					model.addRecord(docRecord);
-					multimediaMap.put(docRecord.getId(), docRecord);
-				}
+				model.addRecord(docRecord);
+				multimediaMap.put(docRecord.getId(), docRecord);
 			}
-			if (docRecord == null) continue;
 
 			// 2. If primary: create preferred_image
 			if (objNode == preferredObj) {
@@ -228,17 +225,15 @@ public class IndividualConverter {
 			} else {
 				// 3. Non-primary: create a SourceRecord and link it to the individual
 				FLEFRecord sourceRecord = createSourceRecordFromDocument(docRecord, objNode);
-				if (sourceRecord != null) {
-					model.addRecord(sourceRecord);
-					sourceMap.put(sourceRecord.getId(), sourceRecord);
+				model.addRecord(sourceRecord);
+				sourceMap.put(sourceRecord.getId(), sourceRecord);
 
-					// Create SourceCitation for the individual
-					FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source_citation");
-					FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
-					sourceRef.setValue(sourceRecord.getId());
-					sourceCitation.addChild(sourceRef);
-					indi.addChild(sourceCitation);
-				}
+				// Create SourceCitation for the individual
+				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
+				FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
+				sourceRef.setValue(sourceRecord.getId());
+				sourceCitation.addChild(sourceRef);
+				indi.addChild(sourceCitation);
 			}
 		}
 	}
@@ -337,23 +332,19 @@ public class IndividualConverter {
 				tag.equals("ALIA") || tag.equals("ASSO") || tag.equals("ANCI") || tag.equals("DESI")){
 				if(child.getValue() != null){
 					String text = tag + ": " + child.getValue();
-					if(tag.equals("ALIA")){
-						text = "Alias: " + IDNormalizer.clean(child.getValue());
-					}
-					else if(tag.equals("ASSO")){
-						String assocId = IDNormalizer.clean(child.getValue());
-						StringBuilder sb = new StringBuilder("Associated with: ").append(assocId);
-						GEDCOMNode relaNode = structParser.findFirstChild(child, "RELA");
-						if(relaNode != null && relaNode.getValue() != null){
-							sb.append(" (Relation: ").append(relaNode.getValue()).append(')');
+					switch(tag){
+						case "ALIA" -> text = "Alias: " + IDNormalizer.clean(child.getValue());
+						case "ASSO" -> {
+							String assocId = IDNormalizer.clean(child.getValue());
+							StringBuilder sb = new StringBuilder("Associated with: ").append(assocId);
+							GEDCOMNode relaNode = structParser.findFirstChild(child, "RELA");
+							if(relaNode != null && relaNode.getValue() != null){
+								sb.append(" (Relation: ").append(relaNode.getValue()).append(')');
+							}
+							text = sb.toString();
 						}
-						text = sb.toString();
-					}
-					else if(tag.equals("ANCI")){
-						text = "Ancestor interest: " + child.getValue();
-					}
-					else if(tag.equals("DESI")){
-						text = "Descendant interest: " + child.getValue();
+						case "ANCI" -> text = "Ancestor interest: " + child.getValue();
+						case "DESI" -> text = "Descendant interest: " + child.getValue();
 					}
 					// Usa createNoteStruct per aggiungere audit
 					FLEFRecord note = structParser.createNoteStruct(text, child);
