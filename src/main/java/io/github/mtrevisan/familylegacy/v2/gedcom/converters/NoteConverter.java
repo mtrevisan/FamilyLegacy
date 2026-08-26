@@ -10,15 +10,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import java.util.Map;
 
 
-/**
- * Converts GEDCOM NOTE records to FLEF NoteRecord.
- * <p>
- * Handles:
- * - NOTE text -> value
- * - SOUR -> source
- * - CHAN -> audit
- * - REFN/RIN -> inline notes
- */
 public class NoteConverter{
 
 	private final FLEFModel model;
@@ -42,7 +33,6 @@ public class NoteConverter{
 		String id;
 		if(xref != null){
 			String cleaned = IDNormalizer.clean(xref);
-
 			if(isValidIdFormat(cleaned)){
 				id = cleaned;
 			}
@@ -58,18 +48,16 @@ public class NoteConverter{
 
 		FLEFRecord note = FLEFRecord.createChildWithTag("note");
 		note.setId(id);
-
 		noteMap.put(id, note);
 
-		// NOTE value (including CONC/CONT already reconstructed by parser)
-		if(noteNode.getValue() != null && !noteNode.getValue().isBlank()){
-			note.addChild(FLEFRecord.createChildWithTagAndValue(
-				"value",
-				noteNode.getValue()
-			));
+		// ---- 1. NOTE value (including CONC/CONT) ----
+		// The parser might already concatenate the value, but we ensure it.
+		String fullText = getFullNoteText(noteNode);
+		if(fullText != null && !fullText.isBlank()){
+			note.addChild(FLEFRecord.createChildWithTagAndValue("value", fullText));
 		}
 
-		// SOUR
+		// ---- 2. SOURCE_CITATION (SOUR) ----
 		for(GEDCOMNode sourNode : structParser.findChildren(noteNode, "SOUR")){
 			FLEFRecord citation = structParser.parseSourceCitation(sourNode, model);
 			if(citation != null){
@@ -77,35 +65,55 @@ public class NoteConverter{
 			}
 		}
 
-		// REFN
-		for(GEDCOMNode refnNode : structParser.findChildren(noteNode, "REFN")){
-			if(refnNode.getValue() != null){
-				FLEFRecord extraNote = structParser.createNoteStruct(
-					"REFN: " + refnNode.getValue(),
-					refnNode
-				);
-
-				if(extraNote != null){
-					note.addChild(extraNote);
-				}
-			}
-		}
-
-//		// RIN
-//		GEDCOMNode rinNode = structParser.findFirstChild(noteNode, "RIN");
-//		if(rinNode != null && rinNode.getValue() != null){
-//			FLEFRecord extraNote = structParser.createNoteStruct(
-//				"RIN: " + rinNode.getValue(),
-//				rinNode
-//			);
-//
-//			if(extraNote != null){
-//				note.addChild(extraNote);
+//		// ---- 3. REFN (user reference number) with optional TYPE ----
+//		for(GEDCOMNode refnNode : structParser.findChildren(noteNode, "REFN")){
+//			if(refnNode.getValue() != null){
+//				FLEFRecord refnChild = FLEFRecord.createChildWithTagAndValue("_refn", refnNode.getValue());
+//				GEDCOMNode typeNode = structParser.findFirstChild(refnNode, "TYPE");
+//				if(typeNode != null && typeNode.getValue() != null){
+//					refnChild.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
+//				}
+//				note.addChild(refnChild);
 //			}
 //		}
 
-		// Audit
+//		// ---- 4. RIN (automated record ID) ----
+//		GEDCOMNode rinNode = structParser.findFirstChild(noteNode, "RIN");
+//		if(rinNode != null && rinNode.getValue() != null){
+//			note.addChild(FLEFRecord.createChildWithTagAndValue("_rin", rinNode.getValue()));
+//		}
+
+		// ---- 5. CHANGE_DATE (audit) ----
 		note.addChild(structParser.createAudit(noteNode));
+	}
+
+	/**
+	 * Reconstructs the full note text from a GEDCOM NOTE node.
+	 * Handles CONC and CONT children to concatenate lines correctly.
+	 *
+	 * @param noteNode the GEDCOM NOTE node
+	 * @return the full text, or null if no text found
+	 */
+	private String getFullNoteText(GEDCOMNode noteNode){
+		if(noteNode.getValue() != null && !noteNode.getValue().isBlank()){
+			return noteNode.getValue();
+		}
+		// If no initial value, try to build from CONC/CONT children.
+		// In many parsers, these are already concatenated into the value.
+		// This is a fallback.
+		StringBuilder sb = new StringBuilder();
+		for(GEDCOMNode child : noteNode.getChildren()){
+			String tag = child.getTag();
+			if("CONC".equals(tag) || "CONT".equals(tag)){
+				if(child.getValue() != null){
+					if("CONT".equals(tag) && sb.length() > 0){
+						sb.append('\n');
+					}
+					sb.append(child.getValue());
+				}
+			}
+		}
+		return sb.length() > 0? sb.toString(): null;
 	}
 
 	/**
@@ -115,8 +123,7 @@ public class NoteConverter{
 	 * @return Whether the identifier is valid.
 	 */
 	private boolean isValidIdFormat(String id){
-		return (id != null
-			&& id.matches("^[A-Za-z][A-Za-z0-9]*$"));
+		return id != null && id.matches("^[A-Za-z][A-Za-z0-9]*$");
 	}
 
 }

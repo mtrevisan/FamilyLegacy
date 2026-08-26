@@ -71,22 +71,32 @@ public class RepositoryConverter{
 		repo.setId(cleanId);
 		repositoryMap.put(cleanId, repo);
 
-		// ---- 1. Name (name+: ClassifiedNameStructure) ----
+		// ---- 1. NAME (name+: ClassifiedNameStructure) ----
 		GEDCOMNode nameNode = structParser.findFirstChild(repoNode, "NAME");
 		if(nameNode != null && nameNode.getValue() != null){
 			FLEFRecord classifiedName = FLEFRecord.createChildWithTag("name");
-			FLEFRecord nameStruct = structParser.parseNameStructure(nameNode, "text");
-			if(nameStruct != null){
-				classifiedName.addChild(nameStruct);
-				// Optional type
-				GEDCOMNode typeNode = structParser.findFirstChild(nameNode, "TYPE");
-				if(typeNode != null && typeNode.getValue() != null){
-					classifiedName.addChild(
-						FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue())
-					);
-				}
-				repo.addChild(classifiedName);
+			FLEFRecord nameStruct = FLEFRecord.createChildWithTag("text");
+			nameStruct.addChild(FLEFRecord.createChildWithTagAndValue("value", nameNode.getValue()));
+			classifiedName.addChild(nameStruct);
+			// Optional type (not standard for REPO NAME, but harmless)
+			GEDCOMNode typeNode = structParser.findFirstChild(nameNode, "TYPE");
+			if(typeNode != null && typeNode.getValue() != null){
+				classifiedName.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
 			}
+			repo.addChild(classifiedName);
+		}
+
+		// ---- 2. ADDRESS_STRUCTURE (ADDR, PHON, EMAIL, FAX, WWW) ----
+		GEDCOMNode addrNode = structParser.findFirstChild(repoNode, "ADDR");
+		if (addrNode != null) {
+			FLEFRecord contact = structParser.parseAddressToContact(addrNode, repoNode);
+			if (contact != null) repo.addChild(contact);
+		}
+
+		// ---- 3. NOTE_STRUCTURE ----
+		for (GEDCOMNode noteNode : structParser.findChildren(repoNode, "NOTE")) {
+			FLEFRecord noteStruct = structParser.parseNoteStruct(noteNode);
+			if (noteStruct != null) repo.addChild(noteStruct);
 		}
 
 		// ---- 2. Place (PLAC -> place: PlaceCitation) ----
@@ -94,13 +104,6 @@ public class RepositoryConverter{
 		if(placNode != null){
 			FLEFRecord placeCitation = structParser.parsePlaceCitation(placNode);
 			if(placeCitation != null) repo.addChild(placeCitation);
-		}
-
-		// ---- 3. Address (ADDR -> contact: ContactStructure) ----
-		GEDCOMNode addrNode = structParser.findFirstChild(repoNode, "ADDR");
-		if(addrNode != null){
-			FLEFRecord contact = structParser.parseAddressToContact(addrNode, repoNode);
-			if(contact != null) repo.addChild(contact);
 		}
 
 		// ---- 4. Date (GEDCOM DATE) ----
@@ -202,16 +205,16 @@ public class RepositoryConverter{
 //			if(note != null) doc.addChild(note);
 //		}
 
-		// Exclude tags that are already used for specific purposes
-		Set<String> excludedTags = Set.of("_PRIMARY", "_CUTD", "_PUBL", "_CUT", "_PREF", "_DATE");
-		for(GEDCOMNode child : objNode.getChildren()){
-			String tag = child.getTag();
-			if(tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)){
-				String text = tag + ": " + child.getValue();
-				FLEFRecord note = structParser.createNoteStruct(text, child);
-				if(note != null) doc.addChild(note);
-			}
-		}
+//		// Exclude tags that are already used for specific purposes
+//		Set<String> excludedTags = Set.of("_PRIMARY", "_CUTD", "_PUBL", "_CUT", "_PREF", "_DATE");
+//		for(GEDCOMNode child : objNode.getChildren()){
+//			String tag = child.getTag();
+//			if(tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)){
+//				String text = tag + ": " + child.getValue();
+//				FLEFRecord note = structParser.createNoteStruct(text, child);
+//				if(note != null) doc.addChild(note);
+//			}
+//		}
 
 		// Audit (required)
 		doc.addChild(structParser.createAudit(objNode));

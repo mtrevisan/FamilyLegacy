@@ -123,9 +123,9 @@ public class FamilyConverter{
 			}
 		}
 
-		// Family events (MARR, DIV, ANUL, ENGA, MARB, MARC, MARL, MARS, RESI, EVEN)
-		Set<String> famEventTags = Set.of("MARR", "DIV", "ANUL", "ENGA", "MARB", "MARC", "MARL", "MARS", "RESI", "EVEN");
-		for(String tag : famEventTags){
+		// ---- Family events (aggiunto CENS e DIVF) ----
+		Set<String> famEventTags = Set.of("MARR", "DIV", "ANUL", "ENGA", "MARB", "MARC", "MARL", "MARS", "RESI", "EVEN", "CENS", "DIVF");
+		for (String tag : famEventTags) {
 			link.events.addAll(structParser.findChildren(famNode, tag));
 		}
 
@@ -385,16 +385,16 @@ public class FamilyConverter{
 //			doc.addChild(note);
 //		}
 
-		// Exclude tags that are already used for specific purposes
-		Set<String> excludedTags = Set.of("_PRIMARY", "_CUTD", "_PUBL", "_CUT", "_PREF", "_DATE");
-		for(GEDCOMNode child : objNode.getChildren()){
-			String tag = child.getTag();
-			if(tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)){
-				FLEFRecord note = FLEFRecord.createChildWithTag("note");
-				note.addChild(FLEFRecord.createChildWithTagAndValue("value", tag + ": " + child.getValue()));
-				doc.addChild(note);
-			}
-		}
+//		// Exclude tags that are already used for specific purposes
+//		Set<String> excludedTags = Set.of("_PRIMARY", "_CUTD", "_PUBL", "_CUT", "_PREF", "_DATE");
+//		for(GEDCOMNode child : objNode.getChildren()){
+//			String tag = child.getTag();
+//			if(tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)){
+//				FLEFRecord note = FLEFRecord.createChildWithTag("note");
+//				note.addChild(FLEFRecord.createChildWithTagAndValue("value", tag + ": " + child.getValue()));
+//				doc.addChild(note);
+//			}
+//		}
 
 		// Audit
 		doc.addChild(structParser.createAudit(objNode));

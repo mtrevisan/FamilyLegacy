@@ -71,7 +71,7 @@ public class AuditBuilder{
 	private String extractFullNoteText(GEDCOMNode noteNode){
 		StringBuilder builder = new StringBuilder();
 		if(noteNode.getValue() != null){
-			builder.append(noteNode.getValue().trim());
+			builder.append(noteNode.getValue());
 		}
 
 		for(GEDCOMNode child : noteNode.getChildren()){
@@ -82,10 +82,10 @@ public class AuditBuilder{
 				}
 				if(!builder.isEmpty())
 					builder.append(' ');
-				builder.append(child.getValue().trim());
+				builder.append(child.getValue());
 			}
 			else if("CONC".equals(tag) && child.getValue() != null){
-				builder.append(" ").append(child.getValue().trim());
+				builder.append(" ").append(child.getValue());
 			}
 		}
 

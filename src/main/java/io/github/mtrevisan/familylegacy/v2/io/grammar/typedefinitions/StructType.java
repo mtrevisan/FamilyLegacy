@@ -84,8 +84,8 @@ public class StructType extends TypeDefinition{
 
 			// 1. Validate cardinality constraints (?, *, +, required)
 			if(!fieldDef.cardinality().isValidCount(children.size())){
-				errors.add(String.format("Missing required child '%s' under '%s' (found %d, expected %s)",
-					fieldName, contextPath, children.size(), fieldDef.cardinality()));
+				errors.add(String.format("Missing required child '%s' under '%s' (found %d, expected %s), record %s",
+					fieldName, contextPath, children.size(), fieldDef.cardinality(), record));
 
 				continue;
 			}

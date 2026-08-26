@@ -104,6 +104,34 @@ public class StructureParser{
 			}
 		}
 
+		// ---- FAMC (family of origin) ----
+		for (GEDCOMNode famcNode : findChildren(evtNode, "FAMC")) {
+			if (famcNode.getValue() != null) {
+				String text = "Family of origin: " + famcNode.getValue();
+				FLEFRecord note = createNoteStruct(text, famcNode);
+				if (note != null) eventRec.addChild(note);
+			}
+		}
+
+		// ---- RESN (restriction) ----
+		GEDCOMNode resnNode = findFirstChild(evtNode, "RESN");
+		if (resnNode != null && resnNode.getValue() != null) {
+			String level = GEDCOMMapper.mapPrivacyLevel(resnNode.getValue());
+			FLEFRecord privacy = FLEFRecord.createChildWithTag("privacy");
+			privacy.addChild(FLEFRecord.createChildWithTagAndValue("level", level));
+			eventRec.addChild(privacy);
+		}
+
+		// ---- ADOP sub‑field (which parent adopted) ----
+		if ("ADOP".equals(gedcomTag)) {
+			GEDCOMNode adopNode = findFirstChild(evtNode, "ADOP");
+			if (adopNode != null && adopNode.getValue() != null) {
+				String text = "Adopted by: " + adopNode.getValue();
+				FLEFRecord note = createNoteStruct(text, adopNode);
+				if (note != null) eventRec.addChild(note);
+			}
+		}
+
 		// Audit (required)
 		eventRec.addChild(auditBuilder.build(evtNode));
 		return eventRec;
@@ -196,7 +224,7 @@ public class StructureParser{
 		}
 
 		// Parse inline value (e.g., "Joseph Tag /Torture/") into full text
-		String raw = nameNode.getValue();
+		String raw = extractContinuationData(nameNode);
 		String inlineGiven = "";
 		String inlineSurname = "";
 
@@ -340,6 +368,40 @@ public class StructureParser{
 			}
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * Returns the full text of a GEDCOM node, including all CONC and CONT children.
+	 * This method reconstructs the complete text by processing the node's value and all
+	 * its CONC (concatenate without separator) and CONT (append with newline) children.
+	 *
+	 * @param node the GEDCOM node
+	 * @return the full concatenated text, or {@code null} if no text exists
+	 */
+	public String getFullText(GEDCOMNode node) {
+		if (node == null) {
+			return null;
+		}
+		StringBuilder sb = new StringBuilder();
+		String initial = node.getValue();
+		if (initial != null) {
+			sb.append(initial);
+		}
+		// Process children in order, respecting CONC and CONT semantics
+		for (GEDCOMNode child : node.getChildren()) {
+			String tag = child.getTag();
+			if ("CONC".equals(tag) && child.getValue() != null) {
+				// CONC: append directly without space or newline
+				sb.append(child.getValue());
+			} else if ("CONT".equals(tag) && child.getValue() != null) {
+				// CONT: add newline then the text
+				if (sb.length() > 0) {
+					sb.append('\n');
+				}
+				sb.append(child.getValue());
+			}
+		}
+		return sb.length() > 0 ? sb.toString() : null;
 	}
 
 	// ------------------------------------------------------------------------
@@ -505,6 +567,65 @@ public class StructureParser{
 		placeRef.setValue(place.getId());
 		placeCitation.addChild(placeRef);
 
+//		// FORM -> note
+//		GEDCOMNode formNode = findFirstChild(placNode, "FORM");
+//		if (formNode != null && formNode.getValue() != null) {
+//			FLEFRecord note = createNoteStruct("Hierarchy: " + formNode.getValue(), formNode);
+//			if (note != null) place.addChild(note);
+//		}
+
+		// ---- FONE (phonetic variation) ----
+		for (GEDCOMNode foneNode : findChildren(placNode, "FONE")) {
+			String phonetic = extractContinuationData(foneNode);
+			if (StringUtils.isNotEmpty(phonetic)) {
+				// Store as a variant note
+				String system = "IPA"; // default
+				GEDCOMNode typeNode = findFirstChild(foneNode, "TYPE");
+				if (typeNode != null && typeNode.getValue() != null) {
+					system = typeNode.getValue();
+				}
+				String text = "Phonetic (" + system + "): " + phonetic;
+				FLEFRecord note = createNoteStruct(text, foneNode);
+				if (note != null) place.addChild(note);
+			}
+		}
+
+		// ---- ROMN (romanized variation) ----
+		for (GEDCOMNode romnNode : findChildren(placNode, "ROMN")) {
+			String romanized = extractContinuationData(romnNode);
+			if (StringUtils.isNotEmpty(romanized)) {
+				String system = "scientific"; // default
+				GEDCOMNode typeNode = findFirstChild(romnNode, "TYPE");
+				if (typeNode != null && typeNode.getValue() != null) {
+					system = typeNode.getValue();
+				}
+				String text = "Romanized (" + system + "): " + romanized;
+				FLEFRecord note = createNoteStruct(text, romnNode);
+				if (note != null) place.addChild(note);
+			}
+		}
+
+		// ---- MAP (coordinates) ----
+		GEDCOMNode mapNode = findFirstChild(placNode, "MAP");
+		if (mapNode != null) {
+			GEDCOMNode latiNode = findFirstChild(mapNode, "LATI");
+			GEDCOMNode longNode = findFirstChild(mapNode, "LONG");
+			if (latiNode != null && longNode != null &&
+				latiNode.getValue() != null && longNode.getValue() != null) {
+				FLEFRecord mapRecord = FLEFRecord.createChildWithTag("map");
+				mapRecord.addChild(FLEFRecord.createChildWithTagAndValue("coordinates",
+					latiNode.getValue() + " " + longNode.getValue()));
+				// Evidence can be added if present (optional)
+				place.addChild(mapRecord);
+			}
+		}
+
+		// ---- NOTE (notes under PLAC) ----
+		for (GEDCOMNode noteNode : findChildren(placNode, "NOTE")) {
+			FLEFRecord noteStruct = parseNoteStruct(noteNode);
+			if (noteStruct != null) place.addChild(noteStruct);
+		}
+
 		// original_text is omitted because the name itself is the same as the original
 		return placeCitation;
 	}
@@ -620,6 +741,27 @@ public class StructureParser{
 			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("location", pageNode.getValue()));
 		}
 
+		// ---- REPO (source repository citation) ----
+		for (GEDCOMNode repoNode : findChildren(sourNode, "REPO")) {
+			if (repoNode.getValue() != null) {
+				FLEFRecord repoCitation = FLEFRecord.createChildWithTag("repository");
+				FLEFRecord repoRef = FLEFRecord.createChildWithTag("repository");
+				repoRef.setValue(IDNormalizer.clean(repoNode.getValue()));
+				repoCitation.addChild(repoRef);
+				// CALN -> location
+				GEDCOMNode calnNode = findFirstChild(repoNode, "CALN");
+				if (calnNode != null && calnNode.getValue() != null) {
+					repoCitation.addChild(FLEFRecord.createChildWithTagAndValue("location", calnNode.getValue()));
+				}
+				// NOTE
+				for (GEDCOMNode noteNode : findChildren(repoNode, "NOTE")) {
+					FLEFRecord noteStruct = parseNoteStruct(noteNode);
+					if (noteStruct != null) repoCitation.addChild(noteStruct);
+				}
+				sourceCitation.addChild(repoCitation);
+			}
+		}
+
 		// EVEN (+ ROLE) -> EventRecord + EventParticipationRecord
 		GEDCOMNode evenNode = findFirstChild(sourNode, "EVEN");
 		if(evenNode != null && model != null){
@@ -688,13 +830,16 @@ public class StructureParser{
 		GEDCOMNode quayNode = findFirstChild(sourNode, "QUAY");
 		if(quayNode != null && quayNode.getValue() != null){
 			FLEFRecord evidence = FLEFRecord.createChildWithTag("evidence");
-			String evidenceType = switch(quayNode.getValue().trim()){
-				case "3" -> "direct";
-				case "2" -> "indirect";
-				case "0", "1" -> "negative";
+			// 0 = unreliable/estimated data
+			// 1 = Questionable reliability of evidence
+			// 2 = Secondary evidence, data officially recorded sometime after event
+			// 3 = Direct and primary evidence used, or by dominance of the evidence
+			String informationType = switch(quayNode.getValue().trim()){
+				case "3" -> "primary";
+				case "2" -> "secondary";
 				default -> "undetermined";
 			};
-			evidence.addChild(FLEFRecord.createChildWithTagAndValue("evidence_type", evidenceType));
+			evidence.addChild(FLEFRecord.createChildWithTagAndValue("information_type", informationType));
 			sourceCitation.addChild(evidence);
 		}
 
@@ -741,7 +886,7 @@ public class StructureParser{
 			return null;
 		}
 
-		final StringBuilder fullAddr = new StringBuilder(addrNode.getValue() != null ? addrNode.getValue() : "");
+		final StringBuilder fullAddr = new StringBuilder(addrNode.getValue() != null ? extractContinuationData(addrNode) : "");
 		for(String subTag : List.of("ADR1", "ADR2", "ADR3", "CITY", "STAE", "POST", "CTRY")){
 			GEDCOMNode sub = findFirstChild(addrNode, subTag);
 			if(sub != null && sub.getValue() != null){

@@ -25,7 +25,7 @@ public class GEDCOMParser{
 			if(!line.isEmpty() && line.charAt(0) == '\uFEFF'){
 				line = line.substring(1);
 			}
-			line = line.trim();
+//			line = line.trim();
 			if(line.isEmpty()){
 				continue;
 			}
@@ -43,7 +43,7 @@ public class GEDCOMParser{
 				continue;
 			}
 
-			String rest = line.substring(firstSpace + 1).trim();
+			String rest = line.substring(firstSpace + 1);
 			String tag;
 			String value = null;
 			String xref = null;
