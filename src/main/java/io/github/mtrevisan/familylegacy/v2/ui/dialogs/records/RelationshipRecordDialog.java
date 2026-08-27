@@ -52,12 +52,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 
 /**
@@ -68,7 +65,7 @@ import java.util.Objects;
  * record RelationshipRecord {
  *   id: LocalID
  *   subject: RelationshipParticipant
- *   object: RelationshipParticipant
+ *   target: RelationshipParticipant
  *   type: enum { biological_child, adoptive_child, foster_child, guarded_child, step_child, civil_spouse, religious_spouse, customary_spouse, cohabiting_partner, engaged_partner, group_member, associate } | Text
  *   role?: Text
  *   status?: enum { active, ended, unknown }
@@ -88,7 +85,7 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): subject, object, type, role, status, valid_from, valid_to, evidence
+ * Tab 1 (Properties): subject, target, type, role, status, valid_from, valid_to, evidence
  * Tab 5 (Context): ContextImpactRecord (target[relationship] = this relationship)
  * Tab 6 (Research): ConclusionRecord (resolves = this relationship), ResearchQuestionRecord (target[relationship] = this relationship)
  * Tab 7 (Sources): source
@@ -103,7 +100,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 
 	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
+	private static final String TAG_TARGET = "TARGET";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_ROLE = "ROLE";
 	private static final String TAG_STATUS = "STATUS";
@@ -140,7 +137,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 	private final EntityField subjectField;
 	private final BoundComboBox<String> subjectTypeCombo;
-	private final EntityField objectField;
+	private final EntityField targetField;
 	private final BoundTextField subjectRoleField;
 	private final BoundComboBox<String> statusCombo;
 	private final DateField validFromField;
@@ -165,9 +162,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		subjectField = EntityField.createForRecordFromOneofReference(TAG_SUBJECT, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
 		subjectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
-		objectField = EntityField.createForRecordFromOneofReference(TAG_OBJECT, this, model)
+		targetField = EntityField.createForRecordFromOneofReference(TAG_TARGET, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class);
-		objectField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
+		targetField.addPropertyChangeListener(EntityField.PROPERTY_ENTITY_CHANGED, e -> updateTypeCombo());
 		subjectTypeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"biological_child", "adoptive_child", "foster_child", "guarded_child", "step_child",
@@ -208,13 +205,13 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		if(subjectRecord == null)
 			return;
 
-		final FLEFRecord objectRecord = objectField.getEntity();
-		if(objectRecord == null)
+		final FLEFRecord targetRecord = targetField.getEntity();
+		if(targetRecord == null)
 			return;
 
 		final String subjectType = subjectRecord.getTag();
-		final String objectType = objectRecord.getTag();
-		final List<String> validTypes = getValidTypes(subjectType, objectType);
+		final String targetType = targetRecord.getTag();
+		final List<String> validTypes = getValidTypes(subjectType, targetType);
 		subjectTypeCombo.updateItems(validTypes);
 		subjectTypeCombo.setEnabled(!validTypes.isEmpty());
 	}
@@ -247,8 +244,8 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		// (subject) role
 		GUIHelper.addLabeledComponent(propertiesPanel, "Subject Role:", subjectRoleField);
 
-		// object
-		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
+		// target
+		GUIHelper.addLabeledComponent(propertiesPanel, "Target*:", targetField);
 
 		// status
 		GUIHelper.addLabeledComponent(propertiesPanel, "Status:", statusCombo);
@@ -342,7 +339,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, showAll);
-			GUIHelper.setComponentVisible(objectField, true);
+			GUIHelper.setComponentVisible(targetField, true);
 		}
 
 		return this;
@@ -352,11 +349,11 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		super.withParentEntity(parentEntityId, parentEntityPath);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
-			objectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			targetField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, true);
-			GUIHelper.setComponentVisible(objectField, showAll);
+			GUIHelper.setComponentVisible(targetField, showAll);
 		}
 
 		return this;
@@ -366,7 +363,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		subjectField.load(record);
-		objectField.load(record);
+		targetField.load(record);
 
 		components.load(record);
 
@@ -386,15 +383,15 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!objectField.hasData()){
+		if(!targetField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object is required.",
-				tabbedPane, propertiesPanel, objectField);
+				tabbedPane, propertiesPanel, targetField);
 
 			return false;
 		}
 
-		if(subjectField.equals(objectField)){
+		if(subjectField.equals(targetField)){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Subject and Object must not be the same entity.",
 				tabbedPane, propertiesPanel, subjectField);
@@ -416,7 +413,7 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		subjectField.saveReferences(record);
-		objectField.saveReferences(record);
+		targetField.saveReferences(record);
 
 		components.save(record);
 

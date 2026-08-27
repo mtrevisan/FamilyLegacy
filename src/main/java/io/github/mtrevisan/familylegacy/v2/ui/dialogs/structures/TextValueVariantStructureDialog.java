@@ -92,6 +92,11 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	private static final String TAG_SYSTEM = "SYSTEM";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_PHONETIC_SYSTEM = TAG_PHONETIC + DOT + TAG_SYSTEM;
+	private static final String TAG_PHONETIC_VALUE = TAG_PHONETIC + DOT + TAG_VALUE;
+	private static final String TAG_TRANSCRIPTION_SYSTEM = TAG_TRANSCRIPTION + DOT + TAG_SYSTEM;
+	private static final String TAG_TRANSCRIPTION_TYPE = TAG_TRANSCRIPTION + DOT + TAG_TYPE;
+	private static final String TAG_TRANSCRIPTION_VALUE = TAG_TRANSCRIPTION + DOT + TAG_VALUE;
 
 
 	private final RecordDialogComponents components;
@@ -120,9 +125,9 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
 
-		phoneticSystemField = new BoundTextField(TAG_PHONETIC + DOT + TAG_SYSTEM);
+		phoneticSystemField = new BoundTextField(TAG_PHONETIC_SYSTEM);
 		phoneticSystemField.setToolTipText("e.g., 'ipa', 'rōmaji', 'pinyin', 'wadegiles'");
-		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION + DOT + TAG_SYSTEM, new String[]{
+		transcriptionSystemCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_SYSTEM, new String[]{
 			StringUtils.EMPTY,
 			"rōmaji", "hepburn", "kunreishiki", "nihonshiki",
 			"pinyin", "wadegiles",
@@ -139,7 +144,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 			"scientific"
 		});
 		transcriptionSystemCombo.setEditable(true);
-		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION + DOT + TAG_TYPE, new String[]{
+		typeCombo = new BoundComboBox<>(TAG_TRANSCRIPTION_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"romanized", "latinized", "anglicized", "francized", "germanized", "italianized", "hispanicized",
 			"lusitanized", "cyrillized", "arabized", "hebraized", "hellenized", "gairaigized", "modernized", "normalized"
@@ -195,9 +200,9 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		final FLEFRecord phonetic = record.getTheOnlyChild(TAG_PHONETIC);
 		final FLEFRecord transcription = record.getTheOnlyChild(TAG_TRANSCRIPTION);
 		if(phonetic != null)
-			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
+			valueField.setPath(TAG_PHONETIC_VALUE);
 		else if(transcription != null)
-			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
+			valueField.setPath(TAG_TRANSCRIPTION_VALUE);
 
 		components.load(record);
 
@@ -256,11 +261,11 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	public void saveData(){
 		if(phoneticRadio.isSelected()){
 			record.setTag(TAG_PHONETIC);
-			valueField.setPath(TAG_PHONETIC + DOT + TAG_VALUE);
+			valueField.setPath(TAG_PHONETIC_VALUE);
 		}
 		else if(transcriptionRadio.isSelected()){
 			record.setTag(TAG_TRANSCRIPTION);
-			valueField.setPath(TAG_TRANSCRIPTION + DOT + TAG_VALUE);
+			valueField.setPath(TAG_TRANSCRIPTION_VALUE);
 		}
 
 		components.save(record);

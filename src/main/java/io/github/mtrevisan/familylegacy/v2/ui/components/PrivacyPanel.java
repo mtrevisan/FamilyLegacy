@@ -159,7 +159,7 @@ public class PrivacyPanel extends JPanel{
 
 
 	/**
-	 * Clears all fields (sets LEVEL to empty, clears RATIONALE and EXPIRES).
+	 * Clears all fields (sets LEVEL to empty, clears REASON and EXPIRES).
 	 */
 	public void clear(){
 		levelCombo.setSelectedIndex(0);

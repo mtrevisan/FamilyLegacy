@@ -86,10 +86,10 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 				.append(impactType)
 				.append(')');
 
-		// 4. Optionally add significance (commented out to keep display concise)
-		// final String significance = FLEFRecordHelper.getChildValue(record, TAG_SIGNIFICANCE);
-		// if (StringUtils.isNotEmpty(significance))
-		//     sb.append(" - ").append(significance);
+		// 4. Optionally add rationale (commented out to keep display concise)
+		// final String rationale = FLEFRecordHelper.getChildValue(record, TAG_RATIONALE);
+		// if (StringUtils.isNotEmpty(rationale))
+		//     sb.append(" - ").append(rationale);
 
 		// 5. Append the record ID if present
 		final String id = record.getId();

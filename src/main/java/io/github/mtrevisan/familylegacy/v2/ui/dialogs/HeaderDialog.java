@@ -40,12 +40,9 @@ import javax.swing.JTabbedPane;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.Objects;
 
 
 /**
@@ -62,7 +59,7 @@ import java.util.Objects;
  *     system_id: Text
  *     name?: Text
  *     version?: SemVer
- *     corporate?: Text
+ *     organization?: Text
  *   }
  *   date: Date
  *   copyright?: Text
@@ -95,7 +92,7 @@ public class HeaderDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE_SYSTEM_ID = TAG_SOURCE + DOT + "SYSTEM_ID";
 	private static final String TAG_SOURCE_NAME = TAG_SOURCE + DOT + TAG_NAME;
 	private static final String TAG_SOURCE_VERSION = TAG_SOURCE + DOT + TAG_VERSION;
-	private static final String TAG_SOURCE_CORPORATE = TAG_SOURCE + DOT + "CORPORATE";
+	private static final String TAG_SOURCE_ORGANIZATION = TAG_SOURCE + DOT + "ORGANIZATION";
 	private static final String TAG_DATE = "DATE";
 	private static final String TAG_COPYRIGHT = "COPYRIGHT";
 	private static final String TAG_SUBMITTER = "SUBMITTER";
@@ -112,7 +109,7 @@ public class HeaderDialog extends BaseRecordDialog{
 	private final BoundTextField sourceSystemIdField;
 	private final BoundTextField sourceNameField;
 	private final BoundTextField sourceVersionField;
-	private final BoundTextField sourceCorporateField;
+	private final BoundTextField sourceOrganizationField;
 
 	private final BoundTextField dateField;
 
@@ -132,7 +129,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		sourceSystemIdField = new BoundTextField(TAG_SOURCE_SYSTEM_ID, "FamilyLegacy");
 		sourceNameField = new BoundTextField(TAG_SOURCE_NAME, "FL");
 		sourceVersionField = new BoundTextField(TAG_SOURCE_VERSION, "0.1");
-		sourceCorporateField = new BoundTextField(TAG_SOURCE_CORPORATE, "(c) Mauro Trevisan");
+		sourceOrganizationField = new BoundTextField(TAG_SOURCE_ORGANIZATION, "(c) Mauro Trevisan");
 		dateField = new BoundTextField(TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
@@ -149,7 +146,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		components.bind(sourceSystemIdField);
 		components.bind(sourceNameField);
 		components.bind(sourceVersionField);
-		components.bind(sourceCorporateField);
+		components.bind(sourceOrganizationField);
 		components.bind(dateField);
 		components.bind(copyrightArea);
 		components.bind(submitterNoteArea);

@@ -62,10 +62,7 @@ import javax.swing.JPanel;
 import java.awt.Component;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -75,7 +72,7 @@ import java.util.Objects;
  * <pre>
  * record ConclusionRecord {
  *   id: LocalID
- *   context: Text
+ *   issue: Text
  *   proof_status: enum { unresearched, conflicting_evidence, supported, proven, disproven }
  *   narrative?: Text
  *   resolves*: ConclusionTarget
@@ -90,7 +87,7 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): context, proof status, narrative, resolves, preferred
+ * Tab 1 (Properties): issue, proof status, narrative, resolves, preferred
  * Tab 6 (Research): research
  * Tab 7 (Sources): source
  * Tab 9 (Privacy): privacy
@@ -105,7 +102,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 	public static final String PROPERTY_CONCLUSION = "conclusion";
 
 
-	private static final String TAG_CONTEXT = "CONTEXT";
+	private static final String TAG_ISSUE = "ISSUE";
 	private static final String TAG_PROOF_STATUS = "PROOF_STATUS";
 	private static final String TAG_NARRATIVE = "NARRATIVE";
 	private static final String TAG_RESOLVES = "RESOLVES";
@@ -120,7 +117,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField contextField;
+	private final BoundTextField issueField;
 	private final EntityListPanel resolvesPanel;
 	private final BoundComboBox<FLEFRecord> preferredCombo;
 	private final BoundComboBox<String> proofStatusCombo;
@@ -141,7 +138,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
-		contextField = new BoundTextField(TAG_CONTEXT);
+		issueField = new BoundTextField(TAG_ISSUE);
 		resolvesPanel = EntityListPanel.createForOneOfReference(TAG_RESOLVES, this, "Resolves", model)
 			.withHandlerTypes(EventHandler.class, EventParticipationHandler.class, RelationshipHandler.class,
 				IndividualHandler.class, IndividualAttributeHandler.class, GroupHandler.class, GroupAttributeHandler.class,
@@ -179,7 +176,7 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
 
-		components.bind(contextField);
+		components.bind(issueField);
 		components.bind(proofStatusCombo);
 		components.bind(narrativeArea);
 
@@ -190,8 +187,8 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		// context
-		GUIHelper.addLabeledComponent(propertiesPanel, "Context*:", contextField);
+		// issue
+		GUIHelper.addLabeledComponent(propertiesPanel, "Issue*:", issueField);
 
 		// proof status
 		GUIHelper.addLabeledComponent(propertiesPanel, "Proof Status*:", proofStatusCombo);
@@ -261,10 +258,10 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(contextField.isEmpty()){
+		if(issueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Context is required.",
-				tabbedPane, propertiesPanel, contextField);
+				"Issue is required.",
+				tabbedPane, propertiesPanel, issueField);
 
 			return false;
 		}

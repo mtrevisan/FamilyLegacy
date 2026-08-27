@@ -54,7 +54,7 @@ import java.io.Serial;
  * <pre>
  * struct SourceCitation {
  *   source: Xref&lt;SourceRecord&gt;
- *   location?: Text
+ *   locator?: Text
  *   extract*: ExtractStructure
  *   note*: Xref&lt;NoteRecord&gt;
  *   evidence?: EvidenceQualifiers
@@ -78,7 +78,7 @@ import java.io.Serial;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): location, extract, evidence
+ * Tab 1 (Properties): locator, extract, evidence
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
  */
@@ -89,7 +89,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 
 	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_LOCATION = "LOCATION";
+	private static final String TAG_LOCATOR = "LOCATOR";
 	private static final String TAG_EXTRACT = "EXTRACT";
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
@@ -101,7 +101,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField sourceField;
-	private final BoundTextField locationField;
+	private final BoundTextField locatorField;
 	private final ExtractListPanel extractPanel;
 
 
@@ -120,7 +120,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
 		sourceField = new BoundTextField(TAG_SOURCE);
-		locationField = new BoundTextField(TAG_LOCATION);
+		locatorField = new BoundTextField(TAG_LOCATOR);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
 
 		// Build common panels using the builder
@@ -131,7 +131,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(sourceField);
-		components.bind(locationField);
+		components.bind(locatorField);
 
 
 		finalizeDialog(parent);
@@ -140,8 +140,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		// location
-		GUIHelper.addLabeledComponent(propertiesPanel, "Location:", locationField);
+		// locator
+		GUIHelper.addLabeledComponent(propertiesPanel, "Locator:", locatorField);
 
 		// extract
 		GUIHelper.addComponent(propertiesPanel, extractPanel);

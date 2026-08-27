@@ -14,12 +14,14 @@ public class NoteConverter{
 
 	private final FLEFModel model;
 	private final Map<String, FLEFRecord> noteMap;
+	private final Map<String, GEDCOMNode> noteRawMap;
 	private final StructureParser structParser;
 
-	public NoteConverter(FLEFModel model, Map<String, FLEFRecord> noteMap){
+	public NoteConverter(FLEFModel model, Map<String, FLEFRecord> noteMap, Map<String, GEDCOMNode> noteRawMap){
 		this.model = model;
 		this.noteMap = noteMap;
 		this.structParser = new StructureParser(null);
+		this.noteRawMap = noteRawMap;
 	}
 
 	/**
@@ -58,18 +60,18 @@ public class NoteConverter{
 		}
 
 		// ---- 2. SOURCE_CITATION (SOUR) ----
-		for(GEDCOMNode sourNode : structParser.findChildren(noteNode, "SOUR")){
-			FLEFRecord citation = structParser.parseSourceCitation(sourNode, model);
+		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(noteNode, "SOUR")){
+			FLEFRecord citation = structParser.parseSourceCitation(sourNode, model, noteRawMap);
 			if(citation != null){
 				note.addChild(citation);
 			}
 		}
 
 //		// ---- 3. REFN (user reference number) with optional TYPE ----
-//		for(GEDCOMNode refnNode : structParser.findChildren(noteNode, "REFN")){
+//		for(GEDCOMNode refnNode : GEDCOMHelper.findChildren(noteNode, "REFN")){
 //			if(refnNode.getValue() != null){
 //				FLEFRecord refnChild = FLEFRecord.createChildWithTagAndValue("_refn", refnNode.getValue());
-//				GEDCOMNode typeNode = structParser.findFirstChild(refnNode, "TYPE");
+//				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(refnNode, "TYPE");
 //				if(typeNode != null && typeNode.getValue() != null){
 //					refnChild.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
 //				}
@@ -78,7 +80,7 @@ public class NoteConverter{
 //		}
 
 //		// ---- 4. RIN (automated record ID) ----
-//		GEDCOMNode rinNode = structParser.findFirstChild(noteNode, "RIN");
+//		GEDCOMNode rinNode = GEDCOMHelper.findFirstChild(noteNode, "RIN");
 //		if(rinNode != null && rinNode.getValue() != null){
 //			note.addChild(FLEFRecord.createChildWithTagAndValue("_rin", rinNode.getValue()));
 //		}

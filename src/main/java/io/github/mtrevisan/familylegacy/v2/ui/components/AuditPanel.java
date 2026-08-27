@@ -64,13 +64,14 @@ public class AuditPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -8538135290834556766L;
 
-	public static final String DOT = ".";
+	private static final String DOT = ".";
 
-	public static final String TAG_AUDIT = "AUDIT";
-	public static final String TAG_AUDIT_CREATION = TAG_AUDIT + DOT + "CREATION";
-	public static final String TAG_UPDATE = "UPDATE";
-	public static final String TAG_DATE = "DATE";
-	public static final String TAG_COMMENT = "COMMENT";
+	private static final String TAG_AUDIT = "AUDIT";
+	private static final String TAG_AUDIT_CREATION = TAG_AUDIT + DOT + "CREATION";
+	private static final String TAG_COMMENT = "COMMENT";
+	private static final String TAG_AUDIT_CREATION_COMMENT = TAG_AUDIT_CREATION + DOT + TAG_COMMENT;
+	private static final String TAG_UPDATE = "UPDATE";
+	private static final String TAG_DATE = "DATE";
 
 
 	private final BindingManager bindingManager = new BindingManager();
@@ -89,7 +90,7 @@ public class AuditPanel extends JPanel{
 	public AuditPanel(final Dialog parent){
 		creationPanel = new JPanel(new MigLayout("fillx", "[grow]"));
 
-		creationCommentArea = new BoundTextArea(TAG_AUDIT_CREATION + DOT + TAG_COMMENT, 3, 25);
+		creationCommentArea = new BoundTextArea(TAG_AUDIT_CREATION_COMMENT, 3, 25);
 		updateListPanel = new BasicNoteListPanel(TAG_UPDATE, parent, "Updates", TAG_COMMENT);
 
 

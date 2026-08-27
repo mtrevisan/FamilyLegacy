@@ -68,7 +68,7 @@ import java.util.function.Consumer;
  *   context: ContextSource
  *   target: ImpactTarget
  *   impact_type?: enum { explains, influences, constrains, motivates, causes } | Text
- *   significance?: Text
+ *   explanation?: Text
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
  *   audit: AuditStructure
@@ -76,7 +76,7 @@ import java.util.function.Consumer;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): context, target, impact_type, significance, evidence
+ * Tab 1 (Properties): context, target, impact_type, explanation, evidence
  * Tab 7 (Sources): source
  * Tab 10 (Audit): audit
  */
@@ -89,7 +89,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	private static final String TAG_CONTEXT = "CONTEXT";
 	private static final String TAG_TARGET = "TARGET";
 	private static final String TAG_IMPACT_TYPE = "IMPACT_TYPE";
-	private static final String TAG_SIGNIFICANCE = "SIGNIFICANCE";
+	private static final String TAG_EXPLANATION = "EXPLANATION";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_AUDIT = "AUDIT";
@@ -100,7 +100,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	private final EntityField contextField;
 	private final EntityField targetField;
 	private final BoundComboBox<String> impactTypeCombo;
-	private final BoundTextArea significanceArea;
+	private final BoundTextArea explanationArea;
 
 
 	private final JPanel propertiesPanel;
@@ -136,7 +136,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		});
 		impactTypeCombo.setEditable(true);
 
-		significanceArea = new BoundTextArea(TAG_SIGNIFICANCE, 3, 30);
+		explanationArea = new BoundTextArea(TAG_EXPLANATION, 3, 30);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -146,7 +146,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(impactTypeCombo);
-		components.bind(significanceArea);
+		components.bind(explanationArea);
 
 		finalizeDialog(parent);
 	}
@@ -163,8 +163,8 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		// impact type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Impact Type:", impactTypeCombo);
 
-		// significance
-		GUIHelper.addLabeledComponent(propertiesPanel, "Significance:", significanceArea);
+		// explanation
+		GUIHelper.addLabeledComponent(propertiesPanel, "Explanation:", explanationArea);
 
 		// evidence
 		final JPanel evidencePanel = components.getPanel(PanelKey.EVIDENCE);

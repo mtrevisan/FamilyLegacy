@@ -59,10 +59,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -89,7 +86,7 @@ import java.util.Objects;
  *   conclusion_confidence?: enum { low, medium, high }
  *
  *   source*: SourceCitation
- *   parent?: Xref&lt;ResearchActivityRecord&gt;
+ *   parent_activity?: Xref&lt;ResearchActivityRecord&gt;
  *   task*: Xref&lt;ResearchTaskRecord&gt;
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
@@ -123,7 +120,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private static final String TAG_OBSERVATION = "OBSERVATION";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_CONCLUSION_CONFIDENCE = "CONCLUSION_CONFIDENCE";
-	private static final String TAG_PARENT = "PARENT";
+	private static final String TAG_PARENT_ACTIVITY = "PARENT_ACTIVITY";
 	private static final String TAG_TASK = "TASK";
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
@@ -143,7 +140,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea observationArea;
 	private final BoundTextArea conclusionArea;
 	private final BoundComboBox<String> conclusionConfidenceCombo;
-	private final EntityField parentField;
+	private final EntityField parentActivityField;
 
 
 	public static ResearchActivityRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -194,7 +191,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"low", "medium", "high"});
 
-		parentField = EntityField.createForRecordFromReference(TAG_PARENT, this, model, ResearchActivityHandler.class);
+		parentActivityField = EntityField.createForRecordFromReference(TAG_PARENT_ACTIVITY, this, model, ResearchActivityHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -284,8 +281,8 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// parent
-		panel.add(new JLabel("Parent:"), "align label");
-		panel.add(parentField, "growx,wrap");
+		panel.add(new JLabel("Parent Activity:"), "align label");
+		panel.add(parentActivityField, "growx,wrap");
 
 		// task
 		final JPanel taskPanel = components.getPanel(PanelKey.TASK);
@@ -320,7 +317,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		components.load(record);
 
 		targetField.load(record);
-		parentField.load(record);
+		parentActivityField.load(record);
 	}
 
 	@Override
@@ -358,7 +355,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		components.save(record);
 
 		targetField.saveReferences(record);
-		parentField.saveReferences(record);
+		parentActivityField.saveReferences(record);
 	}
 
 

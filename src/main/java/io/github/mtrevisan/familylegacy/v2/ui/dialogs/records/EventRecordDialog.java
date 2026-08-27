@@ -52,10 +52,7 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -81,7 +78,7 @@ import java.util.Objects;
  *   place?: PlaceCitation
  *   agency?: Text
  *   cause?: struct {
- *     value: Text
+ *     reason: Text
  *     evidence?: EvidenceQualifiers
  *   }
  *   source*: SourceCitation
@@ -116,14 +113,16 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PLACE = "PLACE";
 	private static final String TAG_AGENCY = "AGENCY";
 	private static final String TAG_CAUSE = "CAUSE";
-	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_REASON = "REASON";
+	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
+	private static final String TAG_EVIDENCE = "EVIDENCE";
+	private static final String TAG_CAUSE_EVIDENCE = TAG_CAUSE + DOT + TAG_EVIDENCE;
 	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
 	private static final String TAG_EVENT_PARTICIPATION = "EVENT_PARTICIPATION";
 	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
@@ -137,7 +136,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 	private final DateField dateField;
 	private final EntityField placeField;
 	private final BoundTextField agencyField;
-	private final BoundTextField causeField;
+	private final BoundTextField causeReasonField;
 	private final EvidenceQualifiersPanel causeEvidencePanel;
 
 
@@ -171,8 +170,8 @@ public class EventRecordDialog extends BaseRecordDialog{
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Date", model);
 		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
 		agencyField = new BoundTextField(TAG_AGENCY);
-		causeField = new BoundTextField(TAG_CAUSE + DOT + TAG_VALUE);
-		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE + DOT + TAG_EVIDENCE, this, "Cause Evidence", model, null);
+		causeReasonField = new BoundTextField(TAG_CAUSE_REASON);
+		causeEvidencePanel = new EvidenceQualifiersPanel(TAG_CAUSE_EVIDENCE, this, "Cause Evidence", model, null);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -190,7 +189,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		components.bind(typeCombo);
 		components.bind(titleArea);
 		components.bind(agencyField);
-		components.bind(causeField);
+		components.bind(causeReasonField);
 
 
 		finalizeDialog(parent);
@@ -217,7 +216,7 @@ public class EventRecordDialog extends BaseRecordDialog{
 		// cause panel:
 		final JPanel causePanel = GUIHelper.createLabelFieldPanel(5, "[]10[]");
 		causePanel.setBorder(new TitledBorder("Cause"));
-		GUIHelper.addComponent(causePanel, causeField);
+		GUIHelper.addComponent(causePanel, causeReasonField);
 		GUIHelper.addComponent(causePanel, causeEvidencePanel);
 		GUIHelper.addComponent(propertiesPanel, causePanel);
 

@@ -577,7 +577,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	/**
 	 * Loads references by scanning the model for records that reference the given entity,
-	 * filtering by specific actor tags (e.g., "SUBJECT", "OBJECT").
+	 * filtering by specific actor tags (e.g., "SUBJECT", "TARGET").
 	 */
 	public void loadReferenceWithType(final String recordId, final String... actorTags){
 		clear();

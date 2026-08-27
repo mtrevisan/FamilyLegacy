@@ -65,7 +65,7 @@ public class SubmitterConverter{
 		submitterMap.put(cleanId, submitter);
 
 		// ---- Name (NAME) -> ContactStructure ----
-		GEDCOMNode nameNode = structParser.findFirstChild(subNode, "NAME");
+		GEDCOMNode nameNode = GEDCOMHelper.findFirstChild(subNode, "NAME");
 		if(nameNode != null && nameNode.getValue() != null){
 			FLEFRecord contact = FLEFRecord.createChildWithTag("contact");
 			// Name goes inside the contact structure
@@ -76,14 +76,14 @@ public class SubmitterConverter{
 		}
 
 		// ---- Address (ADDR) -> ContactStructure ----
-		GEDCOMNode addrNode = structParser.findFirstChild(subNode, "ADDR");
+		GEDCOMNode addrNode = GEDCOMHelper.findFirstChild(subNode, "ADDR");
 		if(addrNode != null){
 			FLEFRecord contact = structParser.parseAddressToContact(addrNode, subNode);
 			if(contact != null) submitter.addChild(contact);
 		}
 
 		// ---- Language (LANG) -> inline note ----
-		GEDCOMNode langNode = structParser.findFirstChild(subNode, "LANG");
+		GEDCOMNode langNode = GEDCOMHelper.findFirstChild(subNode, "LANG");
 		if(langNode != null && langNode.getValue() != null){
 			FLEFRecord note = structParser.createNoteStruct("Language: " + langNode.getValue(), subNode);
 			if (note != null) submitter.addChild(note);

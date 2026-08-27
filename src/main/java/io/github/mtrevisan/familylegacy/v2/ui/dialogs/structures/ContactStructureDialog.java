@@ -48,7 +48,7 @@ import java.io.Serial;
  * Structure:
  * <pre>
  * struct ContactStructure {
- *   address: Text
+ *   uri: Text
  *   type?: enum { email, phone, mobile, fax, website, blog, social, postal, messaging } | Text
  *   name?: struct {
  *     value: Text
@@ -61,7 +61,7 @@ import java.io.Serial;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): address, type, name
+ * Tab 1 (Properties): uri, type, name
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
@@ -72,7 +72,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 5523786168919512214L;
 
 
-	private static final String TAG_ADDRESS = "ADDRESS";
+	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_NOTE = "NOTE";
@@ -84,7 +84,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField addressField;
+	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
 	private final EntityListPanel namePanel;
 	private final BoundTextArea noteArea;
@@ -104,7 +104,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 
-		addressField = new BoundTextField(TAG_ADDRESS);
+		valueField = new BoundTextField(TAG_VALUE);
 		typeCombo = new BoundComboBox<>(ContactStructureDialog.TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
@@ -118,7 +118,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
 
-		components.bind(addressField);
+		components.bind(valueField);
 		components.bind(typeCombo);
 		components.bind(noteArea);
 
@@ -130,7 +130,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// address
-		GUIHelper.addLabeledComponent(propertiesPanel, "Address*:", addressField);
+		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueField);
 
 		// type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Type:", typeCombo);
@@ -164,10 +164,10 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(addressField.isEmpty()){
+		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Address cannot be empty.",
-				tabbedPane, propertiesPanel, addressField);
+				tabbedPane, propertiesPanel, valueField);
 
 			return false;
 		}

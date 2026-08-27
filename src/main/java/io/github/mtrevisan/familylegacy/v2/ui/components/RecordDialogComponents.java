@@ -91,12 +91,12 @@ public final class RecordDialogComponents{
 				}
 
 			case
-				// RelationshipRecord (object = this individual)
-				// RelationshipRecord (object = this group)
-				RELATIONSHIP_ON_OBJECT,
+				// RelationshipRecord (target = this individual)
+				// RelationshipRecord (target = this group)
+				RELATIONSHIP_ON_TARGET,
 
-				// PlaceRelationshipRecord (object = this place)
-				PLACE_RELATIONSHIP_ON_OBJECT -> {
+				// PlaceRelationshipRecord (target = this place)
+				PLACE_RELATIONSHIP_ON_TARGET -> {
 					final EntityListPanel panel = EntityListPanel.createForOneOfReference(cfg.tag(),
 							owner, cfg.title(), model, EntityListPanel.ActorType.OBJECT)
 						.withHandlerTypes(cfg.handlerClass());
@@ -250,16 +250,16 @@ public final class RecordDialogComponents{
 		final EntityListPanel relationshipAsSubject = ((EntityListPanel)getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT));
 		if(relationshipAsSubject != null)
 			relationshipAsSubject.loadReferenceWithType(record.getId(), "SUBJECT");
-		final EntityListPanel relationshipAsObject = ((EntityListPanel)getPanel(PanelKey.RELATIONSHIP_ON_OBJECT));
-		if(relationshipAsObject != null)
-			relationshipAsObject.loadReferenceWithType(record.getId(), "OBJECT");
+		final EntityListPanel relationshipAsTarget = ((EntityListPanel)getPanel(PanelKey.RELATIONSHIP_ON_TARGET));
+		if(relationshipAsTarget != null)
+			relationshipAsTarget.loadReferenceWithType(record.getId(), "TARGET");
 
 		final EntityListPanel placeRelationshipAsSubject = ((EntityListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT));
 		if(placeRelationshipAsSubject != null)
 			placeRelationshipAsSubject.loadReferenceWithType(record.getId(), "SUBJECT");
-		final EntityListPanel placeRelationshipAsObject = ((EntityListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT));
-		if(placeRelationshipAsObject != null)
-			placeRelationshipAsObject.loadReferenceWithType(record.getId(), "OBJECT");
+		final EntityListPanel placeRelationshipAsTarget = ((EntityListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_TARGET));
+		if(placeRelationshipAsTarget != null)
+			placeRelationshipAsTarget.loadReferenceWithType(record.getId(), "TARGET");
 
 		final EntityListPanel eventParticipationOnParticipant = ((EntityListPanel)getPanel(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT));
 		if(eventParticipationOnParticipant != null)
@@ -382,14 +382,14 @@ public final class RecordDialogComponents{
 		final EntityListPanel relationshipAsSubject = ((EntityListPanel)getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT));
 		if(relationshipAsSubject != null)
 			relationshipAsSubject.save(record);
-		final EntityListPanel relationshipAsObject = ((EntityListPanel)getPanel(PanelKey.RELATIONSHIP_ON_OBJECT));
+		final EntityListPanel relationshipAsObject = ((EntityListPanel)getPanel(PanelKey.RELATIONSHIP_ON_TARGET));
 		if(relationshipAsObject != null)
 			relationshipAsObject.save(record);
 
 		final EntityListPanel placeRelationshipAsSubject = ((EntityListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT));
 		if(placeRelationshipAsSubject != null)
 			placeRelationshipAsSubject.save(record);
-		final EntityListPanel placeRelationshipAsObject = ((EntityListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT));
+		final EntityListPanel placeRelationshipAsObject = ((EntityListPanel)getPanel(PanelKey.PLACE_RELATIONSHIP_ON_TARGET));
 		if(placeRelationshipAsObject != null)
 			placeRelationshipAsObject.save(record);
 

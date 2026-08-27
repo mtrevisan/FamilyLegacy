@@ -37,10 +37,9 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 	public static final String TYPE = "PLACE_RELATIONSHIP";
 	public static final String ID_PREFIX = "PR";
 
-	private static final String DOT = ".";
 
 	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
+	private static final String TAG_TARGET = "TARGET";
 	private static final String TAG_TYPE = "TYPE";
 
 
@@ -69,19 +68,19 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 			subjectDisplayText = subjectHandler.getDisplayText(subject, model);
 		}
 
-		final FLEFRecord object = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_OBJECT, model)
+		final FLEFRecord target = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_TARGET, model)
 			.getFirst();
-		String objectDisplayText = "--";
-		if(object != null){
-			final RecordTypeHandler<?> objectHandler = HandlerRegistry.getHandler(object.getTag());
-			objectDisplayText = objectHandler.getDisplayText(object, model);
+		String targetDisplayText = "--";
+		if(target != null){
+			final RecordTypeHandler<?> targetHandler = HandlerRegistry.getHandler(target.getTag());
+			targetDisplayText = targetHandler.getDisplayText(target, model);
 		}
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 
 		final String id = record.getId();
 
-		return subjectDisplayText + " is related to " + objectDisplayText + " as " + type + " [" + id + ']';
+		return subjectDisplayText + " is related to " + targetDisplayText + " as " + type + " [" + id + ']';
 	}
 
 	@Override

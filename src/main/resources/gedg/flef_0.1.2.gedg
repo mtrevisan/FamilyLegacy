@@ -80,7 +80,7 @@ struct Header {
     system_id: Text    // a system identification name. Must be unique across products.
     name?: Text        // the human-readable name of the software product that produced this file
     version?: SemVer   // the version of the software product. It is defined and changed by the creators of the product.
-    corporate?: Text   // the name of the organization or person that produced or commissioned the product
+    organization?: Text   // the name of the organization or person that produced or commissioned the product
   }
   date: Date         // the date this source was created
   copyright?: Text   // a copyright statement needed to protect the copyrights of the submitter of this file
@@ -183,7 +183,7 @@ record EventRecord {
   place?: PlaceCitation           // the location of the event
   agency?: Text                   // Organization, institution, authority, corporation, or person responsible for the associated context (e.g., an employer, a church that administered rites, an archiving organization)
   cause?: struct {
-    value: Text   // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
+    reason: Text   // used in special cases to record the reasons which precipitated an event, e.g. cause of death subordinate to a death event
     evidence?: EvidenceQualifiers
   }
   source*: SourceCitation
@@ -465,10 +465,10 @@ TextValueVariant = oneof {
 // before, during, or after one or more events. Events that create, modify, recognize, or terminate a relationship SHOULD be represented separately
 // using EVENT records. This separation allows relationships to exist independently of events (e.g., a biological parent-child relationship
 // exists regardless of whether a birth event is documented).
-// Implementations SHOULD validate the allowed SUBJECT and OBJECT types according to the relationship TYPE.
+// Implementations SHOULD validate the allowed SUBJECT and TARGET types according to the relationship TYPE.
 record RelationshipRecord {
-  subject: RelationshipParticipant   // The entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the OBJECT. Example: `biological_child(Alice -> John)` means that Alice is the biological child of John.
-  object: RelationshipParticipant    // the entity to which the subject is related
+  subject: RelationshipParticipant   // The entity for which the relationship is being asserted. The SUBJECT is always the entity whose role is described by TYPE and ROLE relative to the TARGET. Example: `biological_child(Alice -> John)` means that Alice is the biological child of John.
+  target: RelationshipParticipant    // the entity to which the subject is related
   type: enum {
     biological_child,     // (Individual -> Individual) relationship exists through birth
     adoptive_child,       // (Individual -> Individual) relationship created through legal adoption
@@ -546,9 +546,9 @@ struct PlaceCitation {
 // Relationships are directional: `administrative_part_of(Treviso -> Veneto)` is NOT equivalent to `administrative_part_of(Veneto -> Treviso)`.
 record PlaceRelationshipRecord {
   subject: struct {
-    place: Xref<PlaceRecord>    // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the OBJECT.
+    place: Xref<PlaceRecord>    // the place for which the relationship is asserted. The SUBJECT is always the place whose role is described by TYPE relative to the TARGET.
   }
-  object: struct {
+  target: struct {
     place: Xref<PlaceRecord>     // the place to which the subject is related
   }
   type: enum {
@@ -574,11 +574,11 @@ record PlaceRelationshipRecord {
 // primary record
 struct NoteStructure {
   title?: Text   // note title
-  value: Text    // comments or opinions from the submitter. If markdown, references to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](confidential)`, and this last marks text that SHOULD be hidden when confidential information is suppressed.
+  text: Text    // comments or opinions from the submitter. If markdown, references to structures in this file can be written as `[text](@id@)`, "confidential" data can be written as `[text](confidential)`, and this last marks text that SHOULD be hidden when confidential information is suppressed.
   mime?: Text    // e.g., text/html, text/markdown
   locale?: LocaleCode | Text
   translation*: struct {
-    value: Text   // a translated version of the note
+    text: Text   // a translated version of the note
     locale?: LocaleCode | Text
   }
   source*: SourceCitation
@@ -608,7 +608,7 @@ record RepositoryRecord {
 // entry identifiers, or other retrieval information.
 struct RepositoryCitation {
   repository: Xref<RepositoryRecord>
-  location?: Text   // location of the referenced material inside the repository (e.g., 'Shelf Mark: 12, Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'image', etc.)
+  locator?: Text   // location of the referenced material inside the repository (e.g., 'Shelf Mark: 12, Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'image', etc.)
   note?: Text
 }
 
@@ -620,7 +620,7 @@ struct RepositoryCitation {
 // embedded
 // Machine-readable contact information for a person, organization, repository, submitter, or other entity.
 struct ContactStructure {
-  address: Text   // a phone number, an electronic address such as an email (RFC 5322), a web page address (RFC 3986), or any other type of contact address
+  value: Text   // a phone number, an electronic address such as an email (RFC 5322), a web page address (RFC 3986), or any other type of contact address
   type?: enum {
     email,      // Email address.
     phone,      // Voice telephone number.
@@ -722,7 +722,7 @@ record ContextImpactRecord {
     motivates,    // Encourages, promotes, or makes the target more likely.
     causes        // Directly contributes to the occurrence or existence of the target.
   } | Text
-  significance?: Text       // Human-readable description of the nature, significance, or consequences of the contextual influence on the target.
+  rationale?: Text       // Explanation of how and why the contextual factor influences, explains, constrains, motivates, or causes the target.
   source*: SourceCitation   // Sources supporting the existence or interpretation of this contextual relationship.
   evidence?: EvidenceQualifiers
   audit: AuditStructure
@@ -787,7 +787,7 @@ record SourceRecord {
 // Reference to a SOURCE record used as evidence for an assertion, together with optional location, notes, crop coordinates, and evidence assessment.
 struct SourceCitation {
   source: Xref<SourceRecord>
-  location?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
+  locator?: Text   // specific location within the source referenced, in the form of a label and value pair (e.g., 'Line: 28', or 'Page: 143, Entry: 17', or 'folio', etc.)
   extract*: ExtractStructure
   evidence?: EvidenceQualifiers
   privacy?: PrivacyStructure
@@ -834,7 +834,7 @@ struct CropRect {
 // A digital or physical representation associated with a source, such as an image, PDF, scan, transcription, audio recording, video, or other media
 // resource.
 record DocumentRecord {
-  file: Uri            // URI identifying the underlying resource.
+  uri: Uri            // URI identifying the underlying resource.
   mapping?: enum {     // Describes how visual image data should be interpreted and rendered.
     planar,                                   // Standard two-dimensional image with no panoramic or 3D projection.
     spherical_equirectangular,                // Full spherical panorama stored using an equirectangular projection, typically with a 2:1 aspect ratio and intended for 360° viewing.
@@ -996,7 +996,7 @@ record ResearchQuestionRecord {
   conclusion?: Text         // current conclusion or answer based on available evidence
   conclusion_confidence?: enum { low, medium, high }
   rationale?: Text          // explanation supporting the conclusion
-  closed?: Date             // date the question was resolved or disproven
+  closed_date?: Date        // date the question was resolved or disproven
   privacy?: PrivacyStructure
   audit: AuditStructure
 }
@@ -1063,7 +1063,7 @@ record ResearchActivityRecord {
   conclusion_confidence?: enum { low, medium, high }
 
   source*: SourceCitation                   // sources consulted, examined, or discovered
-  parent?: Xref<ResearchActivityRecord>     // previous activity from which this activity originated
+  parent_activity?: Xref<ResearchActivityRecord>   // previous activity from which this activity originated
   task*: Xref<ResearchTaskRecord>           // follow-up tasks generated by this activity
   privacy?: PrivacyStructure
   audit: AuditStructure
@@ -1098,7 +1098,7 @@ record ResearchTaskRecord {
 // Conclusions never replace evidence. The protocol preserves source assertions, competing hypotheses,
 // and researcher conclusions simultaneously.
 record ConclusionRecord {
-  context: Text                             // the specific context that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
+  issue: Text                               // the specific issue that is resolved, e.g. "birth_date", "marriage_place", "parentage", "death_cause", "relationship_type"
   proof_status: enum {
     conflicting_evidence,   // the evidence is conflicting, none prevails
     supported,              // preponderance of evidence, but not absolute certainty
@@ -1170,7 +1170,6 @@ struct AuditStructure {
 // Represents the possibility that two records describe the same real-world entity. The hypothesis itself carries no acceptance
 // or rejection status. Evaluation of the hypothesis is expressed through one or more ConclusionRecord instances.
 // SUBJECT and CANDIDATE MUST reference different records.
-// Implementations SHOULD treat (subject, candidate) as an unordered pair.
 // The record expresses a possibility, not a probability assessment. The presence of an identity hypothesis does not imply that the entities
 // are likely to be identical.
 // Multiple conclusions MAY evaluate the same identity hypothesis over time.

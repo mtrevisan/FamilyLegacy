@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
 import java.util.List;
@@ -33,17 +34,17 @@ public class NameParser {
 //		}
 
 		// 2. Process sub-structures for TYPE, FONE, ROMN
-		GEDCOMNode typeNode = findFirstChild(nameNode, "TYPE");
+		GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(nameNode, "TYPE");
 		if (typeNode != null && typeNode.getValue() != null) {
 			nameRec.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
 		}
 
 		// Phonetic variants (FONE) -> variant > phonetic
-		for (GEDCOMNode fone : findChildren(nameNode, "FONE")) {
+		for (GEDCOMNode fone : GEDCOMHelper.findChildren(nameNode, "FONE")) {
 			FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
 			FLEFRecord phonetic = FLEFRecord.createChildWithTag("phonetic");
 			// Get system from TYPE sub-tag
-			GEDCOMNode foneType = findFirstChild(fone, "TYPE");
+			GEDCOMNode foneType = GEDCOMHelper.findFirstChild(fone, "TYPE");
 			String system = (foneType != null && foneType.getValue() != null) ? foneType.getValue() : "IPA";
 			phonetic.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
 			phonetic.addChild(FLEFRecord.createChildWithTagAndValue("value", fone.getValue()));
@@ -52,10 +53,10 @@ public class NameParser {
 		}
 
 		// Romanized variants (ROMN) -> variant > transcription
-		for (GEDCOMNode romn : findChildren(nameNode, "ROMN")) {
+		for (GEDCOMNode romn : GEDCOMHelper.findChildren(nameNode, "ROMN")) {
 			FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
 			FLEFRecord transcription = FLEFRecord.createChildWithTag("transcription");
-			GEDCOMNode romnType = findFirstChild(romn, "TYPE");
+			GEDCOMNode romnType = GEDCOMHelper.findFirstChild(romn, "TYPE");
 			String system = (romnType != null && romnType.getValue() != null) ? romnType.getValue() : "scientific";
 			transcription.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
 			// Type (romanized, latinized, etc.) can be added if available, but not in FLEF yet.
@@ -70,7 +71,7 @@ public class NameParser {
 		// We will merge them into "part" elements.
 		boolean hasPieces = false;
 		for (String pieceTag : List.of("NPFX", "GIVN", "NICK", "SPFX", "SURN", "NSFX")) {
-			GEDCOMNode piece = findFirstChild(nameNode, pieceTag);
+			GEDCOMNode piece = GEDCOMHelper.findFirstChild(nameNode, pieceTag);
 			if (piece != null && piece.getValue() != null) {
 				hasPieces = true;
 				FLEFRecord part = FLEFRecord.createChildWithTag("part");
@@ -134,14 +135,6 @@ public class NameParser {
 			case "NSFX" -> "suffix";
 			default -> gedcomTag.toLowerCase();
 		};
-	}
-
-	private GEDCOMNode findFirstChild(GEDCOMNode node, String tag) {
-		return node.getChildren().stream().filter(c -> c.getTag().equals(tag)).findFirst().orElse(null);
-	}
-
-	private List<GEDCOMNode> findChildren(GEDCOMNode node, String tag) {
-		return node.getChildren().stream().filter(c -> c.getTag().equals(tag)).toList();
 	}
 
 	/**

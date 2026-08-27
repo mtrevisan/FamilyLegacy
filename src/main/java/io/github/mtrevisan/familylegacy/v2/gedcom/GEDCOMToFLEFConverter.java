@@ -45,6 +45,9 @@ public class GEDCOMToFLEFConverter {
 	private final Map<String, FLEFRecord> repositoryMap = new HashMap<>();
 	private final Map<String, FLEFRecord> multimediaMap = new HashMap<>();
 	private final Map<String, FLEFRecord> submitterMap = new HashMap<>();
+	private final Map<String, GEDCOMNode> noteRawMap = new HashMap<>();
+	private final Map<String, GEDCOMNode> sourRawMap = new HashMap<>();
+	private final Map<String, GEDCOMNode> objeRawMap = new HashMap<>();
 	private final Map<String, FLEFRecord> noteMap = new HashMap<>();
 
 	private final PlaceCache placeCache = new PlaceCache(model);
@@ -60,22 +63,33 @@ public class GEDCOMToFLEFConverter {
 		// ---- 1. Register all existing IDs (for IDGenerator) ----
 		registerIds(roots);
 
+		// collect all notes
+		for (GEDCOMNode node : roots) {
+			String tag = node.getTag();
+			switch(tag){
+				case "NOTE" -> noteRawMap.put(node.getXrefId(), node);
+				case "SOUR" -> sourRawMap.put(node.getXrefId(), node);
+				case "OBJE" -> objeRawMap.put(node.getXrefId(), node);
+				case null, default -> {}
+			}
+		}
+
 		// ---- 2. Instantiate converters ----
 		HeaderConverter headerConverter = new HeaderConverter(model);
-		IndividualConverter individualConverter = new IndividualConverter(model, individualMap, sourceMap, multimediaMap, placeCache);
-		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, sourceMap, multimediaMap, placeCache, referenceResolver);
+		IndividualConverter individualConverter = new IndividualConverter(model, individualMap, noteRawMap, sourRawMap, objeRawMap, sourceMap, multimediaMap, placeCache);
+		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, sourceMap, multimediaMap, noteRawMap, placeCache, referenceResolver);
 		SourceConverter sourceConverter = new SourceConverter(model, sourceMap, repositoryMap, multimediaMap, placeCache);
 		RepositoryConverter repositoryConverter = new RepositoryConverter(model, repositoryMap, multimediaMap, placeCache);
-		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, placeCache);
+		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, placeCache, noteRawMap);
 		SubmitterConverter submitterConverter = new SubmitterConverter(model, submitterMap, placeCache);
-		NoteConverter noteConverter = new NoteConverter(model, noteMap);
+		NoteConverter noteConverter = new NoteConverter(model, noteMap, noteRawMap);
 
 		// ---- 3. First pass: parse all records ----
 		for (GEDCOMNode node : roots) {
 			switch (node.getTag()) {
 				case "HEAD" -> headerConverter.convert(node);
-
 				case "INDI" -> individualConverter.convert(node);
+
 				case "FAM" -> familyConverter.collect(node);
 				case "SOUR" -> sourceConverter.convert(node);
 				case "REPO" -> repositoryConverter.convert(node);

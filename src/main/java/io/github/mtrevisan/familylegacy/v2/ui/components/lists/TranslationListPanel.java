@@ -49,7 +49,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -2934528588234172844L;
 
 
-	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_LOCALE = "LOCALE";
 
 
@@ -84,7 +84,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Override
 	protected String getDisplayText(final FLEFRecord record){
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		final String text = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
 		final String locale = FLEFRecordHelper.getChildValue(record, TAG_LOCALE);
 
 		final StringBuilder sb = new StringBuilder();
@@ -92,8 +92,8 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 			sb.append('[')
 				.append(locale)
 				.append("] ");
-		if(StringUtils.isNotEmpty(value))
-			sb.append(GUIHelper.limitTextLength(value));
+		if(StringUtils.isNotEmpty(text))
+			sb.append(GUIHelper.limitTextLength(text));
 		return sb.toString();
 	}
 
@@ -113,17 +113,17 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private FLEFRecord showTranslationDialog(final FLEFRecord record){
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		final String text = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
 		final String locale = FLEFRecordHelper.getChildValue(record, TAG_LOCALE);
 
 
 		final JDialog dialog = new JDialog(parent, (record == null? "Add Translation": "Edit Translation"), Dialog.ModalityType.APPLICATION_MODAL);
 		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]"));
 
-		final BoundTextArea valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
+		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
 		if(record != null)
-			valueArea.setText(value);
-		GUIHelper.addLabeledComponent(dialog, "Value*:", valueArea);
+			textArea.setText(text);
+		GUIHelper.addLabeledComponent(dialog, "Text*:", textArea);
 
 		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
@@ -137,18 +137,18 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 		final FLEFRecord[] result = {record};
 		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog,
 			() -> {
-				if(!validTranslationData(valueArea))
+				if(!validTranslationData(textArea))
 					return;
 
-				final String text = valueArea.getText();
+				final String txt = textArea.getText();
 				if(record == null){
 					final FLEFRecord res = FLEFRecord.createEmpty();
-					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_VALUE, text));
+					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TEXT, txt));
 					res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_LOCALE, (String)localeCombo.getSelectedItem()));
 					result[0] = res;
 				}
 				else
-					FLEFRecordHelper.updateChildValue(record, TAG_VALUE, text);
+					FLEFRecordHelper.updateChildValue(record, TAG_TEXT, txt);
 
 				dialog.dispose();
 			},
@@ -182,11 +182,11 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final List<FLEFRecord> translations = new ArrayList<>();
 		for(final FLEFRecord child : FLEFRecordHelper.findChildren(record, path)){
-			final String translationValue = FLEFRecordHelper.getChildValue(child, TAG_VALUE);
+			final String translationText = FLEFRecordHelper.getChildValue(child, TAG_TEXT);
 			final String translationLocale = FLEFRecordHelper.getChildValue(child, TAG_LOCALE);
-			if(StringUtils.isNotEmpty(translationValue)){
+			if(StringUtils.isNotEmpty(translationText)){
 				final FLEFRecord res = FLEFRecord.createEmpty();
-				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_VALUE, translationValue));
+				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TEXT, translationText));
 				res.addChild(FLEFRecord.createChildWithTagAndValue(TAG_LOCALE, translationLocale));
 				translations.add(res);
 			}

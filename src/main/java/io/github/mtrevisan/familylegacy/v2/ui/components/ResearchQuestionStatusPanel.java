@@ -41,7 +41,7 @@ import javax.swing.JPanel;
 public class ResearchQuestionStatusPanel extends JPanel{
 
 	private static final String TAG_STATUS = "STATUS";
-	private static final String TAG_CLOSED = "CLOSED";
+	private static final String TAG_CLOSED_DATE = "CLOSED_DATE";
 
 	private static final String STATUS_OPEN = "open";
 	private static final String STATUS_ON_HOLD = "on_hold";
@@ -82,7 +82,7 @@ public class ResearchQuestionStatusPanel extends JPanel{
 //		buttonCardPanel.add(closeButton, "close");
 //		buttonCardPanel.add(reopenButton, "reopen");
 
-		closedDate = new BoundTextField(TAG_CLOSED);
+		closedDate = new BoundTextField(TAG_CLOSED_DATE);
 		closedDate.setEnabled(false);
 
 

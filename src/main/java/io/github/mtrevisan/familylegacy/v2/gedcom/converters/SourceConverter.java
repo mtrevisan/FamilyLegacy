@@ -64,8 +64,8 @@ public class SourceConverter {
 		sourceMap.put(cleanId, source);
 
 		// ---- 1. TITL (title) with CONC/CONT ----
-		for (GEDCOMNode titlNode : structParser.findChildren(sourNode, "TITL")) {
-			String fullTitle = structParser.getFullText(titlNode);
+		for (GEDCOMNode titlNode : GEDCOMHelper.findChildren(sourNode, "TITL")) {
+			String fullTitle = GEDCOMHelper.extractFullText(titlNode);
 			if (fullTitle != null && !fullTitle.isBlank()) {
 				FLEFRecord titleRec = FLEFRecord.createChildWithTag("title");
 				titleRec.addChild(FLEFRecord.createChildWithTagAndValue("value", fullTitle));
@@ -74,44 +74,44 @@ public class SourceConverter {
 		}
 
 		// ---- 2. AUTH (author) with CONC/CONT ----
-		GEDCOMNode authNode = structParser.findFirstChild(sourNode, "AUTH");
+		GEDCOMNode authNode = GEDCOMHelper.findFirstChild(sourNode, "AUTH");
 		if (authNode != null) {
-			String fullAuthor = structParser.getFullText(authNode);
+			String fullAuthor = GEDCOMHelper.extractFullText(authNode);
 			if (fullAuthor != null && !fullAuthor.isBlank()) {
 				source.addChild(FLEFRecord.createChildWithTagAndValue("author", fullAuthor));
 			}
 		}
 
 		// ---- 3. PUBL (publication facts) with CONC/CONT ----
-		GEDCOMNode publNode = structParser.findFirstChild(sourNode, "PUBL");
+		GEDCOMNode publNode = GEDCOMHelper.findFirstChild(sourNode, "PUBL");
 		if (publNode != null) {
-			String fullPubl = structParser.getFullText(publNode);
+			String fullPubl = GEDCOMHelper.extractFullText(publNode);
 			if (fullPubl != null && !fullPubl.isBlank()) {
 				source.addChild(FLEFRecord.createChildWithTagAndValue("publisher", fullPubl));
 			}
 		}
 
 		// ---- 4. DATE (source creation date) ----
-		GEDCOMNode dateNode = structParser.findFirstChild(sourNode, "DATE");
+		GEDCOMNode dateNode = GEDCOMHelper.findFirstChild(sourNode, "DATE");
 		if (dateNode != null) {
 			FLEFRecord dateStruct = structParser.parseDateStructure(dateNode);
 			if (dateStruct != null) source.addChild(dateStruct);
 		}
 
 		// ---- 5. DATA block (EVEN, AGNC, PLAC, NOTE) ----
-		GEDCOMNode dataNode = structParser.findFirstChild(sourNode, "DATA");
+		GEDCOMNode dataNode = GEDCOMHelper.findFirstChild(sourNode, "DATA");
 		if (dataNode != null) {
 			// 5a. DATA/EVEN (events recorded) with optional DATE and PLAC
-			for (GEDCOMNode evenNode : structParser.findChildren(dataNode, "EVEN")) {
+			for (GEDCOMNode evenNode : GEDCOMHelper.findChildren(dataNode, "EVEN")) {
 				StringBuilder sb = new StringBuilder("Events recorded: ");
 				if (evenNode.getValue() != null) {
 					sb.append(evenNode.getValue());
 				}
-				GEDCOMNode evenDate = structParser.findFirstChild(evenNode, "DATE");
+				GEDCOMNode evenDate = GEDCOMHelper.findFirstChild(evenNode, "DATE");
 				if (evenDate != null && evenDate.getValue() != null) {
 					sb.append(" (Date: ").append(evenDate.getValue()).append(")");
 				}
-				GEDCOMNode evenPlac = structParser.findFirstChild(evenNode, "PLAC");
+				GEDCOMNode evenPlac = GEDCOMHelper.findFirstChild(evenNode, "PLAC");
 				if (evenPlac != null && evenPlac.getValue() != null) {
 					sb.append(" (Place: ").append(evenPlac.getValue()).append(")");
 				}
@@ -120,27 +120,27 @@ public class SourceConverter {
 			}
 
 //			// 5b. DATA/AGNC (responsible agency)
-//			GEDCOMNode agncNode = structParser.findFirstChild(dataNode, "AGNC");
+//			GEDCOMNode agncNode = GEDCOMHelper.findFirstChild(dataNode, "AGNC");
 //			if (agncNode != null && agncNode.getValue() != null) {
 //				source.addChild(FLEFRecord.createChildWithTagAndValue("_agency", agncNode.getValue()));
 //			}
 
 			// 5c. DATA/PLAC (source jurisdiction place)
-			GEDCOMNode placNode = structParser.findFirstChild(dataNode, "PLAC");
+			GEDCOMNode placNode = GEDCOMHelper.findFirstChild(dataNode, "PLAC");
 			if (placNode != null) {
 				FLEFRecord placeCitation = structParser.parsePlaceCitation(placNode);
 				if (placeCitation != null) source.addChild(placeCitation);
 			}
 
 			// 5d. DATA/NOTE (notes inside DATA)
-			for (GEDCOMNode dataNoteNode : structParser.findChildren(dataNode, "NOTE")) {
+			for (GEDCOMNode dataNoteNode : GEDCOMHelper.findChildren(dataNode, "NOTE")) {
 				FLEFRecord noteStruct = structParser.parseNoteStruct(dataNoteNode);
 				if (noteStruct != null) source.addChild(noteStruct);
 			}
 		}
 
 		// ---- 6. ABBR (abbreviation) ----
-		GEDCOMNode abbrNode = structParser.findFirstChild(sourNode, "ABBR");
+		GEDCOMNode abbrNode = GEDCOMHelper.findFirstChild(sourNode, "ABBR");
 		if (abbrNode != null && abbrNode.getValue() != null) {
 			String text = "Abbreviation: " + abbrNode.getValue();
 			FLEFRecord note = structParser.createNoteStruct(text, sourNode);
@@ -148,9 +148,9 @@ public class SourceConverter {
 		}
 
 		// ---- 7. TEXT (verbatim text from source) with CONC/CONT ----
-		GEDCOMNode textNode = structParser.findFirstChild(sourNode, "TEXT");
+		GEDCOMNode textNode = GEDCOMHelper.findFirstChild(sourNode, "TEXT");
 		if (textNode != null) {
-			String fullText = structParser.getFullText(textNode);
+			String fullText = GEDCOMHelper.extractFullText(textNode);
 			if (fullText != null && !fullText.isBlank()) {
 				FLEFRecord note = FLEFRecord.createChildWithTag("note");
 				note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Verbatim text: " + fullText));
@@ -159,15 +159,15 @@ public class SourceConverter {
 		}
 
 		// ---- 8. REPO (repository citation) with CALN, MEDI, NOTE ----
-		for (GEDCOMNode repoNode : structParser.findChildren(sourNode, "REPO")) {
+		for (GEDCOMNode repoNode : GEDCOMHelper.findChildren(sourNode, "REPO")) {
 			FLEFRecord repoCitation = structParser.parseRepositoryCitation(repoNode, repositoryMap);
 			if (repoCitation == null) continue;
 
 //			// 8a. CALN (call number) with optional MEDI
-//			for (GEDCOMNode calnNode : structParser.findChildren(repoNode, "CALN")) {
+//			for (GEDCOMNode calnNode : GEDCOMHelper.findChildren(repoNode, "CALN")) {
 //				if (calnNode.getValue() != null) {
 //					FLEFRecord caln = FLEFRecord.createChildWithTagAndValue("_call_number", calnNode.getValue());
-//					GEDCOMNode mediNode = structParser.findFirstChild(calnNode, "MEDI");
+//					GEDCOMNode mediNode = GEDCOMHelper.findFirstChild(calnNode, "MEDI");
 //					if (mediNode != null && mediNode.getValue() != null) {
 //						caln.addChild(FLEFRecord.createChildWithTagAndValue("_media_type", mediNode.getValue()));
 //					}
@@ -176,7 +176,7 @@ public class SourceConverter {
 //			}
 
 			// 8b. NOTE inside REPO
-			for (GEDCOMNode repoNoteNode : structParser.findChildren(repoNode, "NOTE")) {
+			for (GEDCOMNode repoNoteNode : GEDCOMHelper.findChildren(repoNode, "NOTE")) {
 				FLEFRecord noteStruct = structParser.parseNoteStruct(repoNoteNode);
 				if (noteStruct != null) repoCitation.addChild(noteStruct);
 			}
@@ -188,10 +188,10 @@ public class SourceConverter {
 		processObjNodes(sourNode, source);
 
 //		// ---- 10. REFN (user reference number) with TYPE ----
-//		for (GEDCOMNode refnNode : structParser.findChildren(sourNode, "REFN")) {
+//		for (GEDCOMNode refnNode : GEDCOMHelper.findChildren(sourNode, "REFN")) {
 //			if (refnNode.getValue() != null) {
 //				FLEFRecord refnChild = FLEFRecord.createChildWithTagAndValue("_refn", refnNode.getValue());
-//				GEDCOMNode typeNode = structParser.findFirstChild(refnNode, "TYPE");
+//				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(refnNode, "TYPE");
 //				if (typeNode != null && typeNode.getValue() != null) {
 //					refnChild.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
 //				}
@@ -200,13 +200,13 @@ public class SourceConverter {
 //		}
 
 //		// ---- 11. RIN (automated record ID) ----
-//		GEDCOMNode rinNode = structParser.findFirstChild(sourNode, "RIN");
+//		GEDCOMNode rinNode = GEDCOMHelper.findFirstChild(sourNode, "RIN");
 //		if (rinNode != null && rinNode.getValue() != null) {
 //			source.addChild(FLEFRecord.createChildWithTagAndValue("_rin", rinNode.getValue()));
 //		}
 
 		// ---- 12. RESN (restriction notice) ----
-		GEDCOMNode resnNode = structParser.findFirstChild(sourNode, "RESN");
+		GEDCOMNode resnNode = GEDCOMHelper.findFirstChild(sourNode, "RESN");
 		if (resnNode != null && resnNode.getValue() != null) {
 			String level = GEDCOMMapper.mapPrivacyLevel(resnNode.getValue());
 			FLEFRecord privacy = FLEFRecord.createChildWithTag("privacy");
@@ -215,7 +215,7 @@ public class SourceConverter {
 		}
 
 		// ---- 13. General NOTE structures ----
-		for (GEDCOMNode noteNode : structParser.findChildren(sourNode, "NOTE")) {
+		for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(sourNode, "NOTE")) {
 			FLEFRecord noteStruct = structParser.parseNoteStruct(noteNode);
 			if (noteStruct != null) source.addChild(noteStruct);
 		}
@@ -234,7 +234,7 @@ public class SourceConverter {
 	 * - Adds a document reference to the source.
 	 */
 	private void processObjNodes(GEDCOMNode sourNode, FLEFRecord source){
-		List<GEDCOMNode> objNodes = structParser.findChildren(sourNode, "OBJE");
+		List<GEDCOMNode> objNodes = GEDCOMHelper.findChildren(sourNode, "OBJE");
 		for(GEDCOMNode objNode : objNodes){
 			// Estrai l'Xref dal nodo (getXrefId() o dal valore)
 			String objXref = objNode.getXrefId();
@@ -287,19 +287,19 @@ public class SourceConverter {
 		doc.setId(id);
 
 		// FILE -> file
-		GEDCOMNode fileNode = structParser.findFirstChild(objNode, "FILE");
+		GEDCOMNode fileNode = GEDCOMHelper.findFirstChild(objNode, "FILE");
 		if (fileNode != null && fileNode.getValue() != null) {
 			doc.addChild(FLEFRecord.createChildWithTagAndValue("file", fileNode.getValue()));
 		}
 
 		// TITL -> description
-		GEDCOMNode titlNode = structParser.findFirstChild(objNode, "TITL");
+		GEDCOMNode titlNode = GEDCOMHelper.findFirstChild(objNode, "TITL");
 		if (titlNode != null && titlNode.getValue() != null) {
 			doc.addChild(FLEFRecord.createChildWithTagAndValue("description", titlNode.getValue()));
 		}
 
 		// FORM -> note (inline)
-		GEDCOMNode formNode = structParser.findFirstChild(objNode, "FORM");
+		GEDCOMNode formNode = GEDCOMHelper.findFirstChild(objNode, "FORM");
 		if (formNode != null && formNode.getValue() != null) {
 			FLEFRecord note = FLEFRecord.createChildWithTag("note");
 			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Format: " + formNode.getValue()));

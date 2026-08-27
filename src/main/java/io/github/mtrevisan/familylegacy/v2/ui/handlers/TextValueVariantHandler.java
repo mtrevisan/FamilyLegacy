@@ -73,7 +73,7 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 
 		final FLEFRecord variant = record.getTheOnlyChild();
 		String tag = variant.getTag();
-		if(TAG_PHONETIC.equals(tag)){
+		if(Strings.CI.equals(TAG_PHONETIC, tag)){
 			final String system = FLEFRecordHelper.getChildValue(variant, TAG_SYSTEM);
 			final String value = FLEFRecordHelper.getChildValue(variant, TAG_VALUE);
 
@@ -102,7 +102,7 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 			return String.format("%s [%s]", value, TAG_TRANSCRIPTION.toLowerCase(Locale.ROOT));
 		}
 
-		return "--]";
+		return "[--]";
 	}
 
 	@Override

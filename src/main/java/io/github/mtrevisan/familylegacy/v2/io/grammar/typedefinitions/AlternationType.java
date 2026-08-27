@@ -66,7 +66,7 @@ import java.util.List;
 			}
 
 		if(!matchesAny)
-			errors.add(String.format("Record at '%s' does not match any allowed alternation type", contextPath));
+			errors.add(String.format("Record at '%s' does not match any allowed alternation type, record %s", contextPath, record));
 	}
 
 	@Override

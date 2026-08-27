@@ -225,7 +225,7 @@ public final class FLEFRecordHelper{
 	/*
 	extract (oneof xref):
 		- `subject/candidate: IdentityCandidate` | ParticipantField
-		- `object/subject: RelationshipParticipant` | ParticipantField
+		- `subject/target: RelationshipParticipant` | ParticipantField
 		- `context: ContextSource` | ParticipantField
 		- `target: ImpactTarget` | ParticipantField
 		- `participant: EventParticipant` | ParticipantField

@@ -1,6 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
@@ -38,10 +39,10 @@ public class PlaceCache{
 			place.addChild(nameRec);
 
 			// ---- Phonetic variations (FONE) -> variant > phonetic ----
-			for(GEDCOMNode fone : findChildren(placNode, "FONE")){
+			for(GEDCOMNode fone : GEDCOMHelper.findChildren(placNode, "FONE")){
 				FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
 				FLEFRecord phonetic = FLEFRecord.createChildWithTag("phonetic");
-				GEDCOMNode foneType = findFirstChild(fone, "TYPE");
+				GEDCOMNode foneType = GEDCOMHelper.findFirstChild(fone, "TYPE");
 				String system = (foneType != null && foneType.getValue() != null)? foneType.getValue(): "IPA";
 				phonetic.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
 				phonetic.addChild(FLEFRecord.createChildWithTagAndValue("value", fone.getValue()));
@@ -51,10 +52,10 @@ public class PlaceCache{
 			}
 
 			// ---- Romanized variations (ROMN) -> variant > transcription ----
-			for(GEDCOMNode romn : findChildren(placNode, "ROMN")){
+			for(GEDCOMNode romn : GEDCOMHelper.findChildren(placNode, "ROMN")){
 				FLEFRecord variant = FLEFRecord.createChildWithTag("variant");
 				FLEFRecord transcription = FLEFRecord.createChildWithTag("transcription");
-				GEDCOMNode romnType = findFirstChild(romn, "TYPE");
+				GEDCOMNode romnType = GEDCOMHelper.findFirstChild(romn, "TYPE");
 				String system = (romnType != null && romnType.getValue() != null)? romnType.getValue(): "scientific";
 				transcription.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
 				transcription.addChild(FLEFRecord.createChildWithTagAndValue("value", romn.getValue()));
@@ -63,10 +64,10 @@ public class PlaceCache{
 			}
 
 			// ---- Map coordinates (MAP -> LATI, LONG) ----
-			GEDCOMNode mapNode = findFirstChild(placNode, "MAP");
+			GEDCOMNode mapNode = GEDCOMHelper.findFirstChild(placNode, "MAP");
 			if(mapNode != null){
-				GEDCOMNode latiNode = findFirstChild(mapNode, "LATI");
-				GEDCOMNode longNode = findFirstChild(mapNode, "LONG");
+				GEDCOMNode latiNode = GEDCOMHelper.findFirstChild(mapNode, "LATI");
+				GEDCOMNode longNode = GEDCOMHelper.findFirstChild(mapNode, "LONG");
 				if(latiNode != null && latiNode.getValue() != null &&
 					longNode != null && longNode.getValue() != null){
 					FLEFRecord map = FLEFRecord.createChildWithTag("map");
@@ -78,25 +79,17 @@ public class PlaceCache{
 			}
 
 			// ---- Type (optional) ----
-			GEDCOMNode typeNode = findFirstChild(placNode, "TYPE");
+			GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(placNode, "TYPE");
 			if(typeNode != null && typeNode.getValue() != null){
 				place.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
 			}
 
 			// ---- Audit ----
-			place.addChild(new AuditBuilder().build(placNode));
+			place.addChild(AuditBuilder.build(placNode));
 
 			model.addRecord(place);
 			return place;
 		});
-	}
-
-	private GEDCOMNode findFirstChild(GEDCOMNode node, String tag){
-		return node.getChildren().stream().filter(c -> c.getTag().equals(tag)).findFirst().orElse(null);
-	}
-
-	private List<GEDCOMNode> findChildren(GEDCOMNode node, String tag){
-		return node.getChildren().stream().filter(c -> c.getTag().equals(tag)).toList();
 	}
 
 }

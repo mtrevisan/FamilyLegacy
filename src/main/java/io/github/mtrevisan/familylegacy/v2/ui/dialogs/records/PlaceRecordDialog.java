@@ -52,10 +52,7 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -84,7 +81,7 @@ import java.util.Objects;
  * <p>
  * Tabs:
  * Tab 1 (Properties): name, type, map, evidence
- * Tab 3 (Relationships): PlaceRelationshipRecord (subject = this place), PlaceRelationshipRecord (object = this place)
+ * Tab 3 (Relationships): PlaceRelationshipRecord (subject = this place), PlaceRelationshipRecord (target = this place)
  * Tab 4 (Participations): EventParticipationRecord (participant[place] = this place)
  * Tab 5 (Context): ContextImpactRecord (target[place] = this place)
  * Tab 6 (Research): ConclusionRecord (resolves = this place), IdentityHypothesisRecord (subject/candidate = this place), ResearchQuestionRecord (target[place] = this place)
@@ -106,6 +103,8 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 	private static final String TAG_COORDINATES = "COORDINATES";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_EVIDENCE = "EVIDENCE";
+	private static final String TAG_MAP_COORDINATES = TAG_MAP + DOT + TAG_COORDINATES;
+	private static final String TAG_MAP_EVIDENCE = TAG_MAP + DOT + TAG_EVIDENCE;
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
@@ -150,13 +149,13 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			"empire", "parish", "diocese", "cemetery", "archive", "unknown"
 		});
 		typeCombo.setEditable(true);
-		mapCoordinatesField = new BoundTextField(TAG_MAP + DOT + TAG_COORDINATES);
-		mapEvidencePanel = new EvidenceQualifiersPanel(TAG_MAP + DOT + TAG_EVIDENCE, this, "Map Evidence", model, null);
+		mapCoordinatesField = new BoundTextField(TAG_MAP_COORDINATES);
+		mapEvidencePanel = new EvidenceQualifiersPanel(TAG_MAP_EVIDENCE, this, "Map Evidence", model, null);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT, TAG_PLACE_RELATIONSHIP, "Members", PlaceRelationshipHandler.class, PlaceHandler.class)
-			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT, TAG_PLACE_RELATIONSHIP, "Relationships", PlaceRelationshipHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.PLACE_RELATIONSHIP_ON_TARGET, TAG_PLACE_RELATIONSHIP, "Relationships", PlaceRelationshipHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceHandler.class)
@@ -205,7 +204,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		final JPanel placeRelationshipAsSubjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, placeRelationshipAsSubjectPanel);
 
-		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_OBJECT);
+		final JPanel placeRelationshipAsObjectPanel = components.getPanel(PanelKey.PLACE_RELATIONSHIP_ON_TARGET);
 		GUIHelper.addComponent(panel, placeRelationshipAsObjectPanel);
 
 		return panel;

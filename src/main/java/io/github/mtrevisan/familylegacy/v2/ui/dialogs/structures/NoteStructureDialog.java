@@ -43,10 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -57,11 +54,11 @@ import java.util.Objects;
  * struct NoteStructure {
  *   id: LocalID
  *   title?: Text
- *   value: Text
+ *   text: Text
  *   mime?: Text
  *   locale?: LocaleCode | Text
  *   translation*: struct {
- *     value: Text
+ *     text: Text
  *     locale?: LocaleCode | Text
  *   }
  *   source*: SourceCitation
@@ -83,7 +80,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 
 	private static final String TAG_TITLE = "TITLE";
-	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_MIME = "MIME";
 	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_TRANSLATION = "TRANSLATION";
@@ -97,7 +94,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField titleField;
-	private final BoundTextArea valueArea;
+	private final BoundTextArea textArea;
 	private final BoundComboBox<String> mimeCombo;
 	private final BoundComboBox<String> localeCombo;
 	private final TranslationListPanel translationPanel;
@@ -118,8 +115,8 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]5[]10[]");
 
 		titleField = new BoundTextField(TAG_TITLE);
-		valueArea = new BoundTextArea(TAG_VALUE, 3, 25);
-		valueArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
+		textArea = new BoundTextArea(TAG_TEXT, 3, 25);
+		textArea.setToolTipText("Markdown supported. Use [text](@<XREF:ID>@) for references, [text](confidential) for confidential data.");
 		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{
 			StringUtils.EMPTY,
 			"text/plain", "text/html", "text/markdown"});
@@ -137,7 +134,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(titleField);
-		components.bind(valueArea);
+		components.bind(textArea);
 		components.bind(mimeCombo);
 		components.bind(localeCombo);
 
@@ -151,8 +148,8 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		// title
 		GUIHelper.addLabeledComponent(propertiesPanel, "Title:", titleField);
 
-		// value
-		GUIHelper.addLabeledComponent(propertiesPanel, "Value*:", valueArea);
+		// text
+		GUIHelper.addLabeledComponent(propertiesPanel, "Text*:", textArea);
 
 		// mime
 		GUIHelper.addLabeledComponent(propertiesPanel, "MIME type:", mimeCombo);
@@ -196,10 +193,10 @@ public class NoteStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(valueArea.isEmpty()){
+		if(textArea.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Note value is required.",
-				tabbedPane, propertiesPanel, valueArea);
+				tabbedPane, propertiesPanel, textArea);
 
 			return false;
 		}

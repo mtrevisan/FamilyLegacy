@@ -73,7 +73,7 @@ public class ReferenceResolver{
 		part.addChild(eventRef);
 		// role (mappato)
 		if(role != null){
-			String mappedRole = GEDCOMMapper.mapRole(role);
+			String mappedRole = GEDCOMMapper.mapRole(role, role);
 			if(mappedRole != null){
 				part.addChild(FLEFRecord.createChildWithTagAndValue("role", mappedRole));
 			}

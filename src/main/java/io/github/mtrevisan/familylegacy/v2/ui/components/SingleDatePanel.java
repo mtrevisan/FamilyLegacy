@@ -92,6 +92,11 @@ public class SingleDatePanel extends JPanel{
 	private static final String TAG_PART = "PART";
 	private static final String TAG_CALENDAR = "CALENDAR";
 
+	private static final String TAG_FULL_DATE_VALUE = TAG_FULL_DATE + DOT + TAG_VALUE;
+	private static final String TAG_DECADE_START_YEAR = TAG_DECADE + DOT + TAG_START_YEAR;
+	private static final String TAG_CENTURY_ORDINAL = TAG_CENTURY + DOT + TAG_ORDINAL;
+	private static final String TAG_CENTURY_PART = TAG_CENTURY + DOT + TAG_PART;
+
 
 	private final BindingManager bindingManager = new BindingManager();
 
@@ -110,10 +115,10 @@ public class SingleDatePanel extends JPanel{
 
 
 	public SingleDatePanel(final Dialog parent, final FLEFModel model){
-		fullDateValueField = new BoundTextField(TAG_FULL_DATE + DOT + TAG_VALUE);
-		decadeStartYearField = new BoundTextField(TAG_DECADE + DOT + TAG_START_YEAR);
-		centuryOrdinalField = new BoundTextField(TAG_CENTURY + DOT + TAG_ORDINAL);
-		centuryPartCombo = new BoundComboBox<>(TAG_CENTURY + DOT + TAG_PART, new String[]{
+		fullDateValueField = new BoundTextField(TAG_FULL_DATE_VALUE);
+		decadeStartYearField = new BoundTextField(TAG_DECADE_START_YEAR);
+		centuryOrdinalField = new BoundTextField(TAG_CENTURY_ORDINAL);
+		centuryPartCombo = new BoundComboBox<>(TAG_CENTURY_PART, new String[]{
 			StringUtils.EMPTY,
 			"first_quarter", "second_quarter", "third_quarter", "fourth_quarter",
 			"first_half", "second_half",

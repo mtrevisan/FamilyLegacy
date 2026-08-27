@@ -31,19 +31,15 @@ public class HeaderConverter{
 		// ---- Source (from GEDCOM SOUR) ----
 		GEDCOMNode sourNode = GEDCOMHelper.findFirstChild(headNode, "SOUR");
 		if(sourNode != null){
-			GEDCOMNode name = GEDCOMHelper.findFirstChild(sourNode, "NAME");
-			GEDCOMNode vers = GEDCOMHelper.findFirstChild(sourNode, "VERS");
-			GEDCOMNode corp = GEDCOMHelper.findFirstChild(sourNode, "CORP");
+			GEDCOMNode nameNode = GEDCOMHelper.findFirstChild(sourNode, "NAME");
+			GEDCOMNode versNode = GEDCOMHelper.findFirstChild(sourNode, "VERS");
+			GEDCOMNode corpNode = GEDCOMHelper.findFirstChild(sourNode, "CORP");
 
 			FLEFRecord source = FLEFRecord.createChildWithTag("source");
-			if(StringUtils.isNotEmpty(sourNode.getValue()))
-				source.addChild(FLEFRecord.createChildWithTagAndValue("system_id", sourNode.getValue()));
-			if(name != null && StringUtils.isNotEmpty(name.getValue()))
-				source.addChild(FLEFRecord.createChildWithTagAndValue("name", name.getValue()));
-			if(vers != null && StringUtils.isNotEmpty(vers.getValue()))
-				source.addChild(FLEFRecord.createChildWithTagAndValue("version", vers.getValue()));
-			if(corp != null && StringUtils.isNotEmpty(corp.getValue()))
-				source.addChild(FLEFRecord.createChildWithTagAndValue("corporate", corp.getValue()));
+			GEDCOMHelper.transferValue(source, "system_id", sourNode);
+			GEDCOMHelper.transferValue(source, "name", nameNode);
+			GEDCOMHelper.transferValue(source, "version", versNode);
+			GEDCOMHelper.transferValue(source, "organization", corpNode);
 			header.addChild(source);
 		}
 
@@ -56,14 +52,12 @@ public class HeaderConverter{
 
 		// ---- Copyright ----
 		GEDCOMNode coprNode = GEDCOMHelper.findFirstChild(headNode, "COPR");
-		if(coprNode != null && StringUtils.isNotEmpty(coprNode.getValue())){
-			header.addChild(FLEFRecord.createChildWithTagAndValue("copyright", coprNode.getValue()));
-		}
+		GEDCOMHelper.transferValue(header, "copyright", coprNode);
 
 		// ---- Scope (from NOTE) ----
 		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(headNode, "NOTE");
 		if(noteNode != null && noteNode.getValue() != null){
-			header.addChild(FLEFRecord.createChildWithTagAndValue("scope", GEDCOMHelper.getFullNoteText(noteNode)));
+			header.addChild(FLEFRecord.createChildWithTagAndValue("scope", GEDCOMHelper.extractFullText(noteNode)));
 		}
 
 		// ---- Submitter (will be added later) ----

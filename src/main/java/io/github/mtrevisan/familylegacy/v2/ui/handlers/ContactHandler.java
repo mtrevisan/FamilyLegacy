@@ -37,7 +37,7 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 
 	public static final String TYPE = "CONTACT";
 
-	private static final String TAG_ADDRESS = "ADDRESS";
+	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_NAME = "NAME";
 
@@ -64,7 +64,7 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String address = FLEFRecordHelper.getChildValue(record, TAG_ADDRESS);
+		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 		final StringBuilder sb = new StringBuilder();
@@ -72,8 +72,8 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 			sb.append(name)
 				.append(':')
 				.append(StringUtils.SPACE);
-		if(StringUtils.isNotBlank(address))
-			sb.append(address);
+		if(StringUtils.isNotBlank(value))
+			sb.append(value);
 		if(StringUtils.isNotBlank(type)){
 			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);

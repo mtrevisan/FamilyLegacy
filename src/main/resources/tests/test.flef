@@ -7,17 +7,17 @@ header {
 		SYSTEM_ID FamilyLegacy
 		NAME FL
 		VERSION 0.1
-		CORPORATE Mauro Trevisan
+		ORGANIZATION Mauro Trevisan
 	}
 	DATE 2026-07-31
 	COPYRIGHT © 2026 Mauro Trevisan
 	SUBMITTER {
 		NOTE submitter note
 		CONTACT {
-			ADDRESS my phone number
+			VALUE my phone number
 			TYPE phone
 			NAME {
-				VALUE Mario Rossi
+				TEXT Mario Rossi
 				VARIANT {
 					TRANSCRIPTION {
 						SYSTEM rōmaji
@@ -48,10 +48,10 @@ header {
 			}
 		}
 		CONTACT {
-			ADDRESS my email number
+			VALUE my email number
 			TYPE email
 			NAME {
-				VALUE email
+				TEXT email
 			}
 			NOTE email note
 			PRIVACY {
@@ -115,7 +115,7 @@ records {
 			CULTURAL_NORM CN1
 			SOURCE {
 				SOURCE S1
-				LOCATION there
+				LOCATOR there
 				EXTRACT {
 					TEXT ext
 					TYPE summarized
@@ -124,7 +124,7 @@ records {
 			}
 			NOTE {
 				TITLE note 1 title
-				VALUE note 1
+				TEXT note 1
 				MIME text/plain
 				LOCALE it-IT
 				SOURCE {
@@ -150,7 +150,7 @@ records {
 					}
 				}
 				TRANSLATION {
-					VALUE nòda
+					TEXT nòda
 					LOCALE vec-IT
 				}
 			}
@@ -169,7 +169,7 @@ records {
 		SEX female
 		SOURCE {
 			SOURCE S1
-			LOCATION there
+			LOCATOR there
 			EXTRACT {
 				TEXT ext
 				TYPE summarized
@@ -178,7 +178,7 @@ records {
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -204,7 +204,7 @@ records {
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -277,7 +277,7 @@ records {
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -313,7 +313,7 @@ records {
 		VALUE attr
 		SOURCE {
 			SOURCE S1
-			LOCATION there for activity
+			LOCATOR there for activity
 			EXTRACT {
 				TEXT ext2
 				TYPE summarized
@@ -322,7 +322,7 @@ records {
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -348,7 +348,7 @@ records {
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -382,7 +382,7 @@ records {
 		SUBJECT {
 			INDIVIDUAL I1
 		}
-		OBJECT {
+		TARGET {
 			GROUP G1
 		}
 		TYPE group_member
@@ -390,7 +390,7 @@ records {
 		STATUS ended
 		SOURCE {
 			SOURCE S1
-			LOCATION there for activity
+			LOCATOR there for activity
 			EXTRACT {
 				TEXT ext2
 				TYPE summarized
@@ -399,7 +399,7 @@ records {
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -425,7 +425,7 @@ records {
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -473,7 +473,7 @@ records {
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -501,7 +501,7 @@ records {
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -517,7 +517,7 @@ records {
 		SUBJECT {
 			GROUP G1
 		}
-		OBJECT {
+		TARGET {
 			INDIVIDUAL I1
 		}
 		AUDIT {
@@ -544,7 +544,7 @@ records {
 		ROLE spouse
 		SOURCE {
 			SOURCE S1
-			LOCATION there for activity
+			LOCATOR there for activity
 			EXTRACT {
 				TEXT ext2
 				TYPE summarized
@@ -553,7 +553,7 @@ records {
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -579,7 +579,7 @@ records {
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -661,10 +661,10 @@ records {
 			INDIVIDUAL I1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE high significance
+		EXPLANATION high significance
 		SOURCE {
 			SOURCE S1
-			LOCATION there for activity
+			LOCATOR there for activity
 			EXTRACT {
 				TEXT ext2
 				TYPE summarized
@@ -700,7 +700,7 @@ records {
 			GROUP G1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE high significance
+		EXPLANATION high significance
 		AUDIT {
 			CREATION {
 				DATE 1990-02-02
@@ -725,7 +725,7 @@ records {
 			EVENT E1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		AUDIT {
 			CREATION {
 				DATE 1990-02-02
@@ -750,7 +750,7 @@ records {
 			PLACE P1
 		}
 		IMPACT_TYPE motivates
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -780,7 +780,7 @@ records {
 			PLACE P1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -810,7 +810,7 @@ records {
 			RELATIONSHIP RL1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -840,7 +840,7 @@ records {
 			EVENT_PARTICIPATION EP1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -870,7 +870,7 @@ records {
 			GROUP_ATTRIBUTE GA1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -900,7 +900,7 @@ records {
 			INDIVIDUAL_ATTRIBUTE IA1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -930,7 +930,7 @@ records {
 			IDENTITY_HYPOTHESIS IH1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -960,7 +960,7 @@ records {
 			PLACE_RELATIONSHIP PR1
 		}
 		IMPACT_TYPE causes
-		SIGNIFICANCE low significance
+		EXPLANATION low significance
 		EVIDENCE {
 			SOURCE_TYPE derived
 			INFORMATION_TYPE secondary
@@ -983,7 +983,7 @@ records {
 	}
 
 	CONCLUSION CC1 {
-		CONTEXT death cause
+		ISSUE death cause
 		PROOF_STATUS proven
 		NARRATIVE narr
 		RESOLVES {
@@ -995,7 +995,7 @@ records {
 		RESEARCH RQ1
 		SOURCE {
 			SOURCE S1
-			LOCATION there for activity
+			LOCATOR there for activity
 			EXTRACT {
 				TEXT ext2
 				TYPE summarized
@@ -1024,7 +1024,7 @@ records {
 	}
 
 	CONCLUSION CC2 {
-		CONTEXT death cause
+		ISSUE death cause
 		PROOF_STATUS proven
 		NARRATIVE narr for group
 		RESOLVES {
@@ -1051,7 +1051,7 @@ records {
 	}
 
 	CONCLUSION CC3 {
-		CONTEXT death cause
+		ISSUE death cause
 		PROOF_STATUS proven
 		NARRATIVE narr for event
 		RESOLVES {
@@ -1078,7 +1078,7 @@ records {
 	}
 
 	CONCLUSION CC4 {
-		CONTEXT place cause
+		ISSUE place cause
 		PROOF_STATUS proven
 		NARRATIVE narr for place
 		RESOLVES {
@@ -1105,7 +1105,7 @@ records {
 	}
 
 	CONCLUSION CC5 {
-		CONTEXT cn cause
+		ISSUE cn cause
 		PROOF_STATUS proven
 		NARRATIVE narr for cn
 		RESOLVES {
@@ -1132,7 +1132,7 @@ records {
 	}
 
 	CONCLUSION CC6 {
-		CONTEXT src cause
+		ISSUE src cause
 		PROOF_STATUS proven
 		NARRATIVE narr for src
 		RESOLVES {
@@ -1159,7 +1159,7 @@ records {
 	}
 
 	CONCLUSION CC7 {
-		CONTEXT src hist evt
+		ISSUE src hist evt
 		PROOF_STATUS proven
 		NARRATIVE narr for he
 		RESOLVES {
@@ -1186,7 +1186,7 @@ records {
 	}
 
 	CONCLUSION CC8 {
-		CONTEXT src hist rl
+		ISSUE src hist rl
 		PROOF_STATUS proven
 		NARRATIVE narr for rl
 		RESOLVES {
@@ -1213,7 +1213,7 @@ records {
 	}
 
 	CONCLUSION CC9 {
-		CONTEXT src hist ep
+		ISSUE src hist ep
 		PROOF_STATUS proven
 		NARRATIVE narr for ep
 		RESOLVES {
@@ -1240,7 +1240,7 @@ records {
 	}
 
 	CONCLUSION CC10 {
-		CONTEXT src hist ga
+		ISSUE src hist ga
 		PROOF_STATUS proven
 		NARRATIVE narr for ga
 		RESOLVES {
@@ -1267,7 +1267,7 @@ records {
 	}
 
 	CONCLUSION CC11 {
-		CONTEXT src hist ia
+		ISSUE src hist ia
 		PROOF_STATUS proven
 		NARRATIVE narr for ia
 		RESOLVES {
@@ -1294,7 +1294,7 @@ records {
 	}
 
 	CONCLUSION CC12 {
-		CONTEXT src hist ih
+		ISSUE src hist ih
 		PROOF_STATUS proven
 		NARRATIVE narr for ih
 		RESOLVES {
@@ -1321,7 +1321,7 @@ records {
 	}
 
 	CONCLUSION CC13 {
-		CONTEXT src hist pr
+		ISSUE src hist pr
 		PROOF_STATUS proven
 		NARRATIVE narr for pr
 		RESOLVES {
@@ -1359,7 +1359,7 @@ maybe the same
 person"""
 		SOURCE {
 			SOURCE S1
-			LOCATION there for activity
+			LOCATOR there for activity
 			EXTRACT {
 				TEXT ext2
 				TYPE summarized
@@ -1368,7 +1368,7 @@ person"""
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -1394,7 +1394,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -1499,7 +1499,7 @@ person"""
 		QUESTION is?
 		CONCLUSION it must be true
 		CONCLUSION_CONFIDENCE medium
-		RATIONALE rationale of question
+		EXPLANATION explanation of question
 		PRIVACY {
 			LEVEL restricted
 			REASON because
@@ -1862,7 +1862,7 @@ person"""
 		CONCLUSION_CONFIDENCE high
 		SOURCE {
 			SOURCE S1
-			LOCATION there for activity
+			LOCATOR there for activity
 			EXTRACT {
 				TEXT ext2
 				TYPE summarized
@@ -1982,13 +1982,13 @@ person"""
 		MEDIA_TYPE book
 		REPOSITORY {
 			REPOSITORY R1
-			LOCATION shelf 1
+			LOCATOR shelf 1
 			NOTE repo note
 		}
 		DOCUMENT D1
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2014,7 +2014,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2085,7 +2085,7 @@ person"""
 				}
 				NOTE {
 					TITLE note 1 title
-					VALUE note 1
+					TEXT note 1
 					MIME text/plain
 					LOCALE it-IT
 					SOURCE {
@@ -2111,7 +2111,7 @@ person"""
 						}
 					}
 					TRANSLATION {
-						VALUE nòda
+						TEXT nòda
 						LOCALE vec-IT
 					}
 				}
@@ -2123,7 +2123,7 @@ person"""
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2149,7 +2149,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2213,7 +2213,7 @@ person"""
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -2241,7 +2241,7 @@ person"""
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -2262,11 +2262,11 @@ person"""
 		VALUE group attr value
 		SOURCE {
 			SOURCE S1
-			LOCATION src loc
+			LOCATOR src loc
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2292,7 +2292,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2318,11 +2318,11 @@ person"""
 		RULE_TYPE marriage_practice
 		SOURCE {
 			SOURCE S1
-			LOCATION src loc
+			LOCATOR src loc
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2348,7 +2348,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2391,7 +2391,7 @@ person"""
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -2419,7 +2419,7 @@ person"""
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -2434,7 +2434,7 @@ person"""
 		DESCRIPTION cholera
 		AGENCY the morgue
 		CAUSE {
-			VALUE brain tumor
+			REASON brain tumor
 			EVIDENCE {
 				SOURCE_TYPE derived
 				INFORMATION_TYPE secondary
@@ -2443,7 +2443,7 @@ person"""
 		}
 		SOURCE {
 			SOURCE S1
-			LOCATION over there
+			LOCATOR over there
 			EXTRACT {
 				TEXT ext event
 				TYPE summarized
@@ -2452,7 +2452,7 @@ person"""
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2478,7 +2478,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2528,7 +2528,7 @@ person"""
 		DESCRIPTION something groupy
 		AGENCY government
 		CAUSE {
-			VALUE cause value
+			REASON cause value
 		}
 		SOURCE {
 			SOURCE S1
@@ -2574,7 +2574,7 @@ person"""
 		}
 		SOURCE {
 			SOURCE S1
-			LOCATION src place loc
+			LOCATOR src place loc
 		}
 		EVIDENCE {
 			SOURCE_TYPE derived
@@ -2630,17 +2630,17 @@ person"""
 		SUBJECT {
 			PLACE P1
 		}
-		OBJECT {
+		TARGET {
 			PLACE P2
 		}
 		TYPE group_member place
 		SOURCE {
 			SOURCE S1
-			LOCATION src loc place rel
+			LOCATOR src loc place rel
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2666,7 +2666,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2709,7 +2709,7 @@ person"""
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -2737,7 +2737,7 @@ person"""
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived
@@ -2752,7 +2752,7 @@ person"""
 		SUBJECT {
 			PLACE P2
 		}
-		OBJECT {
+		TARGET {
 			PLACE P1
 		}
 		AUDIT {
@@ -2774,7 +2774,7 @@ person"""
 	REPOSITORY R1 {
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2800,7 +2800,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2836,7 +2836,7 @@ person"""
 				}
 				SOURCE {
 					SOURCE S1
-					LOCATION there
+					LOCATOR there
 					EXTRACT {
 						TEXT ext
 						TYPE summarized
@@ -2845,7 +2845,7 @@ person"""
 				}
 				NOTE {
 					TITLE note 1 title
-					VALUE note 1
+					TEXT note 1
 					MIME text/plain
 					LOCALE it-IT
 					SOURCE {
@@ -2871,7 +2871,7 @@ person"""
 						}
 					}
 					TRANSLATION {
-						VALUE nòda
+						TEXT nòda
 						LOCALE vec-IT
 					}
 				}
@@ -2883,7 +2883,7 @@ person"""
 			ORIGINAL_TEXT sto pòsto kuà
 		}
 		CONTACT {
-			ADDRESS addr
+			VALUE addr
 			TYPE email
 			NOTE contact note
 			PRIVACY {
@@ -2906,7 +2906,7 @@ person"""
 				}
 			}
 			NAME {
-				VALUE contact name
+				TEXT contact name
 				VARIANT {
 					PHONETIC {
 						SYSTEM ipa
@@ -2925,12 +2925,12 @@ person"""
 	}
 
 	DOCUMENT D1 {
-		FILE C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
+		URI C:\Users\mauro\OneDrive\Documents\engineer-a-thousand-millions_eaqq.1920.gif
 		MAPPING planar
 		DESCRIPTION doc desc
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -2956,7 +2956,7 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
@@ -2986,11 +2986,11 @@ person"""
 		TITLE black plague
 		SOURCE {
 			SOURCE S1
-			LOCATION src he
+			LOCATOR src he
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			MIME text/plain
 			LOCALE it-IT
 			SOURCE {
@@ -3016,13 +3016,13 @@ person"""
 				}
 			}
 			TRANSLATION {
-				VALUE nòda
+				TEXT nòda
 				LOCALE vec-IT
 			}
 		}
 		NOTE {
 			TITLE note 1 title
-			VALUE note 1
+			TEXT note 1
 			AUDIT {
 				CREATION {
 					DATE 1990-02-02
@@ -3069,7 +3069,7 @@ person"""
 			ORIGINAL_TEXT original text
 			SOURCE {
 				SOURCE S1
-				LOCATION src loc
+				LOCATOR src loc
 			}
 			EVIDENCE {
 				SOURCE_TYPE derived

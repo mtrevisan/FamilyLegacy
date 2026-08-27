@@ -399,7 +399,7 @@ public class FLEFValidator{
 			    subject {
 			      individual @I1@
 			    }
-			    object {
+			    target {
 			      individual @I1@
 			    }
 			    type biological_child

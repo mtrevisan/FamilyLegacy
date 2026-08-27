@@ -40,6 +40,10 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 	public static final String ID_PREFIX = "CC";
 
 
+	private static final String TAG_ISSUE = "ISSUE";
+	private static final String TAG_PROOF_STATUS = "PROOF_STATUS";
+
+
 	@Override
 	public String getLabel(){
 		return "Conclusion";
@@ -60,10 +64,10 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 		if(record == null)
 			return "--";
 
-		String context = FLEFRecordHelper.getChildValue(record, "CONTEXT");
-		String proofStatus = FLEFRecordHelper.getChildValue(record, "PROOF_STATUS");
-		if(StringUtils.isNotEmpty(context)){
-			String display = GUIHelper.limitTextLength(context);
+		String issue = FLEFRecordHelper.getChildValue(record, TAG_ISSUE);
+		String proofStatus = FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS);
+		if(StringUtils.isNotEmpty(issue)){
+			String display = GUIHelper.limitTextLength(issue);
 			if(StringUtils.isNotEmpty(proofStatus))
 				display += " [" + proofStatus + "]";
 			return display;

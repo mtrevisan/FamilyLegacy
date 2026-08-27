@@ -51,10 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -80,7 +77,7 @@ import java.util.Objects;
  * Tabs:
  * Tab 1 (Properties): name, type, preferred_image
  * Tab 2 (Attributes): GroupAttributeRecord (group = this group)
- * Tab 3 (Relationships): RelationshipRecord (subject = this group), RelationshipRecord (object = this group)
+ * Tab 3 (Relationships): RelationshipRecord (subject = this group), RelationshipRecord (target = this group)
  * Tab 4 (Participations): EventParticipationRecord (participant[group] = this group)
  * Tab 5 (Context): ContextImpactRecord (target[group] = this group)
  * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (subject/candidate = this group), ResearchQuestionRecord (target[group] = this group)
@@ -142,7 +139,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.GROUP_ATTRIBUTE, TAG_GROUP_ATTRIBUTE, "Group Attributes", GroupAttributeHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupHandler.class)
@@ -196,7 +193,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		final JPanel memberPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, memberPanel);
 
-		final JPanel relationshipPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
+		final JPanel relationshipPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
 		GUIHelper.addComponent(panel, relationshipPanel);
 
 		return panel;

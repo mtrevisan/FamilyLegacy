@@ -12,9 +12,9 @@ import java.util.Map;
 public final class GEDCOMMapper{
 
 	// ---- Eventi individuali e familiari ----
-	private static final Map<String, String> EVENT_MAP = new HashMap<>();
+	public static final Map<String, String> EVENT_MAP = new HashMap<>();
 	// ---- Attributi individuali ----
-	private static final Map<String, String> ATTRIBUTE_MAP = new HashMap<>();
+	public static final Map<String, String> ATTRIBUTE_MAP = new HashMap<>();
 	// ---- Sesso ----
 	private static final Map<String, String> SEX_MAP = new HashMap<>();
 	// ---- Tipo di media (SourceRecord.media_type) ----
@@ -22,7 +22,7 @@ public final class GEDCOMMapper{
 	// ---- Tipo di relazione (RelationshipRecord.type) ----
 	private static final Map<String, String> RELATIONSHIP_TYPE_MAP = new HashMap<>();
 	// ---- Ruolo in event_participation ----
-	private static final Map<String, String> ROLE_MAP = new HashMap<>();
+	public static final Map<String, String> ROLE_MAP = new HashMap<>();
 	// ---- Stato di una relazione ----
 	private static final Map<String, String> STATUS_MAP = new HashMap<>();
 	// ---- Calendario ----
@@ -248,18 +248,27 @@ public final class GEDCOMMapper{
 	}
 
 	// ---- Metodi pubblici ----
-	public static String mapEvent(String gedcomTag, String customType){
-		if(customType != null && !customType.isEmpty()){
-			return customType.toLowerCase(Locale.ROOT);
+	public static String mapEvent(String gedcomTag, String defaultValue){
+		if(gedcomTag == null)
+			return defaultValue;
+
+		if(defaultValue != null && !defaultValue.isEmpty()){
+			defaultValue = defaultValue.toLowerCase(Locale.ROOT);
 		}
-		return EVENT_MAP.getOrDefault(gedcomTag.toUpperCase(Locale.ROOT), "other");
+		else{
+			defaultValue = "other";
+		}
+		return EVENT_MAP.getOrDefault(gedcomTag.toUpperCase(Locale.ROOT), defaultValue);
 	}
 
-	public static String mapAttribute(String gedcomTag, String customType){
-		if(customType != null && !customType.isEmpty()){
-			return customType.toLowerCase(Locale.ROOT);
+	public static String mapAttribute(String gedcomTag, String defaultValue){
+		if(defaultValue != null && !defaultValue.isEmpty()){
+			defaultValue = defaultValue.toLowerCase(Locale.ROOT);
 		}
-		return ATTRIBUTE_MAP.getOrDefault(gedcomTag.toUpperCase(Locale.ROOT), "other");
+		else{
+			defaultValue = "other";
+		}
+		return ATTRIBUTE_MAP.getOrDefault(gedcomTag.toUpperCase(Locale.ROOT), defaultValue);
 	}
 
 	public static String mapSex(String gedcomSex){
@@ -283,11 +292,17 @@ public final class GEDCOMMapper{
 		return RELATIONSHIP_TYPE_MAP.getOrDefault(gedcomType.toLowerCase(Locale.ROOT), gedcomType.toLowerCase(Locale.ROOT));
 	}
 
-	public static String mapRole(String gedcomRole){
-		if(gedcomRole == null){
-			return null;
+	public static String mapRole(String gedcomRole, String defaultValue){
+		if(gedcomRole == null)
+			return defaultValue;
+
+		if(defaultValue != null && !defaultValue.isEmpty()){
+			defaultValue = defaultValue.toLowerCase(Locale.ROOT);
 		}
-		return ROLE_MAP.getOrDefault(gedcomRole.toUpperCase(Locale.ROOT), gedcomRole.toLowerCase(Locale.ROOT));
+		else{
+			defaultValue = "other";
+		}
+		return ROLE_MAP.getOrDefault(gedcomRole.toUpperCase(Locale.ROOT), defaultValue);
 	}
 
 	public static String mapStatus(String gedcomStatus){

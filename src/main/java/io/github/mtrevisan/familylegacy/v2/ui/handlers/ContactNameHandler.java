@@ -49,7 +49,8 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 
 	public static final String TYPE = "CONTACT_NAME_STRUCTURE";
 
-	private static final String TAG_VALUE = "VALUE";
+
+	private static final String TAG_TEXT = "TEXT";
 
 
 	@Override
@@ -79,11 +80,11 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 
 		final StringBuilder fullName = new StringBuilder();
 
-		final String val = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		if(StringUtils.isNotEmpty(val)){
+		final String text = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
+		if(StringUtils.isNotEmpty(text)){
 			if(!fullName.isEmpty())
 				fullName.append(StringUtils.SPACE);
-			fullName.append(val);
+			fullName.append(text);
 		}
 
 		return GUIHelper.limitTextLength(fullName.toString());

@@ -51,10 +51,7 @@ import org.apache.commons.lang3.StringUtils;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -80,7 +77,7 @@ import java.util.Objects;
  * Tabs:
  * Tab 1 (Properties): name, sex, preferred_image
  * Tab 2 (Attributes): IndividualAttributeRecord (individual = this individual)
- * Tab 3 (Relationships): RelationshipRecord (subject = this individual), RelationshipRecord (object = this individual)
+ * Tab 3 (Relationships): RelationshipRecord (subject = this individual), RelationshipRecord (target = this individual)
  * Tab 4 (Participations): EventParticipationRecord (participant[individual] = this individual)
  * Tab 5 (Context): ContextImpactRecord (target[individual] = this individual)
  * Tab 6 (Research): ConclusionRecord (resolves = this individual), IdentityHypothesisRecord (subject/candidate = this individual), ResearchQuestionRecord (target[individual] = this individual)
@@ -140,7 +137,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, TAG_INDIVIDUAL_ATTRIBUTE, "Individual Attributes", IndividualAttributeHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_ON_OBJECT, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, IndividualHandler.class)
+			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IndividualHandler.class)
@@ -194,7 +191,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
 
-		final JPanel relationshipAsObjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_OBJECT);
+		final JPanel relationshipAsObjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
 		GUIHelper.addComponent(panel, relationshipAsObjectPanel);
 
 		return panel;

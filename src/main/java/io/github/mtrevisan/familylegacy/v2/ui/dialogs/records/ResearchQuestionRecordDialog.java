@@ -80,7 +80,7 @@ import java.util.Objects;
  *   conclusion?: Text
  *   conclusion_confidence?: enum { low, medium, high }
  *   rationale?: Text
- *   closed?: Date
+ *   closed_date?: Date
  *   privacy?: PrivacyStructure
  *   audit: AuditStructure
  * }
@@ -219,7 +219,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		// rationale
 		GUIHelper.addLabeledComponent(propertiesPanel, "Rationale:", rationaleArea);
 
-		// closed
+		// closed date
 		//calculated
 
 		return propertiesPanel;

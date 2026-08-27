@@ -49,10 +49,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -63,7 +60,7 @@ import java.util.Objects;
  * record PlaceRelationshipRecord {
  *   id: LocalID
  *   subject: Xref&lt;PlaceRecord&gt;
- *   object: Xref&lt;PlaceRecord&gt;
+ *   target: Xref&lt;PlaceRecord&gt;
  *   type: enum { administrative_part_of, geographic_part_of, ecclesiastical_part_of, judicial_part_of, cadastral_part_of } | Text
  *   valid_from?: DateStructure
  *   valid_to?: DateStructure
@@ -75,7 +72,7 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): subject, object, type, valid_from, valid_to
+ * Tab 1 (Properties): subject, target, type, valid_from, valid_to
  * Tab 5 (Context): ContextImpactRecord (target[place_relationship] = this relationship)
  * Tab 6 (Research): ConclusionRecord (resolves = this relationship), ResearchQuestionRecord (target[place_relationship] = this relationship)
  * Tab 7 (Sources): source
@@ -89,7 +86,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 
 	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_OBJECT = "OBJECT";
+	private static final String TAG_TARGET = "TARGET";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
@@ -107,7 +104,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	private final RecordDialogComponents components;
 
 	private final EntityField subjectField;
-	private final EntityField objectField;
+	private final EntityField targetField;
 	private final BoundComboBox<String> typeCombo;
 	private final DateField validFromField;
 	private final DateField validToField;
@@ -130,7 +127,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		subjectField = EntityField.createForRecordFromOneofReference(TAG_SUBJECT, this, model)
 			.withHandlerTypes(PlaceHandler.class);
-		objectField = EntityField.createForRecordFromOneofReference(TAG_OBJECT, this, model)
+		targetField = EntityField.createForRecordFromOneofReference(TAG_TARGET, this, model)
 			.withHandlerTypes(PlaceHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -164,8 +161,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		// subject
 		GUIHelper.addLabeledComponent(propertiesPanel, "Subject*:", subjectField);
 
-		// object
-		GUIHelper.addLabeledComponent(propertiesPanel, "Object*:", objectField);
+		// target
+		GUIHelper.addLabeledComponent(propertiesPanel, "Target*:", targetField);
 
 		// type
 		GUIHelper.addLabeledComponent(propertiesPanel, "Part Type*:", typeCombo);
@@ -252,7 +249,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, showAll);
-			GUIHelper.setComponentVisible(objectField, true);
+			GUIHelper.setComponentVisible(targetField, true);
 		}
 
 		return this;
@@ -262,11 +259,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		super.withParentEntity(parentEntityId, parentEntityPath);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
-			objectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+			targetField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
 
 			final boolean showAll = (parentEntity == null || parentEntity.isEmpty());
 			GUIHelper.setComponentVisible(subjectField, true);
-			GUIHelper.setComponentVisible(objectField, showAll);
+			GUIHelper.setComponentVisible(targetField, showAll);
 		}
 
 		return this;
@@ -276,7 +273,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void loadData(){
 		subjectField.load(record);
-		objectField.load(record);
+		targetField.load(record);
 
 		components.load(record);
 
@@ -294,10 +291,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 			return false;
 		}
 
-		if(!objectField.hasData()){
+		if(!targetField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Object cannot be empty.",
-				tabbedPane, propertiesPanel, objectField);
+				tabbedPane, propertiesPanel, targetField);
 
 			return false;
 		}
@@ -316,7 +313,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	@Override
 	protected void saveData(){
 		subjectField.saveReferences(record);
-		objectField.saveReferences(record);
+		targetField.saveReferences(record);
 
 		components.save(record);
 

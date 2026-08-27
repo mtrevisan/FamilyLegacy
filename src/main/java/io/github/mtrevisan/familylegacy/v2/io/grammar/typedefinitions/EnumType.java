@@ -63,7 +63,7 @@ public final class EnumType extends TypeDefinition{
 			final FLEFGrammar grammar, final List<String> errors){
 		final String val = record.getValue();
 		if(val != null && !values.contains(val.toLowerCase(Locale.ROOT)) && !allowCustomText)
-			errors.add(String.format("Invalid enum value '%s' at '%s'. Allowed: %s", val, contextPath, values));
+			errors.add(String.format("Invalid enum value '%s' at '%s'. Allowed: %s, record %s", val, contextPath, values, record));
 	}
 
 	@Override

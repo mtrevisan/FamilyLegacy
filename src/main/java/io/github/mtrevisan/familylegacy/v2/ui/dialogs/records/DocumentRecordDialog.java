@@ -50,10 +50,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Dialog;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -63,7 +60,7 @@ import java.util.Objects;
  * <pre>
  * record DocumentRecord {
  *   id: LocalID
- *   file: Uri
+ *   uri: Uri
  *   mapping?: enum { spherical_UV, cylindrical_equirectangular_horizontal, cylindrical_equirectangular_vertical } | Text
  *   description?: Text
  *   note*: Xref&lt;NoteRecord&gt;
@@ -73,7 +70,7 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): file, mapping, description
+ * Tab 1 (Properties): uri, mapping, description
  * Tab 6 (Research): ResearchQuestionRecord (target[document] = this document)
  * Tab 7 (Sources): SourceRecord (document contains this document)
  * Tab 8 (Notes): note
@@ -86,7 +83,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 6128827794273719284L;
 
 
-	private static final String TAG_FILE = "FILE";
+	private static final String TAG_URI = "URI";
 	private static final String TAG_MAPPING = "MAPPING";
 	private static final String TAG_DESCRIPTION = "DESCRIPTION";
 	private static final String TAG_RESEARCH_QUESTION = "RESEARCH_QUESTION";
@@ -100,7 +97,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField fileField;
+	private final BoundTextField uriField;
 	private final BoundComboBox<String> mappingCombo;
 	private final BoundTextArea descriptionArea;
 
@@ -119,14 +116,14 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 
-		fileField = new BoundTextField(TAG_FILE);
-		GUIHelper.installBehavior(fileField,
+		uriField = new BoundTextField(TAG_URI);
+		GUIHelper.installBehavior(uriField,
 			null, null,
 			null, null,
 			builder -> {
 				builder.item("Set…", this::setNewItem);
 				builder.separator();
-				builder.selectionSensitiveItem("Clear", fileField::clear);
+				builder.selectionSensitiveItem("Clear", uriField::clear);
 			});
 		mappingCombo = new BoundComboBox<>(TAG_MAPPING, new String[]{
 			StringUtils.EMPTY,
@@ -144,7 +141,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
 			.build();
 
-		components.bind(fileField);
+		components.bind(uriField);
 		components.bind(mappingCombo);
 		components.bind(descriptionArea);
 
@@ -172,14 +169,14 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 			return;
 		}
 
-		fileField.setText(selectedFile.getAbsolutePath());
+		uriField.setText(selectedFile.getAbsolutePath());
 	}
 
 
 	@Override
 	protected JPanel createPropertiesPanel(){
 		// file
-		GUIHelper.addLabeledComponent(propertiesPanel, "File*:", fileField);
+		GUIHelper.addLabeledComponent(propertiesPanel, "URI*:", uriField);
 
 		// mapping
 		GUIHelper.addLabeledComponent(propertiesPanel, "Mapping:", mappingCombo);
@@ -239,10 +236,10 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected boolean validData(){
-		if(fileField.isEmpty()){
+		if(uriField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
 				"Document file is required.",
-				tabbedPane, propertiesPanel, fileField);
+				tabbedPane, propertiesPanel, uriField);
 
 			return false;
 		}

@@ -53,13 +53,13 @@ import java.io.Serial;
  * <pre>
  * struct RepositoryCitation {
  *   repository: Xref&lt;RepositoryRecord&gt;
- *   location?: Text
+ *   locator?: Text
  *   note?: Text
  * }
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): location
+ * Tab 1 (Properties): locator
  * Tab 8 (Notes): note
  */
 public class RepositoryCitationDialog extends BaseRecordDialog{
@@ -69,7 +69,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 
 	private static final String TAG_REPOSITORY = "REPOSITORY";
-	private static final String TAG_LOCATION = "LOCATION";
+	private static final String TAG_LOCATOR = "LOCATOR";
 	private static final String TAG_NOTE = "NOTE";
 
 
@@ -78,7 +78,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField repositoryField;
-	private final BoundTextField locationField;
+	private final BoundTextField locatorField;
 
 
 	public static RepositoryCitationDialog createNew(final Dialog parent, final FLEFModel model){
@@ -97,7 +97,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");
 
 		repositoryField = new BoundTextField(TAG_REPOSITORY);
-		locationField = new BoundTextField(TAG_LOCATION);
+		locatorField = new BoundTextField(TAG_LOCATOR);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -105,7 +105,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(repositoryField);
-		components.bind(locationField);
+		components.bind(locatorField);
 
 
 		finalizeDialog(parent);
@@ -114,8 +114,8 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		// location
-		GUIHelper.addLabeledComponent(propertiesPanel, "Location:", locationField);
+		// locator
+		GUIHelper.addLabeledComponent(propertiesPanel, "Locator:", locatorField);
 
 		return propertiesPanel;
 	}
