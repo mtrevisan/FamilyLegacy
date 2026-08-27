@@ -61,26 +61,20 @@ public class GEDCOMToFLEFConverter {
 		registerIds(roots);
 
 		// ---- 2. Instantiate converters ----
-		HeaderConverter headerConverter = new HeaderConverter(model, submitterMap);
-		IndividualConverter individualConverter = new IndividualConverter(
-			model, individualMap, sourceMap, multimediaMap, placeCache);
-		FamilyConverter familyConverter = new FamilyConverter(
-			model, familyMap, individualMap, sourceMap, multimediaMap, placeCache, referenceResolver);
-		SourceConverter sourceConverter = new SourceConverter(
-			model, sourceMap, repositoryMap, multimediaMap, placeCache);
-		RepositoryConverter repositoryConverter = new RepositoryConverter(
-			model, repositoryMap, multimediaMap, placeCache);
-		MultimediaConverter multimediaConverter = new MultimediaConverter(
-			model, multimediaMap, placeCache);
-		SubmitterConverter submitterConverter = new SubmitterConverter(
-			model, submitterMap, placeCache);
-		NoteConverter noteConverter = new NoteConverter(
-			model, noteMap);
+		HeaderConverter headerConverter = new HeaderConverter(model);
+		IndividualConverter individualConverter = new IndividualConverter(model, individualMap, sourceMap, multimediaMap, placeCache);
+		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, sourceMap, multimediaMap, placeCache, referenceResolver);
+		SourceConverter sourceConverter = new SourceConverter(model, sourceMap, repositoryMap, multimediaMap, placeCache);
+		RepositoryConverter repositoryConverter = new RepositoryConverter(model, repositoryMap, multimediaMap, placeCache);
+		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, placeCache);
+		SubmitterConverter submitterConverter = new SubmitterConverter(model, submitterMap, placeCache);
+		NoteConverter noteConverter = new NoteConverter(model, noteMap);
 
 		// ---- 3. First pass: parse all records ----
 		for (GEDCOMNode node : roots) {
 			switch (node.getTag()) {
 				case "HEAD" -> headerConverter.convert(node);
+
 				case "INDI" -> individualConverter.convert(node);
 				case "FAM" -> familyConverter.collect(node);
 				case "SOUR" -> sourceConverter.convert(node);
@@ -95,9 +89,6 @@ public class GEDCOMToFLEFConverter {
 
 		// ---- 4. Second pass: resolve family links ----
 		familyConverter.resolveLinks();
-
-		// ---- 5. Ensure header is present ----
-		headerConverter.ensureHeader();
 
 		// ---- 6. Add all records to the model ----
 		individualMap.values().forEach(model::addRecord);

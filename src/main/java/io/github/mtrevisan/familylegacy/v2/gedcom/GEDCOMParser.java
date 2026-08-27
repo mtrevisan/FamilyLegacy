@@ -25,7 +25,6 @@ public class GEDCOMParser{
 			if(!line.isEmpty() && line.charAt(0) == '\uFEFF'){
 				line = line.substring(1);
 			}
-//			line = line.trim();
 			if(line.isEmpty()){
 				continue;
 			}
