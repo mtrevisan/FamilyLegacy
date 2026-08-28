@@ -1,16 +1,23 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.GEDCOMMapper;
+import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.ReferenceResolver;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,8 +49,9 @@ public class FamilyConverter{
 	private final Map<String, FLEFRecord> sourceMap;
 	private final Map<String, FLEFRecord> multimediaMap;
 	private final Map<String, GEDCOMNode> noteRawMap;
+	private final Map<String, GEDCOMNode> sourRawMap;
+	private final Map<String, GEDCOMNode> objeRawMap;
 	private final StructureParser structParser;
-	private final ReferenceResolver resolver;
 
 	private final List<FamilyLink> familyLinks = new ArrayList<>();
 
@@ -68,7 +76,6 @@ public class FamilyConverter{
 	 * @param sourceMap     map of source IDs to FLEF records (for OBJE → SourceRecord)
 	 * @param multimediaMap map of document IDs to FLEF records (for OBJE → DocumentRecord)
 	 * @param placeCache    cache for place records
-	 * @param resolver      reference resolver for creating relationships/events
 	 */
 	public FamilyConverter(FLEFModel model,
 		Map<String, FLEFRecord> familyMap,
@@ -76,16 +83,18 @@ public class FamilyConverter{
 		Map<String, FLEFRecord> sourceMap,
 		Map<String, FLEFRecord> multimediaMap,
 		Map<String, GEDCOMNode> noteRawMap,
-		PlaceCache placeCache,
-		ReferenceResolver resolver){
+		Map<String, GEDCOMNode> sourRawMap,
+		Map<String, GEDCOMNode> objeRawMap,
+		PlaceCache placeCache){
 		this.model = model;
 		this.familyMap = familyMap;
 		this.individualMap = individualMap;
 		this.sourceMap = sourceMap;
 		this.multimediaMap = multimediaMap;
 		this.noteRawMap = noteRawMap;
+		this.sourRawMap = sourRawMap;
+		this.objeRawMap = objeRawMap;
 		this.structParser = new StructureParser(placeCache);
-		this.resolver = resolver;
 	}
 
 	/**
@@ -99,9 +108,8 @@ public class FamilyConverter{
 		IDGenerator.registerExistingId(cleanFamId);
 
 		// Create GroupRecord
-		FLEFRecord group = FLEFRecord.createChildWithTag("group");
-		group.setId(cleanFamId);
-		group.addChild(FLEFRecord.createChildWithTagAndValue("type", "family"));
+		FLEFRecord group = FLEFRecord.createMainRecord(cleanFamId, GroupHandler.TYPE)
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", "family"));
 		familyMap.put(cleanFamId, group);
 
 		// Create a link object for later resolution
@@ -112,17 +120,17 @@ public class FamilyConverter{
 		// Husband and wife
 		GEDCOMNode husbNode = GEDCOMHelper.findFirstChild(famNode, "HUSB");
 		if(husbNode != null && husbNode.getValue() != null){
-			link.husbandId = IDNormalizer.clean(husbNode.getValue());
+			link.husbandId = GEDCOMHelper.cleanId(husbNode.getValue());
 		}
 		GEDCOMNode wifeNode = GEDCOMHelper.findFirstChild(famNode, "WIFE");
 		if(wifeNode != null && wifeNode.getValue() != null){
-			link.wifeId = IDNormalizer.clean(wifeNode.getValue());
+			link.wifeId = GEDCOMHelper.cleanId(wifeNode.getValue());
 		}
 
 		// Children
 		for(GEDCOMNode chilNode : GEDCOMHelper.findChildren(famNode, "CHIL")){
 			if(chilNode.getValue() != null){
-				link.childrenIds.add(IDNormalizer.clean(chilNode.getValue()));
+				link.childrenIds.add(GEDCOMHelper.cleanId(chilNode.getValue()));
 			}
 		}
 
@@ -154,24 +162,38 @@ public class FamilyConverter{
 			if(reportedCount >= 0){
 				int actualCount = link.childrenIds.size();
 				if(reportedCount != actualCount){
-					String text = "Number of children: " + nchiNode.getValue();
-					FLEFRecord note = structParser.createNoteStruct(text, famNode);
-					if(note != null) group.addChild(note);
+					FLEFRecord groupAttribute = FLEFRecord.createMainRecord(IDGenerator.nextId(GroupAttributeHandler.ID_PREFIX), GroupAttributeHandler.TYPE)
+						.addChild(FLEFRecord.createChildWithTagAndValue("group", group.getId()))
+						.addChild(FLEFRecord.createChildWithTagAndValue("type", "children_count"))
+						.addChild(AuditBuilder.build(famNode));
+					model.addRecord(groupAttribute);
 				}
 			}
 		}
 
-		// Restriction notice (RESN) -> privacy
-		GEDCOMNode resnNode = GEDCOMHelper.findFirstChild(famNode, "RESN");
-		if(resnNode != null && resnNode.getValue() != null){
-			String level = GEDCOMMapper.mapPrivacyLevel(resnNode.getValue());
-			FLEFRecord privacy = FLEFRecord.createChildWithTag("privacy");
-			privacy.addChild(FLEFRecord.createChildWithTagAndValue("level", level));
-			group.addChild(privacy);
+		// ---- Sources (SOUR) ----
+		for (GEDCOMNode sourNode : GEDCOMHelper.findChildren(famNode, "SOUR")) {
+			GEDCOMHelper.attachSource(group, model,
+				sourNode, noteRawMap, sourRawMap, objeRawMap);
 		}
 
+		// ---- Notes (GEDCOM NOTE) – inline structs ----
+		for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(famNode, "NOTE")) {
+			GEDCOMHelper.attachNote(group,
+				noteNode, noteRawMap);
+		}
+
+		// Multimedia (OBJE)
+		for (GEDCOMNode multimediaLinkNode : GEDCOMHelper.findChildren(famNode, "OBJE")) {
+			GEDCOMHelper.attachMultimediaLink(group, model,
+				multimediaLinkNode, objeRawMap);
+		}
+
+		// Restriction notice (RESN) -> privacy
+		GEDCOMHelper.attachRestriction(group, famNode);
+
 		// Audit
-		group.addChild(structParser.createAudit(famNode));
+		group.addChild(AuditBuilder.build(famNode));
 
 		// Add all sources and notes directly to the group (they are not link-specific)
 		for(GEDCOMNode sourNode : link.sourNodes){
@@ -190,7 +212,7 @@ public class FamilyConverter{
 	/**
 	 * Second pass: resolve all links, create relationships, events, and OBJE handling.
 	 */
-	public void resolveLinks(){
+	public void resolveLinks(List<GEDCOMNode> roots){
 		for(FamilyLink link : familyLinks){
 			FLEFRecord group = familyMap.get(link.familyId);
 			if(group == null) continue;
@@ -200,46 +222,36 @@ public class FamilyConverter{
 			String wifeName = getDisplayName(link.wifeId);
 			String groupName = "Family of " + husbandName + (wifeName.isEmpty()? "": " and " + wifeName);
 			if(!groupName.equals("Family of ")){
-				FLEFRecord nameRec = FLEFRecord.createChildWithTag("name");
-				FLEFRecord textRec = FLEFRecord.createChildWithTag("text");
-				textRec.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName));
-				nameRec.addChild(textRec);
+				FLEFRecord nameRec = FLEFRecord.createChildWithTag("name")
+					.addChild(FLEFRecord.createChildWithTagAndValue("value", groupName));
 				group.addChild(nameRec);
 			}
 
-			// ---- OBJE handling (preferred_image + SourceRecord for others) ----
-			processObjNodes(link, group);
-
 			// ---- Spouse relationship ----
 			if(link.husbandId != null && link.wifeId != null){
-				FLEFRecord spouseRel = FLEFRecord.createChildWithTag("relationship");
-				spouseRel.setId(IDGenerator.nextId("RL"));
+				FLEFRecord spouseRel = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE);
 				// subject: husband
-				FLEFRecord subject = FLEFRecord.createChildWithTag("subject");
-				FLEFRecord subjInd = FLEFRecord.createChildWithTag("individual");
-				subjInd.setValue(link.husbandId);
-				subject.addChild(subjInd);
-				spouseRel.addChild(subject);
+				spouseRel.addChild(FLEFRecord.createChildWithTag("subject")
+					.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId)));
 				// object: wife
-				FLEFRecord object = FLEFRecord.createChildWithTag("object");
-				FLEFRecord objInd = FLEFRecord.createChildWithTag("individual");
-				objInd.setValue(link.wifeId);
-				object.addChild(objInd);
-				spouseRel.addChild(object);
+				spouseRel.addChild(FLEFRecord.createChildWithTag("target")
+					.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId)));
 				spouseRel.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"));
 				// Status: if there is a DIV event, set ended
-				boolean hasDivorce = link.events.stream().anyMatch(e -> "DIV".equals(e.getTag()));
+				boolean hasDivorce = link.events.stream()
+					.anyMatch(e -> "DIV".equals(e.getTag()));
 				spouseRel.addChild(FLEFRecord.createChildWithTagAndValue("status", hasDivorce? "ended": "active"));
 				// Add date from MARR event
 				for(GEDCOMNode evt : link.events){
 					if("MARR".equals(evt.getTag())){
 						FLEFRecord dateStruct = structParser.parseDateStructure(evt);
-						if(dateStruct != null) spouseRel.addChild(dateStruct);
+						if(dateStruct != null)
+							spouseRel.addChild(dateStruct);
 						break;
 					}
 				}
 				// Audit for relationship
-				spouseRel.addChild(structParser.createAudit(link.famNode));
+				spouseRel.addChild(AuditBuilder.build(link.famNode));
 				model.addRecord(spouseRel);
 			}
 
@@ -247,31 +259,44 @@ public class FamilyConverter{
 			for(String childId : link.childrenIds){
 				if(individualMap.containsKey(childId)){
 					if(link.husbandId != null){
-						resolver.createParentChild(childId, link.husbandId);
+						createParentChild(childId, link.husbandId);
 					}
 					if(link.wifeId != null){
-						resolver.createParentChild(childId, link.wifeId);
+						createParentChild(childId, link.wifeId);
 					}
 				}
 			}
 
 			// ---- Family events as EventRecords ----
 			for(GEDCOMNode evtNode : link.events){
-				FLEFRecord evtRec = structParser.parseEvent(evtNode, evtNode.getTag(), noteRawMap);
-				if(evtRec != null){
-					String evtId = IDGenerator.nextId("E");
-					evtRec.setId(evtId);
-					model.addRecord(evtRec);
-					// Link participants
-					if(link.husbandId != null){
-						resolver.createEventParticipation(evtId, link.husbandId, "individual", "spouse");
-					}
-					if(link.wifeId != null){
-						resolver.createEventParticipation(evtId, link.wifeId, "individual", "spouse");
-					}
-				}
+				GEDCOMHelper.attachGroupAttribute(group, model,
+					evtNode, noteRawMap, sourRawMap, objeRawMap, roots, group.getId(), link.husbandId, link.wifeId);
 			}
 		}
+	}
+
+	private void createParentChild(String childId, String parentId){
+		FLEFRecord rel = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+			// subject: child
+			.addChild(FLEFRecord.createChildWithTag("subject")
+				.addChild(FLEFRecord.createChildWithTagAndValue("individual", childId))
+			)
+			// object: parent
+			.addChild(FLEFRecord.createChildWithTag("target")
+				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId))
+			)
+			// type: biological_child (default) – could be overridden by adoption etc.
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", "biological_child"))
+			// Status: active
+			.addChild(FLEFRecord.createChildWithTagAndValue("status", "active"))
+			// audit
+			.addChild(FLEFRecord.createChildWithTag("audit")
+				.addChild(FLEFRecord.createChildWithTag("creation")
+					.addChild(FLEFRecord.createChildWithTagAndValue("date", DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.DAYS))))
+					.addChild(FLEFRecord.createChildWithTagAndValue("comment", "From GEDCOM conversion"))
+				)
+			);
+		model.addRecord(rel);
 	}
 
 	// ------------------------------------------------------------------------
@@ -303,7 +328,7 @@ public class FamilyConverter{
 			FLEFRecord docRecord = null;
 			String objXref = objNode.getXrefId();
 			if(objXref != null){
-				String cleanId = IDNormalizer.clean(objXref);
+				String cleanId = GEDCOMHelper.cleanId(objXref);
 				docRecord = multimediaMap.get(cleanId);
 			}
 			if(docRecord == null){
@@ -314,7 +339,7 @@ public class FamilyConverter{
 
 			// 2. If primary: create preferred_image
 			if(objNode == preferredObj){
-				String fileUri = FLEFRecordHelper.getChildValue(docRecord, "file");
+				String fileUri = FLEFRecordHelper.getChildValue(docRecord, "uri");
 				if(fileUri != null && !fileUri.isEmpty()){
 					FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
 					prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
@@ -364,14 +389,12 @@ public class FamilyConverter{
 	 * Excludes tags that are already used for specific purposes.
 	 */
 	private FLEFRecord createDocumentRecord(GEDCOMNode objNode){
-		String id = IDGenerator.nextId("D");
-		FLEFRecord doc = FLEFRecord.createChildWithTag("document");
-		doc.setId(id);
+		FLEFRecord doc = FLEFRecord.createMainRecord(IDGenerator.nextId(DocumentHandler.ID_PREFIX), DocumentHandler.TYPE);
 
 		// FILE -> file
 		GEDCOMNode fileNode = GEDCOMHelper.findFirstChild(objNode, "FILE");
 		if(fileNode != null && fileNode.getValue() != null){
-			doc.addChild(FLEFRecord.createChildWithTagAndValue("file", fileNode.getValue()));
+			doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileNode.getValue()));
 		}
 
 		// TITL -> description
@@ -384,7 +407,7 @@ public class FamilyConverter{
 //		GEDCOMNode formNode = GEDCOMHelper.findFirstChild(objNode, "FORM");
 //		if(formNode != null && formNode.getValue() != null){
 //			FLEFRecord note = FLEFRecord.createChildWithTag("note");
-//			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Format: " + formNode.getValue()));
+//			note.addChild(FLEFRecord.createChildWithTagAndValue("text", "Format: " + formNode.getValue()));
 //			doc.addChild(note);
 //		}
 
@@ -394,13 +417,13 @@ public class FamilyConverter{
 //			String tag = child.getTag();
 //			if(tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)){
 //				FLEFRecord note = FLEFRecord.createChildWithTag("note");
-//				note.addChild(FLEFRecord.createChildWithTagAndValue("value", tag + ": " + child.getValue()));
+//				note.addChild(FLEFRecord.createChildWithTagAndValue("text", tag + ": " + child.getValue()));
 //				doc.addChild(note);
 //			}
 //		}
 
 		// Audit
-		doc.addChild(structParser.createAudit(objNode));
+		doc.addChild(AuditBuilder.build(objNode));
 		return doc;
 	}
 
@@ -408,22 +431,19 @@ public class FamilyConverter{
 	 * Creates a SourceRecord that references a DocumentRecord.
 	 */
 	private FLEFRecord createSourceRecordFromDocument(FLEFRecord docRecord, GEDCOMNode objNode){
-		String id = IDGenerator.nextId("S");
-		FLEFRecord source = FLEFRecord.createChildWithTag("source");
-		source.setId(id);
+		FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE);
 
 		// Title: use document description or default
 		String docDesc = FLEFRecordHelper.getChildValue(docRecord, "description");
 		if(docDesc == null || docDesc.isEmpty()){
 			docDesc = "Image";
 		}
-		FLEFRecord titleRec = FLEFRecord.createChildWithTag("title");
-		titleRec.addChild(FLEFRecord.createChildWithTagAndValue("value", docDesc));
+		FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")
+			.addChild(FLEFRecord.createChildWithTagAndValue("value", docDesc));
 		source.addChild(titleRec);
 
 		// Reference to the DocumentRecord
-		FLEFRecord docRef = FLEFRecord.createChildWithTag("document");
-		docRef.setValue(docRecord.getId());
+		FLEFRecord docRef = FLEFRecord.createChildWithTagAndValue("document", docRecord.getId());
 		source.addChild(docRef);
 
 		// Date from _DATE (if present)
@@ -435,7 +455,7 @@ public class FamilyConverter{
 		}
 
 		// Audit
-		source.addChild(structParser.createAudit(objNode));
+		source.addChild(AuditBuilder.build(objNode));
 		return source;
 	}
 

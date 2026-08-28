@@ -1,18 +1,18 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -53,7 +53,7 @@ public class MultimediaConverter{
 		if(objXref == null && objNode.getValue() != null){
 			String val = objNode.getValue().trim();
 			if(val.startsWith("@") && val.endsWith("@")){
-				objXref = IDNormalizer.clean(val);
+				objXref = GEDCOMHelper.cleanId(val);
 			}
 		}
 
@@ -66,12 +66,11 @@ public class MultimediaConverter{
 			// If the referenced record does not exist yet, we create a minimal placeholder
 			// so that the reference can be resolved later.
 			if(!multimediaMap.containsKey(objXref)){
-				FLEFRecord doc = FLEFRecord.createChildWithTag("document");
-				doc.setId(objXref);
-				// Add a placeholder file to satisfy the protocol requirement.
-				// This will be replaced when the actual OBJE record is converted.
-				doc.addChild(FLEFRecord.createChildWithTagAndValue("file", "unknown"));
-				doc.addChild(structParser.createAudit(objNode));
+				FLEFRecord doc = FLEFRecord.createMainRecord(objXref, DocumentHandler.TYPE)
+					// Add a placeholder file to satisfy the protocol requirement.
+					// This will be replaced when the actual OBJE record is converted.
+					.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"))
+					.addChild(AuditBuilder.build(objNode));
 				multimediaMap.put(objXref, doc);
 				model.addRecord(doc);
 			}
@@ -84,7 +83,7 @@ public class MultimediaConverter{
 			id = objXref;
 		}
 		else{
-			id = IDGenerator.nextId("D");
+			id = IDGenerator.nextId(DocumentHandler.ID_PREFIX);
 		}
 
 		// If the ID is already in the map, skip (already converted)
@@ -97,8 +96,7 @@ public class MultimediaConverter{
 			// L'ID è già impostato
 		}
 		else{
-			doc = FLEFRecord.createChildWithTag("document");
-			doc.setId(id);
+			doc = FLEFRecord.createMainRecord(id, DocumentHandler.TYPE);
 			multimediaMap.put(id, doc);
 		}
 
@@ -121,11 +119,11 @@ public class MultimediaConverter{
 			GEDCOMNode fileNode = fileNodes.get(0);
 			String fileVal = (fileNode.getValue() != null)? fileNode.getValue().trim(): "";
 			if(!fileVal.isEmpty()){
-				doc.addChild(FLEFRecord.createChildWithTagAndValue("file", fileVal));
+				doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileVal));
 			}
 			else{
 				// File node exists but has no value – add placeholder
-				doc.addChild(FLEFRecord.createChildWithTagAndValue("file", "unknown"));
+				doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"));
 			}
 
 			// ---- 5a. FILE/FORM ----
@@ -133,15 +131,17 @@ public class MultimediaConverter{
 			if(formNode != null && formNode.getValue() != null){
 				String format = formNode.getValue().trim();
 				if(StringUtils.isNotEmpty(format)){
-					FLEFRecord note = FLEFRecord.createChildWithTag("note");
-					note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Format: " + format));
+					FLEFRecord note = FLEFRecord.createChildWithTag("note")
+						.addChild(FLEFRecord.createChildWithTagAndValue("text", "Format: " + format))
+						.addChild(AuditBuilder.build(objNode));
 					doc.addChild(note);
 				}
 				// ---- 5b. FILE/FORM/TYPE ----
 				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(formNode, "TYPE");
 				if(typeNode != null && typeNode.getValue() != null){
-					FLEFRecord note = FLEFRecord.createChildWithTag("note");
-					note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Media type: " + typeNode.getValue()));
+					FLEFRecord note = FLEFRecord.createChildWithTag("note")
+						.addChild(FLEFRecord.createChildWithTagAndValue("text", "Media type: " + typeNode.getValue()))
+						.addChild(AuditBuilder.build(objNode));
 					doc.addChild(note);
 				}
 			}
@@ -153,8 +153,9 @@ public class MultimediaConverter{
 				if(StringUtils.isNotEmpty(fileTitle)){
 					// If we already have a description from OBJE/TITL, add as note; else use as description.
 					if(FLEFRecordHelper.findChild(doc, "description") != null){
-						FLEFRecord note = FLEFRecord.createChildWithTag("note");
-						note.addChild(FLEFRecord.createChildWithTagAndValue("value", "File title: " + fileTitle));
+						FLEFRecord note = FLEFRecord.createChildWithTag("note")
+							.addChild(FLEFRecord.createChildWithTagAndValue("text", "File title: " + fileTitle))
+							.addChild(AuditBuilder.build(objNode));
 						doc.addChild(note);
 					}
 					else{
@@ -166,7 +167,7 @@ public class MultimediaConverter{
 		else{
 			// No FILE child – this should not happen for a valid OBJE record,
 			// but we add a placeholder to satisfy the protocol.
-			doc.addChild(FLEFRecord.createChildWithTagAndValue("file", "unknown"));
+			doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"));
 		}
 
 //		// ---- 2. REFN (0:M) – user reference number with optional TYPE ----
@@ -217,7 +218,7 @@ public class MultimediaConverter{
 //		}
 
 		// ---- 7. CHANGE_DATE (audit) ----
-		doc.addChild(structParser.createAudit(objNode));
+		doc.addChild(AuditBuilder.build(objNode));
 
 		// ---- 8. Add to model ----
 		model.addRecord(doc);

@@ -249,12 +249,16 @@ public class EntityField extends BoundTextField{
 	}
 
 
+	public void load(final FLEFRecord record){
+		load(record, 0);
+	}
+
 	/**
 	 * Loads the entity from a given target record.
 	 *
 	 * @param record the record containing the reference
 	 */
-	public void load(final FLEFRecord record){
+	public void load(final FLEFRecord record, final int index){
 		clear();
 
 		if(record == null || record.isEmpty())
@@ -263,8 +267,10 @@ public class EntityField extends BoundTextField{
 		FLEFRecord entity = null;
 		if(type == EntityType.ENTITY_REFERENCE)
 			entity = FLEFRecordHelper.extractRecordFromReference(record, path, model);
-		else if(type == EntityType.ONEOF_REFERENCE)
-			entity = FLEFRecordHelper.extractRecordFromOneOfReference(record, path, model);
+		else if(type == EntityType.ONEOF_REFERENCE){
+			final List<FLEFRecord> entities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, path, model);
+			entity = entities.get(index);
+		}
 		else if(type == EntityType.CITATION_WRAPPER)
 			entity = FLEFRecordHelper.extractStructureWithReference(record, path);
 		setEntity(entity);

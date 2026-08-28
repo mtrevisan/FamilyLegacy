@@ -1348,10 +1348,10 @@ records {
 	}
 
 	IDENTITY_HYPOTHESIS IH1 {
-		SUBJECT {
+		IDENTITY {
 			INDIVIDUAL I1
 		}
-		CANDIDATE {
+		IDENTITY {
 			INDIVIDUAL I2
 		}
 		COMMENT """
@@ -1420,10 +1420,10 @@ person"""
 	}
 
 	IDENTITY_HYPOTHESIS IH2 {
-		SUBJECT {
+		IDENTITY {
 			INDIVIDUAL I3
 		}
-		CANDIDATE {
+		IDENTITY {
 			INDIVIDUAL I1
 		}
 		AUDIT {
@@ -1443,10 +1443,10 @@ person"""
 	}
 
 	IDENTITY_HYPOTHESIS IH3 {
-		SUBJECT {
+		IDENTITY {
 			GROUP G1
 		}
-		CANDIDATE {
+		IDENTITY {
 			GROUP G2
 		}
 		AUDIT {
@@ -1466,10 +1466,10 @@ person"""
 	}
 
 	IDENTITY_HYPOTHESIS IH4 {
-		SUBJECT {
+		IDENTITY {
 			PLACE P1
 		}
-		CANDIDATE {
+		IDENTITY {
 			PLACE P2
 		}
 		COMMENT same place?
@@ -1499,7 +1499,7 @@ person"""
 		QUESTION is?
 		CONCLUSION it must be true
 		CONCLUSION_CONFIDENCE medium
-		EXPLANATION explanation of question
+		RATIONALE explanation of question
 		PRIVACY {
 			LEVEL restricted
 			REASON because
@@ -1523,7 +1523,7 @@ person"""
 			INDIVIDUAL I1
 		}
 		STATUS open
-		CLOSED 2010-10-10
+		CLOSED_DATE 2010-10-10
 	}
 
 	RESEARCH_QUESTION RQ2 {
@@ -1894,7 +1894,7 @@ person"""
 		TARGET {
 			INDIVIDUAL I1
 		}
-		PARENT RA2
+		PARENT_ACTIVITY RA2
 	}
 
 	RESEARCH_ACTIVITY RA2 {
@@ -2071,50 +2071,48 @@ person"""
 		}
 		NAME {
 			TYPE legal
-			TEXT {
-				VALUE household group
-				LOCALE it-IT
-				VARIANT {
-					PHONETIC {
-						SYSTEM canIPA
-						VALUE kaxa
-					}
-				}
-				SOURCE {
-					SOURCE S1
-				}
-				NOTE {
-					TITLE note 1 title
-					TEXT note 1
-					MIME text/plain
-					LOCALE it-IT
-					SOURCE {
-						SOURCE S1
-					}
-					PRIVACY {
-						LEVEL restricted
-						REASON because
-						EXPIRES 2010-01-01
-					}
-					AUDIT {
-						CREATION {
-							DATE 1990-02-02
-							COMMENT creation comment
-						}
-						UPDATE {
-							DATE 1995-03-03
-							COMMENT first update
-						}
-						UPDATE {
-							DATE 2000-04-04
-							COMMENT second update
-						}
-					}
-					TRANSLATION {
-						TEXT nòda
-						LOCALE vec-IT
-					}
-				}
+            VALUE household group
+            LOCALE it-IT
+            VARIANT {
+                PHONETIC {
+                    SYSTEM canIPA
+                    VALUE kaxa
+                }
+            }
+            SOURCE {
+                SOURCE S1
+            }
+            NOTE {
+                TITLE note 1 title
+                TEXT note 1
+                MIME text/plain
+                LOCALE it-IT
+                SOURCE {
+                    SOURCE S1
+                }
+                PRIVACY {
+                    LEVEL restricted
+                    REASON because
+                    EXPIRES 2010-01-01
+                }
+                AUDIT {
+                    CREATION {
+                        DATE 1990-02-02
+                        COMMENT creation comment
+                    }
+                    UPDATE {
+                        DATE 1995-03-03
+                        COMMENT first update
+                    }
+                    UPDATE {
+                        DATE 2000-04-04
+                        COMMENT second update
+                    }
+                }
+                TRANSLATION {
+                    TEXT nòda
+                    LOCALE vec-IT
+                }
 			}
 		}
 		TYPE household
@@ -2550,19 +2548,17 @@ person"""
 	}
 
 	PLACE P1 {
-		NAME {
-			TEXT {
-				VALUE a certain place
-				LOCALE en-UK
-			}
-			TYPE official
-			VARIANT {
-				PHONETIC {
-					SYSTEM place var sys
-					VALUE place var val
-				}
-			}
-		}
+        NAME {
+            VALUE a certain place
+            LOCALE en-UK
+            TYPE official
+            VARIANT {
+                PHONETIC {
+                    SYSTEM place var sys
+                    VALUE place var val
+                }
+            }
+        }
 		TYPE building
 		MAP {
 			COORDINATES 45.65 12.19
@@ -2604,9 +2600,7 @@ person"""
 
 	PLACE P2 {
 		NAME {
-			TEXT {
-				VALUE a parent place
-			}
+            VALUE a parent place
 			TYPE official
 		}
 		TYPE cadastral_part_of
@@ -2825,56 +2819,54 @@ person"""
 		}
 		NAME {
 			TYPE colonial
-			TEXT {
-				VALUE name
-				LOCALE de
-				VARIANT {
-					PHONETIC {
-						SYSTEM canIPA
-						VALUE kaxa
-					}
-				}
-				SOURCE {
-					SOURCE S1
-					LOCATOR there
-					EXTRACT {
-						TEXT ext
-						TYPE summarized
-						LOCALE en-US
-					}
-				}
-				NOTE {
-					TITLE note 1 title
-					TEXT note 1
-					MIME text/plain
-					LOCALE it-IT
-					SOURCE {
-						SOURCE S1
-					}
-					PRIVACY {
-						LEVEL restricted
-						REASON because
-						EXPIRES 2010-01-01
-					}
-					AUDIT {
-						CREATION {
-							DATE 1990-02-02
-							COMMENT creation comment
-						}
-						UPDATE {
-							DATE 1995-03-03
-							COMMENT first update
-						}
-						UPDATE {
-							DATE 2000-04-04
-							COMMENT second update
-						}
-					}
-					TRANSLATION {
-						TEXT nòda
-						LOCALE vec-IT
-					}
-				}
+            VALUE name
+            LOCALE de
+            VARIANT {
+                PHONETIC {
+                    SYSTEM canIPA
+                    VALUE kaxa
+                }
+            }
+            SOURCE {
+                SOURCE S1
+                LOCATOR there
+                EXTRACT {
+                    TEXT ext
+                    TYPE summarized
+                    LOCALE en-US
+                }
+            }
+            NOTE {
+                TITLE note 1 title
+                TEXT note 1
+                MIME text/plain
+                LOCALE it-IT
+                SOURCE {
+                    SOURCE S1
+                }
+                PRIVACY {
+                    LEVEL restricted
+                    REASON because
+                    EXPIRES 2010-01-01
+                }
+                AUDIT {
+                    CREATION {
+                        DATE 1990-02-02
+                        COMMENT creation comment
+                    }
+                    UPDATE {
+                        DATE 1995-03-03
+                        COMMENT first update
+                    }
+                    UPDATE {
+                        DATE 2000-04-04
+                        COMMENT second update
+                    }
+                }
+                TRANSLATION {
+                    TEXT nòda
+                    LOCALE vec-IT
+                }
 			}
 		}
 		CUSTODIAN I1

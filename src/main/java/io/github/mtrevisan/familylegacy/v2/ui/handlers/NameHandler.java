@@ -39,10 +39,6 @@ import java.awt.Dialog;
  * <p>
  * This handler provides the necessary operations for managing name structures:
  * creation, editing, display name generation, and type identification.
- * <p>
- * Structure:
- * <pre>
- * ???
  * </pre>
  */
 public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
@@ -51,6 +47,7 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 	public static final String CITED_TYPE = "NAME";
 
 	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TYPE = "TYPE";
 
 
 	@Override
@@ -83,20 +80,14 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 		if(record == null)
 			return "--";
 
-		final StringBuilder fullName = new StringBuilder();
+		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		value = GUIHelper.limitTextLength(value);
 
-		final String val = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		if(StringUtils.isNotEmpty(val)){
-			if(!fullName.isEmpty())
-				fullName.append(StringUtils.SPACE);
-			fullName.append(val);
-		}
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		if(StringUtils.isNotEmpty(type))
+			value += " (" + type + ")";
 
-		String result = fullName.toString();
-		if(result.isBlank())
-			return "[" + record.getId() + "]";
-
-		return GUIHelper.limitTextLength(result);
+		return value;
 	}
 
 	@Override

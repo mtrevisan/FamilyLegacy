@@ -4,10 +4,10 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -28,15 +28,11 @@ public class PlaceCache{
 		if(StringUtils.isBlank(placeName)) return null;
 
 		return cache.computeIfAbsent(placeName, name -> {
-			FLEFRecord place = FLEFRecord.createChildWithTag("place");
-			place.setId(IDGenerator.nextId("P"));
-
-			// ---- Primary name (text.value) ----
-			FLEFRecord nameRec = FLEFRecord.createChildWithTag("name");
-			FLEFRecord textRec = FLEFRecord.createChildWithTag("text");
-			textRec.addChild(FLEFRecord.createChildWithTagAndValue("value", name));
-			nameRec.addChild(textRec);
-			place.addChild(nameRec);
+			FLEFRecord place = FLEFRecord.createMainRecord(IDGenerator.nextId(PlaceHandler.ID_PREFIX), PlaceHandler.TYPE)
+				// ---- Primary name (text.value) ----
+				.addChild(FLEFRecord.createChildWithTag("name")
+					.addChild(FLEFRecord.createChildWithTagAndValue("value", name))
+				);
 
 			// ---- Phonetic variations (FONE) -> variant > phonetic ----
 			for(GEDCOMNode fone : GEDCOMHelper.findChildren(placNode, "FONE")){
@@ -47,8 +43,6 @@ public class PlaceCache{
 				phonetic.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
 				phonetic.addChild(FLEFRecord.createChildWithTagAndValue("value", fone.getValue()));
 				variant.addChild(phonetic);
-				nameRec.addChild(variant);
-				textRec.addChild(variant);
 			}
 
 			// ---- Romanized variations (ROMN) -> variant > transcription ----
@@ -60,7 +54,6 @@ public class PlaceCache{
 				transcription.addChild(FLEFRecord.createChildWithTagAndValue("system", system));
 				transcription.addChild(FLEFRecord.createChildWithTagAndValue("value", romn.getValue()));
 				variant.addChild(transcription);
-				textRec.addChild(variant);
 			}
 
 			// ---- Map coordinates (MAP -> LATI, LONG) ----

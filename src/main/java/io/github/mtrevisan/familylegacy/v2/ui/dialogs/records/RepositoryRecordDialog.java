@@ -32,9 +32,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
@@ -44,10 +44,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
 
 /**
@@ -57,7 +54,7 @@ import java.util.Objects;
  * <pre>
  * record RepositoryRecord {
  *   id: LocalID
- *   name+: ClassifiedNameStructure
+ *   name+: NameStructure
  *   custodian?: Xref&lt;IndividualRecord&gt;
  *   place?: PlaceCitation
  *   contact*: ContactStructure
@@ -114,7 +111,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.class);
+		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names*", model, NameHandler.class);
 		custodianField = EntityField.createForRecordFromReference(TAG_CUSTODIAN, this, model, IndividualHandler.class);
 		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
 		contactPanel = EntityListPanel.createForStructure(TAG_CONTACT, this, "Contacts", model, ContactHandler.class);

@@ -33,7 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
@@ -51,6 +51,16 @@ import java.io.Serial;
  * Structure:
  * <pre>
  * struct NameStructure {
+ *   type?: enum {
+ *     official, legal,
+ *     colonial, indigenous, traditional,
+ *     translated, romanized,
+ *     historic, former,
+ *     common, colloquial,
+ *     abbreviated, acronym,
+ *     religious,
+ *     administrative, archival
+ *   } | Text
  *   value: Text
  *   locale?: LocaleCode | Text
  *   variant*: TextValueVariant
@@ -60,7 +70,7 @@ import java.io.Serial;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): value, locale, variant
+ * Tab 1 (Properties): value, type, locale, variant
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  */
@@ -70,7 +80,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 7526263144620538539L;
 
 
-	public static final String TAG_VALUE = "VALUE";
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VARIANT = "VARIANT";
 	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_SOURCE = "SOURCE";
@@ -82,6 +93,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private final JPanel propertiesPanel;
 
 	private final BoundTextField valueField;
+	private final BoundComboBox<String> typeCombo;
 	private final TextValueVariantListPanel variantPanel;
 	private final BoundComboBox<String> localeCombo;
 
@@ -91,17 +103,37 @@ public class NameStructureDialog extends BaseRecordDialog{
 	}
 
 	public static NameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+		final FLEFRecord record){
 		return createEdit(parent, model, record, NameStructureDialog::new);
 	}
 
 
 	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ClassifiedNameHandler.class);
+		super(parent, model, record, NameHandler.class);
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
 		valueField = new BoundTextField(TAG_VALUE);
+		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
+			StringUtils.EMPTY,
+			// official and legal names
+			"official", "legal",
+			// historical naming traditions
+			"colonial", "indigenous", "traditional",
+			// language and localization variants
+			"translated", "romanized",
+			// historical variants
+			"historic", "former",
+			// common usage
+			"common", "colloquial",
+			// abbreviated forms
+			"abbreviated", "acronym",
+			// religious and ecclesiastical forms
+			"religious",
+			// administrative and archival forms
+			"administrative", "archival"
+		});
+		typeCombo.setEditable(true);
 		variantPanel = new TextValueVariantListPanel(TAG_VARIANT, this, "Variant", model);
 		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
 			StringUtils.EMPTY,
@@ -116,6 +148,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 			.build();
 
 		components.bind(valueField);
+		components.bind(typeCombo);
 		components.bind(localeCombo);
 
 
@@ -127,6 +160,9 @@ public class NameStructureDialog extends BaseRecordDialog{
 	protected JPanel createPropertiesPanel(){
 		// value
 		GUIHelper.addLabeledComponent(propertiesPanel, "Name Value*:", valueField);
+
+		// type
+		GUIHelper.addLabeledComponent(propertiesPanel, "Type*:", typeCombo);
 
 		// locale
 		GUIHelper.addLabeledComponent(propertiesPanel, "Locale:", localeCombo);

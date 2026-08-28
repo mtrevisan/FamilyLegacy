@@ -145,10 +145,6 @@ public final class RecordDialogComponents{
 				CONCLUSION_ON_RESOLVES,
 				// ConclusionRecord (research contains this question)
 				CONCLUSION_ON_RESEARCH,
-				// IdentityHypothesisRecord (subject/candidate = this individual)
-				// IdentityHypothesisRecord (subject/candidate = this group)
-				// IdentityHypothesisRecord (subject/candidate = this place)
-				IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE,
 				// ResearchQuestionRecord (target[individual] = this individual)
 				// ResearchQuestionRecord (target[group] = this group)
 				// ResearchQuestionRecord (target[individual_attribute] = this attribute)
@@ -169,6 +165,12 @@ public final class RecordDialogComponents{
 						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
 					yield panel;
 				}
+
+			// IdentityHypothesisRecord (identities contains this individual)
+			// IdentityHypothesisRecord (identities contains this group)
+			// IdentityHypothesisRecord (identities contains this place)
+			case IDENTITY_HYPOTHESIS_ON_IDENTITY -> EntityListPanel.createForOneOfReference(cfg.tag(), owner, cfg.title(), model)
+				.withHandlerTypes(cfg.handlerClass());
 
 			// EventParticipationRecord (event = this event)
 			case EVENT_PARTICIPATION_ON_EVENT -> {
@@ -288,9 +290,9 @@ public final class RecordDialogComponents{
 			conclusionOnResearch.withParentEntity(record.getId(), record.getTag());
 			conclusionOnResearch.loadCitationsWithType(record.getId(), "RESEARCH");
 		}
-		final EntityListPanel identityHypothesis = ((EntityListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE));
+		final EntityListPanel identityHypothesis = ((EntityListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY));
 		if(identityHypothesis != null)
-			identityHypothesis.loadReferenceWithType(record.getId(), "SUBJECT", "CANDIDATE");
+			identityHypothesis.loadReferenceWithType(record.getId(), "IDENTITY");
 		final EntityListPanel researchQuestionOnTarget = ((EntityListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));
 		if(researchQuestionOnTarget != null)
 			researchQuestionOnTarget.loadReferenceWithType(record.getId(), "TARGET");
@@ -416,7 +418,7 @@ public final class RecordDialogComponents{
 		final EntityListPanel conclusionOnResearch = ((EntityListPanel)getPanel(PanelKey.CONCLUSION_ON_RESEARCH));
 		if(conclusionOnResearch != null)
 			conclusionOnResearch.save(record);
-		final EntityListPanel identityHypothesis = ((EntityListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE));
+		final EntityListPanel identityHypothesis = ((EntityListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY));
 		if(identityHypothesis != null)
 			identityHypothesis.save(record);
 		final EntityListPanel researchQuestionOnTarget = ((EntityListPanel)getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET));

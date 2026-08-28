@@ -218,7 +218,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final FLEFRecord source = FLEFRecord.createMainRecord("S1", TAG_SOURCE);
+			final FLEFRecord source = FLEFRecord.createMainRecord("S1", SourceHandler.TYPE);
 			model.addRecord(source);
 
 			final SourceCitationDialog dialog = SourceCitationDialog.createNew(null, model);

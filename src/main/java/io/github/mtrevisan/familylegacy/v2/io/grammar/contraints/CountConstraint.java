@@ -22,31 +22,50 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components;
+package io.github.mtrevisan.familylegacy.v2.io.grammar.contraints;
+
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+
+import java.util.List;
 
 
-public enum PanelKey{
-	INDIVIDUAL_ATTRIBUTE,
-	GROUP_ATTRIBUTE,
-	RELATIONSHIP_ON_SUBJECT,
-	RELATIONSHIP_ON_TARGET,
-	PLACE_RELATIONSHIP_ON_SUBJECT,
-	PLACE_RELATIONSHIP_ON_TARGET,
-	EVENT_PARTICIPATION_ON_PARTICIPANT, EVENT_PARTICIPATION_ON_EVENT,
-	CONTEXT_IMPACT, CONTEXT_IMPACT_ON_TARGET, CONTEXT_IMPACT_ON_CONTEXT,
-	CONCLUSION_ON_RESOLVES,
-	CONCLUSION_ON_RESEARCH,
-	IDENTITY_HYPOTHESIS_ON_IDENTITY,
-	RESEARCH_QUESTION, RESEARCH_QUESTION_ON_TARGET,
-	RESEARCH_ACTIVITY_ON_QUESTION, RESEARCH_ACTIVITY_ON_SOURCE,
-	RESEARCH_TASK_ON_QUESTION,
-	TASK,
-	PLACE,
-	REPOSITORY,
-	SOURCE, SOURCE_ON_REPOSITORY, SOURCE_ON_DOCUMENT,
-	DOCUMENT,
-	NOTE,
-	EVIDENCE,
-	PRIVACY,
-	AUDIT
+/**
+ * {@code require count(fieldA) == 2}.
+ */
+public final class CountConstraint extends Constraint{
+
+	private final String field;
+	private final int count;
+
+
+	public CountConstraint(final String field, final int count){
+		this.field = field;
+		this.count = count;
+	}
+
+
+	public String getField(){
+		return field;
+	}
+
+	public int getCount(){
+		return count;
+	}
+
+	@Override
+	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
+			final List<String> errors){
+		final List<FLEFRecord> fields = FLEFRecordHelper.findChildren(record, field);
+		if(fields.size() != count)
+			errors.add(String.format("Constraint violation at '%s': field '%s' should be present %n times",
+				contextPath, count));
+	}
+
+	@Override
+	public String toString(){
+		return "require count(" + field + ") == " + count;
+	}
+
 }

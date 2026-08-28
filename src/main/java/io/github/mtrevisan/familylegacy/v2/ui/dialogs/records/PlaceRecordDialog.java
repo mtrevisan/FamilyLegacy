@@ -34,12 +34,12 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
@@ -62,7 +62,7 @@ import java.io.Serial;
  * <pre>
  * record PlaceRecord {
  *   id: LocalID
- *   name+: ClassifiedNameStructure
+ *   name+: NameStructure
  *   type?: enum {
  *     address, building, street, hamlet, village, town, municipality, city,
  *     metropolitan_area, county, province, department, district, region,
@@ -84,7 +84,7 @@ import java.io.Serial;
  * Tab 3 (Relationships): PlaceRelationshipRecord (subject = this place), PlaceRelationshipRecord (target = this place)
  * Tab 4 (Participations): EventParticipationRecord (participant[place] = this place)
  * Tab 5 (Context): ContextImpactRecord (target[place] = this place)
- * Tab 6 (Research): ConclusionRecord (resolves = this place), IdentityHypothesisRecord (subject/candidate = this place), ResearchQuestionRecord (target[place] = this place)
+ * Tab 6 (Research): ConclusionRecord (resolves = this place), IdentityHypothesisRecord (identity = this place), ResearchQuestionRecord (target[place] = this place)
  * Tab 7 (Sources): source
  * Tab 9 (Privacy): privacy
  * Tab 10 (Audit): audit
@@ -140,7 +140,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names*", model, ClassifiedNameHandler.class);
+		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names*", model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"address", "building", "street", "hamlet", "village", "town",
@@ -159,7 +159,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceHandler.class)
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, PlaceHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceHandler.class)
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
@@ -239,7 +239,7 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		GUIHelper.addComponent(panel, conclusionPanel);
 
 		// identity hypothesis
-		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE);
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
 		GUIHelper.addComponent(panel, identityHypothesisPanel);
 
 		// research question

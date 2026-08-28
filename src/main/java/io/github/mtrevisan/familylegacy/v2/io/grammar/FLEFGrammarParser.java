@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.AtLeastOneConst
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ComparisonConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.ConditionalRequireConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.CountConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.EqualTypeConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.InConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
@@ -42,6 +43,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.TypeDefini
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.UnionType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
+import org.apache.commons.lang3.math.NumberUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,17 +70,22 @@ import java.util.Map;
  * oneofAliasDef:= IDENT '=' 'oneof' '{' (IDENT ':' type)* '}'
  * structBody   := '{' (require | field)* '}'
  * field        := IDENT ('?' | '*' | '+')? ':' type
- * require      := 'require' 'one_of' '(' identList ')'
- *               | 'require' 'at_least_one' '(' identList ')'
- *               | 'require' 'if' IDENT '==' IDENT ':' identList
- *               | 'require' IDENT 'in' IDENT
- *               | 'require' IDENT ('!=' | '==' | '>' | '>=' | '<' | '<=') IDENT
+ * require      := 'require' 'one_of' '(' fieldRefList ')'
+ *               | 'require' 'at_least_one' '(' fieldRefList ')'
+ *               | 'require' 'count' '(' fieldRef ')' '==' INTEGER
+ *               | 'require' 'type' '(' fieldRef ')' '==' 'type' '(' fieldRef ')'
+ *               | 'require' 'if' IDENT '==' IDENT ':' fieldRefList
+ *               | 'require' fieldRef 'in' IDENT
+ *               | 'require' fieldRef ('!=' | '==' | '>' | '>=' | '<' | '<=') fieldRef
  * type         := atomicType ('|' atomicType)*
  * atomicType   := ('Xref' | 'XrefOrVoid') '&lt;' IDENT '&gt;'
  *               | 'struct' structBody
  *               | 'enum' '{' identList '}' ('|' IDENT)?
  *               | IDENT
+ * fieldRef     := IDENT ('[' INTEGER ']')?
  * </pre>
+ * A {@code fieldRef} identifies a single field, or one element of a repeated field
+ * (cardinality {@code *} or {@code +}) via a zero-based index, e.g. {@code identity[0]}.
  */
 public final class FLEFGrammarParser{
 
@@ -87,6 +94,8 @@ public final class FLEFGrammarParser{
 	private static final String TAG_CLOSE_CURLY_BRACE = "}";
 	private static final String TAG_OPEN_ANGLE_BRACKET = "<";
 	private static final String TAG_CLOSE_ANGLE_BRACKET = ">";
+	private static final String TAG_OPEN_SQUARE_BRACKET = "[";
+	private static final String TAG_CLOSE_SQUARE_BRACKET = "]";
 	private static final String TAG_COMMA = ",";
 	private static final String TAG_COLON = ":";
 	private static final String TAG_EQUALS = "=";
@@ -110,6 +119,7 @@ public final class FLEFGrammarParser{
 	private static final String TAG_REQUIRE = "require";
 	private static final String TAG_ONE_OF_FN = "one_of";
 	private static final String TAG_AT_LEAST_ONE_FN = "at_least_one";
+	private static final String TAG_COUNT = "count";
 	private static final String TAG_TYPE_FN = "type";
 	private static final String TAG_IF = "if";
 	private static final String TAG_IN = "in";
@@ -181,14 +191,14 @@ public final class FLEFGrammarParser{
 				else if(Character.isLetterOrDigit(c) || c == '_' || c == '.'){
 					final int start = i;
 					while(i < length && (Character.isLetterOrDigit(line.charAt(i)) || line.charAt(i) == '_'
-							|| line.charAt(i) == '.'))
+						|| line.charAt(i) == '.'))
 						i ++;
 					result.add(new Token(line.substring(start, i), lineNumber));
 				}
 				else if(SINGLE_CHAR_TOKENS.indexOf(c) != -1){
 					final String twoChars = line.substring(i, Math.min(i + 2, length));
 					if(twoChars.equals(NOT_EQUALS) || twoChars.equals(GREATER_THAN_OR_EQUALS)
-							|| twoChars.equals(LESS_THAN_OR_EQUALS) || twoChars.equals(EQUALS)){
+						|| twoChars.equals(LESS_THAN_OR_EQUALS) || twoChars.equals(EQUALS)){
 						result.add(new Token(twoChars, lineNumber));
 
 						i += 2;
@@ -246,7 +256,7 @@ public final class FLEFGrammarParser{
 	}
 
 	private void putType(final Map<String, TypeDefinition> types, final String name,
-			final TypeDefinition definition, final int line){
+		final TypeDefinition definition, final int line){
 		if(types.containsKey(name))
 			warnings.add("Line " + line + ": duplicate definition of type '" + name + "' (previous definition is overwritten)");
 		types.put(name, definition);
@@ -354,7 +364,7 @@ public final class FLEFGrammarParser{
 
 	// `Name = oneof { choice: Type, ... }`
 	private void parseOneofAlias(final Map<String, TypeDefinition> types, final String name,
-			final int nameLine){
+		final int nameLine){
 		expect(TAG_ONEOF);
 		expect(TAG_OPEN_CURLY_BRACE);
 		final Map<String, TypeDefinition> choices = new LinkedHashMap<>();
@@ -425,7 +435,7 @@ public final class FLEFGrammarParser{
 			next();
 
 			expect("(");
-			final List<String> fields = parseIdentListUntil(")");
+			final List<String> fields = parseFieldRefListUntil(")");
 			expect(")");
 			return new OneOfConstraint(fields);
 		}
@@ -435,17 +445,42 @@ public final class FLEFGrammarParser{
 			next();
 
 			expect("(");
-			final List<String> fields = parseIdentListUntil(")");
+			final List<String> fields = parseFieldRefListUntil(")");
 			expect(")");
 			return new AtLeastOneConstraint(fields);
 		}
 
-		// 3. require type(fieldA) == type(fieldB)
+		// 3. require count(field) == value
+		if(peekIs(TAG_COUNT)){
+			next();
+
+			expect("(");
+			final List<String> firstFields = parseFieldRefListUntil(")");
+			if(firstFields.size() != 1){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected one field in count(...), found [" + StringUtils.join(firstFields, ", ") + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+			expect(")");
+			expect(EQUALS);
+			final String value = next();
+			if(!NumberUtils.isParsable(value)){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected an integer field, found [" + value + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+
+			return new CountConstraint(firstFields.getFirst(), NumberUtils.createInteger(value));
+		}
+
+		// 4. require type(fieldA) == type(fieldB)
 		if(peekIs(TAG_TYPE_FN)){
 			next();
 
 			expect("(");
-			final List<String> firstFields = parseIdentListUntil(")");
+			final List<String> firstFields = parseFieldRefListUntil(")");
 			if(firstFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
@@ -456,7 +491,7 @@ public final class FLEFGrammarParser{
 			expect(EQUALS);
 			expect(TAG_TYPE_FN);
 			expect("(");
-			final List<String> secondFields = parseIdentListUntil(")");
+			final List<String> secondFields = parseFieldRefListUntil(")");
 			if(secondFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
@@ -469,7 +504,7 @@ public final class FLEFGrammarParser{
 			return new EqualTypeConstraint(firstFields);
 		}
 
-		// 4. require if conditionField == conditionValue : requiredField, ...
+		// 5. require if conditionField == conditionValue : requiredField, ...
 		if(peekIs(TAG_IF)){
 			next();
 
@@ -481,39 +516,64 @@ public final class FLEFGrammarParser{
 
 			final String conditionValue = next();
 			expect(TAG_COLON);
-			final List<String> requiredFields = parseCommaSeparatedIdents();
+			final List<String> requiredFields = parseCommaSeparatedFieldRefs();
 			return new ConditionalRequireConstraint(conditionField, conditionValue, requiredFields);
 		}
 
-		// 5. require field in container
-		final String firstToken = next();
+		// 6. require field in container
+		final String firstToken = parseFieldReference();
 		if(peekIs(TAG_IN)){
 			next();
 			final String container = next();
 			return new InConstraint(firstToken, container);
 		}
 
-		// 6. require left operator right (operators: !=, ==, >, >=, <, <=)
+		// 7. require left operator right (operators: !=, ==, >, >=, <, <=)
 		final String left = firstToken;
 		final String op = peek();
 		if(NOT_EQUALS.equals(op) || EQUALS.equals(op) || GREATER_THAN.equals(op) || GREATER_THAN_OR_EQUALS.equals(op)
-				|| LESS_THAN.equals(op) || LESS_THAN_OR_EQUALS.equals(op)){
+			|| LESS_THAN.equals(op) || LESS_THAN_OR_EQUALS.equals(op)){
 			next();
-			final String right = next();
+			final String right = parseFieldReference();
 			return new ComparisonConstraint(left, op, right);
 		}
 
-		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'if', 'in', or comparison after 'require', found '" + peek() + "'",
+		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'in', or comparison after 'require', found '" + peek() + "'",
 			(peekToken() != null? peekToken().line(): 0));
 	}
 
 	/**
-	 * Reads comma-separated identifiers until (but not consuming) the given closing token.
+	 * Reads a single field reference: a plain field name, or an indexed reference into a
+	 * repeated field, e.g. {@code identity} or {@code identity[0]}. This is the single point
+	 * where the optional {@code [index]} suffix is recognized; every constraint clause that
+	 * consumes a field name goes through this method instead of reading it directly.
 	 */
-	private List<String> parseIdentListUntil(final String closing){
+	private String parseFieldReference(){
+		final String name = next();
+		if(peekIs(TAG_OPEN_SQUARE_BRACKET)){
+			next();
+
+			final String index = next();
+			if(!NumberUtils.isParsable(index)){
+				final Token t = (position < tokens.size()? tokens.get(position): null);
+				throw new FLEFGrammarParseException(
+					"Expected an integer index in '" + name + "[...]', found [" + index + "]",
+					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
+			}
+			expect(TAG_CLOSE_SQUARE_BRACKET);
+
+			return name + TAG_OPEN_SQUARE_BRACKET + index + TAG_CLOSE_SQUARE_BRACKET;
+		}
+		return name;
+	}
+
+	/**
+	 * Reads comma-separated field references until (but not consuming) the given closing token.
+	 */
+	private List<String> parseFieldRefListUntil(final String closing){
 		final List<String> list = new ArrayList<>();
 		while(!peekIs(closing)){
-			list.add(next());
+			list.add(parseFieldReference());
 
 			if(peekIs(TAG_COMMA))
 				next();
@@ -522,15 +582,16 @@ public final class FLEFGrammarParser{
 	}
 
 	/**
-	 * Reads a comma-separated identifier list with no explicit closing token: stops as soon as no comma follows.
+	 * Reads a comma-separated field reference list with no explicit closing token: stops as soon
+	 * as no comma follows.
 	 */
-	private List<String> parseCommaSeparatedIdents(){
+	private List<String> parseCommaSeparatedFieldRefs(){
 		final List<String> list = new ArrayList<>();
-		list.add(next());
+		list.add(parseFieldReference());
 		while(peekIs(TAG_COMMA)){
 			next();
 
-			list.add(next());
+			list.add(parseFieldReference());
 		}
 		return list;
 	}

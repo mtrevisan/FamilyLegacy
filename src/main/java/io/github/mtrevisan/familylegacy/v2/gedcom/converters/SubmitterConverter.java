@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -56,7 +56,7 @@ public class SubmitterConverter{
 		String xref = subNode.getXrefId();
 		if(xref == null) return;
 
-		String cleanId = IDNormalizer.clean(xref);
+		String cleanId = GEDCOMHelper.cleanId(xref);
 		IDGenerator.registerExistingId(cleanId);
 
 		// Create the submitter structure (this will be used in the header)
@@ -94,8 +94,9 @@ public class SubmitterConverter{
 			String tag = child.getTag();
 			if(tag.equals("RFN") /*|| tag.equals("RIN")*/){
 				if(child.getValue() != null){
-					FLEFRecord note = FLEFRecord.createChildWithTag("note");
-					note.addChild(FLEFRecord.createChildWithTagAndValue("value", tag + ": " + child.getValue()));
+					FLEFRecord note = FLEFRecord.createChildWithTag("note")
+						.addChild(FLEFRecord.createChildWithTagAndValue("text", tag + ": " + child.getValue()))
+						.addChild(AuditBuilder.build(child));
 					submitter.addChild(note);
 				}
 			}

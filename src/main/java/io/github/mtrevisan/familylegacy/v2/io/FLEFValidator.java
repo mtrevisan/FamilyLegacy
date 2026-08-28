@@ -256,7 +256,7 @@ public class FLEFValidator{
 			if(Strings.CI.equals("relationship", tag))
 				validateRelationshipDates(record, contextPath, errors);
 
-			// IdentityHypothesisRecord: subject != candidate
+			// IdentityHypothesisRecord: identity[0] != identity[1]
 			if(Strings.CI.equals("identity_hypothesis", tag))
 				validateIdentityHypothesis(record, contextPath, model, errors);
 
@@ -309,21 +309,27 @@ public class FLEFValidator{
 
 	private void validateIdentityHypothesis(final FLEFRecord hypothesis, final String contextPath, final FLEFModel model,
 			final List<String> errors){
-		// Grammar constraint should handle: `require subject != candidate`
+		// Grammar constraint should handle: `require identity[0] != identity[1]`
 		// We just add additional semantic checks
 
-		final FLEFRecord subject = FLEFRecordHelper.findChild(hypothesis, "SUBJECT");
-		final FLEFRecord candidate = FLEFRecordHelper.findChild(hypothesis, "CANDIDATE");
+		final List<FLEFRecord> identities = FLEFRecordHelper.findChildren(hypothesis, "IDENTITY");
+		if(identities == null || identities.size() != 2)
+			errors.add(String.format(
+				"Constraint violation at '%s': IDENTITY must be present twice",
+				contextPath));
 
-		if(subject == null || candidate == null)
+		final FLEFRecord identity1 = identities.get(0);
+		final FLEFRecord identity2 = identities.get(1);
+
+		if(identity1 == null || identity2 == null)
 			return; // Will be caught by grammar validation
 
-		final String subjectId = subject.getValue();
-		final String candidateId = candidate.getValue();
-		if(subjectId != null && subjectId.equals(candidateId))
+		final String identity1Id = identity1.getValue();
+		final String identity2Id = identity2.getValue();
+		if(identity1Id != null && identity1Id.equals(identity2Id))
 			errors.add(String.format(
-				"Constraint violation at '%s': SUBJECT and CANDIDATE must be different records (both reference '%s')",
-				contextPath, subjectId));
+				"Constraint violation at '%s': IDENTITIES must be different records (both reference '%s')",
+				contextPath, identity1Id));
 
 		// Additional check: both references should exist (grammar validation already does this)
 		// Check that the referenced records are of compatible types (Individual, Group, Place)

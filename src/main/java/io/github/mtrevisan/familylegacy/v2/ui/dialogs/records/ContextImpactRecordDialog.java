@@ -228,13 +228,13 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args){
-		final FLEFRecord culturalNorm = FLEFRecord.createMainRecord("CN1", "CULTURAL_NORM");
+		final FLEFRecord culturalNorm = FLEFRecord.createMainRecord("CN1", CulturalNormHandler.TYPE);
 		culturalNorm.addChild(FLEFRecord.createChildWithTagAndValue("NAME", "Primogeniture"));
 
-		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", "INDIVIDUAL");
+		final FLEFRecord individual = FLEFRecord.createMainRecord("I1", IndividualHandler.TYPE);
 		individual.addChild(FLEFRecord.createChildWithTagAndValue("SEX", "male"));
 
-		final FLEFRecord contextImpact = FLEFRecord.createMainRecord("CI1", "CONTEXT_IMPACT");
+		final FLEFRecord contextImpact = FLEFRecord.createMainRecord("CI1", ContextImpactHandler.TYPE);
 		contextImpact.addChild(FLEFRecord.createChildWithTag("CONTEXT")
 			.addChild(FLEFRecord.createChildWithTagAndValue("CULTURAL_NORM", "@CN1@")));
 		contextImpact.addChild(FLEFRecord.createChildWithTag("TARGET")
@@ -242,7 +242,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("IMPACT_TYPE", "constrains"));
 		contextImpact.addChild(FLEFRecord.createChildWithTagAndValue("SIGNIFICANCE", "Inheritance limited to eldest son"));
 
-		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", "SOURCE");
+		final FLEFRecord source1 = FLEFRecord.createMainRecord("S1", SourceHandler.TYPE);
 		source1.addChild(FLEFRecord.createChildWithTag("TITLE")
 			.addChild(FLEFRecord.createChildWithTagAndValue("VALUE", "Historical study")));
 

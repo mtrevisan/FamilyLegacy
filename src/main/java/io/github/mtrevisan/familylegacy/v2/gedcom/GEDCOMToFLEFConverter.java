@@ -10,7 +10,6 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.converters.SourceConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.SubmitterConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.ReferenceResolver;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
@@ -51,7 +50,6 @@ public class GEDCOMToFLEFConverter {
 	private final Map<String, FLEFRecord> noteMap = new HashMap<>();
 
 	private final PlaceCache placeCache = new PlaceCache(model);
-	private final ReferenceResolver referenceResolver = new ReferenceResolver(model, individualMap, familyMap);
 
 	/**
 	 * Converts the GEDCOM forest into a FLEFModel.
@@ -77,8 +75,8 @@ public class GEDCOMToFLEFConverter {
 		// ---- 2. Instantiate converters ----
 		HeaderConverter headerConverter = new HeaderConverter(model);
 		IndividualConverter individualConverter = new IndividualConverter(model, individualMap, noteRawMap, sourRawMap, objeRawMap, sourceMap, multimediaMap, placeCache);
-		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, sourceMap, multimediaMap, noteRawMap, placeCache, referenceResolver);
-		SourceConverter sourceConverter = new SourceConverter(model, sourceMap, repositoryMap, multimediaMap, placeCache);
+		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, sourceMap, multimediaMap, noteRawMap, sourRawMap, objeRawMap, placeCache);
+		SourceConverter sourceConverter = new SourceConverter(model, noteRawMap, sourRawMap, sourceMap, objeRawMap, repositoryMap, multimediaMap, placeCache);
 		RepositoryConverter repositoryConverter = new RepositoryConverter(model, repositoryMap, multimediaMap, placeCache);
 		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, placeCache, noteRawMap);
 		SubmitterConverter submitterConverter = new SubmitterConverter(model, submitterMap, placeCache);
@@ -88,21 +86,21 @@ public class GEDCOMToFLEFConverter {
 		for (GEDCOMNode node : roots) {
 			switch (node.getTag()) {
 				case "HEAD" -> headerConverter.convert(node);
-				case "INDI" -> individualConverter.convert(node);
-
+				case "INDI" -> individualConverter.convert(node, roots);
 				case "FAM" -> familyConverter.collect(node);
 				case "SOUR" -> sourceConverter.convert(node);
+
 				case "REPO" -> repositoryConverter.convert(node);
 				case "OBJE" -> multimediaConverter.convert(node);
 				case "SUBM" -> submitterConverter.convert(node);
-				case "NOTE" -> noteConverter.convert(node);
+//				case "NOTE" -> noteConverter.convert(node);
 				// SUBN (submission records) are ignored.
 				default -> { /* ignore unknown top‑level tags */ }
 			}
 		}
 
 		// ---- 4. Second pass: resolve family links ----
-		familyConverter.resolveLinks();
+		familyConverter.resolveLinks(roots);
 
 		// ---- 6. Add all records to the model ----
 		individualMap.values().forEach(model::addRecord);

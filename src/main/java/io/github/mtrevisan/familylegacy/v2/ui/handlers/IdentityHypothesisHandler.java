@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IdentityHypothesisRecordDialog;
 
 import java.awt.Dialog;
+import java.util.List;
 
 
 /**
@@ -40,8 +41,7 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 	public static final String TYPE = "IDENTITY_HYPOTHESIS";
 	public static final String ID_PREFIX = "IH";
 
-	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_CANDIDATE = "CANDIDATE";
+	private static final String TAG_IDENTITY = "IDENTITY";
 
 
 	@Override
@@ -64,21 +64,20 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 		if(record == null)
 			return "--";
 
-		String subjectId = null;
-		String candidateId = null;
+		String identity1Id = null;
+		String identity2Id = null;
 
-		final FLEFRecord subject = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_SUBJECT, model)
-			.getFirst();
-		if(subject != null)
-			subjectId = subject.getId();
+		final List<FLEFRecord> identities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_IDENTITY, model);
+		final FLEFRecord identity1 = identities.get(0);
+		if(identity1 != null)
+			identity1Id = identity1.getId();
 
-		final FLEFRecord candidate = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_CANDIDATE, model)
-			.getFirst();
-		if(candidate != null)
-			candidateId = candidate.getId();
+		final FLEFRecord identity2 = identities.get(1);
+		if(identity2 != null)
+			identity2Id = identity2.getId();
 
-		if(subjectId != null && candidateId != null)
-			return subjectId + " ↔ " + candidateId;
+		if(identity1Id != null && identity2Id != null)
+			return identity1Id + " ↔ " + identity2Id;
 		return (record.getId() != null? record.getId(): "(unnamed)");
 	}
 

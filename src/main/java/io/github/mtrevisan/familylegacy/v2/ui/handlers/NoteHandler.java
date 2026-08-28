@@ -38,7 +38,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	public static final String TYPE = "NOTE";
 
-	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_TEXT = "TEXT";
 
 
 	@Override
@@ -63,7 +63,7 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		String value = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
 		if(StringUtils.isNotEmpty(value))
 			return GUIHelper.limitTextLength(value);
 		return "...";

@@ -1,8 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -34,7 +34,7 @@ public class NoteConverter{
 
 		String id;
 		if(xref != null){
-			String cleaned = IDNormalizer.clean(xref);
+			String cleaned = GEDCOMHelper.cleanId(xref);
 			if(isValidIdFormat(cleaned)){
 				id = cleaned;
 			}
@@ -48,15 +48,15 @@ public class NoteConverter{
 
 		IDGenerator.registerExistingId(id);
 
-		FLEFRecord note = FLEFRecord.createChildWithTag("note");
-		note.setId(id);
+		FLEFRecord note = FLEFRecord.createMainRecord(id, "note")
+			.addChild(AuditBuilder.build(noteNode));
 		noteMap.put(id, note);
 
 		// ---- 1. NOTE value (including CONC/CONT) ----
 		// The parser might already concatenate the value, but we ensure it.
 		String fullText = getFullNoteText(noteNode);
 		if(fullText != null && !fullText.isBlank()){
-			note.addChild(FLEFRecord.createChildWithTagAndValue("value", fullText));
+			note.addChild(FLEFRecord.createChildWithTagAndValue("text", fullText));
 		}
 
 		// ---- 2. SOURCE_CITATION (SOUR) ----
@@ -86,7 +86,7 @@ public class NoteConverter{
 //		}
 
 		// ---- 5. CHANGE_DATE (audit) ----
-		note.addChild(structParser.createAudit(noteNode));
+		note.addChild(AuditBuilder.build(noteNode));
 	}
 
 	/**

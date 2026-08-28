@@ -262,6 +262,9 @@ public final class GEDCOMMapper{
 	}
 
 	public static String mapAttribute(String gedcomTag, String defaultValue){
+		if(gedcomTag == null)
+			return defaultValue;
+
 		if(defaultValue != null && !defaultValue.isEmpty()){
 			defaultValue = defaultValue.toLowerCase(Locale.ROOT);
 		}

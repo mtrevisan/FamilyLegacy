@@ -1,18 +1,21 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -71,9 +74,9 @@ public class IndividualConverter {
 	 *
 	 * @param indiNode the GEDCOM node with tag "INDI"
 	 */
-	public void convert(GEDCOMNode indiNode) {
+	public void convert(GEDCOMNode indiNode, List<GEDCOMNode> roots) {
 		String id = GEDCOMHelper.extractId(indiNode, IndividualHandler.ID_PREFIX);
-		FLEFRecord individual = FLEFRecord.createMainRecord(id, "individual");
+		FLEFRecord individual = FLEFRecord.createMainRecord(id, IndividualHandler.TYPE);
 		individualMap.put(id, individual);
 
 		// ---- Names ----
@@ -87,19 +90,17 @@ public class IndividualConverter {
 			individual.addChild(FLEFRecord.createChildWithTagAndValue("sex", GEDCOMMapper.mapSex(sexNode.getValue())));
 		}
 
-		//TODO here
 		// ---- Events ----
 		for (String tag : GEDCOMMapper.EVENT_MAP.keySet()) {
 			for (GEDCOMNode evtNode : GEDCOMHelper.findChildren(indiNode, tag)) {
-				GEDCOMHelper.attachIndividualEvent(individual, model, evtNode, noteRawMap, sourRawMap, objeRawMap);
+				GEDCOMHelper.attachIndividualEvent(individual, model, evtNode, noteRawMap, sourRawMap, objeRawMap, roots);
 			}
 		}
 
 		// ---- Attributes ----
 		for (String tag : GEDCOMMapper.ATTRIBUTE_MAP.keySet()) {
 			for (GEDCOMNode attrNode : GEDCOMHelper.findChildren(indiNode, tag)) {
-				FLEFRecord attrRec = structParser.parseAttribute(attrNode, tag, noteRawMap);
-				if (attrRec != null) individual.addChild(attrRec);
+				GEDCOMHelper.attachIndividualAttribute(individual, model, attrNode, noteRawMap, sourRawMap, objeRawMap, roots);
 			}
 		}
 
@@ -121,47 +122,22 @@ public class IndividualConverter {
 				multimediaLinkNode, objeRawMap);
 		}
 
-		// ---- Extra fields (REFN, RIN, ALIA, ASSO, ANCI, DESI) as inline notes ----
-		addExtraFields(indiNode, individual);
-
 		// ---- FAMC (child to family link) ----
-		for (GEDCOMNode famcNode : GEDCOMHelper.findChildren(indiNode, "FAMC")) {
-			if (famcNode.getValue() != null) {
-				StringBuilder sb = new StringBuilder("Child of family: ").append(famcNode.getValue());
-				GEDCOMNode pediNode = GEDCOMHelper.findFirstChild(famcNode, "PEDI");
-				if (pediNode != null && pediNode.getValue() != null) {
-					sb.append(" (Pedigree: ").append(pediNode.getValue()).append(")");
-				}
-				GEDCOMNode statNode = GEDCOMHelper.findFirstChild(famcNode, "STAT");
-				if (statNode != null && statNode.getValue() != null) {
-					sb.append(" (Status: ").append(statNode.getValue()).append(")");
-				}
-				FLEFRecord note = structParser.createNoteStruct(sb.toString(), famcNode);
-				if (note != null) individual.addChild(note);
-			}
-		}
+		GEDCOMHelper.attachFamilyOfOrigin(individual, model,
+			indiNode, noteRawMap, roots);
 
 		// ---- FAMS (spouse to family link) ----
-		for (GEDCOMNode famsNode : GEDCOMHelper.findChildren(indiNode, "FAMS")) {
-			if (famsNode.getValue() != null) {
-				String text = "Spouse in family: " + famsNode.getValue();
-				FLEFRecord note = structParser.createNoteStruct(text, famsNode);
-				if (note != null) individual.addChild(note);
-			}
-		}
+		GEDCOMHelper.attachSpouseToFamily(individual, model,
+			indiNode, noteRawMap);
 
-//		// ---- SUBM (submitter) ----
-//		for (GEDCOMNode subNode : GEDCOMHelper.findChildren(indiNode, "SUBM")) {
-//			if (subNode.getValue() != null) {
-//				indi.addChild(FLEFRecord.createChildWithTagAndValue("_submitter_ref", subNode.getValue()));
-//			}
-//		}
+		// ---- Extra fields (REFN, RIN, ALIA, ASSO, ANCI, DESI) as inline notes ----
+		addExtraFields(indiNode);
 
 		// ---- Privacy (RESN) ----
 		GEDCOMHelper.attachRestriction(individual, indiNode);
 
 		// ---- Audit ----
-		individual.addChild(structParser.createAudit(indiNode));
+		individual.addChild(AuditBuilder.build(indiNode));
 
 		model.addRecord(individual);
 	}
@@ -195,7 +171,7 @@ public class IndividualConverter {
 			FLEFRecord docRecord = null;
 			String objXref = objNode.getXrefId();
 			if (objXref != null) {
-				String cleanId = IDNormalizer.clean(objXref);
+				String cleanId = GEDCOMHelper.cleanId(objXref);
 				docRecord = multimediaMap.get(cleanId);
 			}
 			if (docRecord == null) {
@@ -254,14 +230,12 @@ public class IndividualConverter {
 	 * Excludes tags that are already used for specific purposes.
 	 */
 	private FLEFRecord createDocumentRecord(GEDCOMNode objNode) {
-		String id = IDGenerator.nextId("D");
-		FLEFRecord doc = FLEFRecord.createChildWithTag("document");
-		doc.setId(id);
+		FLEFRecord doc = FLEFRecord.createMainRecord(IDGenerator.nextId(DocumentHandler.ID_PREFIX), DocumentHandler.TYPE);
 
 		// FILE -> file
 		GEDCOMNode fileNode = GEDCOMHelper.findFirstChild(objNode, "FILE");
 		if (fileNode != null && fileNode.getValue() != null) {
-			doc.addChild(FLEFRecord.createChildWithTagAndValue("file", fileNode.getValue()));
+			doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileNode.getValue()));
 		}
 
 		// TITL -> description
@@ -273,8 +247,9 @@ public class IndividualConverter {
 		// FORM -> note (inline)
 //		GEDCOMNode formNode = GEDCOMHelper.findFirstChild(objNode, "FORM");
 //		if (formNode != null && formNode.getValue() != null) {
-//			FLEFRecord note = FLEFRecord.createChildWithTag("note");
-//			note.addChild(FLEFRecord.createChildWithTagAndValue("value", "Format: " + formNode.getValue()));
+//			FLEFRecord note = FLEFRecord.createChildWithTag("note")
+//				.addChild(FLEFRecord.createChildWithTagAndValue("text", "Format: " + formNode.getValue()))
+//				.addChild(AuditBuilder.build(objNode));
 //			doc.addChild(note);
 //		}
 
@@ -283,14 +258,15 @@ public class IndividualConverter {
 //		for (GEDCOMNode child : objNode.getChildren()) {
 //			String tag = child.getTag();
 //			if (tag.startsWith("_") && child.getValue() != null && !excludedTags.contains(tag)) {
-//				FLEFRecord note = FLEFRecord.createChildWithTag("note");
-//				note.addChild(FLEFRecord.createChildWithTagAndValue("value", tag + ": " + child.getValue()));
+//				FLEFRecord note = FLEFRecord.createChildWithTag("note")
+//					.addChild(FLEFRecord.createChildWithTagAndValue("text", tag + ": " + child.getValue()));
+//					.addChild(AuditBuilder.build(child));
 //				doc.addChild(note);
 //			}
 //		}
 
 		// Audit
-		doc.addChild(structParser.createAudit(objNode));
+		doc.addChild(AuditBuilder.build(objNode));
 		return doc;
 	}
 
@@ -298,7 +274,7 @@ public class IndividualConverter {
 	 * Creates a SourceRecord that references a DocumentRecord.
 	 */
 	private FLEFRecord createSourceRecordFromDocument(FLEFRecord docRecord, GEDCOMNode objNode) {
-		String id = IDGenerator.nextId("S");
+		String id = IDGenerator.nextId(SourceHandler.ID_PREFIX);
 		FLEFRecord source = FLEFRecord.createChildWithTag("source");
 		source.setId(id);
 
@@ -307,13 +283,12 @@ public class IndividualConverter {
 		if (docDesc == null || docDesc.isEmpty()) {
 			docDesc = "Image";
 		}
-		FLEFRecord titleRec = FLEFRecord.createChildWithTag("title");
-		titleRec.addChild(FLEFRecord.createChildWithTagAndValue("value", docDesc));
+		FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")
+			.addChild(FLEFRecord.createChildWithTagAndValue("value", docDesc));
 		source.addChild(titleRec);
 
 		// Reference to the DocumentRecord
-		FLEFRecord docRef = FLEFRecord.createChildWithTag("document");
-		docRef.setValue(docRecord.getId());
+		FLEFRecord docRef = FLEFRecord.createChildWithTagAndValue("document", docRecord.getId());
 		source.addChild(docRef);
 
 		// Date from _DATE (if present)
@@ -325,7 +300,7 @@ public class IndividualConverter {
 		}
 
 		// Audit
-		source.addChild(structParser.createAudit(objNode));
+		source.addChild(AuditBuilder.build(objNode));
 		return source;
 	}
 
@@ -336,30 +311,54 @@ public class IndividualConverter {
 	/**
 	 * Converts GEDCOM extra fields (REFN, RIN, ALIA, ASSO, ANCI, DESI) into inline note structs.
 	 */
-	private void addExtraFields(GEDCOMNode node, FLEFRecord target){
+	private void addExtraFields(GEDCOMNode node){
 		for(GEDCOMNode child : node.getChildren()){
 			String tag = child.getTag();
-			if(tag.equals("REFN") /*|| tag.equals("RIN")*/ || tag.equals("RFN") || tag.equals("AFN") ||
-				tag.equals("ALIA") || tag.equals("ASSO") || tag.equals("ANCI") || tag.equals("DESI")){
-				if(child.getValue() != null){
-					String text = tag + ": " + child.getValue();
-					switch(tag){
-						case "ALIA" -> text = "Alias: " + IDNormalizer.clean(child.getValue());
-						case "ASSO" -> {
-							String assocId = IDNormalizer.clean(child.getValue());
-							StringBuilder sb = new StringBuilder("Associated with: ").append(assocId);
-							GEDCOMNode relaNode = GEDCOMHelper.findFirstChild(child, "RELA");
-							if(relaNode != null && relaNode.getValue() != null){
-								sb.append(" (Relation: ").append(relaNode.getValue()).append(')');
-							}
-							text = sb.toString();
-						}
-						case "ANCI" -> text = "Ancestor interest: " + child.getValue();
-						case "DESI" -> text = "Descendant interest: " + child.getValue();
+			if(child.getValue() != null){
+				switch(tag){
+					case "ALIA" -> {
+						FLEFRecord identityHypothesis = FLEFRecord.createMainRecord(IDGenerator.nextId(IdentityHypothesisHandler.ID_PREFIX), IdentityHypothesisHandler.TYPE)
+							.addChild(FLEFRecord.createChildWithTag("identity")
+								.addChild(FLEFRecord.createChildWithTagAndValue("individual", node.getXrefId()))
+							)
+							.addChild(FLEFRecord.createChildWithTag("identity")
+								.addChild(FLEFRecord.createChildWithTagAndValue("individual", GEDCOMHelper.cleanId(child.getValue())))
+							)
+							.addChild(AuditBuilder.build(node));
+
+						model.addRecord(identityHypothesis);
 					}
-					// Usa createNoteStruct per aggiungere audit
-					FLEFRecord note = structParser.createNoteStruct(text, child);
-					if(note != null) target.addChild(note);
+					case "ASSO" -> {
+						GEDCOMNode relaNode = GEDCOMHelper.findFirstChild(child, "RELA");
+
+						FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+							// subject: child
+							.addChild(FLEFRecord.createChildWithTag("subject")
+								.addChild(FLEFRecord.createChildWithTagAndValue("individual", node.getXrefId()))
+							)
+							// target: group
+							.addChild(FLEFRecord.createChildWithTag("target")
+								.addChild(FLEFRecord.createChildWithTagAndValue("individual", GEDCOMHelper.cleanId(child.getValue())))
+							);
+						GEDCOMHelper.transferValue(relationship, "type", relaNode);
+						relationship.addChild(AuditBuilder.build(node));
+
+						// ---- Sources (SOUR) ----
+						for (GEDCOMNode sourNode : GEDCOMHelper.findChildren(child, "SOUR")) {
+							GEDCOMHelper.attachSource(relationship, model,
+								sourNode, noteRawMap, sourRawMap, objeRawMap);
+						}
+
+						// ---- Notes (GEDCOM NOTE) – inline structs ----
+						for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(child, "NOTE")) {
+							GEDCOMHelper.attachNote(relationship,
+								noteNode, noteRawMap);
+						}
+
+						model.addRecord(relationship);
+					}
+//					case "ANCI" -> text = "Ancestor interest: " + child.getValue();
+//					case "DESI" -> text = "Descendant interest: " + child.getValue();
 				}
 			}
 		}

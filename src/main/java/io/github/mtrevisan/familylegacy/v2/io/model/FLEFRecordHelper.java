@@ -156,7 +156,7 @@ public final class FLEFRecordHelper{
 	public static FLEFRecord extractRecordFromReference(final FLEFRecord record, final String referencePath,
 			final FLEFModel model){
 		final List<FLEFRecord> records = extractRecordsFromReference(record, referencePath, model);
-		return (!records.isEmpty()? records.getFirst(): null);
+		return (records.size() == 1? records.getFirst(): null);
 	}
 
 	/*
@@ -187,7 +187,7 @@ public final class FLEFRecordHelper{
 	extract (struct):
 		- `contact*: ContactStructure` | EntityListPanel | EntityListPanel.createForStructure
 		- `extract*: ExtractStructure` | ExtractListPanel | EntityListPanel.createForStructure
-		- `name*: ClassifiedNameStructure|PersonalNameStructure`, `name+: ClassifiedNameStructure`,
+		- `name*: NameStructure|PersonalNameStructure`, `name+: NameStructure`,
 			`part+: PartStructure`, `title+: NameStructure` | EntityListPanel.createForStructure
 
 	extract (oneof struct):
@@ -209,7 +209,7 @@ public final class FLEFRecordHelper{
 	*/
 	public static FLEFRecord extractStructureWithReference(final FLEFRecord record, final String path){
 		final List<FLEFRecord> records = FLEFRecordHelper.findChildren(record, path);
-		return (!records.isEmpty()? records.getFirst(): null);
+		return (records.size() == 1? records.getFirst(): null);
 	}
 
 	/*
@@ -224,7 +224,7 @@ public final class FLEFRecordHelper{
 
 	/*
 	extract (oneof xref):
-		- `subject/candidate: IdentityCandidate` | ParticipantField
+		- `identity: IdentityCandidate` | ParticipantField
 		- `subject/target: RelationshipParticipant` | ParticipantField
 		- `context: ContextSource` | ParticipantField
 		- `target: ImpactTarget` | ParticipantField
@@ -235,7 +235,7 @@ public final class FLEFRecordHelper{
 	public static FLEFRecord extractRecordFromOneOfReference(final FLEFRecord record, final String referencePath,
 			final FLEFModel model){
 		final List<FLEFRecord> records = extractRecordsFromOneOfReference(record, referencePath, model);
-		return (!records.isEmpty()? records.getFirst(): null);
+		return (records.size() == 1? records.getFirst(): null);
 	}
 
 	/*

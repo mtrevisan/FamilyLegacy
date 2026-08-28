@@ -185,7 +185,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final FLEFRecord place = FLEFRecord.createMainRecord("P1", TAG_PLACE);
+			final FLEFRecord place = FLEFRecord.createMainRecord("P1", PlaceHandler.TYPE);
 			model.addRecord(place);
 
 			final PlaceCitationDialog dialog = PlaceCitationDialog.createNew(null, model);

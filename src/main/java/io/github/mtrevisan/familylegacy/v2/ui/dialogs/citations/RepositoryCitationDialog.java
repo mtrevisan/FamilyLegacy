@@ -54,7 +54,7 @@ import java.io.Serial;
  * struct RepositoryCitation {
  *   repository: Xref&lt;RepositoryRecord&gt;
  *   locator?: Text
- *   note?: Text
+ *   note*: Text
  * }
  * </pre>
  * <p>
@@ -189,7 +189,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final FLEFRecord repository = FLEFRecord.createMainRecord("R1", TAG_REPOSITORY);
+			final FLEFRecord repository = FLEFRecord.createMainRecord("R1", RepositoryHandler.TYPE);
 			model.addRecord(repository);
 
 			final RepositoryCitationDialog dialog = RepositoryCitationDialog.createNew(null, model);

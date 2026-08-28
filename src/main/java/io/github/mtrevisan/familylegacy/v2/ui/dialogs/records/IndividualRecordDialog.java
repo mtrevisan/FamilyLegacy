@@ -80,7 +80,7 @@ import java.io.Serial;
  * Tab 3 (Relationships): RelationshipRecord (subject = this individual), RelationshipRecord (target = this individual)
  * Tab 4 (Participations): EventParticipationRecord (participant[individual] = this individual)
  * Tab 5 (Context): ContextImpactRecord (target[individual] = this individual)
- * Tab 6 (Research): ConclusionRecord (resolves = this individual), IdentityHypothesisRecord (subject/candidate = this individual), ResearchQuestionRecord (target[individual] = this individual)
+ * Tab 6 (Research): ConclusionRecord (resolves = this individual), IdentityHypothesisRecord (identity = this individual), ResearchQuestionRecord (target[individual] = this individual)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -141,7 +141,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, IndividualHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IndividualHandler.class)
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
@@ -224,7 +224,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
-		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE);
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
 		GUIHelper.addComponent(panel, identityHypothesisPanel);
 
 		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
@@ -268,6 +268,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		preferredImagePanel.load(record);
 		personalNamePanel.load(record);
+
+		final EntityListPanel identityHypothesisPanel = (EntityListPanel)components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
+		identityHypothesisPanel.withParentEntity(record.getId(), record.getTag());
 
 		components.load(record);
 	}

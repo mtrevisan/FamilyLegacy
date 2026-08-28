@@ -4,6 +4,9 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -197,17 +200,16 @@ public class StructureParser{
 	 * This is the central method for creating notes in all converters.
 	 *
 	 * @param text       the note content
-	 * @param sourceNode the GEDCOM node from which the note originates (used for audit date)
+	 * @param sourNode the GEDCOM node from which the note originates (used for audit date)
 	 * @return a FLEF record with the tag "NOTE" and a value + audit child, or {@code null} if the text is blank
 	 */
-	public FLEFRecord createNoteStruct(String text, GEDCOMNode sourceNode){
+	public FLEFRecord createNoteStruct(String text, GEDCOMNode sourNode){
 		if(StringUtils.isBlank(text)){
 			return null;
 		}
-		FLEFRecord note = FLEFRecord.createChildWithTag("note");
-		note.addChild(FLEFRecord.createChildWithTagAndValue("value", text.trim()));
-		// Add required audit
-		note.addChild(AuditBuilder.build(sourceNode));
+		FLEFRecord note = FLEFRecord.createChildWithTag("note")
+			.addChild(FLEFRecord.createChildWithTagAndValue("text", text.trim()))
+			.addChild(AuditBuilder.build(sourNode));
 		return note;
 	}
 
@@ -463,7 +465,7 @@ public class StructureParser{
 		if(repoNode == null){
 			return null;
 		}
-		String repoXref = IDNormalizer.clean(repoNode.getValue());
+		String repoXref = GEDCOMHelper.cleanId(repoNode.getValue());
 		if(repoXref == null || !repositoryMap.containsKey(repoXref)){
 			return null;
 		}
@@ -504,7 +506,7 @@ public class StructureParser{
 		if(StringUtils.isNotEmpty(rawSourceVal)){
 			if(rawSourceVal.startsWith("@") && rawSourceVal.endsWith("@")){
 				// 1. Puntatore ad un record sorgente top-level (@S1@)
-				String cleanId = IDNormalizer.clean(rawSourceVal);
+				String cleanId = GEDCOMHelper.cleanId(rawSourceVal);
 				FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
 				sourceRef.setValue(cleanId);
 				sourceCitation.addChild(sourceRef);
@@ -514,13 +516,12 @@ public class StructureParser{
 				String inlineDescription = GEDCOMHelper.extractFullText(sourNode);
 				if(StringUtils.isNotEmpty(inlineDescription) && model != null){
 					// Crea un nuovo SourceRecord dinamico da registrare nel modello
-					FLEFRecord inlineSource = FLEFRecord.createChildWithTag("source");
-					String newSourceId = IDGenerator.nextId("S");
-					inlineSource.setId(newSourceId);
+					String newSourceId = IDGenerator.nextId(SourceHandler.ID_PREFIX);
+					FLEFRecord inlineSource = FLEFRecord.createMainRecord(newSourceId, SourceHandler.TYPE);
 
 					// Title / Description
-					FLEFRecord titleRec = FLEFRecord.createChildWithTag("title");
-					titleRec.addChild(FLEFRecord.createChildWithTagAndValue("value", inlineDescription));
+					FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")
+						.addChild(FLEFRecord.createChildWithTagAndValue("value", inlineDescription));
 					inlineSource.addChild(titleRec);
 
 					// Verbatim text sotto l'inline SOUR (1 SOUR / 2 TEXT)
@@ -567,7 +568,7 @@ public class StructureParser{
 			if (repoNode.getValue() != null) {
 				FLEFRecord repoCitation = FLEFRecord.createChildWithTag("repository");
 				FLEFRecord repoRef = FLEFRecord.createChildWithTag("repository");
-				repoRef.setValue(IDNormalizer.clean(repoNode.getValue()));
+				repoRef.setValue(GEDCOMHelper.cleanId(repoNode.getValue()));
 				repoCitation.addChild(repoRef);
 				// CALN -> location
 				GEDCOMNode calnNode = GEDCOMHelper.findFirstChild(repoNode, "CALN");
@@ -589,7 +590,7 @@ public class StructureParser{
 			String eventType = evenNode.getValue();
 			if(StringUtils.isNotEmpty(eventType)){
 				FLEFRecord eventRecord = FLEFRecord.createChildWithTag("event");
-				String eventId = IDGenerator.nextId("E");
+				String eventId = IDGenerator.nextId(EventHandler.ID_PREFIX);
 				eventRecord.setId(eventId);
 
 				// 1. Il tipo per eventi custom/descrittivi da SOUR è "other"
@@ -605,8 +606,7 @@ public class StructureParser{
 				String roleValue = (roleNode != null) ? roleNode.getValue() : null;
 
 				if(StringUtils.isNotEmpty(roleValue) && StringUtils.isNotEmpty(currentXref) && StringUtils.isNotEmpty(currentTag)){
-					FLEFRecord participationRecord = FLEFRecord.createChildWithTag("event_participation");
-					participationRecord.setId(IDGenerator.nextId("EP"));
+					FLEFRecord participationRecord = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationHandler.ID_PREFIX), EventParticipationHandler.TYPE);
 
 					FLEFRecord participant = FLEFRecord.createChildWithTag("participant");
 					FLEFRecord indRef = FLEFRecord.createChildWithTag(currentTag);
@@ -690,7 +690,7 @@ public class StructureParser{
 			return null;
 		}
 		FLEFRecord multimediaLink = FLEFRecord.createChildWithTag("multimedia_link");
-		String objXref = IDNormalizer.clean(objNode.getValue());
+		String objXref = GEDCOMHelper.cleanId(objNode.getValue());
 		if(objXref != null){
 			multimediaLink.addChild(FLEFRecord.createChildWithTagAndValue("document", objXref));
 		}
@@ -721,7 +721,7 @@ public class StructureParser{
 		}
 
 		FLEFRecord contact = FLEFRecord.createChildWithTag("contact");
-		contact.addChild(FLEFRecord.createChildWithTagAndValue("address", fullAddr.toString()));
+		contact.addChild(FLEFRecord.createChildWithTagAndValue("value", fullAddr.toString()));
 
 		// Phone, email, etc. as inline notes (with audit)
 		for(GEDCOMNode child : addrNode.getChildren()){

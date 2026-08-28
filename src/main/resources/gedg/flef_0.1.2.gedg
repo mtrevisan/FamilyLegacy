@@ -312,7 +312,7 @@ EventParticipant = oneof {
 // relationship (e.g., 'group_member'). GROUP_RECORD does not directly contain a member list. This design ensures that membership is treated as a
 // relationship with its own properties (dates, evidence, conclusions).
 record GroupRecord {
-  name*: ClassifiedNameStructure   // names associated with the group. For a family group in particular, this name is optional. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
+  name*: NameStructure   // names associated with the group. Different names may represent historical, official, customary, translated, abbreviated, or otherwise variant forms used at different times or in different contexts.
   type?: enum {
     family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe
   } | Text
@@ -340,8 +340,8 @@ record GroupAttributeRecord {
   group: Xref<GroupRecord>        // The group to which this attribute applies.
   type: enum {                    // The type of attribute being asserted.
     residence,              // Place where the group is known to reside or be established.
-    member_count,           // Total reported number of members belonging to the group.
-    children_count,         // Reported number of children associated with the group. Particularly useful for family or household groups when the complete membership is unknown.
+    member_count,           // Reported number of group members. This value represents a source assertion and may differ from the number of members explicitly represented in the file.
+    children_count,         // Reported number of children associated with the group. This value represents a source assertion and may differ from the number of child members explicitly represented in the file
     social_class,           // Economic or social classification of the group (e.g. "peasant", "middle_class", "nobility").
     ethnicity,              // Ethnic, tribal, cultural, or ancestral identity associated with the group as a whole.
     religion,               // Religion practiced or associated with the group.
@@ -367,7 +367,11 @@ record GroupAttributeRecord {
 // ============================================================
 
 // embedded
-struct ClassifiedNameStructure {
+// A textual designation associated with an entity, source, place, organization, repository, group, or other object.
+// This structure represents a complete textual expression and may be used for names, titles, labels, or similar identifying text.
+// Unlike PersonalNameStructure, this structure does not decompose the text into culturally-specific components such as given names, family names,
+// patronymics, titles, or lineage elements.
+struct NameStructure {
   type?: enum {
     // official and legal names
     official,
@@ -394,15 +398,6 @@ struct ClassifiedNameStructure {
     administrative,
     archival
   } | Text
-  text: NameStructure
-}
-
-// embedded
-// A textual designation associated with an entity, source, place, organization, repository, group, or other object.
-// This structure represents a complete textual expression and may be used for names, titles, labels, or similar identifying text.
-// Unlike PersonalNameStructure, this structure does not decompose the text into culturally-specific components such as given names, family names,
-// patronymics, titles, or lineage elements.
-struct NameStructure {
   value: Text                   // the primary textual value
   locale?: LocaleCode | Text
   variant*: TextValueVariant    // alternative phonetic, transliterated, or transcribed representations
@@ -483,7 +478,7 @@ record RelationshipRecord {
     group_member,         // (Individual -> Group) membership in a group
     associate             // (Individual -> Individual | Individual -> Group | Group -> Group) general association
   } | Text
-  role?: Text                   // the function, position, capacity or responsibility held by the subject within the relationship (e.g., 'father', 'mother', 'child', 'president', 'member', 'resident', 'head of household', 'tribal leader')
+  role?: Text                   // the function, position, capacity or responsibility held by the SUBJECT relative to the TARGET. This field provides additional contextual, contextual, organizational, legal, social, or cultural interpretation that is not fully expressed by TYPE alone. ROLE supplements TYPE and SHOULD NOT contradict it. Implementations SHOULD verify that ROLE is semantically compatible with TYPE (ex. biological_child/adoptive_child/foster_child/guarded_child/step_child/civil_spouse/religious_spouse/customary_spouse/cohabiting_partner/engaged_partner -> ROLE is normally unnecessary and SHOULD be omitted, group_member -> examples include member, president, secretary, treasurer, resident, head_of_household, tribal_leader, elder, custodian, ..., associate -> any role MAY be supplied because the relationship itself is generic).
   status?: enum {
     active,   // relationship currently exists
     ended,    // relationship no longer exists
@@ -512,7 +507,7 @@ RelationshipParticipant = oneof {
 // A geographical, administrative, ecclesiastical, cadastral, historical, or physical location. Places may be linked together using PLACE_RELATIONSHIP
 // records in order to model changing jurisdictions and historical geography.
 record PlaceRecord {
-  name+: ClassifiedNameStructure   // the name of the place formatted for display and address generation
+  name+: NameStructure   // the name of the place formatted for display and address generation
   type?: enum {
     address, building, street, hamlet, village, town, municipality, city,
     metropolitan_area, county, province, department, district, region,
@@ -594,7 +589,7 @@ struct NoteStructure {
 // primary record
 // A representation of where a source or set of sources is located. May be formal, like a library, or informal, like the owner of a family book.
 record RepositoryRecord {
-  name+: ClassifiedNameStructure       // the official name of the archive in which the stated source material is stored
+  name+: NameStructure                 // the official name of the archive in which the stated source material is stored
   custodian?: Xref<IndividualRecord>   // the individual acting as custodian of the repository or its source material
   place?: PlaceCitation                // the location of the repository
   contact*: ContactStructure
@@ -609,7 +604,7 @@ record RepositoryRecord {
 struct RepositoryCitation {
   repository: Xref<RepositoryRecord>
   locator?: Text   // location of the referenced material inside the repository (e.g., 'Shelf Mark: 12, Film: 1234567, Frame: 344, Line: 28', or 'Volume: 2, Page: 143, Entry: 17', or 'folio', 'image', etc.)
-  note?: Text
+  note*: Text
 }
 
 
@@ -983,6 +978,11 @@ record HistoricEventRecord {
 // primary record
 // Represents a research objective, question, hypothesis, or problem that requires investigation. Multiple research activities may contribute to
 // answering the same question.
+//
+// ResearchQuestionRecord.conclusion provides a convenient summary of the current answer to a research question.
+// ConclusionRecord represents a formal analytical decision that evaluates one or more competing assertions, hypotheses, or records.
+// A research question MAY have a summary conclusion without any ConclusionRecord.
+// Conversely, one or more ConclusionRecord instances MAY contribute to the conclusion of a research question.
 record ResearchQuestionRecord {
   title: Text               // short human-readable summary of the research objective
   question: Text            // the actual research question or hypothesis being investigated
@@ -993,8 +993,8 @@ record ResearchQuestionRecord {
     resolved,   // sufficient evidence has been gathered
     disproven   // the underlying hypothesis was shown to be incorrect
   }
-  conclusion?: Text         // current conclusion or answer based on available evidence
-  conclusion_confidence?: enum { low, medium, high }
+  conclusion?: Text         // Current answer or working conclusion for this research question. This field is intended as a concise human-readable summary of the researcher's current assessment. Unlike ConclusionRecord, this field does not formally resolve conflicting evidence and does not provide structured proof analysis. It serves as an executive summary of the present state of research.
+  conclusion_confidence?: enum { low, medium, high } // Indicates the researcher's confidence in the current conclusion. This value reflects the current state of investigation and is intended for planning, prioritization, reporting, and user interfaces. It does not replace formal proof evaluation expressed through ConclusionRecord. Suggested interpretation are low: limited evidence, unresolved conflicts, or speculative conclusion; medium: evidence generally supports the conclusion, but gaps or uncertainties remain; high: evidence strongly supports the conclusion and no significant unresolved conflicts are currently known
   rationale?: Text          // explanation supporting the conclusion
   closed_date?: Date        // date the question was resolved or disproven
   privacy?: PrivacyStructure
@@ -1174,16 +1174,16 @@ struct AuditStructure {
 // are likely to be identical.
 // Multiple conclusions MAY evaluate the same identity hypothesis over time.
 record IdentityHypothesisRecord {
-  subject: IdentityCandidate     // the first record in the identity hypothesis
-  candidate: IdentityCandidate   // the second record in the identity hypothesis
+  identity+: IdentityCandidate
   comment?: Text                 // a note explaining the basis for the possible duplicate hypothesis
   source*: SourceCitation
   note*: NoteStructure
   evidence?: EvidenceQualifiers
   audit: AuditStructure
   
-  require subject != candidate
-  require type(subject) == type(candidate)
+  require count(identity) == 2
+  require identity[0] != identity[1]
+  require type(identity[0]) == type(identity[1])
 }
 
 IdentityCandidate = oneof {

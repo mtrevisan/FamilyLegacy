@@ -1,6 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
+import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -50,7 +50,7 @@ public class GEDCOMParser{
 			if(rest.startsWith("@")){
 				int endXref = rest.indexOf('@', 1);
 				if(endXref > 1){
-					xref = IDNormalizer.clean(rest.substring(0, endXref + 1));
+					xref = GEDCOMHelper.cleanId(rest.substring(0, endXref + 1));
 					rest = rest.substring(endXref + 1).trim();
 				}
 			}

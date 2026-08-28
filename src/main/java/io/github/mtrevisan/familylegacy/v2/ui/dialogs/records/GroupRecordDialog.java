@@ -33,13 +33,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ClassifiedNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
@@ -61,7 +61,7 @@ import java.io.Serial;
  * <pre>
  * record GroupRecord {
  *   id: LocalID
- *   name*: ClassifiedNameStructure
+ *   name*: NameStructure
  *   type?: enum { family, household, neighborhood, fraternity, club, literary_society, association, organization, tribe } | Text
  *   source*: SourceCitation
  *   note*: Xref&lt;NoteRecord&gt;
@@ -80,7 +80,7 @@ import java.io.Serial;
  * Tab 3 (Relationships): RelationshipRecord (subject = this group), RelationshipRecord (target = this group)
  * Tab 4 (Participations): EventParticipationRecord (participant[group] = this group)
  * Tab 5 (Context): ContextImpactRecord (target[group] = this group)
- * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (subject/candidate = this group), ResearchQuestionRecord (target[group] = this group)
+ * Tab 6 (Research): ConclusionRecord (resolves = this group), IdentityHypothesisRecord (identity = this group), ResearchQuestionRecord (target[group] = this group)
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  * Tab 9 (Privacy): privacy
@@ -128,7 +128,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		super(parent, model, record, GroupHandler.class);
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names", model, ClassifiedNameHandler.class);
+		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names", model, NameHandler.class);
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"family", "household", "neighbourhood", "fraternity", "club", "literary_society",
@@ -143,7 +143,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupHandler.class)
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, GroupHandler.class)
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupHandler.class)
 			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
 			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
@@ -226,7 +226,7 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
-		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_SUBJECT_OR_CANDIDATE);
+		final JPanel identityHypothesisPanel = components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
 		GUIHelper.addComponent(panel, identityHypothesisPanel);
 
 		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);

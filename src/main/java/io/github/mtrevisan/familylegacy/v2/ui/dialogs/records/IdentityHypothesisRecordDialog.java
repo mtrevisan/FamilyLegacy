@@ -26,7 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -45,13 +44,10 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serial;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 
@@ -62,14 +58,15 @@ import java.util.Objects;
  * <pre>
  * record IdentityHypothesisRecord {
  *   id: LocalID
- *   subject: IdentityCandidate
- *   candidate: IdentityCandidate
+ *   identity+: IdentityCandidate
  *   comment?: Text
  *   source*: SourceCitation
  *   evidence?: EvidenceQualifiers
  *   audit: AuditStructure
  *
- *   require subject != candidate
+ *   require count(identity) == 2
+ *   require identity[0] != identity[1]
+ *   require type(identity[0]) == type(identity[1])
  * }
  *
  * IdentityCandidate = oneof {
@@ -80,7 +77,7 @@ import java.util.Objects;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): subject, candidate, comment, evidence
+ * Tab 1 (Properties): identity 1, identity 2, comment, evidence
  * Tab 5 (Context): ContextImpactRecord (target[identity_hypothesis] = this hypothesis)
  * Tab 6 (Research): ConclusionRecord (resolves = this hypothesis), ResearchQuestionRecord (target[identity_hypothesis] = this hypothesis)
  * Tab 7 (Sources): source
@@ -92,8 +89,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -3743748718107492890L;
 
 
-	private static final String TAG_SUBJECT = "SUBJECT";
-	private static final String TAG_CANDIDATE = "CANDIDATE";
+	private static final String TAG_IDENTITY = "IDENTITY";
 	private static final String TAG_COMMENT = "COMMENT";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
@@ -108,7 +104,8 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final EntityField candidateField;
+	private final EntityField identity1Field;
+	private final EntityField identity2Field;
 	private final BoundTextArea commentArea;
 
 
@@ -117,7 +114,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 	}
 
 	public static IdentityHypothesisRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, IdentityHypothesisRecordDialog::new);
 	}
 
@@ -127,7 +124,9 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		candidateField = EntityField.createForRecordFromOneofReference(TAG_CANDIDATE, this, model)
+		identity1Field = EntityField.createForRecordFromOneofReference(TAG_IDENTITY, this, model)
+			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
+		identity2Field = EntityField.createForRecordFromOneofReference(TAG_IDENTITY, this, model)
 			.withHandlerTypes(IndividualHandler.class, GroupHandler.class, PlaceHandler.class);
 		commentArea = new BoundTextArea(TAG_COMMENT, 3, 30);
 
@@ -151,11 +150,11 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
-		// subject
-		//parentEntity
+		// identity 1
+		GUIHelper.addLabeledComponent(propertiesPanel, "Identity 1*:", identity1Field);
 
-		// candidate
-		GUIHelper.addLabeledComponent(propertiesPanel, "Candidate*:", candidateField);
+		// identity 2
+		GUIHelper.addLabeledComponent(propertiesPanel, "Identity 2*:", identity2Field);
 
 		// comment
 		GUIHelper.addLabeledComponent(propertiesPanel, "Comment:", commentArea);
@@ -218,44 +217,39 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
-		if(record.hasChildren()){
-			// load parent subject reference
-			final FLEFRecord subject = FLEFRecordHelper.extractRecordFromOneOfReference(record, TAG_SUBJECT, model);
-			if(subject != null)
-				withParentEntity(subject.getId(), subject.getTag());
-		}
-
-		candidateField.load(record);
+		identity1Field.load(record, 0);
+		identity2Field.load(record, 1);
 
 		components.load(record);
 	}
 
 	@Override
 	protected boolean validData(){
-		if(parentEntity.isEmpty()){
-			JOptionPane.showMessageDialog(this,
-				"Subject is required.",
-				"Validation Error", JOptionPane.ERROR_MESSAGE);
+		if(!identity1Field.hasData()){
+			GUIHelper.showValidationErrorAndFocus(this,
+				"First identity is required.",
+				tabbedPane, propertiesPanel, identity1Field);
 
 			return false;
 		}
 
-		if(!candidateField.hasData()){
+		if(!identity2Field.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Candidate is required.",
-				tabbedPane, propertiesPanel, candidateField);
+				"Second identity is required.",
+				tabbedPane, propertiesPanel, identity2Field);
 
 			return false;
 		}
 
-		// subject and candidate must be different records
-		final String subjectId = parentEntity.getText();
-		final FLEFRecord candidate = candidateField.getEntity();
-		final String candidateId = (candidate != null? candidate.getId(): null);
-		if(subjectId != null && subjectId.equals(candidateId)){
+		// identities must be different records
+		final FLEFRecord identity1 = identity1Field.getEntity();
+		final String identity1Id = (identity1 != null? identity1.getId(): null);
+		final FLEFRecord identity2 = identity2Field.getEntity();
+		final String identity2Id = (identity2 != null? identity2.getId(): null);
+		if(Objects.equals(identity1Id, identity2Id)){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Subject and candidate must be different records.",
-				tabbedPane, propertiesPanel, candidateField);
+				"Identities must be different records.",
+				tabbedPane, propertiesPanel, identity1Field);
 
 			return false;
 		}
@@ -265,12 +259,9 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		// save parent subject reference
-		FLEFRecordHelper.getOrCreateTargetNode(record, TAG_SUBJECT)
-			.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
-		candidateField.saveReferences(record);
+		identity1Field.saveReferences(record);
+		identity2Field.saveReferences(record);
 
-		// Note: This will also save the subjectField (via bindingManager) and other common panels
 		components.save(record);
 	}
 

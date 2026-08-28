@@ -1,16 +1,17 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
+import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.GEDCOMMapper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 
 import java.util.Map;
-import java.util.Set;
 
 
 /**
@@ -18,7 +19,7 @@ import java.util.Set;
  * <p>
  * Handles:
  * <ul>
- *   <li>Name (NAME) → name+: ClassifiedNameStructure</li>
+ *   <li>Name (NAME) → name+: NameStructure</li>
  *   <li>Place (PLAC) → place: PlaceCitation</li>
  *   <li>Address (ADDR) → contact: ContactStructure</li>
  *   <li>Date (DATE) → date</li>
@@ -64,20 +65,17 @@ public class RepositoryConverter{
 		String xref = repoNode.getXrefId();
 		if(xref == null) return;
 
-		String cleanId = IDNormalizer.clean(xref);
+		String cleanId = GEDCOMHelper.cleanId(xref);
 		IDGenerator.registerExistingId(cleanId);
 
-		FLEFRecord repo = FLEFRecord.createChildWithTag("repository");
-		repo.setId(cleanId);
+		FLEFRecord repo = FLEFRecord.createMainRecord(cleanId, RepositoryHandler.TYPE);
 		repositoryMap.put(cleanId, repo);
 
-		// ---- 1. NAME (name+: ClassifiedNameStructure) ----
+		// ---- 1. NAME (name+: NameStructure) ----
 		GEDCOMNode nameNode = GEDCOMHelper.findFirstChild(repoNode, "NAME");
 		if(nameNode != null && nameNode.getValue() != null){
 			FLEFRecord classifiedName = FLEFRecord.createChildWithTag("name");
-			FLEFRecord nameStruct = FLEFRecord.createChildWithTag("text");
-			nameStruct.addChild(FLEFRecord.createChildWithTagAndValue("value", nameNode.getValue()));
-			classifiedName.addChild(nameStruct);
+			classifiedName.addChild(FLEFRecord.createChildWithTagAndValue("value", nameNode.getValue()));
 			// Optional type (not standard for REPO NAME, but harmless)
 			GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(nameNode, "TYPE");
 			if(typeNode != null && typeNode.getValue() != null){
@@ -132,7 +130,7 @@ public class RepositoryConverter{
 			FLEFRecord docRecord = null;
 			String objXref = objNode.getXrefId();
 			if(objXref != null){
-				String cleanObjId = IDNormalizer.clean(objXref);
+				String cleanObjId = GEDCOMHelper.cleanId(objXref);
 				docRecord = multimediaMap.get(cleanObjId);
 			}
 			if(docRecord == null){
@@ -140,8 +138,7 @@ public class RepositoryConverter{
 				model.addRecord(docRecord);
 				multimediaMap.put(docRecord.getId(), docRecord);
 			}
-			FLEFRecord docRef = FLEFRecord.createChildWithTag("document");
-			docRef.setValue(docRecord.getId());
+			FLEFRecord docRef = FLEFRecord.createChildWithTagAndValue("document", docRecord.getId());
 			repo.addChild(docRef);
 		}
 
@@ -151,17 +148,17 @@ public class RepositoryConverter{
 			if(noteStruct != null) repo.addChild(noteStruct);
 		}
 
-		// ---- 8. Extra fields (RIN, REFN) as inline notes with audit ----
-		for(GEDCOMNode child : repoNode.getChildren()){
-			String tag = child.getTag();
-			if(/*tag.equals("RIN") ||*/ tag.equals("REFN")){
-				if(child.getValue() != null){
-					String text = tag + ": " + child.getValue();
-					FLEFRecord note = structParser.createNoteStruct(text, child);
-					if(note != null) repo.addChild(note);
-				}
-			}
-		}
+//		// ---- 8. Extra fields (RIN, REFN) as inline notes with audit ----
+//		for(GEDCOMNode child : repoNode.getChildren()){
+//			String tag = child.getTag();
+//			if(tag.equals("RIN") || tag.equals("REFN")){
+//				if(child.getValue() != null){
+//					String text = tag + ": " + child.getValue();
+//					FLEFRecord note = structParser.createNoteStruct(text, child);
+//					if(note != null) repo.addChild(note);
+//				}
+//			}
+//		}
 
 		// ---- 9. Privacy (RESN) ----
 		GEDCOMNode resnNode = GEDCOMHelper.findFirstChild(repoNode, "RESN");
@@ -173,7 +170,7 @@ public class RepositoryConverter{
 		}
 
 		// ---- 10. Audit (required) ----
-		repo.addChild(structParser.createAudit(repoNode));
+		repo.addChild(AuditBuilder.build(repoNode));
 	}
 
 	/**
@@ -181,14 +178,12 @@ public class RepositoryConverter{
 	 * Excludes tags that are already used for specific purposes.
 	 */
 	private FLEFRecord createDocumentRecord(GEDCOMNode objNode){
-		String id = IDGenerator.nextId("D");
-		FLEFRecord doc = FLEFRecord.createChildWithTag("document");
-		doc.setId(id);
+		FLEFRecord doc = FLEFRecord.createMainRecord(IDGenerator.nextId(DocumentHandler.ID_PREFIX), DocumentHandler.TYPE);
 
 		// FILE -> file
 		GEDCOMNode fileNode = GEDCOMHelper.findFirstChild(objNode, "FILE");
 		if(fileNode != null && fileNode.getValue() != null){
-			doc.addChild(FLEFRecord.createChildWithTagAndValue("file", fileNode.getValue()));
+			doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileNode.getValue()));
 		}
 
 		// TITL -> description
@@ -217,7 +212,7 @@ public class RepositoryConverter{
 //		}
 
 		// Audit (required)
-		doc.addChild(structParser.createAudit(objNode));
+		doc.addChild(AuditBuilder.build(objNode));
 		return doc;
 	}
 
