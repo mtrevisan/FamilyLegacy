@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.Deduplicator;
+import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
@@ -168,7 +170,8 @@ public class SourceConverter {
 					)
 					.addChild(AuditBuilder.build(sourNode));
 
-				model.addRecord(repository);
+				// check for duplicates before adding
+				Deduplicator.getDeduplicatedRecordId(model, repository);
 
 				repositoryCitation.addChild(FLEFRecord.createChildWithTagAndValue("repository", repositoryId));
 			}
@@ -237,33 +240,34 @@ public class SourceConverter {
 				}
 			}
 
-			FLEFRecord docRecord = null;
+			FLEFRecord document = null;
 			if(objXref != null){
 				// Cerca il DocumentRecord nella mappa
-				docRecord = multimediaMap.get(objXref);
-				if(docRecord == null){
+				document = multimediaMap.get(objXref);
+				if(document == null){
 					// Non esiste: crea un placeholder minimo per non perdere il riferimento
-					docRecord = FLEFRecord.createMainRecord(objXref, DocumentHandler.TYPE)
+					document = FLEFRecord.createMainRecord(objXref, DocumentHandler.TYPE)
 						.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"))
 						.addChild(AuditBuilder.build(sourNode));
-					multimediaMap.put(objXref, docRecord);
-					model.addRecord(docRecord);
+					multimediaMap.put(objXref, document);
+
+					// check for duplicates before adding
+					Deduplicator.getDeduplicatedRecordId(model, document);
 				}
 			}
 			else{
 				// OBJE inline (con FILE) – crea un DocumentRecord dal nodo
-				docRecord = createDocumentRecord(objNode);
-				if(docRecord != null){
-					model.addRecord(docRecord);
-					multimediaMap.put(docRecord.getId(), docRecord);
-				}
+				document = createDocumentRecord(objNode);
+
+				// check for duplicates before adding
+				Deduplicator.getDeduplicatedRecordId(model, document);
+
+				multimediaMap.put(document.getId(), document);
 			}
 
-			if(docRecord != null){
-				// Aggiungi il riferimento document al SourceRecord
-				FLEFRecord docRef = FLEFRecord.createChildWithTagAndValue("document", docRecord.getId());
-				source.addChild(docRef);
-			}
+			// Aggiungi il riferimento document al SourceRecord
+			FLEFRecord docRef = FLEFRecord.createChildWithTagAndValue("document", document.getId());
+			source.addChild(docRef);
 		}
 	}
 

@@ -123,8 +123,12 @@ public class FLEFRecord{
 		return children;
 	}
 
+	public FLEFRecord getTheOnlyChild(){
+		return getTheOnlyChild(null);
+	}
+
 	public FLEFRecord getTheOnlyChild(final String tag){
-		final List<FLEFRecord> taggedChildren = FLEFRecordHelper.findChildren(this, tag);
+		final List<FLEFRecord> taggedChildren = (tag != null? FLEFRecordHelper.findChildren(this, tag): children);
 		final int size = taggedChildren.size();
 		if(size > 1){
 			JOptionPane.showMessageDialog(null,
@@ -135,19 +139,6 @@ public class FLEFRecord{
 		}
 
 		return (size == 1? taggedChildren.getFirst(): null);
-	}
-
-	public FLEFRecord getTheOnlyChild(){
-		final int size = children.size();
-		if(size > 1){
-			JOptionPane.showMessageDialog(null,
-				"Record with more than one child: " + this,
-				"Error", JOptionPane.ERROR_MESSAGE);
-
-			return null;
-		}
-
-		return (size == 1? children.getFirst(): null);
 	}
 
 	public long countChildrenWithTag(final String tag){
@@ -237,7 +228,7 @@ public class FLEFRecord{
 	}
 
 	public boolean isEmpty(){
-		return (StringUtils.isEmpty(tag) && StringUtils.isEmpty(id) && StringUtils.isEmpty(value) && children.isEmpty());
+		return (StringUtils.isEmpty(tag) && StringUtils.isEmpty(id) && StringUtils.isEmpty(value) && !hasChildren());
 	}
 
 

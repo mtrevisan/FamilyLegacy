@@ -24,10 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
-import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,13 +42,6 @@ import java.util.Properties;
 class AnselInputStreamReader extends InputStreamReader{
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(AnselInputStreamReader.class);
-
-	static{
-		//check whether an optional SLF4J binding is available
-		final ILoggerFactory loggerFactory = LoggerFactory.getILoggerFactory();
-		if(loggerFactory == null || loggerFactory.getClass().equals(NOPLoggerFactory.class))
-			System.out.println("[WARN] SLF4J: No logger is defined, NO LOG will be printed!");
-	}
 
 
 	static final String CHARACTER_ENCODING = "ANSEL";

@@ -147,7 +147,9 @@ public class DateStructurePanel extends JPanel{
 		});
 		add(tabbedPane, "growx,wrap");
 
-		add(new JLabel("Original Text:"), "align label");
+		final JLabel originalTextLabel = new JLabel("Original Text:");
+		originalTextLabel.setLabelFor(originalTextField);
+		add(originalTextLabel, "align label");
 		add(originalTextField, "growx");
 
 		// source

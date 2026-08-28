@@ -281,7 +281,9 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
 		// parent
-		panel.add(new JLabel("Parent Activity:"), "align label");
+		final JLabel parentActivityLabel = new JLabel("Parent Activity:");
+		parentActivityLabel.setLabelFor(parentActivityField);
+		panel.add(parentActivityLabel, "align label");
 		panel.add(parentActivityField, "growx,wrap");
 
 		// task

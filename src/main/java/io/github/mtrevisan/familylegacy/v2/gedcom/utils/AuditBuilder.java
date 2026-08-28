@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,9 +27,9 @@ public class AuditBuilder{
 		// Extraction of CHAN -> NOTE
 		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(chanNode, "NOTE");
 		String chanNoteText = GEDCOMHelper.extractFullText(noteNode);
-		if(chanNoteText == null){
-			chanNoteText = "From GEDCOM conversion";
-		}
+//		if(chanNoteText == null){
+//			chanNoteText = "From GEDCOM conversion";
+//		}
 
 		FLEFRecord creation = FLEFRecord.createChildWithTag("creation");
 		creation.addChild(FLEFRecord.createChildWithTagAndValue("date", isoDateTime));

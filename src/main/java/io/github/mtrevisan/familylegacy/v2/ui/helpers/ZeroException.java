@@ -24,6 +24,8 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
+import io.github.mtrevisan.familylegacy.v2.JavaHelper;
+
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

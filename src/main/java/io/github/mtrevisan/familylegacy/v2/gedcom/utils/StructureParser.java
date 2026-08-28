@@ -1,7 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
-import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -31,164 +31,6 @@ public class StructureParser{
 
 	public StructureParser(PlaceCache placeCache){
 		this.placeCache = placeCache;
-	}
-
-	// ------------------------------------------------------------------------
-	// Event parsing
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Parses a GEDCOM event node into an FLEF EventRecord.
-	 * Adds the required audit structure.
-	 */
-	public FLEFRecord parseEvent(GEDCOMNode evtNode, String gedcomTag, Map<String, GEDCOMNode> noteRawMap){
-		if(evtNode == null){
-			return null;
-		}
-
-		// Determine the FLEF event type
-		String customType = getChildValue(evtNode, "TYPE");
-		String flefType = GEDCOMMapper.mapEvent(gedcomTag, customType);
-
-		FLEFRecord eventRec = FLEFRecord.createChildWithTag("event");
-		eventRec.addChild(FLEFRecord.createChildWithTagAndValue("type", flefType));
-
-		// Date
-		GEDCOMNode dateNode = GEDCOMHelper.findFirstChild(evtNode, "DATE");
-		if(dateNode != null){
-			FLEFRecord dateStruct = parseDateStructure(dateNode);
-			if(dateStruct != null){
-				eventRec.addChild(dateStruct);
-			}
-		}
-
-		// Place
-		GEDCOMNode placNode = GEDCOMHelper.findFirstChild(evtNode, "PLAC");
-		if(placNode != null){
-			FLEFRecord placeCitation = parsePlaceCitation(placNode);
-			if(placeCitation != null){
-				eventRec.addChild(placeCitation);
-			}
-		}
-
-		// Agency (AGNC)
-		GEDCOMNode agncNode = GEDCOMHelper.findFirstChild(evtNode, "AGNC");
-		if(agncNode != null && agncNode.getValue() != null){
-			eventRec.addChild(FLEFRecord.createChildWithTagAndValue("agency", agncNode.getValue()));
-		}
-
-		// Cause (CAUS)
-		GEDCOMNode causNode = GEDCOMHelper.findFirstChild(evtNode, "CAUS");
-		if(causNode != null && causNode.getValue() != null){
-			FLEFRecord cause = FLEFRecord.createChildWithTag("cause");
-			cause.addChild(FLEFRecord.createChildWithTagAndValue("reason", causNode.getValue()));
-			eventRec.addChild(cause);
-		}
-
-		// Description (for generic EVEN) – ignore "Y" or "N"
-		String eventValue = evtNode.getValue();
-		if(StringUtils.isNotEmpty(eventValue)
-			&& !eventValue.equalsIgnoreCase("Y")
-			&& !eventValue.equalsIgnoreCase("N")){
-			eventRec.addChild(FLEFRecord.createChildWithTagAndValue("description", eventValue));
-		}
-
-		// Sources, notes, multimedia
-		addCommonSubstructures(evtNode, eventRec, noteRawMap);
-
-		// Age at event → inline note (with audit)
-		GEDCOMNode ageNode = GEDCOMHelper.findFirstChild(evtNode, "AGE");
-		if(ageNode != null && ageNode.getValue() != null){
-			FLEFRecord note = createNoteStruct("Age at event: " + ageNode.getValue(), evtNode);
-			if(note != null){
-				eventRec.addChild(note);
-			}
-		}
-
-		// ---- FAMC (family of origin) ----
-		for (GEDCOMNode famcNode : GEDCOMHelper.findChildren(evtNode, "FAMC")) {
-			if (famcNode.getValue() != null) {
-				String text = "Family of origin: " + famcNode.getValue();
-				FLEFRecord note = createNoteStruct(text, famcNode);
-				if (note != null) eventRec.addChild(note);
-			}
-		}
-
-		// ---- RESN (restriction) ----
-		GEDCOMNode resnNode = GEDCOMHelper.findFirstChild(evtNode, "RESN");
-		if (resnNode != null && resnNode.getValue() != null) {
-			String level = GEDCOMMapper.mapPrivacyLevel(resnNode.getValue());
-			FLEFRecord privacy = FLEFRecord.createChildWithTag("privacy");
-			privacy.addChild(FLEFRecord.createChildWithTagAndValue("level", level));
-			eventRec.addChild(privacy);
-		}
-
-		// ---- ADOP sub‑field (which parent adopted) ----
-		if ("ADOP".equals(gedcomTag)) {
-			GEDCOMNode adopNode = GEDCOMHelper.findFirstChild(evtNode, "ADOP");
-			if (adopNode != null && adopNode.getValue() != null) {
-				String text = "Adopted by: " + adopNode.getValue();
-				FLEFRecord note = createNoteStruct(text, adopNode);
-				if (note != null) eventRec.addChild(note);
-			}
-		}
-
-		// Audit (required)
-		eventRec.addChild(AuditBuilder.build(evtNode));
-		return eventRec;
-	}
-
-	// ------------------------------------------------------------------------
-	// Attribute parsing (IndividualAttributeRecord)
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Parses a GEDCOM attribute node into an FLEF IndividualAttributeRecord.
-	 * Adds the required audit structure.
-	 */
-	public FLEFRecord parseAttribute(GEDCOMNode attrNode, String gedcomTag, Map<String, GEDCOMNode> noteRawMap){
-		if(attrNode == null){
-			return null;
-		}
-
-		String customType = getChildValue(attrNode, "TYPE");
-		String flefType = GEDCOMMapper.mapAttribute(gedcomTag, customType);
-
-		FLEFRecord attrRec = FLEFRecord.createChildWithTag("individual_attribute");
-		attrRec.addChild(FLEFRecord.createChildWithTagAndValue("type", flefType));
-
-		// Value – ignore "Y" or "N"
-		String attrValue = attrNode.getValue();
-		if(StringUtils.isNotEmpty(attrValue)
-			&& !attrValue.equalsIgnoreCase("Y")
-			&& !attrValue.equalsIgnoreCase("N")){
-			attrRec.addChild(FLEFRecord.createChildWithTagAndValue("value", attrValue));
-		}
-
-		// Date (valid_from?)
-		GEDCOMNode dateNode = GEDCOMHelper.findFirstChild(attrNode, "DATE");
-		if(dateNode != null){
-			FLEFRecord dateStruct = parseDateStructure(dateNode);
-			if(dateStruct != null){
-				attrRec.addChild(dateStruct);
-			}
-		}
-
-		// Place
-		GEDCOMNode placNode = GEDCOMHelper.findFirstChild(attrNode, "PLAC");
-		if(placNode != null){
-			FLEFRecord placeCitation = parsePlaceCitation(placNode);
-			if(placeCitation != null){
-				attrRec.addChild(placeCitation);
-			}
-		}
-
-		// Sources, notes, multimedia
-		addCommonSubstructures(attrNode, attrRec, noteRawMap);
-
-		// Audit (required)
-		attrRec.addChild(AuditBuilder.build(attrNode));
-		return attrRec;
 	}
 
 	// ------------------------------------------------------------------------
@@ -454,40 +296,6 @@ public class StructureParser{
 	}
 
 	// ------------------------------------------------------------------------
-	// RepositoryCitation
-	// ------------------------------------------------------------------------
-
-	/**
-	 * Parses a GEDCOM REPO node into a RepositoryCitation.
-	 * Returns null if the repository reference is missing or invalid.
-	 */
-	public FLEFRecord parseRepositoryCitation(GEDCOMNode repoNode, Map<String, FLEFRecord> repositoryMap){
-		if(repoNode == null){
-			return null;
-		}
-		String repoXref = GEDCOMHelper.cleanId(repoNode.getValue());
-		if(repoXref == null || !repositoryMap.containsKey(repoXref)){
-			return null;
-		}
-		FLEFRecord repoCitation = FLEFRecord.createChildWithTag("repository");
-		FLEFRecord repoRef = FLEFRecord.createChildWithTag("repository");
-		repoRef.setValue(repoXref);
-		repoCitation.addChild(repoRef);
-
-		// CALN -> location
-		GEDCOMNode calnNode = GEDCOMHelper.findFirstChild(repoNode, "CALN");
-		if(calnNode != null && calnNode.getValue() != null){
-			repoCitation.addChild(FLEFRecord.createChildWithTagAndValue("location", calnNode.getValue()));
-		}
-		// Note (optional – plain text)
-		GEDCOMNode noteNode = GEDCOMHelper.findFirstChild(repoNode, "NOTE");
-		if(noteNode != null && noteNode.getValue() != null){
-			repoCitation.addChild(FLEFRecord.createChildWithTagAndValue("note", noteNode.getValue()));
-		}
-		return repoCitation;
-	}
-
-	// ------------------------------------------------------------------------
 	// SourceCitation
 	// ------------------------------------------------------------------------
 
@@ -747,45 +555,6 @@ public class StructureParser{
 			: AuditBuilder.build(null);
 		contact.addChild(audit);
 		return contact;
-	}
-
-	// ------------------------------------------------------------------------
-	// Common substructures (sources, notes, multimedia)
-	// ------------------------------------------------------------------------
-
-	private void addCommonSubstructures(GEDCOMNode node, FLEFRecord target, Map<String, GEDCOMNode> noteRawMap){
-		// Sources
-		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(node, "SOUR")){
-			FLEFRecord sourCitation = parseSourceCitation(sourNode, null, noteRawMap);
-			if(sourCitation != null){
-				target.addChild(sourCitation);
-			}
-		}
-
-		// Notes – now using inline NoteStructure with audit
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(node, "NOTE")){
-			FLEFRecord noteStruct = parseNoteStruct(noteNode);
-			if(noteStruct != null){
-				target.addChild(noteStruct);
-			}
-		}
-
-		// Multimedia
-		for(GEDCOMNode objNode : GEDCOMHelper.findChildren(node, "OBJE")){
-			FLEFRecord multimediaLink = parseMultimediaLink(objNode, null);
-			if(multimediaLink != null && !multimediaLink.getChildren().isEmpty()){
-				target.addChild(multimediaLink);
-			}
-		}
-	}
-
-	// ------------------------------------------------------------------------
-	// Utility methods
-	// ------------------------------------------------------------------------
-
-	private String getChildValue(GEDCOMNode node, String tag){
-		GEDCOMNode child = GEDCOMHelper.findFirstChild(node, tag);
-		return child != null ? child.getValue() : null;
 	}
 
 	// ------------------------------------------------------------------------

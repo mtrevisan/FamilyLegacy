@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.dialogs;
 
+import io.github.mtrevisan.familylegacy.v2.ProjectInfo;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
@@ -55,8 +56,7 @@ import java.time.ZoneOffset;
  *     name: Text
  *     version: SemVer
  *   }
- *   source: struct {
- *     system_id: Text
+ *   source?: struct {
  *     name?: Text
  *     version?: SemVer
  *     organization?: Text
@@ -82,14 +82,13 @@ public class HeaderDialog extends BaseRecordDialog{
 
 
 	private static final String DOT = ".";
+
 	private static final String TAG_NAME = "NAME";
 	private static final String TAG_VERSION = "VERSION";
-
 	private static final String TAG_PROTOCOL = "PROTOCOL";
 	private static final String TAG_PROTOCOL_NAME = TAG_PROTOCOL + DOT + TAG_NAME;
 	private static final String TAG_PROTOCOL_VERSION = TAG_PROTOCOL + DOT + TAG_VERSION;
 	private static final String TAG_SOURCE = "SOURCE";
-	private static final String TAG_SOURCE_SYSTEM_ID = TAG_SOURCE + DOT + "SYSTEM_ID";
 	private static final String TAG_SOURCE_NAME = TAG_SOURCE + DOT + TAG_NAME;
 	private static final String TAG_SOURCE_VERSION = TAG_SOURCE + DOT + TAG_VERSION;
 	private static final String TAG_SOURCE_ORGANIZATION = TAG_SOURCE + DOT + "ORGANIZATION";
@@ -101,12 +100,15 @@ public class HeaderDialog extends BaseRecordDialog{
 	private static final String TAG_SUBMITTER_NOTE = TAG_SUBMITTER + DOT + TAG_NOTE;
 	private static final String TAG_SCOPE = "SCOPE";
 
+	private static final String PROTOCOL_NAME = "Family LEgacy Format";
+	private static final String PROTOCOL_VERSION = "0.1.2";
+	private static final String SOURCE_ORGANIZATION = "Mauro Trevisan";
+
 	private final RecordDialogComponents components;
 
 	private final BoundTextField protocolNameField;
 	private final BoundTextField protocolVersionField;
 
-	private final BoundTextField sourceSystemIdField;
 	private final BoundTextField sourceNameField;
 	private final BoundTextField sourceVersionField;
 	private final BoundTextField sourceOrganizationField;
@@ -124,12 +126,14 @@ public class HeaderDialog extends BaseRecordDialog{
 	public HeaderDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, model.getHeader(), HeaderHandler.class);
 
-		protocolNameField = new BoundTextField(TAG_PROTOCOL_NAME, "Family LEgacy Format");
-		protocolVersionField = new BoundTextField(TAG_PROTOCOL_VERSION, "0.1.2");
-		sourceSystemIdField = new BoundTextField(TAG_SOURCE_SYSTEM_ID, "FamilyLegacy");
-		sourceNameField = new BoundTextField(TAG_SOURCE_NAME, "FL");
-		sourceVersionField = new BoundTextField(TAG_SOURCE_VERSION, "0.1");
-		sourceOrganizationField = new BoundTextField(TAG_SOURCE_ORGANIZATION, "(c) Mauro Trevisan");
+		final String sourceName = ProjectInfo.getAppName();
+		final String sourceVersion = ProjectInfo.getAppVersion();
+
+		protocolNameField = new BoundTextField(TAG_PROTOCOL_NAME, PROTOCOL_NAME);
+		protocolVersionField = new BoundTextField(TAG_PROTOCOL_VERSION, PROTOCOL_VERSION);
+		sourceNameField = new BoundTextField(TAG_SOURCE_NAME, sourceName);
+		sourceVersionField = new BoundTextField(TAG_SOURCE_VERSION, sourceVersion);
+		sourceOrganizationField = new BoundTextField(TAG_SOURCE_ORGANIZATION, SOURCE_ORGANIZATION);
 		dateField = new BoundTextField(TAG_DATE);
 		dateField.setEnabled(false);
 		copyrightArea = new BoundTextArea(TAG_COPYRIGHT, 3, 25);
@@ -143,7 +147,6 @@ public class HeaderDialog extends BaseRecordDialog{
 
 		components.bind(protocolNameField);
 		components.bind(protocolVersionField);
-		components.bind(sourceSystemIdField);
 		components.bind(sourceNameField);
 		components.bind(sourceVersionField);
 		components.bind(sourceOrganizationField);

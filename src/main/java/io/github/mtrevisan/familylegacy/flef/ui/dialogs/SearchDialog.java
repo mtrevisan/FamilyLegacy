@@ -25,12 +25,12 @@
 package io.github.mtrevisan.familylegacy.flef.ui.dialogs;
 
 import io.github.mtrevisan.familylegacy.flef.helpers.DependencyInjector;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.EntityManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManager;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.SearchParser;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService;

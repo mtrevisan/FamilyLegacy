@@ -36,7 +36,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -411,6 +410,7 @@ public final class GUIHelper{
 	 */
 	public static void addLabeledComponent(final Container container, final String labelText, final JComponent field){
 		final JLabel label = new JLabel(labelText);
+		label.setLabelFor(field);
 		field.putClientProperty(PROPERTY_ASSOCIATED_LABEL, label);
 
 		container.add(label, "align label");
@@ -726,13 +726,11 @@ public final class GUIHelper{
 		}
 		catch(final Exception ignored){}
 
-		HandlerRegistry.scanHandlers();
-
 		SwingUtilities.invokeLater(() -> {
 			final BaseRecordDialog dialog = dialogFactory.apply(null, model);
 			dialog.setVisible(true);
 
-			System.out.println(FLEFWriter.create().writeToString(model));
+			System.out.println(FLEFWriter.createCompact().writeToString(model));
 		});
 	}
 

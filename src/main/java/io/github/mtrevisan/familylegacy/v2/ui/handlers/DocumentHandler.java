@@ -42,7 +42,7 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 	public static final String TYPE = "DOCUMENT";
 	public static final String ID_PREFIX = "D";
 
-	private static final String TAG_FILE = "FILE";
+	private static final String TAG_URI = "URI";
 
 
 	@Override
@@ -62,12 +62,12 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String uri = FLEFRecordHelper.getChildValue(record, TAG_FILE);
+		String uri = FLEFRecordHelper.getChildValue(record, TAG_URI);
 		if(uri == null){
 			// it's a citation, extract URI from true record
 			final String documentId = record.getValue();
 			final FLEFRecord document = model.getRecordById(documentId);
-			uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
+			uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
 		}
 
 		final StringBuilder sb = new StringBuilder();

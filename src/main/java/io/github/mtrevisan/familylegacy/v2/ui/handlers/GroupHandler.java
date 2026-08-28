@@ -38,6 +38,13 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 	public static final String TYPE = "GROUP";
 	public static final String ID_PREFIX = "G";
 
+	private static final String DOT = ".";
+
+	private static final String TAG_NAME = "NAME";
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
+	private static final String TAG_TYPE = "TYPE";
+
 
 	@Override
 	public String getLabel(){
@@ -60,9 +67,9 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 			return "--";
 
 		// Locate the first populated NAME structure
-		final String name = FLEFRecordHelper.getChildValue(record, "NAME.TEXT.VALUE");
+		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
 
-		final String type = FLEFRecordHelper.getChildValue(record, "TYPE");
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 
 		final String id = record.getId();
 		final StringBuilder sb = new StringBuilder();

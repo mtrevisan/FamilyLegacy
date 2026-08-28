@@ -23,11 +23,13 @@ public class GEDCOMConverterMain{
 
 	// Usage: java GEDCOMConverterMain <input.ged> <output.flef>
 	public static void main(String[] args) throws IOException{
-		String inputResource = "/tests/TGC55C.ged";
-		String outputPath = "src/main/resources/tests/TGC55C.flef";
+		String inputResource = "/tests/TGMZ.ged";
+		String outputPath = "src/main/resources/tests/TGMZ.flef";
+//		String inputResource = "/tests/TGC55C.ged";
+//		String outputPath = "src/main/resources/tests/TGC55C.flef";
 
 		String gedcomContent;
-		try(BufferedReader br = GedcomHelper.getBufferedReader(GEDCOMToFLEFConverter.class.getResourceAsStream(inputResource))){
+		try(BufferedReader br = GEDCOMHelper.getBufferedReader(GEDCOMToFLEFConverter.class.getResourceAsStream(inputResource))){
 			gedcomContent = br.lines()
 				.collect(Collectors.joining(System.lineSeparator()));
 		}
@@ -45,8 +47,11 @@ public class GEDCOMConverterMain{
 
 		validate(model);
 
+//		FLEFMerger merger = FLEFMerger.defaultMerger();
+//		MergeReport dedupReport = merger.deduplicate(model);
+
 		// Write FLEF file
-		FLEFWriter writer = FLEFWriter.create();
+		FLEFWriter writer = FLEFWriter.createCompact();
 		Path outputFile = Paths.get(outputPath);
 		Files.createDirectories(outputFile.getParent());
 		try(Writer fw = Files.newBufferedWriter(outputFile, StandardCharsets.UTF_8)){

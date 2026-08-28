@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.flef.helpers.Inject;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreException;
 import io.github.mtrevisan.familylegacy.flef.persistence.db.StoreManagerInterface;
 import io.github.mtrevisan.familylegacy.flef.ui.events.EditEvent;
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.StringHelper;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.TableHelper;
@@ -37,6 +36,7 @@ import io.github.mtrevisan.familylegacy.flef.ui.helpers.eventbus.EventBusService
 import io.github.mtrevisan.familylegacy.flef.ui.panels.HistoryPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.ResearchStatusPanel;
 import io.github.mtrevisan.familylegacy.flef.ui.panels.searches.RecordListenerInterface;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

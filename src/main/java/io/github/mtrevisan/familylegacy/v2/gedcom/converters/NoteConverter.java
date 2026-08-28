@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
@@ -48,8 +49,7 @@ public class NoteConverter{
 
 		IDGenerator.registerExistingId(id);
 
-		FLEFRecord note = FLEFRecord.createMainRecord(id, "note")
-			.addChild(AuditBuilder.build(noteNode));
+		FLEFRecord note = FLEFRecord.createMainRecord(id, "note");
 		noteMap.put(id, note);
 
 		// ---- 1. NOTE value (including CONC/CONT) ----
@@ -86,6 +86,8 @@ public class NoteConverter{
 //		}
 
 		// ---- 5. CHANGE_DATE (audit) ----
+		note.addChild(AuditBuilder.build(noteNode));
+
 		note.addChild(AuditBuilder.build(noteNode));
 	}
 

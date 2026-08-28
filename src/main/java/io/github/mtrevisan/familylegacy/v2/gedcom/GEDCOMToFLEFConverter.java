@@ -77,8 +77,8 @@ public class GEDCOMToFLEFConverter {
 		IndividualConverter individualConverter = new IndividualConverter(model, individualMap, noteRawMap, sourRawMap, objeRawMap, sourceMap, multimediaMap, placeCache);
 		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, sourceMap, multimediaMap, noteRawMap, sourRawMap, objeRawMap, placeCache);
 		SourceConverter sourceConverter = new SourceConverter(model, noteRawMap, sourRawMap, sourceMap, objeRawMap, repositoryMap, multimediaMap, placeCache);
-		RepositoryConverter repositoryConverter = new RepositoryConverter(model, repositoryMap, multimediaMap, placeCache);
-		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, placeCache, noteRawMap);
+		RepositoryConverter repositoryConverter = new RepositoryConverter(repositoryMap, noteRawMap);
+		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, placeCache, noteRawMap, sourRawMap, objeRawMap);
 		SubmitterConverter submitterConverter = new SubmitterConverter(model, submitterMap, placeCache);
 		NoteConverter noteConverter = new NoteConverter(model, noteMap, noteRawMap);
 
@@ -89,10 +89,9 @@ public class GEDCOMToFLEFConverter {
 				case "INDI" -> individualConverter.convert(node, roots);
 				case "FAM" -> familyConverter.collect(node);
 				case "SOUR" -> sourceConverter.convert(node);
-
 				case "REPO" -> repositoryConverter.convert(node);
 				case "OBJE" -> multimediaConverter.convert(node);
-				case "SUBM" -> submitterConverter.convert(node);
+//				case "SUBM" -> submitterConverter.convert(node);
 //				case "NOTE" -> noteConverter.convert(node);
 				// SUBN (submission records) are ignored.
 				default -> { /* ignore unknown top‑level tags */ }
@@ -111,8 +110,6 @@ public class GEDCOMToFLEFConverter {
 		// Submitters are not added as top‑level records; they are included in the header.
 
 		inlineNotes(model, noteMap);
-
-		// ---- 7. (Optional) Deduplicate records – if needed, call Deduplicator.deduplicate(model) ----
 
 		return model;
 	}

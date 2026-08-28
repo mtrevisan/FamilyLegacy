@@ -98,1753 +98,715 @@ You can download the GEDCOM 5.5 specs from: <ftp.gedcom.com/pub/genealogy/gedcom
 records {
 	event E1 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 15 JUN 1900
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 15 JUN 1900
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP1 {
-		participant {
-			individual I14
-		}
+		participant.individual I14
 		event E1
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E2 {
 		type death
-		date {
-			value {
-				point {
-					full_date {
-						value 5 JUL 1974
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 5 JUL 1974
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP2 {
-		participant {
-			individual I14
-		}
+		participant.individual I14
 		event E2
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	relationship RL1 {
-		subject {
-			individual I14
-		}
-		target {
-			group F7
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:06
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 16:00:06
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 16:00:06
-					comment From GEDCOM conversion
-				}
-			}
-		}
-	}
-
-	relationship RL2 {
-		subject {
-			individual I14
-		}
-		target {
-			group F6
-		}
+		subject.individual I14
+		target.group F6
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:06
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:00:06
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 16:00:06
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 16:00:06
 		}
 	}
 
 	event E3 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 12 AUG 1905
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 12 AUG 1905
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP3 {
-		participant {
-			individual I13
-		}
+		participant.individual I13
 		event E3
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E4 {
 		type death
-		date {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1990
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 31 DEC 1990
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP4 {
-		participant {
-			individual I13
-		}
+		participant.individual I13
 		event E4
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL3 {
-		subject {
-			individual I13
-		}
-		target {
-			group F6
-		}
+	relationship RL2 {
+		subject.individual I13
+		target.group F6
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:23
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:00:23
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 16:00:23
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 16:00:23
 		}
 	}
 
 	event E5 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 6 JUN 1944
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 6 JUN 1944
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP5 {
-		participant {
-			individual PERSON6
-		}
+		participant.individual PERSON6
 		event E5
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL4 {
-		subject {
-			individual PERSON6
-		}
-		target {
-			group ADOPTIVE_PARENTS
-		}
+	relationship RL3 {
+		subject.individual PERSON6
+		target.group ADOPTIVE_PARENTS
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 16:03:05
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:03:05
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 16:03:05
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 16:03:05
 		}
 	}
 
 	event E6 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 1875
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 1875
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP6 {
-		participant {
-			individual I12
-		}
+		participant.individual I12
 		event E6
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D1 {
 		uri http://homepages.rootsweb.com/~pmcbride/gedcom/55gctoc.htm
 		description GEDCOM 5.5 documentation web site
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D2 {
 		uri ftp://ftp.genealogy.org/genealogy/GEDCOM/
 		description FTP site with many GEDCOM files
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D3 {
 		uri http://www.geditcom.com
 		description GEDitCOM Macintosh genealogy software home page
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D4 {
 		uri mailto:support@geditcom.com
 		description Email comments on this GEDCOM file to here
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL5 {
-		subject {
-			individual I12
-		}
-		target {
-			group F5
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 16:01:19
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 16:01:19
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 16:01:19
-					comment From GEDCOM conversion
-				}
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E7 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 1872
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 1872
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP7 {
-		participant {
-			individual I11
-		}
+		participant.individual I11
 		event E7
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E8 {
 		type death
-		date {
-			value {
-				point {
-					full_date {
-						value 7 DEC 1941
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 7 DEC 1941
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP8 {
-		participant {
-			individual I11
-		}
+		participant.individual I11
 		event E8
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D5 {
 		uri Document.tex
 		description Plain TEXT document
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D6 {
 		uri Document.DOC
 		description Microsoft Word document
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D7 {
 		uri Document.RTF
 		description Rich text format document
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D8 {
 		uri Document.pdf
 		description Portable document format file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL6 {
-		subject {
-			individual I11
-		}
-		target {
-			group F5
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 16:01:03
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 16:01:03
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 16:01:03
-					comment From GEDCOM conversion
-				}
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E9 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 1870
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 1870
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP9 {
-		participant {
-			individual I10
-		}
+		participant.individual I10
 		event E9
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E10 {
 		type death
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP10 {
-		participant {
-			individual I10
-		}
+		participant.individual I10
 		event E10
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D9 {
 		uri ImgFile.PIC
 		description Macintosh PICT file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D10 {
 		uri ImgFile.MAC
 		description Macintosh MacPaint file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D11 {
 		uri ImgFile.TGA
 		description TGA image file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D12 {
 		uri enthist.aif
 		description Macintosh sound file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D13 {
 		uri suntun.mov
 		description QuickTime movie file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D14 {
 		uri ImgFile.PSD
 		description Adobe Photoshop file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D15 {
 		uri top.mpg
 		description Mpeg Movie File
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL7 {
-		subject {
-			individual I10
-		}
-		target {
-			group F5
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:39
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 16:00:39
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 16:00:39
-					comment From GEDCOM conversion
-				}
-			}
-		}
-	}
-
-	relationship RL8 {
-		subject {
-			individual I10
-		}
-		target {
-			group F7
-		}
+	relationship RL4 {
+		subject.individual I10
+		target.group F7
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:39
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:00:39
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 16:00:39
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 16:00:39
 		}
 	}
 
 	event E11 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 1835
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 1835
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP11 {
-		participant {
-			individual I9
-		}
+		participant.individual I9
 		event E11
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D16 {
 		uri ImgFile.BMP
 		description Windows bit mapped image file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D17 {
 		uri ImgFile.GIF
 		description GIF image file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D18 {
 		uri ImgFile.JPG
 		description JPEG image file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D19 {
 		uri ImgFile.TIF
 		description Tagged image format file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D20 {
 		uri ImgFile.PCX
 		description Windows paint brush file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D21 {
 		uri force.wav
 		description Windows sound File
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL9 {
-		subject {
-			individual I9
-		}
-		target {
-			group F5
-		}
+	relationship RL5 {
+		subject.individual I9
+		target.group F5
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 16:02:06
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:02:06
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 16:02:06
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 16:02:06
 		}
 	}
 
 	event E12 {
 		type birth
-		date {
-			value {
-				bounded {
-					not_after {
-						full_date {
-							value 1970
-							calendar gregorian
-						}
-					}
-				}
-			}
+		date.value.bounded.not_after.full_date {
+			value 1970
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP12 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event E12
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E13 {
 		type death
-		date {
-			value {
-				bounded {
-					not_before {
-						full_date {
-							value 2000
-							calendar gregorian
-						}
-					}
-				}
-			}
+		date.value.bounded.not_before.full_date {
+			value 2000
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP13 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event E13
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL10 {
-		subject {
-			individual PERSON2
-		}
-		target {
-			group FAMILY1
-		}
+	relationship RL6 {
+		subject.individual PERSON2
+		target.group FAMILY1
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 15:58:16
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 15:58:16
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 15:58:16
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 15:58:16
 		}
 	}
 
 	event E14 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 12 FEB 1840
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 12 FEB 1840
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP14 {
-		participant {
-			individual I15
-		}
+		participant.individual I15
 		event E14
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E15 {
 		type death
-		date {
-			value {
-				point {
-					full_date {
-						value 15 JUN 1915
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 15 JUN 1915
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP15 {
-		participant {
-			individual I15
-		}
+		participant.individual I15
 		event E15
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL11 {
-		subject {
-			individual I15
-		}
-		target {
-			group F5
-		}
+	relationship RL7 {
+		subject.individual I15
+		target.group F5
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 16:01:59
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:01:59
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 16:01:59
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 16:01:59
 		}
 	}
 
 	event E16 {
 		type birth
-		date {
-			value {
-				bounded {
-					not_before {
-						full_date {
-							value MAY 1979
-							calendar gregorian
-						}
-					}
-					not_after {
-						full_date {
-							value AUG 1979
-							calendar gregorian
-						}
-					}
-				}
+		date.value.bounded {
+			not_before.full_date {
+				value MAY 1979
+				calendar gregorian
+			}
+			not_after.full_date {
+				value AUG 1979
+				calendar gregorian
 			}
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP16 {
-		participant {
-			individual PERSON8
-		}
+		participant.individual PERSON8
 		event E16
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E17 {
 		type death
-		date {
-			value {
-				point {
-					full_date {
-						value APR 2000 TO 5 MAR 2001
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value APR 2000 TO 5 MAR 2001
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP17 {
-		participant {
-			individual PERSON8
-		}
+		participant.individual PERSON8
 		event E17
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL12 {
-		subject {
-			individual PERSON8
-		}
-		target {
-			group FAMILY2
-		}
+	relationship RL8 {
+		subject.individual PERSON8
+		target.group FAMILY2
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 15:58:58
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 15:58:58
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 15:58:58
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 15:58:58
 		}
 	}
 
 	place P1 {
-		name {
-			value Las Vegas, Nevada USA
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		name.value Las Vegas, Nevada USA
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E18 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value MAR 1999
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value MAR 1999
+			calendar gregorian
 		}
-		place {
-			place P1
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		place.place P1
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP18 {
-		participant {
-			individual PERSON3
-		}
+		participant.individual PERSON3
 		event E18
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL13 {
-		subject {
-			individual PERSON3
-		}
-		target {
-			group FAMILY1
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 15:55:43
-				comment This date is the last time this record was changed
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 15:55:43
-					comment This date is the last time this record was changed
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 15:55:43
-					comment This date is the last time this record was changed
-				}
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E19 {
 		type event type cited in source
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 		source {
 			source SOURCE1
 			location 55
-			extract {
-				text """
+			extract.text """
 Here is some text from the source specific to this source citation.
 Here is more text but on a new line."""
-			}
 		}
 	}
 
 	event_participation EP19 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E19
 		role role in cited event
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D22 {
 		uri ImgFile.JPG
 		description Multimedia link about this source
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P2 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		name.value The place
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E20 {
 		type bat_mitzvah
-		date {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P2
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some Bas Mitzvah source text.
-			}
+			extract.text Some Bas Mitzvah source text.
 		}
 		note {
 			text Bas Mitzvah event note (the ceremonial event held when a Jewish girl reaches age 13, also known as "Bat Mitzvah").
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP20 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E20
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E21 {
 		type cremation
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP21 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E21
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P3 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E22 {
 		type ordination
-		date {
-			value {
-				point {
-					full_date {
-						value (No idea of the date)
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value (No idea of the date)
+			calendar gregorian
 		}
-		place {
-			place P3
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some ordination source text.
-			}
+			extract.text Some ordination source text.
 		}
 		note {
 			text Ordination event note (a religious event of receiving authority to act in religious matters).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP22 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E22
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P4 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E23 {
 		type chrismation
-		date {
-			value {
-				bounded {
-					not_before {
-						full_date {
-							value 31 DEC 1997
-							calendar gregorian
-						}
-					}
-					not_after {
-						full_date {
-							value 1 FEB 1998
-							calendar gregorian
-						}
-					}
-				}
+		date.value.bounded {
+			not_before.full_date {
+				value 31 DEC 1997
+				calendar gregorian
+			}
+			not_after.full_date {
+				value 1 FEB 1998
+				calendar gregorian
 			}
 		}
-		place {
-			place P4
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some christening source text.
-			}
+			extract.text Some christening source text.
 		}
 		note {
 			text Adult christening event note (the religious event (not LDS) of baptizing and/or naming an adult person).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP23 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E23
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P5 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E24 {
 		type retirement
-		date {
-			value {
-				point {
-					full_date {
-						value 11 NIVO 0006
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 11 NIVO 0006
+			calendar gregorian
 		}
-		place {
-			place P5
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some retirement source text.
-			}
+			extract.text Some retirement source text.
 		}
 		note {
 			text Retirement event note (an event of exiting an occupational relationship with an employer after a qualifying time period).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP24 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E24
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P6 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E25 {
 		type naturalization
-		date {
-			value {
-				point {
-					full_date {
-						value 5 AUG 1100 B.C.
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 5 AUG 1100 B.C.
+			calendar gregorian
 		}
-		place {
-			place P6
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some naturalization source text.
-			}
+			extract.text Some naturalization source text.
 		}
 		note {
 			text Naturalization event note (the event of obtaining citizenship).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP25 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E25
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P7 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E26 {
 		type burial
-		date {
-			value {
-				point {
-					full_date {
-						value 5 VEND 0010
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 5 VEND 0010
+			calendar gregorian
 		}
-		place {
-			place P7
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some burial source text.
-			}
+			extract.text Some burial source text.
 		}
 		note {
 			text Burial event note (the event of the proper disposing of the mortal remains of a deceased person).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP26 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E26
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P8 {
-		name {
-			value Salt Lake City, UT, USA
-		}
-		name {
-			value """
+		name.value Salt Lake City, UT, USA
+		name.value """
 St. Marks Hospital
 Salt Lake City, UT
 USA"""
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D23 {
 		uri ImgFile.TIF
 		description Link to multimedia file
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL14 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			group PARENTS
-		}
-		type biological_child
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E27 {
 		type normal
-		date {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1965
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 31 DEC 1965
+			calendar gregorian
 		}
-		place {
-			place P8
-		}
+		place.place P8
 		agency none
 		source {
 			source SOURCE1
@@ -1855,668 +817,284 @@ USA"""
 Some specific note about the birth event.
 
 These notes are in a separate NOTE record. These notes also have their own source citation structure."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D23
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP27 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E27
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	place P9 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL15 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			individual PERSON6
-		}
+	relationship RL9 {
+		subject.individual PERSON1
+		target.individual PERSON6
 		type adoptive_child
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 		note {
 			text 
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		note {
 			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 	}
 
 	event E28 {
 		type adoption
-		date {
-			value {
-				bounded {
-					not_after {
-						full_date {
-							value 31 DEC 1997
-							calendar gregorian
-						}
-					}
-				}
-			}
+		date.value.bounded.not_after.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P9
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some adoption source text.
-			}
+			extract.text Some adoption source text.
 		}
 		note {
 			text Adoption event note (pertaining to creation of a child-parent relationship that does not exist biologically).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP28 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E28
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P10 {
-		name {
-			value The place
-		}
-		name {
-			value """
+		name.value The place
+		name.value """
 Church Name
 Street Address
 City Name, zip
 Country"""
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D24 {
 		uri ImgFile.JPG
 		description JPEG File Link
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E29 {
 		type baptism
-		date {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-						approximate {
-							basis stated
-						}
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
+			approximate.basis stated
 		}
-		place {
-			place P10
-		}
+		place.place P10
 		agency The Church
-		cause {
-			reason Birth
-		}
+		cause.reason Birth
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample baptism Source text.
-			}
+			extract.text Sample baptism Source text.
 		}
 		note {
 			text A baptism event note (the event of baptism (not LDS), performed in infancy or later. See also BAPL and CHR).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D24
 		note {
 			text Age at event: 3 months
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP29 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E29
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P11 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E30 {
 		type immigration
-		date {
-			value {
-				point {
-					full_date {
-						value DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P11
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some immigration source text.
-			}
+			extract.text Some immigration source text.
 		}
 		note {
 			text Immigration event note (an event of entering into a new locality with the intent of residing there).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP30 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E30
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P12 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E31 {
 		type bar_mitzvah
-		date {
-			value {
-				bounded {
-					not_before {
-						full_date {
-							value 31 DEC 1997
-							calendar gregorian
-						}
-					}
-				}
-			}
+		date.value.bounded.not_before.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P12
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some Bar Mitzvah source text.
-			}
+			extract.text Some Bar Mitzvah source text.
 		}
 		note {
 			text Bar Mitzvah event note (the ceremonial event held when a Jewish boy reaches age 13).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP31 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E31
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P13 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E32 {
 		type emigration
-		date {
-			value {
-				point {
-					full_date {
-						value 1997
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 1997
+			calendar gregorian
 		}
-		place {
-			place P13
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some emigration source text.
-			}
+			extract.text Some emigration source text.
 		}
 		note {
 			text Emigration event note (an event of leaving one's homeland with the intent of residing elsewhere).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP32 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E32
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P14 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E33 {
 		type blessing
-		date {
-			value {
-				bounded {
-					not_after {
-						full_date {
-							value 31 DEC 1997
-							calendar gregorian
-						}
-					}
-				}
-			}
+		date.value.bounded.not_after.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P14
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some blessing source text.
-			}
+			extract.text Some blessing source text.
 		}
 		note {
 			text Blessing event note (a religious event of bestowing divine care or intercession. Sometimes given in connection with a naming ceremony)
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP33 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E33
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P15 {
-		name {
-			value New York, New York, USA
-		}
-		name {
-			value at Home
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		name.value New York, New York, USA
+		name.value at Home
+		audit.creation.date 2026-08-29T00:00:00Z
 		note {
 			text The place structure has more detail than usually used for places
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 	}
 
 	document D25 {
 		uri ImgFile.JPG
 		description Multimedia link about the death event
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E34 {
 		type slow
-		date {
-			value {
-				point {
-					full_date {
-						value 15 JAN 2001
-						calendar gregorian
-						approximate {
-							basis stated
-						}
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 15 JAN 2001
+			calendar gregorian
+			approximate.basis stated
 		}
-		place {
-			place P15
-		}
+		place.place P15
 		agency none
-		cause {
-			reason Cancer
-		}
+		cause.reason Cancer
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some death source text.
-			}
+			extract.text Some death source text.
 		}
 		note {
 			text A death event note.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D25
 		note {
 			text Age at event: 76
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP34 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E34
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P16 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E35 {
 		type graduation
-		date {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P16
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some graduation source text.
-			}
+			extract.text Some graduation source text.
 		}
 		note {
 			text Graduation event note (an event of awarding educational diplomas or degrees to individuals).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP35 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E35
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P17 {
-		name {
-			value The place
-		}
-		name {
-			value """
+		name.value The place
+		name.value """
 Address in Free Form Line 1
 Address in Free Form Line 2
 Address in Free Form Line 3
@@ -2526,2286 +1104,882 @@ City Name
 State name
 Postal Code
 USA"""
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E36 {
 		type residence
-		date {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P17
-		}
+		place.place P17
 		agency None
-		cause {
-			reason Needed housing
-		}
+		cause.reason Needed housing
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some residence source text.
-			}
+			extract.text Some residence source text.
 		}
 		note {
 			text Residence attribute note (the act of dwelling at an address for a period of time).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		note {
 			text Age at event: 35
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP36 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E36
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P18 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E37 {
 		type probate
-		date {
-			value {
-				point {
-					full_date {
-						value 25 SVN 5757 TO 26 IYR 5757
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 25 SVN 5757 TO 26 IYR 5757
+			calendar gregorian
 		}
-		place {
-			place P18
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some probate source text.
-			}
+			extract.text Some probate source text.
 		}
 		note {
 			text Probate event note (an event of judicial determination of the validity of a will. May indicate several related court activities over several dates).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP37 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E37
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P19 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E38 {
 		type census
-		date {
-			value {
-				point {
-					full_date {
-						value 2 TVT 5758
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 2 TVT 5758
+			calendar gregorian
 		}
-		place {
-			place P19
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some census source text.
-			}
+			extract.text Some census source text.
 		}
 		note {
 			text Census event note (the event of the periodic count of the population for a designated locality, such as a national or state Census).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP38 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E38
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P20 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E39 {
 		type will
-		date {
-			value {
-				point {
-					full_date {
-						value INT 2 TVT 5758 (interpreted Hebrew date)
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value INT 2 TVT 5758 (interpreted Hebrew date)
+			calendar gregorian
 		}
-		place {
-			place P20
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some will source text.
-			}
+			extract.text Some will source text.
 		}
 		note {
 			text Will event note (a legal document treated as an event, by which a person disposes of his or her estate, to take effect after death. The event date is the date the will was signed while the person was alive. See also Probate).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP39 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E39
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P21 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E40 {
 		type other
-		date {
-			value {
-				point {
-					full_date {
-						value 5 MAY 0005
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 5 MAY 0005
+			calendar gregorian
 		}
-		place {
-			place P21
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some generic event source text.
-			}
+			extract.text Some generic event source text.
 		}
 		note {
 			text Generic event note (a noteworthy happening related to an individual, a group, or an organization). The TYPE tag specifies the type of event.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP40 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E40
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P22 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E41 {
 		type confirmation
-		date {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997 TO 2 JAN 1998
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 31 DEC 1997 TO 2 JAN 1998
+			calendar gregorian
 		}
-		place {
-			place P22
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some CONF Source text.
-			}
+			extract.text Some CONF Source text.
 		}
 		note {
 			text CONFIRMATION event note (the religious event (not LDS) of conferring the gift of the Holy Ghost and, among protestants, full church membership).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP41 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E41
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P23 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E42 {
 		type first_communion
-		date {
-			value {
-				point {
-					full_date {
-						value INT 31 DEC 1997 (a test)
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value INT 31 DEC 1997 (a test)
+			calendar gregorian
 		}
-		place {
-			place P23
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some first communion source text.
-			}
+			extract.text Some first communion source text.
 		}
 		note {
 			text First communion event note (a religious rite, the first act of sharing in the Lord's supper as part of church worship).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP42 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event E42
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P24 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA1 {
 		individual PERSON1
 		type caste
 		value Cast name
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P24
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some caste name source text.
-			}
+			extract.text Some caste name source text.
 		}
 		note {
 			text Caste name attribute note (the name of an individual's rank or status in society, based on racial or religious differences, or differences in wealth, inherited rank, profession, occupation, etc).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP43 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA1
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P25 {
-		name {
-			value The place
-		}
-		name {
-			value """
+		name.value The place
+		name.value """
 Work address line 1
 Work address line 2
 Work address line 3"""
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D26 {
 		uri ImgFile.GIF
 		description GIF Image File
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA2 {
 		individual PERSON1
 		type occupation
 		value Occupation
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P25
-		}
+		place.place P25
 		agency Employer
-		cause {
-			reason Need for money
-		}
+		cause.reason Need for money
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some occupation source text.
-			}
+			extract.text Some occupation source text.
 		}
 		note {
 			text Occupation attribute note (the type of work or profession of an individual).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D26
 		note {
 			text Age at event: 40
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP44 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA2
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P26 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA3 {
 		individual PERSON1
 		type occupation
 		value Another occupation
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1998
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1998
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1998
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1998
+			calendar gregorian
 		}
-		place {
-			place P26
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some occupation source text.
-			}
+			extract.text Some occupation source text.
 		}
 		note {
 			text Occupation attribute note. This is the second occupation attribute in the record.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP45 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA3
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P27 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA4 {
 		individual PERSON1
 		type possession
 		value Possessions
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P27
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some possessions source text.
-			}
+			extract.text Some possessions source text.
 		}
 		note {
 			text Possessions or property attribute note (pertaining to possessions such as real estate or other property of interest).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP46 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA4
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P28 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA5 {
 		individual PERSON1
 		type title
 		value Nobility title
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P28
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some title source text.
-			}
+			extract.text Some title source text.
 		}
 		note {
 			text """
 Title attribute note (a description of a specific writing or other work, such as the title of a book when used in a source context, or a formal designation used by an individual in connection with positions of royalty or other social status, 
 such as Grand Duke)."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP47 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA5
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P29 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA6 {
 		individual PERSON1
 		type nationality
 		value National or tribe origin
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P29
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some nationality source text.
-			}
+			extract.text Some nationality source text.
 		}
 		note {
 			text Nationality attribute note (the national heritage of an individual).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP48 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA6
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P30 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA7 {
 		individual PERSON1
 		type education
 		value Education
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P30
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some education source text.
-			}
+			extract.text Some education source text.
 		}
 		note {
 			text Education attribute note (indicator of a level of education attained).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP49 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA7
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P31 {
-		name {
-			value The place
-		}
-		name {
-			value """
-Address in Free Form Line 1
-Address in Free Form Line 2
-Address in Free Form Line 3
-Special Address Line 1
-Special Address Line 2
-City Name
-State name
-Postal Code
-USA"""
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA8 {
 		individual PERSON1
 		type residence
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P31
-		}
+		place.place P17
 		agency None
-		cause {
-			reason Needed housing
-		}
+		cause.reason Needed housing
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some residence source text.
-			}
+			extract.text Some residence source text.
 		}
 		note {
 			text Residence attribute note (the act of dwelling at an address for a period of time).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		note {
 			text Age at event: 35
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP50 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA8
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P32 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA9 {
 		individual PERSON1
 		type ssn
 		value 6942
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P32
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some Social security number source text.
-			}
+			extract.text Some Social security number source text.
 		}
 		note {
 			text Social security number attribute note (a number assigned by the United States Social Security Administration. Used for tax identification purposes).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP51 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA9
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P33 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA10 {
 		individual PERSON1
 		type children_count
 		value 42
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P33
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some number of children source text.
-			}
+			extract.text Some number of children source text.
 		}
 		note {
 			text Number of children attribute note.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP52 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA10
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P34 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA11 {
 		individual PERSON1
 		type marriages_count
 		value 42
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P34
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some number of marriages source text.
-			}
+			extract.text Some number of marriages source text.
 		}
 		note {
 			text Number of marriages attribute note.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP53 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA11
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P35 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA12 {
 		individual PERSON1
 		type religion
 		value Religion
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P35
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some religion source text.
-			}
+			extract.text Some religion source text.
 		}
 		note {
 			text Religion attribute note (a religious denomination to which a person is affiliated or for which a record applies).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP54 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA12
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P36 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA13 {
 		individual PERSON1
 		type phys
 		value Physical description
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P36
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some physical description source text.
-			}
+			extract.text Some physical description source text.
 		}
 		note {
 			text Physical description attribute note (the physical characteristics of a person, place, or thing).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP55 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA13
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P37 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	individual_attribute IA14 {
 		individual PERSON1
 		type ssn
 		value 6942
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P37
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some national identification number source text.
-			}
+			extract.text Some national identification number source text.
 		}
 		note {
 			text National identification number attribute note (a number assigned to identify a person within some significant external system).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP56 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event IA14
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	source S1 {
-		title {
-			value Source for PERSON1
-		}
+		title.value Source for PERSON1
 		note {
 			text How does software handle embedded SOURCE records on import? Such source citations are common in old GEDCOM files. More modern GEDCOM files should use source citations to SOURCE records.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	document D27 {
-		uri ImgFile.GIF
-		description GIF Image File
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL16 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			group PARENTS
-		}
-		type biological_child
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text Note about this link to his parents family record.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text Another note about this link to his parents family record
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 12 Feb 2001 19:16:42
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 12 Feb 2001 19:16:42
-					comment From GEDCOM conversion
-				}
-			}
-		}
-	}
-
-	relationship RL17 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			group ADOPTIVE_PARENTS
-		}
-		type biological_child
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text Note about the link to his adoptive parents family record.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text (Pedigree: adopted)
-			audit {
-				creation {
-					date 12 Feb 2001 19:16:42
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 12 Feb 2001 19:16:42
-					comment From GEDCOM conversion
-				}
-			}
-		}
-	}
-
-	relationship RL18 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			group FAMILY1
-		}
+	relationship RL10 {
+		subject.individual PERSON1
+		target.group FAMILY1
 		type spouse
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 12 Feb 2001 19:16:42
 		note {
 			text Note about the link to the family record with his first spouse.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		note {
 			text Another note about the link to the family record with his first spouse.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 12 Feb 2001 19:16:42
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 12 Feb 2001 19:16:42
 		}
 	}
 
-	relationship RL19 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			group FAMILY2
-		}
+	relationship RL11 {
+		subject.individual PERSON1
+		target.group FAMILY2
 		type spouse
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 12 Feb 2001 19:16:42
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 12 Feb 2001 19:16:42
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 12 Feb 2001 19:16:42
 		}
 	}
 
 	identity_hypothesis IH1 {
-		identity {
-			individual PERSON1
-		}
-		identity {
-			individual I9
-		}
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
+		identity.individual PERSON1
+		identity.individual I9
+		audit.creation.date 12 Feb 2001 19:16:42
 	}
 
-	relationship RL20 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			individual I9
-		}
+	relationship RL12 {
+		subject.individual PERSON1
+		target.individual I9
 		type Has multimedia links
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 12 Feb 2001 19:16:42
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text about this source on an association.
-			}
+			extract.text Sample text about this source on an association.
 		}
 		note {
 			text Note on association link.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 	}
 
-	relationship RL21 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			individual PERSON5
-		}
+	relationship RL13 {
+		subject.individual PERSON1
+		target.individual PERSON5
 		type Father
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 12 Feb 2001 19:16:42
 	}
 
 	place P38 {
-		name {
-			value London, UK
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		name.value London, UK
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E43 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 1 JAN 2001
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 1 JAN 2001
+			calendar gregorian
 		}
-		place {
-			place P38
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		place.place P38
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP57 {
-		participant {
-			individual PERSON7
-		}
+		participant.individual PERSON7
 		event E43
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL22 {
-		subject {
-			individual PERSON7
-		}
-		target {
-			group FAMILY2
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 15:56:49
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 15:56:49
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 15:56:49
-					comment From GEDCOM conversion
-				}
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P39 {
-		name {
-			value Chicago, IL, USA
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		name.value Chicago, IL, USA
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E44 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 15 FEB 2000
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 15 FEB 2000
+			calendar gregorian
 		}
-		place {
-			place P39
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		place.place P39
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP58 {
-		participant {
-			individual PERSON4
-		}
+		participant.individual PERSON4
 		event E44
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL23 {
-		subject {
-			individual PERSON4
-		}
-		target {
-			group FAMILY1
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 15:56:15
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 15:56:15
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 15:56:15
-					comment From GEDCOM conversion
-				}
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E45 {
 		type birth
-		date {
-			value {
-				point {
-					full_date {
-						value 1930
-						calendar gregorian
-						approximate {
-							basis stated
-						}
-					}
-				}
-			}
+		date.value.point.full_date {
+			value 1930
+			calendar gregorian
+			approximate.basis stated
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP59 {
-		participant {
-			individual PERSON5
-		}
+		participant.individual PERSON5
 		event E45
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event E46 {
 		type death
-		date {
-			value {
-				point {
-					full_date {
-						value INT 1995 (from estimated age)
-						calendar gregorian
-					}
-				}
-			}
+		date.value.point.full_date {
+			value INT 1995 (from estimated age)
+			calendar gregorian
 		}
-		cause {
-			reason Old age
-		}
+		cause.reason Old age
 		note {
 			text Age at event: 65
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP60 {
-		participant {
-			individual PERSON5
-		}
+		participant.individual PERSON5
 		event E46
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL24 {
-		subject {
-			individual PERSON5
-		}
-		target {
-			group F6
-		}
-		type biological_child
-		audit {
-			creation {
-				date 11 Jan 2001 15:59:40
-				comment From GEDCOM conversion
-			}
-		}
-		note {
-			text 
-			audit {
-				creation {
-					date 11 Jan 2001 15:59:40
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		note {
-			text TO BE REVISED: the relationship should be with a biological father and a biological mother instead?
-			audit {
-				creation {
-					date 11 Jan 2001 15:59:40
-					comment From GEDCOM conversion
-				}
-			}
-		}
-	}
-
-	relationship RL25 {
-		subject {
-			individual PERSON5
-		}
-		target {
-			group PARENTS
-		}
+	relationship RL14 {
+		subject.individual PERSON5
+		target.group PARENTS
 		type spouse
-		audit {
-			creation {
-				date 11 Jan 2001 15:59:40
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 15:59:40
 		note {
 			text TO BE REVISED: is it civil or religious or else?
-			audit {
-				creation {
-					date 11 Jan 2001 15:59:40
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 11 Jan 2001 15:59:40
 		}
 	}
 
 	group_attribute GA1 {
 		group FAMILY1
 		type children_count
-		audit {
-			creation {
-				date 11 Jan 2001 16:18:40
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:18:40
 	}
 
 	document D28 {
 		uri ImgFile.BMP
 		description BMP Image File
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	repository R1 {
-		name {
-			value R1
-		}
-		audit {
-			creation {
-				date 14 Jan 2001 14:29:25
-				comment From GEDCOM conversion
-			}
-		}
+		name.value R1
+		audit.creation.date 14 Jan 2001 14:29:25
 	}
 
 	document D29 {
 		uri ImgFile.JPG
 		description JPEG image file link
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
-	relationship RL26 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			individual PERSON2
-		}
+	relationship RL15 {
+		subject.individual PERSON1
+		target.individual PERSON2
 		type civil_spouse
 		status ended
-		audit {
-			creation {
-				date 11 Jan 2001 16:18:40
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:18:40
 	}
 
-	relationship RL27 {
-		subject {
-			individual PERSON3
-		}
-		target {
-			individual PERSON1
-		}
+	relationship RL16 {
+		subject.individual PERSON3
+		target.individual PERSON1
 		type biological_child
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
-	relationship RL28 {
-		subject {
-			individual PERSON3
-		}
-		target {
-			individual PERSON2
-		}
+	relationship RL17 {
+		subject.individual PERSON3
+		target.individual PERSON2
 		type biological_child
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
-	relationship RL29 {
-		subject {
-			individual PERSON4
-		}
-		target {
-			individual PERSON1
-		}
+	relationship RL18 {
+		subject.individual PERSON4
+		target.individual PERSON1
 		type biological_child
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
-	relationship RL30 {
-		subject {
-			individual PERSON4
-		}
-		target {
-			individual PERSON2
-		}
+	relationship RL19 {
+		subject.individual PERSON4
+		target.individual PERSON2
 		type biological_child
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P40 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
@@ -4813,110 +1987,53 @@ USA"""
 		group FAMILY1
 		individual FAMILY1
 		type marl
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P40
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from marriage license source.
-			}
+			extract.text Sample text from marriage license source.
 		}
 		note {
 			text Marriage license event note (an event of obtaining a legal license to marry).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP61 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA2
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP62 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event FAMILY1
 		role spouse
 		note {
 			text Age: 42y
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP63 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: <42y 6m
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA3 {
@@ -4924,589 +2041,211 @@ USA"""
 		individual FAMILY1
 		type anul
 		value Y
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP64 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA3
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP65 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event FAMILY1
 		role spouse
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP66 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P41 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA4 {
 		group FAMILY1
 		individual FAMILY1
 		type even
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P41
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from generic family event source.
-			}
+			extract.text Sample text from generic family event source.
 		}
 		note {
 			text Generic family vent note (a noteworthy happening related to an individual, a group, or an organization).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP67 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA4
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	event_participation EP68 {
-		participant {
-			individual PERSON1
-		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP69 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: 42y 6m
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P42 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA5 {
 		group FAMILY1
 		individual FAMILY1
 		type divf
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P42
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from divorce filing source.
-			}
+			extract.text Sample text from divorce filing source.
 		}
 		note {
 			text DIVORCE_FILED event note (an event of filing for a divorce by a spouse).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP70 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA5
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP71 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event FAMILY1
 		role spouse
 		note {
 			text Age: 42d
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP72 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: CHILD
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P43 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA6 {
 		group FAMILY1
 		individual FAMILY1
 		type marc
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P43
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from marriage contract source.
-			}
+			extract.text Sample text from marriage contract source.
 		}
 		note {
 			text Marriage contract event note (an event of recording a formal agreement of marriage, including the prenuptial agreement in which marriage partners reach agreement about the property rights of one or both, securing property to their children).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP73 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA6
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	event_participation EP74 {
-		participant {
-			individual PERSON1
-		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP75 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: >42y 6m
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P44 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA7 {
 		group FAMILY1
 		individual FAMILY1
 		type marb
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P44
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from marriage banns source.
-			}
+			extract.text Sample text from marriage banns source.
 		}
 		note {
 			text Marriage banns event note (an event of an official public notice given that two people intend to marry).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP76 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA7
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	event_participation EP77 {
-		participant {
-			individual PERSON1
-		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	event_participation EP78 {
-		participant {
-			individual PERSON2
-		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y 6m
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P45 {
-		name {
-			value The place
-		}
-		name {
-			value """
+		name.value The place
+		name.value """
 The house
 Anytown, USA"""
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	document D30 {
-		uri ImgFile.BMP
-		description BMP Image File
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA8 {
@@ -5514,904 +2253,411 @@ Anytown, USA"""
 		individual FAMILY1
 		type enga
 		value Y
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P45
-		}
+		place.place P45
 		agency None
-		cause {
-			reason Desire
-		}
+		cause.reason Desire
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from engagement source.
-			}
+			extract.text Sample text from engagement source.
 		}
 		note {
 			text Engagement event note (an event of recording or announcing an agreement between two people to become married).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		document D30
+		document D28
 		note {
 			text Age at event: 42
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP79 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA8
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	event_participation EP80 {
-		participant {
-			individual PERSON1
-		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP81 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: STILLBORN
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P46 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA9 {
 		group FAMILY1
 		individual FAMILY1
 		type div
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P46
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from divorce source.
-			}
+			extract.text Sample text from divorce source.
 		}
 		note {
 			text Divorce event note (an event of dissolving a marriage through civil action).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP82 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA9
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP83 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event FAMILY1
 		role spouse
 		note {
 			text Age: 42y 3d
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP84 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: 42m
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P47 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA10 {
 		group FAMILY1
 		individual FAMILY1
 		type cens
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P47
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from census source.
-			}
+			extract.text Sample text from census source.
 		}
 		note {
 			text Census event note (the event of the periodic count of the population for a designated locality, such as a national or state Census).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP85 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA10
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP86 {
-		participant {
-			individual PERSON1
-		}
+		participant.individual PERSON1
 		event FAMILY1
 		role spouse
 		note {
 			text Age: 42y 6m 9d
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP87 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: 6m 9d
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	place P48 {
-		name {
-			value The place
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA11 {
 		group FAMILY1
 		individual FAMILY1
 		type mars
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P48
-		}
+		place.place P2
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Sample text from marriage settlement source.
-			}
+			extract.text Sample text from marriage settlement source.
 		}
 		note {
 			text Marriage settlement event note (an event of creating an agreement between two people contemplating marriage, at which time they agree to release or modify property rights that would otherwise arise from the marriage).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP88 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA11
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	event_participation EP89 {
-		participant {
-			individual PERSON1
-		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP90 {
-		participant {
-			individual PERSON2
-		}
+		participant.individual PERSON2
 		event FAMILY1
 		role spouse
 		note {
 			text Age: INFANT
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	place P49 {
-		name {
-			value The place
-		}
-		name {
-			value """
+		name.value The place
+		name.value """
 A Church
 Main Street, USA"""
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	document D31 {
 		uri ImgFile.JPG
 		description Multimedia link about the marriage event
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	group_attribute GA12 {
 		group FAMILY1
 		individual FAMILY1
 		type man and wife
-		valid_from {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_from.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		valid_to {
-			value {
-				point {
-					full_date {
-						value 31 DEC 1997
-						calendar gregorian
-					}
-				}
-			}
+		valid_to.value.point.full_date {
+			value 31 DEC 1997
+			calendar gregorian
 		}
-		place {
-			place P49
-		}
+		place.place P49
 		agency Catholic Church
-		cause {
-			reason Love
-		}
+		cause.reason Love
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Text from marriage source.
-			}
+			extract.text Text from marriage source.
 		}
 		note {
 			text Marriage event note (a legal, common-law, or customary event of creating a family unit of a man and a woman as husband and wife).
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D31
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 2026-08-29T00:00:00Z
 	}
 
 	event_participation EP91 {
-		participant {
-			individual FAMILY1
-		}
+		participant.individual FAMILY1
 		event GA12
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation.date 2026-08-29T00:00:00Z
+	}
+
+	relationship RL20 {
+		subject.individual PERSON1
+		target.individual PERSON5
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
-	event_participation EP92 {
-		participant {
-			individual PERSON1
-		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+	relationship RL21 {
+		subject.individual PERSON1
+		target.individual PERSON6
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
-	event_participation EP93 {
-		participant {
-			individual PERSON2
+	relationship RL22 {
+		subject.individual PERSON1
+		target.individual PERSON8
+		type civil_spouse
+		status active
+		audit.creation.date 13 Jun 2000 17:01:46
+	}
+
+	relationship RL23 {
+		subject.individual PERSON7
+		target.individual PERSON1
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
-		event FAMILY1
-		role spouse
-		note {
-			text Age: 42y 6m
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+	}
+
+	relationship RL24 {
+		subject.individual PERSON7
+		target.individual PERSON8
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+	}
+
+	relationship RL25 {
+		subject.individual I9
+		target.individual I15
+		type civil_spouse
+		status active
+		audit.creation.date 11 Jan 2001 16:50:37
+	}
+
+	relationship RL26 {
+		subject.individual I10
+		target.individual I9
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
+		}
+	}
+
+	relationship RL27 {
+		subject.individual I10
+		target.individual I15
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
+		}
+	}
+
+	relationship RL28 {
+		subject.individual I11
+		target.individual I9
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
+		}
+	}
+
+	relationship RL29 {
+		subject.individual I11
+		target.individual I15
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
+		}
+	}
+
+	relationship RL30 {
+		subject.individual I12
+		target.individual I9
+		type biological_child
+		status active
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
 	relationship RL31 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			individual PERSON5
-		}
+		subject.individual I12
+		target.individual I15
 		type biological_child
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
 	relationship RL32 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			individual PERSON6
-		}
-		type biological_child
+		subject.individual I14
+		target.individual I13
+		type civil_spouse
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:51:48
 	}
 
 	relationship RL33 {
-		subject {
-			individual PERSON1
-		}
-		target {
-			individual PERSON8
-		}
-		type civil_spouse
+		subject.individual PERSON5
+		target.individual I14
+		type biological_child
 		status active
-		audit {
-			creation {
-				date 13 Jun 2000 17:01:46
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
 	relationship RL34 {
-		subject {
-			individual PERSON7
-		}
-		target {
-			individual PERSON1
-		}
+		subject.individual PERSON5
+		target.individual I13
 		type biological_child
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
 	relationship RL35 {
-		subject {
-			individual PERSON7
-		}
-		target {
-			individual PERSON8
-		}
+		subject.individual I14
+		target.individual I10
 		type biological_child
 		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL36 {
-		subject {
-			individual I9
-		}
-		target {
-			individual I15
-		}
-		type civil_spouse
-		status active
-		audit {
-			creation {
-				date 11 Jan 2001 16:50:37
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL37 {
-		subject {
-			individual I10
-		}
-		target {
-			individual I9
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL38 {
-		subject {
-			individual I10
-		}
-		target {
-			individual I15
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL39 {
-		subject {
-			individual I11
-		}
-		target {
-			individual I9
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL40 {
-		subject {
-			individual I11
-		}
-		target {
-			individual I15
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL41 {
-		subject {
-			individual I12
-		}
-		target {
-			individual I9
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL42 {
-		subject {
-			individual I12
-		}
-		target {
-			individual I15
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL43 {
-		subject {
-			individual I14
-		}
-		target {
-			individual I13
-		}
-		type civil_spouse
-		status active
-		audit {
-			creation {
-				date 11 Jan 2001 16:51:48
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL44 {
-		subject {
-			individual PERSON5
-		}
-		target {
-			individual I14
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL45 {
-		subject {
-			individual PERSON5
-		}
-		target {
-			individual I13
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
-		}
-	}
-
-	relationship RL46 {
-		subject {
-			individual I14
-		}
-		target {
-			individual I10
-		}
-		type biological_child
-		status active
-		audit {
-			creation {
-				date 2026-08-28T00:00:00Z
-				comment From GEDCOM conversion
-			}
+		audit.creation {
+			date 2026-08-29T00:00:00Z
+			comment From GEDCOM conversion
 		}
 	}
 
@@ -6431,22 +2677,10 @@ Main Street, USA"""
 Comments on "Sandy Privacy Torture" INDIVIDUAL Record.
 
 This record has a restriction setting of "privacy." In public applications of GEDCOM files, "privacy" records should be hidden from all viewing and printing. It is less clear how GEDCOM software on your own PC reading your own copies of GEDCOM files should treat "privacy" records. At a minimum, it should import and preserve the "privacy" setting."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		privacy {
-			level restricted
-		}
-		audit {
-			creation {
-				date 11 Jan 2001 15:56:15
-				comment From GEDCOM conversion
-			}
-		}
+		privacy.level restricted
+		audit.creation.date 11 Jan 2001 15:56:15
 	}
 
 	individual PERSON3 {
@@ -6481,21 +2715,12 @@ TEST #3: Bad line breaks between word but a forgotten space
 
 TEST #4: Blank lines
      The above paragraphs should have blank lines between them."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		privacy {
-			level restricted
-		}
-		audit {
-			creation {
-				date 11 Jan 2001 15:55:43
-				comment This date is the last time this record was changed
-			}
+		privacy.level restricted
+		audit.creation {
+			date 11 Jan 2001 15:55:43
+			comment This date is the last time this record was changed
 		}
 	}
 
@@ -6516,19 +2741,9 @@ TEST #4: Blank lines
 Comments on "Mary First Jones" INDIVIDUAL Record.
 
 This record is used to provide the first wife to "Joseph Tag Torture." Not many other tags are used."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 15:58:16
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 15:58:16
 	}
 
 	individual PERSON1 {
@@ -6543,12 +2758,7 @@ These are notes about the first NAME structure in this record. These notes are e
 The second name structure in this record uses all possible tags for a personal name structure.
 
 NOTE: many applications are confused by two NAME structures."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		name {
 			part {
@@ -6576,23 +2786,16 @@ NOTE: many applications are confused by two NAME structures."""
 		source {
 			source SOURCE1
 			location 55
-			extract {
-				text """
+			extract.text """
 Here is some text from the source specific to this source citation.
 Here is more text but on a new line."""
-			}
 		}
 		note {
 			text """
 This is a second personal NAME structure in a single INDIVIDUAL record which is allowed in GEDCOM. This second NAME structure has all possible fields for a NAME structure.
 
 These notes are embedded in the INDIVIDUAL record."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		name {
 			part {
@@ -6608,20 +2811,14 @@ These notes are embedded in the INDIVIDUAL record."""
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text Some sample text from the first source on this record.
-			}
+			extract.text Some sample text from the first source on this record.
 		}
-		source {
-			source SR2
-		}
+		source.source SR2
 		source {
 			source S1
-			extract {
-				text """
+			extract.text """
 Text from a source. The preferred approach is to cite sources by links to SOURCE records.
 Here is a new line of text from the source."""
-			}
 		}
 		note {
 			text """
@@ -6665,32 +2862,17 @@ This record contains all possible types of data that can be stored in an INDIVID
 13. This record is linked to a submitter and to two submitters with interest in the ancestors and descendants of this individual.
 
 14. This record has all remaining tags allowed in individual records for user reference number, record ID, record file number, ancestral file number, and the changed date."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		note {
 			text """
 This is a second set of notes for this single individual record. It is embedded in the INDIVIDUAL record instead of being in a separate NOTE record.
 
 These notes also have a source citation to a SOURCE record. In GEDCOM this source can only be a single line and links to a SOURCE record."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		document D27
-		audit {
-			creation {
-				date 12 Feb 2001 19:16:42
-				comment From GEDCOM conversion
-			}
-		}
+		document D26
+		audit.creation.date 12 Feb 2001 19:16:42
 	}
 
 	individual I11 {
@@ -6712,23 +2894,13 @@ Comments on "General Custom Filelinks" INDIVIDUAL Record.
 File links in GEDCOM are created by having an OBJE structure with the path name to the file in a subordinate FILE tag and the format of the file in a subordinate FORM tag. It does not make sense to limit file links to the small set of multimedia file types mentioned in the GEDCOM standard (see INDIVIDUAL record "Standard GEDCOM Filelinks" for those file types). The INDIVIDUAL record "Nonstandard Multimedia Filelinks" has sample links to other types of multimedia files not included in the standard GEDCOM list. This INDIVIDUAL record has links to some non-multimedia files types.
 
 What will a genealogy program do when it encounters such logical extensions to GEDCOM file links? Good programs will follow the links. Weaker programs will simply delete them from your file (it is bad manners to delete someone's data)."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D5
 		document D6
 		document D7
 		document D8
-		audit {
-			creation {
-				date 11 Jan 2001 16:01:03
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:01:03
 	}
 
 	individual I10 {
@@ -6755,12 +2927,7 @@ Some other possible multimedia file type not yet linked to this record are:
    avi - Microsoft movie file
    midi - sound file
    mp3 - music file"""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D9
 		document D10
@@ -6769,12 +2936,7 @@ Some other possible multimedia file type not yet linked to this record are:
 		document D13
 		document D14
 		document D15
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:39
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:00:39
 	}
 
 	individual I13 {
@@ -6834,19 +2996,9 @@ C6 inverted exclamation mark (̐�ư)
 CD midline e - LDS extension (̐�ư)
 CE midline o - LDS extension (̐�ư)
 CF es zet (̐�ư)"""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:23
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:00:23
 	}
 
 	individual I12 {
@@ -6870,23 +3022,13 @@ File links in GEDCOM are created by having an OBJE structure with the path name 
 The sample URL links include links to a web sites, a link to an FTP site, and a link to send email.
 
 This extension of file links to URL links is non-standard GEDCOM. What will a genealogy program do when in encounters URL file links? Cleaver programs will find the file on the Internet using your default browser, FTP program, or email program. Weaker programs will simply delete them from your file (it is bad manners to delete someone's data)."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D1
 		document D2
 		document D3
 		document D4
-		audit {
-			creation {
-				date 11 Jan 2001 16:01:19
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:01:19
 	}
 
 	individual I15 {
@@ -6901,12 +3043,7 @@ This extension of file links to URL links is non-standard GEDCOM. What will a ge
 			}
 		}
 		sex female
-		audit {
-			creation {
-				date 11 Jan 2001 16:01:59
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:01:59
 	}
 
 	individual I14 {
@@ -7102,19 +3239,9 @@ code: FE (Unicode: comma above, 0313) high comma, centered
      ̐�ưN̐�ưO̐�ưP̐�ưQ̐�ưR̐�ưS̐�ưT̐�ưU̐�ưV̐�ưW̐�ưX̐�ưY̐�ưZ
      ̐�ưa̐�ưb̐�ưc̐�ưd̐�ưe̐�ưf̐�ưg̐�ưh̐�ưi̐�ưj̐�ưk̐�ưl̐�ưm
      ̐�ưn̐�ưo̐�ưp̐�ưq̐�ưr̐�ưs̐�ưt̐�ưu̐�ưv̐�ưw̐�ưx̐�ưy̐�ưz"""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 16:00:06
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:00:06
 	}
 
 	individual I9 {
@@ -7151,12 +3278,7 @@ NOTE: The path names for the linked files here are just the file names. A good G
 
 EMBEDDED Multimedia Object:
      GEDCOM 5.5 has a method for encoding multimedia objects and storing them in MULTIMEDIA Records. This INDIVIDUAL has a link to such an embedded object. The object has encoded data, written using the GEDCOM 5.5 encoding algorithm, for the image of a small flower. To my knowledge, there are no genealogy programs that can actually read and decode such objects. The main reason for inclusion of the object here is to see how programs will treat this record. Good programs will leave them in the file (it is bad manners to delete someone's data). Bad programs will simple delete the object from the file."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D16
 		document D17
@@ -7165,12 +3287,7 @@ EMBEDDED Multimedia Object:
 		document D20
 		document D21
 		document M1
-		audit {
-			creation {
-				date 11 Jan 2001 16:02:06
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:02:06
 	}
 
 	individual PERSON8 {
@@ -7190,19 +3307,9 @@ EMBEDDED Multimedia Object:
 Comments on "Elizabeth Second Smith" INDIVIDUAL Record.
 
 This record is used to provide a second wife to "Joseph Tag Torture." Not many other tags are used."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 15:58:58
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 15:58:58
 	}
 
 	individual PERSON7 {
@@ -7221,19 +3328,9 @@ This record is used to provide a second wife to "Joseph Tag Torture." Not many o
 Comments on "Pat Smith Torture" INDIVIDUAL Record.
 
 The record simply provides a child to "Joseph Tag Torture" in his family with "Mary First Jones" as his spouse."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 15:56:49
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 15:56:49
 	}
 
 	individual PERSON6 {
@@ -7253,19 +3350,9 @@ The record simply provides a child to "Joseph Tag Torture" in his family with "M
 Comments on "Teresa Mary Caregiver" INDIVIDUAL Record.
 
 This record is the adoptive mother of "Joseph Tag Torture". She is linked to a family record, but there is no husband in that record."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 16:03:05
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:03:05
 	}
 
 	individual PERSON5 {
@@ -7285,19 +3372,9 @@ This record is the adoptive mother of "Joseph Tag Torture". She is linked to a f
 Comments on "William Joseph Torture" INDIVIDUAL Record.
 
 This record is the natural father of "Joseph Tag Torture". He is linked to a family record, but there is no wife in that record."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 15:59:40
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 15:59:40
 	}
 
 	group FAMILY2 {
@@ -7307,31 +3384,14 @@ This record is the natural father of "Joseph Tag Torture". He is linked to a fam
 Comments on "Joseph Tag Torture-Elizabeth Second Smith" FAMILY Record.
 
 This record has a second marriage for "Joseph Tag Torture" and the family has one child."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 13 Jun 2000 17:01:46
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 13 Jun 2000 17:01:46
 		note {
 			text @N35@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		name {
-			value Family of Joseph and Elizabeth Second
-		}
+		name.value Family of Joseph and Elizabeth Second
 	}
 
 	group F6 {
@@ -7341,31 +3401,14 @@ This record has a second marriage for "Joseph Tag Torture" and the family has on
 Comments on "Charlie Accented ANSEL-Lucy Special ANSEL" FAMILY Record.
 
 The two spouses in this family test reading of the ANSEL character set."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 16:51:48
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:51:48
 		note {
 			text @N37@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		name {
-			value Family of Charlie Accented and Lucy Special
-		}
+		name.value Family of Charlie Accented and Lucy Special
 	}
 
 	group F7 {
@@ -7375,31 +3418,14 @@ The two spouses in this family test reading of the ANSEL character set."""
 Comments on "<unknown>-Nonstandard Multimedia Filelinks" FAMILY Record.
 
 The record is simply used to make family connections between records in this file."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 16:52:53
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:52:53
 		note {
 			text @N38@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		name {
-			value Family of  and Nonstandard Multimedia
-		}
+		name.value Family of  and Nonstandard Multimedia
 	}
 
 	group FAMILY1 {
@@ -7407,9 +3433,7 @@ The record is simply used to make family connections between records in this fil
 		source {
 			source SOURCE1
 			location 42
-			extract {
-				text A sample text from a source of this family
-			}
+			extract.text A sample text from a source of this family
 		}
 		note {
 			text """
@@ -7434,53 +3458,25 @@ This record contains all possible types of data that can be stored in a FAMILY (
 6. This record is linked a submitter.
 
 7. This record has all remaining tags allowed in FAMILY records for user reference number, record ID, and the changed date."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D28
-		audit {
-			creation {
-				date 11 Jan 2001 16:18:40
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:18:40
 		source {
 			source SOURCE1
 			location 42
-			date {
-				value {
-					point {
-						full_date {
-							value 31 DEC 1900
-							calendar gregorian
-						}
-					}
-				}
+			date.value.point.full_date {
+				value 31 DEC 1900
+				calendar gregorian
 			}
 			note {
 				text Verbatim text: A sample text from a source of this family
-				audit {
-					creation {
-						date 2026-08-28T00:00:00Z
-						comment From GEDCOM conversion
-					}
-				}
+				audit.creation.date 2026-08-29T00:00:00Z
 			}
-			evidence {
-				information_type undetermined
-			}
+			evidence.information_type undetermined
 			note {
 				text A note this source on the FAMILY record.
-				audit {
-					creation {
-						date 2026-08-28T00:00:00Z
-						comment From GEDCOM conversion
-					}
-				}
+				audit.creation.date 2026-08-29T00:00:00Z
 			}
 		}
 		note {
@@ -7506,16 +3502,9 @@ This record contains all possible types of data that can be stored in a FAMILY (
 6. This record is linked a submitter.
 
 7. This record has all remaining tags allowed in FAMILY records for user reference number, record ID, and the changed date."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		name {
-			value Family of Joseph and Mary First
-		}
+		name.value Family of Joseph and Mary First
 	}
 
 	group ADOPTIVE_PARENTS {
@@ -7525,31 +3514,14 @@ This record contains all possible types of data that can be stored in a FAMILY (
 Comments on "<unknown>-Teresa Mary Caregiver" FAMILY Record.
 
 This record has the adoptive mother of "Joseph Tag Torture." The husband is not known."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 13 Jun 2000 17:01:18
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 13 Jun 2000 17:01:18
 		note {
 			text @N34@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		name {
-			value Family of  and Teresa Mary
-		}
+		name.value Family of  and Teresa Mary
 	}
 
 	group PARENTS {
@@ -7559,31 +3531,14 @@ This record has the adoptive mother of "Joseph Tag Torture." The husband is not 
 Comments on "William Joseph Torture-<unknown>" FAMILY Record.
 
 This record has the natural father of "Joseph Tag Torture." The wife is not known."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 13 Jun 2000 17:00:35
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 13 Jun 2000 17:00:35
 		note {
 			text @N33@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		name {
-			value Family of William Joseph
-		}
+		name.value Family of William Joseph
 	}
 
 	group F5 {
@@ -7593,64 +3548,33 @@ This record has the natural father of "Joseph Tag Torture." The wife is not know
 Comments on "Standard GEDCOM Filelinks-Torture GEDCOM Matriarch" FAMILY record.
 
 The children in this family test logical extensions to the GEDCOM method for linking to a multimedia file."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 16:50:37
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:50:37
 		note {
 			text @N36@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		name {
-			value Family of Standard GEDCOM and Torture GEDCOM
-		}
+		name.value Family of Standard GEDCOM and Torture GEDCOM
 	}
 
 	source SR2 {
-		title {
-			value All I Know About GEDCOM, I Learned on the Internet
-		}
+		title.value All I Know About GEDCOM, I Learned on the Internet
 		author Second Source Author
 		note {
 			text """
 Comments on "All I Know About GEDCOM, I Learned on the Internet" SOURCE record.
 
 This is another SOURCE record. How does the importing software handle multiple sources in the GEDCOM file? This source only fills a few GEDCOM structures."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 11 Jan 2001 16:21:39
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 11 Jan 2001 16:21:39
 	}
 
 	source SOURCE1 {
-		title {
-			value """
+		title.value """
 Everything You Every Wanted to Know about GEDCOM Tags, But Were Afraid to Ask!
 You can start new lines in this field too."""
-		}
 		author """
 Author or Authorss of this Source using multiple lines if necessary.
 Here is a new line in this field"""
@@ -7662,33 +3586,18 @@ Here is a new line in this field"""
 Verbatim text: This section is used to generic text from the course. It will usually be a quote from the text that is relevant to the use of this source in the current GEDCOM file.
 
 It may use as many lines as needed."""
-			audit {
-				creation {
-					date 14 Jan 2001 14:29:25
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 14 Jan 2001 14:29:25
 		}
 		repository {
 			repository R1
 			locator 920.23
 			note {
 				text Book (or other description of this source)
-				audit {
-					creation {
-						date 2026-08-28T00:00:00Z
-						comment From GEDCOM conversion
-					}
-				}
+				audit.creation.date 2026-08-29T00:00:00Z
 			}
 			note {
 				text A short note about the repository link. This note is about the repository (if more information is needed other than call number and simple description). Notes about the Source itself are usually entered elsewhere.
-				audit {
-					creation {
-						date 2026-08-28T00:00:00Z
-						comment From GEDCOM conversion
-					}
-				}
+				audit.creation.date 2026-08-29T00:00:00Z
 			}
 		}
 		note {
@@ -7706,35 +3615,18 @@ This particular SOURCE record uses all possible GEDCOM tags for a SOURCE record.
 3. Are the multimedia links preserved?
 
 4. This record as two sets of notes - this one in a separate record and a second one embedded in the SOURCE record. Are they both imported and kept separate?"""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		note {
 			text These are notes embedded in the SOURCE Record instead of in a separate NOTE RECORD.
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
 		document D29
-		audit {
-			creation {
-				date 14 Jan 2001 14:29:25
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 14 Jan 2001 14:29:25
 	}
 
 	repository {
-		name {
-			value Family History Library
-		}
+		name.value Family History Library
 		contact {
 			value """
 35 North West Temple
@@ -7746,37 +3638,20 @@ Salt Lake City
 Utah
 84111
 USA"""
-			audit {
-				creation {
-					date 12 Mar 2000 10:36:02
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 12 Mar 2000 10:36:02
 		}
 		note {
-			text @N2@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			text """
+Comments on "Family History Library" REPOSITORY Record.
+
+This record uses all possible GEDCOM tags for a REPOSITORY record. Some things to look for are:
+
+1. The address is specified twice. Once in a multi-line address record and once in separate lines. The first method is usually enough. The second method is to be more specific about parts of the address. Is everything imported?
+
+2. There are multiple phone numbers. Are they all imported?"""
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		note {
-			text @N2@
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
-		}
-		audit {
-			creation {
-				date 12 Mar 2000 10:36:02
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 12 Mar 2000 10:36:02
 	}
 
 	document M1 {
@@ -7786,18 +3661,8 @@ USA"""
 			text """
 Here are some notes on this multimedia object.
 If decoded it should be an image of a flower."""
-			audit {
-				creation {
-					date 2026-08-28T00:00:00Z
-					comment From GEDCOM conversion
-				}
-			}
+			audit.creation.date 2026-08-29T00:00:00Z
 		}
-		audit {
-			creation {
-				date 14 Jan 2001 14:10:31
-				comment From GEDCOM conversion
-			}
-		}
+		audit.creation.date 14 Jan 2001 14:10:31
 	}
 }

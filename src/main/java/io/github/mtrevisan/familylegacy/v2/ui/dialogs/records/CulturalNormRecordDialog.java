@@ -97,14 +97,17 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 950729006569948384L;
 
 
+	private static final String DOT = ".";
+
 	private static final String TAG_TITLE = "TITLE";
 	private static final String TAG_RULE_TYPE = "RULE_TYPE";
 	private static final String TAG_PLACE = "PLACE";
+	private static final String TAG_EVIDENCE = "EVIDENCE";
+	private static final String TAG_PLACE_EVIDENCE = TAG_PLACE + DOT + TAG_EVIDENCE;
 	private static final String TAG_VALID_FROM = "VALID_FROM";
 	private static final String TAG_VALID_TO = "VALID_TO";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
-	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_AUDIT = "AUDIT";
 
 	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
@@ -158,7 +161,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		});
 		ruleTypeCombo.setEditable(true);
 		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
-		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE, this, "Evidence", model, null);
+		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, this, "Evidence", model, null);
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
 

@@ -43,6 +43,7 @@ import io.github.mtrevisan.familylegacy.ui.utilities.TableTransferHandle;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -442,15 +443,15 @@ public class NoteDialog extends JDialog implements TextPreviewListenerInterface{
 	}
 
 	private static String toNoteText(final GedcomNode note){
-		return StringUtils.replace(note.getValue(), "\\n", "\n");
+		return Strings.CS.replace(note.getValue(), "\\n", "\n");
 	}
 
 	public static String toVisualText(final GedcomNode note){
-		return StringUtils.replace(note.getValue(), "\\n", "↵");
+		return Strings.CS.replace(note.getValue(), "\\n", "↵");
 	}
 
 	public static String fromNoteText(final String text){
-		return StringUtils.replace(text, "\n", "\\n");
+		return Strings.CS.replace(text, "\n", "\\n");
 	}
 
 	public final void showNewRecord(){

@@ -29,13 +29,20 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarParser;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PushbackInputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Locale;
+import java.util.zip.GZIPInputStream;
 
 
 public class FLEFParser{
@@ -49,9 +56,87 @@ public class FLEFParser{
 	private static final String TAG_VALUE_MULTILINE = "\"\"\"";
 
 
+	/**
+	 * Helper to hold both the root and the deepest node of a nested chain.
+	 */
+	private static class NestedPair{
+		final FLEFRecord root;
+		final FLEFRecord current;
+
+		NestedPair(final FLEFRecord root, final FLEFRecord current){
+			this.root = root;
+			this.current = current;
+		}
+	}
+
+
 	private String text;
 	private int length;
 	private int position;
+
+
+	/**
+	 * Parses a FLEF file from the given path.
+	 * If the file begins with the GZIP magic bytes, it is automatically decompressed.
+	 *
+	 * @param path the path to the FLEF file (may be plain text or gzip‑compressed)
+	 * @return the parsed FLEF model
+	 * @throws IOException if reading fails
+	 */
+	public FLEFModel parse(final Path path) throws IOException{
+		final byte[] data = Files.readAllBytes(path);
+		final String content;
+		if(isGzipCompressed(data)){
+			try(final ByteArrayInputStream bais = new ByteArrayInputStream(data);
+				 final GZIPInputStream gis = new GZIPInputStream(bais)){
+				content = new String(gis.readAllBytes(), StandardCharsets.UTF_8);
+			}
+		}
+		else
+			content = new String(data, StandardCharsets.UTF_8);
+
+		return parse(content);
+	}
+
+	/**
+	 * Parses a FLEF file from an input stream.
+	 * If the stream starts with the GZIP magic bytes, it is automatically decompressed.
+	 *
+	 * @param inputStream the input stream (may be plain or gzip‑compressed)
+	 * @return the parsed FLEF model
+	 * @throws IOException if reading fails
+	 */
+	public FLEFModel parse(final InputStream inputStream) throws IOException{
+		final String content;
+
+		// Read the first few bytes to test for GZIP magic
+		final byte[] header = new byte[2];
+		final PushbackInputStream pushback = new PushbackInputStream(inputStream, 2);
+		final int read = pushback.read(header, 0, 2);
+		if(read == 2 && isGzipMagic(header)){
+			pushback.unread(header, 0, 2);
+			try(final GZIPInputStream gis = new GZIPInputStream(pushback)){
+				content = new String(gis.readAllBytes(), StandardCharsets.UTF_8);
+			}
+		}
+		else{
+			pushback.unread(header, 0, read);
+			content = new String(pushback.readAllBytes(), StandardCharsets.UTF_8);
+		}
+
+		return parse(content);
+	}
+
+	/**
+	 * Checks if the given byte array starts with the GZIP magic header (1F 8B).
+	 */
+	private static boolean isGzipCompressed(final byte[] data){
+		return (data.length >= 2 && isGzipMagic(data));
+	}
+
+	private static boolean isGzipMagic(final byte[] header){
+		return (header.length >= 2 && header[0] == (byte)0x1F && header[1] == (byte)0x8B);
+	}
 
 
 	public FLEFModel parse(final String text){
@@ -85,7 +170,18 @@ public class FLEFParser{
 	private FLEFRecord parseRecord(){
 		final String tag = readIdentifier()
 			.toLowerCase(Locale.ROOT);
-		final FLEFRecord record = FLEFRecord.createChildWithTag(tag);
+
+		FLEFRecord record;
+		FLEFRecord currentRecord;
+		if(tag.indexOf('.') >= 0){
+			final NestedPair pair = createNestedRecord(tag);
+			record = pair.root;
+			currentRecord = pair.current;
+		}
+		else{
+			record = FLEFRecord.createChildWithTag(tag);
+			currentRecord = record;
+		}
 
 		skipSpaces();
 
@@ -95,23 +191,20 @@ public class FLEFParser{
 			// Child block with no scalar value
 			if(chr == TAG_OPEN_CURLY_BRACE){
 				consume(TAG_OPEN_CURLY_BRACE);
-
-				parseBlock(record);
+				parseBlock(currentRecord);
 
 				return record;
 			}
 
 			// Multi-line string as value
 			if(startsWithTripleQuotes()){
-				record.setValue(readMultilineString());
-
+				currentRecord.setValue(readMultilineString());
 				skipSpaces();
-
 				if(!eof() && peek() == TAG_OPEN_CURLY_BRACE){
 					consume(TAG_OPEN_CURLY_BRACE);
-
-					parseBlock(record);
+					parseBlock(currentRecord);
 				}
+
 				return record;
 			}
 
@@ -119,25 +212,23 @@ public class FLEFParser{
 			String value = readToEndOfLine();
 			// If there is an inline id followed by a block
 			if(!value.isEmpty() && value.charAt(value.length() - 1) == TAG_OPEN_CURLY_BRACE){
-				value = value.substring(0, value.length() - 1)
-					.trim();
+				value = value.substring(0, value.length() - 1).trim();
 				if(!value.isEmpty())
-					record.setId(value);
-				parseBlock(record);
+					currentRecord.setId(value);
+				parseBlock(currentRecord);
 
 				return record;
 			}
 
 			// Simple value
 			if(!value.isEmpty())
-				record.setValue(value);
+				currentRecord.setValue(value);
 
 			skipSpaces();
 
 			if(!eof() && peek() == TAG_OPEN_CURLY_BRACE){
 				consume(TAG_OPEN_CURLY_BRACE);
-
-				parseBlock(record);
+				parseBlock(currentRecord);
 			}
 		}
 
@@ -160,6 +251,25 @@ public class FLEFParser{
 		}
 
 		throw error("Missing closing brace");
+	}
+
+	/**
+	 * Creates a chain of nested records for a dotted tag path.
+	 * Example: "valid_from.value.point.full_date" produces:
+	 * valid_from { value { point { full_date {} } } }
+	 * Returns the deepest record (the last segment).
+	 */
+	private NestedPair createNestedRecord(final String tagPath){
+		final String[] segments = StringUtils.split(tagPath, '.');
+		final FLEFRecord root = FLEFRecord.createChildWithTag(segments[0]);
+		FLEFRecord current = root;
+		for(int i = 1; i < segments.length; i ++){
+			final FLEFRecord child = FLEFRecord.createChildWithTag(segments[i]);
+			current.addChild(child);
+
+			current = child;
+		}
+		return new NestedPair(root, current);
 	}
 
 
@@ -444,34 +554,20 @@ public class FLEFParser{
 		String text2 = """
 			header {
 			  date 2026-07-31
-			  submitter {
-			    name Mario Rossi
-			  }
+			  submitter.name Mario Rossi
 			}
 			records {
 			  individual {
 			    id @I1@
 			    sex INVALID_VALUE
-			    modification {
-			      creation {
-			        date 2026-07-31
-			      }
-			    }
+			    modification.creation.date 2026-07-31
 			  }
 			  event_participation {
 			    id @EP1@
-			    event {
-			      event @E999@
-			    }
-			    participant {
-			      individual @I1@
-			    }
+			    event.event @E999@
+			    participant.individual @I1@
 			    role CHILD
-			    modification {
-			      creation {
-			        date 2026-07-31
-			      }
-			    }
+			    modification.creation.date 2026-07-31
 			  }
 			}
 		""";
@@ -484,7 +580,6 @@ public class FLEFParser{
 			    version 0.1.2
 			  }
 			  source {
-			    system_id MyGenealogySoftware
 			    name My Genealogy Software
 			    version 1.0.0
 			  }
@@ -494,11 +589,7 @@ public class FLEFParser{
 			    contact {
 			      address mario.rossi@example.com
 			      type personal
-			      modification {
-			        creation {
-			          date 2026-07-31
-			        }
-			      }
+			      modification.creation.date 2026-07-31
 			    }
 			  }
 			  scope Example family
@@ -514,67 +605,37 @@ public class FLEFParser{
 			        part {
 			          type family
 			          value ""\"
-			            Rossi
-			            Bianchi
-			          ""\"
+Rossi
+Bianchi
+""\"
 			        }
 			      }
 			    sex MALE
-			    modification {
-			      creation {
-			        date 2026-07-31
-			      }
-			    }
+			    modification.creation.date 2026-07-31
 			  }
 			  note {
 			    id @N1@
 			    value Individuo presente nel registro di nascita.
-			    modification {
-			      creation {
-			        date 2026-07-31
-			      }
-			    }
+			    modification.creation.date 2026-07-31
 			  }
 			  event {
 			    id @E1@
 			    type BIRTH
 			    detail {
-			      date {
-			        value {
-			          point {
-			            single_date {
-			              full_date {
-			                value 1894-03-17
-			                calendar gregorian
-			              }
-			            }
-			          }
-			        }
+			      date.value.point.single_date.full_date {
+			        value 1894-03-17
+			        calendar gregorian
 			      }
-			      modification {
-			        creation {
-			          date 2026-07-31
-			        }
-			      }
+			      modification.creation.date 2026-07-31
 			    }
-			    modification {
-			      creation {
-			        date 2026-07-31
-			      }
-			    }
+			    modification.creation.date 2026-07-31
 			  }
 			  event_participation {
 			    id @EP1@
 			    event @E1@
-			    participant {
-			      individual @I1@
-			    }
+			    participant.individual @I1@
 			    role CHILD
-			    modification {
-			      creation {
-			        date 2026-07-31
-			      }
-			    }
+			    modification.creation.date 2026-07-31
 			  }
 			}
 			""";
@@ -601,23 +662,23 @@ public class FLEFParser{
 
 
 		final FLEFParser parser = new FLEFParser();
-		final FLEFModel root = parser.parse(text);
+		final FLEFModel model = parser.parse(text);
 
-		System.out.println(root);
+		System.out.println(model);
 
 
 		System.out.println();
 
 
-		final FLEFWriter writer = FLEFWriter.create();
-		System.out.println(writer.writeToString(root));
+		final FLEFWriter writer = FLEFWriter.createCompact();
+		System.out.println(writer.writeToString(model));
 
 
 		System.out.println();
 
 
 		final FLEFValidator validator = new FLEFValidator(grammar);
-		final List<String> errorsSchema = validator.validateSchema(root);
+		final List<String> errorsSchema = validator.validateSchema(model);
 		System.out.println("Schema check:");
 		for(final String error : errorsSchema)
 			System.out.println(error);
@@ -626,7 +687,7 @@ public class FLEFParser{
 		System.out.println();
 
 
-		final List<String> errorsIntegrity = validator.validateIntegrity(root);
+		final List<String> errorsIntegrity = validator.validateIntegrity(model);
 		System.out.println("Integrity check:");
 		for(final String error : errorsIntegrity)
 			System.out.println(error);

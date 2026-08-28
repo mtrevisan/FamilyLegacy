@@ -81,6 +81,12 @@
 		<!-- https://mvnrepository.com/artifact/jakarta.transaction/jakarta.transaction-api -->
 		<jakarta.transaction.version>2.0.1</jakarta.transaction.version>
 
+		<!-- Time4J -->
+		<!-- https://mvnrepository.com/artifact/org.threeten/threeten-extra -->
+		<threeten.extra.version>1.10.0</threeten.extra.version>
+		<!-- https://mvnrepository.com/artifact/com.ibm.icu/icu4j -->
+		<ibm.icu.version>78.3</ibm.icu.version>
+
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
 		<hibernate.hibernate-core.version>7.4.5.Final</hibernate.hibernate-core.version>
@@ -251,6 +257,23 @@
 	</profiles>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>false</filtering>
+				<includes>
+					<include>**/*</include>
+				</includes>
+			</resource>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>version.properties</include>
+				</includes>
+			</resource>
+		</resources>
+
 		<plugins>
 			<!-- Compiler -->
 			<plugin>
@@ -374,6 +397,18 @@
 			<groupId>jakarta.transaction</groupId>
 			<artifactId>jakarta.transaction-api</artifactId>
 			<version>${jakarta.transaction.version}</version>
+		</dependency>
+
+		<!-- Date -->
+		<dependency>
+			<groupId>org.threeten</groupId>
+			<artifactId>threeten-extra</artifactId>
+			<version>${threeten.extra.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.ibm.icu</groupId>
+			<artifactId>icu4j</artifactId>
+			<version>${ibm.icu.version}</version>
 		</dependency>
 
 		<!-- Hibernate -->

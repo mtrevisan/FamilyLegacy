@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -69,7 +70,11 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private static final long serialVersionUID = -6835967045890180368L;
 
 
+	/** [ms] */
+	private static final int DEBOUNCE_TIME = 400;
+
 	public static final String PROPERTY_TYPE_SELECTED = "type-selected";
+	private static final String PROPERTY_DEBOUNCER = "search";
 
 
 	private final FLEFModel model;
@@ -85,6 +90,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 
 	private List<FLEFRecord> allRecords = new ArrayList<>();
 	private final List<FLEFRecord> filteredRecords = new ArrayList<>();
+	private final Debouncer<String> searchDebouncer = new Debouncer<>(key -> filterRecords(), DEBOUNCE_TIME);
 
 	private boolean confirmed;
 	private String selectedType;
@@ -187,17 +193,17 @@ public class MultiTypeSelectionDialog extends JDialog{
 		searchField.getDocument().addDocumentListener(new DocumentListener(){
 			@Override
 			public void insertUpdate(final DocumentEvent e){
-				filterRecords();
+				searchDebouncer.call(PROPERTY_DEBOUNCER);
 			}
 
 			@Override
 			public void removeUpdate(final DocumentEvent e){
-				filterRecords();
+				searchDebouncer.call(PROPERTY_DEBOUNCER);
 			}
 
 			@Override
 			public void changedUpdate(final DocumentEvent e){
-				filterRecords();
+				searchDebouncer.call(PROPERTY_DEBOUNCER);
 			}
 		});
 

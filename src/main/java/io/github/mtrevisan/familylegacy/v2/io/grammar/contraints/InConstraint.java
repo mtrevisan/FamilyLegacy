@@ -70,8 +70,8 @@ public final class InConstraint extends Constraint{
 		}
 		fieldChild = fieldChild.getTheOnlyChild();
 
-		final FLEFRecord containerChild = FLEFRecordHelper.findChild(record, containerField);
-		if(containerChild == null){
+		final List<FLEFRecord> containerChildren = FLEFRecordHelper.findChildren(record, containerField);
+		if(containerChildren == null){
 			errors.add(String.format("Constraint violation at '%s': container field '%s' not found",
 				contextPath, containerField));
 
@@ -86,13 +86,16 @@ public final class InConstraint extends Constraint{
 			return;
 		}
 
+		final String fieldChildTag = fieldChild.getTag();
 		boolean found = false;
-		for(final FLEFRecord child : containerChild.getChildren())
-			if(fieldValue.equals(child.getValue())){
+		for(final FLEFRecord containerChild : containerChildren){
+			final FLEFRecord child = containerChild.getTheOnlyChild();
+			if(fieldChildTag.equals(child.getTag()) && fieldValue.equals(child.getValue())){
 				found = true;
 
 				break;
 			}
+		}
 
 		if(!found)
 			errors.add(String.format("Constraint violation at '%s': '%s' (value: %s) must be one of the values in '%s'",

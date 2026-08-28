@@ -601,7 +601,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 						for(final FLEFRecord actor : actors){
 							final String tag = actor.getTag();
 							final String id = actor.getId();
-							if(Strings.CI.equals(parentEntityTag, tag) && recordId.equals(id))
+							if(/*Strings.CI.equals(parentEntityTag, tag) &&*/ recordId.equals(id))
 								return true;
 						}
 					}

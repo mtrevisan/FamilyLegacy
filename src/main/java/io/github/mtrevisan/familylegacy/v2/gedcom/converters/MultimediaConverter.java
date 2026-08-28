@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.Deduplicator;
+import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
@@ -24,6 +26,8 @@ public class MultimediaConverter{
 	private final FLEFModel model;
 	private final Map<String, FLEFRecord> multimediaMap;
 	private final Map<String, GEDCOMNode> noteRawMap;
+	private final Map<String, GEDCOMNode> sourRawMap;
+	private final Map<String, GEDCOMNode> objeRawMap;
 	private final StructureParser structParser;
 
 	/**
@@ -33,11 +37,13 @@ public class MultimediaConverter{
 	 * @param multimediaMap map of document IDs to FLEF records
 	 * @param placeCache    cache for place records (may be null if not needed)
 	 */
-	public MultimediaConverter(FLEFModel model, Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache, Map<String, GEDCOMNode> noteRawMap){
+	public MultimediaConverter(FLEFModel model, Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap){
 		this.model = model;
 		this.multimediaMap = multimediaMap;
 		this.structParser = new StructureParser(placeCache);
 		this.noteRawMap = noteRawMap;
+		this.sourRawMap = sourRawMap;
+		this.objeRawMap = objeRawMap;
 	}
 
 	/**
@@ -66,20 +72,22 @@ public class MultimediaConverter{
 			// If the referenced record does not exist yet, we create a minimal placeholder
 			// so that the reference can be resolved later.
 			if(!multimediaMap.containsKey(objXref)){
-				FLEFRecord doc = FLEFRecord.createMainRecord(objXref, DocumentHandler.TYPE)
+				FLEFRecord document = FLEFRecord.createMainRecord(objXref, DocumentHandler.TYPE)
 					// Add a placeholder file to satisfy the protocol requirement.
 					// This will be replaced when the actual OBJE record is converted.
 					.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"))
 					.addChild(AuditBuilder.build(objNode));
-				multimediaMap.put(objXref, doc);
-				model.addRecord(doc);
+				multimediaMap.put(objXref, document);
+
+				// check for duplicates before adding
+				Deduplicator.getDeduplicatedRecordId(model, document);
 			}
 			return;
 		}
 
 		// ---- 3. Determine ID ----
 		String id;
-		if(objXref != null && isValidIdFormat(objXref)){
+		if(isValidIdFormat(objXref)){
 			id = objXref;
 		}
 		else{
@@ -87,29 +95,29 @@ public class MultimediaConverter{
 		}
 
 		// If the ID is already in the map, skip (already converted)
-		FLEFRecord doc;
+		FLEFRecord document;
 		if(multimediaMap.containsKey(id)){
 			// Record già esistente (ad esempio un placeholder) – lo sovrascriviamo
-			doc = multimediaMap.get(id);
+			document = multimediaMap.get(id);
 			// Pulisce i vecchi figli per evitare duplicati
-			doc.getChildren().clear();
+			document.getChildren().clear();
 			// L'ID è già impostato
 		}
 		else{
-			doc = FLEFRecord.createMainRecord(id, DocumentHandler.TYPE);
-			multimediaMap.put(id, doc);
+			document = FLEFRecord.createMainRecord(id, DocumentHandler.TYPE);
+			multimediaMap.put(id, document);
 		}
 
 		// ---- 4. Create DocumentRecord ----
-		doc.setId(id);
-		multimediaMap.put(id, doc);
+		document.setId(id);
+		multimediaMap.put(id, document);
 
 		// ---- 1. TITL directly under OBJE ----
 		GEDCOMNode objTitlNode = GEDCOMHelper.findFirstChild(objNode, "TITL");
 		if(objTitlNode != null){
 			String fullTitle = GEDCOMHelper.extractFullText(objTitlNode);
 			if(StringUtils.isNotEmpty(fullTitle)){
-				doc.addChild(FLEFRecord.createChildWithTagAndValue("description", fullTitle));
+				document.addChild(FLEFRecord.createChildWithTagAndValue("description", fullTitle));
 			}
 		}
 
@@ -118,13 +126,7 @@ public class MultimediaConverter{
 		if(!fileNodes.isEmpty()){
 			GEDCOMNode fileNode = fileNodes.get(0);
 			String fileVal = (fileNode.getValue() != null)? fileNode.getValue().trim(): "";
-			if(!fileVal.isEmpty()){
-				doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileVal));
-			}
-			else{
-				// File node exists but has no value – add placeholder
-				doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"));
-			}
+			document.addChild(FLEFRecord.createChildWithTagAndValue("uri", (!fileVal.isEmpty()? fileVal: "unknown")));
 
 			// ---- 5a. FILE/FORM ----
 			GEDCOMNode formNode = GEDCOMHelper.findFirstChild(fileNode, "FORM");
@@ -134,7 +136,7 @@ public class MultimediaConverter{
 					FLEFRecord note = FLEFRecord.createChildWithTag("note")
 						.addChild(FLEFRecord.createChildWithTagAndValue("text", "Format: " + format))
 						.addChild(AuditBuilder.build(objNode));
-					doc.addChild(note);
+					document.addChild(note);
 				}
 				// ---- 5b. FILE/FORM/TYPE ----
 				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(formNode, "TYPE");
@@ -142,7 +144,7 @@ public class MultimediaConverter{
 					FLEFRecord note = FLEFRecord.createChildWithTag("note")
 						.addChild(FLEFRecord.createChildWithTagAndValue("text", "Media type: " + typeNode.getValue()))
 						.addChild(AuditBuilder.build(objNode));
-					doc.addChild(note);
+					document.addChild(note);
 				}
 			}
 
@@ -152,14 +154,14 @@ public class MultimediaConverter{
 				String fileTitle = GEDCOMHelper.extractFullText(fileTitlNode);
 				if(StringUtils.isNotEmpty(fileTitle)){
 					// If we already have a description from OBJE/TITL, add as note; else use as description.
-					if(FLEFRecordHelper.findChild(doc, "description") != null){
+					if(FLEFRecordHelper.findChild(document, "description") != null){
 						FLEFRecord note = FLEFRecord.createChildWithTag("note")
 							.addChild(FLEFRecord.createChildWithTagAndValue("text", "File title: " + fileTitle))
 							.addChild(AuditBuilder.build(objNode));
-						doc.addChild(note);
+						document.addChild(note);
 					}
 					else{
-						doc.addChild(FLEFRecord.createChildWithTagAndValue("description", fileTitle));
+						document.addChild(FLEFRecord.createChildWithTagAndValue("description", fileTitle));
 					}
 				}
 			}
@@ -167,41 +169,19 @@ public class MultimediaConverter{
 		else{
 			// No FILE child – this should not happen for a valid OBJE record,
 			// but we add a placeholder to satisfy the protocol.
-			doc.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"));
+			document.addChild(FLEFRecord.createChildWithTagAndValue("uri", "unknown"));
 		}
 
-//		// ---- 2. REFN (0:M) – user reference number with optional TYPE ----
-//		for(GEDCOMNode refnNode : GEDCOMHelper.findChildren(objNode, "REFN")){
-//			if(refnNode.getValue() != null){
-//				FLEFRecord refnChild = FLEFRecord.createChildWithTagAndValue("_refn", refnNode.getValue());
-//				GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(refnNode, "TYPE");
-//				if(typeNode != null && typeNode.getValue() != null){
-//					refnChild.addChild(FLEFRecord.createChildWithTagAndValue("type", typeNode.getValue()));
-//				}
-//				doc.addChild(refnChild);
-//			}
-//		}
-
-//		// ---- 3. RIN (0:1) – automated record ID ----
-//		GEDCOMNode rinNode = GEDCOMHelper.findFirstChild(objNode, "RIN");
-//		if(rinNode != null && rinNode.getValue() != null){
-//			doc.addChild(FLEFRecord.createChildWithTagAndValue("_rin", rinNode.getValue()));
-//		}
-
-		// ---- 4. NOTE_STRUCTURE (0:M) – notes (inline or via xref) ----
-		for(GEDCOMNode noteNode : GEDCOMHelper.findChildren(objNode, "NOTE")){
-			FLEFRecord noteStruct = structParser.parseNoteStruct(noteNode);
-			if(noteStruct != null){
-				doc.addChild(noteStruct);
-			}
+		// ---- Sources (SOUR) ----
+		for (GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")) {
+			GEDCOMHelper.attachSource(document, model,
+				sourNode, noteRawMap, sourRawMap, objeRawMap);
 		}
 
-		// ---- 5. SOURCE_CITATION (0:M) – source citations ----
-		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")){
-			FLEFRecord sourCitation = structParser.parseSourceCitation(sourNode, model, noteRawMap);
-			if(sourCitation != null){
-				doc.addChild(sourCitation);
-			}
+		// ---- Notes (GEDCOM NOTE) – inline structs ----
+		for (GEDCOMNode noteNode : GEDCOMHelper.findChildren(objNode, "NOTE")) {
+			GEDCOMHelper.attachNote(document,
+				noteNode, noteRawMap);
 		}
 
 //		// ---- 6. Custom extension tags (_XXX) – stored as inline notes ----
@@ -218,10 +198,11 @@ public class MultimediaConverter{
 //		}
 
 		// ---- 7. CHANGE_DATE (audit) ----
-		doc.addChild(AuditBuilder.build(objNode));
+		document.addChild(AuditBuilder.build(objNode));
 
 		// ---- 8. Add to model ----
-		model.addRecord(doc);
+		// check for duplicates before adding
+		Deduplicator.getDeduplicatedRecordId(model, document);
 	}
 
 	/**

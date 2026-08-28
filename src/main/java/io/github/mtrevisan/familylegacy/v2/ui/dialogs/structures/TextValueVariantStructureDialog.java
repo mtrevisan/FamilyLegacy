@@ -178,7 +178,9 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 		GUIHelper.addLabeledComponent(propertiesPanel, "Variant Kind:", radioPanel);
 
-		propertiesPanel.add(new JLabel("System*:"), "align label");
+		final JLabel phoneticsSystemLabel = new JLabel("System*:");
+		phoneticsSystemLabel.setLabelFor(phoneticSystemField);
+		propertiesPanel.add(phoneticsSystemLabel, "align label");
 		propertiesPanel.add(phoneticSystemField, "growx,wrap");
 		propertiesPanel.add(transcriptionSystemCombo, "growx,wrap");
 

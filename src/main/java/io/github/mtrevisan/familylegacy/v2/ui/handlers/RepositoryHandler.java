@@ -41,7 +41,11 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	public static final String TYPE = "REPOSITORY";
 	public static final String ID_PREFIX = "R";
 
+	private static final String DOT = ".";
+
 	private static final String TAG_NAME = "NAME";
+	private static final String TAG_VALUE = "VALUE";
+	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 
 
 	@Override
@@ -63,7 +67,7 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		// Locate the first populated NAME structure
-		final String name = FLEFRecordHelper.getChildValue(record, "NAME.TEXT.VALUE");
+		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
 
 		final String id = record.getId();
 		if(StringUtils.isNotEmpty(name))

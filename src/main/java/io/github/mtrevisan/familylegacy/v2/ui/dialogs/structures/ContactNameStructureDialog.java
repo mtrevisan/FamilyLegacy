@@ -59,7 +59,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = -6832652809158028331L;
 
 
-	public static final String TAG_VALUE = "VALUE";
+	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VARIANT = "VARIANT";
 
 

@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.DefaultComboBoxModel;
@@ -54,10 +55,18 @@ import java.util.TreeSet;
  */
 public class FilteredComboBox<E> extends JComboBox<E>{
 
+	/** [ms] */
+	private static final int DEBOUNCE_TIME = 400;
+
+	private static final String PROPERTY_DEBOUNCER = "search";
+
+
 	private final List<E> originalItems = new ArrayList<>();
 	private final DefaultComboBoxModel<E> model;
 	private JTextComponent editorComponent;
 	private boolean isFiltering;
+
+	private final Debouncer<String> filterDebouncer = new Debouncer<>(key -> onTextChanged(), DEBOUNCE_TIME);
 
 
 	public FilteredComboBox(){
@@ -107,17 +116,17 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		this.editorComponent.getDocument().addDocumentListener(new DocumentListener(){
 			@Override
 			public void insertUpdate(final DocumentEvent e){
-				onTextChanged();
+				filterDebouncer.call(PROPERTY_DEBOUNCER);
 			}
 
 			@Override
 			public void removeUpdate(final DocumentEvent e){
-				onTextChanged();
+				filterDebouncer.call(PROPERTY_DEBOUNCER);
 			}
 
 			@Override
 			public void changedUpdate(final DocumentEvent e){
-				onTextChanged();
+				filterDebouncer.call(PROPERTY_DEBOUNCER);
 			}
 		});
 

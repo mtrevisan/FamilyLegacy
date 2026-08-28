@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;

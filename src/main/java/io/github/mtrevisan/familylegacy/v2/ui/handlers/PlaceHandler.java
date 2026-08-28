@@ -44,9 +44,8 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	private static final String DOT = ".";
 
 	private static final String TAG_NAME = "NAME";
-	private static final String TAG_TEXT = "TEXT";
 	private static final String TAG_VALUE = "VALUE";
-	private static final String TAG_NAME_TEXT_VALUE = TAG_NAME + DOT + TAG_TEXT + DOT + TAG_VALUE;
+	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 
 
 	@Override
@@ -66,7 +65,7 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME_TEXT_VALUE);
+		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
 		if(StringUtils.isNotEmpty(value)){
 			final String id = record.getId();
 			return value + " [" + id + "]";

@@ -1,7 +1,5 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
-import io.github.mtrevisan.familylegacy.v2.gedcom.converters.GEDCOMHelper;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;

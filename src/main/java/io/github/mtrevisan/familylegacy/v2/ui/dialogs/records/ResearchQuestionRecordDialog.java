@@ -286,7 +286,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		GUIHelper.launch(ResearchQuestionRecordDialog::createEdit, "/tests/test.flef", "RQ2");
+		GUIHelper.launch(ResearchQuestionRecordDialog::createEdit, "/tests/test.flef", "RQ1");
 	}
 
 }

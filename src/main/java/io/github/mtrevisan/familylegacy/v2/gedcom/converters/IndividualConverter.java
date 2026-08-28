@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.converters;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.Deduplicator;
+import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.GEDCOMMapper;
@@ -14,6 +16,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -168,21 +171,24 @@ public class IndividualConverter {
 
 		for (GEDCOMNode objNode : objNodes) {
 			// 1. Create or retrieve DocumentRecord
-			FLEFRecord docRecord = null;
+			FLEFRecord document = null;
 			String objXref = objNode.getXrefId();
 			if (objXref != null) {
 				String cleanId = GEDCOMHelper.cleanId(objXref);
-				docRecord = multimediaMap.get(cleanId);
+				document = multimediaMap.get(cleanId);
 			}
-			if (docRecord == null) {
-				docRecord = createDocumentRecord(objNode);
-				model.addRecord(docRecord);
-				multimediaMap.put(docRecord.getId(), docRecord);
+			if (document == null) {
+				document = createDocumentRecord(objNode);
+
+				// check for duplicates before adding
+				Deduplicator.getDeduplicatedRecordId(model, document);
+
+				multimediaMap.put(document.getId(), document);
 			}
 
 			// 2. If primary: create preferred_image
 			if (objNode == preferredObj) {
-				String fileUri = FLEFRecordHelper.getChildValue(docRecord, "file");
+				String fileUri = FLEFRecordHelper.getChildValue(document, "file");
 				if (fileUri != null && !fileUri.isEmpty()) {
 					FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
 					prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
@@ -211,14 +217,17 @@ public class IndividualConverter {
 				}
 			} else {
 				// 3. Non-primary: create a SourceRecord and link it to the individual
-				FLEFRecord sourceRecord = createSourceRecordFromDocument(docRecord, objNode);
-				model.addRecord(sourceRecord);
-				sourceMap.put(sourceRecord.getId(), sourceRecord);
+				FLEFRecord source = createSourceRecordFromDocument(document, objNode);
+
+				// check for duplicates before adding
+				Deduplicator.getDeduplicatedRecordId(model, source);
+
+				sourceMap.put(source.getId(), source);
 
 				// Create SourceCitation for the individual
 				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
 				FLEFRecord sourceRef = FLEFRecord.createChildWithTag("source");
-				sourceRef.setValue(sourceRecord.getId());
+				sourceRef.setValue(source.getId());
 				sourceCitation.addChild(sourceRef);
 				indi.addChild(sourceCitation);
 			}
@@ -326,10 +335,15 @@ public class IndividualConverter {
 							)
 							.addChild(AuditBuilder.build(node));
 
-						model.addRecord(identityHypothesis);
+						// check for duplicates before adding
+						Deduplicator.getDeduplicatedRecordId(model, identityHypothesis);
 					}
 					case "ASSO" -> {
+//						GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(child, "TYPE");
+//						if("FAM".equals(typeNode.getValue())){}
+//						else if("INDI".equals(typeNode.getValue())){}
 						GEDCOMNode relaNode = GEDCOMHelper.findFirstChild(child, "RELA");
+						String relation = (relaNode != null && StringUtils.isNotEmpty(relaNode.getValue())? relaNode.getValue(): "unknown");
 
 						FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
 							// subject: child
@@ -339,8 +353,8 @@ public class IndividualConverter {
 							// target: group
 							.addChild(FLEFRecord.createChildWithTag("target")
 								.addChild(FLEFRecord.createChildWithTagAndValue("individual", GEDCOMHelper.cleanId(child.getValue())))
-							);
-						GEDCOMHelper.transferValue(relationship, "type", relaNode);
+							)
+							.addChild(FLEFRecord.createChildWithTagAndValue("type", relation));
 						relationship.addChild(AuditBuilder.build(node));
 
 						// ---- Sources (SOUR) ----
@@ -355,7 +369,8 @@ public class IndividualConverter {
 								noteNode, noteRawMap);
 						}
 
-						model.addRecord(relationship);
+						// check for duplicates before adding
+						Deduplicator.getDeduplicatedRecordId(model, relationship);
 					}
 //					case "ANCI" -> text = "Ancestor interest: " + child.getValue();
 //					case "DESI" -> text = "Descendant interest: " + child.getValue();

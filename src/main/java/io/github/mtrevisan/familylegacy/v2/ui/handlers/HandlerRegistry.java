@@ -52,6 +52,10 @@ public final class HandlerRegistry{
 
 	private static final Map<String, Class<? extends RecordTypeHandler<?>>> HANDLER_MAP = new ConcurrentHashMap<>();
 
+	static {
+		scanHandlers();
+	}
+
 
 	private HandlerRegistry(){}
 
@@ -70,7 +74,7 @@ public final class HandlerRegistry{
 				return k.getDeclaredConstructor()
 					.newInstance();
 			}
-			catch(final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored){}
+			catch(final Exception ignored){}
 			return null;
 		});
 	}
