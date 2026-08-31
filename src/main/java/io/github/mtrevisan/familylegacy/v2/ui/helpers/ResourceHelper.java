@@ -38,7 +38,9 @@ import javax.swing.ImageIcon;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
+import java.awt.image.RasterFormatException;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -54,7 +56,7 @@ public final class ResourceHelper{
 	private ResourceHelper(){}
 
 
-	public static ImageIcon getOriginalImage(final String filename){
+	public static ImageIcon getCroppedImage(final String filename, final Rectangle crop){
 		URL imgURL = ResourceHelper.class.getResource(filename);
 		if(imgURL == null){
 			final File file = FileHelper.loadFile(filename);
@@ -66,23 +68,66 @@ public final class ResourceHelper{
 				return null;
 			}
 		}
-		return new ImageIcon(imgURL);
+
+		final ImageIcon imageIcon = new ImageIcon(imgURL);
+		if(crop != null){
+			final BufferedImage original = toBufferedImage(imageIcon);
+			if(original == null)
+				return null;
+
+			//clamp the requested crop to the actual image bounds, so an out-of-range
+			//rectangle degrades gracefully instead of throwing
+			final Rectangle bounds = new Rectangle(0, 0, original.getWidth(), original.getHeight());
+			final Rectangle clamped = bounds.intersection(crop);
+			if(clamped.isEmpty())
+				return null;
+
+			try{
+				final BufferedImage cropped = original.getSubimage(clamped.x, clamped.y, clamped.width,
+					clamped.height);
+				return new ImageIcon(cropped);
+			}
+			catch(final RasterFormatException rfe){
+				LOGGER.error(null, rfe);
+
+				return null;
+			}
+		}
+
+		return imageIcon;
+	}
+
+	public static ImageIcon getImage(final String filename){
+		return getCroppedImage(filename, null);
+	}
+
+	public static ImageIcon getResizedImage(final String filename, final Dimension newDimension){
+		final ImageIcon croppedImage = getCroppedImage(filename, null);
+		return resize(croppedImage, newDimension.width, newDimension.height);
+	}
+
+	public static ImageIcon getResizedImage(final String filename, final int width, final int height){
+		final ImageIcon croppedImage = getCroppedImage(filename, null);
+		return resize(croppedImage, width, height);
+	}
+
+	public static ImageIcon getCroppedResizedImage(final String filename, final Rectangle crop, final int width, final int height){
+		final ImageIcon croppedImage = getCroppedImage(filename, crop);
+		if(croppedImage == null){
+			LOGGER.error("Non-existent image for {}", filename);
+
+			return null;
+		}
+
+		return resize(croppedImage, width, height);
 	}
 
 
-	public static ImageIcon getImage(final String filename, final Dimension newDimension){
-		return getImage(getOriginalImage(filename), newDimension.width, newDimension.height);
+	public static ImageIcon resize(final ImageIcon icon, final Dimension newDimension){
+		return resize(icon, newDimension.width, newDimension.height);
 	}
 
-	public static ImageIcon getImage(final ImageIcon icon, final Dimension newDimension){
-		return getImage(icon, newDimension.width, newDimension.height);
-	}
-
-	public static ImageIcon getImage(final String filename, final int width, final int height){
-		return getImage(getOriginalImage(filename), width, height);
-	}
-
-	private static ImageIcon getImage(final ImageIcon icon, final int width, final int height){
+	public static ImageIcon resize(final ImageIcon icon, final int width, final int height){
 		try{
 			final BufferedImage original = toBufferedImage(icon);
 			final BufferedImage scaled = Thumbnails.of(original)
@@ -100,7 +145,7 @@ public final class ResourceHelper{
 
 
 	private static BufferedImage toBufferedImage(final ImageIcon icon){
-		if(icon == null)
+		if(icon == null || icon.getIconWidth() < 0)
 			return null;
 
 		if(icon.getImage() instanceof BufferedImage)
@@ -136,10 +181,11 @@ public final class ResourceHelper{
 
 
 	public static ImageIcon getImageFixedHeight(final String filename, final int height){
-		return getImageFixedHeight(getOriginalImage(filename), height);
+		final ImageIcon croppedImage = getCroppedImage(filename, null);
+		return resizeFixedHeight(croppedImage, height);
 	}
 
-	private static ImageIcon getImageFixedHeight(final ImageIcon icon, final int height){
+	private static ImageIcon resizeFixedHeight(final ImageIcon icon, final int height){
 		try{
 			final BufferedImage original = toBufferedImage(icon);
 			final BufferedImage scaled = Thumbnails.of(original)
@@ -155,7 +201,7 @@ public final class ResourceHelper{
 	}
 
 
-	public static BufferedImage readImage(final File file) throws IOException{
+	public static BufferedImage readBufferedImage(final File file) throws IOException{
 		if(!file.exists())
 			throw new IllegalArgumentException("File `" + file.getPath() + "` does not exists.");
 

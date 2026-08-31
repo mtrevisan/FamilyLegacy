@@ -52,6 +52,9 @@ import java.util.stream.Collectors;
  */
 public class FLEFMerger{
 
+	private static final String TAG_PIPE = "|";
+
+
 	private final FellegiSuenterScorer scorer;
 	private final double autoThreshold;
 	private final double reviewThreshold;
@@ -330,7 +333,7 @@ public class FLEFMerger{
 		final String id1 = (a.getId() != null? a.getId(): Integer.toHexString(System.identityHashCode(a)));
 		final String id2 = (b.getId() != null? b.getId(): Integer.toHexString(System.identityHashCode(b)));
 		// Ensure order‑independent key
-		return id1.compareTo(id2) <= 0? id1 + "|" + id2: id2 + "|" + id1;
+		return (id1.compareTo(id2) <= 0? id1 + TAG_PIPE + id2: id2 + TAG_PIPE + id1);
 	}
 
 	// ---------- Helpers ----------

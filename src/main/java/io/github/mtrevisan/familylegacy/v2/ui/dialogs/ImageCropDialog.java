@@ -111,7 +111,7 @@ public class ImageCropDialog extends JDialog{
 	}
 
 	public void loadData(final File file, final Rectangle crop) throws IOException{
-		final BufferedImage newImage = ResourceHelper.readImage(file);
+		final BufferedImage newImage = ResourceHelper.readBufferedImage(file);
 		if(newImage == null){
 			JOptionPane.showMessageDialog(getParent(),
 				"Could not load image from the current source.",

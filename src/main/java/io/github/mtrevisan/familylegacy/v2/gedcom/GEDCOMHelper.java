@@ -8,6 +8,7 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
@@ -507,6 +508,9 @@ public class GEDCOMHelper{
 				// check for duplicates before adding
 				Deduplicator.getDeduplicatedRecordId(model, eventParticipant);
 			}
+
+			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
+
 			GEDCOMNode dataNode = findFirstChild(node, "DATA");
 			GEDCOMNode dataDateNode = findFirstChild(dataNode, "DATE");
 			String dataTextNode = extractFullText(findFirstChild(dataNode, "TEXT"));
@@ -525,7 +529,6 @@ public class GEDCOMHelper{
 			// check for duplicates before adding
 			Deduplicator.getDeduplicatedRecordId(model, source);
 
-			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
 			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("source", sourValue));
 			transferValue(sourceCitation, "location", pageNode);
 			if(StringUtils.isNotEmpty(dataTextNode)){
@@ -542,6 +545,8 @@ public class GEDCOMHelper{
 			parent.addChild(sourceCitation);
 		}
 		else{
+			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
+
 			String textNode = extractFullText(findFirstChild(node, "TEXT"));
 			for (GEDCOMNode multimediaLinkNode : findChildren(node, "OBJE")) {
 				attachMultimediaLink(parent, model,
@@ -560,7 +565,6 @@ public class GEDCOMHelper{
 			// check for duplicates before adding
 			Deduplicator.getDeduplicatedRecordId(model, source);
 
-			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
 			sourceCitation.addChild(FLEFRecord.createChildWithTagAndValue("source", source.getId()));
 			if(StringUtils.isNotEmpty(textNode)){
 				sourceCitation.addChild(FLEFRecord.createChildWithTag("extract")
@@ -605,8 +609,7 @@ public class GEDCOMHelper{
 	  +1 TITL <DESCRIPTIVE_TITLE>    {0:1}
 	]
 	 */
-	public static void attachMultimediaLink(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode node, Map<String, GEDCOMNode> objeRawMap){
+	public static void attachMultimediaLink(FLEFRecord parent, FLEFModel model, GEDCOMNode node, Map<String, GEDCOMNode> objeRawMap){
 		// Extract Xref – either from getXrefId() or from the value if it's a reference
 		String objeXrefId = node.getXrefId();
 		if(objeXrefId == null && StringUtils.isNotEmpty(node.getValue())){
@@ -614,6 +617,7 @@ public class GEDCOMHelper{
 		}
 		objeXrefId = cleanId(objeXrefId);
 
+		FLEFRecord documentCitation = FLEFRecord.createChildWithTag("document");
 		if(objeXrefId != null){
 			// TODO is there something to fetch from actual raw obje?
 		}
@@ -625,7 +629,6 @@ public class GEDCOMHelper{
 				GEDCOMNode fileFormMediNode = findFirstChild(fileFormNode, "MEDI");
 				String fileFormMediNodeValue = (fileFormMediNode != null? fileFormMediNode.getValue(): null);
 				GEDCOMNode titlNode = findFirstChild(node, "TITL");
-				// TODO _DATE, _CUTD, _PUBL, _PREF
 
 				FLEFRecord document = FLEFRecord.createMainRecord(IDGenerator.nextId(DocumentHandler.ID_PREFIX), DocumentHandler.TYPE);
 				transferValue(document, "uri", fileNode);
@@ -651,6 +654,73 @@ public class GEDCOMHelper{
 					document.addChild(note);
 				}
 
+				// Crop from _CUTD
+				GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(node, "_CUTD");
+				if(cutdNode != null && cutdNode.getValue() != null){
+					String[] parts = cutdNode.getValue().split(" ");
+					if(parts.length == 4){
+						try{
+							int x = Integer.parseInt(parts[0]);
+							int y = Integer.parseInt(parts[1]);
+							int w = Integer.parseInt(parts[2]);
+							int h = Integer.parseInt(parts[3]);
+							FLEFRecord crop = FLEFRecord.createChildWithTag("crop");
+							crop.addChild(FLEFRecord.createChildWithTagAndValue("x", String.valueOf(x)));
+							crop.addChild(FLEFRecord.createChildWithTagAndValue("y", String.valueOf(y)));
+							crop.addChild(FLEFRecord.createChildWithTagAndValue("width", String.valueOf(w)));
+							crop.addChild(FLEFRecord.createChildWithTagAndValue("height", String.valueOf(h)));
+							documentCitation.addChild(crop);
+						}
+						catch(NumberFormatException ignored){
+						}
+					}
+				}
+
+				// Find the primary OBJE (with _PRIMARY Y)
+				GEDCOMNode preferredObj = null;
+				GEDCOMNode primaryNode = GEDCOMHelper.findFirstChild(node, "_PRIMARY");
+				if(primaryNode != null && "Y".equalsIgnoreCase(primaryNode.getValue())){
+					preferredObj = node;
+				}
+				if(preferredObj == null){
+					primaryNode = GEDCOMHelper.findFirstChild(node, "_PREF");
+					if(primaryNode != null && "Y".equalsIgnoreCase(primaryNode.getValue())){
+						preferredObj = node;
+					}
+				}
+				if(preferredObj != null){
+					String fileUri = FLEFRecordHelper.getChildValue(document, "uri");
+					if(fileUri != null && !fileUri.isEmpty()){
+						FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
+						prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
+
+						// Crop from _CUTD
+						cutdNode = GEDCOMHelper.findFirstChild(node, "_CUTD");
+						if(cutdNode != null && cutdNode.getValue() != null){
+							String[] parts = cutdNode.getValue().split(" ");
+							if(parts.length == 4){
+								try{
+									int x = Integer.parseInt(parts[0]);
+									int y = Integer.parseInt(parts[1]);
+									int w = Integer.parseInt(parts[2]);
+									int h = Integer.parseInt(parts[3]);
+									FLEFRecord crop = FLEFRecord.createChildWithTag("crop");
+									crop.addChild(FLEFRecord.createChildWithTagAndValue("x", String.valueOf(x)));
+									crop.addChild(FLEFRecord.createChildWithTagAndValue("y", String.valueOf(y)));
+									crop.addChild(FLEFRecord.createChildWithTagAndValue("width", String.valueOf(w)));
+									crop.addChild(FLEFRecord.createChildWithTagAndValue("height", String.valueOf(h)));
+									prefImg.addChild(crop);
+								}
+								catch(NumberFormatException ignored){
+								}
+							}
+						}
+						parent.addChild(prefImg);
+					}
+				}
+
+				// TODO _PUBL
+
 				document.addChild(AuditBuilder.build(node));
 
 				// check for duplicates before adding
@@ -658,7 +728,8 @@ public class GEDCOMHelper{
 			}
 		}
 
-		parent.addChild(FLEFRecord.createChildWithTagAndValue("document", objeXrefId));
+		documentCitation.setValue(objeXrefId);
+		parent.addChild(documentCitation);
 	}
 
 

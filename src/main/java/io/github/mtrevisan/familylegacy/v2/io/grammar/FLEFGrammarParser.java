@@ -90,6 +90,8 @@ import java.util.Map;
 public final class FLEFGrammarParser{
 
 	private static final String TAG_COMMENT = "//";
+	private static final String TAG_OPEN_PARENTHESIS = "(";
+	private static final String TAG_CLOSE_PARENTHESIS = ")";
 	private static final String TAG_OPEN_CURLY_BRACE = "{";
 	private static final String TAG_CLOSE_CURLY_BRACE = "}";
 	private static final String TAG_OPEN_ANGLE_BRACKET = "<";
@@ -434,9 +436,9 @@ public final class FLEFGrammarParser{
 		if(peekIs(TAG_ONE_OF_FN)){
 			next();
 
-			expect("(");
-			final List<String> fields = parseFieldRefListUntil(")");
-			expect(")");
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> fields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			expect(TAG_CLOSE_PARENTHESIS);
 			return new OneOfConstraint(fields);
 		}
 
@@ -444,9 +446,9 @@ public final class FLEFGrammarParser{
 		if(peekIs(TAG_AT_LEAST_ONE_FN)){
 			next();
 
-			expect("(");
-			final List<String> fields = parseFieldRefListUntil(")");
-			expect(")");
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> fields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
+			expect(TAG_CLOSE_PARENTHESIS);
 			return new AtLeastOneConstraint(fields);
 		}
 
@@ -454,15 +456,15 @@ public final class FLEFGrammarParser{
 		if(peekIs(TAG_COUNT)){
 			next();
 
-			expect("(");
-			final List<String> firstFields = parseFieldRefListUntil(")");
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> firstFields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
 			if(firstFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
 					"Expected one field in count(...), found [" + StringUtils.join(firstFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
-			expect(")");
+			expect(TAG_CLOSE_PARENTHESIS);
 			expect(EQUALS);
 			final String value = next();
 			if(!NumberUtils.isParsable(value)){
@@ -479,26 +481,26 @@ public final class FLEFGrammarParser{
 		if(peekIs(TAG_TYPE_FN)){
 			next();
 
-			expect("(");
-			final List<String> firstFields = parseFieldRefListUntil(")");
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> firstFields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
 			if(firstFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
 					"Expected one field in type(...), found [" + StringUtils.join(firstFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
-			expect(")");
+			expect(TAG_CLOSE_PARENTHESIS);
 			expect(EQUALS);
 			expect(TAG_TYPE_FN);
-			expect("(");
-			final List<String> secondFields = parseFieldRefListUntil(")");
+			expect(TAG_OPEN_PARENTHESIS);
+			final List<String> secondFields = parseFieldRefListUntil(TAG_CLOSE_PARENTHESIS);
 			if(secondFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
 					"Expected one field in second type(...), found [" + StringUtils.join(secondFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
-			expect(")");
+			expect(TAG_CLOSE_PARENTHESIS);
 
 			firstFields.addAll(secondFields);
 			return new EqualTypeConstraint(firstFields);

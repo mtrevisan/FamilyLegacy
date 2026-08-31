@@ -52,7 +52,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -1788729052005475640L;
 
 
-	private static final String TAG_FILE = "FILE";
+	private static final String TAG_URI = "URI";
 	private static final String TAG_CROP = "CROP";
 	private static final String TAG_X = "X";
 	private static final String TAG_Y = "Y";
@@ -128,7 +128,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 		catch(final NumberFormatException ignored){}
 		final String documentId = documentPart.getId();
 		final FLEFRecord document = model.getRecordById(documentId);
-		final String uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
+		final String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
 
 		try{
 			cropDialog.loadData(uri, imageCropRect);
@@ -177,7 +177,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			final FLEFRecord document = model.getRecordById(selectedRecord.getId());
 			if(document != null && !items.contains(document)){
-				final String uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
+				final String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
 
 				try{
 					cropDialog.loadData(uri, null);

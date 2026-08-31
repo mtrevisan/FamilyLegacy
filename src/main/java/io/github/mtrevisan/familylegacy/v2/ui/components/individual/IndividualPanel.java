@@ -28,11 +28,9 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
-import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -96,11 +94,6 @@ public class IndividualPanel extends JPanel{
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
 
-	private static final String PROPERTY_NAME_TEXT_CHANGE = "text";
-
-	private static final String EVENT_TYPE_CATEGORY_BIRTH = "birth";
-	private static final String EVENT_TYPE_CATEGORY_DEATH = "death";
-
 	// UI components
 	private final JLabel individualNameLabel = new JLabel();
 	private final JLabel infoLabel = new JLabel();
@@ -119,8 +112,9 @@ public class IndividualPanel extends JPanel{
 	private final BoxPanelType boxType;
 
 	private FLEFRecord individual;
-	private FLEFModel model;
+	private final FLEFModel model;
 	private IndividualData data;
+	private String preferredImageKey;
 	private IndividualListener listener;
 
 
@@ -260,9 +254,21 @@ public class IndividualPanel extends JPanel{
 		infoLabel.setText(data.getInfoText());
 		infoLabel.setToolTipText(data.getInfoTooltip());
 
+		// Set the default image/placeholder
 		imageLabel.setIcon(data.getIndividualImage());
 
-		final boolean hasData = !individual.isEmpty();
+		final boolean hasData = (individual != null && !individual.isEmpty());
+		if(hasData){
+			// Register the current key on the panel and start the asynchronous
+			preferredImageKey = data.getPreferredImageKey();
+			data.loadPreferredImageAsync((key, image) -> {
+				if(image != null && Objects.equals(preferredImageKey, key))
+					imageLabel.setIcon(image);
+			});
+		}
+		else
+			preferredImageKey = null;
+
 		individualNameLabel.setVisible(hasData);
 		infoLabel.setVisible(hasData);
 		imageLabel.setVisible(hasData);
@@ -298,37 +304,6 @@ public class IndividualPanel extends JPanel{
 
 		revalidate();
 		repaint();
-	}
-
-	private String buildInfoText(){
-		StringBuilder sb = new StringBuilder();
-		String birth = displayInfo.getBirthDate();
-		String death = displayInfo.getDeathDate();
-		Integer age = displayInfo.getAge();
-
-		sb.append(birth != null? birth: NO_DATA);
-		sb.append(" – ");
-		sb.append(death != null? death: NO_DATA);
-		if(age != null){
-			sb.append(" (").append(age);
-			if(boxType == BoxPanelType.PRIMARY){
-				sb.append(" y/o");
-			}
-			sb.append(")");
-		}
-		return sb.toString();
-	}
-
-	private ImageIcon createPlaceholderIcon(){
-		// Same as before: gray rectangle with text
-		BufferedImage img = new BufferedImage(48, 64, BufferedImage.TYPE_INT_ARGB);
-		Graphics2D g2 = img.createGraphics();
-		g2.setColor(Color.LIGHT_GRAY);
-		g2.fillRect(0, 0, 48, 64);
-		g2.setColor(Color.DARK_GRAY);
-		g2.drawString("No img", 8, 30);
-		g2.dispose();
-		return new ImageIcon(img);
 	}
 
 	// ------------------------------------------------------------------------
