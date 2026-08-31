@@ -118,9 +118,12 @@ public final class IndividualData{
 		this.model = model;
 
 		final List<String> names = extractFullNames(individual);
-		individualNameText = (!names.isEmpty()? names.getFirst(): NO_DATA);
-		if(!names.isEmpty())
+		if(!names.isEmpty()){
+			individualNameText = names.getFirst();
 			individualNameTooltip = TAG_HTML_OPEN + StringUtils.join(names, TAG_BR) + TAG_HTML_CLOSE;
+		}
+		else
+			individualNameText = NO_DATA;
 
 
 		// extract events

@@ -144,8 +144,8 @@ public class IndividualPanel extends JPanel{
 
 		setLayout(new MigLayout("ins 7", "[grow]0[]", "[]0[]10[]"));
 
-		int shrink = (int)Math.round(PREFERRED_IMAGE_WIDTH + 21);
-		add(individualNameLabel, "cell 0 0,top,width ::100%-" + shrink + ",hidemode 3");
+		final int shrink = (int)Math.round(PREFERRED_IMAGE_WIDTH + 21);
+		add(individualNameLabel, "cell 0 0,top,growx,width ::100%-" + shrink + ",hidemode 3");
 		add(imageLabel, "cell 1 0 1 3,top");
 		add(infoLabel, "cell 0 2");
 
