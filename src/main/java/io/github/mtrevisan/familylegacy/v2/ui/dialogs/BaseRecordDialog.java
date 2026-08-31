@@ -30,16 +30,37 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.KeyStroke;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.event.UndoableEditListener;
+import javax.swing.text.JTextComponent;
+import javax.swing.undo.AbstractUndoableEdit;
+import javax.swing.undo.CannotRedoException;
+import javax.swing.undo.CannotUndoException;
 import java.awt.BorderLayout;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dialog;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.List;
 import java.util.Map;
@@ -66,23 +87,13 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected final boolean isNew;
 	protected boolean isSaved;
 
+	private final UndoController undoController = new UndoController();
+	private final UndoableEditListener undoListener = e -> undoController.addEdit(e.getEdit());
+
 	protected BoundTextField parentEntity;
 
 	protected final JTabbedPane tabbedPane = new JTabbedPane();
 
-
-	@Deprecated
-	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final RecordTypeHandler<?> handler){
-		super(parent, ModalityType.APPLICATION_MODAL);
-
-		this.handler = handler;
-		this.model = model;
-		this.record = (record != null? record: createNewRecord());
-		this.isNew = (record == null);
-
-		setTitle(buildTitle(handler, (record == null)));
-	}
 
 	protected <T extends Class<? extends RecordTypeHandler<?>>> BaseRecordDialog(final Dialog parent,
 			final FLEFModel model, final FLEFRecord record, final T handler){
@@ -100,6 +111,12 @@ public abstract class BaseRecordDialog extends JDialog{
 		initComponents();
 
 		loadData();
+
+		// Clear any edits generated during loadData() before binding listeners
+		undoController.discardAllEdits();
+		registerUndoSupportRecursively(getContentPane());
+
+		setupKeyboardShortcuts();
 
 		pack();
 
@@ -143,6 +160,90 @@ public abstract class BaseRecordDialog extends JDialog{
 		}
 
 		finalizeLayout(tabbedPane);
+	}
+
+	protected void setupKeyboardShortcuts(){
+		final JComponent rootPane = getRootPane();
+		final InputMap inputMap = rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inputMap.put(GUIHelper.UNDO_STROKE, "GlobalUndo");
+		inputMap.put(GUIHelper.REDO_STROKE, "GlobalRedo");
+
+		final ActionMap actionMap = rootPane.getActionMap();
+		actionMap.put("GlobalUndo", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				performUndo();
+			}
+		});
+		actionMap.put("GlobalRedo", new AbstractAction(){
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				performRedo();
+			}
+		});
+	}
+
+	protected void registerUndoSupport(final JTextComponent textComponent){
+		if(textComponent == null)
+			return;
+
+		textComponent.getDocument()
+			.addUndoableEditListener(undoListener);
+
+		// Remove component-level shortcuts so they route through the dialog's RootPane
+		final InputMap inputMap = textComponent.getInputMap(JComponent.WHEN_FOCUSED);
+		inputMap.put(GUIHelper.UNDO_STROKE, "none");
+		inputMap.put(GUIHelper.REDO_STROKE, "none");
+	}
+
+	protected void registerUndoSupport(final JComboBox<?> comboBox) {
+		if (comboBox == null) {
+			return;
+		}
+
+		if (comboBox.isEditable()) {
+			final Component editorComp = comboBox.getEditor().getEditorComponent();
+			if (editorComp instanceof JTextComponent textComp) {
+				// Remove local text component shortcuts
+				final int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+				final InputMap compInputMap = textComp.getInputMap(JComponent.WHEN_FOCUSED);
+				compInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, shortcutMask), "none");
+				compInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, shortcutMask), "none");
+				compInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "none");
+
+				final EditableComboAdapter adapter = new EditableComboAdapter(comboBox, textComp, undoController);
+				textComp.addFocusListener(adapter);
+				textComp.getDocument().addDocumentListener(adapter);
+				comboBox.addActionListener(adapter);
+			}
+		} else {
+			final ComboBoxUndoSelectionListener listener = new ComboBoxUndoSelectionListener(comboBox, undoController);
+			comboBox.addActionListener(listener);
+		}
+	}
+
+	protected void registerUndoSupportRecursively(final Container container){
+		if(container == null)
+			return;
+
+		for(final Component component : container.getComponents()){
+			if(component instanceof JComboBox<?> comboBox)
+				registerUndoSupport(comboBox);
+			else if(component instanceof JTextComponent textComponent)
+				registerUndoSupport(textComponent);
+			else if(component instanceof Container subContainer)
+				registerUndoSupportRecursively(subContainer);
+		}
+	}
+
+	public void performUndo(){
+		if(undoController.canUndo())
+			undoController.undo();
+	}
+
+	public void performRedo(){
+		if(undoController.canRedo())
+			undoController.redo();
 	}
 
 	/**

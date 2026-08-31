@@ -1,34 +1,19 @@
-/**
- * Copyright (c) 2026 Mauro Trevisan
- * <p>
- * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software and associated documentation
- * files (the "Software"), to deal in the Software without
- * restriction, including without limitation the rights to use,
- * copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the
- * Software is furnished to do so, subject to the following
- * conditions:
- * <p>
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- * <p>
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
- * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
- * HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
- * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
- * OTHER DEALINGS IN THE SOFTWARE.
- */
 package io.github.mtrevisan.familylegacy.v2.ui.bindings;
 
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ComponentUndoableEdit;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
+import javax.swing.MutableComboBoxModel;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.JTextComponent;
+import javax.swing.undo.UndoableEditSupport;
+import java.awt.Component;
 import java.util.List;
+import java.util.Objects;
 
 
 public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
@@ -36,6 +21,10 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	private String path;
 
 	private final boolean readOnly;
+
+	private boolean isUpdatingItems;
+	private Object lastSelectedValue;
+	private final UndoableEditSupport undoSupport = new UndoableEditSupport();
 
 
 	public BoundComboBox(final String path){
@@ -46,30 +35,99 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 		this.path = path;
 
 		readOnly = false;
+
+		clear();
+		initUndoListener();
 	}
 
 	public BoundComboBox(final String path, final E[] items){
 		super(items);
 
-		clear();
-
 		this.path = path;
 
 		readOnly = false;
+
+		clear();
+		initUndoListener();
 	}
 
 	public BoundComboBox(final String path, final E[] items, final E readOnlyItem){
 		super(items);
 
-		clear();
-
 		this.path = path;
-
-		setSelectedItem(readOnlyItem);
-
 		readOnly = true;
+
+		if(readOnlyItem != null)
+			super.setSelectedItem(readOnlyItem);
+		initUndoListener();
 	}
 
+
+	private void initUndoListener(){
+		lastSelectedValue = getSelectedItem();
+
+		// Listener for non-editable selection changes
+		addActionListener(e -> handleSelectionChange());
+
+		// Listener for editable text editor changes
+		setupEditorUndoListener();
+	}
+
+	private void setupEditorUndoListener(){
+		final Component editorComp = getEditor().getEditorComponent();
+		if(editorComp instanceof JTextComponent textComp){
+			textComp.getDocument().addDocumentListener(new DocumentListener(){
+				@Override
+				public void insertUpdate(final DocumentEvent e){
+					if(isEditable())
+						handleSelectionChange();
+				}
+
+				@Override
+				public void removeUpdate(final DocumentEvent e){
+					if(isEditable())
+						handleSelectionChange();
+				}
+
+				@Override
+				public void changedUpdate(final DocumentEvent e){
+					if(isEditable())
+						handleSelectionChange();
+				}
+			});
+		}
+	}
+
+	private void handleSelectionChange(){
+		if(isUpdatingItems || readOnly)
+			return;
+
+		final Object newValue = getSelectedItem();
+		final Object previousValue = lastSelectedValue;
+		if(!Objects.equals(previousValue, newValue)){
+			lastSelectedValue = newValue;
+
+			undoSupport.postEdit(new ComponentUndoableEdit<>(this, previousValue, newValue,
+				this::setSelectedItemWithoutUndo));
+		}
+	}
+
+	public UndoableEditSupport getUndoSupport(){
+		return undoSupport;
+	}
+
+	public void setSelectedItemWithoutUndo(final Object item){
+		final boolean prevUpdating = isUpdatingItems;
+		isUpdatingItems = true;
+		try{
+			setSelectedItem(item);
+
+			lastSelectedValue = getSelectedItem();
+		}
+		finally{
+			isUpdatingItems = prevUpdating;
+		}
+	}
 
 	@Override
 	public String getPath(){
@@ -89,14 +147,14 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	/**
 	 * Selects the item whose string representation equals the given text.
-	 * If no item matches, the selection is left unchanged.
+	 * If no item matches and the combo is editable, sets the typed text value.
 	 *
-	 * @param value	The display text to search for (case‑sensitive).
+	 * @param value The display text to search for.
 	 */
 	@Override
 	public void setText(final String value){
 		if(readOnly)
-			throw new IllegalStateException("Cannot set item on a read-only BoundFilteredComboBox");
+			throw new IllegalStateException("Cannot set item on a read-only BoundComboBox");
 
 		if(value == null){
 			setSelectedItem(null);
@@ -134,11 +192,20 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	 */
 	@Override
 	public void clear(){
-		// In read-only mode, we just deselect (or keep the current item), but we shouldn't throw an exception
-		if(!readOnly)
-			setText(null);
+		if(readOnly)
+			return;
 
-		setSelectedIndex(-1);
+		final boolean prevUpdating = isUpdatingItems;
+		isUpdatingItems = true;
+		try{
+			setText(null);
+			setSelectedIndex(-1);
+
+			lastSelectedValue = getSelectedItem();
+		}
+		finally{
+			isUpdatingItems = prevUpdating;
+		}
 	}
 
 	@Override
@@ -148,7 +215,8 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 
 	public boolean isValued(){
 		final Object item = getSelectedItem();
-		return ((isEditable() || getSelectedIndex() >= 0) && (item instanceof String str? StringUtils.isNotEmpty(str): item != null));
+		return ((isEditable() || getSelectedIndex() >= 0)
+			&& (item instanceof String str? StringUtils.isNotEmpty(str): item != null));
 	}
 
 
@@ -159,40 +227,55 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	 * @param newItems	The new list of items.
 	 */
 	public void updateItems(final List<E> newItems){
-		// Check if the empty element was present
-		final E emptyElement = isEmptyItemPresent();
+		final boolean prevUpdating = isUpdatingItems;
 
-		// Save the current selection
-		@SuppressWarnings("unchecked")
-		final E selectedItem = (E)getSelectedItem();
+		isUpdatingItems = true;
+		try{
+			// Check if the empty element was present
+			final E emptyElement = isEmptyItemPresent();
 
-		// Clear and repopulate the model
-		final DefaultComboBoxModel<E> model = (DefaultComboBoxModel<E>)getModel();
-		model.removeAllElements();
-		if(emptyElement != null)
-			model.addElement(emptyElement);
-		for(final E element : newItems)
-			model.addElement(element);
+			// Save the current selection
+			@SuppressWarnings("unchecked")
+			final E selectedItem = (E)getSelectedItem();
+			final ComboBoxModel<E> rawModel = getModel();
+			if(rawModel instanceof MutableComboBoxModel<E> model){
+				// If model supports dynamic updates, clear and rebuild
+				if(model instanceof DefaultComboBoxModel<E> defaultModel)
+					defaultModel.removeAllElements();
+				else
+					while(model.getSize() > 0)
+						model.removeElementAt(0);
 
-		// Restore the selection if it is still valid
-		model.setSelectedItem(selectedItem != null && (newItems.contains(selectedItem) || isEditable())
-			? selectedItem
-			: emptyElement);
+				if(emptyElement != null)
+					model.addElement(emptyElement);
+				if(newItems != null)
+					for(final E element : newItems)
+						model.addElement(element);
+
+				model.setSelectedItem(selectedItem != null
+						&& (newItems != null && newItems.contains(selectedItem) || isEditable())
+					? selectedItem
+					: emptyElement);
+			}
+
+			lastSelectedValue = getSelectedItem();
+		}
+		finally{
+			isUpdatingItems = prevUpdating;
+		}
 	}
 
 	/**
 	 * Returns the empty element if present in the current model.
-	 * The empty element is defined as the first element whose string representation
-	 * is equal to {@link StringUtils#EMPTY}.
 	 *
-	 * @return	The empty element, or {@code null} if not found.
+	 * @return The empty element, or {@code null} if not found.
 	 */
 	private E isEmptyItemPresent(){
-		final DefaultComboBoxModel<E> model = (DefaultComboBoxModel<E>)getModel();
+		final ComboBoxModel<E> model = getModel();
 		for(int i = 0; i < model.getSize(); i ++){
-			final E emptyElement = model.getElementAt(i);
-			if(StringUtils.EMPTY.equals(emptyElement))
-				return emptyElement;
+			final E element = model.getElementAt(i);
+			if(element != null && StringUtils.EMPTY.equals(element.toString()))
+				return element;
 		}
 		return null;
 	}
