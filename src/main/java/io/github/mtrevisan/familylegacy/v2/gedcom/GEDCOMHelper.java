@@ -625,6 +625,7 @@ public class GEDCOMHelper{
 				GEDCOMNode fileFormMediNode = findFirstChild(fileFormNode, "MEDI");
 				String fileFormMediNodeValue = (fileFormMediNode != null? fileFormMediNode.getValue(): null);
 				GEDCOMNode titlNode = findFirstChild(node, "TITL");
+				// TODO _DATE, _CUTD, _PUBL, _PREF
 
 				FLEFRecord document = FLEFRecord.createMainRecord(IDGenerator.nextId(DocumentHandler.ID_PREFIX), DocumentHandler.TYPE);
 				transferValue(document, "uri", fileNode);
