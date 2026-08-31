@@ -315,9 +315,8 @@ public class IndividualPanel extends JPanel{
 			MouseAdapter focusAdapter = new MouseAdapter(){
 				@Override
 				public void mouseClicked(MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null){
+					if(SwingUtilities.isLeftMouseButton(e) && listener != null)
 						listener.onIndividualFocus(IndividualPanel.this);
-					}
 				}
 			};
 			individualNameLabel.addMouseListener(focusAdapter);
@@ -328,9 +327,8 @@ public class IndividualPanel extends JPanel{
 			@Override
 			public void mouseClicked(MouseEvent e){
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)
-					&& !displayInfo.isEmpty() && listener != null){
+						&& !displayInfo.isEmpty() && listener != null)
 					listener.onIndividualEdit(IndividualPanel.this);
-				}
 			}
 		});
 
@@ -340,11 +338,11 @@ public class IndividualPanel extends JPanel{
 			@Override
 			public void mouseClicked(MouseEvent e){
 				if(SwingUtilities.isLeftMouseButton(e)){
-					if(displayInfo.getPreferredImageUri() == null){
-						if(listener != null) listener.onIndividualAddPreferredImage(IndividualPanel.this);
-					}
-					else{
-						if(listener != null) listener.onIndividualEditPreferredImage(IndividualPanel.this);
+					if(listener != null) {
+						if(displayInfo.getPreferredImageUri() == null)
+							listener.onIndividualAddPreferredImage(IndividualPanel.this);
+						else
+							listener.onIndividualEditPreferredImage(IndividualPanel.this);
 					}
 				}
 				else if(SwingUtilities.isRightMouseButton(e) && !displayInfo.isEmpty()){
