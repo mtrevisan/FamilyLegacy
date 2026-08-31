@@ -54,6 +54,51 @@ import java.io.IOException;
 import java.io.Serial;
 
 
+/*
+TODO undo/redo a livello di record dopo che si è fatto salva di una dialog (chiedere, quindi ripristinare il record precedente)
+
+public class RecordUpdateCommand extends AbstractUndoableEdit{
+	private final FLEFModel model;
+	private final FLEFRecord originalState = FLEFRecord.createEmpty();
+	private final FLEFRecord newState = FLEFRecord.createEmpty();
+
+	public RecordUpdateCommand(FLEFModel model, FLEFRecord originalState, FLEFRecord newState){
+		this.model = model;
+
+		originalState.deepCopyTo(this.originalState);
+		newState.deepCopyTo(this.newState);
+	}
+
+	@Override
+	public void undo() throws CannotUndoException{
+		super.undo();
+
+		model.addRecord(originalState);
+	}
+
+	@Override
+	public void redo() throws CannotRedoException{
+		super.redo();
+
+		model.addRecord(newState);
+	}
+
+}
+
+protected void onOk() {
+  FLEFRecord copyBefore = record.clone();
+  saveData(); // Salva i dati dal dialog al record corrente
+
+  // Registra il comando nell'UndoManager globale
+  UndoManager globalUndoManager = model.getUndoManager();
+  globalUndoManager.addEdit(new RecordUpdateCommand(model, copyBefore, record));
+
+  // Notifica il ridisegno globale dell'albero (Direct Pull)
+  model.notifyDataChanged();
+
+  dispose();
+}
+*/
 /**
  * Dialog for editing an {@code INDIVIDUAL_RECORD} according to FLEF 0.1.2.
  * <p>
