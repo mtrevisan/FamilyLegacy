@@ -36,9 +36,9 @@ class EditableComboAdapter extends FocusAdapter implements ActionListener, Docum
 		this.comboBox = comboBox;
 		this.textComp = textComp;
 		this.undoController = undoController;
-		this.baseValue = getCurrentValue();
+		baseValue = getCurrentValue();
 
-		this.undoDebouncer = new Debouncer<>(key -> commitEdit(), DEBOUNCE_TIME);
+		undoDebouncer = new Debouncer<>(key -> commitEdit(), DEBOUNCE_TIME);
 	}
 
 
@@ -53,7 +53,7 @@ class EditableComboAdapter extends FocusAdapter implements ActionListener, Docum
 	@Override
 	public void focusGained(final FocusEvent e){
 		if(!isExecuting)
-			this.baseValue = getCurrentValue();
+			baseValue = getCurrentValue();
 	}
 
 	@Override
@@ -103,29 +103,29 @@ class EditableComboAdapter extends FocusAdapter implements ActionListener, Docum
 			final Object newVal = currentValue;
 
 			undoController.addEdit(new EditableComboEdit(this, oldVal, newVal));
-			this.baseValue = currentValue;
+			baseValue = currentValue;
 		}
 		else if(baseValue == null && currentValue != null)
-			this.baseValue = currentValue;
+			baseValue = currentValue;
 	}
 
 	public void applyValue(final Object value){
-		this.isExecuting = true;
+		isExecuting = true;
 		try{
 			undoDebouncer.terminate(DEBOUNCE_KEY);
 
-			this.baseValue = value;
+			baseValue = value;
 
 			final String textRepresentation = (value != null? value.toString(): StringUtils.EMPTY);
 
-			this.comboBox.getEditor().setItem(value);
-			this.comboBox.setSelectedItem(value);
+			comboBox.getEditor().setItem(value);
+			comboBox.setSelectedItem(value);
 
-			if(!this.textComp.getText().equals(textRepresentation))
-				this.textComp.setText(textRepresentation);
+			if(!textComp.getText().equals(textRepresentation))
+				textComp.setText(textRepresentation);
 		}
 		finally{
-			this.isExecuting = false;
+			isExecuting = false;
 		}
 	}
 
