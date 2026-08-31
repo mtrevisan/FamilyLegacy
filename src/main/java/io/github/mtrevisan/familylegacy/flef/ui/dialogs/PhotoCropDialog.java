@@ -169,7 +169,7 @@ public final class PhotoCropDialog extends JDialog{
 	}
 
 	public void loadData(final File file) throws IOException{
-		imageHolder.setRectangularImage(ResourceHelper.readImage(file));
+//		imageHolder.setRectangularImage(ResourceHelper.getImage(file.getAbsolutePath()));
 	}
 
 	public Rectangle getCrop(){

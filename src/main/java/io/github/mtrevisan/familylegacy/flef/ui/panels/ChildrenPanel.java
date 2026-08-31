@@ -71,7 +71,7 @@ public class ChildrenPanel extends JPanel{
 	private static final double UNION_ASPECT_RATIO = 3501. / 2662.;
 	private static final Dimension UNION_SIZE = new Dimension((int)(UNION_HEIGHT / UNION_ASPECT_RATIO), (int)UNION_HEIGHT);
 
-	private static final ImageIcon ICON_UNION = ResourceHelper.getImage("/images/union.png", UNION_SIZE);
+	private static final ImageIcon ICON_UNION = ResourceHelper.getResizedImage("/images/union.png", UNION_SIZE);
 
 	private static final int CHILD_SEPARATION = 15;
 	static final int UNION_ARROW_HEIGHT = ICON_UNION.getIconHeight() + GroupPanel.NAVIGATION_UNION_ARROW_SEPARATION;

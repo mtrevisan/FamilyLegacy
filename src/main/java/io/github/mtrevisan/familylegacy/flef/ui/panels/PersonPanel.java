@@ -138,7 +138,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 	private static final double PREFERRED_IMAGE_WIDTH = 48.;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
-	private static final ImageIcon ADD_PHOTO = ResourceHelper.getOriginalImage("/images/add_photo.jpg");
+	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImage("/images/add_photo.jpg");
 
 	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
@@ -265,7 +265,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 								getRecords(EntityManager.TABLE_NAME_MEDIA)
 									.remove(photoID);
 
-								imageLabel.setIcon(ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize()));
+								imageLabel.setIcon(ResourceHelper.resize(ADD_PHOTO, imageLabel.getPreferredSize()));
 							}
 						}
 					}
@@ -423,7 +423,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
 		setPreferredSize(imageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO, shrinkFactor);
 		final ImageIcon icon = extractPreferredImage();
-		imageLabel.setIcon(icon != null? icon: ResourceHelper.getImage(ADD_PHOTO, imageLabel.getPreferredSize()));
+		imageLabel.setIcon(icon != null? icon: ResourceHelper.resize(ADD_PHOTO, imageLabel.getPreferredSize()));
 
 		final boolean hasData = !person.isEmpty();
 		personalNameLabel.setVisible(hasData);
@@ -445,7 +445,7 @@ public class PersonPanel extends JPanel implements PropertyChangeListener{
 				LOGGER.error("Cannot find media ID {}", photoID);
 			else{
 				final String identifier = FileHelper.getTargetPath(FileHelper.documentsDirectory(), extractRecordIdentifier(md));
-				icon = ResourceHelper.getImage(identifier, imageLabel.getPreferredSize());
+				icon = ResourceHelper.getResizedImage(identifier, imageLabel.getPreferredSize());
 			}
 		}
 		return icon;

@@ -874,10 +874,8 @@ public class GEDCOMHelper{
 				}
 
 				String groupId = cleanId(famcNode.getValue());
-				if(adopParent == null){
-					if(node.getTag().equalsIgnoreCase("ADOP"))
-						attachRelationship(parent, model, node, noteRawMap, famcNode, "group", groupId, sb);
-				}
+				if(adopParent == null)
+					attachRelationship(parent, model, node, noteRawMap, famcNode, "group", groupId, sb);
 				else if("HUSB".equals(adopParent) || "WIFE".equals(adopParent) || "BOTH".equals(adopParent)){
 					// Build an index of all level-0 records by xref id
 					Map<String, GEDCOMNode> recordsById = roots.stream()

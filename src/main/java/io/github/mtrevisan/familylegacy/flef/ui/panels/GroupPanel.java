@@ -99,21 +99,21 @@ public class GroupPanel extends JPanel{
 		(int)(PREVIOUS_NEXT_WIDTH * PREVIOUS_NEXT_ASPECT_RATIO));
 
 	//https://thenounproject.com/search/?q=cut&i=3132059
-	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/parents_previous.png",
+	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImage("/images/parents_previous.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getImage("/images/parents_next.png",
+	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImage("/images/parents_next.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
 
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon ICON_UNION_PREVIOUS_ENABLED = ResourceHelper.getImage("/images/union_previous.png",
+	private static final ImageIcon ICON_UNION_PREVIOUS_ENABLED = ResourceHelper.getResizedImage("/images/union_previous.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_UNION_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getImage("/images/union_next.png",
+	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getResizedImage("/images/union_next.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_UNION_NEXT_ENABLED.getImage()));

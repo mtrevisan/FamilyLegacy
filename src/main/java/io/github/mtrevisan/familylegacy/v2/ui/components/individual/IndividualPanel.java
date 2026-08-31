@@ -90,6 +90,7 @@ public class IndividualPanel extends JPanel{
 	private static final double PREFERRED_IMAGE_WIDTH = 48.;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
+	// Fonts
 	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
@@ -112,10 +113,12 @@ public class IndividualPanel extends JPanel{
 	private final BoxPanelType boxType;
 
 	private FLEFRecord individual;
+
 	private final FLEFModel model;
+
 	private IndividualData data;
+
 	private String preferredImageKey;
-	private IndividualListener listener;
 
 
 	public static IndividualPanel create(final BoxPanelType boxType, final FLEFModel model){
@@ -188,15 +191,19 @@ public class IndividualPanel extends JPanel{
 
 
 			//for test purposes
-//			final Point enterPoint = getPaintingEnterPoint();
-//			graphics2D.setColor(Color.RED);
-//			graphics2D.drawLine(enterPoint.x - 10, enterPoint.y - 10, enterPoint.x + 10, enterPoint.y + 10);
-//			graphics2D.drawLine(enterPoint.x + 10, enterPoint.y - 10, enterPoint.x - 10, enterPoint.y + 10);
-//			graphics2D.setColor(Color.BLACK);
+//			pointTest(graphics2D);
 
 
 			graphics2D.dispose();
 		}
+	}
+
+	private void pointTest(final Graphics2D graphics2D){
+		final Point enterPoint = getPaintingEnterPoint();
+		graphics2D.setColor(Color.RED);
+		graphics2D.drawLine(enterPoint.x - 10, enterPoint.y - 10, enterPoint.x + 10, enterPoint.y + 10);
+		graphics2D.drawLine(enterPoint.x + 10, enterPoint.y - 10, enterPoint.x - 10, enterPoint.y + 10);
+		graphics2D.setColor(Color.BLACK);
 	}
 
 	private Color getBackgroundColor(){
@@ -280,33 +287,7 @@ public class IndividualPanel extends JPanel{
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
 
-/*	private void updateIndividualUI(){
-		// Load image asynchronously
-		if(hasData && displayInfo.getPreferredImageUri() != null){
-			ImageLoader.loadImageAsync(
-				displayInfo.getPreferredImageUri(),
-				displayInfo.getCrop(),
-				imageLabel.getPreferredSize(),
-				icon -> {
-					if(icon != null)
-						imageLabel.setIcon(icon);
-					else
-						imageLabel.setIcon(createPlaceholderIcon());
-				}
-			);
-		}
-		else
-			imageLabel.setIcon(createPlaceholderIcon());
-
-		setCursor(hasData && boxType == BoxPanelType.SECONDARY
-			? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-			: Cursor.getDefaultCursor());
-
-		revalidate();
-		repaint();
-	}
-
-	// ------------------------------------------------------------------------
+/*	// ------------------------------------------------------------------------
 	// Event handling
 	// ------------------------------------------------------------------------
 
@@ -329,36 +310,6 @@ public class IndividualPanel extends JPanel{
 				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)
 						&& !displayInfo.isEmpty() && listener != null)
 					listener.onIndividualEdit(IndividualPanel.this);
-			}
-		});
-
-		// Image click
-		imageLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		imageLabel.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(MouseEvent e){
-				if(SwingUtilities.isLeftMouseButton(e)){
-					if(listener != null) {
-						if(displayInfo.getPreferredImageUri() == null)
-							listener.onIndividualAddPreferredImage(IndividualPanel.this);
-						else
-							listener.onIndividualEditPreferredImage(IndividualPanel.this);
-					}
-				}
-				else if(SwingUtilities.isRightMouseButton(e) && !displayInfo.isEmpty()){
-					int response = JOptionPane.showConfirmDialog(IndividualPanel.this,
-						"Remove preferred photo?", "Warning", JOptionPane.YES_NO_OPTION);
-					if(response == JOptionPane.YES_OPTION){
-						// This would need to update the FLEF model and reload.
-						// In a real implementation, we'd call a service to remove the photo.
-						// For now, we just clear the local display.
-						displayInfo = new IndividualDisplayInfo.Builder()
-							.preferredImageUri(null)
-							.crop(null)
-							.build();
-						updateUI();
-					}
-				}
 			}
 		});
 	}
@@ -407,9 +358,6 @@ public class IndividualPanel extends JPanel{
 	}
 */
 
-	// ------------------------------------------------------------------------
-	// Main for testing
-	// ------------------------------------------------------------------------
 
 	public static void main(String[] args) throws IOException{
 		try{
@@ -430,62 +378,10 @@ public class IndividualPanel extends JPanel{
 
 
 		SwingUtilities.invokeLater(() -> {
-			IndividualPanel panel = IndividualPanel.create(BoxPanelType.PRIMARY, model);
+			final IndividualPanel panel = IndividualPanel.create(BoxPanelType.PRIMARY, model);
 			panel.withIndividual(recordId);
-//			panel.setListener(new IndividualListener(){
-//				// implement dummy methods
-//				@Override
-//				public void onIndividualFocus(IndividualPanel p){
-//					System.out.println("focus");
-//				}
-//
-//				@Override
-//				public void onIndividualEdit(IndividualPanel p){
-//					System.out.println("edit");
-//				}
-//
-//				@Override
-//				public void onIndividualAdd(IndividualPanel p){
-//					System.out.println("add");
-//				}
-//
-//				@Override
-//				public void onIndividualLink(IndividualPanel p){
-//					System.out.println("link");
-//				}
-//
-//				@Override
-//				public void onIndividualRemove(IndividualPanel p){
-//					System.out.println("remove");
-//				}
-//
-//				@Override
-//				public void onIndividualUnlinkFromParentGroup(IndividualPanel p){
-//					System.out.println("unlink parent");
-//				}
-//
-//				@Override
-//				public void onIndividualAddToSiblingGroup(IndividualPanel p){
-//					System.out.println("add sibling");
-//				}
-//
-//				@Override
-//				public void onIndividualUnlinkFromSiblingGroup(IndividualPanel p){
-//					System.out.println("unlink sibling");
-//				}
-//
-//				@Override
-//				public void onIndividualAddPreferredImage(IndividualPanel p){
-//					System.out.println("add image");
-//				}
-//
-//				@Override
-//				public void onIndividualEditPreferredImage(IndividualPanel p){
-//					System.out.println("edit image");
-//				}
-//			});
 
-			JFrame frame = new JFrame();
+			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());
 			frame.add(panel, BorderLayout.NORTH);
 			frame.pack();

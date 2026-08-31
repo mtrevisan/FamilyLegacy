@@ -50,6 +50,11 @@ public final class IndividualData{
 	private static final String TAG_Y = "y";
 	private static final String TAG_WIDTH = "width";
 	private static final String TAG_HEIGHT = "height";
+	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE;
+	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
+	private static final String TAG_PLACE_PLACE = TAG_PLACE + DOT + TAG_PLACE;
+	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + TAG_URI;
+	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;
 
 	private static final String EVENT_TYPE_BIRTH = "birth";
 	private static final String EVENT_TYPE_DEATH = "death";
@@ -78,23 +83,13 @@ public final class IndividualData{
 
 	/**
 	 * Represents a single event (birth or death) with date and place.
+	 *
+	 * @param type        `birth` or `death`
+	 * @param rawDate     original date string (for display)
+	 * @param place       place name or original_text
+	 * @param approximate whether the date is approximate
 	 */
-	public static class EventInfo{
-		public final String type;          // `birth` or `death`
-		public final String rawDate;    // original date string (for display)
-		public final ParsedGenealogicalDate date;
-		public final String place;         // place name or original_text
-		public final boolean approximate;  // whether the date is approximate
-
-		public EventInfo(final String type, final String rawDate, final ParsedGenealogicalDate date,
-				final String place, final boolean approximate){
-			this.type = type;
-			this.rawDate = rawDate;
-			this.date = date;
-			this.place = place;
-			this.approximate = approximate;
-		}
-	}
+	public record EventInfo(String type, String rawDate, ParsedGenealogicalDate date, String place, boolean approximate){}
 
 
 	private final FLEFModel model;
@@ -115,6 +110,7 @@ public final class IndividualData{
 
 	public IndividualData(final FLEFRecord individual, final BoxPanelType boxType, final FLEFModel model){
 		this.boxType = boxType;
+
 		this.model = model;
 
 		final List<String> names = extractFullNames(individual);
@@ -138,8 +134,12 @@ public final class IndividualData{
 			.orElse(null);
 
 		// ---- Birth/Death summary ----
-		final String birthYear = (birthInfo != null && birthInfo.date != null? String.valueOf(birthInfo.date.isoDate().getYear()): NO_DATA);
-		final String deathYear = (deathInfo != null && deathInfo.date != null? String.valueOf(deathInfo.date.isoDate().getYear()): NO_DATA);
+		final String birthYear = (birthInfo != null && birthInfo.date != null
+			? String.valueOf(birthInfo.date.isoDate().getYear())
+			: NO_DATA);
+		final String deathYear = (deathInfo != null && deathInfo.date != null
+			? String.valueOf(deathInfo.date.isoDate().getYear())
+			: NO_DATA);
 		String age = null;
 		if(birthInfo != null && deathInfo != null && birthInfo.date != null && deathInfo.date != null){
 			final long years = ChronoUnit.YEARS.between(birthInfo.date.isoDate(), deathInfo.date.isoDate());
@@ -295,7 +295,7 @@ public final class IndividualData{
 	}
 
 	private String extractFullDate(final FLEFRecord event){
-		final FLEFRecord fullDate = FLEFRecordHelper.findChild(event, TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE);
+		final FLEFRecord fullDate = FLEFRecordHelper.findChild(event, TAG_DATE_VALUE_POINT_FULL_DATE);
 		if(fullDate == null)
 			return null;
 
@@ -303,7 +303,7 @@ public final class IndividualData{
 	}
 
 	private String extractDateCalendar(final FLEFRecord event){
-		final FLEFRecord fullDate = FLEFRecordHelper.findChild(event, TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE);
+		final FLEFRecord fullDate = FLEFRecordHelper.findChild(event, TAG_DATE_VALUE_POINT_FULL_DATE);
 		if(fullDate == null)
 			return null;
 
@@ -311,14 +311,14 @@ public final class IndividualData{
 	}
 
 	private String extractPlace(final FLEFRecord event){
-		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE + DOT + TAG_PLACE);
+		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE_PLACE);
 		if(placeId == null)
 			return null;
 
 		// Try to get the place record via xref
 		final FLEFRecord place = model.getRecordById(placeId);
 		// get first name value
-		for(final FLEFRecord name : FLEFRecordHelper.findChildren(place, TAG_NAME + DOT + TAG_VALUE))
+		for(final FLEFRecord name : FLEFRecordHelper.findChildren(place, TAG_NAME_VALUE))
 			if(name != null)
 				return name.getValue();
 		return null;
@@ -332,8 +332,8 @@ public final class IndividualData{
 
 
 	private void extractPreferredImage(final FLEFRecord individual){
-		preferredImage = FLEFRecordHelper.getChildValue(individual, TAG_PREFERRED_IMAGE + DOT + TAG_URI);
-		final FLEFRecord preferredImageCrop = FLEFRecordHelper.findChild(individual, TAG_PREFERRED_IMAGE + DOT + TAG_CROP);
+		preferredImage = FLEFRecordHelper.getChildValue(individual, TAG_PREFERRED_IMAGE_URI);
+		final FLEFRecord preferredImageCrop = FLEFRecordHelper.findChild(individual, TAG_PREFERRED_IMAGE_CROP);
 		preferredImageCropRect = null;
 		try{
 			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImageCrop, TAG_X));
@@ -350,7 +350,8 @@ public final class IndividualData{
 		individualImage = ResourceHelper.resize(ADD_PHOTO, preferredImageWidth, preferredImageHeight);
 
 		// 1. Set the default image immediately
-		preferredImageKey = composePreferredImageKey(preferredImage, preferredImageWidth, preferredImageHeight, preferredImageCropRect);
+		preferredImageKey = composePreferredImageKey(preferredImage, preferredImageWidth, preferredImageHeight,
+			preferredImageCropRect);
 	}
 
 	public void loadPreferredImageAsync(final BiConsumer<String, ImageIcon> imageConsumer){

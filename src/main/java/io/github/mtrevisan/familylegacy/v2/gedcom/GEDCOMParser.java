@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -78,8 +80,13 @@ public class GEDCOMParser{
 				continue;
 			}
 
+			if(value != null && value.startsWith("@F") && NumberUtils.isParsable(value.substring(2, value.length() - 1))){
+				value = "@G" + value.substring(2);
+			}
 			GEDCOMNode node = new GEDCOMNode(level, tag, value);
 			if(xref != null){
+				if(xref.startsWith("F"))
+					xref = "G" + xref.substring(1);
 				node.setXrefId(xref);
 			}
 

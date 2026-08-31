@@ -35,6 +35,7 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.util.ast.Node;
 import com.vladsch.flexmark.util.data.MutableDataHolder;
 import com.vladsch.flexmark.util.data.MutableDataSet;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractButton;

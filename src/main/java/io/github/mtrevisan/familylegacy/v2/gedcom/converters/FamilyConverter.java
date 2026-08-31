@@ -237,7 +237,7 @@ public class FamilyConverter{
 				// subject: husband
 				relationship.addChild(FLEFRecord.createChildWithTag("subject")
 					.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId)));
-				// object: wife
+				// target: wife
 				relationship.addChild(FLEFRecord.createChildWithTag("target")
 					.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId)));
 				relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", "civil_spouse"));
@@ -287,7 +287,7 @@ public class FamilyConverter{
 			.addChild(FLEFRecord.createChildWithTag("subject")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", childId))
 			)
-			// object: parent
+			// target: parent
 			.addChild(FLEFRecord.createChildWithTag("target")
 				.addChild(FLEFRecord.createChildWithTagAndValue("individual", parentId))
 			)

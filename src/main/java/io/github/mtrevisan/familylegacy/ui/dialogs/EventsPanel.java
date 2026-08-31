@@ -24,9 +24,9 @@
  */
 package io.github.mtrevisan.familylegacy.ui.dialogs;
 
-import io.github.mtrevisan.familylegacy.flef.ui.helpers.Debouncer;
 import io.github.mtrevisan.familylegacy.flef.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.ui.utilities.TagPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.Debouncer;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
