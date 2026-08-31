@@ -104,8 +104,8 @@ public final class GUIHelper{
 	public static final KeyStroke CTRL_UP_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_UP, InputEvent.CTRL_DOWN_MASK);
 	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK);
 
-	public static final KeyStroke UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-	public static final KeyStroke REDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Y, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+	public static final KeyStroke UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke REDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK);
 
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
 	public static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
