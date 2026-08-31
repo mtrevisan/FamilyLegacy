@@ -617,9 +617,13 @@ public class GEDCOMHelper{
 		}
 		objeXrefId = cleanId(objeXrefId);
 
-		FLEFRecord documentCitation = FLEFRecord.createChildWithTag("document");
 		if(objeXrefId != null){
-			// TODO is there something to fetch from actual raw obje?
+			GEDCOMNode rawObjeNode = objeRawMap.get(objeXrefId);
+			if(rawObjeNode != null){
+				// Recursively parse the raw OBJE record to process its FILE/TITL/etc. components
+				attachMultimediaLink(parent, model, rawObjeNode, objeRawMap);
+				return;
+			}
 		}
 		else{
 			List<GEDCOMNode> fileNodes = findChildren(node, "FILE");
@@ -655,6 +659,7 @@ public class GEDCOMHelper{
 				}
 
 				// Crop from _CUTD
+				FLEFRecord crop = null;
 				GEDCOMNode cutdNode = GEDCOMHelper.findFirstChild(node, "_CUTD");
 				if(cutdNode != null && cutdNode.getValue() != null){
 					String[] parts = cutdNode.getValue().split(" ");
@@ -664,12 +669,11 @@ public class GEDCOMHelper{
 							int y = Integer.parseInt(parts[1]);
 							int w = Integer.parseInt(parts[2]);
 							int h = Integer.parseInt(parts[3]);
-							FLEFRecord crop = FLEFRecord.createChildWithTag("crop");
+							crop = FLEFRecord.createChildWithTag("crop");
 							crop.addChild(FLEFRecord.createChildWithTagAndValue("x", String.valueOf(x)));
 							crop.addChild(FLEFRecord.createChildWithTagAndValue("y", String.valueOf(y)));
 							crop.addChild(FLEFRecord.createChildWithTagAndValue("width", String.valueOf(w)));
 							crop.addChild(FLEFRecord.createChildWithTagAndValue("height", String.valueOf(h)));
-							documentCitation.addChild(crop);
 						}
 						catch(NumberFormatException ignored){
 						}
@@ -693,28 +697,8 @@ public class GEDCOMHelper{
 					if(fileUri != null && !fileUri.isEmpty()){
 						FLEFRecord prefImg = FLEFRecord.createChildWithTag("preferred_image");
 						prefImg.addChild(FLEFRecord.createChildWithTagAndValue("uri", fileUri));
+						prefImg.addChild(crop);
 
-						// Crop from _CUTD
-						cutdNode = GEDCOMHelper.findFirstChild(node, "_CUTD");
-						if(cutdNode != null && cutdNode.getValue() != null){
-							String[] parts = cutdNode.getValue().split(" ");
-							if(parts.length == 4){
-								try{
-									int x = Integer.parseInt(parts[0]);
-									int y = Integer.parseInt(parts[1]);
-									int w = Integer.parseInt(parts[2]);
-									int h = Integer.parseInt(parts[3]);
-									FLEFRecord crop = FLEFRecord.createChildWithTag("crop");
-									crop.addChild(FLEFRecord.createChildWithTagAndValue("x", String.valueOf(x)));
-									crop.addChild(FLEFRecord.createChildWithTagAndValue("y", String.valueOf(y)));
-									crop.addChild(FLEFRecord.createChildWithTagAndValue("width", String.valueOf(w)));
-									crop.addChild(FLEFRecord.createChildWithTagAndValue("height", String.valueOf(h)));
-									prefImg.addChild(crop);
-								}
-								catch(NumberFormatException ignored){
-								}
-							}
-						}
 						parent.addChild(prefImg);
 					}
 				}
@@ -725,11 +709,29 @@ public class GEDCOMHelper{
 
 				// check for duplicates before adding
 				objeXrefId = Deduplicator.getDeduplicatedRecordId(model, document);
+
+				FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE);
+				FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")
+					.addChild(FLEFRecord.createChildWithTagAndValue("value", "Document " + objeXrefId));
+				source.addChild(titleRec);
+				FLEFRecord docRef = FLEFRecord.createChildWithTagAndValue("document", objeXrefId);
+				source.addChild(docRef);
+				source.addChild(AuditBuilder.build(node));
+
+				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source")
+					.addChild(FLEFRecord.createChildWithTagAndValue("source", source.getId()))
+					.addChild(FLEFRecord.createChildWithTag("extract")
+						.addChild(FLEFRecord.createChildWithTag("document_part")
+							.addChild(FLEFRecord.createChildWithTagAndValue("document", objeXrefId))
+							.addChild(crop)
+						)
+					);
+
+				parent.addChild(sourceCitation);
+
+				model.addRecord(source);
 			}
 		}
-
-		documentCitation.setValue(objeXrefId);
-		parent.addChild(documentCitation);
 	}
 
 
