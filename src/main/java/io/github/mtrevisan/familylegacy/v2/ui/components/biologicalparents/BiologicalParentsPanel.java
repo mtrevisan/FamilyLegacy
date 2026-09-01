@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.BorderFactory;
 import javax.swing.GrayFilter;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
@@ -166,6 +167,8 @@ public class BiologicalParentsPanel extends JPanel{
 
 	private void initComponents(){
 		groupPanel.setBackground(GROUP_BACKGROUND);
+		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
+
 		fatherPanel = IndividualPanel.create(boxType, model);
 //		EventBusService.subscribe(fatherPanel);
 		motherPanel = IndividualPanel.create(boxType, model);
@@ -280,7 +283,23 @@ public class BiologicalParentsPanel extends JPanel{
 	}
 
 	private void updateGroupData(){
-		groupPanel.setToolTipText(data.getMarriageTooltip());
+		final String marriageTooltip = data.getMarriageTooltip();
+		groupPanel.setToolTipText(marriageTooltip);
+
+		groupPanel.setBorder(StringUtils.isNotEmpty(marriageTooltip)? BorderFactory.createLineBorder(BORDER_COLOR):
+			BorderFactory.createDashedBorder(BORDER_COLOR));
+
+
+//		if(boxType == BoxPanelType.PRIMARY){
+//			final Integer groupId = extractRecordID(union);
+//			updatePreviousNextUnionIcons(groupId, mother, fatherPreviousUnionLabel, fatherNextUnionLabel);
+//			updatePreviousNextUnionIcons(groupId, father, motherPreviousUnionLabel, motherNextUnionLabel);
+//
+//			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
+//			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
+//		}
+
+//		refresh(ActionCommand.ACTION_COMMAND_GROUP);
 	}
 
 /*	public final void setGroupListener(final GroupListenerInterface groupListener){
@@ -662,9 +681,6 @@ public class BiologicalParentsPanel extends JPanel{
 			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
 		}
 
-		groupPanel.setBorder(!union.isEmpty()? BorderFactory.createLineBorder(BORDER_COLOR):
-			BorderFactory.createDashedBorder(BORDER_COLOR));
-
 		refresh(ActionCommand.ACTION_COMMAND_GROUP);
 
 		fatherPanel.repaint();
@@ -706,10 +722,10 @@ public class BiologicalParentsPanel extends JPanel{
 		addGroupItem.setEnabled(!hasData);
 //		linkGroupItem.setEnabled(!hasData && hasGroups);
 		removeGroupItem.setEnabled(hasData);
-	}
+	}*/
 
-	private void updatePreviousNextUnionIcons(final Integer groupID, final Map<String, Object> otherPartner, final JLabel previousLabel,
-			final JLabel nextLabel){
+/*	private void updatePreviousNextUnionIcons(final Integer groupID, final Map<String, Object> otherPartner,
+			final JLabel previousLabel, final JLabel nextLabel){
 		//list the `groupID`s for the unions of the `other partner`
 		final Integer otherPartnerID = extractRecordID(otherPartner);
 		final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
@@ -784,7 +800,7 @@ public class BiologicalParentsPanel extends JPanel{
 	}
 
 
-	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
+/*	private TreeMap<Integer, Map<String, Object>> getRecords(final String tableName){
 		return store.computeIfAbsent(tableName, k -> new TreeMap<>());
 	}
 

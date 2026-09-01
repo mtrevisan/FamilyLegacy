@@ -309,7 +309,10 @@ public final class AncestorTreeMutator{
 
 	private static void updateBiologicalParentsData(final AncestorNode node, final FLEFModel model){
 		if(node != null && model != null){
-			final BiologicalParentsData data = BiologicalParentsData.create(null, model);
+			final BiologicalParentsData data = BiologicalParentsData.create(null,
+				null, null,
+				null, null,
+				model);
 			node.setBiologicalParentsData(data);
 		}
 	}

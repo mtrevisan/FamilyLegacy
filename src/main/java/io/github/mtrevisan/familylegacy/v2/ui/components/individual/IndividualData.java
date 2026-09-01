@@ -174,6 +174,7 @@ public final class IndividualData{
 		extractPreferredImage(individual);
 	}
 
+
 	public String getIndividualNameText(){
 		return individualNameText;
 	}

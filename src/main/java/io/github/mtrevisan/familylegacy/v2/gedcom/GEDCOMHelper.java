@@ -490,23 +490,26 @@ public class GEDCOMHelper{
 				GEDCOMNode evenRoleNode = findFirstChild(evenNode, "ROLE");
 				String roleValue = (evenRoleNode != null? evenRoleNode.getValue(): null);
 
-				event = FLEFRecord.createMainRecord(IDGenerator.nextId(EventHandler.ID_PREFIX), EventHandler.TYPE)
-					.addChild(FLEFRecord.createChildWithTagAndValue("type", GEDCOMMapper.mapEvent(evenValue, evenValue)))
-					.addChild(AuditBuilder.build(node));
-
-				model.addRecord(event);
-
-				FLEFRecord eventParticipant = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationHandler.ID_PREFIX), EventParticipationHandler.TYPE)
-					.addChild(FLEFRecord.createChildWithTag("participant")
-						.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
-					)
-					.addChild(FLEFRecord.createChildWithTagAndValue("event", event.getId()));
-				if(StringUtils.isNotEmpty(roleValue))
-					eventParticipant.addChild(FLEFRecord.createChildWithTagAndValue("role", GEDCOMMapper.mapRole(roleValue, roleValue)));
-				eventParticipant.addChild(AuditBuilder.build(node));
-
-				// check for duplicates before adding
-				Deduplicator.getDeduplicatedRecordId(model, eventParticipant);
+				parent.addChild(createNoteStruct("Role: " + GEDCOMMapper.mapRole(roleValue, roleValue)
+					+ StringUtils.LF
+					+ "Role type: " + GEDCOMMapper.mapEvent(evenValue, evenValue), null));
+//				event = FLEFRecord.createMainRecord(IDGenerator.nextId(EventHandler.ID_PREFIX), EventHandler.TYPE)
+//					.addChild(FLEFRecord.createChildWithTagAndValue("type", GEDCOMMapper.mapEvent(evenValue, evenValue)))
+//					.addChild(AuditBuilder.build(node));
+//
+//				model.addRecord(event);
+//
+//				FLEFRecord eventParticipant = FLEFRecord.createMainRecord(IDGenerator.nextId(EventParticipationHandler.ID_PREFIX), EventParticipationHandler.TYPE)
+//					.addChild(FLEFRecord.createChildWithTag("participant")
+//						.addChild(FLEFRecord.createChildWithTagAndValue("individual", parent.getId()))
+//					)
+//					.addChild(FLEFRecord.createChildWithTagAndValue("event", event.getId()));
+//				if(StringUtils.isNotEmpty(roleValue))
+//					eventParticipant.addChild(FLEFRecord.createChildWithTagAndValue("role", GEDCOMMapper.mapRole(roleValue, roleValue)));
+//				eventParticipant.addChild(AuditBuilder.build(node));
+//
+//				// check for duplicates before adding
+//				Deduplicator.getDeduplicatedRecordId(model, eventParticipant);
 			}
 
 			FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source");
@@ -575,6 +578,16 @@ public class GEDCOMHelper{
 
 			parent.addChild(sourceCitation);
 		}
+	}
+
+	public static FLEFRecord createNoteStruct(String text, GEDCOMNode sourNode){
+		if(StringUtils.isBlank(text)){
+			return null;
+		}
+		FLEFRecord note = FLEFRecord.createChildWithTag("note")
+			.addChild(FLEFRecord.createChildWithTagAndValue("text", text.trim()))
+			.addChild(AuditBuilder.build(sourNode));
+		return note;
 	}
 
 
