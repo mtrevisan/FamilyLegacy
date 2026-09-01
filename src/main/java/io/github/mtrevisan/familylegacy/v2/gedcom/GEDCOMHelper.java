@@ -521,7 +521,7 @@ public class GEDCOMHelper{
 
 			sourValue = cleanId(sourValue);
 			FLEFRecord source = FLEFRecord.createMainRecord(sourValue, SourceHandler.TYPE);
-			transferValue(source, "date", dataDateNode);
+			attachDate(source, "date", getDateTime(dataDateNode));
 			for (GEDCOMNode noteNode : findChildren(node, "NOTE")) {
 				attachNote(source, noteNode, noteRawMap);
 			}
@@ -1362,6 +1362,97 @@ public class GEDCOMHelper{
 		sb.append(String.join(",", childSignatures));
 
 		return sb.toString();
+	}
+
+	/**
+	 * Creates an EventRecord from a GEDCOM event node, adds it to the roots list,
+	 * and returns the generated FLEF event ID.
+	 */
+	public static String createAndAddEventRecord(
+		GEDCOMNode eventNode,
+		List<GEDCOMNode> roots, // O List<FLEFRecord> roots a seconda della firma utilizzata
+		Map<String, GEDCOMNode> noteRawMap,
+		Map<String, GEDCOMNode> sourRawMap,
+		Map<String, GEDCOMNode> objeRawMap, FLEFModel model) {
+
+		if (eventNode == null) {
+			return null;
+		}
+
+		String eventFlefId = IDGenerator.nextId(EventHandler.ID_PREFIX);
+		FLEFRecord eventRecord = FLEFRecord.createMainRecord(eventFlefId, EventHandler.TYPE);
+
+		// Type
+		if (eventNode.getTag() != null) {
+			eventRecord.addChild(FLEFRecord.createChildWithTagAndValue("type", eventNode.getTag().toLowerCase()));
+		}
+
+		// Date
+		GEDCOMNode dateNode = findFirstChild(eventNode, "DATE");
+		if (dateNode != null && dateNode.getValue() != null) {
+			attachDate(eventRecord, "date", getDateTime(dateNode));
+		}
+
+		// Place
+		GEDCOMNode placNode = findFirstChild(eventNode, "PLAC");
+		GEDCOMNode addrNode = findFirstChild(eventNode, "ADDR");
+		if (placNode != null && placNode.getValue() != null) {
+			attachPlaceCitation(eventRecord, model,
+				placNode, addrNode, noteRawMap);
+		}
+
+		// Inline Notes
+		for (GEDCOMNode noteNode : findChildren(eventNode, "NOTE")) {
+			attachNote(eventRecord, noteNode, noteRawMap);
+		}
+
+		// Inline Sources
+		for (GEDCOMNode sourNode : findChildren(eventNode, "SOUR")) {
+			attachSource(eventRecord, model, sourNode, noteRawMap, sourRawMap, objeRawMap);
+		}
+
+		// Se roots gestisce gli FLEFRecord principali
+		// (Adatta il cast/aggiunta in base alla struttura delle tue liste di output)
+		// roots.add(eventRecord);
+		eventRecord.addChild(AuditBuilder.build(eventNode));
+
+		model.addRecord(eventRecord);
+
+		return eventFlefId;
+	}
+
+	/**
+	 * Attaches an EventParticipationRecord linking an individual or group to an EventRecord.
+	 */
+	public static void attachEventParticipation(
+		List<GEDCOMNode> roots,
+		String eventId,
+		String entityType,
+		String entityId,
+		String role, FLEFModel model) {
+
+		if (eventId == null || entityId == null) {
+			return;
+		}
+
+		FLEFRecord participation = FLEFRecord.createMainRecord(
+			IDGenerator.nextId(EventParticipationHandler.ID_PREFIX),
+			EventParticipationHandler.TYPE
+		);
+
+		FLEFRecord eventCitation = FLEFRecord.createChildWithTagAndValue("event", eventId);
+		participation.addChild(eventCitation);
+
+		FLEFRecord participant = FLEFRecord.createChildWithTag("participant")
+			.addChild(FLEFRecord.createChildWithTagAndValue(entityType, entityId));
+		participation.addChild(participant);
+
+		if (role != null) {
+			participation.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
+		}
+		participation.addChild(AuditBuilder.build(null));
+
+		Deduplicator.getDeduplicatedRecordId(model, participation);
 	}
 
 }

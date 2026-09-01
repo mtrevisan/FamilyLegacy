@@ -25,6 +25,7 @@
 package io.github.mtrevisan.familylegacy.v2.io.merger;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -63,7 +64,7 @@ public class MergeReport{
 			this.mergedId = mergedId;
 			this.score = score;
 			this.conflicts = (conflicts != null? Collections.unmodifiableList(conflicts): List.of());
-			this.reason = reason != null? reason: "";
+			this.reason = reason != null? reason: StringUtils.EMPTY;
 		}
 
 		public DecisionType getType(){

@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
@@ -686,7 +685,7 @@ public final class GUIHelper{
 	public static void launch(final EditFunction dialogFactory, final String modelUri, final String recordId)
 			throws IOException{
 		final String content;
-		try(final InputStream is = NoteStructureDialog.class.getResourceAsStream(modelUri)){
+		try(final InputStream is = GUIHelper.class.getResourceAsStream(modelUri)){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 

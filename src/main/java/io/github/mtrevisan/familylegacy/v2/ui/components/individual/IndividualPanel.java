@@ -26,8 +26,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -70,7 +68,6 @@ public class IndividualPanel extends JPanel{
 
 
 	private static final String NO_DATA = "?";
-	private static final String[] NO_NAME = {NO_DATA, NO_DATA};
 
 	private static final int SECONDARY_MAX_HEIGHT = 65;
 
@@ -111,8 +108,6 @@ public class IndividualPanel extends JPanel{
 
 	// State
 	private final BoxPanelType boxType;
-
-	private FLEFRecord individual;
 
 	private final FLEFModel model;
 
@@ -169,7 +164,7 @@ public class IndividualPanel extends JPanel{
 			final int panelWidth = getWidth();
 
 			final Color startColor = getBackgroundColor();
-			if(individual != null){
+			if(data != null){
 				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, BACKGROUND_COLOR_FADE_TO);
 				graphics2D.setPaint(gradientPaint);
 			}
@@ -180,7 +175,7 @@ public class IndividualPanel extends JPanel{
 				ARCS.width - 5, ARCS.height - 5);
 
 			graphics2D.setColor(BORDER_COLOR);
-			if(individual == null){
+			if(data == null){
 				final Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
 					10.f, new float[]{5.f}, 0.f);
 				graphics2D.setStroke(dashedStroke);
@@ -207,7 +202,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private Color getBackgroundColor(){
-		return (individual == null? BACKGROUND_COLOR_NO_INDIVIDUAL: BACKGROUND_COLOR_INDIVIDUAL);
+		return (data == null? BACKGROUND_COLOR_NO_INDIVIDUAL: BACKGROUND_COLOR_INDIVIDUAL);
 	}
 
 	private static void setPreferredSize(final JComponent component, final double baseWidth, final double aspectRatio,
@@ -226,8 +221,8 @@ public class IndividualPanel extends JPanel{
 	}
 
 
-	public void withIndividual(final String individualId){
-		individual = model.getRecordById(individualId);
+	public void withIndividualData(final IndividualData data){
+		this.data = data;
 
 		final Dimension size = (isPrimaryBox()
 			? new Dimension(260, 90)
@@ -238,9 +233,6 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void updateIndividualData(){
-		data = new IndividualData(individual, boxType, model);
-
-
 		Font font = (isPrimaryBox()? FONT_PRIMARY: FONT_SECONDARY);
 		final Font infoFont = deriveInfoFont(font);
 		if(!isPrimaryBox()){
@@ -262,15 +254,15 @@ public class IndividualPanel extends JPanel{
 		infoLabel.setToolTipText(data.getInfoTooltip());
 
 		// Set the default image/placeholder
-		imageLabel.setIcon(data.getIndividualImage());
+		imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? data.getIndividualImagePrimary(): data.getIndividualImageSecondary());
 
-		final boolean hasData = (individual != null && !individual.isEmpty());
+		final boolean hasData = (data != null);
 		if(hasData){
 			// Register the current key on the panel and start the asynchronous
 			preferredImageKey = data.getPreferredImageKey();
-			data.loadPreferredImageAsync((key, image) -> {
-				if(image != null && Objects.equals(preferredImageKey, key))
-					imageLabel.setIcon(image);
+			data.loadPreferredImageAsync((key, images) -> {
+				if(images != null && Objects.equals(preferredImageKey, key))
+					imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? images[0]: images[1]);
 			});
 		}
 		else
@@ -369,7 +361,7 @@ public class IndividualPanel extends JPanel{
 		String recordId = "I1";
 
 		final String content;
-		try(final InputStream is = NoteStructureDialog.class.getResourceAsStream(modelUri)){
+		try(final InputStream is = IndividualPanel.class.getResourceAsStream(modelUri)){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
@@ -379,7 +371,7 @@ public class IndividualPanel extends JPanel{
 
 		SwingUtilities.invokeLater(() -> {
 			final IndividualPanel panel = IndividualPanel.create(BoxPanelType.PRIMARY, model);
-			panel.withIndividual(recordId);
+//			panel.withIndividualData(recordId);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());

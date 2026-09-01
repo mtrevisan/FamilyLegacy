@@ -24,8 +24,8 @@ import java.util.function.Consumer;
  */
 public final class AsyncResourceLoader<T>{
 
-	private final Map<String, T> cache = new ConcurrentHashMap<>();
-	private final Map<String, CompletableFuture<T>> inFlight = new ConcurrentHashMap<>();
+	private final Map<String, T[]> cache = new ConcurrentHashMap<>();
+	private final Map<String, CompletableFuture<T[]>> inFlight = new ConcurrentHashMap<>();
 
 
 	/**
@@ -36,8 +36,8 @@ public final class AsyncResourceLoader<T>{
 	 * @param task     work to run off the EDT if {@code key} is not already cached
 	 * @param callback invoked on the EDT with the cached/computed value, or {@code fallback}
 	 */
-	public void load(final String key, final Callable<T> task, final Consumer<T> callback){
-		final T cached = cache.get(key);
+	public void load(final String key, final Callable<T[]> task, final Consumer<T[]> callback){
+		final T[] cached = cache.get(key);
 		if(cached != null){
 			SwingUtilities.invokeLater(() -> callback.accept(cached));
 
@@ -46,17 +46,17 @@ public final class AsyncResourceLoader<T>{
 
 		// If there is already a task running for this key, it hooks into it.
 		inFlight.computeIfAbsent(key, k -> {
-			final CompletableFuture<T> future = new CompletableFuture<>();
-			new SwingWorker<T, Void>(){
+			final CompletableFuture<T[]> future = new CompletableFuture<>();
+			new SwingWorker<T[], Void>(){
 				@Override
-				protected T doInBackground() throws Exception{
+				protected T[] doInBackground() throws Exception{
 					return task.call();
 				}
 
 				@Override
 				protected void done(){
 					try{
-						final T result = get();
+						final T[] result = get();
 						if(result != null)
 							cache.put(key, result);
 						future.complete(result);

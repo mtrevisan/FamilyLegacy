@@ -81,9 +81,18 @@ public class StructureParser{
 		if(StringUtils.isBlank(gedcomDate)){
 			return null;
 		}
-		if(gedcomDate.equalsIgnoreCase("Y") || gedcomDate.equalsIgnoreCase("N")){
+		if(gedcomDate.equalsIgnoreCase("N")){
 			return null;
 		}
+		for(GEDCOMNode child : dateNode.getChildren()){
+			if(child.getTag().equalsIgnoreCase("date")){
+				gedcomDate = child.getValue();
+				break;
+			}
+		}
+//		if(gedcomDate.equalsIgnoreCase("Y") || gedcomDate.equalsIgnoreCase("N")){
+//			return null;
+//		}
 
 		DateInfo info = GEDCOMDateParser.parse(gedcomDate);
 		if(info == null){
@@ -110,7 +119,7 @@ public class StructureParser{
 						default -> "unspecified";
 					};
 					approx.addChild(FLEFRecord.createChildWithTagAndValue("basis", basis));
-					pointRec.addChild(approx);
+					fullDateRec.addChild(approx);
 				}
 				valueRec.addChild(pointRec);
 			}

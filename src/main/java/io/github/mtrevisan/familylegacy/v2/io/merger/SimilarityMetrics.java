@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.io.merger;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import org.apache.commons.lang3.StringUtils;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -339,7 +340,7 @@ public final class SimilarityMetrics{
 						if(partType.equalsIgnoreCase(type) && value != null)
 							return value;
 					}
-		return "";
+		return StringUtils.EMPTY;
 	}
 
 	private static String extractPlace(final FLEFRecord record){
@@ -353,7 +354,7 @@ public final class SimilarityMetrics{
 			if(orig != null)
 				return orig;
 		}
-		return "";
+		return StringUtils.EMPTY;
 	}
 
 	private static String extractDate(final FLEFRecord record){

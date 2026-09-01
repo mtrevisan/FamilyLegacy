@@ -102,18 +102,18 @@ public class FLEFWriter{
 	}
 
 	/**
-	 * Creates a writer with custom indentation sequence and compact mode.
+	 * Creates a writer with a custom indentation sequence and compact mode.
 	 *
-	 * @param indentSequence string used for each level of indentation
+	 * @param indent string used for each level of indentation
 	 * @param compactMode    if {@code true}, compress single‑child chains into dot‑path notation
 	 */
-	public static FLEFWriter createWithIndentSequence(final String indentSequence, final boolean compactMode){
-		return new FLEFWriter(indentSequence, compactMode);
+	public static FLEFWriter createWithIndent(final String indent, final boolean compactMode){
+		return new FLEFWriter(indent, compactMode);
 	}
 
 
-	private FLEFWriter(final String indentSequence, final boolean compactMode){
-		this.indentSequence = Objects.requireNonNull(indentSequence, "indentSequence cannot be null");
+	private FLEFWriter(final String indent, final boolean compactMode){
+		this.indentSequence = Objects.requireNonNull(indent, "Indent cannot be null");
 		this.compactMode = compactMode;
 	}
 
@@ -152,6 +152,23 @@ public class FLEFWriter{
 				// GZIPOutputStream must be closed to flush final bytes
 				os.close();
 		}
+	}
+
+	/**
+	 * Serializes a {@link FLEFRecord} into a formatted string.
+	 *
+	 * @param record	record to serialize
+	 * @return FLEF formatted string representation
+	 */
+	public String writeToString(final FLEFRecord record){
+		final StringWriter sw = new StringWriter();
+		try{
+			write(record, sw);
+		}
+		catch(final IOException e){
+			throw new IllegalStateException("Unexpected error writing to StringWriter", e);
+		}
+		return sw.toString();
 	}
 
 	/**
@@ -195,7 +212,7 @@ public class FLEFWriter{
 			writer.write(StringUtils.SPACE);
 			writer.write(TAG_OPEN_CURLY_BRACE);
 			writer.write(StringUtils.LF);
-			for(int i = 0; i < records.size(); i++){
+			for(int i = 0; i < records.size(); i ++){
 				final FLEFRecord record = records.get(i);
 
 				writeRecord(record, writer, 1);
@@ -205,6 +222,23 @@ public class FLEFWriter{
 			writer.write(TAG_CLOSE_CURLY_BRACE);
 			writer.write(StringUtils.LF);
 		}
+
+		writer.flush();
+	}
+
+	/**
+	 * Writes a {@link FLEFRecord} to an output {@link Writer}.
+	 *
+	 * @param record	Record to write.
+	 * @param writer	Target output stream writer.
+	 * @throws	IOException	If writing fails.
+	 */
+	public void write(final FLEFRecord record, final Writer writer) throws IOException{
+		Objects.requireNonNull(record, "record cannot be null");
+		Objects.requireNonNull(writer, "writer cannot be null");
+
+		writeRecord(record, writer, 1);
+
 		writer.flush();
 	}
 

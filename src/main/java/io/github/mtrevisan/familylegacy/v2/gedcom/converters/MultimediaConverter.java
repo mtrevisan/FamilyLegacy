@@ -125,7 +125,7 @@ public class MultimediaConverter{
 		List<GEDCOMNode> fileNodes = GEDCOMHelper.findChildren(objNode, "FILE");
 		if(!fileNodes.isEmpty()){
 			GEDCOMNode fileNode = fileNodes.get(0);
-			String fileVal = (fileNode.getValue() != null)? fileNode.getValue().trim(): "";
+			String fileVal = (fileNode.getValue() != null)? fileNode.getValue().trim(): StringUtils.EMPTY;
 			document.addChild(FLEFRecord.createChildWithTagAndValue("uri", (!fileVal.isEmpty()? fileVal: "unknown")));
 
 			// ---- 5a. FILE/FORM ----

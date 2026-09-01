@@ -111,7 +111,8 @@ public final class ResourceHelper{
 		return resize(croppedImage, width, height);
 	}
 
-	public static ImageIcon getCroppedResizedImage(final String filename, final Rectangle crop, final int width, final int height){
+	public static ImageIcon getCroppedResizedImage(final String filename, final Rectangle crop, final int width,
+			final int height){
 		final ImageIcon croppedImage = getCroppedImage(filename, crop);
 		if(croppedImage == null){
 			LOGGER.error("Non-existent image for {}", filename);

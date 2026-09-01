@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -19,7 +21,7 @@ public final class IDGenerator{
 	public static void registerExistingId(String id){
 		if(id == null || id.isEmpty()) return;
 		// Remove '@' if present
-		String clean = id.replace("@", "");
+		String clean = id.replace("@", StringUtils.EMPTY);
 		// Extract prefix (one or more letters) and trailing digits
 		int i = 0;
 		while(i < clean.length() && Character.isLetter(clean.charAt(i))) i++;

@@ -8,13 +8,17 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.ImageIcon;
 import java.awt.Rectangle;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 
@@ -23,6 +27,9 @@ import java.util.function.BiConsumer;
  * Extracts display information for an individual from a FLEFModel.
  */
 public final class IndividualData{
+
+	private static final Logger LOGGER = LoggerFactory.getLogger(IndividualData.class);
+
 
 	private static final AsyncResourceLoader<ImageIcon> IMAGE_LOADER = new AsyncResourceLoader<>();
 
@@ -34,12 +41,8 @@ public final class IndividualData{
 	private static final String TAG_PART = "part";
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_VALUE = "value";
-	private static final String TAG_EVENT = "event";
 	private static final String TAG_DATE = "date";
 	private static final String TAG_PLACE = "place";
-	private static final String TAG_EVENT_PARTICIPATION = "event_participation";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_ORIGINAL_TEXT = "original_text";
 	private static final String TAG_POINT = "point";
 	private static final String TAG_FULL_DATE = "full_date";
 	private static final String TAG_CALENDAR = "calendar";
@@ -73,7 +76,6 @@ public final class IndividualData{
 	private static final String YEARS_OLD = "y/o";
 
 	private static final String NO_DATA = "?";
-	private static final String[] NO_NAME = {NO_DATA, NO_DATA};
 
 	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImage("/images/add_photo.jpg");
 
@@ -81,38 +83,27 @@ public final class IndividualData{
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 
-	/**
-	 * Represents a single event (birth or death) with date and place.
-	 *
-	 * @param type        `birth` or `death`
-	 * @param rawDate     original date string (for display)
-	 * @param place       place name or original_text
-	 * @param approximate whether the date is approximate
-	 */
-	public record EventInfo(String type, String rawDate, ParsedGenealogicalDate date, String place, boolean approximate){}
-
-
-	private final FLEFModel model;
-	private final BoxPanelType boxType;
-
-
 	private final String individualNameText;
 	private String individualNameTooltip;
+
 	private final String infoText;
 	private final String infoTooltip;
+
 	private String preferredImageKey;
-	private String preferredImage;
+	private String preferredImageUri;
 	private Rectangle preferredImageCropRect;
-	private int preferredImageWidth;
-	private int preferredImageHeight;
-	private ImageIcon individualImage;
+	private ImageIcon individualImagePrimary;
+	private ImageIcon individualImageSecondary;
 
 
-	public IndividualData(final FLEFRecord individual, final BoxPanelType boxType, final FLEFModel model){
-		this.boxType = boxType;
+	public static IndividualData create(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
+			final FLEFModel model){
+		return new IndividualData(individual, eventsMap, model);
+	}
 
-		this.model = model;
 
+	private IndividualData(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
+			final FLEFModel model){
 		final List<String> names = extractFullNames(individual);
 		if(!names.isEmpty()){
 			individualNameText = names.getFirst();
@@ -123,30 +114,30 @@ public final class IndividualData{
 
 
 		// extract events
-		final List<EventInfo> events = extractEvents(individual);
+		final List<EventInfo> events = extractEvents(individual, eventsMap, model);
 		final EventInfo birthInfo = events.stream()
-			.filter(e -> EVENT_TYPE_BIRTH.equals(e.type) && e.date != null)
-			.min(Comparator.comparing(e -> e.date.isoDate()))
+			.filter(e -> EVENT_TYPE_BIRTH.equals(e.type()) && e.date() != null)
+			.min(Comparator.comparing(e -> e.date().isoDate()))
 			.orElse(null);
 		final EventInfo deathInfo = events.stream()
-			.filter(e -> EVENT_TYPE_DEATH.equals(e.type) && e.date != null)
-			.max(Comparator.comparing(e -> e.date.isoDate()))
+			.filter(e -> EVENT_TYPE_DEATH.equals(e.type()) && e.date() != null)
+			.max(Comparator.comparing(e -> e.date().isoDate()))
 			.orElse(null);
 
 		// ---- Birth/Death summary ----
-		final String birthYear = (birthInfo != null && birthInfo.date != null
-			? String.valueOf(birthInfo.date.isoDate().getYear())
+		final String birthYear = (birthInfo != null && birthInfo.date() != null
+			? String.valueOf(birthInfo.date().isoDate().getYear())
 			: NO_DATA);
-		final String deathYear = (deathInfo != null && deathInfo.date != null
-			? String.valueOf(deathInfo.date.isoDate().getYear())
+		final String deathYear = (deathInfo != null && deathInfo.date() != null
+			? String.valueOf(deathInfo.date().isoDate().getYear())
 			: NO_DATA);
 		String age = null;
-		if(birthInfo != null && deathInfo != null && birthInfo.date != null && deathInfo.date != null){
-			final long years = ChronoUnit.YEARS.between(birthInfo.date.isoDate(), deathInfo.date.isoDate());
+		if(birthInfo != null && deathInfo != null && birthInfo.date() != null && deathInfo.date() != null){
+			final long years = ChronoUnit.YEARS.between(birthInfo.date().isoDate(), deathInfo.date().isoDate());
 			String prefix = StringUtils.EMPTY;
-			if(birthInfo.approximate || deathInfo.approximate)
+			if(birthInfo.approximate() || deathInfo.approximate())
 				prefix = CIRCA_SYMBOL;
-			if(birthInfo.approximate && birthInfo.date.isoDate().isBefore(deathInfo.date.isoDate()))
+			if(birthInfo.approximate() && birthInfo.date().isoDate().isBefore(deathInfo.date().isoDate()))
 				prefix = LESS_THAN_ABOUT;
 			age = prefix + years;
 		}
@@ -159,23 +150,23 @@ public final class IndividualData{
 			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + YEARS_OLD + CLOSE_PARENTHESIS);
 
 		final StringJoiner toolTipSJ = new StringJoiner(StringUtils.EMPTY);
-		final String birthPlace = (birthInfo != null? birthInfo.place: null);
-		final String deathPlace = (deathInfo != null? deathInfo.place: null);
+		final String birthPlace = (birthInfo != null? birthInfo.place(): null);
+		final String deathPlace = (deathInfo != null? deathInfo.place(): null);
 		if(birthPlace != null || deathPlace != null){
 			toolTipSJ.add(TAG_HTML_OPEN);
-			toolTipSJ.add(birthInfo != null? birthInfo.rawDate: NO_DATA);
+			toolTipSJ.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
 			if(birthPlace != null)
 				toolTipSJ.add(TAG_BR + birthPlace);
 			toolTipSJ.add(TAG_BR + TAG_FIGURE_DASH + TAG_BR);
-			toolTipSJ.add(deathInfo != null? deathInfo.rawDate: NO_DATA);
+			toolTipSJ.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
 			if(deathPlace != null)
 				toolTipSJ.add(TAG_BR + deathPlace);
 			toolTipSJ.add(TAG_HTML_CLOSE);
 		}
 		else{
-			toolTipSJ.add(birthInfo != null? birthInfo.rawDate: NO_DATA);
+			toolTipSJ.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
 			toolTipSJ.add(StringUtils.SPACE + TAG_FIGURE_DASH + StringUtils.SPACE);
-			toolTipSJ.add(deathInfo != null? deathInfo.rawDate: NO_DATA);
+			toolTipSJ.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
 		}
 		infoText = sj.toString();
 		infoTooltip = toolTipSJ.toString();
@@ -203,8 +194,12 @@ public final class IndividualData{
 		return preferredImageKey;
 	}
 
-	public ImageIcon getIndividualImage(){
-		return individualImage;
+	public ImageIcon getIndividualImagePrimary(){
+		return individualImagePrimary;
+	}
+
+	public ImageIcon getIndividualImageSecondary(){
+		return individualImageSecondary;
 	}
 
 
@@ -245,53 +240,38 @@ public final class IndividualData{
 	 * @param individual the IndividualRecord
 	 * @return a list of events (birth and death, if found)
 	 */
-	private List<EventInfo> extractEvents(final FLEFRecord individual){
-		final List<EventInfo> events = new ArrayList<>();
-
-		// Find all EventParticipationRecords where participant = this individual
+	private List<EventInfo> extractEvents(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
+			final FLEFModel model){
 		final String individualId = individual.getId();
 		if(individualId == null)
-			return events;
+			return Collections.emptyList();
 
-		for(final FLEFRecord ep : model.getRecordsByType(TAG_EVENT_PARTICIPATION)){
-			final FLEFRecord participant = FLEFRecordHelper.findChild(ep, TAG_PARTICIPANT);
-			if(participant == null)
-				continue;
-			final FLEFRecord individualRef = participant.getTheOnlyChild();
-			if(individualRef == null)
-				continue;
-			if(!individualId.equals(individualRef.getValue()))
-				continue;
+		final List<FLEFRecord> events = eventsMap.get(individualId);
+		if(events == null || events.isEmpty())
+			return Collections.emptyList();
 
-			final String eventId = FLEFRecordHelper.getChildValue(ep, TAG_EVENT);
-			if(eventId == null)
-				continue;
-			final FLEFRecord event = model.getRecordById(eventId);
-			if(event == null || !TAG_EVENT.equals(event.getTag()))
-				continue;
-
+		final List<EventInfo> eventInfos = new ArrayList<>();
+		for(final FLEFRecord event : events){
 			final String type = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
-			if(!EVENT_TYPE_BIRTH.equals(type) && !EVENT_TYPE_DEATH.equals(type))
-				continue;
-
-			// Extract date
-			final EventInfo info = extractEventInfo(event, type);
-			if(info != null)
-				events.add(info);
+			if(EVENT_TYPE_BIRTH.equals(type) || EVENT_TYPE_DEATH.equals(type)){
+				final EventInfo info = extractEventInfo(event, type, model);
+				if(info != null)
+					eventInfos.add(info);
+			}
 		}
-		return events;
+		return eventInfos;
 	}
 
-	private EventInfo extractEventInfo(final FLEFRecord event, final String type){
+	private EventInfo extractEventInfo(final FLEFRecord event, final String type, final FLEFModel model){
 		final String date = extractFullDate(event);
 		if(date == null)
 			return null;
 
 		final String calendar = extractDateCalendar(event);
 		final ParsedGenealogicalDate parsedDate = UniversalDateConverter.parse(calendar, date);
-		final String place = extractPlace(event);
 		final boolean approximate = isApproximate(date);
-		return new EventInfo(type, date, parsedDate, place, approximate);
+		final String place = extractPlace(event, model);
+		return new EventInfo(type, date, parsedDate, approximate, place);
 	}
 
 	private String extractFullDate(final FLEFRecord event){
@@ -310,7 +290,13 @@ public final class IndividualData{
 		return FLEFRecordHelper.getChildValue(fullDate, TAG_CALENDAR);
 	}
 
-	private String extractPlace(final FLEFRecord event){
+	private boolean isApproximate(final String dateStr){
+		return (dateStr != null
+			&& (dateStr.toLowerCase().contains(ABOUT) || dateStr.toLowerCase().contains(CIRCA)
+			|| dateStr.contains(CIRCA_SYMBOL)));
+	}
+
+	private String extractPlace(final FLEFRecord event, final FLEFModel model){
 		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE_PLACE);
 		if(placeId == null)
 			return null;
@@ -324,16 +310,20 @@ public final class IndividualData{
 		return null;
 	}
 
-	private boolean isApproximate(final String dateStr){
-		return (dateStr != null
-			&& (dateStr.toLowerCase().contains(ABOUT) || dateStr.toLowerCase().contains(CIRCA)
-			|| dateStr.contains(CIRCA_SYMBOL)));
-	}
 
+	private void extractPreferredImage(final FLEFRecord record){
+		if(record == null){
+			preferredImageUri = null;
+			preferredImageCropRect = null;
+			individualImagePrimary = resize(ADD_PHOTO, BoxPanelType.PRIMARY);
+			individualImageSecondary = resize(ADD_PHOTO, BoxPanelType.SECONDARY);
+			preferredImageKey = StringUtils.EMPTY;
 
-	private void extractPreferredImage(final FLEFRecord individual){
-		preferredImage = FLEFRecordHelper.getChildValue(individual, TAG_PREFERRED_IMAGE_URI);
-		final FLEFRecord preferredImageCrop = FLEFRecordHelper.findChild(individual, TAG_PREFERRED_IMAGE_CROP);
+			return;
+		}
+
+		preferredImageUri = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_URI);
+		final FLEFRecord preferredImageCrop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
 		preferredImageCropRect = null;
 		try{
 			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImageCrop, TAG_X));
@@ -344,42 +334,53 @@ public final class IndividualData{
 		}
 		catch(final Exception ignored){}
 
-		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
-		preferredImageWidth = (int)Math.ceil(PREFERRED_IMAGE_WIDTH / shrinkFactor);
-		preferredImageHeight = (int)Math.ceil(PREFERRED_IMAGE_WIDTH * IMAGE_ASPECT_RATIO / shrinkFactor);
-		individualImage = ResourceHelper.resize(ADD_PHOTO, preferredImageWidth, preferredImageHeight);
-
-		// 1. Set the default image immediately
-		preferredImageKey = composePreferredImageKey(preferredImage, preferredImageWidth, preferredImageHeight,
-			preferredImageCropRect);
+		// Set the default image immediately
+		individualImagePrimary = resize(ADD_PHOTO, BoxPanelType.PRIMARY);
+		individualImageSecondary = resize(ADD_PHOTO, BoxPanelType.SECONDARY);
+		preferredImageKey = composePreferredImageKey(preferredImageUri, preferredImageCropRect);
 	}
 
-	public void loadPreferredImageAsync(final BiConsumer<String, ImageIcon> imageConsumer){
-		if(StringUtils.isEmpty(preferredImage))
+	public void loadPreferredImageAsync(final BiConsumer<String, ImageIcon[]> imageConsumer){
+		if(StringUtils.isEmpty(preferredImageUri))
 			return;
 
 		IMAGE_LOADER.load(
 			preferredImageKey,
-			() -> ResourceHelper.getCroppedResizedImage(
-				preferredImage,
-				preferredImageCropRect,
-				preferredImageWidth,
-				preferredImageHeight
-			),
-			image -> {
-				if(image != null)
-					this.individualImage = image;
+			() -> {
+				final ImageIcon croppedImage = ResourceHelper.getCroppedImage(preferredImageUri, preferredImageCropRect);
+				if(croppedImage == null){
+					LOGGER.error("Non-existent image for {}", preferredImageUri);
 
-				imageConsumer.accept(preferredImageKey, image);
+					return null;
+				}
+
+				final ImageIcon imagePrimary = resize(croppedImage, BoxPanelType.PRIMARY);
+				final ImageIcon imageSecondary = resize(croppedImage, BoxPanelType.SECONDARY);
+				return new ImageIcon[]{imagePrimary, imageSecondary};
+			},
+			images -> {
+				if(images != null){
+					individualImagePrimary = images[0];
+					individualImageSecondary = images[1];
+				}
+
+				imageConsumer.accept(preferredImageKey, images);
 			}
 		);
 	}
 
-	private static String composePreferredImageKey(final String preferredImage, final int width, final int height,
-			final Rectangle preferredImageCropRect){
+	private ImageIcon resize(final ImageIcon image, final BoxPanelType boxType){
+		final double shrinkFactor = (boxType == BoxPanelType.PRIMARY? 1.: 2.);
+		final int preferredImageWidth = (int)Math.ceil(PREFERRED_IMAGE_WIDTH / shrinkFactor);
+		final int preferredImageHeight = (int)Math.ceil(PREFERRED_IMAGE_WIDTH * IMAGE_ASPECT_RATIO / shrinkFactor);
+		return ResourceHelper.resize(image, preferredImageWidth, preferredImageHeight);
+	}
+
+	private static String composePreferredImageKey(final String preferredImage, final Rectangle preferredImageCropRect){
 		return preferredImage
-			+ "@" + width + "x" + height
-			+ (preferredImageCropRect != null? TAG_PIPE + preferredImageCropRect : StringUtils.EMPTY);
+			+ (preferredImageCropRect != null? TAG_PIPE + (int)preferredImageCropRect.getX() + DOT
+				+ (int)preferredImageCropRect.getY() + DOT + (int)preferredImageCropRect.getWidth() + DOT
+				+ (int)preferredImageCropRect.getHeight(): StringUtils.EMPTY);
 	}
 
 }

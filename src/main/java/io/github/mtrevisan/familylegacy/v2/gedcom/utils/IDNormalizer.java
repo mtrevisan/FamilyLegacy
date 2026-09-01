@@ -1,5 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.gedcom.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
+
 /**
  * Utility to normalize GEDCOM local identifiers.
  */
@@ -14,7 +17,7 @@ public final class IDNormalizer{
 	 */
 	public static String clean(String id){
 		if(id == null) return null;
-		return id.replace("@", "").trim();
+		return id.replace("@", StringUtils.EMPTY).trim();
 	}
 
 	public static boolean isValidIdFormat(String id){

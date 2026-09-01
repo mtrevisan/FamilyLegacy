@@ -29,9 +29,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures.NoteStructureDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.GrayFilter;
 import javax.swing.ImageIcon;
@@ -137,6 +137,7 @@ public class BiologicalParentsPanel extends JPanel{
 
 	private FLEFRecord individual;
 	private FLEFRecord group;
+	private FLEFRecord spouse;
 	private FLEFRecord father;
 	private FLEFRecord mother;
 
@@ -145,7 +146,7 @@ public class BiologicalParentsPanel extends JPanel{
 	private BiologicalParentsData data;
 
 
-	static BiologicalParentsPanel create(final BoxPanelType boxType, final FLEFModel model){
+	public static BiologicalParentsPanel create(final BoxPanelType boxType, final FLEFModel model){
 		return new BiologicalParentsPanel(boxType, model);
 	}
 
@@ -175,7 +176,7 @@ public class BiologicalParentsPanel extends JPanel{
 
 		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0",
 			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
-		arrow1Panel.add(fatherArrowsSpacer, "");
+		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);
 		arrow1Panel.add(fatherPreviousParentsLabel, "right");
 		arrow1Panel.add(fatherNextParentsLabel, "left");
 		arrow1Panel.add(fatherPreviousUnionLabel, "right");
@@ -272,14 +273,14 @@ public class BiologicalParentsPanel extends JPanel{
 	}
 
 
-	public void withBiologicalParentsOf(final String individualId){
-		individual = model.getRecordById(individualId);
+	public void withBiologicalParents(final BiologicalParentsData data){
+		this.data = data;
 
 		updateGroupData();
 	}
 
 	private void updateGroupData(){
-		data = new BiologicalParentsData(individual, boxType, model);
+		groupPanel.setToolTipText(data.getMarriageTooltip());
 	}
 
 /*	public final void setGroupListener(final GroupListenerInterface groupListener){
@@ -878,7 +879,7 @@ public class BiologicalParentsPanel extends JPanel{
 		String recordId = "I1";
 
 		final String content;
-		try(final InputStream is = NoteStructureDialog.class.getResourceAsStream(modelUri)){
+		try(final InputStream is = BiologicalParentsPanel.class.getResourceAsStream(modelUri)){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
@@ -993,7 +994,7 @@ public class BiologicalParentsPanel extends JPanel{
 
 		EventQueue.invokeLater(() -> {
 			final BiologicalParentsPanel panel = BiologicalParentsPanel.create(BoxPanelType.PRIMARY, model);
-			panel.withBiologicalParentsOf(recordId);
+//			panel.withBiologicalParents(recordId);
 //			panel.setGroupListener(unionListener);
 //			panel.setPersonListener(personListener);
 //			EventBusService.subscribe(panel);
