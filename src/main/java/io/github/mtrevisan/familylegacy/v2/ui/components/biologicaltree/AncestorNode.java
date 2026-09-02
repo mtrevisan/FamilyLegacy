@@ -1,11 +1,8 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
-import io.github.mtrevisan.familylegacy.v2.ui.components.biologicalparents.BiologicalParentsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsData;
-
-import java.util.Map;
 
 
 /**
@@ -20,7 +17,9 @@ public final class AncestorNode{
 	private AncestorNode mother;
 //	private BiologicalParentsData biologicalParentsData;
 
-	private Map<IndividualData, SiblingsData> motherBiologicalChildrenData;
+	private FLEFRecord partner;
+	private IndividualData partnerData;
+	private SiblingsData biologicalChildrenData;
 
 	// 0 = target, 1 = parents, 2 = grandparents...
 	private int generation;
@@ -66,12 +65,23 @@ public final class AncestorNode{
 //		this.biologicalParentsData = biologicalParentsData;
 //	}
 
-	public Map<IndividualData, SiblingsData> getMotherBiologicalChildrenData(){
-		return motherBiologicalChildrenData;
+	public FLEFRecord getPartner(){
+		return partner;
 	}
 
-	public void setMotherBiologicalChildrenData(final Map<IndividualData, SiblingsData> motherBiologicalChildrenData){
-		this.motherBiologicalChildrenData = motherBiologicalChildrenData;
+	public IndividualData getPartnerData(){
+		return partnerData;
+	}
+
+	public SiblingsData getBiologicalChildrenData(){
+		return biologicalChildrenData;
+	}
+
+	public void setMotherBiologicalChildrenData(final FLEFRecord partner, final IndividualData partnerData,
+			final SiblingsData biologicalChildrenData){
+		this.partner = partner;
+		this.partnerData = partnerData;
+		this.biologicalChildrenData = biologicalChildrenData;
 	}
 
 	public int getGeneration(){

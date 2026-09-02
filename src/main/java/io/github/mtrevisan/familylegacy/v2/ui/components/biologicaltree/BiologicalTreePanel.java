@@ -5,7 +5,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.biologicalparents.BiologicalParentsPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
-import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsPanel;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +47,9 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
 	private static final int GENERATION_SEPARATOR_SIZE = 36;
+
+	private static final String ENUM_SEX_FEMALE = "female";
+
 
 	private final FLEFModel model;
 	private final BiologicalTreeService treeService;
@@ -195,24 +197,27 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		final BiologicalParentsPanel panel = BiologicalParentsPanel.create(
 			(level == 1? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY), model);
 		if(node != null){
-			final AncestorNode father = node.getFather();
-			final AncestorNode mother = node.getMother();
-			panel.withBiologicalParents((father != null? father.getIndividualData(): null),
-				(mother != null? mother.getIndividualData(): null));
+			final IndividualData father;
+			final IndividualData mother;
+			final String individualSex = node.getIndividualData()
+				.getIndividualSex();
+			if(ENUM_SEX_FEMALE.equals(individualSex)){
+				father = node.getPartnerData();
+				mother = node.getIndividualData();
+			}
+			else{
+				father = node.getIndividualData();
+				mother = node.getPartnerData();
+			}
+			panel.withBiologicalParents(father, mother);
 		}
 		return panel;
 	}
 
 	private SiblingsPanel createChildrenPanel(final AncestorNode root){
 		final SiblingsPanel panel = SiblingsPanel.create(BoxPanelType.SECONDARY, model);
-		if(root != null && root.getMotherBiologicalChildrenData() != null){
-			final Map<IndividualData, SiblingsData> motherBiologicalChildrenData = root.getMotherBiologicalChildrenData();
-			//TODO choose mother
-			final SiblingsData childrenData = motherBiologicalChildrenData.values().stream()
-				.findFirst()
-				.orElse(null);
-			panel.withSiblingsData(childrenData);
-		}
+		if(root != null && root.getBiologicalChildrenData() != null)
+			panel.withSiblingsData(root.getBiologicalChildrenData());
 		return panel;
 	}
 
