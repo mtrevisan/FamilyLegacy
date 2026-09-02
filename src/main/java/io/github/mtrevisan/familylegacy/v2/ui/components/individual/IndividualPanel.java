@@ -70,8 +70,6 @@ public class IndividualPanel extends JPanel{
 
 	private static final String NO_DATA = "?";
 
-	private static final int SECONDARY_MAX_HEIGHT = 65;
-
 	// Colors
 	private static final Color BACKGROUND_COLOR_NO_INDIVIDUAL = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
@@ -85,12 +83,12 @@ public class IndividualPanel extends JPanel{
 	// Dimensions
 	//double values for Horizontal and Vertical radius of corner arcs
 	private static final Dimension ARCS = new Dimension(10, 10);
-	private static final double PREFERRED_IMAGE_WIDTH = 48.;
+	private static final double PREFERRED_IMAGE_WIDTH = 58.;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 	// Fonts
-	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 14);
-	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 11);
+	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 15);
+	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 12);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
 
 	// UI components
@@ -231,8 +229,8 @@ public class IndividualPanel extends JPanel{
 
 	private void setBoxPreferredSize(){
 		final Dimension size = (isPrimaryBox()
-			? new Dimension(260, 90)
-			: new Dimension(170, SECONDARY_MAX_HEIGHT));
+			? new Dimension(270, 90)
+			: new Dimension(170, 65));
 		setPreferredSize(size);
 		setMaximumSize(size);
 	}
@@ -252,17 +250,17 @@ public class IndividualPanel extends JPanel{
 		individualNameLabel.setCursor(cursor);
 		infoLabel.setFont(infoFont);
 
-		individualNameLabel.setText(data.getIndividualNameText());
-		individualNameLabel.setToolTipText(data.getIndividualNameTooltip());
-
-		infoLabel.setText(data.getInfoText());
-		infoLabel.setToolTipText(data.getInfoTooltip());
-
-		// Set the default image/placeholder
-		imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? data.getIndividualImagePrimary(): data.getIndividualImageSecondary());
-
 		final boolean hasData = (data != null);
 		if(hasData){
+			individualNameLabel.setText(data.getIndividualNameText());
+			individualNameLabel.setToolTipText(data.getIndividualNameTooltip());
+
+			infoLabel.setText(data.getInfoText());
+			infoLabel.setToolTipText(data.getInfoTooltip());
+
+			// Set the default image/placeholder
+			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? data.getIndividualImagePrimary(): data.getIndividualImageSecondary());
+
 			// Register the current key on the panel and start the asynchronous
 			preferredImageKey = data.getPreferredImageKey();
 			data.loadPreferredImageAsync((key, images) -> {

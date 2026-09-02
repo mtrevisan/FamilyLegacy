@@ -92,7 +92,7 @@ public class BiologicalTreeService{
 			final IndividualData partnerData = partnerChildrenData.getKey();
 			final FLEFRecord partner = model.getRecordById(partnerData.getIndividualId());
 			final SiblingsData childrenData = partnerChildrenData.getValue();
-			rootNode.setMotherBiologicalChildrenData(partner, partnerData, childrenData);
+			rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
 		}
 
 		final Queue<AncestorNode> queue = new ArrayDeque<>();
@@ -118,12 +118,8 @@ public class BiologicalTreeService{
 			if(!parents.isEmpty() && mother == null)
 				mother = parents.removeFirst();
 
-			final IndividualData fatherData = (father != null
-				? IndividualData.create(father, individualToEventMap, model)
-				: null);
-			final IndividualData motherData = (mother != null
-				? IndividualData.create(mother, individualToEventMap, model)
-				: null);
+			final IndividualData fatherData = IndividualData.create(father, individualToEventMap, model);
+			final IndividualData motherData = IndividualData.create(mother, individualToEventMap, model);
 
 			// Process Father
 //			List<FLEFRecord> fatherEvents = Collections.emptyList();
@@ -140,7 +136,7 @@ public class BiologicalTreeService{
 						.map(Map.Entry::getValue)
 						.findFirst()
 						.orElse(null);
-					fatherNode.setMotherBiologicalChildrenData(mother, motherData, childrenData);
+					fatherNode.setPartnerAndBiologicalChildren(mother, motherData, childrenData);
 				}
 				currentNode.setFather(fatherNode);
 
@@ -161,7 +157,7 @@ public class BiologicalTreeService{
 						.map(Map.Entry::getValue)
 						.findFirst()
 						.orElse(null);
-					motherNode.setMotherBiologicalChildrenData(mother, motherData, childrenData);
+					motherNode.setPartnerAndBiologicalChildren(father, fatherData, childrenData);
 				}
 				currentNode.setMother(motherNode);
 
@@ -214,9 +210,7 @@ public class BiologicalTreeService{
 			final FLEFRecord otherParentRecord = entry.getKey();
 			final List<FLEFRecord> sharedChildren = entry.getValue();
 
-			final IndividualData otherParentData = (otherParentRecord != null
-				? IndividualData.create(otherParentRecord, individualToEventMap, model)
-				: null);
+			final IndividualData otherParentData = IndividualData.create(otherParentRecord, individualToEventMap, model);
 
 			final List<IndividualData> childrenDataList = new ArrayList<>();
 			for(final FLEFRecord childRecord : sharedChildren)

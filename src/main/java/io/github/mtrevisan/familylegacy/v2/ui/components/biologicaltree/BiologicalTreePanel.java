@@ -98,18 +98,32 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		removeAll();
 		nodeToPanelMap.clear();
 
-		rootNode = treeService.buildAncestorTree(currentRootIndividualId, currentMaxGenerations);
-		if(rootNode != null)
-			buildDynamicLayout(rootNode, currentMaxGenerations);
+		final AncestorNode rootIndividualNode = treeService.buildAncestorTree(currentRootIndividualId, currentMaxGenerations - 1 );
+		if(rootIndividualNode != null){
+			final String partnerId = rootIndividualNode.getPartnerData()
+				.getIndividualId();
+			final AncestorNode partnerNode = treeService.buildAncestorTree(partnerId, currentMaxGenerations - 1);
+			final String sex = rootIndividualNode.getIndividualData().getIndividualSex();
+
+			rootNode = new AncestorNode(rootIndividualNode.getBiologicalChildrenData());
+			if(ENUM_SEX_FEMALE.equals(sex)){
+				rootNode.setFather(partnerNode);
+				rootNode.setMother(rootIndividualNode);
+			}
+			else{
+				rootNode.setFather(rootIndividualNode);
+				rootNode.setMother(partnerNode);
+			}
+
+			buildDynamicLayout(rootNode);
+		}
 
 		revalidate();
 		repaint();
 	}
 
-	private void buildDynamicLayout(final AncestorNode root, final int maxGenerations){
-		// Number of ancestor levels
-		final int ancestorLevels = Math.max(1, maxGenerations - 1);
-		// 2^(ancestorLevels-1)
+	private void buildDynamicLayout(final AncestorNode root){
+		final int ancestorLevels = Math.max(1, currentMaxGenerations - 1);
 		final int maxLeafColumns = 1 << (ancestorLevels - 1);
 
 		// Constructing MigLayout constraints
@@ -120,36 +134,45 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			colConstraints.append("[grow,center]");
 		}
 
+		// Rows: ascending levels (excluding root) + root + children
 		final StringBuilder rowConstraints = new StringBuilder();
-		for(int i = 0; i < ancestorLevels; i ++){
+		// number of levels above the root
+		final int totalAscendantLevels = ancestorLevels - 1;
+		for(int i = 0; i < totalAscendantLevels; i ++){
 			if(i > 0)
 				rowConstraints.append(GENERATION_SEPARATOR_SIZE);
 			rowConstraints.append("[]");
 		}
-		// Row for children
+		if(totalAscendantLevels > 0)
+			rowConstraints.append(GENERATION_SEPARATOR_SIZE);
+		// root
+		rowConstraints.append("[]");
+		// children
 		rowConstraints.append(GENERATION_SEPARATOR_SIZE).append("[]");
 
 		setLayout(new MigLayout("ins 20 0 20 0", colConstraints.toString(), rowConstraints.toString()));
 
 		// Collect nodes level by level (top to bottom)
 		final List<List<AncestorNode>> levels = new ArrayList<>();
-		for(int level = ancestorLevels - 1; level >= 0; level --){
-			final List<AncestorNode> levelNodes = collectNodesAtDepth(root, level);
-			levels.add(levelNodes);
-		}
+		for(int level = ancestorLevels - 1; level >= 0; level --)
+			levels.add(collectNodesAtDepth(root, level));
 
-		// Add panels to layout from the topmost level down to the home level (root)
+		// Add ascending levels (excluding root)
 		int currentSpan = 1;
-		int levelCount = levels.size();
-		for(final List<AncestorNode> levelNodes : levels){
-			for(int j = 0; j < levelNodes.size(); j ++){
+		final int levelSize = levels.size();
+		for(int i = 0; i < levelSize; i ++){
+			final List<AncestorNode> levelNodes = levels.get(i);
+
+			final int levelNodesCount = levelNodes.size();
+			for(int j = 0; j < levelNodesCount; j ++){
 				final AncestorNode node = levelNodes.get(j);
-				final BiologicalParentsPanel panel = createBiologicalParentsPanel(node, levelCount);
+				final BiologicalParentsPanel panel = createBiologicalParentsPanel(node,
+					(i  < levelSize - 1? BoxPanelType.SECONDARY: BoxPanelType.PRIMARY));
 
 				if(node != null)
 					nodeToPanelMap.put(node, panel);
 
-				final boolean isEndOfRow = (j == levelNodes.size() - 1);
+				final boolean isEndOfRow = (j == levelNodesCount - 1);
 				final String spanStr = (currentSpan > 1? "span " + currentSpan + ",": StringUtils.EMPTY);
 				final String wrapStr = (isEndOfRow? ",wrap": StringUtils.EMPTY);
 
@@ -157,13 +180,26 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			}
 
 			currentSpan <<= 1;
-			levelCount --;
 		}
 
-		// Add children row (Generation 1)
-		childrenPanel = createChildrenPanel(root);
+		// Add children (below)
+		childrenPanel = createChildrenPanel(rootNode);
 		childrenScrollPane = createChildrenScrollPane(childrenPanel);
 		add(childrenScrollPane, "span " + maxLeafColumns + ",center");
+	}
+
+	private BiologicalParentsPanel createRootPanel(final AncestorNode rootNode){
+		final BiologicalParentsPanel panel = BiologicalParentsPanel.create(BoxPanelType.PRIMARY, model);
+		final IndividualData subjectData = rootNode.getIndividualData();
+		final IndividualData partnerData = rootNode.getPartnerData();
+		final String sex = (subjectData != null? subjectData.getIndividualSex(): null);
+		if(ENUM_SEX_FEMALE.equals(sex))
+			// Partner (male) on the left, female on the right
+			panel.withBiologicalParents(partnerData, subjectData);
+		else
+			// Male on the left, female partner on the right / Gender unknown: subject on the left, partner on the right
+			panel.withBiologicalParents(subjectData, partnerData);
+		return panel;
 	}
 
 	/**
@@ -193,23 +229,14 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		return currentLevel;
 	}
 
-	private BiologicalParentsPanel createBiologicalParentsPanel(final AncestorNode node, final int level){
-		final BiologicalParentsPanel panel = BiologicalParentsPanel.create(
-			(level == 1? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY), model);
+	private BiologicalParentsPanel createBiologicalParentsPanel(final AncestorNode node, final BoxPanelType type){
+		final BiologicalParentsPanel panel = BiologicalParentsPanel.create(type, model);
 		if(node != null){
-			final IndividualData father;
-			final IndividualData mother;
-			final String individualSex = node.getIndividualData()
-				.getIndividualSex();
-			if(ENUM_SEX_FEMALE.equals(individualSex)){
-				father = node.getPartnerData();
-				mother = node.getIndividualData();
-			}
-			else{
-				father = node.getIndividualData();
-				mother = node.getPartnerData();
-			}
-			panel.withBiologicalParents(father, mother);
+			final AncestorNode father = node.getFather();
+			final AncestorNode mother = node.getMother();
+			final IndividualData fatherData = (father != null? father.getIndividualData(): null);
+			final IndividualData motherData = (mother != null? mother.getIndividualData(): null);
+			panel.withBiologicalParents(fatherData, motherData);
 		}
 		return panel;
 	}

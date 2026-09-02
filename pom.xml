@@ -69,10 +69,10 @@
 		<!-- https://mvnrepository.com/artifact/commons-validator/commons-validator -->
 		<apache.commons-validator.version>1.11.0</apache.commons-validator.version>
 		<!-- https://mvnrepository.com/artifact/org.apache.tika/tika-core -->
-		<apache.tika-core.version>3.3.2</apache.tika-core.version>
+		<apache.tika-core.version>4.0.0</apache.tika-core.version>
 
 		<!-- Thumbnailator -->
-		<!-- Source: https://mvnrepository.com/artifact/net.coobird/thumbnailator -->
+		<!-- https://mvnrepository.com/artifact/net.coobird/thumbnailator -->
 		<coobird.thumbnailator.version>0.4.21</coobird.thumbnailator.version>
 
 		<!-- Jakarta -->
@@ -89,7 +89,7 @@
 
 		<!-- Hibernate -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-core -->
-		<hibernate.hibernate-core.version>7.4.5.Final</hibernate.hibernate-core.version>
+		<hibernate.hibernate-core.version>7.4.7.Final</hibernate.hibernate-core.version>
 
 		<!-- Image processing -->
 		<!-- https://mvnrepository.com/artifact/org.bytedeco/opencv -->

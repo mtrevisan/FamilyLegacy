@@ -56,7 +56,7 @@ public final class ResourceHelper{
 	private ResourceHelper(){}
 
 
-	public static ImageIcon getCroppedImage(final String filename, final Rectangle crop){
+	public static ImageIcon getCroppedImageFromResource(final String filename, final Rectangle crop){
 		URL imgURL = ResourceHelper.class.getResource(filename);
 		if(imgURL == null){
 			final File file = FileHelper.loadFile(filename);
@@ -97,23 +97,36 @@ public final class ResourceHelper{
 		return imageIcon;
 	}
 
+	public static ImageIcon getCroppedImage(final String filename, final Rectangle crop) throws IOException{
+		BufferedImage image = ResourceHelper.readBufferedImage(new File(filename));
+		if(image != null){
+			if(crop != null){
+				final Rectangle bounds = new Rectangle(0, 0, image.getWidth(), image.getHeight());
+				final Rectangle clamped = bounds.intersection(crop);
+				image = image.getSubimage(clamped.x, clamped.y, clamped.width, clamped.height);
+			}
+			return new ImageIcon(image);
+		}
+		return null;
+	}
+
 	public static ImageIcon getImage(final String filename){
-		return getCroppedImage(filename, null);
+		return getCroppedImageFromResource(filename, null);
 	}
 
 	public static ImageIcon getResizedImage(final String filename, final Dimension newDimension){
-		final ImageIcon croppedImage = getCroppedImage(filename, null);
+		final ImageIcon croppedImage = getCroppedImageFromResource(filename, null);
 		return resize(croppedImage, newDimension.width, newDimension.height);
 	}
 
 	public static ImageIcon getResizedImage(final String filename, final int width, final int height){
-		final ImageIcon croppedImage = getCroppedImage(filename, null);
+		final ImageIcon croppedImage = getCroppedImageFromResource(filename, null);
 		return resize(croppedImage, width, height);
 	}
 
 	public static ImageIcon getCroppedResizedImage(final String filename, final Rectangle crop, final int width,
 			final int height){
-		final ImageIcon croppedImage = getCroppedImage(filename, crop);
+		final ImageIcon croppedImage = getCroppedImageFromResource(filename, crop);
 		if(croppedImage == null){
 			LOGGER.error("Non-existent image for {}", filename);
 
@@ -146,7 +159,7 @@ public final class ResourceHelper{
 
 
 	private static BufferedImage toBufferedImage(final ImageIcon icon){
-		if(icon == null || icon.getIconWidth() < 0)
+		if(icon == null)
 			return null;
 
 		if(icon.getImage() instanceof BufferedImage)
@@ -182,7 +195,7 @@ public final class ResourceHelper{
 
 
 	public static ImageIcon getImageFixedHeight(final String filename, final int height){
-		final ImageIcon croppedImage = getCroppedImage(filename, null);
+		final ImageIcon croppedImage = getCroppedImageFromResource(filename, null);
 		return resizeFixedHeight(croppedImage, height);
 	}
 
@@ -212,6 +225,8 @@ public final class ResourceHelper{
 				final ImageReader reader = readers.next();
 				try{
 					reader.setInput(input);
+					reader.getWidth(0);
+					reader.getHeight(0);
 					return reader.read(0);
 				}
 				finally{

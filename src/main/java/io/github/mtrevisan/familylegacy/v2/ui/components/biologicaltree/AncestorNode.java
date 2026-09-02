@@ -10,8 +10,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsData;
  */
 public final class AncestorNode{
 
-	private final FLEFRecord individual;
-	private final IndividualData individualData;
+	private FLEFRecord individual;
+	private IndividualData individualData;
 
 	private AncestorNode father;
 	private AncestorNode mother;
@@ -19,11 +19,16 @@ public final class AncestorNode{
 
 	private FLEFRecord partner;
 	private IndividualData partnerData;
+	// biological children of the individual
 	private SiblingsData biologicalChildrenData;
 
-	// 0 = target, 1 = parents, 2 = grandparents...
+	// -1 = children, 0 = target, 1 = parents, 2 = grandparents...
 	private int generation;
 
+
+	public AncestorNode(final SiblingsData biologicalChildrenData){
+		this.biologicalChildrenData = biologicalChildrenData;
+	}
 
 	public AncestorNode(final FLEFRecord individual, final IndividualData individualData, final int generation){
 		this.individual = individual;
@@ -77,7 +82,7 @@ public final class AncestorNode{
 		return biologicalChildrenData;
 	}
 
-	public void setMotherBiologicalChildrenData(final FLEFRecord partner, final IndividualData partnerData,
+	public void setPartnerAndBiologicalChildren(final FLEFRecord partner, final IndividualData partnerData,
 			final SiblingsData biologicalChildrenData){
 		this.partner = partner;
 		this.partnerData = partnerData;

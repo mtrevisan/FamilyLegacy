@@ -104,7 +104,9 @@ public final class IndividualData{
 
 	public static IndividualData create(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
 			final FLEFModel model){
-		return new IndividualData(individual, eventsMap, model);
+		return (individual != null
+			? new IndividualData(individual, eventsMap, model)
+			: null);
 	}
 
 
@@ -346,6 +348,8 @@ public final class IndividualData{
 		}
 
 		preferredImageUri = FLEFRecordHelper.getChildValue(record, TAG_PREFERRED_IMAGE_URI);
+if(preferredImageUri != null)
+	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
 		final FLEFRecord preferredImageCrop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
 		preferredImageCropRect = null;
 		try{
@@ -371,15 +375,16 @@ public final class IndividualData{
 			preferredImageKey,
 			() -> {
 				final ImageIcon croppedImage = ResourceHelper.getCroppedImage(preferredImageUri, preferredImageCropRect);
-				if(croppedImage == null){
+				if(croppedImage != null){
+					final ImageIcon imagePrimary = resize(croppedImage, BoxPanelType.PRIMARY);
+					final ImageIcon imageSecondary = resize(croppedImage, BoxPanelType.SECONDARY);
+					return new ImageIcon[]{imagePrimary, imageSecondary};
+				}
+				else{
 					LOGGER.error("Non-existent image for {}", preferredImageUri);
 
 					return null;
 				}
-
-				final ImageIcon imagePrimary = resize(croppedImage, BoxPanelType.PRIMARY);
-				final ImageIcon imageSecondary = resize(croppedImage, BoxPanelType.SECONDARY);
-				return new ImageIcon[]{imagePrimary, imageSecondary};
 			},
 			images -> {
 				if(images != null){
@@ -404,6 +409,12 @@ public final class IndividualData{
 			+ (preferredImageCropRect != null? TAG_PIPE + (int)preferredImageCropRect.getX() + DOT
 			+ (int)preferredImageCropRect.getY() + DOT + (int)preferredImageCropRect.getWidth() + DOT
 			+ (int)preferredImageCropRect.getHeight(): StringUtils.EMPTY);
+	}
+
+
+	@Override
+	public String toString(){
+		return individualNameText + " [" + individualId + "]";
 	}
 
 }
