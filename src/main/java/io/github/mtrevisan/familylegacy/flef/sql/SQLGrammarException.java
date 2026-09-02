@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.sql;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
-
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -53,7 +51,7 @@ public final class SQLGrammarException extends Exception{
 	}
 
 	public SQLGrammarException(final Throwable cause, final String message, final Object... parameters){
-		super(StringHelper.format(message, parameters), cause);
+//		super(StringHelper.format(message, parameters), cause);
 	}
 
 

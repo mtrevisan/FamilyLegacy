@@ -3,15 +3,13 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.biologicalparents;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
+import java.util.stream.Collectors;
 
 
 /**
@@ -46,32 +44,47 @@ public final class BiologicalParentsData{
 	private final String marriageTooltip;
 
 
-	public static BiologicalParentsData create(final FLEFRecord parentsFamily,
-			final FLEFRecord father, final List<FLEFRecord> fatherMarriageEvents,
-			final FLEFRecord mother, final List<FLEFRecord> motherMarriageEvents,
+	public static BiologicalParentsData create(
+			final FLEFRecord father, final List<FLEFRecord> fatherEvents,
+			final FLEFRecord mother, final List<FLEFRecord> motherEvents,
 			final FLEFModel model){
-		return new BiologicalParentsData(parentsFamily,
-			father, fatherMarriageEvents,
-			mother, motherMarriageEvents,
+		return new BiologicalParentsData(
+			father, fatherEvents,
+			mother, motherEvents,
 			model);
 	}
 
 
-	private BiologicalParentsData(final FLEFRecord parentsFamily,
-			final FLEFRecord father, final List<FLEFRecord> fatherMarriageEvents,
-			final FLEFRecord mother, final List<FLEFRecord> motherMarriageEvents,
+	private BiologicalParentsData(
+			final FLEFRecord father, List<FLEFRecord> fatherEvents,
+			final FLEFRecord mother, List<FLEFRecord> motherEvents,
 			final FLEFModel model){
-		final Set<FLEFRecord> marriageEvents = new HashSet<>();
-		if(fatherMarriageEvents != null)
-			marriageEvents.addAll(fatherMarriageEvents);
-		if(motherMarriageEvents != null){
-			marriageEvents.addAll(motherMarriageEvents);
-			marriageEvents.retainAll(motherMarriageEvents);
-		}
+		// extract common events
+		final Set<String> motherEventIds = motherEvents.stream()
+			.map(FLEFRecord::getId)
+			.collect(Collectors.toSet());
+		final List<FLEFRecord> parentsEvents = fatherEvents.stream()
+			.filter(event -> motherEventIds.contains(event.getId()))
+			.toList();
+		// retain only parent-specific events
+		final Set<String> commonEventIds = parentsEvents.stream()
+			.map(FLEFRecord::getId)
+			.collect(Collectors.toSet());
+		fatherEvents = fatherEvents.stream()
+			.filter(event -> !commonEventIds.contains(event.getId()))
+			.toList();
+		motherEvents = motherEvents.stream()
+			.filter(event -> !commonEventIds.contains(event.getId()))
+			.toList();
+
+//---
+		final Set<FLEFRecord> marriageEvents = new HashSet<>(fatherEvents);
+		marriageEvents.retainAll(motherEvents);
 		FLEFRecord marriageEvent = (!marriageEvents.isEmpty()? marriageEvents.iterator().next(): null);
-		for(final FLEFRecord fatherMarriageEvent : fatherMarriageEvents)
+		for(final FLEFRecord fatherMarriageEvent : fatherEvents)
 			if("civil_marriage".equals(FLEFRecordHelper.getChildValue(fatherMarriageEvent, "type"))){
 				marriageEvent = fatherMarriageEvent;
+
 				break;
 			}
 

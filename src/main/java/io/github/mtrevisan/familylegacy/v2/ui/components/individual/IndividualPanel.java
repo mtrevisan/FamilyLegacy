@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -140,6 +141,8 @@ public class IndividualPanel extends JPanel{
 		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
 		setPreferredSize(imageLabel, 48., IMAGE_ASPECT_RATIO, shrinkFactor);
 
+		setBoxPreferredSize();
+
 		setLayout(new MigLayout("ins 7", "[grow]0[]", "[]0[]10[]"));
 
 		final int shrink = (int)Math.round(PREFERRED_IMAGE_WIDTH + 21);
@@ -195,10 +198,7 @@ public class IndividualPanel extends JPanel{
 
 	private void pointTest(final Graphics2D graphics2D){
 		final Point enterPoint = getPaintingEnterPoint();
-		graphics2D.setColor(Color.RED);
-		graphics2D.drawLine(enterPoint.x - 10, enterPoint.y - 10, enterPoint.x + 10, enterPoint.y + 10);
-		graphics2D.drawLine(enterPoint.x + 10, enterPoint.y - 10, enterPoint.x - 10, enterPoint.y + 10);
-		graphics2D.setColor(Color.BLACK);
+		GUIHelper.drawX(graphics2D, enterPoint);
 	}
 
 	private Color getBackgroundColor(){
@@ -217,19 +217,24 @@ public class IndividualPanel extends JPanel{
 	}
 
 	public final Point getPaintingEnterPoint(){
-		return new Point(getX() + getWidth() / 2, getY());
+		return new Point(getWidth() / 2, 0);
 	}
 
 
 	public void withIndividualData(final IndividualData data){
 		this.data = data;
 
+		setBoxPreferredSize();
+
+		updateIndividualData();
+	}
+
+	private void setBoxPreferredSize(){
 		final Dimension size = (isPrimaryBox()
 			? new Dimension(260, 90)
 			: new Dimension(170, SECONDARY_MAX_HEIGHT));
 		setPreferredSize(size);
-
-		updateIndividualData();
+		setMaximumSize(size);
 	}
 
 	private void updateIndividualData(){

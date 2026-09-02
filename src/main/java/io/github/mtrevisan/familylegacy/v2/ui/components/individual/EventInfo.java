@@ -10,5 +10,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
  * @param rawDate     original date string (for display)
  * @param approximate whether the date is approximate
  * @param place       place name or original_text
+ * @param deathCause  cause of death
  */
-public record EventInfo(String type, String rawDate, ParsedGenealogicalDate date, boolean approximate, String place){}
+public record EventInfo(String type, String rawDate, ParsedGenealogicalDate date, boolean approximate, String place, String deathCause){}

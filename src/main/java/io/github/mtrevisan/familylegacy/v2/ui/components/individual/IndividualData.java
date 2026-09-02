@@ -37,10 +37,13 @@ public final class IndividualData{
 	private static final String TAG_PIPE = "|";
 
 	private static final String TAG_INDIVIDUAL = "individual";
+	private static final String TAG_SEX = "sex";
 	private static final String TAG_NAME = "name";
 	private static final String TAG_PART = "part";
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_VALUE = "value";
+	private static final String TAG_CAUSE = "cause";
+	private static final String TAG_REASON = "reason";
 	private static final String TAG_DATE = "date";
 	private static final String TAG_PLACE = "place";
 	private static final String TAG_POINT = "point";
@@ -56,6 +59,7 @@ public final class IndividualData{
 	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE;
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 	private static final String TAG_PLACE_PLACE = TAG_PLACE + DOT + TAG_PLACE;
+	private static final String TAG_CAUSE_REASON = TAG_CAUSE + DOT + TAG_REASON;
 	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + TAG_URI;
 	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;
 
@@ -83,6 +87,8 @@ public final class IndividualData{
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 
+	private final String individualId;
+	private final String individualSex;
 	private final String individualNameText;
 	private String individualNameTooltip;
 
@@ -104,6 +110,10 @@ public final class IndividualData{
 
 	private IndividualData(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
 			final FLEFModel model){
+		individualId = individual.getId();
+
+		individualSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
+
 		final List<String> names = extractFullNames(individual);
 		if(!names.isEmpty()){
 			individualNameText = names.getFirst();
@@ -149,31 +159,42 @@ public final class IndividualData{
 		if(age != null)
 			sj.add(OPEN_PARENTHESIS + age + StringUtils.SPACE + YEARS_OLD + CLOSE_PARENTHESIS);
 
-		final StringJoiner toolTipSJ = new StringJoiner(StringUtils.EMPTY);
+		final StringJoiner tooltip = new StringJoiner(StringUtils.EMPTY);
 		final String birthPlace = (birthInfo != null? birthInfo.place(): null);
 		final String deathPlace = (deathInfo != null? deathInfo.place(): null);
-		if(birthPlace != null || deathPlace != null){
-			toolTipSJ.add(TAG_HTML_OPEN);
-			toolTipSJ.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
+		final String deathCause = (deathInfo != null? deathInfo.deathCause(): null);
+		if(birthPlace != null || deathPlace != null || deathCause != null){
+			tooltip.add(TAG_HTML_OPEN);
+			tooltip.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
 			if(birthPlace != null)
-				toolTipSJ.add(TAG_BR + birthPlace);
-			toolTipSJ.add(TAG_BR + TAG_FIGURE_DASH + TAG_BR);
-			toolTipSJ.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
+				tooltip.add(TAG_BR + birthPlace);
+			tooltip.add(TAG_BR + TAG_FIGURE_DASH + TAG_BR);
+			tooltip.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
 			if(deathPlace != null)
-				toolTipSJ.add(TAG_BR + deathPlace);
-			toolTipSJ.add(TAG_HTML_CLOSE);
+				tooltip.add(TAG_BR + deathPlace);
+			if(deathCause != null)
+				tooltip.add(TAG_BR + OPEN_PARENTHESIS + deathCause + CLOSE_PARENTHESIS);
+			tooltip.add(TAG_HTML_CLOSE);
 		}
 		else{
-			toolTipSJ.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
-			toolTipSJ.add(StringUtils.SPACE + TAG_FIGURE_DASH + StringUtils.SPACE);
-			toolTipSJ.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
+			tooltip.add(birthInfo != null? birthInfo.rawDate(): NO_DATA);
+			tooltip.add(StringUtils.SPACE + TAG_FIGURE_DASH + StringUtils.SPACE);
+			tooltip.add(deathInfo != null? deathInfo.rawDate(): NO_DATA);
 		}
 		infoText = sj.toString();
-		infoTooltip = toolTipSJ.toString();
+		infoTooltip = tooltip.toString();
 
 		extractPreferredImage(individual);
 	}
 
+
+	public String getIndividualId() {
+		return individualId;
+	}
+
+	public String getIndividualSex(){
+		return individualSex;
+	}
 
 	public String getIndividualNameText(){
 		return individualNameText;
@@ -242,7 +263,7 @@ public final class IndividualData{
 	 * @return a list of events (birth and death, if found)
 	 */
 	private List<EventInfo> extractEvents(final FLEFRecord individual, final Map<String, List<FLEFRecord>> eventsMap,
-			final FLEFModel model){
+		final FLEFModel model){
 		final String individualId = individual.getId();
 		if(individualId == null)
 			return Collections.emptyList();
@@ -272,7 +293,8 @@ public final class IndividualData{
 		final ParsedGenealogicalDate parsedDate = UniversalDateConverter.parse(calendar, date);
 		final boolean approximate = isApproximate(date);
 		final String place = extractPlace(event, model);
-		return new EventInfo(type, date, parsedDate, approximate, place);
+		final String deathCause = FLEFRecordHelper.getChildValue(event, TAG_CAUSE_REASON);
+		return new EventInfo(type, date, parsedDate, approximate, place, deathCause);
 	}
 
 	private String extractFullDate(final FLEFRecord event){
@@ -380,8 +402,8 @@ public final class IndividualData{
 	private static String composePreferredImageKey(final String preferredImage, final Rectangle preferredImageCropRect){
 		return preferredImage
 			+ (preferredImageCropRect != null? TAG_PIPE + (int)preferredImageCropRect.getX() + DOT
-				+ (int)preferredImageCropRect.getY() + DOT + (int)preferredImageCropRect.getWidth() + DOT
-				+ (int)preferredImageCropRect.getHeight(): StringUtils.EMPTY);
+			+ (int)preferredImageCropRect.getY() + DOT + (int)preferredImageCropRect.getWidth() + DOT
+			+ (int)preferredImageCropRect.getHeight(): StringUtils.EMPTY);
 	}
 
 }

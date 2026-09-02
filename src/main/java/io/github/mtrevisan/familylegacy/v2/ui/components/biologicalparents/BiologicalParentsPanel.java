@@ -28,7 +28,9 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
+import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -39,6 +41,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
@@ -75,19 +78,23 @@ public class BiologicalParentsPanel extends JPanel{
 	/** Height of the union line from the bottom of the individual panel [px]. */
 	private static final int GROUP_CONNECTION_HEIGHT = 15;
 	private static final Dimension UNION_PANEL_DIMENSION = new Dimension(13, 12);
-	private static final int GROUP_EXITING_HEIGHT = GROUP_CONNECTION_HEIGHT - UNION_PANEL_DIMENSION.height / 2;
+	public static final int GROUP_EXITING_HEIGHT = GROUP_CONNECTION_HEIGHT - UNION_PANEL_DIMENSION.height / 2;
 	private static final int HALF_PARTNER_SEPARATION = 6;
-	private static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + UNION_PANEL_DIMENSION.width + HALF_PARTNER_SEPARATION;
+	public static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + UNION_PANEL_DIMENSION.width
+		+ HALF_PARTNER_SEPARATION;
 	/** Distance between navigation union arrow and box. */
-	private static final int NAVIGATION_UNION_ARROW_SEPARATION = 2;
+	public static final int NAVIGATION_DESCENDANTS_ARROW_SEPARATION = 2;
 	/** Distance between navigation parents arrow and box. */
-	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_UNION_ARROW_SEPARATION << 1) + 3;
-	private static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight() + NAVIGATION_UNION_ARROW_SEPARATION);
-	private static final int UNION_ARROWS_WIDTH = (int)Math.round(PREVIOUS_NEXT_WIDTH + NAVIGATION_UNION_ARROW_SEPARATION
-		+ PREVIOUS_NEXT_WIDTH);
-	private static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f);
-	private static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0.f,
-		new float[]{2.f}, 0.f);
+	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_DESCENDANTS_ARROW_SEPARATION << 1) + 3;
+	public static final int NAVIGATION_ARROW_HEIGHT = (int)(PREVIOUS_NEXT_SIZE.getHeight()
+		+ NAVIGATION_DESCENDANTS_ARROW_SEPARATION);
+	private static final int DESCENDANTS_ARROWS_WIDTH = (int)Math.round(PREVIOUS_NEXT_WIDTH
+		+ NAVIGATION_DESCENDANTS_ARROW_SEPARATION + PREVIOUS_NEXT_WIDTH);
+
+	public static final Stroke CONNECTION_STROKE = new BasicStroke(1.f, BasicStroke.CAP_BUTT,
+		BasicStroke.JOIN_BEVEL, 0.f);
+	private static final Stroke CONNECTION_STROKE_ADOPTED = new BasicStroke(1.f, BasicStroke.CAP_BUTT,
+		BasicStroke.JOIN_BEVEL, 0.f, new float[]{2.f}, 0.f);
 
 	// Icons
 	//https://thenounproject.com/search/?q=cut&i=3132059
@@ -139,8 +146,8 @@ public class BiologicalParentsPanel extends JPanel{
 	private FLEFRecord individual;
 	private FLEFRecord group;
 	private FLEFRecord spouse;
-	private FLEFRecord father;
-	private FLEFRecord mother;
+	private IndividualData father;
+	private IndividualData mother;
 
 	private final FLEFModel model;
 
@@ -174,11 +181,11 @@ public class BiologicalParentsPanel extends JPanel{
 		motherPanel = IndividualPanel.create(boxType, model);
 //		EventBusService.subscribe(motherPanel);
 
-		fatherArrowsSpacer.setPreferredSize(new Dimension(UNION_ARROWS_WIDTH, 0));
-		motherArrowsSpacer.setPreferredSize(new Dimension(UNION_ARROWS_WIDTH, 0));
+		fatherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
+		motherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 
 		final JPanel arrow1Panel = new JPanel(new MigLayout("ins 0",
-			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+			"[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
 		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);
 		arrow1Panel.add(fatherPreviousParentsLabel, "right");
 		arrow1Panel.add(fatherNextParentsLabel, "left");
@@ -188,13 +195,13 @@ public class BiologicalParentsPanel extends JPanel{
 
 		arrowFatherPanel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
-			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
 		arrowFatherPanel.add(arrow1Panel, "wrap");
 		arrowFatherPanel.add(fatherPanel, "right");
 		arrowFatherPanel.setOpaque(false);
 
 		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0",
-			"[]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]"));
+			"[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]"));
 		arrow2Panel.add(motherPreviousUnionLabel, "left");
 		arrow2Panel.add(motherNextUnionLabel, "left");
 		arrow2Panel.add(motherPreviousParentsLabel, "right");
@@ -204,7 +211,7 @@ public class BiologicalParentsPanel extends JPanel{
 
 		arrowMotherPanel = new JPanel(new MigLayout("ins 0",
 			"[grow,fill]",
-			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_UNION_ARROW_SEPARATION + "[]"));
+			"[" + PREVIOUS_NEXT_SIZE.getHeight() + "]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
 		arrowMotherPanel.add(arrow2Panel, "wrap");
 		arrowMotherPanel.add(motherPanel, "left");
 		arrowMotherPanel.setOpaque(false);
@@ -235,7 +242,8 @@ public class BiologicalParentsPanel extends JPanel{
 			final int xTo = arrowMotherPanel.getX();
 			final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight() - GROUP_CONNECTION_HEIGHT;
 			//horizontal line between partners
-			graphics2D.drawLine(xFrom, yFrom, xTo, yFrom);
+			graphics2D.drawLine(xFrom, yFrom,
+				xTo, yFrom);
 
 
 			//for test purposes
@@ -248,18 +256,14 @@ public class BiologicalParentsPanel extends JPanel{
 
 	private void pointTest(final Graphics2D graphics2D){
 		final Point enterPoint1 = getPaintingFatherEnterPoint();
-		graphics2D.setColor(Color.RED);
-		graphics2D.drawLine(enterPoint1.x - 10, enterPoint1.y - 10, enterPoint1.x + 10, enterPoint1.y + 10);
-		graphics2D.drawLine(enterPoint1.x + 10, enterPoint1.y - 10, enterPoint1.x - 10, enterPoint1.y + 10);
+
+		GUIHelper.drawX(graphics2D, enterPoint1);
 
 		final Point enterPoint2 = getPaintingMotherEnterPoint();
-		graphics2D.drawLine(enterPoint2.x - 10, enterPoint2.y - 10, enterPoint2.x + 10, enterPoint2.y + 10);
-		graphics2D.drawLine(enterPoint2.x + 10, enterPoint2.y - 10, enterPoint2.x - 10, enterPoint2.y + 10);
+		GUIHelper.drawX(graphics2D, enterPoint2);
 
 		final Point exitPoint = getPaintingExitPoint();
-		graphics2D.drawLine(exitPoint.x - 10, exitPoint.y - 10, exitPoint.x + 10, exitPoint.y + 10);
-		graphics2D.drawLine(exitPoint.x + 10, exitPoint.y - 10, exitPoint.x - 10, exitPoint.y + 10);
-		graphics2D.setColor(Color.BLACK);
+		GUIHelper.drawX(graphics2D, exitPoint);
 	}
 
 
@@ -276,18 +280,23 @@ public class BiologicalParentsPanel extends JPanel{
 	}
 
 
-	public void withBiologicalParents(final BiologicalParentsData data){
-		this.data = data;
+	public void withBiologicalParents(final IndividualData father, final IndividualData mother){
+		this.father = father;
+		this.mother = mother;
 
 		updateGroupData();
 	}
 
 	private void updateGroupData(){
-		final String marriageTooltip = data.getMarriageTooltip();
-		groupPanel.setToolTipText(marriageTooltip);
+		fatherPanel.withIndividualData(father);
+		motherPanel.withIndividualData(mother);
 
-		groupPanel.setBorder(StringUtils.isNotEmpty(marriageTooltip)? BorderFactory.createLineBorder(BORDER_COLOR):
-			BorderFactory.createDashedBorder(BORDER_COLOR));
+//		final String marriageTooltip = data.getMarriageTooltip();
+//		groupPanel.setToolTipText(marriageTooltip);
+
+//		groupPanel.setBorder(StringUtils.isNotEmpty(marriageTooltip)? BorderFactory.createLineBorder(BORDER_COLOR):
+//			BorderFactory.createDashedBorder(BORDER_COLOR));
+		groupPanel.setBorder(BorderFactory.createLineBorder(BORDER_COLOR));
 
 
 //		if(boxType == BoxPanelType.PRIMARY){
@@ -862,26 +871,21 @@ public class BiologicalParentsPanel extends JPanel{
 
 
 	public final Point getPaintingFatherEnterPoint(){
-		final Point p1 = fatherPanel.getPaintingEnterPoint();
-		final Point origin = getLocation();
-		return new Point(origin.x + p1.x,
-			origin.y + p1.y);
+		final Point p = fatherPanel.getPaintingEnterPoint();
+		return SwingUtilities.convertPoint(fatherPanel, p, this);
 	}
 
 	public final Point getPaintingMotherEnterPoint(){
-		final Point p1 = fatherPanel.getPaintingEnterPoint();
-		final Point p2 = motherPanel.getPaintingEnterPoint();
-		final Point origin = getLocation();
-		return new Point(origin.x + getWidth() + (p2.x - p1.x - motherPanel.getWidth()) / 2,
-			origin.y + p2.y);
+		final Point p = motherPanel.getPaintingEnterPoint();
+		return SwingUtilities.convertPoint(motherPanel, p, this);
 	}
 
 	public final Point getPaintingExitPoint(){
-		final Point p1 = fatherPanel.getPaintingEnterPoint();
-		final Point p2 = motherPanel.getPaintingEnterPoint();
-		final Point origin = getLocation();
-		return new Point(origin.x + ((p1.x + p2.x - motherPanel.getWidth()) / 2 + getWidth()) / 2,
-			origin.y + getHeight() - GROUP_EXITING_HEIGHT);
+		Point p1 = fatherPanel.getPaintingEnterPoint();
+		p1 = SwingUtilities.convertPoint(fatherPanel, p1, this);
+		Point p2 = motherPanel.getPaintingEnterPoint();
+		p2 = SwingUtilities.convertPoint(motherPanel, p2, this);
+		return new Point((p1.x + p2.x) / 2, getHeight() - GROUP_EXITING_HEIGHT);
 	}
 
 

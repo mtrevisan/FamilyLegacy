@@ -69,6 +69,7 @@ import java.awt.FlowLayout;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
@@ -645,6 +646,16 @@ public final class GUIHelper{
 		private static MenuEntry createSeparator(){
 			return new MenuEntry(null, null, null, true);
 		}
+	}
+
+
+	public static void drawX(final Graphics2D graphics2D, final Point enterPoint){
+		graphics2D.setColor(Color.RED);
+		graphics2D.drawLine(enterPoint.x - 10, enterPoint.y - 10,
+			enterPoint.x + 10, enterPoint.y + 10);
+		graphics2D.drawLine(enterPoint.x + 10, enterPoint.y - 10,
+			enterPoint.x - 10, enterPoint.y + 10);
+		graphics2D.setColor(Color.BLACK);
 	}
 
 

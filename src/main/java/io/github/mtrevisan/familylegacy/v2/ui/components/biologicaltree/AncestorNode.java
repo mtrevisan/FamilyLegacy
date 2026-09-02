@@ -1,17 +1,27 @@
-package io.github.mtrevisan.familylegacy.v2.ui.components.genealogicaltree;
+package io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.biologicalparents.BiologicalParentsData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsData;
+
+import java.util.Map;
 
 
+/**
+ * Represents a single node within the biological ancestor tree.
+ */
 public final class AncestorNode{
 
 	private final FLEFRecord individual;
 	private final IndividualData individualData;
+
 	private AncestorNode father;
 	private AncestorNode mother;
-	private BiologicalParentsData biologicalParentsData;
+//	private BiologicalParentsData biologicalParentsData;
+
+	private Map<IndividualData, SiblingsData> motherBiologicalChildrenData;
+
 	// 0 = target, 1 = parents, 2 = grandparents...
 	private int generation;
 
@@ -19,6 +29,7 @@ public final class AncestorNode{
 	public AncestorNode(final FLEFRecord individual, final IndividualData individualData, final int generation){
 		this.individual = individual;
 		this.individualData = individualData;
+
 		this.generation = generation;
 	}
 
@@ -44,15 +55,23 @@ public final class AncestorNode{
 	}
 
 	public void setMother(final AncestorNode ancestorNode){
-		mother =  ancestorNode;
+		mother = ancestorNode;
 	}
 
-	public BiologicalParentsData getBiologicalParentsData(){
-		return biologicalParentsData;
+//	public BiologicalParentsData getBiologicalParentsData(){
+//		return biologicalParentsData;
+//	}
+
+//	public void setBiologicalParentsData(final BiologicalParentsData biologicalParentsData){
+//		this.biologicalParentsData = biologicalParentsData;
+//	}
+
+	public Map<IndividualData, SiblingsData> getMotherBiologicalChildrenData(){
+		return motherBiologicalChildrenData;
 	}
 
-	public void setBiologicalParentsData(final BiologicalParentsData biologicalParentsData){
-		this.biologicalParentsData = biologicalParentsData;
+	public void setMotherBiologicalChildrenData(final Map<IndividualData, SiblingsData> motherBiologicalChildrenData){
+		this.motherBiologicalChildrenData = motherBiologicalChildrenData;
 	}
 
 	public int getGeneration(){

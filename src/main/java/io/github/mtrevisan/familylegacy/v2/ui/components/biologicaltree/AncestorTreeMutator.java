@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.v2.ui.components.genealogicaltree;
+package io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -308,13 +308,13 @@ public final class AncestorTreeMutator{
 	}
 
 	private static void updateBiologicalParentsData(final AncestorNode node, final FLEFModel model){
-		if(node != null && model != null){
-			final BiologicalParentsData data = BiologicalParentsData.create(null,
-				null, null,
-				null, null,
-				model);
-			node.setBiologicalParentsData(data);
-		}
+//		if(node != null && model != null){
+//			final BiologicalParentsData data = BiologicalParentsData.create(
+//				null, null,
+//				null, null,
+//				model);
+//			node.setMotherBiologicalChildrenData(data);
+//		}
 	}
 
 }

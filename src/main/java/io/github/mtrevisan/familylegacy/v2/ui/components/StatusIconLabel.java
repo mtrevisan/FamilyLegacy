@@ -110,8 +110,10 @@ class StatusIconLabel extends JLabel{
 				g2.setStroke(new BasicStroke(2f));
 				final int cx = drawX + drawSize >> 1;
 				final int cy = drawY + drawSize >> 1;
-				g2.drawLine(cx - drawSize >> 2, cy, cx - drawSize >> 3, cy + drawSize >> 2);
-				g2.drawLine(cx - drawSize >> 3, cy + drawSize >> 2, cx + drawSize / 3, cy - drawSize >> 2);
+				g2.drawLine(cx - drawSize >> 2, cy,
+					cx - drawSize >> 3, cy + drawSize >> 2);
+				g2.drawLine(cx - drawSize >> 3, cy + drawSize >> 2,
+					cx + drawSize / 3, cy - drawSize >> 2);
 			}
 			case "disproven" -> {
 				// White square with red X

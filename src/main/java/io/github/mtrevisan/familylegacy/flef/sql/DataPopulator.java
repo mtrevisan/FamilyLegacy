@@ -24,8 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.flef.sql;
 
-import io.github.mtrevisan.familylegacy.flef.helpers.StringHelper;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -98,7 +96,7 @@ class DataPopulator{
 							currentTable.addRecord(GenericRecord.create(currentTableData));
 
 						//assume this is a data line
-						currentTableData = StringHelper.split(line, FIELD_SEPARATOR.charAt(0), ESCAPE);
+//						currentTableData = StringHelper.split(line, FIELD_SEPARATOR.charAt(0), ESCAPE);
 					}
 				}
 			}
