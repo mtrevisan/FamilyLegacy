@@ -150,7 +150,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		// children
 		rowConstraints.append(GENERATION_SEPARATOR_SIZE).append("[]");
 
-		setLayout(new MigLayout("ins 20 0 20 0", colConstraints.toString(), rowConstraints.toString()));
+		setLayout(new MigLayout("ins 0", colConstraints.toString(), rowConstraints.toString()));
 
 		// Collect nodes level by level (top to bottom)
 		final List<List<AncestorNode>> levels = new ArrayList<>();
