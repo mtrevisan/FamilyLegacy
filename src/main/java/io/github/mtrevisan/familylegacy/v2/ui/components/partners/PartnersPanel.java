@@ -232,42 +232,38 @@ public class PartnersPanel extends JPanel{
 
 	@Override
 	protected final void paintComponent(final Graphics g){
-		super.paintComponent(g);
-
 		if(g instanceof Graphics2D && arrowFatherPanel != null && arrowMotherPanel != null){
-			final Graphics2D graphics2D = (Graphics2D)g.create();
-			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
-			graphics2D.setStroke(CONNECTION_STROKE);
+			g2.setStroke(CONNECTION_STROKE);
 
 			final int xFrom = arrowFatherPanel.getX() + arrowFatherPanel.getWidth();
 			final int xTo = arrowMotherPanel.getX();
 			final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight() - GROUP_CONNECTION_HEIGHT;
 			//horizontal line between partners
-			graphics2D.drawLine(xFrom, yFrom,
+			g2.drawLine(xFrom, yFrom,
 				xTo, yFrom);
 
-
 			//for test purposes
-//			pointTest(graphics2D);
+//			pointTest(g2);
 
-
-			graphics2D.dispose();
+			g2.dispose();
 		}
 	}
 
-	private void pointTest(final Graphics2D graphics2D){
+	private void pointTest(final Graphics2D g2){
 		final Point enterPoint1 = getPaintingFatherEnterPoint();
 
-		GUIHelper.drawX(graphics2D, enterPoint1);
+		GUIHelper.drawX(g2, enterPoint1);
 
 		final Point enterPoint2 = getPaintingMotherEnterPoint();
-		GUIHelper.drawX(graphics2D, enterPoint2);
+		GUIHelper.drawX(g2, enterPoint2);
 
 		final Point exitPoint = getPaintingExitPoint();
-		GUIHelper.drawX(graphics2D, exitPoint);
+		GUIHelper.drawX(g2, exitPoint);
 	}
 
 

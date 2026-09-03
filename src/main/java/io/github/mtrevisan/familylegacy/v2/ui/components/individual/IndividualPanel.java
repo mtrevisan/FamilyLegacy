@@ -166,13 +166,11 @@ public class IndividualPanel extends JPanel{
 
 	@Override
 	protected final void paintComponent(final Graphics g){
-		super.paintComponent(g);
-
 		if(g instanceof Graphics2D){
-			final Graphics2D graphics2D = (Graphics2D)g.create();
-			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
 			final int panelHeight = getHeight();
 			final int panelWidth = getWidth();
@@ -180,36 +178,34 @@ public class IndividualPanel extends JPanel{
 			final Color startColor = getBackgroundColor();
 			if(data != null){
 				final Paint gradientPaint = new GradientPaint(0, 0, startColor, 0, panelHeight, BACKGROUND_COLOR_FADE_TO);
-				graphics2D.setPaint(gradientPaint);
+				g2.setPaint(gradientPaint);
 			}
 			else
-				graphics2D.setColor(startColor);
-			graphics2D.fillRoundRect(1, 1,
+				g2.setColor(startColor);
+			g2.fillRoundRect(1, 1,
 				panelWidth - 2, panelHeight - 2,
-				ARCS.width - 5, ARCS.height - 5);
-
-			graphics2D.setColor(BORDER_COLOR);
-			if(data == null){
-				final Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
-					10.f, new float[]{5.f}, 0.f);
-				graphics2D.setStroke(dashedStroke);
-			}
-			graphics2D.drawRoundRect(0, 0,
-				panelWidth - 1, panelHeight - 1,
 				ARCS.width, ARCS.height);
 
+			g2.setColor(BORDER_COLOR);
+			if(data == null){
+				final Stroke dashedStroke = new BasicStroke(1.f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND,
+					10.f, new float[]{5.f}, 0.f);
+				g2.setStroke(dashedStroke);
+			}
+			g2.drawRoundRect(1, 1,
+				panelWidth - 2, panelHeight - 2,
+				ARCS.width, ARCS.height);
 
 			//for test purposes
-//			pointTest(graphics2D);
+//			pointTest(g2);
 
-
-			graphics2D.dispose();
+			g2.dispose();
 		}
 	}
 
-	private void pointTest(final Graphics2D graphics2D){
+	private void pointTest(final Graphics2D g2){
 		final Point enterPoint = getPaintingEnterPoint();
-		GUIHelper.drawX(graphics2D, enterPoint);
+		GUIHelper.drawX(g2, enterPoint);
 	}
 
 	private Color getBackgroundColor(){

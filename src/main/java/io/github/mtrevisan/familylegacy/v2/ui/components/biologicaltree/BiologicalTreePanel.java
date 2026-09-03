@@ -17,9 +17,11 @@ import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingUtilities;
@@ -251,15 +253,16 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	private JScrollPane createChildrenScrollPane(final JPanel content){
 		final JScrollPane scrollPane = new JScrollPane(content);
 		scrollPane.setOpaque(false);
-		scrollPane.getViewport().setOpaque(false);
+		scrollPane.getViewport()
+			.setOpaque(false);
 		scrollPane.setBorder(null);
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
 
 		// Dynamically compute horizontal scrollbar height to avoid overlapping children panels
-		final int scrollBarHeight = scrollPane.getHorizontalScrollBar()
-			.getPreferredSize()
+		final JScrollBar horizontalScrollBar = scrollPane.getHorizontalScrollBar();
+		final int scrollBarHeight = horizontalScrollBar.getPreferredSize()
 			.height;
-		content.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, scrollBarHeight, 0));
+		content.setBorder(BorderFactory.createEmptyBorder(0, 0, scrollBarHeight, 0));
 
 		return scrollPane;
 	}
@@ -347,13 +350,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			Point homeExit = homePanel.getPaintingExitPoint();
 			homeExit = SwingUtilities.convertPoint(homePanel, homeExit, this);
 
-			final Point origin = childrenScrollPane.getLocation();
-			origin.x -= childrenScrollPane.getHorizontalScrollBar()
-				.getValue();
-
-			final int connectY = origin.y + childEnterPoints[0].y - GENERATION_SEPARATOR_SIZE / 2;
-
 			// Vertical line exiting home group
+			final int connectY = childrenScrollPane.getY() + childEnterPoints[0].y - GENERATION_SEPARATOR_SIZE / 2;
 			g2.drawLine(homeExit.x, homeExit.y,
 				homeExit.x, connectY);
 		}
@@ -362,7 +360,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 	@Override
 	public void onTreeStructureChanged(final String rootIndividualId){
-		if(Objects.equals(currentRootIndividualId, rootIndividualId))
+		if(!Objects.equals(currentRootIndividualId, rootIndividualId))
 			// Run UI updates on the Swing Event Dispatch Thread
 			SwingUtilities.invokeLater(() -> loadTree(rootIndividualId, currentMaxGenerations));
 	}
