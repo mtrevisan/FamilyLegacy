@@ -106,8 +106,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	private List<Class<? extends RecordTypeHandler<?>>> handlerTypes;
 	// if true, save a VOID node when the list is empty
 	private boolean saveAsVoid;
-	private String parentEntityId;
-	private String parentEntityTag;
+	private FLEFRecord parentEntity;
 
 	// used to reload the list after editing
 	private FLEFRecord parentRecord;
@@ -194,9 +193,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	 * Sets a parent entity that will be automatically linked when creating new records
 	 * (e.g., as SUBJECT/OBJECT in a relationship).
 	 */
-	public EntityListPanel withParentEntity(final String parentEntityId, final String parentEntityTag){
-		this.parentEntityId = parentEntityId;
-		this.parentEntityTag = parentEntityTag;
+	public EntityListPanel withParentEntity(final FLEFRecord parentEntity){
+		this.parentEntity = parentEntity;
 
 		return this;
 	}
@@ -454,7 +452,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				// For STRUCTURE or CITATION_WRAPPER, we might need a different reload
 				// Fallback: reload from the parent record if available
 				else
-					load(model.getRecordById(parentRecord.getId()));
+					load(parentEntity);
 			}
 
 			// Check if the record is still in the list; if not, it was removed.
@@ -551,7 +549,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		setItems(items);
 
 		// Set parent entity for new records
-		withParentEntity(record.getId(), record.getTag());
+		withParentEntity(record);
 	}
 
 	/**
@@ -570,7 +568,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final List<FLEFRecord> references = new ArrayList<>();
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
-			references.addAll(handler.findReferences(model, recordId, parentEntityTag));
+			references.addAll(handler.findReferences(model, recordId, parentEntity.getTag()));
 		}
 		setItems(references);
 	}
@@ -639,7 +637,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 						for(final FLEFRecord actor : actors){
 							final String tag = actor.getTag();
 							final String id = actor.getId();
-							if(Strings.CI.equals(parentEntityTag, tag) && recordId.equals(id))
+							if(Strings.CI.equals(parentEntity.getTag(), tag) && recordId.equals(id))
 								return true;
 						}
 					}
@@ -674,13 +672,13 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 							continue;
 
 						for(final FLEFRecord actor : actors){
-							final FLEFRecord ref = FLEFRecordHelper.findChild(actor, parentEntityTag);
+							final FLEFRecord ref = FLEFRecordHelper.findChild(actor, parentEntity.getTag());
 							if(ref == null)
 								continue;
 
 							final String tag = ref.getTag();
 							final String id = ref.getValue();
-							if(Strings.CI.equals(parentEntityTag, tag) && recordId.equals(id))
+							if(Strings.CI.equals(parentEntity.getTag(), tag) && recordId.equals(id))
 								return true;
 						}
 					}
@@ -717,7 +715,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 						for(final FLEFRecord actor : actors){
 							final String tag = actor.getTag();
 							final String id = actor.getValue();
-							if(Strings.CI.equals(parentEntityTag, tag) && recordId.equals(id))
+							if(Strings.CI.equals(parentEntity.getTag(), tag) && recordId.equals(id))
 								return true;
 						}
 					}
@@ -776,6 +774,8 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private Consumer<BaseRecordDialog> getDialogSetup(){
 		return dialog -> {
+			final String parentEntityId = parentEntity.getId();
+			final String parentEntityTag = parentRecord.getTag();
 			// Configure relationship dialogs based on `actorType` and `type`
 			if(dialog instanceof RelationshipRecordDialog relationshipDialog
 					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)

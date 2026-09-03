@@ -15,22 +15,24 @@ public enum CalendarType{
 	ETHIOPIAN("ethiopian"),
 	MAYAN("mayan");
 
+
 	private final String code;
 
-	CalendarType(String code){
+
+	CalendarType(final String code){
 		this.code = code;
 	}
+
 
 	public String getCode(){
 		return code;
 	}
 
-	public static CalendarType fromCode(String code){
-		for(CalendarType type : values()){
-			if(type.code.equalsIgnoreCase(code)){
+	public static CalendarType fromCode(final String code){
+		for(final CalendarType type : values())
+			if(type.code.equalsIgnoreCase(code))
 				return type;
-			}
-		}
+
 		throw new IllegalArgumentException("Unsupported calendar: " + code);
 	}
 

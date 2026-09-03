@@ -23,6 +23,7 @@ import java.time.format.DateTimeFormatterBuilder;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
+import java.util.Objects;
 
 
 /**
@@ -31,7 +32,7 @@ import java.util.Locale;
 public final class UniversalDateConverter{
 
 	private record PatternMatch(String pattern, ParsedGenealogicalDate.DatePrecision precision, boolean hasDay,
-		boolean hasMonth, boolean hasYear){}
+										 boolean hasMonth, boolean hasYear){}
 
 
 	private static final PatternMatch[] PATTERNS = new PatternMatch[]{
@@ -49,8 +50,16 @@ public final class UniversalDateConverter{
 
 	public static ParsedGenealogicalDate parse(final String calendarCode, final String rawDate){
 		final CalendarType type = CalendarType.fromCode(calendarCode);
+
+		final boolean isApproximate = Objects.requireNonNull(rawDate, "rawDate cannot be null")
+			.toLowerCase(Locale.ENGLISH)
+			.matches(".*(" + ParsedGenealogicalDate.APPROXIMATION_REGEX + ").*");
+
 		final String cleanedDate = rawDate.trim()
-			.replaceAll("[/.\\-]", " ");
+			.replaceAll(ParsedGenealogicalDate.APPROXIMATION_REGEX, " ")
+			.replaceAll("[/.\\-]", " ")
+			.replaceAll("\\s+", " ")
+			.trim();
 
 		for(final PatternMatch pm : PATTERNS){
 			try{
@@ -71,9 +80,9 @@ public final class UniversalDateConverter{
 					case MAYAN -> parseMayanLongCount(cleanedDate);
 				};
 
-				return new ParsedGenealogicalDate(resultIso, pm.precision(), rawDate, type);
+				return new ParsedGenealogicalDate(resultIso, pm.precision(), isApproximate, rawDate, type);
 			}
-			catch(Exception ignored){}
+			catch(final Exception ignored){}
 		}
 
 		throw new IllegalArgumentException("Unable to parse date '" + rawDate + "' for calendar " + calendarCode);
@@ -144,22 +153,22 @@ public final class UniversalDateConverter{
 		return parseJsr310(IsoChronology.INSTANCE, input, pm);
 	}
 
-	private static LocalDate parseMayanLongCount(String input){
+	private static LocalDate parseMayanLongCount(final String input){
 		// Mayan format: Baktun.Katun.Tun.Uinal.Kin (es. 13.0.0.0.0)
-		String[] parts = input.split("\\s+");
-		if(parts.length < 5){
+		final String[] parts = input.split("\\s+");
+		if(parts.length < 5)
 			throw new IllegalArgumentException("Invalid Mayan date. Requested format: 'Baktun Katun Tun Uinal Kin'");
-		}
-		long baktun = Long.parseLong(parts[0]);
-		long katun = Long.parseLong(parts[1]);
-		long tun = Long.parseLong(parts[2]);
-		long uinal = Long.parseLong(parts[3]);
-		long kin = Long.parseLong(parts[4]);
 
-		long totalDays = baktun * 144000 + katun * 7200 + tun * 360 + uinal * 20 + kin;
+		final long baktun = Long.parseLong(parts[0]);
+		final long katun = Long.parseLong(parts[1]);
+		final long tun = Long.parseLong(parts[2]);
+		final long uinal = Long.parseLong(parts[3]);
+		final long kin = Long.parseLong(parts[4]);
+
+		final long totalDays = baktun * 144000 + katun * 7200 + tun * 360 + uinal * 20 + kin;
 
 		// Mayan Era GMT Correlation (11 August 3114 BC proleptic Gregorian = JDN 584283)
-		LocalDate mayanEpoch = LocalDate.of(-3113, 8, 11);
+		final LocalDate mayanEpoch = LocalDate.of(-3113, 8, 11);
 		return mayanEpoch.plusDays(totalDays);
 	}
 

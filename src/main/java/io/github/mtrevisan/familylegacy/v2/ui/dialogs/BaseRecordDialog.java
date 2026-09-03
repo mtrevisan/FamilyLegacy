@@ -189,14 +189,13 @@ public abstract class BaseRecordDialog extends JDialog{
 		inputMap.put(GUIHelper.REDO_STROKE, "none");
 	}
 
-	protected void registerUndoSupport(final JComboBox<?> comboBox) {
-		if (comboBox == null) {
+	protected void registerUndoSupport(final JComboBox<?> comboBox){
+		if(comboBox == null)
 			return;
-		}
 
-		if (comboBox.isEditable()) {
+		if(comboBox.isEditable()){
 			final Component editorComp = comboBox.getEditor().getEditorComponent();
-			if (editorComp instanceof JTextComponent textComp) {
+			if(editorComp instanceof JTextComponent textComp){
 				// Remove local text component shortcuts
 				final int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 				final InputMap compInputMap = textComp.getInputMap(JComponent.WHEN_FOCUSED);
@@ -209,7 +208,8 @@ public abstract class BaseRecordDialog extends JDialog{
 				textComp.getDocument().addDocumentListener(adapter);
 				comboBox.addActionListener(adapter);
 			}
-		} else {
+		}
+		else{
 			final ComboBoxUndoSelectionListener listener = new ComboBoxUndoSelectionListener(comboBox, undoController);
 			comboBox.addActionListener(listener);
 		}
@@ -357,8 +357,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	protected static <T extends BaseRecordDialog> T createEdit(final Dialog parent, final FLEFModel model,
 			final FLEFRecord record, final DialogFactory<T> factory){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
+		Objects.requireNonNull(record, "Record cannot be null");
 
 		return factory.create(parent, model, record);
 	}
@@ -517,7 +516,9 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 	protected boolean showConfirm(final String title, final String message){
-		final int selectedOption = JOptionPane.showConfirmDialog(this, message, title,
+		final int selectedOption = JOptionPane.showConfirmDialog(this,
+			message,
+			title,
 			JOptionPane.YES_NO_OPTION);
 		return (selectedOption == JOptionPane.YES_OPTION);
 	}

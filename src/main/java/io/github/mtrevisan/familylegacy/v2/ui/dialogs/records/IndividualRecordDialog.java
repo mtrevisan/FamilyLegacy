@@ -315,7 +315,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		personalNamePanel.load(record);
 
 		final EntityListPanel identityHypothesisPanel = (EntityListPanel)components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
-		identityHypothesisPanel.withParentEntity(record.getId(), record.getTag());
+		identityHypothesisPanel.withParentEntity(record);
 
 		components.load(record);
 	}

@@ -26,7 +26,12 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.TwoLineLabel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -35,11 +40,15 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.PopupMenuEvent;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -50,6 +59,9 @@ import java.awt.Paint;
 import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Stroke;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +69,7 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 
 /**
@@ -92,7 +105,7 @@ public class IndividualPanel extends JPanel{
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
 
 	// UI components
-	private final JLabel individualNameLabel = new JLabel();
+	private final TwoLineLabel individualNameLabel = new TwoLineLabel();
 	private final JLabel infoLabel = new JLabel();
 	private final JLabel imageLabel = new JLabel();
 
@@ -101,9 +114,8 @@ public class IndividualPanel extends JPanel{
 	private final JMenuItem addIndividualItem = new JMenuItem("Add Individual…", 'A');
 	private final JMenuItem linkIndividualItem = new JMenuItem("Link Individual…", 'L');
 	private final JMenuItem removeIndividualItem = new JMenuItem("Remove Individual", 'R');
-	private final JMenuItem unlinkFromParentGroupItem = new JMenuItem("Unlink from parent Group", 'U');
-	private final JMenuItem addToNewSiblingGroupItem = new JMenuItem("Add to new sibling Group…", 'S');
-	private final JMenuItem unlinkFromSiblingGroupItem = new JMenuItem("Unlink from sibling Group", 'G');
+	private final JMenuItem unlinkFromParentsItem = new JMenuItem("Unlink from parents", 'U');
+	private final JMenuItem unlinkFromPartnerItem = new JMenuItem("Unlink from partner", 'P');
 
 	// State
 	private final BoxPanelType boxType;
@@ -113,6 +125,9 @@ public class IndividualPanel extends JPanel{
 	private IndividualData data;
 
 	private String preferredImageKey;
+
+	// Listener
+	private IndividualListener listener;
 
 
 	public static IndividualPanel create(final BoxPanelType boxType, final FLEFModel model){
@@ -127,9 +142,7 @@ public class IndividualPanel extends JPanel{
 
 		initComponents();
 
-//		attachPopupMenu();
-
-//		installMouseListeners();
+		installMouseListeners();
 	}
 
 	private void initComponents(){
@@ -219,12 +232,23 @@ public class IndividualPanel extends JPanel{
 	}
 
 
-	public void withIndividualData(final IndividualData data){
+	public IndividualPanel withListener(final IndividualListener listener){
+		this.listener = listener;
+
+		if(listener != null)
+			attachPopupMenu();
+
+		return this;
+	}
+
+	public IndividualPanel withIndividualData(final IndividualData data){
 		this.data = data;
 
 		setBoxPreferredSize();
 
 		updateIndividualData();
+
+		return this;
 	}
 
 	private void setBoxPreferredSize(){
@@ -250,16 +274,18 @@ public class IndividualPanel extends JPanel{
 		individualNameLabel.setCursor(cursor);
 		infoLabel.setFont(infoFont);
 
-		final boolean hasData = (data != null);
+		final boolean hasData = (data != null && !data.isEmpty());
 		if(hasData){
-			individualNameLabel.setText(data.getIndividualNameText());
+			individualNameLabel.setFormattedText(data.getIndividualNameText());
 			individualNameLabel.setToolTipText(data.getIndividualNameTooltip());
 
 			infoLabel.setText(data.getInfoText());
 			infoLabel.setToolTipText(data.getInfoTooltip());
 
 			// Set the default image/placeholder
-			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? data.getIndividualImagePrimary(): data.getIndividualImageSecondary());
+			imageLabel.setIcon(boxType == BoxPanelType.PRIMARY
+				? data.getIndividualImagePrimary()
+				: data.getIndividualImageSecondary());
 
 			// Register the current key on the panel and start the asynchronous
 			preferredImageKey = data.getPreferredImageKey();
@@ -278,80 +304,103 @@ public class IndividualPanel extends JPanel{
 //		refresh(ActionCommand.ACTION_COMMAND_PERSON);
 	}
 
+	private void updateIndividualMenu(){
+		final boolean hasData = (data != null && !data.isEmpty());
+		final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
+		final boolean hasParentGroup = (hasData && data.hasParents());
+		final boolean hasPartner = (hasData && data.hasPartner());
+		editIndividualItem.setEnabled(hasData);
+		addIndividualItem.setEnabled(!hasData);
+		linkIndividualItem.setEnabled(!hasData && hasIndividuals);
+		removeIndividualItem.setEnabled(hasData);
+		unlinkFromParentsItem.setEnabled(hasData && hasParentGroup);
+		unlinkFromPartnerItem.setEnabled(hasData && hasPartner);
+	}
+
 	private static Font deriveInfoFont(final Font baseFont){
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
 
-/*	// ------------------------------------------------------------------------
+	// ------------------------------------------------------------------------
 	// Event handling
 	// ------------------------------------------------------------------------
 
 	private void installMouseListeners(){
 		if(boxType == BoxPanelType.SECONDARY){
-			MouseAdapter focusAdapter = new MouseAdapter(){
+			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
-				public void mouseClicked(MouseEvent e){
-					if(SwingUtilities.isLeftMouseButton(e) && listener != null)
-						listener.onIndividualFocus(IndividualPanel.this);
+				public void mouseClicked(final MouseEvent e){
+					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
+						final String individualId = data.getIndividualId();
+						final FLEFRecord individual = model.getRecordById(individualId);
+						listener.onIndividualSelected(individual);
+					}
 				}
 			};
-			individualNameLabel.addMouseListener(focusAdapter);
+			individualNameLabel.addMouseListener(selectedAdapter);
 		}
 
 		// Double-click to edit
 		addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(MouseEvent e){
-				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)
-						&& !displayInfo.isEmpty() && listener != null)
-					listener.onIndividualEdit(IndividualPanel.this);
+			public void mouseClicked(final MouseEvent e){
+				if(e.getClickCount() == 2
+						&& SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
+					final String individualId = data.getIndividualId();
+					final FLEFRecord individual = model.getRecordById(individualId);
+					listener.onIndividualEdit(individual);
+				}
 			}
 		});
 	}
 
 	private void attachPopupMenu(){
-		JPopupMenu popup = new JPopupMenu();
+		final JPopupMenu popup = new JPopupMenu();
 
-		editIndividualItem.addActionListener(e -> {
-			if(listener != null) listener.onIndividualEdit(IndividualPanel.this);
+		// Re-evaluate state right before opening the popup
+		popup.addPopupMenuListener(new PopupMenuAdapter(){
+			@Override
+			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
+				updateIndividualMenu();
+			}
 		});
-		popup.add(editIndividualItem);
 
-		addIndividualItem.addActionListener(e -> {
-			if(listener != null) listener.onIndividualAdd(IndividualPanel.this);
-		});
-		popup.add(addIndividualItem);
-
-		linkIndividualItem.addActionListener(e -> {
-			if(listener != null) listener.onIndividualLink(IndividualPanel.this);
-		});
-		popup.add(linkIndividualItem);
-
-		removeIndividualItem.addActionListener(e -> {
-			if(listener != null) listener.onIndividualRemove(IndividualPanel.this);
-		});
-		popup.add(removeIndividualItem);
-
+		// Add items using helper method
+		addMenuItem(popup, editIndividualItem, listener::onIndividualEdit);
+		addMenuItem(popup, addIndividualItem, listener::onIndividualAdd);
+		addMenuItem(popup, linkIndividualItem, listener::onIndividualLink);
+		addMenuItem(popup, removeIndividualItem, listener::onIndividualRemove);
 		popup.addSeparator();
-		unlinkFromParentGroupItem.addActionListener(e -> {
-			if(listener != null) listener.onIndividualUnlinkFromParentGroup(IndividualPanel.this);
-		});
-		popup.add(unlinkFromParentGroupItem);
-
+		addMenuItem(popup, unlinkFromParentsItem, listener::onIndividualUnlinkFromParentGroup);
 		popup.addSeparator();
-		addToNewSiblingGroupItem.addActionListener(e -> {
-			if(listener != null) listener.onIndividualAddToSiblingGroup(IndividualPanel.this);
-		});
-		popup.add(addToNewSiblingGroupItem);
+		addMenuItem(popup, unlinkFromPartnerItem, listener::onIndividualUnlinkFromPartner);
 
-		unlinkFromSiblingGroupItem.addActionListener(e -> {
-			if(listener != null) listener.onIndividualUnlinkFromSiblingGroup(IndividualPanel.this);
-		});
-		popup.add(unlinkFromSiblingGroupItem);
-
-		addMouseListener(new PopupMouseAdapter(popup, this));
+		// Register the popup listener recursively on this and all child components
+		attachMouseListenerRecursively(this, new PopupMouseAdapter(popup, this));
 	}
-*/
+
+	private static void attachMouseListenerRecursively(final Component component, final MouseListener listener){
+		component.addMouseListener(listener);
+		if(component instanceof Container container)
+			for(final Component child : container.getComponents())
+				attachMouseListenerRecursively(child, listener);
+	}
+
+	/**
+	 * Helper method to register an action listener and attach a JMenuItem to the popup menu.
+	 */
+	private void addMenuItem(final JPopupMenu popup, final JMenuItem item, final Consumer<FLEFRecord> action){
+		item.addActionListener(e -> {
+			if(listener != null && data != null){
+				final String individualId = data.getIndividualId();
+				if(individualId != null){
+					final FLEFRecord individual = model.getRecordById(individualId);
+					action.accept(individual);
+				}
+			}
+		});
+		popup.add(item);
+	}
 
 
 	public static void main(String[] args) throws IOException{

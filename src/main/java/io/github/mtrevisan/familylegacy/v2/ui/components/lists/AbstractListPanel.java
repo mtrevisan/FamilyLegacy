@@ -252,9 +252,10 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(idx == -1)
 			return;
 
-		//TODO instead of "Remove this item?", show displayText of record
 		final int confirm = JOptionPane.showConfirmDialog(parent,
-			"Remove this item?", "Confirm",
+			"Are you sure you want to remove this item?"
+				+ StringUtils.LF + listModel.get(idx),
+			"Confirm Removal",
 			JOptionPane.YES_NO_OPTION);
 		if(confirm == JOptionPane.YES_OPTION){
 			items.remove(idx);

@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.Constraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.CountConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.EqualTypeConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.InConstraint;
+import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.MemberOfConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.contraints.OneOfConstraint;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.AlternationType;
 import io.github.mtrevisan.familylegacy.v2.io.grammar.typedefinitions.Cardinality;
@@ -76,6 +77,7 @@ import java.util.Map;
  *               | 'require' 'type' '(' fieldRef ')' '==' 'type' '(' fieldRef ')'
  *               | 'require' 'if' IDENT '==' IDENT ':' fieldRefList
  *               | 'require' fieldRef 'in' IDENT
+ *               | 'require' fieldRef 'member_of' fieldRef
  *               | 'require' fieldRef ('!=' | '==' | '>' | '>=' | '<' | '<=') fieldRef
  * type         := atomicType ('|' atomicType)*
  * atomicType   := ('Xref' | 'XrefOrVoid') '&lt;' IDENT '&gt;'
@@ -125,6 +127,7 @@ public final class FLEFGrammarParser{
 	private static final String TAG_TYPE_FN = "type";
 	private static final String TAG_IF = "if";
 	private static final String TAG_IN = "in";
+	private static final String TAG_MEMBER_OF = "member_of";
 	private static final String TAG_XREF = "Xref";
 	private static final String TAG_XREF_OR_VOID = TAG_XREF + "OrVoid";
 
@@ -530,17 +533,24 @@ public final class FLEFGrammarParser{
 			return new InConstraint(firstToken, container);
 		}
 
-		// 7. require left operator right (operators: !=, ==, >, >=, <, <=)
+		// 7. require field in container OR require field member_of container
+		if(peekIs(TAG_MEMBER_OF)){
+			next();
+			final String container = next();
+			return new MemberOfConstraint(firstToken, container);
+		}
+
+		// 8. require left operator right (operators: !=, ==, >, >=, <, <=)
 		final String left = firstToken;
 		final String op = peek();
 		if(NOT_EQUALS.equals(op) || EQUALS.equals(op) || GREATER_THAN.equals(op) || GREATER_THAN_OR_EQUALS.equals(op)
-			|| LESS_THAN.equals(op) || LESS_THAN_OR_EQUALS.equals(op)){
+				|| LESS_THAN.equals(op) || LESS_THAN_OR_EQUALS.equals(op)){
 			next();
 			final String right = parseFieldReference();
 			return new ComparisonConstraint(left, op, right);
 		}
 
-		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'in', or comparison after 'require', found '" + peek() + "'",
+		throw new FLEFGrammarParseException("Expected 'one_of', 'at_least_one', 'count', 'if', 'in', 'member_of', or comparison after 'require', found '" + peek() + "'",
 			(peekToken() != null? peekToken().line(): 0));
 	}
 

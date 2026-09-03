@@ -350,9 +350,12 @@ public class IndividualConverter {
 							.addChild(FLEFRecord.createChildWithTag("subject")
 								.addChild(FLEFRecord.createChildWithTagAndValue("individual", node.getXrefId()))
 							)
-							// target: group
+							// target: individual/group
 							.addChild(FLEFRecord.createChildWithTag("target")
-								.addChild(FLEFRecord.createChildWithTagAndValue("individual", GEDCOMHelper.cleanId(child.getValue())))
+								.addChild(FLEFRecord.createChildWithTagAndValue(
+									(GEDCOMHelper.cleanId(child.getValue()).startsWith("I")? "individual": "group"),
+									GEDCOMHelper.cleanId(child.getValue())
+								))
 							)
 							.addChild(FLEFRecord.createChildWithTagAndValue("type", relation));
 						relationship.addChild(AuditBuilder.build(node));

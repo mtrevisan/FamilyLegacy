@@ -110,22 +110,22 @@ public final class ResourceHelper{
 		return null;
 	}
 
-	public static ImageIcon getImage(final String filename){
+	public static ImageIcon getImageFromResource(final String filename){
 		return getCroppedImageFromResource(filename, null);
 	}
 
-	public static ImageIcon getResizedImage(final String filename, final Dimension newDimension){
+	public static ImageIcon getResizedImageFromResource(final String filename, final Dimension newDimension){
 		final ImageIcon croppedImage = getCroppedImageFromResource(filename, null);
 		return resize(croppedImage, newDimension.width, newDimension.height);
 	}
 
-	public static ImageIcon getResizedImage(final String filename, final int width, final int height){
+	public static ImageIcon getResizedImageFromResource(final String filename, final int width, final int height){
 		final ImageIcon croppedImage = getCroppedImageFromResource(filename, null);
 		return resize(croppedImage, width, height);
 	}
 
-	public static ImageIcon getCroppedResizedImage(final String filename, final Rectangle crop, final int width,
-			final int height){
+	public static ImageIcon getCroppedResizedImageFromResource(final String filename, final Rectangle crop,
+			final int width, final int height){
 		final ImageIcon croppedImage = getCroppedImageFromResource(filename, crop);
 		if(croppedImage == null){
 			LOGGER.error("Non-existent image for {}", filename);
@@ -170,9 +170,9 @@ public final class ResourceHelper{
 			icon.getIconHeight(),
 			BufferedImage.TYPE_INT_ARGB
 		);
-		final Graphics2D g2d = buffered.createGraphics();
-		g2d.drawImage(icon.getImage(), 0, 0, null);
-		g2d.dispose();
+		final Graphics2D g2 = buffered.createGraphics();
+		g2.drawImage(icon.getImage(), 0, 0, null);
+		g2.dispose();
 		return buffered;
 	}
 
@@ -194,7 +194,7 @@ public final class ResourceHelper{
 	}
 
 
-	public static ImageIcon getImageFixedHeight(final String filename, final int height){
+	public static ImageIcon getImageFixedHeightFromResource(final String filename, final int height){
 		final ImageIcon croppedImage = getCroppedImageFromResource(filename, null);
 		return resizeFixedHeight(croppedImage, height);
 	}

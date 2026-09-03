@@ -1,4 +1,4 @@
-package io.github.mtrevisan.familylegacy.v2.ui.components.biologicalparents;
+package io.github.mtrevisan.familylegacy.v2.ui.components.partners;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 /**
  * Extracts display information for a biological parents group (family) from a FLEFModel.
  */
-public final class BiologicalParentsData{
+public final class PartnersData{
 
 	private static final String DOT = ".";
 
@@ -44,18 +44,18 @@ public final class BiologicalParentsData{
 	private final String marriageTooltip;
 
 
-	public static BiologicalParentsData create(
+	public static PartnersData create(
 			final FLEFRecord father, final List<FLEFRecord> fatherEvents,
 			final FLEFRecord mother, final List<FLEFRecord> motherEvents,
 			final FLEFModel model){
-		return new BiologicalParentsData(
+		return new PartnersData(
 			father, fatherEvents,
 			mother, motherEvents,
 			model);
 	}
 
 
-	private BiologicalParentsData(
+	private PartnersData(
 			final FLEFRecord father, List<FLEFRecord> fatherEvents,
 			final FLEFRecord mother, List<FLEFRecord> motherEvents,
 			final FLEFModel model){

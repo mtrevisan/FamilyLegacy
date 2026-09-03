@@ -155,8 +155,6 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
-		record.setTag(TAG_PART);
-
 		components.save(record);
 
 		variantPanel.save(record);

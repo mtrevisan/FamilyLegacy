@@ -10,6 +10,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.UIManager;
 import java.io.IOException;
@@ -52,12 +53,12 @@ public class BiologicalTreeService{
 	private final FLEFModel model;
 
 	// Inverted indices for direct lookup
-	private Map<String, List<FLEFRecord>> individualToParentsMap;
-	private Map<String, List<FLEFRecord>> parentToChildrenMap;
-	//	private Map<String, List<FLEFRecord>> individualToMarriageEventMap;
-//	private Map<String, FLEFRecord> individualToFamilyMap;
-	private Map<String, List<FLEFRecord>> individualToEventMap;
-	private Set<String> individualsWithDescendantsSet;
+	private final Map<String, List<FLEFRecord>> individualToParentsMap = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> parentToChildrenMap = new HashMap<>();
+	//	private final Map<String, List<FLEFRecord>> individualToMarriageEventMap = new HashMap<>();
+//	private final Map<String, FLEFRecord> individualToFamilyMap = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> individualToEventMap = new HashMap<>();
+	private final Set<String> individualsWithDescendantsSet = new HashSet<>();
 
 
 	public BiologicalTreeService(final FLEFModel model){
@@ -67,12 +68,16 @@ public class BiologicalTreeService{
 
 	/**
 	 * Builds an ancestor tree up to the specified maxGenerations using BFS traversal.
+	 * <p>
+	 * Pruning rule: does not expand branches for non-existent individuals.
 	 *
 	 * @param rootIndividualId the root individual record ID
 	 * @param maxGenerations depth limit (0-based: 0 = target only, 1 = target + parents, etc.)
 	 * @return the root {@link AncestorNode} of the constructed tree, or {@code null} if root is {@code null}
 	 */
 	public AncestorNode buildAncestorTree(final String rootIndividualId, final int maxGenerations){
+		if(StringUtils.isBlank(rootIndividualId))
+			return null;
 		final FLEFRecord rootIndividual = model.getRecordById(rootIndividualId);
 		if(rootIndividual == null || maxGenerations < 0)
 			return null;
@@ -82,17 +87,18 @@ public class BiologicalTreeService{
 
 		final IndividualData rootData = IndividualData.create(rootIndividual, individualToEventMap, model);
 		final AncestorNode rootNode = new AncestorNode(rootIndividual, rootData, 0);
-//		rootNode.setBiologicalChildrenData(buildSiblingsData(rootIndividualId));
 		final Map<IndividualData, SiblingsData> partnerChildrenDataMap = buildChildrenData(rootIndividualId);
-		//TODO choose partner and children
 		if(!partnerChildrenDataMap.isEmpty()){
+			//TODO choose partner and children
 			final Map.Entry<IndividualData, SiblingsData> partnerChildrenData = partnerChildrenDataMap.entrySet().stream()
 				.findFirst()
 				.orElse(null);
 			final IndividualData partnerData = partnerChildrenData.getKey();
-			final FLEFRecord partner = model.getRecordById(partnerData.getIndividualId());
-			final SiblingsData childrenData = partnerChildrenData.getValue();
-			rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
+			if(partnerData != null){
+				final FLEFRecord partner = model.getRecordById(partnerData.getIndividualId());
+				final SiblingsData childrenData = partnerChildrenData.getValue();
+				rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
+			}
 		}
 
 		final Queue<AncestorNode> queue = new ArrayDeque<>();
@@ -106,6 +112,8 @@ public class BiologicalTreeService{
 
 
 			final FLEFRecord currentIndividual = currentNode.getIndividual();
+			if(currentIndividual == null)
+				continue;
 			final String currentIndividualId = currentIndividual.getId();
 			final int nextGeneration = currentGeneration + 1;
 
@@ -121,13 +129,13 @@ public class BiologicalTreeService{
 			final IndividualData fatherData = IndividualData.create(father, individualToEventMap, model);
 			final IndividualData motherData = IndividualData.create(mother, individualToEventMap, model);
 
+			// PRUNING: Only instantiate father/mother nodes if the underlying record actually exists:
 			// Process Father
 //			List<FLEFRecord> fatherEvents = Collections.emptyList();
 			if(father != null){
 //				fatherEvents = individualToEventMap.get(father.getId());
 
 				final AncestorNode fatherNode = new AncestorNode(father, fatherData, nextGeneration);
-//				fatherNode.setBiologicalChildrenData(buildSiblingsData(father.getId()));
 				if(mother != null){
 					final Map<IndividualData, SiblingsData> motherChildrenDataMap = buildChildrenData(father.getId());
 					final String motherId = mother.getId();
@@ -148,7 +156,6 @@ public class BiologicalTreeService{
 //				motherEvents = individualToEventMap.get(mother.getId());
 
 				final AncestorNode motherNode = new AncestorNode(mother, motherData, nextGeneration);
-//				motherNode.setBiologicalChildrenData(buildSiblingsData(mother.getId()));
 				if(father != null){
 					final Map<IndividualData, SiblingsData> fatherChildrenDataMap = buildChildrenData(mother.getId());
 					final String fatherId = father.getId();
@@ -163,13 +170,6 @@ public class BiologicalTreeService{
 
 				queue.add(motherNode);
 			}
-
-			// Process Biological Parents
-//			final BiologicalParentsData biologicalParentsData = BiologicalParentsData.create(
-//				father, fatherEvents,
-//				mother, motherEvents,
-//				parentsBiologicalChildrenData, model);
-//			currentNode.setBiologicalParentsData(biologicalParentsData);
 		}
 
 		return rootNode;
@@ -259,7 +259,7 @@ public class BiologicalTreeService{
 		return SiblingsData.create(siblingDataList, siblingIdsWithDescendants);
 	}
 
-	private List<FLEFRecord> getParents(final String currentIndividualId){
+	List<FLEFRecord> getParents(final String currentIndividualId){
 		List<FLEFRecord> parents = individualToParentsMap.get(currentIndividualId);
 		if(parents != null && !parents.isEmpty())
 			parents = new ArrayList<>(parents);
@@ -292,15 +292,8 @@ public class BiologicalTreeService{
 	 * Pre-indexes all relationships, group memberships, and marriage events in single passes.
 	 */
 	private void ensureIndices(){
-		if(individualToParentsMap != null)
+		if(!individualToParentsMap.isEmpty())
 			return;
-
-		individualToParentsMap = new HashMap<>();
-		parentToChildrenMap = new HashMap<>();
-//		individualToMarriageEventMap = new HashMap<>();
-//		individualToFamilyMap = new HashMap<>();
-		individualToEventMap = new HashMap<>();
-		individualsWithDescendantsSet = new HashSet<>();
 
 		// 1. Index parents and parent-child relationships
 		final Map<String, Set<String>> childToGroupIdsMap = new HashMap<>();
@@ -415,6 +408,19 @@ public class BiologicalTreeService{
 		final BiologicalTreeService service = new BiologicalTreeService(model);
 		final AncestorNode root = service.buildAncestorTree(recordId, generations);
 		System.out.println(root);
+	}
+
+
+	/**
+	 * Invalidates all internal lookup indices and caches.
+	 * <p>
+	 * Forces a recalculation of relationships and events on the next tree build.
+	 */
+	public void invalidateIndices(){
+		individualToParentsMap.clear();
+		parentToChildrenMap.clear();
+		individualToEventMap.clear();
+		individualsWithDescendantsSet.clear();
 	}
 
 }

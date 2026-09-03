@@ -1,30 +1,27 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 
-// TODO used?
+
 /**
  * Listener for individual panel actions.
  */
 public interface IndividualListener{
 
-	void onIndividualFocus(IndividualPanel individualPanel);
+	void onIndividualEdit(FLEFRecord individual);
 
-	void onIndividualEdit(IndividualPanel individualPanel);
 
-	void onIndividualAdd(IndividualPanel individualPanel);
+	void onIndividualSelected(FLEFRecord individual);
 
-	void onIndividualLink(IndividualPanel individualPanel);
+	void onIndividualRemove(FLEFRecord individual);
 
-	void onIndividualRemove(IndividualPanel individualPanel);
+	void onIndividualUnlinkFromParentGroup(FLEFRecord individual);
 
-	void onIndividualUnlinkFromParentGroup(IndividualPanel individualPanel);
+	void onIndividualUnlinkFromPartner(FLEFRecord targetSibling);
 
-	void onIndividualAddToSiblingGroup(IndividualPanel individualPanel);
 
-	void onIndividualUnlinkFromSiblingGroup(IndividualPanel individualPanel);
+	void onIndividualAdd(FLEFRecord targetParent);
 
-	void onIndividualAddPreferredImage(IndividualPanel individualPanel);
-
-	void onIndividualEditPreferredImage(IndividualPanel individualPanel);
+	void onIndividualLink(FLEFRecord targetParent);
 
 }

@@ -168,7 +168,7 @@ public class EntityField extends BoundTextField{
 			else{
 				final FLEFRecord entity = model.getRecordById(entityRef.getId());
 				if(entity != null){
-					final RecordTypeHandler<?> handler = findHandler(entityRef.getTag());
+					final RecordTypeHandler<?> handler = findHandler(entity.getTag());
 					value = handler.getDisplayText(entity, model);
 				}
 			}

@@ -85,8 +85,12 @@ public final class RecordDialogComponents{
 					final EntityListPanel panel = EntityListPanel.createForOneOfReference(cfg.tag(),
 							owner, cfg.title(), model, EntityListPanel.ActorType.SUBJECT)
 						.withHandlerTypes(cfg.handlerClass());
-					if(record != null)
-						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+					if(record != null){
+						//TODO assert record.getTag == cfg.handlerType
+						assert record.getTag().equals(HandlerRegistry.getHandlerType(cfg.handlerType()));
+						panel.withParentEntity(record);
+//						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+						}
 					yield panel;
 				}
 
@@ -100,8 +104,12 @@ public final class RecordDialogComponents{
 					final EntityListPanel panel = EntityListPanel.createForOneOfReference(cfg.tag(),
 							owner, cfg.title(), model, EntityListPanel.ActorType.OBJECT)
 						.withHandlerTypes(cfg.handlerClass());
-					if(record != null)
-						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+					if(record != null){
+						//TODO assert record.getTag == cfg.handlerType
+						assert record.getTag().equals(HandlerRegistry.getHandlerType(cfg.handlerType()));
+						panel.withParentEntity(record);
+//						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+					}
 					yield panel;
 				}
 
@@ -161,8 +169,12 @@ public final class RecordDialogComponents{
 					final EntityListPanel panel = EntityListPanel.createForOneOfReference(cfg.tag(),
 							owner, cfg.title(), model)
 						.withHandlerTypes(cfg.handlerClass());
-					if(record != null)
-						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+					if(record != null){
+						//TODO assert record.getTag == cfg.handlerType
+						assert record.getTag().equals(HandlerRegistry.getHandlerType(cfg.handlerType()));
+						panel.withParentEntity(record);
+//						panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+					}
 					yield panel;
 				}
 
@@ -177,8 +189,12 @@ public final class RecordDialogComponents{
 				final EntityListPanel panel = EntityListPanel.createForOneOfReference(cfg.tag(),
 						owner, cfg.title(), model, EntityListPanel.ActorType.EVENT)
 					.withHandlerTypes(cfg.handlerClass());
-				if(record != null)
-					panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+				if(record != null){
+					//TODO assert record.getTag == cfg.handlerType
+					assert record.getTag().equals(HandlerRegistry.getHandlerType(cfg.handlerType()));
+					panel.withParentEntity(record);
+//					panel.withParentEntity(record.getId(), HandlerRegistry.getHandlerType(cfg.handlerType()));
+				}
 				yield panel;
 			}
 
@@ -268,7 +284,7 @@ public final class RecordDialogComponents{
 			eventParticipationOnParticipant.loadReferenceWithType(record.getId(), "PARTICIPANT");
 		final EntityListPanel eventParticipationOnEvent = ((EntityListPanel)getPanel(PanelKey.EVENT_PARTICIPATION_ON_EVENT));
 		if(eventParticipationOnEvent != null){
-			eventParticipationOnEvent.withParentEntity(record.getId(), record.getTag());
+			eventParticipationOnEvent.withParentEntity(record);
 			eventParticipationOnEvent.loadCitationsWithType(record.getId(), "EVENT");
 		}
 
@@ -287,7 +303,7 @@ public final class RecordDialogComponents{
 			conclusionOnResolves.loadReferenceWithType(record.getId(), "RESOLVES");
 		final EntityListPanel conclusionOnResearch = ((EntityListPanel)getPanel(PanelKey.CONCLUSION_ON_RESEARCH));
 		if(conclusionOnResearch != null){
-			conclusionOnResearch.withParentEntity(record.getId(), record.getTag());
+			conclusionOnResearch.withParentEntity(record);
 			conclusionOnResearch.loadCitationsWithType(record.getId(), "RESEARCH");
 		}
 		final EntityListPanel identityHypothesis = ((EntityListPanel)getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY));
@@ -301,12 +317,14 @@ public final class RecordDialogComponents{
 			String tag = record.getTag();
 			if(Strings.CI.equals("RESEARCH_QUESTION", tag))
 				tag = "QUESTION";
-			researchActivityOnQuestion.withParentEntity(record.getId(), tag);
+			//TODO assert record.getTag == tag
+			assert record.getTag().equals("QUESTION");
+			researchActivityOnQuestion.withParentEntity(record);
 			researchActivityOnQuestion.loadCitationsWithType3(record.getId(), "QUESTION");
 		}
 		final EntityListPanel researchActivityOnSource = ((EntityListPanel)getPanel(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE));
 		if(researchActivityOnSource != null){
-			researchActivityOnSource.withParentEntity(record.getId(), record.getTag());
+			researchActivityOnSource.withParentEntity(record);
 			researchActivityOnSource.loadCitationsWithType2(record.getId(), "SOURCE");
 		}
 
@@ -323,12 +341,12 @@ public final class RecordDialogComponents{
 			source.load(record);
 		final EntityListPanel sourceOnRepository = ((EntityListPanel)getPanel(PanelKey.SOURCE_ON_REPOSITORY));
 		if(sourceOnRepository != null){
-			sourceOnRepository.withParentEntity(record.getId(), record.getTag());
+			sourceOnRepository.withParentEntity(record);
 			sourceOnRepository.loadCitationsWithType2(record.getId(), "REPOSITORY");
 		}
 		final EntityListPanel sourceOnDocument = ((EntityListPanel)getPanel(PanelKey.SOURCE_ON_DOCUMENT));
 		if(sourceOnDocument != null){
-			sourceOnDocument.withParentEntity(record.getId(), record.getTag());
+			sourceOnDocument.withParentEntity(record);
 			sourceOnDocument.loadCitationsWithType3(record.getId(), "DOCUMENT");
 		}
 
@@ -342,7 +360,7 @@ public final class RecordDialogComponents{
 
 		final EntityListPanel researchTaskOnQuestion = ((EntityListPanel)getPanel(PanelKey.RESEARCH_TASK_ON_QUESTION));
 		if(researchTaskOnQuestion != null){
-			researchTaskOnQuestion.withParentEntity(record.getId(), record.getTag());
+			researchTaskOnQuestion.withParentEntity(record);
 			researchTaskOnQuestion.loadCitationsWithType(record.getId(), "QUESTION");
 		}
 

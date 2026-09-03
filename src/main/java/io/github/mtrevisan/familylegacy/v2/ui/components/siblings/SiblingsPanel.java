@@ -2,10 +2,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.siblings;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.biologicalparents.BiologicalParentsPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import net.miginfocom.swing.MigLayout;
 
@@ -20,7 +21,10 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
@@ -39,15 +43,18 @@ public class SiblingsPanel extends JPanel{
 	private static final long serialVersionUID = -4829104812837192834L;
 
 
+	private static final int GENERATION_SEPARATOR_SIZE = 36;
+
+
 	private static final double DESCENDANTS_HEIGHT = 12.;
 	private static final double DESCENDANTS_ASPECT_RATIO = 3501. / 2662.;
 	private static final Dimension DESCENDANTS_SIZE = new Dimension((int)(DESCENDANTS_HEIGHT / DESCENDANTS_ASPECT_RATIO), (int)DESCENDANTS_HEIGHT);
 
-	private static final ImageIcon ICON_DESCENDANTS = ResourceHelper.getResizedImage("/images/union.png", DESCENDANTS_SIZE);
+	private static final ImageIcon ICON_DESCENDANTS = ResourceHelper.getResizedImageFromResource("/images/union.png", DESCENDANTS_SIZE);
 
 	private static final int SIBLING_SEPARATION = 15;
 	public static final int DESCENDANTS_ARROW_HEIGHT = ICON_DESCENDANTS.getIconHeight()
-		+ BiologicalParentsPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION;
+		+ PartnersPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION;
 
 
 	private final FLEFModel model;
@@ -55,6 +62,8 @@ public class SiblingsPanel extends JPanel{
 
 	private final List<IndividualPanel> siblingBoxes = new ArrayList<>();
 	private SiblingsData data;
+
+	private IndividualListener listener;
 
 
 	public static SiblingsPanel create(final BoxPanelType boxType, final FLEFModel model){
@@ -74,44 +83,60 @@ public class SiblingsPanel extends JPanel{
 	private void initComponents(){
 		setOpaque(false);
 
-		setLayout(new MigLayout("insets 0", "[]0[]"));
+		final int topMargin = GENERATION_SEPARATOR_SIZE / 2 - DESCENDANTS_ARROW_HEIGHT;
+		final int topPadding = Math.max(0, topMargin);
+		setLayout(new MigLayout("ins " + topPadding + " 0 0 0", "[]0[]"));
 	}
 
 
-//	//for test purposes
-//	@Override
-//	protected final void paintComponent(final Graphics g){
-//		super.paintComponent(g);
-//
-//		if(g instanceof Graphics2D){
-//			final Graphics2D g2d = (Graphics2D)g.create();
-//			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-//			g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-//			g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-//
-//
-//			final Point[] enterPoints = getPaintingEnterPoints();
-//			//vertical line connecting the children
-//			g2d.setColor(Color.RED);
-//			for(int i = 0; i < enterPoints.length; i ++){
-//				final Point point = enterPoints[i];
-//
-//				g2d.drawLine(point.x - 10, point.y - 10,
-//					point.x + 10, point.y + 10);
-//				g2d.drawLine(point.x + 10, point.y - 10,
-//					point.x - 10, point.y + 10);
-//			}
-//			g2d.setColor(Color.BLACK);
-//
-//
-//			g2d.dispose();
-//		}
-//	}
+	//for test purposes
+	@Override
+	protected final void paintComponent(final Graphics g){
+		super.paintComponent(g);
 
-	public void withSiblingsData(final SiblingsData data){
+		if(g instanceof Graphics2D){
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+
+
+			final Point[] enterPoints = getPaintingEnterPoints();
+			final int firstChildX = enterPoints[0].x;
+			final int lastChildX = enterPoints[enterPoints.length - 1].x;
+
+			// Horizontal line spanning from first to last child
+			g2.drawLine(firstChildX, 0,
+				lastChildX, 0);
+
+			//vertical line connecting the children
+			for(int i = 0; i < enterPoints.length; i ++){
+				final Point point = enterPoints[i];
+				g2.drawLine(point.x, point.y,
+					point.x, 0);
+			}
+
+			g2.dispose();
+		}
+	}
+
+	public SiblingsPanel withListener(final IndividualListener listener){
+		this.listener = listener;
+
+		return this;
+	}
+
+	/**
+	 * Populates the panel with siblings data. Ensures at least one placeholder box exists.
+	 *
+	 * @param data	Data containing the list of siblings/children.
+	 */
+	public SiblingsPanel withSiblingsData(final SiblingsData data){
 		this.data = data;
 
 		refreshData();
+
+		return this;
 	}
 
 	private void refreshData(){
@@ -120,24 +145,31 @@ public class SiblingsPanel extends JPanel{
 
 		if(data != null){
 			final List<IndividualData> siblings = data.getSiblings();
-
-			for(final IndividualData siblingData : siblings){
-				final String siblingId = siblingData.getIndividualId();
-				final boolean hasDescendants = data.hasDescendants(siblingId);
-
-				final JPanel boxContainer = createSiblingContainer(hasDescendants);
-				final IndividualPanel siblingBox = IndividualPanel.create(boxType, model);
-				siblingBox.withIndividualData(siblingData);
-
-				boxContainer.add(siblingBox);
-				add(boxContainer, "gapright " + SIBLING_SEPARATION);
-				siblingBoxes.add(siblingBox);
+			if(siblings.isEmpty()){
+				// Placeholder box to allow adding the first child
+				final IndividualPanel emptyBox = IndividualPanel.create(BoxPanelType.SECONDARY, model);
+				add(emptyBox);
 			}
+			else
+				for(final IndividualData siblingData : siblings){
+					final String siblingId = siblingData.getIndividualId();
+					final boolean hasDescendants = data.hasDescendants(siblingId);
+
+					final JPanel boxContainer = createSiblingContainer(hasDescendants);
+					final IndividualPanel siblingBox = IndividualPanel.create(boxType, model);
+					siblingBox.withListener(listener);
+					siblingBox.withIndividualData(siblingData);
+
+					boxContainer.add(siblingBox);
+					add(boxContainer, "gapright " + SIBLING_SEPARATION);
+					siblingBoxes.add(siblingBox);
+				}
 		}
 
 		// Add empty placeholder box for adding a new sibling
 		final JPanel emptyBoxContainer = createSiblingContainer(false);
 		final IndividualPanel emptySiblingBox = IndividualPanel.create(boxType, model);
+		emptySiblingBox.withListener(listener);
 		emptyBoxContainer.add(emptySiblingBox);
 		add(emptyBoxContainer);
 		siblingBoxes.add(emptySiblingBox);
@@ -150,7 +182,7 @@ public class SiblingsPanel extends JPanel{
 		final JPanel container = new JPanel();
 		container.setOpaque(false);
 		container.setLayout(new MigLayout("flowy,ins 0", "[]",
-			"[]" + BiologicalParentsPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
+			"[]" + PartnersPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]"));
 
 		final JLabel descendantsLabel = new JLabel();
 		descendantsLabel.setPreferredSize(new Dimension(ICON_DESCENDANTS.getIconWidth(), ICON_DESCENDANTS.getIconHeight()));

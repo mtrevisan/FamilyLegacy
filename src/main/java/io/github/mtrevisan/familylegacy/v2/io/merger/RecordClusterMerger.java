@@ -49,7 +49,7 @@ public class RecordClusterMerger{
 	 * @param trustScores map from record to trust score; if null, they are computed on the fly
 	 * @return the merged record, or null if the list is empty
 	 */
-	public static FLEFRecord merge(final List<FLEFRecord> records,  Map<FLEFRecord, Double> trustScores){
+	public static FLEFRecord merge(final List<FLEFRecord> records, Map<FLEFRecord, Double> trustScores){
 		if(records == null || records.isEmpty())
 			return null;
 		if(records.size() == 1)

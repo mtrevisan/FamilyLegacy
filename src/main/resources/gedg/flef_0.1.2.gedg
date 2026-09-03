@@ -1112,6 +1112,7 @@ record ConclusionRecord {
   audit: AuditStructure
   
   require preferred in resolves
+  require preferred member_of resolves
 }
 
 ConclusionTarget = oneof {

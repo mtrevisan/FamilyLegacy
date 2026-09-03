@@ -37,6 +37,7 @@ import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Dialog;
 import java.io.Serial;
+import java.util.Objects;
 
 
 public class DateStructureDialog extends JDialog{
@@ -72,8 +73,7 @@ public class DateStructureDialog extends JDialog{
 	 */
 	public static DateStructureDialog createEdit(final Dialog parent, final FLEFModel model, final String title,
 			final FLEFRecord record){
-		if(record == null)
-			throw new IllegalArgumentException("Record cannot be null");
+		Objects.requireNonNull(record, "Record cannot be null");
 
 		return new DateStructureDialog(parent, model, title, record);
 	}

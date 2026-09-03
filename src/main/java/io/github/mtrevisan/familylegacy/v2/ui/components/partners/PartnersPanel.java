@@ -22,13 +22,14 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  */
-package io.github.mtrevisan.familylegacy.v2.ui.components.biologicalparents;
+package io.github.mtrevisan.familylegacy.v2.ui.components.partners;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
@@ -60,7 +61,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 
-public class BiologicalParentsPanel extends JPanel{
+public class PartnersPanel extends JPanel{
 
 	@Serial
 	private static final long serialVersionUID = 6664809287767332824L;
@@ -75,14 +76,14 @@ public class BiologicalParentsPanel extends JPanel{
 	private static final double PREVIOUS_NEXT_ASPECT_RATIO = 3501. / 2662.;
 	private static final Dimension PREVIOUS_NEXT_SIZE = new Dimension((int)PREVIOUS_NEXT_WIDTH,
 		(int)(PREVIOUS_NEXT_WIDTH * PREVIOUS_NEXT_ASPECT_RATIO));
-	/** Height of the union line from the bottom of the individual panel [px]. */
+	/** Height of the group line from the bottom of the individual panel [px]. */
 	private static final int GROUP_CONNECTION_HEIGHT = 15;
-	private static final Dimension UNION_PANEL_DIMENSION = new Dimension(13, 12);
-	public static final int GROUP_EXITING_HEIGHT = GROUP_CONNECTION_HEIGHT - UNION_PANEL_DIMENSION.height / 2;
+	private static final Dimension GROUP_PANEL_DIMENSION = new Dimension(14, 12);
+	public static final int GROUP_EXITING_HEIGHT = GROUP_CONNECTION_HEIGHT - GROUP_PANEL_DIMENSION.height / 2;
 	private static final int HALF_PARTNER_SEPARATION = 6;
-	public static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + UNION_PANEL_DIMENSION.width
+	public static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + GROUP_PANEL_DIMENSION.width
 		+ HALF_PARTNER_SEPARATION;
-	/** Distance between navigation union arrow and box. */
+	/** Distance between navigation group arrow and box. */
 	public static final int NAVIGATION_DESCENDANTS_ARROW_SEPARATION = 2;
 	/** Distance between navigation parents arrow and box. */
 	private static final int NAVIGATION_PARENTS_ARROW_SEPARATION = (NAVIGATION_DESCENDANTS_ARROW_SEPARATION << 1) + 3;
@@ -99,23 +100,23 @@ public class BiologicalParentsPanel extends JPanel{
 	// Icons
 	//https://thenounproject.com/search/?q=cut&i=3132059
 	//https://snappygoat.com/free-public-domain-images-app_application_arrow_back_0/
-	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImage("/images/parents_previous.png",
+	private static final ImageIcon ICON_PARENTS_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_previous.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARENTS_PREVIOUS_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_PARENTS_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImage("/images/parents_next.png",
+	private static final ImageIcon ICON_PARENTS_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/parents_next.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_PARENTS_NEXT_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_PARENTS_NEXT_ENABLED.getImage()));
-	private static final ImageIcon ICON_UNION_PREVIOUS_ENABLED = ResourceHelper.getResizedImage("/images/union_previous.png",
+	private static final ImageIcon ICON_UNION_PREVIOUS_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_previous.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_UNION_PREVIOUS_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_UNION_PREVIOUS_ENABLED.getImage()));
-	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getResizedImage("/images/union_next.png",
+	private static final ImageIcon ICON_UNION_NEXT_ENABLED = ResourceHelper.getResizedImageFromResource("/images/union_next.png",
 		PREVIOUS_NEXT_SIZE);
 	private static final ImageIcon ICON_UNION_NEXT_DISABLED = new ImageIcon(
 		GrayFilter.createDisabledImage(ICON_UNION_NEXT_ENABLED.getImage()));
-	private static final Dimension NEXT_PREVIOUS_UNION_PREFERRED_SIZE = new Dimension(ICON_UNION_PREVIOUS_ENABLED.getIconWidth(),
+	private static final Dimension NEXT_PREVIOUS_GROUP_PREFERRED_SIZE = new Dimension(ICON_UNION_PREVIOUS_ENABLED.getIconWidth(),
 		ICON_UNION_PREVIOUS_ENABLED.getIconHeight());
 
 	private static final String KEY_ENABLED = "enabled";
@@ -128,14 +129,15 @@ public class BiologicalParentsPanel extends JPanel{
 	private final JLabel motherArrowsSpacer = new JLabel();
 	private final JLabel fatherPreviousParentsLabel = new JLabel();
 	private final JLabel fatherNextParentsLabel = new JLabel();
-	private final JLabel fatherPreviousUnionLabel = new JLabel();
-	private final JLabel fatherNextUnionLabel = new JLabel();
+	private final JLabel fatherPreviousGroupLabel = new JLabel();
+	private final JLabel fatherNextGroupLabel = new JLabel();
 	private JPanel arrowFatherPanel;
 	private final JLabel motherPreviousParentsLabel = new JLabel();
 	private final JLabel motherNextParentsLabel = new JLabel();
-	private final JLabel motherPreviousUnionLabel = new JLabel();
-	private final JLabel motherNextUnionLabel = new JLabel();
+	private final JLabel motherPreviousGroupLabel = new JLabel();
+	private final JLabel motherNextGroupLabel = new JLabel();
 	private JPanel arrowMotherPanel;
+
 /*	private final JMenuItem editGroupItem = new JMenuItem("Edit Group…", 'E');
 	private final JMenuItem addGroupItem = new JMenuItem("Add Group…", 'A');
 //	private final JMenuItem linkGroupItem = new JMenuItem("Link Group…", 'L');
@@ -151,15 +153,17 @@ public class BiologicalParentsPanel extends JPanel{
 
 	private final FLEFModel model;
 
-	private BiologicalParentsData data;
+	private PartnersData data;
+
+	private IndividualListener listener;
 
 
-	public static BiologicalParentsPanel create(final BoxPanelType boxType, final FLEFModel model){
-		return new BiologicalParentsPanel(boxType, model);
+	public static PartnersPanel create(final BoxPanelType boxType, final FLEFModel model){
+		return new PartnersPanel(boxType, model);
 	}
 
 
-	private BiologicalParentsPanel(final BoxPanelType boxType, final FLEFModel model){
+	private PartnersPanel(final BoxPanelType boxType, final FLEFModel model){
 		this.boxType = boxType;
 
 		this.model = model;
@@ -189,8 +193,8 @@ public class BiologicalParentsPanel extends JPanel{
 		arrow1Panel.add(fatherArrowsSpacer, StringUtils.EMPTY);
 		arrow1Panel.add(fatherPreviousParentsLabel, "right");
 		arrow1Panel.add(fatherNextParentsLabel, "left");
-		arrow1Panel.add(fatherPreviousUnionLabel, "right");
-		arrow1Panel.add(fatherNextUnionLabel, "right");
+		arrow1Panel.add(fatherPreviousGroupLabel, "right");
+		arrow1Panel.add(fatherNextGroupLabel, "right");
 		arrow1Panel.setOpaque(false);
 
 		arrowFatherPanel = new JPanel(new MigLayout("ins 0",
@@ -202,8 +206,8 @@ public class BiologicalParentsPanel extends JPanel{
 
 		final JPanel arrow2Panel = new JPanel(new MigLayout("ins 0",
 			"[]" + NAVIGATION_DESCENDANTS_ARROW_SEPARATION + "[]0[grow]" + NAVIGATION_PARENTS_ARROW_SEPARATION + "[grow]0[]"));
-		arrow2Panel.add(motherPreviousUnionLabel, "left");
-		arrow2Panel.add(motherNextUnionLabel, "left");
+		arrow2Panel.add(motherPreviousGroupLabel, "left");
+		arrow2Panel.add(motherNextGroupLabel, "left");
 		arrow2Panel.add(motherPreviousParentsLabel, "right");
 		arrow2Panel.add(motherNextParentsLabel, "left");
 		arrow2Panel.add(motherArrowsSpacer, "hidemode 2");
@@ -280,11 +284,22 @@ public class BiologicalParentsPanel extends JPanel{
 	}
 
 
-	public void withBiologicalParents(final IndividualData father, final IndividualData mother){
+	public PartnersPanel withListener(final IndividualListener listener){
+		this.listener = listener;
+
+		fatherPanel.withListener(listener);
+		motherPanel.withListener(listener);
+
+		return this;
+	}
+
+	public PartnersPanel withBiologicalParents(final IndividualData father, final IndividualData mother){
 		this.father = father;
 		this.mother = mother;
 
 		updateGroupData();
+
+		return this;
 	}
 
 	private void updateGroupData(){
@@ -300,9 +315,9 @@ public class BiologicalParentsPanel extends JPanel{
 
 
 //		if(boxType == BoxPanelType.PRIMARY){
-//			final Integer groupId = extractRecordID(union);
-//			updatePreviousNextUnionIcons(groupId, mother, fatherPreviousUnionLabel, fatherNextUnionLabel);
-//			updatePreviousNextUnionIcons(groupId, father, motherPreviousUnionLabel, motherNextUnionLabel);
+//			final Integer groupId = extractRecordID(group);
+//			updatePreviousNextGroupIcons(groupId, mother, fatherPreviousGroupLabel, fatherNextGroupLabel);
+//			updatePreviousNextGroupIcons(groupId, father, motherPreviousGroupLabel, motherNextGroupLabel);
 //
 //			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
 //			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
@@ -330,18 +345,18 @@ public class BiologicalParentsPanel extends JPanel{
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherPreviousParentsLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = fatherPanel.getIndividual();
 
-						//list the `groupID`s for the biological union and adopting unions of the `partner`
+						//list the `groupID`s for the biological group and adopting groups of the `partner`
 						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
+						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
 						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
 						int newGroupID = -1;
-						final int parentsCount = unionsIDs.size();
+						final int parentsCount = groupsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i > 0)
-									newGroupID = unionsIDs.get(i - 1);
+									newGroupID = groupsIDs.get(i - 1);
 								break;
 							}
 
@@ -357,18 +372,18 @@ public class BiologicalParentsPanel extends JPanel{
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherNextParentsLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = fatherPanel.getIndividual();
 
-						//list the `groupID`s for the biological union and adopting unions of the `partner`
+						//list the `groupID`s for the biological group and adopting groups of the `partner`
 						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
+						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
 						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
 						int newGroupID = -1;
-						final int parentsCount = unionsIDs.size();
+						final int parentsCount = groupsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i + 1 < parentsCount)
-									newGroupID = unionsIDs.get(i + 1);
+									newGroupID = groupsIDs.get(i + 1);
 								break;
 							}
 
@@ -378,35 +393,35 @@ public class BiologicalParentsPanel extends JPanel{
 					}
 				}
 			});
-			fatherPreviousUnionLabel.setPreferredSize(NEXT_PREVIOUS_UNION_PREFERRED_SIZE);
-			fatherPreviousUnionLabel.addMouseListener(new MouseAdapter(){
+			fatherPreviousGroupLabel.setPreferredSize(NEXT_PREVIOUS_GROUP_PREFERRED_SIZE);
+			fatherPreviousGroupLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherPreviousUnionLabel.getClientProperty(KEY_ENABLED)){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherPreviousGroupLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = motherPanel.getIndividual();
 
-						//list the `groupID`s for the unions of the `other partner`
+						//list the `groupID`s for the groups of the `other partner`
 						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
+						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
 
-						//find current union in list
-						final Integer groupID = extractRecordID(union);
+						//find current group in list
+						final Integer groupID = extractRecordID(group);
 						int newGroupID = -1;
-						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
-						for(int i = 0; i < otherPartnerUnionsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerUnionIDs.get(i))){
+						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
+						for(int i = 0; i < otherPartnerGroupsCount; i ++)
+							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
 								if(i > 0)
-									newGroupID = otherPartnerUnionIDs.get(i - 1);
+									newGroupID = otherPartnerGroupIDs.get(i - 1);
 								break;
 							}
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newUnion = groups.getOrDefault(newGroupID, Collections.emptyMap());
+						final Map<String, Object> newGroup = groups.getOrDefault(newGroupID, Collections.emptyMap());
 
 						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newUnion.isEmpty()){
+						if(!newGroup.isEmpty()){
 							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
 							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
 									if(i > 0)
@@ -415,48 +430,48 @@ public class BiologicalParentsPanel extends JPanel{
 								}
 						}
 
-						groupListener.onIndividualChangeUnion(BiologicalParentsPanel.this, motherPanel, newPartner, newUnion);
+						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, motherPanel, newPartner, newGroup);
 					}
 				}
 			});
-			fatherNextUnionLabel.setPreferredSize(NEXT_PREVIOUS_UNION_PREFERRED_SIZE);
-			fatherNextUnionLabel.addMouseListener(new MouseAdapter(){
+			fatherNextGroupLabel.setPreferredSize(NEXT_PREVIOUS_GROUP_PREFERRED_SIZE);
+			fatherNextGroupLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherNextUnionLabel.getClientProperty(KEY_ENABLED)){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)fatherNextGroupLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = motherPanel.getIndividual();
 
-						//list the `groupID`s for the unions of the `other partner`
+						//list the `groupID`s for the groups of the `other partner`
 						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
+						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
 
-						//find current union in list
-						final Integer groupID = extractRecordID(union);
+						//find current group in list
+						final Integer groupID = extractRecordID(group);
 						int newGroupID = -1;
-						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
-						for(int i = 0; i < otherPartnerUnionsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerUnionIDs.get(i))){
-								if(i + 1 < otherPartnerUnionsCount)
-									newGroupID = otherPartnerUnionIDs.get(i + 1);
+						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
+						for(int i = 0; i < otherPartnerGroupsCount; i ++)
+							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
+								if(i + 1 < otherPartnerGroupsCount)
+									newGroupID = otherPartnerGroupIDs.get(i + 1);
 								break;
 							}
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newUnion = groups.getOrDefault(newGroupID, Collections.emptyMap());
+						final Map<String, Object> newGroup = groups.getOrDefault(newGroupID, Collections.emptyMap());
 
 						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newUnion.isEmpty()){
+						if(!newGroup.isEmpty()){
 							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
 							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
-									if(i + 1 < otherPartnerUnionsCount)
+									if(i + 1 < otherPartnerGroupsCount)
 										newPartner = individuals.get(newIndividualIDs.get(i + 1));
 									break;
 								}
 						}
 
-						groupListener.onIndividualChangeUnion(BiologicalParentsPanel.this, motherPanel, newPartner, newUnion);
+						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, motherPanel, newPartner, newGroup);
 					}
 				}
 			});
@@ -466,18 +481,18 @@ public class BiologicalParentsPanel extends JPanel{
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherPreviousParentsLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = motherPanel.getIndividual();
 
-						//list the `groupID`s for the biological union and adopting unions of the `partner`
+						//list the `groupID`s for the biological group and adopting groups of the `partner`
 						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
+						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
 						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
 						int newGroupID = -1;
-						final int parentsCount = unionsIDs.size();
+						final int parentsCount = groupsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i > 0)
-									newGroupID = unionsIDs.get(i - 1);
+									newGroupID = groupsIDs.get(i - 1);
 								break;
 							}
 
@@ -493,18 +508,18 @@ public class BiologicalParentsPanel extends JPanel{
 					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherNextParentsLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = motherPanel.getIndividual();
 
-						//list the `groupID`s for the biological union and adopting unions of the `partner`
+						//list the `groupID`s for the biological group and adopting groups of the `partner`
 						final Integer adopteeID = extractRecordID(individual);
-						final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
+						final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 						//find current parents in list
 						final Integer partnerParentsID = TreePanel.extractParentsGroupID(individual, store);
 						int newGroupID = -1;
-						final int parentsCount = unionsIDs.size();
+						final int parentsCount = groupsIDs.size();
 						for(int i = 0; i < parentsCount; i ++)
-							if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
+							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i + 1 < parentsCount)
-									newGroupID = unionsIDs.get(i + 1);
+									newGroupID = groupsIDs.get(i + 1);
 								break;
 							}
 
@@ -514,33 +529,33 @@ public class BiologicalParentsPanel extends JPanel{
 					}
 				}
 			});
-			motherPreviousUnionLabel.addMouseListener(new MouseAdapter(){
+			motherPreviousGroupLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherPreviousUnionLabel.getClientProperty(KEY_ENABLED)){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherPreviousGroupLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = fatherPanel.getIndividual();
 
-						//list the `groupID`s for the unions of the `other partner`
+						//list the `groupID`s for the groups of the `other partner`
 						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
+						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
 
-						//find current union in list
-						final Integer groupID = extractRecordID(union);
+						//find current group in list
+						final Integer groupID = extractRecordID(group);
 						int newGroupID = -1;
-						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
-						for(int i = 0; i < otherPartnerUnionsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerUnionIDs.get(i))){
-								newGroupID = otherPartnerUnionIDs.get(i - 1);
+						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
+						for(int i = 0; i < otherPartnerGroupsCount; i ++)
+							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
+								newGroupID = otherPartnerGroupIDs.get(i - 1);
 								break;
 							}
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newUnion = groups.get(newGroupID);
+						final Map<String, Object> newGroup = groups.get(newGroupID);
 
 						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newUnion.isEmpty()){
+						if(!newGroup.isEmpty()){
 							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
 							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
 									if(i > 0)
@@ -549,47 +564,47 @@ public class BiologicalParentsPanel extends JPanel{
 								}
 						}
 
-						groupListener.onIndividualChangeUnion(BiologicalParentsPanel.this, fatherPanel, newPartner, newUnion);
+						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, fatherPanel, newPartner, newGroup);
 					}
 				}
 			});
-			motherNextUnionLabel.addMouseListener(new MouseAdapter(){
+			motherNextGroupLabel.addMouseListener(new MouseAdapter(){
 				@Override
 				public void mouseClicked(final MouseEvent evt){
-					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherNextUnionLabel.getClientProperty(KEY_ENABLED)){
+					if(SwingUtilities.isLeftMouseButton(evt) && (Boolean)motherNextGroupLabel.getClientProperty(KEY_ENABLED)){
 						final Map<String, Object> individual = fatherPanel.getIndividual();
 
-						//list the `groupID`s for the unions of the `other partner`
+						//list the `groupID`s for the groups of the `other partner`
 						final Integer otherPartnerID = extractRecordID(individual);
-						final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
+						final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
 
-						//find current union in list
-						final Integer groupID = extractRecordID(union);
+						//find current group in list
+						final Integer groupID = extractRecordID(group);
 						int newGroupID = -1;
-						final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
-						for(int i = 0; i < otherPartnerUnionsCount; i ++)
-							if(Objects.equals(groupID, otherPartnerUnionIDs.get(i))){
-								if(i + 1 < otherPartnerUnionsCount)
-									newGroupID = otherPartnerUnionIDs.get(i + 1);
+						final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
+						for(int i = 0; i < otherPartnerGroupsCount; i ++)
+							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
+								if(i + 1 < otherPartnerGroupsCount)
+									newGroupID = otherPartnerGroupIDs.get(i + 1);
 								break;
 							}
 
 						final TreeMap<Integer, Map<String, Object>> groups = getRecords(EntityManager.TABLE_NAME_GROUP);
-						final Map<String, Object> newUnion = groups.get(newGroupID);
+						final Map<String, Object> newGroup = groups.get(newGroupID);
 
 						Map<String, Object> newPartner = Collections.emptyMap();
-						if(!newUnion.isEmpty()){
+						if(!newGroup.isEmpty()){
 							final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
-							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newUnion));
+							final List<Integer> newIndividualIDs = getIndividualIDsInGroup(extractRecordID(newGroup));
 							for(int i = 0, length = newIndividualIDs.size(); i < length; i ++)
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
-									if(i + 1 < otherPartnerUnionsCount)
+									if(i + 1 < otherPartnerGroupsCount)
 										newPartner = individuals.get(newIndividualIDs.get(i + 1));
 									break;
 								}
 						}
 
-						groupListener.onIndividualChangeUnion(BiologicalParentsPanel.this, fatherPanel, newPartner, newUnion);
+						groupListener.onIndividualChangeGroup(BiologicalParentsPanel.this, fatherPanel, newPartner, newGroup);
 					}
 				}
 			});
@@ -628,23 +643,23 @@ public class BiologicalParentsPanel extends JPanel{
 
 	private void prepareData(Map<String, Object> group, Map<String, Object> father, Map<String, Object> mother){
 		if(group.isEmpty()){
-			final List<Map<String, Object>> unions = extractUnions(father);
-			if(!unions.isEmpty())
-				group = unions.getFirst();
+			final List<Map<String, Object>> groups = extractGroups(father);
+			if(!groups.isEmpty())
+				group = groups.getFirst();
 		}
 
 		if(!group.isEmpty()){
-			final Integer homeUnionID = extractRecordID(group);
-			final List<Integer> individualIDsInUnion = getIndividualIDsInGroup(homeUnionID);
+			final Integer homeGroupID = extractRecordID(group);
+			final List<Integer> individualIDsInGroup = getIndividualIDsInGroup(homeGroupID);
 			Integer fatherID = extractRecordID(father);
-			if(fatherID != null && !individualIDsInUnion.contains(fatherID)){
-				LOGGER.warn("Individual {} does not belong to the union {} (this cannot be)", fatherID, homeUnionID);
+			if(fatherID != null && !individualIDsInGroup.contains(fatherID)){
+				LOGGER.warn("Individual {} does not belong to the group {} (this cannot be)", fatherID, homeGroupID);
 
 				father = Collections.emptyMap();
 			}
 			Integer motherID = extractRecordID(mother);
-			if(motherID != null && !individualIDsInUnion.contains(motherID)){
-				LOGGER.warn("Individual {} does not belong to the union {} (this cannot be)", motherID, homeUnionID);
+			if(motherID != null && !individualIDsInGroup.contains(motherID)){
+				LOGGER.warn("Individual {} does not belong to the group {} (this cannot be)", motherID, homeGroupID);
 
 				mother = Collections.emptyMap();
 			}
@@ -652,27 +667,27 @@ public class BiologicalParentsPanel extends JPanel{
 			if(father.isEmpty() || mother.isEmpty()){
 				final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
 
-				//extract the first two individuals from the union:
+				//extract the first two individuals from the group:
 				if(!father.isEmpty())
-					individualIDsInUnion.remove(extractRecordID(father));
+					individualIDsInGroup.remove(extractRecordID(father));
 				if(!mother.isEmpty())
-					individualIDsInUnion.remove(extractRecordID(mother));
-				if(father.isEmpty() && !individualIDsInUnion.isEmpty()){
-					fatherID = individualIDsInUnion.getFirst();
+					individualIDsInGroup.remove(extractRecordID(mother));
+				if(father.isEmpty() && !individualIDsInGroup.isEmpty()){
+					fatherID = individualIDsInGroup.getFirst();
 					if(individuals.containsKey(fatherID))
 						father = individuals.get(fatherID);
-					individualIDsInUnion.remove(fatherID);
+					individualIDsInGroup.remove(fatherID);
 				}
-				if(mother.isEmpty() && !individualIDsInUnion.isEmpty()){
-					motherID = individualIDsInUnion.getFirst();
+				if(mother.isEmpty() && !individualIDsInGroup.isEmpty()){
+					motherID = individualIDsInGroup.getFirst();
 					if(individuals.containsKey(motherID))
 						mother = individuals.get(motherID);
-					individualIDsInUnion.remove(motherID);
+					individualIDsInGroup.remove(motherID);
 				}
 			}
 		}
 
-		union = group;
+		group = group;
 		this.father = father;
 		this.mother = mother;
 	}
@@ -682,9 +697,9 @@ public class BiologicalParentsPanel extends JPanel{
 		motherPanel.loadData(extractRecordID(mother));
 
 		if(boxType == BoxPanelType.PRIMARY){
-			final Integer groupID = extractRecordID(union);
-			updatePreviousNextUnionIcons(groupID, mother, fatherPreviousUnionLabel, fatherNextUnionLabel);
-			updatePreviousNextUnionIcons(groupID, father, motherPreviousUnionLabel, motherNextUnionLabel);
+			final Integer groupID = extractRecordID(group);
+			updatePreviousNextGroupIcons(groupID, mother, fatherPreviousGroupLabel, fatherNextGroupLabel);
+			updatePreviousNextGroupIcons(groupID, father, motherPreviousGroupLabel, motherNextGroupLabel);
 
 			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
 			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
@@ -696,13 +711,13 @@ public class BiologicalParentsPanel extends JPanel{
 		motherPanel.repaint();
 	}
 
-	private List<Map<String, Object>> extractUnions(final Map<String, Object> individual){
-		final List<Map<String, Object>> unionGroups = new ArrayList<>(0);
+	private List<Map<String, Object>> extractGroups(final Map<String, Object> individual){
+		final List<Map<String, Object>> groupGroups = new ArrayList<>(0);
 		if(!individual.isEmpty()){
 			final Integer individualID = extractRecordID(individual);
-			unionGroups.addAll(getGroupIDs(individualID));
+			groupGroups.addAll(getGroupIDs(individualID));
 		}
-		return unionGroups;
+		return groupGroups;
 	}
 
 	private List<Map<String, Object>> getGroupIDs(final Integer individualID){
@@ -724,7 +739,7 @@ public class BiologicalParentsPanel extends JPanel{
 		if(actionCommand != ActionCommand.ACTION_COMMAND_GROUP)
 			return;
 
-		final boolean hasData = !union.isEmpty();
+		final boolean hasData = !group.isEmpty();
 //		final boolean hasGroups = !getRecords(TABLE_NAME_GROUP).isEmpty();
 //		final boolean hasChildren = (getChildren().length > 0);
 		editGroupItem.setEnabled(hasData);
@@ -733,53 +748,53 @@ public class BiologicalParentsPanel extends JPanel{
 		removeGroupItem.setEnabled(hasData);
 	}*/
 
-/*	private void updatePreviousNextUnionIcons(final Integer groupID, final Map<String, Object> otherPartner,
+/*	private void updatePreviousNextGroupIcons(final Integer groupID, final Map<String, Object> otherPartner,
 			final JLabel previousLabel, final JLabel nextLabel){
-		//list the `groupID`s for the unions of the `other partner`
+		//list the `groupID`s for the groups of the `other partner`
 		final Integer otherPartnerID = extractRecordID(otherPartner);
-		final List<Integer> otherPartnerUnionIDs = getUnionIDs(otherPartnerID);
+		final List<Integer> otherPartnerGroupIDs = getGroupIDs(otherPartnerID);
 
-		//find current union in list
+		//find current group in list
 		int currentGroupIndex = -1;
-		final int otherPartnerUnionsCount = otherPartnerUnionIDs.size();
-		for(int i = 0; i < otherPartnerUnionsCount; i ++){
-			final Integer otherUnionID = otherPartnerUnionIDs.get(i);
+		final int otherPartnerGroupsCount = otherPartnerGroupIDs.size();
+		for(int i = 0; i < otherPartnerGroupsCount; i ++){
+			final Integer otherGroupID = otherPartnerGroupIDs.get(i);
 
-			if(Objects.equals(groupID, otherUnionID)){
+			if(Objects.equals(groupID, otherGroupID)){
 				currentGroupIndex = i;
 				break;
 			}
 		}
 
-		final boolean hasMoreUnions = (otherPartnerUnionsCount > 1);
+		final boolean hasMoreGroups = (otherPartnerGroupsCount > 1);
 
 		final boolean partnerPreviousEnabled = (currentGroupIndex > 0);
 		previousLabel.putClientProperty(KEY_ENABLED, partnerPreviousEnabled);
 		previousLabel.setCursor(Cursor.getPredefinedCursor(partnerPreviousEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
 		ImageIcon icon = null;
-		if(hasMoreUnions)
-			icon = (partnerPreviousEnabled? ICON_UNION_PREVIOUS_ENABLED: ICON_UNION_PREVIOUS_DISABLED);
+		if(hasMoreGroups)
+			icon = (partnerPreviousEnabled? ICON_GROUP_PREVIOUS_ENABLED: ICON_GROUP_PREVIOUS_DISABLED);
 		previousLabel.setIcon(icon);
 
-		final boolean partnerNextEnabled = (currentGroupIndex < otherPartnerUnionsCount - 1);
+		final boolean partnerNextEnabled = (currentGroupIndex < otherPartnerGroupsCount - 1);
 		nextLabel.putClientProperty(KEY_ENABLED, partnerNextEnabled);
 		nextLabel.setCursor(Cursor.getPredefinedCursor(partnerNextEnabled? Cursor.HAND_CURSOR: Cursor.DEFAULT_CURSOR));
-		if(hasMoreUnions)
-			icon = (partnerNextEnabled? ICON_UNION_NEXT_ENABLED: ICON_UNION_NEXT_DISABLED);
+		if(hasMoreGroups)
+			icon = (partnerNextEnabled? ICON_GROUP_NEXT_ENABLED: ICON_GROUP_NEXT_DISABLED);
 		nextLabel.setIcon(icon);
 	}
 
 	private void updatePreviousNextParentsIcons(final Map<String, Object> partner, final JLabel previousLabel, final JLabel nextLabel){
-		//list the `groupID`s for the biological union and adopting unions of the `partner`
+		//list the `groupID`s for the biological group and adopting groups of the `partner`
 		final Integer adopteeID = extractRecordID(partner);
-		final List<Integer> unionsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
+		final List<Integer> groupsIDs = getBiologicalAndAdoptingParentsIDs(adopteeID);
 
 		//find current parents in list
 		final Integer partnerParentsID = TreePanel.extractParentsGroupID(motherPanel.getIndividual(), store);
 		int currentGroupIndex = -1;
-		final int parentsCount = unionsIDs.size();
+		final int parentsCount = groupsIDs.size();
 		for(int i = 0; i < parentsCount; i ++)
-			if(Objects.equals(partnerParentsID, unionsIDs.get(i))){
+			if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 				currentGroupIndex = i;
 				break;
 			}
@@ -803,9 +818,9 @@ public class BiologicalParentsPanel extends JPanel{
 
 
 		final boolean isFather = Objects.equals(extractRecordID(partner), extractRecordID(fatherPanel.getIndividual()));
-		final List<Integer> otherPartnerUnionIDs = getUnionIDs(extractRecordID(isFather? mother: father));
-		final boolean hasMoreUnions = (otherPartnerUnionIDs.size() > 1);
-		(isFather? fatherArrowsSpacer: motherArrowsSpacer).setVisible(hasMoreParents && hasMoreUnions);
+		final List<Integer> otherPartnerGroupIDs = getGroupIDs(extractRecordID(isFather? mother: father));
+		final boolean hasMoreGroups = (otherPartnerGroupIDs.size() > 1);
+		(isFather? fatherArrowsSpacer: motherArrowsSpacer).setVisible(hasMoreParents && hasMoreGroups);
 	}
 
 
@@ -833,7 +848,7 @@ public class BiologicalParentsPanel extends JPanel{
 			.toList());
 	}
 
-	private List<Integer> getUnionIDs(final Integer partnerID){
+	private List<Integer> getGroupIDs(final Integer partnerID){
 		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
 			.filter(entry -> Objects.equals(EntityManager.TABLE_NAME_INDIVIDUAL, extractRecordReferenceTable(entry)))
@@ -856,12 +871,12 @@ public class BiologicalParentsPanel extends JPanel{
 			.toList();
 	}
 
-	private List<Map<String, Object>> extractChildren(final Integer unionID){
+	private List<Map<String, Object>> extractChildren(final Integer groupID){
 		final TreeMap<Integer, Map<String, Object>> individuals = getRecords(EntityManager.TABLE_NAME_INDIVIDUAL);
 		return getRecords(EntityManager.TABLE_NAME_GROUP_JUNCTION)
 			.values().stream()
 			.filter(entry -> EntityManager.TABLE_NAME_INDIVIDUAL.equals(extractRecordReferenceTable(entry)))
-			.filter(entry -> Objects.equals(unionID, extractRecordGroupID(entry)))
+			.filter(entry -> Objects.equals(groupID, extractRecordGroupID(entry)))
 			.filter(entry -> Objects.equals(EntityManager.GROUP_ROLE_CHILD, extractRecordRole(entry)))
 			.map(EntityManager::extractRecordReferenceID)
 			.filter(Objects::nonNull)
@@ -899,7 +914,7 @@ public class BiologicalParentsPanel extends JPanel{
 		String recordId = "I1";
 
 		final String content;
-		try(final InputStream is = BiologicalParentsPanel.class.getResourceAsStream(modelUri)){
+		try(final InputStream is = PartnersPanel.class.getResourceAsStream(modelUri)){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 		}
 
@@ -909,10 +924,10 @@ public class BiologicalParentsPanel extends JPanel{
 		final BoxPanelType boxType = BoxPanelType.PRIMARY;
 //		final BoxPanelType boxType = BoxPanelType.SECONDARY;
 
-//		final GroupListenerInterface unionListener = new GroupListenerInterface(){
+//		final GroupListenerInterface groupListener = new GroupListenerInterface(){
 //			@Override
 //			public void onGroupEdit(final BiologicalParentsPanel groupPanel){
-//				final Map<String, Object> group = groupPanel.getUnion();
+//				final Map<String, Object> group = groupPanel.getGroup();
 //				System.out.println("onEditGroup " + extractRecordID(group));
 //			}
 //
@@ -925,14 +940,14 @@ public class BiologicalParentsPanel extends JPanel{
 //			public void onGroupLink(final BiologicalParentsPanel groupPanel){
 //				final PersonPanel father = groupPanel.getFatherPanel();
 //				final PersonPanel mother = groupPanel.getMotherPanel();
-//				final Map<String, Object> group = groupPanel.union;
+//				final Map<String, Object> group = groupPanel.group;
 //				System.out.println("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(father.getPerson())
 //					+ ", partner 2: " + extractRecordID(mother.getPerson()) + ", group: " + extractRecordID(group));
 //			}
 //
 //			@Override
 //			public void onGroupRemove(final BiologicalParentsPanel groupPanel){
-//				final Map<String, Object> group = groupPanel.getUnion();
+//				final Map<String, Object> group = groupPanel.getGroup();
 //				System.out.println("onRemoveGroup " + extractRecordID(group));
 //			}
 //
@@ -943,12 +958,12 @@ public class BiologicalParentsPanel extends JPanel{
 //			}
 //
 //			@Override
-//			public void onPersonChangeUnion(final BiologicalParentsPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
-//					final Map<String, Object> newUnion){
-//				final Map<String, Object> oldUnion = groupPanel.getUnion();
-//				System.out.println("onPersonChangeUnion old partner: " + extractRecordID(oldPartner.getPerson())
-//					+ ", old union: " + oldUnion.get("id") + ", new partner: " + extractRecordID(newPartner)
-//					+ ", new union: " + extractRecordID(newUnion));
+//			public void onPersonChangeGroup(final BiologicalParentsPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
+//					final Map<String, Object> newGroup){
+//				final Map<String, Object> oldGroup = groupPanel.getGroup();
+//				System.out.println("onPersonChangeGroup old partner: " + extractRecordID(oldPartner.getPerson())
+//					+ ", old group: " + oldGroup.get("id") + ", new partner: " + extractRecordID(newPartner)
+//					+ ", new group: " + extractRecordID(newGroup));
 //			}
 //		};
 //		final PersonListenerInterface personListener = new PersonListenerInterface(){
@@ -1013,9 +1028,9 @@ public class BiologicalParentsPanel extends JPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final BiologicalParentsPanel panel = BiologicalParentsPanel.create(BoxPanelType.PRIMARY, model);
+			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, model);
 //			panel.withBiologicalParents(recordId);
-//			panel.setGroupListener(unionListener);
+//			panel.setGroupListener(groupListener);
 //			panel.setPersonListener(personListener);
 //			EventBusService.subscribe(panel);
 

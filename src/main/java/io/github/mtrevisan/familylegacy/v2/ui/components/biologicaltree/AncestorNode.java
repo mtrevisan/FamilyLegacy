@@ -93,8 +93,4 @@ public final class AncestorNode{
 		return generation;
 	}
 
-	public void setGeneration(final int generation){
-		this.generation = generation;
-	}
-
 }

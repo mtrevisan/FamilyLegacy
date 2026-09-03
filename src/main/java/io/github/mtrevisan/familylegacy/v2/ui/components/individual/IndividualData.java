@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.BiConsumer;
 
@@ -41,6 +43,8 @@ public final class IndividualData{
 	private static final String TAG_NAME = "name";
 	private static final String TAG_PART = "part";
 	private static final String TAG_TYPE = "type";
+	private static final String TAG_SUBJECT = "subject";
+	private static final String TAG_TARGET = "target";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_CAUSE = "cause";
 	private static final String TAG_REASON = "reason";
@@ -63,6 +67,8 @@ public final class IndividualData{
 	private static final String TAG_PREFERRED_IMAGE_URI = TAG_PREFERRED_IMAGE + DOT + TAG_URI;
 	private static final String TAG_PREFERRED_IMAGE_CROP = TAG_PREFERRED_IMAGE + DOT + TAG_CROP;
 
+	private static final String ENUM_TYPE_CHILD = "child";
+
 	private static final String EVENT_TYPE_BIRTH = "birth";
 	private static final String EVENT_TYPE_DEATH = "death";
 
@@ -72,16 +78,20 @@ public final class IndividualData{
 	private static final String TAG_FIGURE_DASH = "\u2012";
 
 	private static final String CIRCA_SYMBOL = "~";
-	private static final String CIRCA = "circa";
-	private static final String ABOUT = "about";
 	private static final String LESS_THAN_ABOUT = "< ~";
 	private static final String OPEN_PARENTHESIS = "(";
 	private static final String CLOSE_PARENTHESIS = ")";
 	private static final String YEARS_OLD = "y/o";
 
+	private static final Set<String> EXCLUDED_PART_TYPES = Set.of(
+		"family_nickname",
+		"title", "occupational", "prefix", "suffix",
+		"nickname", "regnal", "religious", "posthumous"
+	);
+
 	private static final String NO_DATA = "?";
 
-	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImage("/images/add_photo.jpg");
+	private static final ImageIcon ADD_PHOTO = ResourceHelper.getImageFromResource("/images/add_photo.jpg");
 
 	private static final double PREFERRED_IMAGE_WIDTH = 48.;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
@@ -91,6 +101,8 @@ public final class IndividualData{
 	private final String individualSex;
 	private final String individualNameText;
 	private String individualNameTooltip;
+	private boolean hasParents;
+	private boolean hasPartner;
 
 	private final String infoText;
 	private final String infoTooltip;
@@ -124,6 +136,26 @@ public final class IndividualData{
 		else
 			individualNameText = NO_DATA;
 
+		// Check for parent relationships
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String subjectId = extractReferencedId(relationship, TAG_SUBJECT);
+			final String targetId = extractReferencedId(relationship, TAG_TARGET);
+			if(type != null && type.endsWith(ENUM_TYPE_CHILD)){
+				// If current individual is the subject (child), they have parents (target)
+				if(individualId.equals(subjectId) && targetId != null)
+					hasParents = true;
+			}
+			else
+				// Partner/Spouse relationship (non-child type)
+				if(individualId.equals(subjectId) && targetId != null
+						|| individualId.equals(targetId) && subjectId != null)
+					hasPartner = true;
+
+			if(hasParents && hasPartner)
+				break;
+		}
 
 		// extract events
 		final List<EventInfo> events = extractEvents(individual, eventsMap, model);
@@ -189,6 +221,15 @@ public final class IndividualData{
 		extractPreferredImage(individual);
 	}
 
+	private String extractReferencedId(final FLEFRecord record, final String fieldTag){
+		final FLEFRecord field = FLEFRecordHelper.findChild(record, fieldTag);
+		if(field == null)
+			return null;
+
+		final FLEFRecord ref = field.getTheOnlyChild();
+		return (ref != null? ref.getValue(): null);
+	}
+
 
 	public String getIndividualId() {
 		return individualId;
@@ -204,6 +245,14 @@ public final class IndividualData{
 
 	public String getIndividualNameTooltip(){
 		return individualNameTooltip;
+	}
+
+	public boolean hasParents(){
+		return hasParents;
+	}
+
+	public boolean hasPartner(){
+		return hasPartner;
 	}
 
 	public String getInfoText(){
@@ -226,14 +275,17 @@ public final class IndividualData{
 		return individualImageSecondary;
 	}
 
+	public boolean isEmpty(){
+		return (individualId == null);
+	}
+
 
 	/**
-	 * Extracts all full names from an IndividualRecord.
-	 * For each PersonalNameStructure, concatenates the values of all part structures
-	 * in the order they appear, separated by a space.
+	 * Extracts full names from an IndividualRecord, excluding additional,
+	 * assumed, or non-birth name parts (e.g. nicknames, titles, regnal names).
 	 *
 	 * @param individual the IndividualRecord (tag must be "individual")
-	 * @return a list of full name strings (empty if none found)
+	 * @return a list of full name strings with excluded parts omitted
 	 */
 	private List<String> extractFullNames(final FLEFRecord individual){
 		final List<String> names = new ArrayList<>();
@@ -242,7 +294,14 @@ public final class IndividualData{
 
 		for(final FLEFRecord nameStruct : FLEFRecordHelper.findChildren(individual, TAG_NAME)){
 			final StringBuilder fullName = new StringBuilder();
-			for(FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, TAG_PART)){
+
+			for(final FLEFRecord part : FLEFRecordHelper.findChildren(nameStruct, TAG_PART)){
+				final String partType = FLEFRecordHelper.getChildValue(part, TAG_TYPE);
+
+				// Skip parts having a type explicitly classified as acquired or contextual
+				if(partType != null && EXCLUDED_PART_TYPES.contains(partType))
+					continue;
+
 				final String value = FLEFRecordHelper.getChildValue(part, TAG_VALUE);
 				if(value != null){
 					if(!fullName.isEmpty())
@@ -293,7 +352,7 @@ public final class IndividualData{
 
 		final String calendar = extractDateCalendar(event);
 		final ParsedGenealogicalDate parsedDate = UniversalDateConverter.parse(calendar, date);
-		final boolean approximate = isApproximate(date);
+		final boolean approximate = parsedDate.approximate();
 		final String place = extractPlace(event, model);
 		final String deathCause = FLEFRecordHelper.getChildValue(event, TAG_CAUSE_REASON);
 		return new EventInfo(type, date, parsedDate, approximate, place, deathCause);
@@ -313,12 +372,6 @@ public final class IndividualData{
 			return null;
 
 		return FLEFRecordHelper.getChildValue(fullDate, TAG_CALENDAR);
-	}
-
-	private boolean isApproximate(final String dateStr){
-		return (dateStr != null
-			&& (dateStr.toLowerCase().contains(ABOUT) || dateStr.toLowerCase().contains(CIRCA)
-			|| dateStr.contains(CIRCA_SYMBOL)));
 	}
 
 	private String extractPlace(final FLEFRecord event, final FLEFModel model){

@@ -121,8 +121,7 @@ public final class HandlerRegistry{
 		catch(final NoSuchFieldException | IllegalAccessException e){
 			throw new IllegalArgumentException(
 				"Handler class " + handlerClass.getName() + " does not define a static TYPE field",
-				e
-			);
+				e);
 		}
 	}
 

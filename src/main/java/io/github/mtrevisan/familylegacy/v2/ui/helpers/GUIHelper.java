@@ -116,6 +116,8 @@ public final class GUIHelper{
 	private static final String TOOLTIP_TEXT = "Right-click for actions, double‑click to edit";
 	private static final String TOOLTIP_DUAL_ACTION_TEXT = "Right-click for actions, double‑click to edit citation, shift+double-click to edit record";
 
+	private static final String ELLIPSIS = "…";
+
 	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
 
 
@@ -305,7 +307,7 @@ public final class GUIHelper{
 
 
 	public static String limitTextLength(final String text){
-		return (text.length() > 50? text.substring(0, 49) + "…": text);
+		return (text.length() > 50? text.substring(0, 49) + ELLIPSIS: text);
 	}
 
 	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,

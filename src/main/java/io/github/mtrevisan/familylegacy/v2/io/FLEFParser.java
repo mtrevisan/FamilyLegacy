@@ -557,17 +557,15 @@ public class FLEFParser{
 			  submitter.name Mario Rossi
 			}
 			records {
-			  individual {
-			    id @I1@
+			  individual I1 {
 			    sex INVALID_VALUE
-			    modification.creation.date 2026-07-31
+			    audit.creation.date 2026-07-31
 			  }
-			  event_participation {
-			    id @EP1@
-			    event.event @E999@
-			    participant.individual @I1@
+			  event_participation EP1 {
+			    event.event E999
+			    participant.individual I1
 			    role CHILD
-			    modification.creation.date 2026-07-31
+			    audit.creation.date 2026-07-31
 			  }
 			}
 		""";
@@ -587,55 +585,51 @@ public class FLEFParser{
 			  submitter {
 			    name Mario Rossi
 			    contact {
-			      address mario.rossi@example.com
+			      value mario.rossi@example.com
 			      type personal
-			      modification.creation.date 2026-07-31
+			      audit.creation.date 2026-07-31
 			    }
 			  }
 			  scope Example family
 			}
 			records {
-			  individual {
-			    id @I1@
-			      name {
-			        part {
-			          type given
-			          value Mario
-			        }
-			        part {
-			          type family
-			          value ""\"
+			  individual I1 {
+			    name {
+			      part {
+			        type given
+			        value Mario
+			      }
+			      part {
+			        type family
+			        value ""\"
 Rossi
 Bianchi
 ""\"
-			        }
 			      }
+			    }
 			    sex MALE
-			    modification.creation.date 2026-07-31
+             note {
+               text Individuo presente nel registro di nascita.
+               audit.creation.date 2026-07-31
+             }
+			    audit.creation.date 2026-07-31
 			  }
-			  note {
-			    id @N1@
-			    value Individuo presente nel registro di nascita.
-			    modification.creation.date 2026-07-31
-			  }
-			  event {
-			    id @E1@
+			  event E1 {
 			    type BIRTH
 			    detail {
 			      date.value.point.single_date.full_date {
 			        value 1894-03-17
 			        calendar gregorian
 			      }
-			      modification.creation.date 2026-07-31
+			      audit.creation.date 2026-07-31
 			    }
-			    modification.creation.date 2026-07-31
+			    audit.creation.date 2026-07-31
 			  }
-			  event_participation {
-			    id @EP1@
-			    event @E1@
-			    participant.individual @I1@
+			  event_participation EP1 {
+			    event E1
+			    participant.individual I1
 			    role CHILD
-			    modification.creation.date 2026-07-31
+			    audit.creation.date 2026-07-31
 			  }
 			}
 			""";
