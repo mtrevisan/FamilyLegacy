@@ -43,6 +43,17 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 	public static final String ID_PREFIX = "RT";
 
 
+	private static final class SingletonHelper{
+		private static final ResearchTaskHandler INSTANCE = new ResearchTaskHandler();
+
+	}
+
+
+	public static ResearchTaskHandler getInstance(){
+		return ResearchTaskHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getType(){
 		return TYPE;
@@ -59,7 +70,7 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record, FLEFModel model){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return "--";
 

@@ -20,8 +20,8 @@ public interface IndividualListener{
 	void onIndividualUnlinkFromPartner(FLEFRecord targetSibling);
 
 
-	void onIndividualAdd(FLEFRecord targetParent);
+	void onIndividualAdd(FLEFRecord father, FLEFRecord mother);
 
-	void onIndividualLink(FLEFRecord targetParent);
+	void onIndividualLink(FLEFRecord father, FLEFRecord mother);
 
 }

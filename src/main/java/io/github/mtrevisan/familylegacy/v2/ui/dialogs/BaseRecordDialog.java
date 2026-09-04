@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -89,10 +88,10 @@ public abstract class BaseRecordDialog extends JDialog{
 
 
 	protected <T extends Class<? extends RecordTypeHandler<?>>> BaseRecordDialog(final Dialog parent,
-			final FLEFModel model, final FLEFRecord record, final T handler){
+			final FLEFModel model, final FLEFRecord record, final RecordTypeHandler<?> handler){
 		super(parent, ModalityType.APPLICATION_MODAL);
 
-		this.handler = HandlerRegistry.getHandler(handler);
+		this.handler = handler;
 		this.model = model;
 		this.record = (record != null? record: createNewRecord());
 		this.isNew = (record == null);
@@ -398,9 +397,9 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
-	public BaseRecordDialog withParentEntity(final String parentEntityId, final String path){
-		parentEntity = new BoundTextField(path);
-		parentEntity.setText(parentEntityId);
+	public BaseRecordDialog withParentEntity(final FLEFRecord parent){
+		parentEntity = new BoundTextField(parent.getTag());
+		parentEntity.setText(parent.getId());
 
 		return this;
 	}
@@ -532,12 +531,10 @@ public abstract class BaseRecordDialog extends JDialog{
 	}
 
 
-	protected boolean confirmRecordExistsForType(final String participantId,
-			final Class<? extends RecordTypeHandler<?>> participantHandlerClass){
+	protected boolean confirmRecordExistsForType(final String participantId, final String participantLabel){
 		if(model.getRecordById(participantId) == null){
-			final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerClass);
 			JOptionPane.showMessageDialog(this,
-				"Unknown " + participantHandler.getLabel() + " ID.",
+				"Unknown " + participantLabel + " ID.",
 				"Error", JOptionPane.ERROR_MESSAGE);
 
 			return false;

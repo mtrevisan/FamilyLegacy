@@ -35,10 +35,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JPanel;
@@ -107,7 +105,7 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 
 	private RepositoryRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, RepositoryHandler.class);
+		super(parent, model, record, RepositoryHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
@@ -118,10 +116,10 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, TAG_SOURCE, "Sources with Citations", SourceHandler.class, RepositoryHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.SOURCE_ON_REPOSITORY, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 

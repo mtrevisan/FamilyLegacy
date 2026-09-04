@@ -50,6 +50,17 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 	private static final String TAG_TYPE = "TYPE";
 
 
+	private static final class SingletonHelper{
+		private static final NameHandler INSTANCE = new NameHandler();
+
+	}
+
+
+	public static NameHandler getInstance(){
+		return NameHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

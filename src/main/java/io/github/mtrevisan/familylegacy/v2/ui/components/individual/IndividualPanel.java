@@ -118,6 +118,8 @@ public class IndividualPanel extends JPanel{
 	private final JMenuItem unlinkFromPartnerItem = new JMenuItem("Unlink from partner", 'P');
 
 	// State
+	private FLEFRecord father;
+	private FLEFRecord mother;
 	private final BoxPanelType boxType;
 
 	private final FLEFModel model;
@@ -237,6 +239,13 @@ public class IndividualPanel extends JPanel{
 		return this;
 	}
 
+	public IndividualPanel withParent(final FLEFRecord father, final FLEFRecord mother){
+		this.father = father;
+		this.mother = mother;
+
+		return this;
+	}
+
 	public IndividualPanel withIndividualData(final IndividualData data){
 		this.data = data;
 
@@ -327,9 +336,9 @@ public class IndividualPanel extends JPanel{
 				@Override
 				public void mouseClicked(final MouseEvent e){
 					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-						final String individualId = data.getIndividualId();
-						final FLEFRecord individual = model.getRecordById(individualId);
-						listener.onIndividualSelected(individual);
+						final FLEFRecord individual = getRecordFromData();
+						if(individual != null)
+							listener.onIndividualSelected(individual);
 					}
 				}
 			};
@@ -342,9 +351,9 @@ public class IndividualPanel extends JPanel{
 			public void mouseClicked(final MouseEvent e){
 				if(e.getClickCount() == 2
 						&& SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
-					final String individualId = data.getIndividualId();
-					final FLEFRecord individual = model.getRecordById(individualId);
-					listener.onIndividualEdit(individual);
+					final FLEFRecord individual = getRecordFromData();
+					if(individual != null)
+						listener.onIndividualEdit(individual);
 				}
 			}
 		});
@@ -361,10 +370,10 @@ public class IndividualPanel extends JPanel{
 			}
 		});
 
-		// Add items using helper method
+		// Pass the current record (or parent context for target creation/linking)
 		addMenuItem(popup, editIndividualItem, listener::onIndividualEdit);
-		addMenuItem(popup, addIndividualItem, listener::onIndividualAdd);
-		addMenuItem(popup, linkIndividualItem, listener::onIndividualLink);
+		addMenuItem(popup, addIndividualItem, record -> listener.onIndividualAdd(father, mother));
+		addMenuItem(popup, linkIndividualItem, record -> listener.onIndividualLink(father, mother));
 		addMenuItem(popup, removeIndividualItem, listener::onIndividualRemove);
 		popup.addSeparator();
 		addMenuItem(popup, unlinkFromParentsItem, listener::onIndividualUnlinkFromParentGroup);
@@ -387,15 +396,18 @@ public class IndividualPanel extends JPanel{
 	 */
 	private void addMenuItem(final JPopupMenu popup, final JMenuItem item, final Consumer<FLEFRecord> action){
 		item.addActionListener(e -> {
-			if(listener != null && data != null){
-				final String individualId = data.getIndividualId();
-				if(individualId != null){
-					final FLEFRecord individual = model.getRecordById(individualId);
-					action.accept(individual);
-				}
+			if(listener != null){
+				final FLEFRecord record = getRecordFromData();
+				action.accept(record);
 			}
 		});
 		popup.add(item);
+	}
+
+	private FLEFRecord getRecordFromData(){
+		return (data != null && data.getIndividualId() != null
+			? model.getRecordById(data.getIndividualId())
+			: null);
 	}
 
 

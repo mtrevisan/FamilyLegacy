@@ -32,13 +32,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -83,8 +79,8 @@ import java.io.Serial;
  * </pre>
  * <p>
  * Tabs:
- * Tab 1 (Properties): type, part
- * Tab 5 (Context): context
+ * Tab 1 (Properties): type, part, locale
+ * Tab 5 (Context): cultural_norm
  * Tab 7 (Sources): source
  * Tab 8 (Notes): note
  */
@@ -97,6 +93,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_PART = "PART";
 	private static final String TAG_LOCALE = "LOCALE";
+	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
 	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
@@ -109,6 +106,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private final BoundComboBox<String> typeCombo;
 	private final EntityListPanel partPanel;
 	private final BoundComboBox<String> localeCombo;
+	private final EntityListPanel culturalNormPanel;
 
 
 	public static PersonalNameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -122,7 +120,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 
 	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, PersonalNameHandler.class);
+		super(parent, model, record, PersonalNameHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
@@ -147,11 +145,12 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		});
 		localeCombo.setEditable(true);
 
+		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.class);
+
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PersonalNameHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -180,8 +179,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	protected JPanel createContextPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
-		final JPanel contextPanel = components.getPanel(PanelKey.CONTEXT_IMPACT);
-		GUIHelper.addComponent(panel, contextPanel);
+		// cultural norm
+		GUIHelper.addComponent(panel, culturalNormPanel);
 
 		return panel;
 	}
@@ -212,6 +211,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		components.load(record);
 
 		partPanel.load(record);
+
+		culturalNormPanel.load(record);
 	}
 
 	@Override
@@ -232,6 +233,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		components.save(record);
 
 		partPanel.save(record);
+
+		culturalNormPanel.save(record);
 	}
 
 	public boolean hasData(){
@@ -244,8 +247,6 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
-
-		HandlerRegistry.scanHandlers();
 
 		final FLEFModel model = new FLEFModel();
 

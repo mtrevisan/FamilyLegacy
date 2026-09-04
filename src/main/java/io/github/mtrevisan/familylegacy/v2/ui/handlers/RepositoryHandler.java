@@ -48,6 +48,17 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 
 
+	private static final class SingletonHelper{
+		private static final RepositoryHandler INSTANCE = new RepositoryHandler();
+
+	}
+
+
+	public static RepositoryHandler getInstance(){
+		return RepositoryHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Repository";
@@ -66,13 +77,16 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		final String id = record.getId();
+		if(id == null)
+			return RepositoryCitationHandler.getInstance().getDisplayText(record, model);
+
 		// Locate the first populated NAME structure
 		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
 
-		final String id = record.getId();
 		if(StringUtils.isNotEmpty(name))
 			return name + " [" + id + "]";
-		return "[" + record.getId() + "]";
+		return "[" + id + "]";
 	}
 
 	@Override

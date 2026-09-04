@@ -35,10 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -112,7 +108,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 
 	private DocumentRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, DocumentHandler.class);
+		super(parent, model, record, DocumentHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 
@@ -134,11 +130,11 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, DocumentHandler.class)
-			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, TAG_SOURCE, "Sources", SourceHandler.class, RepositoryHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE_ON_DOCUMENT, TAG_SOURCE, "Sources")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(uriField);

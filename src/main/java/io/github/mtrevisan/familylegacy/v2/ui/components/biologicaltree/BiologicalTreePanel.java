@@ -10,9 +10,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -213,26 +211,47 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			}
 		}
 
+		// Extract root parent records for children panel
+		final FLEFRecord father = (rootNode != null && rootNode.getFather() != null
+			? rootNode.getFather().getIndividual()
+			: null);
+		final FLEFRecord mother = (rootNode != null && rootNode.getMother() != null
+			? rootNode.getMother().getIndividual()
+			: null);
+
 		// Add children (below)
-		childrenPanel = createChildrenPanel();
+		childrenPanel = createChildrenPanel(father, mother);
 		childrenScrollPane = createChildrenScrollPane(childrenPanel);
 		add(childrenScrollPane, "cell 0 " + (maxDepth + 1) + ",span " + maxLeafColumns + ",center");
 	}
 
 	private PartnersPanel createPanelForNode(final AncestorNode node, final BoxPanelType type){
-		final PartnersPanel panel = PartnersPanel.create(type, model);
-		panel.withListener(this);
+		final PartnersPanel panel = PartnersPanel.create(type, model)
+			.withListener(this);
 
 		panel.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mouseClicked(final MouseEvent e){
-				final String clickedId = AncestorTreeMutator.getIndividualId(node);
+				final String clickedId = node.getIndividualId();
 				if(clickedId != null)
 					treeMutator.navigateToRoot(clickedId);
 			}
 		});
 
 		if(node != null){
+			final AncestorNode fatherNode = node.getFather();
+			final AncestorNode motherNode = node.getMother();
+			final AncestorNode fatherFather = (fatherNode != null? fatherNode.getFather(): null);
+			final AncestorNode fatherMother = (fatherNode != null? fatherNode.getMother(): null);
+			final AncestorNode motherFather = (motherNode != null? motherNode.getFather(): null);
+			final AncestorNode motherMother = (motherNode != null? motherNode.getMother(): null);
+			panel.getFatherPanel()
+				.withParent((fatherFather != null? fatherFather.getIndividual(): null),
+					(fatherMother != null? fatherMother.getIndividual(): null));
+			panel.getMotherPanel()
+				.withParent((motherFather != null? motherFather.getIndividual(): null),
+					(motherMother != null? motherMother.getIndividual(): null));
+
 			final AncestorNode father = node.getFather();
 			final AncestorNode mother = node.getMother();
 			final IndividualData fatherData = (father != null? father.getIndividualData(): null);
@@ -242,9 +261,9 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		return panel;
 	}
 
-	private SiblingsPanel createChildrenPanel(){
-		final SiblingsPanel panel = SiblingsPanel.create(BoxPanelType.SECONDARY, model);
-		panel.withListener(this);
+	private SiblingsPanel createChildrenPanel(final FLEFRecord father, final FLEFRecord mother){
+		final SiblingsPanel panel = SiblingsPanel.create(father, mother, BoxPanelType.SECONDARY, model)
+			.withListener(this);
 		if(rootNode != null)
 			panel.withSiblingsData(rootNode.getBiologicalChildrenData());
 		return panel;
@@ -360,9 +379,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 	@Override
 	public void onTreeStructureChanged(final String rootIndividualId){
-		if(!Objects.equals(currentRootIndividualId, rootIndividualId))
-			// Run UI updates on the Swing Event Dispatch Thread
-			SwingUtilities.invokeLater(() -> loadTree(rootIndividualId, currentMaxGenerations));
+		// Run UI updates on the Swing Event Dispatch Thread
+		SwingUtilities.invokeLater(() -> loadTree(rootIndividualId, currentMaxGenerations));
 	}
 
 
@@ -397,7 +415,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 		final int confirm = JOptionPane.showConfirmDialog(
 			this,
-			"Are you sure you want to remove individual " + individual.getId() + "?",
+			"Are you sure you want to remove individual "
+				+ IndividualHandler.getInstance().getDisplayText(individual, model) + "?",
 			"Confirm Removal",
 			JOptionPane.YES_NO_OPTION,
 			JOptionPane.WARNING_MESSAGE
@@ -424,8 +443,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	// NOTE: Operation delegated to AncestorTreeMutator
 	@Override
 	public void onIndividualUnlinkFromPartner(final FLEFRecord individual){
-		final FLEFRecord selectedSibling = (individual != null? showSearchIndividualDialog(): null);
-		if(individual == null || selectedSibling == null)
+		if(individual == null)
 			return;
 
 		LOGGER.debug("Individual unlink from partner {}", individual.getId());
@@ -436,24 +454,25 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 	//NOTE Operation delegated to FLEFModel or Business Services (Data Entry)
 	@Override
-	public void onIndividualAdd(final FLEFRecord targetParent){
+	public void onIndividualAdd(final FLEFRecord father, final FLEFRecord mother){
 		// Open creation dialog if record is not provided yet
-		final FLEFRecord newChild = (targetParent != null? showCreateIndividualDialog(): null);
-		if(targetParent == null || newChild == null)
+		final FLEFRecord newChild = showCreateIndividualDialog();
+		if(father == null && mother == null || newChild == null)
 			return;
 
-		LOGGER.debug("Individual add {} as child to parent {}", newChild.getId(), targetParent.getId());
+		LOGGER.debug("Add individual {} as child to male parent {} and female parent {}", newChild.getId(),
+			(father != null? father.getId(): null), (mother != null? mother.getId(): null));
 
-		treeMutator.addChildToIndividual(targetParent.getId(), newChild, getRootIndividualId());
+		treeMutator.addChildToParents((father != null? father.getId(): null),
+			(mother != null? mother.getId(): null), newChild, getRootIndividualId());
 	}
 
 	private FLEFRecord showEditIndividualDialog(final FLEFRecord individual){
 		final Window window = SwingUtilities.getWindowAncestor(this);
 		final Dialog parent = (window instanceof Dialog dialog? dialog: null);
 
-		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(IndividualHandler.class);
-		@SuppressWarnings("unchecked")
-		final IndividualRecordDialog dialog = ((RecordTypeHandler<IndividualRecordDialog>)handler).createEditDialog(parent, model, individual);
+		final IndividualHandler handler = IndividualHandler.getInstance();
+		final IndividualRecordDialog dialog = handler.createEditDialog(parent, model, individual);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -463,9 +482,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		final Window window = SwingUtilities.getWindowAncestor(this);
 		final Dialog parent = (window instanceof Dialog dialog? dialog: null);
 
-		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(IndividualHandler.class);
-		@SuppressWarnings("unchecked")
-		final IndividualRecordDialog dialog = ((RecordTypeHandler<IndividualRecordDialog>)handler).createNewDialog(parent, model);
+		final IndividualHandler handler = IndividualHandler.getInstance();
+		final IndividualRecordDialog dialog = handler.createNewDialog(parent, model);
 		dialog.setVisible(true);
 
 		return (dialog.isSaved()? dialog.getRecord(): null);
@@ -473,15 +491,17 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 	//NOTE Operation delegated to FLEFModel or Business Services (Data Entry)
 	@Override
-	public void onIndividualLink(final FLEFRecord targetParent){
+	public void onIndividualLink(final FLEFRecord father, final FLEFRecord mother){
 		// Open picker/search dialog if record is not provided yet
-		final FLEFRecord selectedChild = (targetParent != null? showSearchIndividualDialog(): null);
-		if(targetParent == null || selectedChild == null)
+		final FLEFRecord selectedChild = (father != null || mother != null? showSearchIndividualDialog(): null);
+		if(father == null && mother == null || selectedChild == null)
 			return;
 
-		LOGGER.debug("Individual link {} to parent {}", selectedChild.getId(), targetParent.getId());
+		LOGGER.debug("Individual link {} to male parent {} and female parent {}", selectedChild.getId(),
+			(father != null? father.getId(): null), (mother != null? mother.getId(): null));
 
-		treeMutator.addChildToIndividual(targetParent.getId(), selectedChild, getRootIndividualId());
+		treeMutator.addChildToParents((father != null? father.getId(): null),
+			(mother != null? mother.getId(): null), selectedChild, getRootIndividualId());
 	}
 
 	private FLEFRecord showSearchIndividualDialog(){

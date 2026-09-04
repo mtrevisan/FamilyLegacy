@@ -43,7 +43,15 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 	private static final String TAG_EVENT = "EVENT";
 
 
-	private final RecordTypeHandler<?> eventHandler = HandlerRegistry.getHandler(EventHandler.class);
+	private static final class SingletonHelper{
+		private static final EventParticipationHandler INSTANCE = new EventParticipationHandler();
+
+	}
+
+
+	public static EventParticipationHandler getInstance(){
+		return EventParticipationHandler.SingletonHelper.INSTANCE;
+	}
 
 
 	@Override
@@ -89,7 +97,7 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 			final FLEFRecord eventRecord = model.getRecordById(eventRef);
 			if(eventRecord != null)
 				sb.append(" in ")
-					.append(eventHandler.getDisplayText(eventRecord, model));
+					.append(EventHandler.getInstance().getDisplayText(eventRecord, model));
 		}
 
 		final String id = record.getId();

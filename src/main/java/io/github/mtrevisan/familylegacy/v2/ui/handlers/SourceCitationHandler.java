@@ -43,7 +43,15 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 	private static final String TAG_SOURCE = "SOURCE";
 
 
-	private final RecordTypeHandler<?> sourceHandle = HandlerRegistry.getHandler(SourceHandler.class);
+	private static final class SingletonHelper{
+		private static final SourceCitationHandler INSTANCE = new SourceCitationHandler();
+
+	}
+
+
+	public static SourceCitationHandler getInstance(){
+		return SourceCitationHandler.SingletonHelper.INSTANCE;
+	}
 
 
 	@Override
@@ -73,7 +81,7 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 	@Override
 	public RecordTypeHandler<?> getParentHandler(){
-		return HandlerRegistry.getHandler(SourceHandler.class);
+		return SourceHandler.getInstance();
 	}
 
 	@Override
@@ -83,7 +91,7 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 
 		final String xref = FLEFRecordHelper.getChildValue(record, TAG_SOURCE);
 		final FLEFRecord source = model.getRecordById(xref);
-		return "❝ " + sourceHandle.getDisplayText(source, model);
+		return "❝ " + SourceHandler.getInstance().getDisplayText(source, model);
 	}
 
 	@Override

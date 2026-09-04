@@ -44,6 +44,17 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 	private static final String TAG_IMPACT_TYPE = "IMPACT_TYPE";
 
 
+	private static final class SingletonHelper{
+		private static final ContextImpactHandler INSTANCE = new ContextImpactHandler();
+
+	}
+
+
+	public static ContextImpactHandler getInstance(){
+		return ContextImpactHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Context Impact";

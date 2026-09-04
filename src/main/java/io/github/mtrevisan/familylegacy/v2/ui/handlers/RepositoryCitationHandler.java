@@ -43,7 +43,15 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 	private static final String TAG_REPOSITORY = "REPOSITORY";
 
 
-	private final RecordTypeHandler<?> repositoryHandle = HandlerRegistry.getHandler(RepositoryHandler.class);
+	private static final class SingletonHelper{
+		private static final RepositoryCitationHandler INSTANCE = new RepositoryCitationHandler();
+
+	}
+
+
+	public static RepositoryCitationHandler getInstance(){
+		return RepositoryCitationHandler.SingletonHelper.INSTANCE;
+	}
 
 
 	@Override
@@ -73,7 +81,7 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 
 	@Override
 	public RecordTypeHandler<?> getParentHandler(){
-		return HandlerRegistry.getHandler(RepositoryHandler.class);
+		return RepositoryHandler.getInstance();
 	}
 
 	@Override
@@ -83,7 +91,7 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 
 		final String xref = FLEFRecordHelper.getChildValue(record, TAG_REPOSITORY);
 		final FLEFRecord repository = model.getRecordById(xref);
-		return "❝ " + repositoryHandle.getDisplayText(repository, model);
+		return "❝ " + RepositoryHandler.getInstance().getDisplayText(repository, model);
 	}
 
 	@Override

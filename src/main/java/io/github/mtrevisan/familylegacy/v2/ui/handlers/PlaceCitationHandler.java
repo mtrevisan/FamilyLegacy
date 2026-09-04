@@ -43,7 +43,15 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 	private static final String TAG_PLACE = "PLACE";
 
 
-	private final RecordTypeHandler<?> placeHandler = HandlerRegistry.getHandler(PlaceHandler.class);
+	private static final class SingletonHelper{
+		private static final PlaceCitationHandler INSTANCE = new PlaceCitationHandler();
+
+	}
+
+
+	public static PlaceCitationHandler getInstance(){
+		return PlaceCitationHandler.SingletonHelper.INSTANCE;
+	}
 
 
 	@Override
@@ -73,7 +81,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 	@Override
 	public RecordTypeHandler<?> getParentHandler(){
-		return HandlerRegistry.getHandler(PlaceHandler.class);
+		return PlaceHandler.getInstance();
 	}
 
 	@Override
@@ -83,7 +91,7 @@ public class PlaceCitationHandler extends AbstractRecordTypeHandler<PlaceCitatio
 
 		final String xref = FLEFRecordHelper.getChildValue(record, TAG_PLACE);
 		final FLEFRecord place = model.getRecordById(xref);
-		return "❝ " + placeHandler.getDisplayText(place, model);
+		return "❝ " + PlaceHandler.getInstance().getDisplayText(place, model);
 	}
 
 	@Override

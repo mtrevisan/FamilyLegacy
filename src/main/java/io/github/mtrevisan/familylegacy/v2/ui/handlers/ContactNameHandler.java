@@ -53,6 +53,17 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 	private static final String TAG_TEXT = "TEXT";
 
 
+	private static final class SingletonHelper{
+		private static final ContactNameHandler INSTANCE = new ContactNameHandler();
+
+	}
+
+
+	public static ContactNameHandler getInstance(){
+		return ContactNameHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

@@ -39,6 +39,17 @@ public class HeaderHandler extends AbstractRecordTypeHandler<HeaderDialog>{
 	public static final String TYPE = "HEADER";
 
 
+	private static final class SingletonHelper{
+		private static final HeaderHandler INSTANCE = new HeaderHandler();
+
+	}
+
+
+	public static HeaderHandler getInstance(){
+		return HeaderHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

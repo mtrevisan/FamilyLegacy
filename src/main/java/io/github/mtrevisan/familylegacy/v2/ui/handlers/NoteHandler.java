@@ -41,6 +41,17 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	private static final String TAG_TEXT = "TEXT";
 
 
+	private static final class SingletonHelper{
+		private static final NoteHandler INSTANCE = new NoteHandler();
+
+	}
+
+
+	public static NoteHandler getInstance(){
+		return NoteHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

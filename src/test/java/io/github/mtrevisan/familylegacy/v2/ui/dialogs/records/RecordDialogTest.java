@@ -24,9 +24,6 @@ class RecordDialogTest{
 
 	@BeforeEach
 	void setUp() throws IOException{
-		HandlerRegistry.scanHandlers();
-
-
 		try(final InputStream is = ConclusionRecordDialog.class.getResourceAsStream("/tests/test.flef")){
 			content = new String(Objects.requireNonNull(is).readAllBytes(), StandardCharsets.UTF_8);
 

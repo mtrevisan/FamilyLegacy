@@ -137,10 +137,10 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 				final String text = textArea.getText()
 					.trim();
 				if(record == null){
-					final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path);
 					final String creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
-					newNote.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DATE, creationDate));
-					newNote.addChild(FLEFRecord.createChildWithTagAndValue(recordTag, text));
+					final FLEFRecord newNote = FLEFRecordHelper.getOrCreateTargetNode(FLEFRecord.createEmpty(), path)
+						.addChild(FLEFRecord.createChildWithTagAndValue(TAG_DATE, creationDate))
+						.addChild(FLEFRecord.createChildWithTagAndValue(recordTag, text));
 					result[0] = newNote;
 				}
 				else

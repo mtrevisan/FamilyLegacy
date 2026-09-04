@@ -48,6 +48,17 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 	private static final String TAG_INDIVIDUAL = "INDIVIDUAL";
 
 
+	private static final class SingletonHelper{
+		private static final IndividualAttributeHandler INSTANCE = new IndividualAttributeHandler();
+
+	}
+
+
+	public static IndividualAttributeHandler getInstance(){
+		return IndividualAttributeHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Individual Attribute";

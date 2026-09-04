@@ -74,11 +74,11 @@ public class FLEFWriter{
 		final String tagOverride; // if not null, use this instead of record.getTag()
 		int childIndex;
 
-		Frame(final FLEFRecord record, final int indentLevel) {
+		Frame(final FLEFRecord record, final int indentLevel){
 			this(record, indentLevel, null);
 		}
 
-		Frame(final FLEFRecord record, final int indentLevel, final String tagOverride) {
+		Frame(final FLEFRecord record, final int indentLevel, final String tagOverride){
 			this.record = record;
 			this.indentLevel = indentLevel;
 			this.tagOverride = tagOverride;

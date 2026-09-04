@@ -100,7 +100,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 
 
 	private ContactStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ContactHandler.class);
+		super(parent, model, record, ContactHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 
@@ -109,13 +109,14 @@ public class ContactStructureDialog extends BaseRecordDialog{
 			StringUtils.EMPTY,
 			"email", "phone", "mobile", "fax", "website", "blog", "social", "postal", "messaging"
 		});
-		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Name", model, ContactNameHandler.class);
+		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Name", model,
+			ContactNameHandler.class);
 		noteArea = new BoundTextArea(TAG_NOTE, 3, 25);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(valueField);

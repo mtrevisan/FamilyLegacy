@@ -47,9 +47,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -154,7 +151,7 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 
 	private ResearchActivityRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, record, ResearchActivityHandler.class);
+		super(parent, model, record, ResearchActivityHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 
@@ -195,11 +192,11 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions", ResearchQuestionHandler.class, ResearchQuestionHandler.class)
-			.withComponent(PanelKey.TASK, TAG_TASK, "Tasks", ResearchTaskHandler.class, ResearchTaskHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions")
+			.withComponent(PanelKey.TASK, TAG_TASK, "Tasks")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(activityTypeCombo);

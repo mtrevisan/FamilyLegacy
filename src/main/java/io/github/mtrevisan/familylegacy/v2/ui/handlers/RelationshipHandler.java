@@ -45,6 +45,17 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	private static final String TAG_ROLE = "ROLE";
 
 
+	private static final class SingletonHelper{
+		private static final RelationshipHandler INSTANCE = new RelationshipHandler();
+
+	}
+
+
+	public static RelationshipHandler getInstance(){
+		return RelationshipHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Relationship";

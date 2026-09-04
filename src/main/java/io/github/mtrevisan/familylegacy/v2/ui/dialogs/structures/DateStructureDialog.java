@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.DateStructurePanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
@@ -144,8 +143,6 @@ public class DateStructureDialog extends JDialog{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
-
-		HandlerRegistry.scanHandlers();
 
 		final FLEFModel model = new FLEFModel();
 

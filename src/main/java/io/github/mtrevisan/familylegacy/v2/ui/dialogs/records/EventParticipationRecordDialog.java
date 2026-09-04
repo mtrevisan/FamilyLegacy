@@ -32,19 +32,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -129,7 +123,7 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 
 	private EventParticipationRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, EventParticipationHandler.class);
+		super(parent, model, record, EventParticipationHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 
@@ -147,14 +141,14 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, EventParticipationHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, EventParticipationHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, EventParticipationHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, EventParticipationHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(roleCombo);
@@ -238,8 +232,9 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 	}
 
 
-	public EventParticipationRecordDialog withEvent(final String eventId){
-		if(!confirmRecordExistsForType(eventId, EventHandler.class))
+	public EventParticipationRecordDialog withEvent(final FLEFRecord event){
+		final String eventId = event.getId();
+		if(!confirmRecordExistsForType(eventId, EventHandler.getInstance().getLabel()))
 			return this;
 
 		GUIHelper.setComponentVisible(participantField, true);
@@ -250,9 +245,10 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
-	public EventParticipationRecordDialog withParticipant(final String participantId, final String participantHandlerType){
-		final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participantHandlerType);
-		if(!confirmRecordExistsForType(participantId, participantHandler.getHandlerClass()))
+	public EventParticipationRecordDialog withParticipant(final FLEFRecord participant){
+		final String participantId = participant.getId();
+		final RecordTypeHandler<?> participantHandler = HandlerRegistry.getHandler(participant.getTag());
+		if(!confirmRecordExistsForType(participantId, participantHandler.getLabel()))
 			return this;
 
 		GUIHelper.setComponentVisible(eventField, true);

@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
@@ -104,7 +103,7 @@ public class DateStructurePanel extends JPanel{
 
 		originalTextField = new BoundTextField(TAG_ORIGINAL_TEXT);
 		sourcePanel = EntityListPanel.createForCitationWrapper(TAG_SOURCE, parent, "Sources with Citations", model, SourceCitationHandler.class);
-		qualifiers = new EvidenceQualifiersPanel(null, parent, "Evidence", model, null);
+		qualifiers = new EvidenceQualifiersPanel(null, "Evidence");
 
 
 		initComponents();
@@ -305,8 +304,6 @@ public class DateStructurePanel extends JPanel{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(Exception ignored){}
-
-		HandlerRegistry.scanHandlers();
 
 		FLEFModel model = new FLEFModel();
 

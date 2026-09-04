@@ -46,6 +46,17 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 	private static final String TAG_VALUE = "VALUE";
 
 
+	private static final class SingletonHelper{
+		private static final TextValueVariantHandler INSTANCE = new TextValueVariantHandler();
+
+	}
+
+
+	public static TextValueVariantHandler getInstance(){
+		return TextValueVariantHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

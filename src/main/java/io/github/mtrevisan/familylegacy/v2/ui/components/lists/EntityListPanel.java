@@ -247,7 +247,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(record == null)
 			return "--";
 
-		final RecordTypeHandler<?> handler = findHandler(record.getTag());
+		final RecordTypeHandler<?> handler = findHandler(record);
 		if(handler == null)
 			return "--";
 
@@ -362,7 +362,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		final Class<? extends RecordTypeHandler<?>> selectedHandlerClass = handlerTypes.stream()
 			.filter(cls -> {
 				final RecordTypeHandler<?> h = HandlerRegistry.getHandler(cls);
-				return h != null && Strings.CI.equals(selectedType, h.getLabel());
+				return (h != null && Strings.CI.equals(selectedType, h.getLabel()));
 			})
 			.findFirst()
 			.orElse(null);
@@ -381,7 +381,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 	 * Creates a new target entity and its citation (for CITATION_WRAPPER mode).
 	 */
 	private FLEFRecord createNewCitation(){
-		final RecordTypeHandler<?> citationHandler = findHandler(HandlerRegistry.getHandlerType(handlerTypes.getFirst()));
+		final RecordTypeHandler<?> citationHandler = HandlerRegistry.getHandler(handlerTypes.getFirst());
 		final RecordTypeHandler<?> targetHandler = citationHandler.getParentHandler();
 		if(targetHandler == null){
 			JOptionPane.showMessageDialog(parent,
@@ -431,7 +431,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			return null;
 		}
 
-		final RecordTypeHandler<?> handler = findHandler(record.getTag());
+		final RecordTypeHandler<?> handler = findHandler(record);
 		if(handler == null){
 			JOptionPane.showMessageDialog(parent,
 				"No handler found for type " + record.getTag(),
@@ -473,7 +473,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 		final FLEFRecord citation = items.get(index);
-		final RecordTypeHandler<?> citationHandler = findHandler(citation.getTag());
+		final RecordTypeHandler<?> citationHandler = findHandler(citation);
 		final String targetId = FLEFRecordHelper.getChildValue(citation, citationHandler.getCitedType());
 		if(targetId == null){
 			JOptionPane.showMessageDialog(parent,
@@ -507,7 +507,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final String entityId = entity.getId();
 		final FLEFRecord citation = FLEFRecord.createEmpty();
-		final RecordTypeHandler<?> handler = findHandler(HandlerRegistry.getHandlerType(handlerTypes.getFirst()));
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerTypes.getFirst());
 		final String citedType = handler.getCitedType();
 		if(citedType != null)
 			FLEFRecordHelper.updateChildValue(citation, citedType, entityId);
@@ -562,7 +562,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return;
 
-		parentRecord = FLEFRecord.createMainRecord(recordId, null);
+		parentRecord = model.getRecordById(recordId);
 		isReference = true;
 
 		final List<FLEFRecord> references = new ArrayList<>();
@@ -583,7 +583,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(recordId == null)
 			return;
 
-		parentRecord = FLEFRecord.createMainRecord(recordId, StringUtils.join(actorTags, '|'));
+		parentRecord = model.getRecordById(recordId);
 		isReference = true;
 
 		final List<FLEFRecord> references = new ArrayList<>();
@@ -742,19 +742,15 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		else if(type == ListType.ONEOF_REFERENCE){
 			// One‑of: add a node with a child that has tag and value
 			if(hasData())
-				for(final FLEFRecord item : items){
-					final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(item.getTag(), item.getFormattedId());
-					final FLEFRecord parentNode = FLEFRecord.createChildWithTag(path);
-					parentNode.addChild(child);
-					record.addChild(parentNode);
-				}
-			else if(saveAsVoid){
+				for(final FLEFRecord item : items)
+					record.addChild(FLEFRecord.createChildWithTag(path)
+						.addChild(FLEFRecord.createChildWithTagAndValue(item.getTag(), item.getFormattedId()))
+					);
+			else if(saveAsVoid)
 				// Save a VOID marker if the list is empty and saveAsVoid is enabled
-				final FLEFRecord child = FLEFRecord.createChildWithTag(TAG_VOID);
-				final FLEFRecord itemRecord = FLEFRecord.createChildWithTag(path)
-					.addChild(child);
-				record.addChild(itemRecord);
-			}
+				record.addChild(FLEFRecord.createChildWithTag(path)
+					.addChild(FLEFRecord.createChildWithTag(TAG_VOID))
+				);
 		}
 		else if(type == ListType.CITATION_WRAPPER)
 			// Citation wrapper: items are already full citation records; add them under the path.
@@ -774,52 +770,48 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private Consumer<BaseRecordDialog> getDialogSetup(){
 		return dialog -> {
-			final String parentEntityId = parentEntity.getId();
-			final String parentEntityTag = parentRecord.getTag();
 			// Configure relationship dialogs based on `actorType` and `type`
 			if(dialog instanceof RelationshipRecordDialog relationshipDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)
-					&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag)){
+					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){
 				if(actorType == ActorType.SUBJECT)
-					relationshipDialog.withSubject(parentEntityId, parentEntityTag);
+					relationshipDialog.withSubject(parentRecord);
 				else if(actorType == ActorType.OBJECT)
-					relationshipDialog.withObject(parentEntityId, parentEntityTag);
+					relationshipDialog.withObject(parentRecord);
 			}
 			else if(dialog instanceof PlaceRelationshipRecordDialog placeRelationshipDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)
-					&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag)){
+					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){
 				if(actorType == ActorType.SUBJECT)
-					placeRelationshipDialog.withSubject(parentEntityId, parentEntityTag);
+					placeRelationshipDialog.withSubject(parentRecord);
 				else if(actorType == ActorType.OBJECT)
-					placeRelationshipDialog.withObject(parentEntityId, parentEntityTag);
+					placeRelationshipDialog.withObject(parentRecord);
 			}
 			else if(dialog instanceof IdentityHypothesisRecordDialog identityDialog
-					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)
-					&& StringUtils.isNotEmpty(parentEntityId) && StringUtils.isNotEmpty(parentEntityTag))
-				identityDialog.withParentEntity(parentEntityId, parentEntityTag);
+					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE))
+				identityDialog.withIdentity(parentRecord);
 			else if(dialog instanceof EventParticipationRecordDialog eventDialog
 					&& (type == ListType.ONEOF_REFERENCE || type == ListType.ENTITY_REFERENCE)){
 				if(actorType == ActorType.PARTICIPANT)
-					eventDialog.withParticipant(parentEntityId, parentEntityTag);
+					eventDialog.withParticipant(parentRecord);
 				else if(actorType == ActorType.EVENT)
-					eventDialog.withEvent(parentEntityId);
+					eventDialog.withEvent(parentRecord);
 			}
 		};
 	}
 
-	private RecordTypeHandler<?> findHandler(final String type){
+	private RecordTypeHandler<?> findHandler(final FLEFRecord record){
 		// If only one handler, use it directly
 		if(handlerTypes.size() == 1)
 			return HandlerRegistry.getHandler(handlerTypes.getFirst());
 
+		final String recordTag = record.getTag();
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
-			if(Strings.CI.equals(handler.getType(), type))
+			if(Strings.CI.equals(handler.getType(), recordTag))
 				return handler;
 
 			// Also check parent handler
 			final RecordTypeHandler<?> parentHandler = handler.getParentHandler();
-			if(parentHandler != null && Strings.CI.equals(parentHandler.getType(), type))
+			if(parentHandler != null && Strings.CI.equals(parentHandler.getType(), recordTag))
 				return handler;
 		}
 		return null;

@@ -44,6 +44,17 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 	private static final String TAG_PROOF_STATUS = "PROOF_STATUS";
 
 
+	private static final class SingletonHelper{
+		private static final ConclusionHandler INSTANCE = new ConclusionHandler();
+
+	}
+
+
+	public static ConclusionHandler getInstance(){
+		return ConclusionHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Conclusion";

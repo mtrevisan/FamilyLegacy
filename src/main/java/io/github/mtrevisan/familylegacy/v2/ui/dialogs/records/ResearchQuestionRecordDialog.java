@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchQuestionStatusPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
@@ -49,9 +48,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -150,7 +147,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 
 	private ResearchQuestionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ResearchQuestionHandler.class);
+		super(parent, model, record, ResearchQuestionHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 
@@ -172,11 +169,11 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, ResearchQuestionHandler.class)
-			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, TAG_RESEARCH_ACTIVITY, "Research Activities", ResearchActivityHandler.class, ResearchActivityHandler.class)
-			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, TAG_RESEARCH_TASK, "Research Tasks", ResearchTaskHandler.class, ResearchQuestionHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.CONCLUSION_ON_RESEARCH, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_QUESTION, TAG_RESEARCH_ACTIVITY, "Research Activities")
+			.withComponent(PanelKey.RESEARCH_TASK_ON_QUESTION, TAG_RESEARCH_TASK, "Research Tasks")
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);

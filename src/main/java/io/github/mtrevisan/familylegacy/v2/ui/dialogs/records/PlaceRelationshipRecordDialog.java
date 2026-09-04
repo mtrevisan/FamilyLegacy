@@ -33,14 +33,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -121,7 +115,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 
 	private PlaceRelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, PlaceRelationshipHandler.class);
+		super(parent, model, record, PlaceRelationshipHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
@@ -140,13 +134,13 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, PlaceRelationshipHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, PlaceRelationshipHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, PlaceRelationshipHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, PlaceRelationshipHandler.class)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -233,7 +227,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 
 	@Override
-	public BaseRecordDialog withParentEntity(final String parentEntityId, final String parentEntityPath){
+	public BaseRecordDialog withParentEntity(final FLEFRecord parent){
 		JOptionPane.showMessageDialog(this,
 			"Cannot set parent on a Place Relationship Record.",
 			"Error", JOptionPane.ERROR_MESSAGE);
@@ -241,8 +235,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
-	public PlaceRelationshipRecordDialog withSubject(final String placeId, final String placePath){
-		super.withParentEntity(placeId, placePath);
+	public PlaceRelationshipRecordDialog withSubject(final FLEFRecord subject){
+		super.withParentEntity(subject);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
 			subjectField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
@@ -255,8 +249,8 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		return this;
 	}
 
-	public PlaceRelationshipRecordDialog withObject(final String parentEntityId, final String parentEntityPath){
-		super.withParentEntity(parentEntityId, parentEntityPath);
+	public PlaceRelationshipRecordDialog withObject(final FLEFRecord object){
+		super.withParentEntity(object);
 
 		if(parentEntity != null && !parentEntity.isEmpty()){
 			targetField.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));

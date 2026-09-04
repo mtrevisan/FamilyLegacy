@@ -82,7 +82,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 
 
 	private ContactNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ContactNameHandler.class);
+		super(parent, model, record, ContactNameHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 

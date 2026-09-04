@@ -34,14 +34,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -113,7 +107,7 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 
 	private HistoricEventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HistoricEventHandler.class);
+		super(parent, model, record, HistoricEventHandler.getInstance());
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,
@@ -128,13 +122,13 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, HistoricEventHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, HistoricEventHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, HistoricEventHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, HistoricEventHandler.class)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);

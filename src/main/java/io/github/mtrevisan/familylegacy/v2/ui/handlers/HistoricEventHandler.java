@@ -44,6 +44,17 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	private static final String TAG_TITLE = "TITLE";
 
 
+	private static final class SingletonHelper{
+		private static final HistoricEventHandler INSTANCE = new HistoricEventHandler();
+
+	}
+
+
+	public static HistoricEventHandler getInstance(){
+		return HistoricEventHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Historic Event";

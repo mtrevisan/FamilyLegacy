@@ -40,6 +40,7 @@ import javax.swing.JOptionPane;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -78,7 +79,7 @@ public class EntityField extends BoundTextField{
 	private final FLEFModel model;
 
 	private final EntityType type;
-	private List<Class<? extends RecordTypeHandler<?>>> handlerTypes;
+	private List<? extends RecordTypeHandler<?>> handlers;
 	private boolean saveAsVoid;
 
 	private FLEFRecord entityRef;
@@ -99,19 +100,17 @@ public class EntityField extends BoundTextField{
 	public static EntityField createForRecordFromReference(final String path, final Dialog parent,
 			final FLEFModel model,
 			final Class<? extends RecordTypeHandler<?>> handlerType){
-		final EntityField field = new EntityField(path, parent, model,
-			EntityType.ENTITY_REFERENCE);
-		field.withHandlerTypes(handlerType);
-		return field;
+		return new EntityField(path, parent, model,
+				EntityType.ENTITY_REFERENCE)
+			.withHandlerTypes(handlerType);
 	}
 
 	public static EntityField createForStructureWithReference(final String path, final Dialog parent,
 			final FLEFModel model,
 			final Class<? extends RecordTypeHandler<?>> handlerType){
-		final EntityField field = new EntityField(path, parent, model,
-			EntityType.CITATION_WRAPPER);
-		field.withHandlerTypes(handlerType);
-		return field;
+		return new EntityField(path, parent, model,
+				EntityType.CITATION_WRAPPER)
+			.withHandlerTypes(handlerType);
 	}
 
 
@@ -122,7 +121,7 @@ public class EntityField extends BoundTextField{
 
 		this.model = model;
 
-		handlerTypes = Collections.emptyList();
+		handlers = Collections.emptyList();
 		this.type = type;
 	}
 
@@ -148,7 +147,7 @@ public class EntityField extends BoundTextField{
 
 	private Consumer<GUIHelper.MenuBuilder> createMenuItemsForCitationWrapper(){
 		return builder -> {
-			if(handlerTypes.size() == 1)
+			if(handlers.size() == 1)
 				builder.item("Create New…", this::createNewItem);
 			builder.item("Set…", this::addItem);
 			builder.separator();
@@ -183,7 +182,7 @@ public class EntityField extends BoundTextField{
 	 */
 	@SafeVarargs
 	public final EntityField withHandlerTypes(final Class<? extends RecordTypeHandler<?>>... handlerTypes){
-		assert this.handlerTypes.isEmpty(): "Cannot assign handler type more than one time";
+		assert this.handlers.isEmpty(): "Cannot assign handler type more than one time";
 
 		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
 			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
@@ -196,7 +195,9 @@ public class EntityField extends BoundTextField{
 			}
 		}
 
-		this.handlerTypes = List.of(handlerTypes);
+		this.handlers = Arrays.stream(handlerTypes)
+			.map(HandlerRegistry::getHandler)
+			.toList();
 
 		initComponents();
 
@@ -269,7 +270,7 @@ public class EntityField extends BoundTextField{
 			entity = FLEFRecordHelper.extractRecordFromReference(record, path, model);
 		else if(type == EntityType.ONEOF_REFERENCE){
 			final List<FLEFRecord> entities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, path, model);
-			entity = entities.get(index);
+			entity = (!entities.isEmpty()? entities.get(index): record);
 		}
 		else if(type == EntityType.CITATION_WRAPPER)
 			entity = FLEFRecordHelper.extractStructureWithReference(record, path);
@@ -293,9 +294,8 @@ public class EntityField extends BoundTextField{
 			else if(type == EntityType.ONEOF_REFERENCE){
 				final String tag = entityRef.getTag();
 				final String id = entityRef.getFormattedId();
-				final FLEFRecord child = FLEFRecord.createChildWithTagAndValue(tag, id);
 				final FLEFRecord parentNode = FLEFRecord.createChildWithTag(path)
-					.addChild(child);
+					.addChild(FLEFRecord.createChildWithTagAndValue(tag, id));
 				targetRecord.addChild(parentNode);
 			}
 			else if(type == EntityType.CITATION_WRAPPER){
@@ -319,7 +319,7 @@ public class EntityField extends BoundTextField{
 	}
 
 	private void addItem(){
-		if(handlerTypes.isEmpty()){
+		if(handlers.isEmpty()){
 			JOptionPane.showMessageDialog(this,
 				"Empty handler types.\nCannot show dialog.",
 				"Error", JOptionPane.ERROR_MESSAGE);
@@ -425,8 +425,7 @@ public class EntityField extends BoundTextField{
 	}
 
 	private RecordTypeHandler<?> findHandler(final String type){
-		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
-			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
+		for(final RecordTypeHandler<?> handler : handlers){
 			if(Strings.CI.equals(handler.getType(), type))
 				return handler;
 
@@ -442,9 +441,8 @@ public class EntityField extends BoundTextField{
 	 */
 	@SuppressWarnings("unchecked")
 	private List<Class<? extends RecordTypeHandler<?>>> extractParentHandlers(){
-		final List<Class<? extends RecordTypeHandler<?>>> cleaned = new ArrayList<>(handlerTypes.size());
-		for(final Class<? extends RecordTypeHandler<?>> handlerType : handlerTypes){
-			final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(handlerType);
+		final List<Class<? extends RecordTypeHandler<?>>> cleaned = new ArrayList<>(handlers.size());
+		for(final RecordTypeHandler<?> handler : handlers){
 			final RecordTypeHandler<?> parentHandler = handler.getParentHandler();
 			cleaned.add((Class<? extends RecordTypeHandler<?>>)(parentHandler != null
 				? parentHandler.getClass()

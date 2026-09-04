@@ -32,11 +32,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -94,7 +91,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 
 	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, PlaceCitationHandler.class);
+		super(parent, model, record, PlaceCitationHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
@@ -103,8 +100,8 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, PlaceCitationHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
 			.build();
 
 		components.bind(placeField);
@@ -140,7 +137,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 
 	public void setPlace(final String placeId){
 		if(StringUtils.isNotEmpty(placeId)){
-			if(!confirmRecordExistsForType(placeId, PlaceHandler.class))
+			if(!confirmRecordExistsForType(placeId, PlaceHandler.getInstance().getLabel()))
 				return;
 
 			placeField.setText(placeId);
@@ -179,8 +176,6 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
-
-		HandlerRegistry.scanHandlers();
 
 		final FLEFModel model = new FLEFModel();
 

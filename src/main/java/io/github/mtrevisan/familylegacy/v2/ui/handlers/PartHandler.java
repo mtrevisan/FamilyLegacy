@@ -45,6 +45,17 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 	private static final String TAG_TRANSCRIPTION = "TRANSCRIPTION";
 
 
+	private static final class SingletonHelper{
+		private static final PartHandler INSTANCE = new PartHandler();
+
+	}
+
+
+	public static PartHandler getInstance(){
+		return PartHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

@@ -121,7 +121,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 
 	private TextValueVariantStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, TextValueVariantHandler.class);
+		super(parent, model, record, TextValueVariantHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
 

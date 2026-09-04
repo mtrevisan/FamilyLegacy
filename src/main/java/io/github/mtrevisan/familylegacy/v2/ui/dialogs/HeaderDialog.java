@@ -124,7 +124,7 @@ public class HeaderDialog extends BaseRecordDialog{
 
 
 	public HeaderDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, model.getHeader(), HeaderHandler.class);
+		super(parent, model, model.getHeader(), HeaderHandler.getInstance());
 
 		final String sourceName = ProjectInfo.getAppName();
 		final String sourceVersion = ProjectInfo.getAppVersion();

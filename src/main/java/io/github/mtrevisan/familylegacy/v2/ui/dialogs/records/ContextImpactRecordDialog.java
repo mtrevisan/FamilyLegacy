@@ -47,7 +47,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceRelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -117,7 +116,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 
 	private ContextImpactRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ContextImpactHandler.class);
+		super(parent, model, record, ContextImpactHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 
@@ -140,9 +139,9 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, IndividualAttributeHandler.class)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(impactTypeCombo);

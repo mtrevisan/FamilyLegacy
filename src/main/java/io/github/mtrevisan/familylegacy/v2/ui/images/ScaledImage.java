@@ -225,10 +225,10 @@ public class ScaledImage extends JLabel{
 		if(image == null)
 			super.paintComponent(g);
 		else if(g instanceof Graphics2D){
-			final Graphics2D graphics2D = (Graphics2D)g.create();
-			graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-			graphics2D.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-			graphics2D.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+			final Graphics2D g2 = (Graphics2D)g.create();
+			g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+			g2.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
 
 			if(!initialized){
 				zoomToFitAndCenter();
@@ -248,7 +248,7 @@ public class ScaledImage extends JLabel{
 				try{
 					rotateCurvedImage();
 
-					graphics2D.drawImage(viewportImage,
+					g2.drawImage(viewportImage,
 						0, 0,
 						viewportWidth, viewportHeight,
 						null);
@@ -258,7 +258,7 @@ public class ScaledImage extends JLabel{
 				}
 			}
 			else
-				graphics2D.drawImage(image,
+				g2.drawImage(image,
 					(int)transformation.getTranslateX(), (int)transformation.getTranslateY(),
 					transformation.transformX(imageWidth), transformation.transformY(imageHeight),
 					0, 0,
@@ -267,9 +267,9 @@ public class ScaledImage extends JLabel{
 
 			// Crop selection & external dimming overlay:
 			if(cropStartPointX >= 0)
-				drawCropRectangle(graphics2D);
+				drawCropRectangle(g2);
 
-			graphics2D.dispose();
+			g2.dispose();
 		}
 	}
 

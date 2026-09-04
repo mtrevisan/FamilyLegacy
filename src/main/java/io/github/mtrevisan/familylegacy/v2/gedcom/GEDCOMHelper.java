@@ -723,13 +723,12 @@ public class GEDCOMHelper{
 				// check for duplicates before adding
 				objeXrefId = Deduplicator.getDeduplicatedRecordId(model, document);
 
-				FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE);
-				FLEFRecord titleRec = FLEFRecord.createChildWithTag("title")
-					.addChild(FLEFRecord.createChildWithTagAndValue("value", "Document " + objeXrefId));
-				source.addChild(titleRec);
-				FLEFRecord docRef = FLEFRecord.createChildWithTagAndValue("document", objeXrefId);
-				source.addChild(docRef);
-				source.addChild(AuditBuilder.build(node));
+				FLEFRecord source = FLEFRecord.createMainRecord(IDGenerator.nextId(SourceHandler.ID_PREFIX), SourceHandler.TYPE)
+					.addChild(FLEFRecord.createChildWithTag("title")
+						.addChild(FLEFRecord.createChildWithTagAndValue("value", "Document " + objeXrefId))
+					)
+					.addChild(FLEFRecord.createChildWithTagAndValue("document", objeXrefId))
+					.addChild(AuditBuilder.build(node));
 
 				FLEFRecord sourceCitation = FLEFRecord.createChildWithTag("source")
 					.addChild(FLEFRecord.createChildWithTagAndValue("source", source.getId()))
@@ -1453,8 +1452,7 @@ public class GEDCOMHelper{
 			EventParticipationHandler.TYPE
 		);
 
-		FLEFRecord eventCitation = FLEFRecord.createChildWithTagAndValue("event", eventId);
-		participation.addChild(eventCitation);
+		participation.addChild(FLEFRecord.createChildWithTagAndValue("event", eventId));
 
 		FLEFRecord participant = FLEFRecord.createChildWithTag("participant")
 			.addChild(FLEFRecord.createChildWithTagAndValue(entityType, entityId));

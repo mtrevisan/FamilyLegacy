@@ -39,6 +39,17 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 	public static final String ID_PREFIX = "E";
 
 
+	private static final class SingletonHelper{
+		private static final EventHandler INSTANCE = new EventHandler();
+
+	}
+
+
+	public static EventHandler getInstance(){
+		return EventHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Event";

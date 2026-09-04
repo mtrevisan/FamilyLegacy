@@ -48,6 +48,17 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
 
 
+	private static final class SingletonHelper{
+		private static final PlaceHandler INSTANCE = new PlaceHandler();
+
+	}
+
+
+	public static PlaceHandler getInstance(){
+		return PlaceHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Place";
@@ -65,12 +76,14 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		final String id = record.getId();
+		if(id == null)
+			return PlaceCitationHandler.getInstance().getDisplayText(record, model);
+
 		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
-		if(StringUtils.isNotEmpty(value)){
-			final String id = record.getId();
+		if(StringUtils.isNotEmpty(value))
 			return value + " [" + id + "]";
-		}
-		return "[" + record.getId() + "]";
+		return "[" + id + "]";
 	}
 
 	@Override

@@ -100,6 +100,7 @@ records {
 					VALUE nòme
 				}
 			}
+			CULTURAL_NORM CN1
 		}
 		NAME {
 			TYPE maiden

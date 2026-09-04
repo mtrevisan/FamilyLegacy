@@ -89,7 +89,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 
 
 	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, PartHandler.class);
+		super(parent, model, record, PartHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 

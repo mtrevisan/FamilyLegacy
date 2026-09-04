@@ -46,6 +46,17 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	private static final String TAG_ACTIVITY_TYPE = "ACTIVITY_TYPE";
 
 
+	private static final class SingletonHelper{
+		private static final ResearchActivityHandler INSTANCE = new ResearchActivityHandler();
+
+	}
+
+
+	public static ResearchActivityHandler getInstance(){
+		return ResearchActivityHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getType(){
 		return TYPE;
@@ -62,7 +73,7 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	}
 
 	@Override
-	public String getDisplayText(FLEFRecord record, FLEFModel model){
+	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		if(record == null)
 			return "--";
 

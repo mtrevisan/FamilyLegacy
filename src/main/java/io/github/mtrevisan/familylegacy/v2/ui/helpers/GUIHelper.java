@@ -118,7 +118,7 @@ public final class GUIHelper{
 
 	private static final String ELLIPSIS = "…";
 
-	private static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
+	public static final String PROPERTY_ASSOCIATED_LABEL = "__associatedLabel";
 
 
 	private GUIHelper(){}

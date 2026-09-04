@@ -1111,7 +1111,6 @@ record ConclusionRecord {
   privacy?: PrivacyStructure
   audit: AuditStructure
   
-  require preferred in resolves
   require preferred member_of resolves
 }
 

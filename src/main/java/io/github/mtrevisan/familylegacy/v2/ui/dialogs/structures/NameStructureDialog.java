@@ -34,9 +34,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -109,7 +106,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 
 	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, NameHandler.class);
+		super(parent, model, record, NameHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 
@@ -143,8 +140,8 @@ public class NameStructureDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.build();
 
 		components.bind(valueField);

@@ -35,15 +35,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -124,13 +117,15 @@ public class SourceRecordDialog extends BaseRecordDialog{
 
 
 	private SourceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, SourceHandler.class);
+		super(parent, model, record, SourceHandler.getInstance());
 
-		titlePanel = EntityListPanel.createForStructure(TAG_TITLE, this, "Title*", model, NameHandler.class);
+		titlePanel = EntityListPanel.createForStructure(TAG_TITLE, this, "Title*", model,
+			NameHandler.class);
 		authorField = new BoundTextField(TAG_AUTHOR);
 		publisherField = new BoundTextField(TAG_PUBLISHER);
 		dateField = DateField.createWithWrapperTag(TAG_DATE, this, "Valid Date", model);
-		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
+		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model,
+			PlaceCitationHandler.class);
 		mediaTypeCombo = new BoundComboBox<>(TAG_MEDIA_TYPE, new String[]{
 			StringUtils.EMPTY,
 			"audio", "book", "card", "electronic", "fiche", "film",
@@ -140,14 +135,14 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		mediaTypeCombo.setEditable(true);
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories with Citations", RepositoryHandler.class, RepositoryCitationHandler.class)
-			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents", DocumentHandler.class, DocumentHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, SourceHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, SourceHandler.class)
-			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, TAG_RESEARCH_ACTIVITY, "Research Activities", ResearchActivityHandler.class, SourceHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.REPOSITORY, TAG_REPOSITORY, "Repositories with Citations")
+			.withComponent(PanelKey.DOCUMENT, TAG_DOCUMENT, "Documents")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.RESEARCH_ACTIVITY_ON_SOURCE, TAG_RESEARCH_ACTIVITY, "Research Activities")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(authorField);

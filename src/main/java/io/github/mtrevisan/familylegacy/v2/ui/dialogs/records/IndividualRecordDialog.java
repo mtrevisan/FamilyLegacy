@@ -33,18 +33,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -171,7 +161,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 
 	private IndividualRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, IndividualHandler.class);
+		super(parent, model, record, IndividualHandler.getInstance());
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
 		personalNamePanel = EntityListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.class);
@@ -180,18 +170,18 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 			"male", "female", "unknown"});
 
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, TAG_INDIVIDUAL_ATTRIBUTE, "Individual Attributes", IndividualAttributeHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Relationships", RelationshipHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Members", RelationshipHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations", EventParticipationHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses", IdentityHypothesisHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IndividualHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, TAG_INDIVIDUAL_ATTRIBUTE, "Individual Attributes")
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Relationships")
+			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Members")
+			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations")
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY, TAG_IDENTITY_HYPOTHESIS, "Identity Hypotheses")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(sexCombo);
@@ -313,9 +303,6 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		preferredImagePanel.load(record);
 		personalNamePanel.load(record);
-
-		final EntityListPanel identityHypothesisPanel = (EntityListPanel)components.getPanel(PanelKey.IDENTITY_HYPOTHESIS_ON_IDENTITY);
-		identityHypothesisPanel.withParentEntity(record);
 
 		components.load(record);
 	}

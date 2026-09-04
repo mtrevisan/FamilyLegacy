@@ -110,14 +110,11 @@ public class MultiTypeSelectionDialog extends JDialog{
 		super(parent, "Select Participant", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
-		final RecordTypeHandler<?>[] handlers = Arrays.stream(handlerTypes)
-			.map(HandlerRegistry::getHandler)
-			.toArray(value -> new RecordTypeHandler<?>[handlerTypes.length]);
-		defaultType = (handlerTypes.length == 1? handlers[0]: null);
+		defaultType = (handlerTypes.length == 1? HandlerRegistry.getHandler(handlerTypes[0]): null);
 
 
 		// UI components (typeCombo may remain null if only one type)
-		typeCombo = (handlerTypes.length > 1? createTypeCombo(handlers): null);
+		typeCombo = (handlerTypes.length > 1? createTypeCombo(handlerTypes): null);
 		searchField = new JTextField(null);
 		listModel = new DefaultListModel<>();
 		list = new JList<>(listModel);
@@ -138,7 +135,10 @@ public class MultiTypeSelectionDialog extends JDialog{
 		return this;
 	}
 
-	private JComboBox<RecordTypeHandler<?>> createTypeCombo(final RecordTypeHandler<?>[] handlers){
+	private JComboBox<RecordTypeHandler<?>> createTypeCombo(final Class<? extends RecordTypeHandler<?>>[] handlerTypes){
+		final RecordTypeHandler<?>[] handlers = Arrays.stream(handlerTypes)
+			.map(HandlerRegistry::getHandler)
+			.toArray(RecordTypeHandler[]::new);
 		final JComboBox<RecordTypeHandler<?>> combo = new JComboBox<>(handlers);
 		combo.setRenderer(new DefaultListCellRenderer(){
 			@Override
@@ -350,8 +350,6 @@ public class MultiTypeSelectionDialog extends JDialog{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
-
-		HandlerRegistry.scanHandlers();
 
 		final FLEFModel model = new FLEFModel();
 		final List<Class<? extends RecordTypeHandler<?>>> handlerTypes = List.of(

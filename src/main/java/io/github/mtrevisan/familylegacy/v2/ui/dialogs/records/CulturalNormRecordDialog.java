@@ -35,14 +35,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -136,7 +130,7 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 
 
 	private CulturalNormRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, CulturalNormHandler.class);
+		super(parent, model, record, CulturalNormHandler.getInstance());
 
 		titleField = new BoundTextField(TAG_TITLE);
 		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{
@@ -161,19 +155,19 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		});
 		ruleTypeCombo.setEditable(true);
 		placeField = EntityField.createForStructureWithReference(TAG_PLACE, this, model, PlaceCitationHandler.class);
-		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, this, "Evidence", model, null);
+		placeEvidencePanel = new EvidenceQualifiersPanel(TAG_PLACE_EVIDENCE, "Evidence");
 		validFromField = DateField.createWithWrapperTag(TAG_VALID_FROM, this, "From Date", model);
 		validToField = DateField.createWithWrapperTag(TAG_VALID_TO, this, "To Date", model);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, CulturalNormHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, CulturalNormHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, CulturalNormHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, CulturalNormHandler.class)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_CONTEXT, TAG_CONTEXT_IMPACT, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(titleField);

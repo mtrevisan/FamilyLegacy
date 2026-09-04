@@ -32,8 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -92,7 +90,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 
 	private RepositoryCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, RepositoryCitationHandler.class);
+		super(parent, model, record, RepositoryCitationHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");
 
@@ -101,7 +99,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
 			.build();
 
 		components.bind(repositoryField);
@@ -133,7 +131,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 
 	public void setRepository(final String repositoryId){
 		if(StringUtils.isNotEmpty(repositoryId)){
-			if(!confirmRecordExistsForType(repositoryId, RepositoryHandler.class))
+			if(!confirmRecordExistsForType(repositoryId, RepositoryHandler.getInstance().getLabel()))
 				return;
 
 			repositoryField.setText(repositoryId);
@@ -183,8 +181,6 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
-
-		HandlerRegistry.scanHandlers();
 
 		final FLEFModel model = new FLEFModel();
 

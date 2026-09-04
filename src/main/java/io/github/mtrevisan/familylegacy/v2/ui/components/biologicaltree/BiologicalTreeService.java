@@ -46,6 +46,7 @@ public class BiologicalTreeService{
 
 	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
 	private static final String ENUM_TYPE_FAMILY = "family";
+	private static final String ENUM_TYPE_SPOUSE = "spouse";
 	private static final String ENUM_SEX_MALE = "male";
 	private static final String ENUM_SEX_FEMALE = "female";
 
@@ -91,10 +92,11 @@ public class BiologicalTreeService{
 		if(!partnerChildrenDataMap.isEmpty()){
 			//TODO choose partner and children
 			final Map.Entry<IndividualData, SiblingsData> partnerChildrenData = partnerChildrenDataMap.entrySet().stream()
+				.filter(entry -> hasSpouseRelationships(entry.getKey().getIndividualId()))
 				.findFirst()
 				.orElse(null);
-			final IndividualData partnerData = partnerChildrenData.getKey();
-			if(partnerData != null){
+			if(partnerChildrenData != null){
+				final IndividualData partnerData = partnerChildrenData.getKey();
 				final FLEFRecord partner = model.getRecordById(partnerData.getIndividualId());
 				final SiblingsData childrenData = partnerChildrenData.getValue();
 				rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
@@ -111,10 +113,9 @@ public class BiologicalTreeService{
 				continue;
 
 
-			final FLEFRecord currentIndividual = currentNode.getIndividual();
-			if(currentIndividual == null)
+			final String currentIndividualId = currentNode.getIndividualId();
+			if(currentIndividualId == null)
 				continue;
-			final String currentIndividualId = currentIndividual.getId();
 			final int nextGeneration = currentGeneration + 1;
 
 			final List<FLEFRecord> parents = getParents(currentIndividualId);
@@ -173,6 +174,22 @@ public class BiologicalTreeService{
 		}
 
 		return rootNode;
+	}
+
+	private boolean hasSpouseRelationships(final String spouseId){
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> spouseRelationships = new ArrayList<>();
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			final String targetRefId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+
+			if(type != null && type.endsWith(ENUM_TYPE_SPOUSE)
+					&& (spouseId.equals(subjectId) || spouseId.equals(targetRefId))){
+				spouseRelationships.add(relationship);
+			}
+		}
+		return !spouseRelationships.isEmpty();
 	}
 
 	/**
@@ -303,8 +320,8 @@ public class BiologicalTreeService{
 			if(type == null)
 				continue;
 
-			final String subjectId = extractReferencedId(relationship, TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetId = extractReferencedId(relationship, TAG_TARGET, IndividualHandler.TYPE);
+			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 			if(subjectId == null || targetId == null)
 				continue;
 
@@ -363,26 +380,6 @@ public class BiologicalTreeService{
 				individualToEventMap.computeIfAbsent(individualId, k -> new ArrayList<>())
 					.add(event);
 		}
-	}
-
-	/**
-	 * Helper function to extract a referenced ID from a structure's xref tag.
-	 *
-	 * @param record   the parent record
-	 * @param fieldTag the tag to search for
-	 * @param referencedType expected record type
-	 * @return referenced ID or {@code null}
-	 */
-	private String extractReferencedId(final FLEFRecord record, final String fieldTag, final String referencedType){
-		final FLEFRecord field = FLEFRecordHelper.findChild(record, fieldTag);
-		if(field == null)
-			return null;
-
-		final FLEFRecord ref = field.getTheOnlyChild();
-		if(ref == null || !referencedType.equalsIgnoreCase(ref.getTag()))
-			return null;
-
-		return ref.getValue();
 	}
 
 

@@ -30,8 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
 import javax.swing.JDialog;
@@ -67,7 +65,7 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 
 	private final ImageCropDialog cropDialog;
 
-	private final RecordTypeHandler<?> documentHandler = HandlerRegistry.getHandler(DocumentHandler.class);
+	private final DocumentHandler documentHandler = DocumentHandler.getInstance();
 
 
 	public DocumentPartListPanel(final String path, final Dialog parent, final String panelTitle, final FLEFModel model){

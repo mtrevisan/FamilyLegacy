@@ -42,6 +42,17 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 	private static final String TAG_NAME = "NAME";
 
 
+	private static final class SingletonHelper{
+		private static final ContactHandler INSTANCE = new ContactHandler();
+
+	}
+
+
+	public static ContactHandler getInstance(){
+		return ContactHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

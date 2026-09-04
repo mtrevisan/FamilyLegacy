@@ -46,6 +46,17 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 	private static final String TAG_STATUS = "STATUS";
 
 
+	private static final class SingletonHelper{
+		private static final ResearchQuestionHandler INSTANCE = new ResearchQuestionHandler();
+
+	}
+
+
+	public static ResearchQuestionHandler getInstance(){
+		return ResearchQuestionHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Research Question";

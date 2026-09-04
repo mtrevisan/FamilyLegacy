@@ -2,6 +2,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.siblings;
 
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualListener;
@@ -57,8 +58,10 @@ public class SiblingsPanel extends JPanel{
 		+ PartnersPanel.NAVIGATION_DESCENDANTS_ARROW_SEPARATION;
 
 
-	private final FLEFModel model;
+	private final FLEFRecord father;
+	private final FLEFRecord mother;
 	private final BoxPanelType boxType;
+	private final FLEFModel model;
 
 	private final List<IndividualPanel> siblingBoxes = new ArrayList<>();
 	private SiblingsData data;
@@ -66,12 +69,16 @@ public class SiblingsPanel extends JPanel{
 	private IndividualListener listener;
 
 
-	public static SiblingsPanel create(final BoxPanelType boxType, final FLEFModel model){
-		return new SiblingsPanel(boxType, model);
+	public static SiblingsPanel create(final FLEFRecord father, final FLEFRecord mother, final BoxPanelType boxType,
+			final FLEFModel model){
+		return new SiblingsPanel(father, mother, boxType, model);
 	}
 
 
-	private SiblingsPanel(final BoxPanelType boxType, final FLEFModel model){
+	private SiblingsPanel(final FLEFRecord father, final FLEFRecord mother, final BoxPanelType boxType,
+			final FLEFModel model){
+		this.father = father;
+		this.mother = mother;
 		this.boxType = boxType;
 		this.model = model;
 
@@ -147,7 +154,8 @@ public class SiblingsPanel extends JPanel{
 			final List<IndividualData> siblings = data.getSiblings();
 			if(siblings.isEmpty()){
 				// Placeholder box to allow adding the first child
-				final IndividualPanel emptyBox = IndividualPanel.create(BoxPanelType.SECONDARY, model);
+				final IndividualPanel emptyBox = IndividualPanel.create(BoxPanelType.SECONDARY, model)
+					.withParent(father, mother);
 				add(emptyBox);
 			}
 			else
@@ -156,9 +164,10 @@ public class SiblingsPanel extends JPanel{
 					final boolean hasDescendants = data.hasDescendants(siblingId);
 
 					final JPanel boxContainer = createSiblingContainer(hasDescendants);
-					final IndividualPanel siblingBox = IndividualPanel.create(boxType, model);
-					siblingBox.withListener(listener);
-					siblingBox.withIndividualData(siblingData);
+					final IndividualPanel siblingBox = IndividualPanel.create(boxType, model)
+						.withParent(father, mother)
+						.withListener(listener)
+						.withIndividualData(siblingData);
 
 					boxContainer.add(siblingBox);
 					add(boxContainer, "gapright " + SIBLING_SEPARATION);
@@ -168,8 +177,9 @@ public class SiblingsPanel extends JPanel{
 
 		// Add empty placeholder box for adding a new sibling
 		final JPanel emptyBoxContainer = createSiblingContainer(false);
-		final IndividualPanel emptySiblingBox = IndividualPanel.create(boxType, model);
-		emptySiblingBox.withListener(listener);
+		final IndividualPanel emptySiblingBox = IndividualPanel.create(boxType, model)
+			.withParent(father, mother)
+			.withListener(listener);
 		emptyBoxContainer.add(emptySiblingBox);
 		add(emptyBoxContainer);
 		siblingBoxes.add(emptySiblingBox);
@@ -224,7 +234,7 @@ public class SiblingsPanel extends JPanel{
 		final FLEFModel model = parser.parse(content);
 
 		EventQueue.invokeLater(() -> {
-			final SiblingsPanel panel = SiblingsPanel.create(BoxPanelType.SECONDARY, model);
+			final SiblingsPanel panel = SiblingsPanel.create(null, null, BoxPanelType.SECONDARY, model);
 
 			final JFrame frame = new JFrame();
 			final Container contentPane = frame.getContentPane();

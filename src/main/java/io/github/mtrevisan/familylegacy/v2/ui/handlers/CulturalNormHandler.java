@@ -44,6 +44,17 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	private static final String TAG_TITLE = "TITLE";
 
 
+	private static final class SingletonHelper{
+		private static final CulturalNormHandler INSTANCE = new CulturalNormHandler();
+
+	}
+
+
+	public static CulturalNormHandler getInstance(){
+		return CulturalNormHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Cultural Norm";

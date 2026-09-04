@@ -56,6 +56,17 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 	private static final String TAG_TYPE = "TYPE";
 
 
+	private static final class SingletonHelper{
+		private static final PersonalNameHandler INSTANCE = new PersonalNameHandler();
+
+	}
+
+
+	public static PersonalNameHandler getInstance(){
+		return PersonalNameHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public boolean isTopLevelEntity(){
 		return false;

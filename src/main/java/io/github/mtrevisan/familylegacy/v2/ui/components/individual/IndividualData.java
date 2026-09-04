@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.AsyncResourceLoader;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
@@ -140,8 +141,8 @@ public final class IndividualData{
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
-			final String subjectId = extractReferencedId(relationship, TAG_SUBJECT);
-			final String targetId = extractReferencedId(relationship, TAG_TARGET);
+			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 			if(type != null && type.endsWith(ENUM_TYPE_CHILD)){
 				// If current individual is the subject (child), they have parents (target)
 				if(individualId.equals(subjectId) && targetId != null)
@@ -221,17 +222,8 @@ public final class IndividualData{
 		extractPreferredImage(individual);
 	}
 
-	private String extractReferencedId(final FLEFRecord record, final String fieldTag){
-		final FLEFRecord field = FLEFRecordHelper.findChild(record, fieldTag);
-		if(field == null)
-			return null;
 
-		final FLEFRecord ref = field.getTheOnlyChild();
-		return (ref != null? ref.getValue(): null);
-	}
-
-
-	public String getIndividualId() {
+	public String getIndividualId(){
 		return individualId;
 	}
 

@@ -35,15 +35,9 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
@@ -140,7 +134,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 
 	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, GroupAttributeHandler.class);
+		super(parent, model, record, GroupAttributeHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 
@@ -157,14 +151,14 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, GroupAttributeHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, GroupAttributeHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, GroupAttributeHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(typeCombo);
@@ -263,10 +257,11 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	public GroupAttributeRecordDialog withGroup(final String groupId){
 		if(StringUtils.isNotEmpty(groupId)){
-			if(!confirmRecordExistsForType(groupId, GroupHandler.class))
+			if(!confirmRecordExistsForType(groupId, GroupHandler.getInstance().getLabel()))
 				return this;
 
-			withParentEntity(groupId, GroupHandler.TYPE);
+			final FLEFRecord temporary = FLEFRecord.createMainRecord(groupId, GroupHandler.TYPE);
+			withParentEntity(temporary);
 			refreshLayout();
 		}
 
@@ -287,7 +282,8 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		// load parent group reference
 		final String groupId = FLEFRecordHelper.getChildValue(record, TAG_GROUP);
-		withParentEntity(groupId, GroupHandler.TYPE);
+		final FLEFRecord temporary = FLEFRecord.createMainRecord(groupId, GroupHandler.TYPE);
+		withParentEntity(temporary);
 
 
 		validFromField.load(record);

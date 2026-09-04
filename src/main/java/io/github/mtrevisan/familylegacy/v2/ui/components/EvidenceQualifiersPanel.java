@@ -24,7 +24,6 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.components;
 
-import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -34,7 +33,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.ToolTipManager;
-import java.awt.Dialog;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -80,8 +78,7 @@ public class EvidenceQualifiersPanel extends JPanel{
 	 * @param path	the path prefix for child fields (e.g., "EVIDENCE" or "EVIDENCE.QUALIFIERS")
 	 * @param panelTitle	the title to display in the TitledBorder
 	 */
-	public EvidenceQualifiersPanel(final String path, final Dialog parent, final String panelTitle,
-			final FLEFModel model, final String recordHandlerType){
+	public EvidenceQualifiersPanel(final String path, final String panelTitle){
 		this.path = (StringUtils.isNotEmpty(path)? path + DOT: StringUtils.EMPTY);
 
 		setLayout(GUIHelper.createLabelFieldLayout(5, "[]5[]5[]"));

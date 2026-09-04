@@ -24,22 +24,11 @@
  */
 package io.github.mtrevisan.familylegacy.v2.ui.handlers;
 
-import org.apache.commons.lang3.StringUtils;
-
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Modifier;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
-import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 
 /**
@@ -48,12 +37,41 @@ import java.util.jar.JarFile;
  */
 public final class HandlerRegistry{
 
-	private static final Map<Class<? extends RecordTypeHandler<?>>, RecordTypeHandler<?>> handlers = new ConcurrentHashMap<>();
+	private static final Map<Class<? extends RecordTypeHandler<?>>, String> HANDLERS_TYPE = new ConcurrentHashMap<>();
 
-	private static final Map<String, Class<? extends RecordTypeHandler<?>>> HANDLER_MAP = new ConcurrentHashMap<>();
-
-	static {
-		scanHandlers();
+	private static final Map<String, RecordTypeHandler<?>> HANDLERS = new HashMap<>();
+	static{
+		HANDLERS.put(ConclusionHandler.TYPE, ConclusionHandler.getInstance());
+		HANDLERS.put(ContactHandler.TYPE, ContactHandler.getInstance());
+		HANDLERS.put(ContactNameHandler.TYPE, ContactNameHandler.getInstance());
+		HANDLERS.put(ContextImpactHandler.TYPE, ContextImpactHandler.getInstance());
+		HANDLERS.put(CulturalNormHandler.TYPE, CulturalNormHandler.getInstance());
+		HANDLERS.put(DocumentHandler.TYPE, DocumentHandler.getInstance());
+		HANDLERS.put(EventHandler.TYPE, EventHandler.getInstance());
+		HANDLERS.put(EventParticipationHandler.TYPE, EventParticipationHandler.getInstance());
+		HANDLERS.put(GroupAttributeHandler.TYPE, GroupAttributeHandler.getInstance());
+		HANDLERS.put(GroupHandler.TYPE, GroupHandler.getInstance());
+		HANDLERS.put(HeaderHandler.TYPE, HeaderHandler.getInstance());
+		HANDLERS.put(HistoricEventHandler.TYPE, HistoricEventHandler.getInstance());
+		HANDLERS.put(IdentityHypothesisHandler.TYPE, IdentityHypothesisHandler.getInstance());
+		HANDLERS.put(IndividualAttributeHandler.TYPE, IndividualAttributeHandler.getInstance());
+		HANDLERS.put(IndividualHandler.TYPE, IndividualHandler.getInstance());
+		HANDLERS.put(NameHandler.TYPE, NameHandler.getInstance());
+		HANDLERS.put(NoteHandler.TYPE, NoteHandler.getInstance());
+		HANDLERS.put(PartHandler.TYPE, PartHandler.getInstance());
+		HANDLERS.put(PersonalNameHandler.TYPE, PersonalNameHandler.getInstance());
+		HANDLERS.put(PlaceCitationHandler.TYPE, PlaceCitationHandler.getInstance());
+		HANDLERS.put(PlaceHandler.TYPE, PlaceHandler.getInstance());
+		HANDLERS.put(PlaceRelationshipHandler.TYPE, PlaceRelationshipHandler.getInstance());
+		HANDLERS.put(RelationshipHandler.TYPE, RelationshipHandler.getInstance());
+		HANDLERS.put(RepositoryCitationHandler.TYPE, RepositoryCitationHandler.getInstance());
+		HANDLERS.put(RepositoryHandler.TYPE, RepositoryHandler.getInstance());
+		HANDLERS.put(ResearchActivityHandler.TYPE, ResearchActivityHandler.getInstance());
+		HANDLERS.put(ResearchQuestionHandler.TYPE, ResearchQuestionHandler.getInstance());
+		HANDLERS.put(ResearchTaskHandler.TYPE, ResearchTaskHandler.getInstance());
+		HANDLERS.put(SourceCitationHandler.TYPE, SourceCitationHandler.getInstance());
+		HANDLERS.put(SourceHandler.TYPE, SourceHandler.getInstance());
+		HANDLERS.put(TextValueVariantHandler.TYPE, TextValueVariantHandler.getInstance());
 	}
 
 
@@ -69,14 +87,9 @@ public final class HandlerRegistry{
 	 * @return	The handler, or {@code null} if not able to instantiate.
 	 */
 	public static RecordTypeHandler<?> getHandler(final Class<? extends RecordTypeHandler<?>> handlerClass){
-		return handlers.computeIfAbsent(handlerClass, k -> {
-			try{
-				return k.getDeclaredConstructor()
-					.newInstance();
-			}
-			catch(final Exception ignored){}
-			return null;
-		});
+		final String type = HANDLERS_TYPE.computeIfAbsent(handlerClass,
+			k -> getHandlerType(handlerClass));
+		return HANDLERS.get(type);
 	}
 
 	/**
@@ -84,31 +97,11 @@ public final class HandlerRegistry{
 	 * <p>
 	 * Ensures the registry is initialized before accessing it.
 	 *
-	 * @param handlerClassType	The record type (e.g., "INDIVIDUAL").
+	 * @param type	The record type.
 	 * @return	The handler, or {@code null} if not able to return a class.
 	 */
-	public static RecordTypeHandler<?> getHandler(final String handlerClassType){
-		final Class<? extends RecordTypeHandler<?>> handlerClass = getHandlerClass(handlerClassType);
-		if(handlerClass == null)
-			return null;
-
-		return handlers.computeIfAbsent(handlerClass, k -> {
-			try{
-				return k.getDeclaredConstructor()
-					.newInstance();
-			}
-			catch(final InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ignored){}
-			return null;
-		});
-	}
-
-	/**
-	 * Checks if a handler is registered for the given type.
-	 * <p>
-	 * Ensures the registry is initialized before checking.
-	 */
-	public static boolean isRegistered(final Class<? extends RecordTypeHandler<?>> handlerClass){
-		return handlers.containsKey(handlerClass);
+	public static RecordTypeHandler<?> getHandler(final String type){
+		return HANDLERS.get(type.toUpperCase(Locale.ROOT));
 	}
 
 
@@ -120,185 +113,9 @@ public final class HandlerRegistry{
 		}
 		catch(final NoSuchFieldException | IllegalAccessException e){
 			throw new IllegalArgumentException(
-				"Handler class " + handlerClass.getName() + " does not define a static TYPE field",
+				"Handler class " + handlerClass.getName() + " does not define a static `TYPE` field",
 				e);
 		}
-	}
-
-
-	/**
-	 * Retrieves the handler class for the given type.
-	 * <p>
-	 * Ensures the registry is initialized before accessing it.
-	 *
-	 * @param type the handler type (e.g., "INDIVIDUAL", "SOURCE")
-	 * @return the class that extends {@link RecordTypeHandler}, or {@code null} if not found
-	 */
-	public static Class<? extends RecordTypeHandler<?>> getHandlerClass(final String type){
-		return getHandlerClassInternal(type);
-	}
-
-	/**
-	 * Internal method that does NOT trigger initialization.
-	 * Used internally after initialization is guaranteed.
-	 */
-	private static Class<? extends RecordTypeHandler<?>> getHandlerClassInternal(final String type){
-		return (type != null? HANDLER_MAP.get(type): null);
-	}
-
-	/**
-	 * Scans the package containing the given class for all classes that extend
-	 * {@link RecordTypeHandler}.
-	 */
-	public static void scanHandlers(){
-		final String packageName = AbstractRecordTypeHandler.class.getPackage()
-			.getName();
-		scanHandlers(packageName);
-	}
-
-	/**
-	 * Scans the package containing the given class for all classes that extend
-	 * {@link RecordTypeHandler}.
-	 *
-	 * @param sampleClass any class belonging to the package to scan
-	 */
-	private static void scanHandlers(final Class<?> sampleClass){
-		final String packageName = sampleClass.getPackage()
-			.getName();
-		scanHandlers(packageName);
-	}
-
-	/**
-	 * Scans the specified package for all classes that extend {@link RecordTypeHandler}.
-	 * For each found class, it reads the static {@code TYPE} field and stores the mapping.
-	 *
-	 * @param packageName the package to scan (e.g., "{@code io.github.mtrevisan.familylegacy.v2.ui.handlers}")
-	 */
-	private static void scanHandlers(final String packageName){
-		final String packagePath = packageName.replace('.', '/');
-		final ClassLoader classLoader = Thread.currentThread()
-			.getContextClassLoader();
-		try{
-			final Enumeration<URL> resources = classLoader.getResources(packagePath);
-			while(resources.hasMoreElements()){
-				final URL resource = resources.nextElement();
-				final String protocol = resource.getProtocol();
-				if("file".equals(protocol)){
-					// File-system directory
-					final File directory = new File(URLDecoder.decode(resource.getFile(), StandardCharsets.UTF_8));
-					scanDirectory(packageName, directory);
-				}
-				else if("jar".equals(protocol)){
-					// JAR entry
-					final String jarPath = resource.getPath()
-						.substring(5, resource.getPath().indexOf("!"));
-					scanJar(jarPath, packageName);
-				}
-				// Other protocols (e.g., "war", "bundle") are not handled for simplicity
-			}
-		}
-		catch(final IOException e){
-			throw new RuntimeException("Failed to scan package: " + packageName, e);
-		}
-	}
-
-	/**
-	 * Recursively scans a directory for .class files.
-	 *
-	 * @param packageName the current package name (used to build full class names)
-	 * @param directory   the directory to scan
-	 */
-	private static void scanDirectory(final String packageName, final File directory){
-		if(!directory.exists() || !directory.isDirectory())
-			return;
-
-		final File[] files = directory.listFiles();
-		if(files == null)
-			return;
-
-		for(final File file : files){
-			if(file.isDirectory())
-				// Recurse into subdirectories
-				scanDirectory(packageName + "." + file.getName(), file);
-			else if(file.getName().endsWith(".class")){
-				final String className = packageName + "." + file.getName().replace(".class", StringUtils.EMPTY);
-				processClass(className);
-			}
-		}
-	}
-
-	/**
-	 * Scans a JAR file for classes in the specified package.
-	 *
-	 * @param jarPath     the path to the JAR file
-	 * @param packageName the package name to scan (e.g., "{@code io.github...handlers}")
-	 */
-	private static void scanJar(final String jarPath, final String packageName){
-		try(final JarFile jarFile = new JarFile(jarPath)){
-			final Enumeration<JarEntry> entries = jarFile.entries();
-			final String packagePath = packageName.replace('.', '/');
-			while(entries.hasMoreElements()){
-				final JarEntry entry = entries.nextElement();
-				final String name = entry.getName();
-				// Match class files directly under the package path (including subpackages)
-				if(name.startsWith(packagePath) && name.endsWith(".class") && !name.contains("$")){
-					// Convert path to fully-qualified class name
-					final String className = name.replace('/', '.')
-						.replace(".class", StringUtils.EMPTY);
-					processClass(className);
-				}
-			}
-		}
-		catch(final IOException e){
-			// Log or ignore – JAR scanning is best-effort
-			System.err.println("Could not scan JAR: " + jarPath + " - " + e.getMessage());
-		}
-	}
-
-	/**
-	 * Loads a class by name and, if it extends RecordTypeHandler, stores it in the map.
-	 *
-	 * @param className the fully-qualified class name
-	 */
-	private static void processClass(final String className){
-		try{
-			final Class<?> clazz = Class.forName(className);
-			if(RecordTypeHandler.class.isAssignableFrom(clazz) && !clazz.isInterface()
-					&& !Modifier.isAbstract(clazz.getModifiers())){
-				@SuppressWarnings("unchecked")
-				final Class<? extends RecordTypeHandler<?>> handlerClass =
-					(Class<? extends RecordTypeHandler<?>>)clazz;
-				final String type = getTypeConstant(handlerClass);
-				if(StringUtils.isNotEmpty(type))
-					HANDLER_MAP.put(type.toLowerCase(Locale.ROOT), handlerClass);
-			}
-		}
-		catch(final ClassNotFoundException ignored){
-			// Skip classes that cannot be loaded
-		}
-	}
-
-	/**
-	 * Extracts the value of the static {@code TYPE} field from the given handler class.
-	 *
-	 * @param clazz the handler class
-	 * @return the value of the TYPE field, or {@code null} if the field is missing or not a String
-	 */
-	private static String getTypeConstant(final Class<? extends RecordTypeHandler<?>> clazz){
-		try{
-			final Field field = clazz.getDeclaredField("TYPE");
-			field.setAccessible(true);
-			final Object value = field.get(null);
-			if(value instanceof String)
-				return (String)value;
-		}
-		catch(final NoSuchFieldException e){
-			System.err.println("Handler class " + clazz.getName() + " does not define a static TYPE field.");
-		}
-		catch(final IllegalAccessException e){
-			System.err.println("Cannot access TYPE field on " + clazz.getName());
-		}
-		return null;
 	}
 
 }

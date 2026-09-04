@@ -26,28 +26,25 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Dialog;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.List;
 import java.util.Objects;
 
 
@@ -120,7 +117,7 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 
 	private IdentityHypothesisRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, IdentityHypothesisHandler.class);
+		super(parent, model, record, IdentityHypothesisHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
@@ -132,13 +129,13 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts", ContextImpactHandler.class, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions", ConclusionHandler.class, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions", ResearchQuestionHandler.class, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations", SourceHandler.class, SourceCitationHandler.class)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, IdentityHypothesisHandler.class)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
+			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
+			.withComponent(PanelKey.RESEARCH_QUESTION_ON_TARGET, TAG_RESEARCH_QUESTION, "Research Questions")
+			.withComponent(PanelKey.SOURCE, TAG_SOURCE, "Sources with Citations")
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(commentArea);
@@ -214,6 +211,24 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		return components.getPanel(PanelKey.AUDIT);
 	}
 
+
+	public void withIdentity(final FLEFRecord identity){
+		super.withParentEntity(identity);
+
+		if(parentEntity != null && !parentEntity.isEmpty()){
+			final List<FLEFRecord> entities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, parentEntity.getPath(), model);
+
+			final boolean choice = (entities.isEmpty() || entities.get(0).getId().equals(identity.getId()));
+			final EntityField field = (choice? identity1Field: identity2Field);
+			final JLabel label = (JLabel)(choice? identity2Field: identity1Field)
+				.getClientProperty(GUIHelper.PROPERTY_ASSOCIATED_LABEL);
+
+			label.setText("Identity*:");
+			field.setEntity(FLEFRecord.createMainRecord(parentEntity.getText(), parentEntity.getPath()));
+
+			GUIHelper.setComponentVisible(field, false);
+		}
+	}
 
 	@Override
 	protected void loadData(){

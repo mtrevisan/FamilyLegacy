@@ -46,6 +46,13 @@ public final class AncestorNode{
 		return individualData;
 	}
 
+	public String getIndividualId(){
+		if(individual != null)
+			return individual.getId();
+
+		return (individualData != null? individualData.getIndividualId(): null);
+	}
+
 	public AncestorNode getFather(){
 		return father;
 	}

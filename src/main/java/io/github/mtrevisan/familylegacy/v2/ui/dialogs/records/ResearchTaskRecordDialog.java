@@ -35,7 +35,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchTaskHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
@@ -109,12 +108,13 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 
 	private ResearchTaskRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, record, ResearchTaskHandler.class);
+		super(parent, model, record, ResearchTaskHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 
 		descriptionArea = new BoundTextArea(TAG_DESCRIPTION, 3, 30);
-		createdByField = EntityField.createForRecordFromReference(TAG_CREATED_BY, this, model, ResearchActivityHandler.class);
+		createdByField = EntityField.createForRecordFromReference(TAG_CREATED_BY, this, model,
+			ResearchActivityHandler.class);
 		statusCombo = new BoundComboBox<>(TAG_STATUS, new String[]{
 			"open", "in_progress", "completed", "abandoned"});
 		priorityCombo = new BoundComboBox<>(TAG_PRIORITY, new String[]{
@@ -125,9 +125,9 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions", ResearchQuestionHandler.class, ResearchQuestionHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
-			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null, null, null)
+			.withComponent(PanelKey.RESEARCH_QUESTION, TAG_QUESTION, "Questions")
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
+			.withComponent(PanelKey.AUDIT, TAG_AUDIT, null)
 			.build();
 
 		components.bind(descriptionArea);

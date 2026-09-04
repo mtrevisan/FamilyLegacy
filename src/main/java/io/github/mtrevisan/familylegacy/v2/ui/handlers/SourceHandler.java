@@ -47,6 +47,17 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 	private static final String TAG_VALUE = TAG_TITLE + DOT + "VALUE";
 
 
+	private static final class SingletonHelper{
+		private static final SourceHandler INSTANCE = new SourceHandler();
+
+	}
+
+
+	public static SourceHandler getInstance(){
+		return SourceHandler.SingletonHelper.INSTANCE;
+	}
+
+
 	@Override
 	public String getLabel(){
 		return "Source";
@@ -64,11 +75,14 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
+		final String id = record.getId();
+		if(id == null)
+			return SourceCitationHandler.getInstance().getDisplayText(record, model);
+
 		String title = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		String id = record.getId();
 		if(StringUtils.isNotEmpty(title))
 			return title + " [" + id + "]";
-		return "[" + record.getId() + "]";
+		return "[" + id + "]";
 	}
 
 	@Override

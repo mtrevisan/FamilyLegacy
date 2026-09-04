@@ -32,9 +32,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.ExtractListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupAttributeHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -115,7 +112,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 
 	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, SourceCitationHandler.class);
+		super(parent, model, record, SourceCitationHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
@@ -125,9 +122,9 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
-			.withComponent(PanelKey.NOTE, TAG_NOTE, "Notes", NoteHandler.class, NoteHandler.class)
-			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence", null, GroupAttributeHandler.class)
-			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null, null, null)
+			.withComponent(PanelKey.NOTE, TAG_NOTE, null)
+			.withComponent(PanelKey.EVIDENCE, TAG_EVIDENCE, "Evidence")
+			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
 			.build();
 
 		components.bind(sourceField);
@@ -171,7 +168,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	public void setSource(final String sourceId){
 		if(StringUtils.isNotEmpty(sourceId)){
-			if(!confirmRecordExistsForType(sourceId, SourceHandler.class))
+			if(!confirmRecordExistsForType(sourceId, SourceHandler.getInstance().getLabel()))
 				return;
 
 			sourceField.setText(sourceId);
@@ -212,8 +209,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		}
 		catch(final Exception ignored){}
-
-		HandlerRegistry.scanHandlers();
 
 		final FLEFModel model = new FLEFModel();
 

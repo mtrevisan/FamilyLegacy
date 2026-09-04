@@ -141,6 +141,25 @@ public class FLEFRecord{
 		return (size == 1? taggedChildren.getFirst(): null);
 	}
 
+	/**
+	 * Helper function to extract a referenced ID from a structure's xref tag.
+	 *
+	 * @param fieldTag the tag to search for
+	 * @param referencedType expected record type
+	 * @return referenced ID or {@code null}
+	 */
+	public String extractReferencedId(final String fieldTag, final String referencedType){
+		final FLEFRecord field = FLEFRecordHelper.findChild(this, fieldTag);
+		if(field == null)
+			return null;
+
+		final FLEFRecord ref = field.getTheOnlyChild();
+		if(ref == null || !referencedType.equalsIgnoreCase(ref.getTag()))
+			return null;
+
+		return ref.getValue();
+	}
+
 	public long countChildrenWithTag(final String tag){
 		return children.stream()
 			.filter(c -> Strings.CI.equals(tag, c.getTag()))
