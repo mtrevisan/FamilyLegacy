@@ -490,9 +490,14 @@ public class GEDCOMHelper{
 				GEDCOMNode evenRoleNode = findFirstChild(evenNode, "ROLE");
 				String roleValue = (evenRoleNode != null? evenRoleNode.getValue(): null);
 
-				parent.addChild(createNoteStruct("Role: " + GEDCOMMapper.mapRole(roleValue, roleValue)
-					+ StringUtils.LF
-					+ "Role type: " + GEDCOMMapper.mapEvent(evenValue, evenValue), null));
+				String role = GEDCOMMapper.mapRole(roleValue, roleValue);
+				String roleType = GEDCOMMapper.mapEvent(evenValue, evenValue);
+//				StringJoiner sj = new StringJoiner(StringUtils.LF);
+//				if(StringUtils.isNotEmpty(role))
+//					sj.add("Role: " + role);
+//				if(StringUtils.isNotEmpty(roleType))
+//					sj.add("Role type: " + roleType);
+//				parent.addChild(createNoteStruct(sj.toString(), null));
 //				event = FLEFRecord.createMainRecord(IDGenerator.nextId(EventHandler.ID_PREFIX), EventHandler.TYPE)
 //					.addChild(FLEFRecord.createChildWithTagAndValue("type", GEDCOMMapper.mapEvent(evenValue, evenValue)))
 //					.addChild(AuditBuilder.build(node));
@@ -886,9 +891,9 @@ public class GEDCOMHelper{
 				}
 
 				String groupId = cleanId(famcNode.getValue());
-				if(adopParent == null)
+				/*if(adopParent == null)
 					attachRelationship(parent, model, node, noteRawMap, famcNode, "group", groupId, sb);
-				else if("HUSB".equals(adopParent) || "WIFE".equals(adopParent) || "BOTH".equals(adopParent)){
+				else*/ if("HUSB".equals(adopParent) || "WIFE".equals(adopParent) || "BOTH".equals(adopParent)){
 					// Build an index of all level-0 records by xref id
 					Map<String, GEDCOMNode> recordsById = roots.stream()
 						.filter(n -> n.getXrefId() != null)
@@ -1461,7 +1466,7 @@ public class GEDCOMHelper{
 		if (role != null) {
 			participation.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
 		}
-		participation.addChild(AuditBuilder.build(null));
+		participation.addChild(AuditBuilder.build());
 
 		Deduplicator.getDeduplicatedRecordId(model, participation);
 	}

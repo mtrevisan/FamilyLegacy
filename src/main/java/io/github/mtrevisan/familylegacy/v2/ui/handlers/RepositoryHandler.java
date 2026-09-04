@@ -79,7 +79,8 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String id = record.getId();
 		if(id == null)
-			return RepositoryCitationHandler.getInstance().getDisplayText(record, model);
+			return RepositoryCitationHandler.getInstance()
+				.getDisplayText(record, model);
 
 		// Locate the first populated NAME structure
 		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);

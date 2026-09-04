@@ -82,7 +82,7 @@ public class StructType extends TypeDefinition{
 				.filter(c -> Strings.CI.equals(c.getTag(), fieldName))
 				.toList();
 
-			// 1. Validate cardinality constraints (?, *, +, required)
+			// Validate cardinality constraints (?, *, +, required)
 			if(!fieldDef.cardinality().isValidCount(children.size())){
 				errors.add(String.format("Missing required child '%s' under '%s' (found %d, expected %s), record %s",
 					fieldName, contextPath, children.size(), fieldDef.cardinality(), record));
@@ -90,7 +90,7 @@ public class StructType extends TypeDefinition{
 				continue;
 			}
 
-			// 2. Resolve the field's declared type
+			// Resolve the field's declared type
 			TypeDefinition fieldType = fieldDef.type();
 			// If the type is a symbolic reference (ScalarType), dereference it against the grammar registry
 			if(fieldType instanceof ScalarType scalar){
@@ -99,7 +99,7 @@ public class StructType extends TypeDefinition{
 					fieldType = resolved;
 			}
 
-			// 3. Delegate recursive validation of child records to the resolved type
+			// Delegate recursive validation of child records to the resolved type
 			for(final FLEFRecord child : children)
 				fieldType.validate(currentPath, child, model, grammar, errors);
 		}

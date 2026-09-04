@@ -169,7 +169,7 @@ public class HeaderDialog extends BaseRecordDialog{
 		tabbedPane.addTab("Submitter", createSubmitterPanel());
 		GUIHelper.addComponent(this, tabbedPane);
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
 			this::dispose);
 		add(buttonPanel, BorderLayout.SOUTH);

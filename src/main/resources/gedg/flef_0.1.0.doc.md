@@ -46,7 +46,7 @@ An Entity is any distinct, identifiable object in the genealogical domain that c
 
 | Entity Type | Description | Key Attributes |
 | --- | --- | --- |
-| Individual | A historical person | Names, sex, cultural norms, notes, source citations, preferred image, restriction, conclusions, modification metadata |
+| Individual | A historical person | Names, side, cultural norms, notes, source citations, preferred image, restriction, conclusions, modification metadata |
 | Group | A collection of entities (family, household, club, etc.) | Names, type, cultural norms, notes, source citations, preferred image, restriction, conclusions, modification metadata |
 | Event | A historical occurrence | Type, date, place, agency, cause, cultural norms, notes, source citations, evidence qualifiers, restriction, conclusion, modification metadata |
 | Place | A geographical or administrative location | Names, type, map coordinates, source citations, evidence qualifiers, restriction, conclusions, modification metadata |
@@ -390,7 +390,7 @@ records {
           """
         }
       }
-    sex MALE
+    side MALE
     modification {
       creation {
         date 2026-07-31

@@ -226,6 +226,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 				builder.item("Add Existing…", this::addItem);
 			builder.separator();
 			builder.selectionSensitiveItem("Edit…", this::editItem);
+			builder.separator();
 			builder.selectionSensitiveItem("Remove", this::removeItem);
 		};
 	}
@@ -237,6 +238,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			builder.separator();
 			builder.selectionSensitiveItem("Edit Record…", this::editTargetItem);
 			builder.selectionSensitiveItem("Edit Citation…", this::editItem);
+			builder.separator();
 			builder.selectionSensitiveItem("Remove", this::removeItem);
 		};
 	}

@@ -27,11 +27,16 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.TwoLineLabel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.partners.PartnersPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.partners.Side;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -67,6 +72,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -96,13 +102,27 @@ public class IndividualPanel extends JPanel{
 	// Dimensions
 	//double values for Horizontal and Vertical radius of corner arcs
 	private static final Dimension ARCS = new Dimension(10, 10);
-	private static final double PREFERRED_IMAGE_WIDTH = 58.;
+	private static final int PREFERRED_IMAGE_WIDTH = 48;
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
+
+	private static final Dimension BOX_DIMENSION_PRIMARY = new Dimension(270, 90);
+	private static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 65);
+
+	private static final int NAME_IMAGE_GAP = 5;
 
 	// Fonts
 	private static final Font FONT_PRIMARY = new Font("Tahoma", Font.BOLD, 15);
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 12);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
+
+	private static final String TAG_TYPE = "type";
+	private static final String TAG_TARGET = "target";
+	private static final String TAG_SEX = "sex";
+
+	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
+	private static final String ENUM_SEX_MALE = "male";
+	private static final String ENUM_SEX_FEMALE = "female";
+
 
 	// UI components
 	private final TwoLineLabel individualNameLabel = new TwoLineLabel();
@@ -113,9 +133,10 @@ public class IndividualPanel extends JPanel{
 	private final JMenuItem editIndividualItem = new JMenuItem("Edit Individual…", 'E');
 	private final JMenuItem addIndividualItem = new JMenuItem("Add Individual…", 'A');
 	private final JMenuItem linkIndividualItem = new JMenuItem("Link Individual…", 'L');
+	private final JMenuItem moveIndividualItem = new JMenuItem("Move Individual", 'M');
+	private final JMenuItem pasteIndividualItem = new JMenuItem("Paste Individual", 'P');
 	private final JMenuItem removeIndividualItem = new JMenuItem("Remove Individual", 'R');
-	private final JMenuItem unlinkFromParentsItem = new JMenuItem("Unlink from parents", 'U');
-	private final JMenuItem unlinkFromPartnerItem = new JMenuItem("Unlink from partner", 'P');
+	private final JMenuItem unlinkRelationshipsItem = new JMenuItem("Unlink Relationships…", 'U');
 
 	// State
 	private FLEFRecord father;
@@ -147,21 +168,22 @@ public class IndividualPanel extends JPanel{
 		installMouseListeners();
 	}
 
+
 	private void initComponents(){
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
 
 		imageLabel.setBorder(BorderFactory.createLineBorder(IMAGE_LABEL_BORDER_COLOR));
 		final double shrinkFactor = (isPrimaryBox()? 1.: 2.);
-		setPreferredSize(imageLabel, 48., IMAGE_ASPECT_RATIO, shrinkFactor);
+		setPreferredSize(imageLabel, PREFERRED_IMAGE_WIDTH, IMAGE_ASPECT_RATIO, shrinkFactor);
 
 		setBoxPreferredSize();
 
-		setLayout(new MigLayout("ins 7", "[grow]0[]", "[]0[]10[]"));
+		setLayout(new MigLayout("ins 7,gapx 5", "[grow,fill][grow 0,shrink 0]", "[]0[]10[]"));
 
-		final int shrink = (int)Math.round(PREFERRED_IMAGE_WIDTH + 21);
-		add(individualNameLabel, "cell 0 0,top,growx,width ::100%-" + shrink + ",hidemode 3");
-		add(imageLabel, "cell 1 0 1 3,top");
-		add(infoLabel, "cell 0 2");
+		final int imageWidth = (int)(PREFERRED_IMAGE_WIDTH / shrinkFactor);
+		add(individualNameLabel, "cell 0 0,top,growx,width ::100%-" + imageWidth + ",hidemode 3");
+		add(imageLabel, (isPrimaryBox()? "cell 1 0 1 3,top": "cell 1 0,top"));
+		add(infoLabel, (isPrimaryBox()? "cell 0 2,growx": "cell 0 2 2 1,growx"));
 
 		setOpaque(false);
 	}
@@ -257,9 +279,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void setBoxPreferredSize(){
-		final Dimension size = (isPrimaryBox()
-			? new Dimension(270, 90)
-			: new Dimension(170, 65));
+		final Dimension size = (isPrimaryBox()? BOX_DIMENSION_PRIMARY: BOX_DIMENSION_SECONDARY);
 		setPreferredSize(size);
 		setMaximumSize(size);
 	}
@@ -292,6 +312,14 @@ public class IndividualPanel extends JPanel{
 				? data.getIndividualImagePrimary()
 				: data.getIndividualImageSecondary());
 
+			// Calculate the maximum width for the text panel
+			final int boxWidth = (isPrimaryBox()? BOX_DIMENSION_PRIMARY.width: BOX_DIMENSION_SECONDARY.width);
+			// gap + insets
+			final int maxTextWidth = Math.max(10, boxWidth - imageLabel.getIcon().getIconWidth() - NAME_IMAGE_GAP - 14);
+
+			// Set the maximum width on the TwoLineLabel
+			individualNameLabel.setMaxWidth(maxTextWidth);
+
 			// Register the current key on the panel and start the asynchronous
 			preferredImageKey = data.getPreferredImageKey();
 			data.loadPreferredImageAsync((key, images) -> {
@@ -299,36 +327,140 @@ public class IndividualPanel extends JPanel{
 					imageLabel.setIcon(boxType == BoxPanelType.PRIMARY? images[0]: images[1]);
 			});
 		}
-		else
+		else{
 			preferredImageKey = null;
+
+			individualNameLabel.setMaxWidth(-1);
+		}
 
 		individualNameLabel.setVisible(hasData);
 		infoLabel.setVisible(hasData);
 		imageLabel.setVisible(hasData);
-
-//		refresh(ActionCommand.ACTION_COMMAND_PERSON);
 	}
 
 	private void updateIndividualMenu(){
 		final boolean hasData = (data != null && !data.isEmpty());
 		final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
-		final boolean hasParentGroup = (hasData && data.hasParents());
+		final boolean hasParents = (hasData && data.hasParents());
 		final boolean hasPartner = (hasData && data.hasPartner());
+		final boolean hasChildren = (hasData && hasChildren());
+		final boolean hasRelations = (hasParents || hasPartner || hasChildren);
+		final boolean hasClippedRecord = RelationClipboard.getInstance()
+			.hasRecord();
+
+		// Update menu items labels based on clipboard state
+		pasteIndividualItem.setEnabled(false);
+		if(!hasData && hasClippedRecord){
+			final FLEFRecord clippedRecord = RelationClipboard.getInstance()
+				.getRecord();
+
+			// Check if we are in a PartnersPanel (and on which side)
+			final PartnersPanel partnersPanel = PartnersPanel.findContainingPartnersPanel(getParent());
+			boolean canPaste = (partnersPanel == null);
+			if(partnersPanel != null){
+				final Side side = partnersPanel.getSideOf(this);
+				if(side != null){
+					// Get the other side panel
+					final IndividualPanel otherPanel = (side == Side.LEFT
+						? partnersPanel.getMotherPanel()
+						: partnersPanel.getFatherPanel());
+					// If the other side contains an individual, check the gender
+					final IndividualData otherData = otherPanel.getData();
+					if(otherData != null && !otherData.isEmpty()){
+						final String otherSex = otherData.getIndividualSex().name().toLowerCase();
+						final String clippedSex = FLEFRecordHelper.getChildValue(clippedRecord, TAG_SEX);
+						// The gender required for the glued one is the opposite of the other
+						final String requiredSex = otherSex.equals("male")? "female": "male";
+						if(requiredSex.equals(clippedSex))
+							canPaste = true;
+					}
+					else
+						canPaste = true;
+				}
+			}
+			if(canPaste){
+				final String clippedName = IndividualHandler.getInstance()
+					.getDisplayText(clippedRecord, model);
+				pasteIndividualItem.setText("Paste " + clippedName + " Here");
+				pasteIndividualItem.setEnabled(true);
+			}
+		}
+
+		// Enable or disable options depending on panel state and clipboard contents
 		editIndividualItem.setEnabled(hasData);
 		addIndividualItem.setEnabled(!hasData);
+		// Allow linking either when the box is empty and candidates exist OR when pasting from clipboard
 		linkIndividualItem.setEnabled(!hasData && hasIndividuals);
+		moveIndividualItem.setEnabled(hasData);
 		removeIndividualItem.setEnabled(hasData);
-		unlinkFromParentsItem.setEnabled(hasData && hasParentGroup);
-		unlinkFromPartnerItem.setEnabled(hasData && hasPartner);
+		unlinkRelationshipsItem.setEnabled(hasRelations);
+	}
+
+	/**
+	 * Checks if pasting is allowed based on gender compatibility if inside a PartnersPanel.
+	 */
+	private boolean isPasteAllowed(){
+		final boolean hasData = (data != null && !data.isEmpty());
+		final boolean hasClippedRecord = RelationClipboard.getInstance()
+			.hasRecord();
+		if(!hasData && hasClippedRecord){
+			// Check if we are in a PartnersPanel (and on which side)
+			final PartnersPanel partnersPanel = PartnersPanel.findContainingPartnersPanel(getParent());
+			if(partnersPanel == null)
+				// no restriction if not in a partner panel
+				return true;
+
+			final Side side = partnersPanel.getSideOf(this);
+			if(side == null)
+				return true;
+
+			// Get the other side panel
+			final IndividualPanel otherPanel = (side == Side.LEFT
+				? partnersPanel.getMotherPanel()
+				: partnersPanel.getFatherPanel());
+			// If the other side contains an individual, check the gender
+			final IndividualData otherData = otherPanel.getData();
+			if(otherData == null || otherData.isEmpty())
+				// no restriction if other side is empty
+				return true;
+
+			final FLEFRecord clipped = RelationClipboard.getInstance()
+				.getRecord();
+			if(clipped == null)
+				return false;
+
+			final String clippedSex = FLEFRecordHelper.getChildValue(clipped, TAG_SEX);
+			// The gender required for the glued one is the opposite of the other
+			final String otherSex = otherData.getIndividualSex()
+				.name()
+				.toLowerCase();
+			final String requiredSex = (otherSex.equals(ENUM_SEX_MALE)? ENUM_SEX_FEMALE: ENUM_SEX_MALE);
+			return requiredSex.equals(clippedSex);
+		}
+		return false;
+	}
+
+	private boolean hasChildren(){
+		if(data == null || data.getIndividualId() == null)
+			return false;
+
+		final String individualId = data.getIndividualId();
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			if(type != null && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD)){
+				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+				if(individualId.equals(targetId)){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
-
-	// ------------------------------------------------------------------------
-	// Event handling
-	// ------------------------------------------------------------------------
 
 	private void installMouseListeners(){
 		if(boxType == BoxPanelType.SECONDARY){
@@ -366,19 +498,25 @@ public class IndividualPanel extends JPanel{
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
+				if(listener != null)
+					listener.onPanelSelected(IndividualPanel.this);
+
 				updateIndividualMenu();
 			}
 		});
 
-		// Pass the current record (or parent context for target creation/linking)
 		addMenuItem(popup, editIndividualItem, listener::onIndividualEdit);
-		addMenuItem(popup, addIndividualItem, record -> listener.onIndividualAdd(father, mother));
-		addMenuItem(popup, linkIndividualItem, record -> listener.onIndividualLink(father, mother));
+		addMenuItem(popup, addIndividualItem,
+			record -> listener.onIndividualAddOrLink(IndividualOperation.ADD, father, mother));
+		addMenuItem(popup, linkIndividualItem,
+			record -> listener.onIndividualAddOrLink(IndividualOperation.LINK, father, mother));
+		addMenuItem(popup, moveIndividualItem, listener::onIndividualMove);
+		addMenuItem(popup, pasteIndividualItem,
+			record -> listener.onIndividualPaste(father, mother));
 		addMenuItem(popup, removeIndividualItem, listener::onIndividualRemove);
 		popup.addSeparator();
-		addMenuItem(popup, unlinkFromParentsItem, listener::onIndividualUnlinkFromParentGroup);
-		popup.addSeparator();
-		addMenuItem(popup, unlinkFromPartnerItem, listener::onIndividualUnlinkFromPartner);
+		addMenuItem(popup, unlinkRelationshipsItem, listener::showUnlinkDialog);
+
 
 		// Register the popup listener recursively on this and all child components
 		attachMouseListenerRecursively(this, new PopupMouseAdapter(popup, this));
@@ -386,6 +524,7 @@ public class IndividualPanel extends JPanel{
 
 	private static void attachMouseListenerRecursively(final Component component, final MouseListener listener){
 		component.addMouseListener(listener);
+
 		if(component instanceof Container container)
 			for(final Component child : container.getComponents())
 				attachMouseListenerRecursively(child, listener);
@@ -408,6 +547,10 @@ public class IndividualPanel extends JPanel{
 		return (data != null && data.getIndividualId() != null
 			? model.getRecordById(data.getIndividualId())
 			: null);
+	}
+
+	public IndividualData getData(){
+		return data;
 	}
 
 

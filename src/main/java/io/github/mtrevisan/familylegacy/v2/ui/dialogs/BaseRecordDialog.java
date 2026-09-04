@@ -55,9 +55,7 @@ import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -68,9 +66,6 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 6460878052412992481L;
-
-
-	private static final Map<String, Integer> RESERVED_IDS = new ConcurrentHashMap<>();
 
 
 	protected final RecordTypeHandler<?> handler;
@@ -87,8 +82,8 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected final JTabbedPane tabbedPane = new JTabbedPane();
 
 
-	protected <T extends Class<? extends RecordTypeHandler<?>>> BaseRecordDialog(final Dialog parent,
-			final FLEFModel model, final FLEFRecord record, final RecordTypeHandler<?> handler){
+	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final RecordTypeHandler<?> handler){
 		super(parent, ModalityType.APPLICATION_MODAL);
 
 		this.handler = handler;
@@ -98,6 +93,7 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		setTitle(buildTitle(this.handler, (record == null)));
 	}
+
 
 	protected void finalizeDialog(final Dialog parent){
 		initComponents();
@@ -381,15 +377,11 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
 			() -> {
-				if(isNew){
-					try{
-						RESERVED_IDS.compute(handler.getIdPrefix(), (k, currentReservedId) -> currentReservedId - 1);
-					}
-					catch(final UnsupportedOperationException ignored){}
-				}
+				if(isNew)
+					FLEFRecord.releaseReservedId(handler.getType());
 
 				dispose();
 			});
@@ -444,39 +436,7 @@ public abstract class BaseRecordDialog extends JDialog{
 		if(!handler.isTopLevelEntity())
 			return FLEFRecord.createEmpty();
 
-		return FLEFRecord.createMainRecord(generateNewId(), handler.getType());
-	}
-
-	/**
-	 * Generates and reserves a new unique ID.
-	 * <p>
-	 * The generated ID is guaranteed to be unique among both persisted records and IDs already reserved by open dialogs.
-	 *
-	 * @return	A new unique ID.
-	 */
-	private String generateNewId(){
-		final String prefix = handler.getIdPrefix();
-		Integer next = RESERVED_IDS.get(prefix);
-		if(next == null)
-			next = model.getRecordsByType(handler.getType()).stream()
-				.map(FLEFRecord::getId)
-				.filter(Objects::nonNull)
-				.filter(id -> id.startsWith(prefix))
-				.mapToInt(id -> {
-					try{
-						return Integer.parseInt(id.substring(prefix.length()));
-					}
-					catch(NumberFormatException ignored){
-						return 0;
-					}
-				})
-				.max()
-				.orElse(0);
-		next ++;
-
-		RESERVED_IDS.put(prefix, next);
-
-		return prefix + next;
+		return FLEFRecord.createMainRecord(handler.getType(), model);
 	}
 
 

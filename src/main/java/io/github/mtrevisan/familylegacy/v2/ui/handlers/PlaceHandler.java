@@ -78,11 +78,12 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String id = record.getId();
 		if(id == null)
-			return PlaceCitationHandler.getInstance().getDisplayText(record, model);
+			return PlaceCitationHandler.getInstance()
+				.getDisplayText(record, model);
 
 		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
 		if(StringUtils.isNotEmpty(value))
-			return value + " [" + id + "]";
+			return value.replace(StringUtils.LF, ", ") + " [" + id + "]";
 		return "[" + id + "]";
 	}
 

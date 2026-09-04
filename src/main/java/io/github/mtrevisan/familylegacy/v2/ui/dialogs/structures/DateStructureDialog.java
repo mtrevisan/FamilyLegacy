@@ -101,7 +101,7 @@ public class DateStructureDialog extends JDialog{
 		GUIHelper.addComponent(dateWrapper, datePanel);
 		GUIHelper.addComponent(this, dateWrapper);
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			() -> {
 				if(datePanel.validateData()){
 					result = datePanel.save();

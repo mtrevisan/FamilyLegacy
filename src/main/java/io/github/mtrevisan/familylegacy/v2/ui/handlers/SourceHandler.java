@@ -77,7 +77,8 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String id = record.getId();
 		if(id == null)
-			return SourceCitationHandler.getInstance().getDisplayText(record, model);
+			return SourceCitationHandler.getInstance()
+				.getDisplayText(record, model);
 
 		String title = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		if(StringUtils.isNotEmpty(title))

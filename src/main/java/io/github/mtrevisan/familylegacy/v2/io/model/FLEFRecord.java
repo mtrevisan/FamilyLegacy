@@ -24,6 +24,7 @@
  */
 package io.github.mtrevisan.familylegacy.v2.io.model;
 
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -45,6 +47,9 @@ import java.util.Objects;
 public class FLEFRecord{
 
 	private static final String TAG_VOID = "VOID";
+
+
+	private static final Map<String, Integer> RESERVED_IDS = new ConcurrentHashMap<>();
 
 
 	private String tag;
@@ -62,6 +67,60 @@ public class FLEFRecord{
 		record.setId(id);
 		record.setTag(type);
 		return record;
+	}
+
+	public static FLEFRecord createMainRecord(final String type, final FLEFModel model){
+		final FLEFRecord record = createEmpty();
+		record.setId(generateNewId(type, model));
+		record.setTag(type);
+		return record;
+	}
+
+	/**
+	 * Generates and reserves a new unique ID.
+	 * <p>
+	 * The generated ID is guaranteed to be unique among both persisted records and IDs already reserved by open dialogs.
+	 *
+	 * @return	A new unique ID.
+	 */
+	private static String generateNewId(final String type, final FLEFModel model){
+		var handler = HandlerRegistry.getHandler(type);
+		final String prefix = handler.getIdPrefix();
+		Integer next = RESERVED_IDS.get(prefix);
+		if(next == null)
+			next = model.getRecordsByType(handler.getType()).stream()
+				.map(FLEFRecord::getId)
+				.filter(Objects::nonNull)
+				.filter(id -> id.startsWith(prefix))
+				.mapToInt(id -> {
+					try{
+						return Integer.parseInt(id.substring(prefix.length()));
+					}
+					catch(NumberFormatException ignored){
+						return 0;
+					}
+				})
+				.max()
+				.orElse(0);
+		next ++;
+
+		RESERVED_IDS.put(prefix, next);
+
+		return prefix + next;
+	}
+
+	/**
+	 * Releases a previously reserved ID for a given type.
+	 * This should be called when a record creation is cancelled or discarded.
+	 *
+	 * @param type the type of record (e.g., "individual", "relationship", etc.)
+	 */
+	public static void releaseReservedId(final String type){
+		var handler = HandlerRegistry.getHandler(type);
+		if(handler != null){
+			final String prefix = handler.getIdPrefix();
+			RESERVED_IDS.compute(prefix, (k, current) -> (current == null || current <= 0? 0: current - 1));
+		}
 	}
 
 	public static FLEFRecord createChildWithTagAndValue(final String tag, final String value){

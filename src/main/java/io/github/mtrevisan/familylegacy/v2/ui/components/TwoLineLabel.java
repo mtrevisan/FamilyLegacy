@@ -18,6 +18,9 @@ public class TwoLineLabel extends JTextArea{
 
 	private String rawText = StringUtils.EMPTY;
 
+	// Maximum width constraint; -1 means no constraint (use component width)
+	private int maxWidth = -1;
+
 
 	public TwoLineLabel(){
 		setEditable(false);
@@ -35,6 +38,19 @@ public class TwoLineLabel extends JTextArea{
 				updateFormattedText();
 			}
 		});
+	}
+
+
+	/**
+	 * Sets the maximum width for the label. This width will be used for text truncation
+	 * and as the preferred width limit. A value <= 0 removes the constraint.
+	 */
+	public void setMaxWidth(final int maxWidth){
+		this.maxWidth = maxWidth;
+
+		updateFormattedText();
+		revalidate();
+		repaint();
 	}
 
 
@@ -58,7 +74,8 @@ public class TwoLineLabel extends JTextArea{
 			return;
 		}
 
-		final int availWidth = getWidth() - getInsets().left - getInsets().right;
+		// Determine available width: use maxWidth if set, otherwise component width minus insets
+		final int availWidth = (maxWidth > 0? maxWidth: getWidth() - getInsets().left - getInsets().right);
 		if(availWidth <= 0){
 			setText(rawText);
 
@@ -80,7 +97,7 @@ public class TwoLineLabel extends JTextArea{
 			return;
 		}
 
-		// 1. Construction ROW 1
+		// Construction ROW 1
 		final StringBuilder line1 = new StringBuilder();
 		int i = 0;
 		while(i < words.length){
@@ -101,7 +118,7 @@ public class TwoLineLabel extends JTextArea{
 			i = 1;
 		}
 
-		// 2. Construction ROW 2
+		// Construction ROW 2
 		final StringBuilder line2 = new StringBuilder();
 		while(i < words.length){
 			line2.append(line2.isEmpty()? StringUtils.EMPTY: StringUtils.SPACE)
@@ -110,7 +127,7 @@ public class TwoLineLabel extends JTextArea{
 			i ++;
 		}
 
-		// 3. Truncate LINE 2 if it exceeds the available space
+		// Truncate LINE 2 if it exceeds the available space
 		if(!line2.isEmpty()){
 			String candidateLine = line2.toString();
 			if(fm.stringWidth(candidateLine) > availWidth){
@@ -132,7 +149,9 @@ public class TwoLineLabel extends JTextArea{
 
 		final FontMetrics fm = getFontMetrics(font);
 		final int height = (fm.getHeight() * 2) + getInsets().top + getInsets().bottom;
-		return new Dimension(super.getPreferredSize().width, height);
+
+		// If maxWidth is set, use it as the preferred width; otherwise use the superclass width
+		return new Dimension((maxWidth > 0? maxWidth: super.getPreferredSize().width), height);
 	}
 
 }

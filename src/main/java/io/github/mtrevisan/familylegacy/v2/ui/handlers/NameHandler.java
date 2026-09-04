@@ -92,7 +92,7 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 			return "--";
 
 		String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		value = GUIHelper.limitTextLength(value);
+		value = GUIHelper.limitTextLength(value.replace("\n", ", "));
 
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		if(StringUtils.isNotEmpty(type))

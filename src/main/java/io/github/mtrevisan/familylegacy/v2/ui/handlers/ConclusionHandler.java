@@ -78,7 +78,7 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 		String issue = FLEFRecordHelper.getChildValue(record, TAG_ISSUE);
 		String proofStatus = FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS);
 		if(StringUtils.isNotEmpty(issue)){
-			String display = GUIHelper.limitTextLength(issue);
+			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(issue, '\n', '|'));
 			if(StringUtils.isNotEmpty(proofStatus))
 				display += " [" + proofStatus + "]";
 			return display;

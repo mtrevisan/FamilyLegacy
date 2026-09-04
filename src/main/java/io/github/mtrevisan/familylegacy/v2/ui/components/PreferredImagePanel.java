@@ -126,6 +126,7 @@ public class PreferredImagePanel extends JPanel{
 				builder.item("Create New…", this::createNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit Crop…", this::editCrop);
+				builder.separator();
 				builder.selectionSensitiveItem("Remove", this::removeItem);
 			}
 		);
@@ -149,6 +150,9 @@ public class PreferredImagePanel extends JPanel{
 			return;
 
 		uri = FLEFRecordHelper.getChildValue(preferredImage, TAG_URI);
+// TODO to be removed
+if(uri != null)
+	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
 		loadCropRectangle(preferredImage);
 
 		try{

@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ResourceHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.images.ScaledImage;
+import net.miginfocom.swing.MigLayout;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -47,6 +48,9 @@ public class ImageCropDialog extends JDialog{
 
 	@Serial
 	private static final long serialVersionUID = 3777867436237271707L;
+
+
+	private static final float MAX_SCREEN_FRACTION = 0.75f;
 
 
 	private BufferedImage image;
@@ -90,13 +94,13 @@ public class ImageCropDialog extends JDialog{
 
 	//http://www.migcalendar.com/miglayout/cheatsheet.html
 	private void initLayout(){
-		setLayout(GUIHelper.createLabelFieldLayout(0, "[]"));
+		setLayout(new MigLayout("ins 0,hidemode 3,fillx,wrap 2", "[]", "[]"));
 
 		final JPanel recordPanel = GUIHelper.createLabelFieldPanel(0, "[grow,fill]");
 		GUIHelper.addComponent(recordPanel, imageHolder);
-		add(recordPanel, "grow,push");
+		add(recordPanel, "center,grow,push");
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
 			() -> setVisible(false));
 		add(buttonPanel, BorderLayout.SOUTH);
@@ -124,23 +128,71 @@ public class ImageCropDialog extends JDialog{
 		image = newImage;
 		imageHolder.setRectangularImage(image);
 		imageHolder.setCrop(crop);
+		// Set the image holder to the original image size initially
 		imageHolder.setPreferredSize(new Dimension(image.getWidth(), image.getHeight()));
 
-		fitWindowToImage();
-	}
-
-	private void fitWindowToImage(){
-		pack();
-
-		final Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment()
-			.getMaximumWindowBounds();
-		if(getWidth() > screenBounds.width || getHeight() > screenBounds.height){
-			final int maxWidth = Math.min(getWidth(), (int)(screenBounds.width * 0.3 * (4. / 3.)));
-			final int maxHeight = Math.min(getHeight(), (int)(screenBounds.height * 0.3));
-			setSize(maxWidth, maxHeight);
-		}
+		// Adjust the dialog size to fit the image (or a scaled version)
+		adjustDialogSize();
 
 		setLocationRelativeTo(getOwner());
+	}
+
+	/**
+	 * Adjusts the dialog size so that it fits the image within 75% of the screen,
+	 * preserving aspect ratio and accounting for extra components (button panel, borders).
+	 */
+	private void adjustDialogSize(){
+		// First, pack to get the natural size and measure extras
+		pack();
+
+		final int extraWidth = getWidth() - imageHolder.getWidth();
+		final int extraHeight = getHeight() - imageHolder.getHeight();
+
+		// Maximum dialog size: 75% of screen
+		final Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment()
+			.getMaximumWindowBounds();
+		final int maxDialogWidth = (int)(screenBounds.width * MAX_SCREEN_FRACTION);
+		final int maxDialogHeight = (int)(screenBounds.height * MAX_SCREEN_FRACTION);
+
+		// Maximum image size after deducting extras
+		final int maxImageWidth = Math.max(10, maxDialogWidth - extraWidth);
+		final int maxImageHeight = Math.max(10, maxDialogHeight - extraHeight);
+
+		// Desired image size (original)
+		int desiredWidth = image.getWidth();
+		int desiredHeight = image.getHeight();
+
+		// Scale if needed
+		if(desiredWidth > maxImageWidth || desiredHeight > maxImageHeight){
+			final double scaleX = (double)maxImageWidth / desiredWidth;
+			final double scaleY = (double)maxImageHeight / desiredHeight;
+			final double scale = Math.min(scaleX, scaleY);
+			desiredWidth = Math.max(10, (int)(desiredWidth * scale));
+			desiredHeight = Math.max(10, (int)(desiredHeight * scale));
+		}
+
+		// Set the image holder's preferred size to the (possibly scaled) size
+		imageHolder.setPreferredSize(new Dimension(desiredWidth, desiredHeight));
+
+		// Compute the desired dialog size
+		int dialogWidth = desiredWidth + extraWidth;
+		int dialogHeight = desiredHeight + extraHeight;
+
+		// Cap the dialog size to the maximum allowed
+		dialogWidth = Math.min(dialogWidth, maxDialogWidth);
+		dialogHeight = Math.min(dialogHeight, maxDialogHeight);
+
+		// Apply the size to the dialog
+		setSize(dialogWidth, dialogHeight);
+
+		// Optionally revalidate/repaint to refresh layout
+		revalidate();
+		repaint();
+
+		// Ensure the dialog is not larger than the screen bounds (safety)
+		if(getWidth() > screenBounds.width || getHeight() > screenBounds.height)
+			setSize(Math.min(getWidth(), screenBounds.width),
+				Math.min(getHeight(), screenBounds.height));
 	}
 
 	public void save(){

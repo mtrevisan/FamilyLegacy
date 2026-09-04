@@ -149,7 +149,7 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private ResearchQuestionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		super(parent, model, record, ResearchQuestionHandler.getInstance());
 
-		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
+		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]");
 
 		titleField = new BoundTextField(TAG_TITLE);
 		questionArea = new BoundTextArea(TAG_QUESTION, 3, 30);

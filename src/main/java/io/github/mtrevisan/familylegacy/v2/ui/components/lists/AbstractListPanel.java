@@ -31,18 +31,13 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
 import javax.swing.DefaultListModel;
-import javax.swing.InputMap;
-import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 import java.awt.Dialog;
-import java.awt.event.ActionEvent;
 import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,8 +68,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 	protected final FLEFModel model;
 
-	protected final DefaultListModel<String> listModel = new DefaultListModel<>();
-	protected final JList<String> list = GUIHelper.createList(listModel);
+	protected JList<String> list;
 	protected final List<T> items = new ArrayList<>();
 
 
@@ -108,75 +102,19 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(title != null)
 			setBorder(new TitledBorder(title));
 
-		list.setVisibleRowCount(4);
+		list = GUIHelper.createList(new DefaultListModel<>());
+		list.setVisibleRowCount(getListVisibleRowCount());
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
 		add(GUIHelper.createScrollPane(list), "growx");
 
-		setupReorderingShortcuts();
+		GUIHelper.setupReorderingShortcuts(list, items);
+
+		GUIHelper.setupDragAndDrop(list, items);
 	}
 
-	private void setupReorderingShortcuts(){
-		final InputMap inputMap = list.getInputMap(JComponent.WHEN_FOCUSED);
-		final ActionMap actionMap = list.getActionMap();
-
-		// Keybindings: CTRL + UP / CTRL + DOWN
-		inputMap.put(GUIHelper.CTRL_UP_STROKE, "moveUp");
-		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, "moveDown");
-
-		actionMap.put("moveUp", new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = 1557398991645410075L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				moveSelectedItemUp();
-			}
-		});
-
-		actionMap.put("moveDown", new AbstractAction(){
-			@Serial
-			private static final long serialVersionUID = -8473405355379714143L;
-
-			@Override
-			public void actionPerformed(final ActionEvent e){
-				moveSelectedItemDown();
-			}
-		});
-	}
-
-	/**
-	 * Moves the currently selected item up by one position.
-	 */
-	public final void moveSelectedItemUp(){
-		final int idx = list.getSelectedIndex();
-		if(idx > 0)
-			swapItems(idx, idx - 1);
-	}
-
-	/**
-	 * Moves the currently selected item down by one position.
-	 */
-	public final void moveSelectedItemDown(){
-		final int idx = list.getSelectedIndex();
-		if(idx >= 0 && idx < items.size() - 1)
-			swapItems(idx, idx + 1);
-	}
-
-	private void swapItems(final int index1, final int index2){
-		// Swap in underlying items list
-		final T tempRecord = items.get(index1);
-		items.set(index1, items.get(index2));
-		items.set(index2, tempRecord);
-
-		// Swap in GUI model
-		final String tempDisplay = listModel.get(index1);
-		listModel.set(index1, listModel.get(index2));
-		listModel.set(index2, tempDisplay);
-
-		// Keep the moved item selected and visible
-		list.setSelectedIndex(index2);
-		list.ensureIndexIsVisible(index2);
+	protected int getListVisibleRowCount(){
+		return 4;
 	}
 
 
@@ -221,6 +159,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 
 		final T current = items.get(idx);
 		final T updated = showEditDialog(current);
+		final DefaultListModel<String> listModel = (DefaultListModel<String>)list.getModel();
 		if(updated != null){
 			// find the new index (if changed)
 			final int newIdx = items.indexOf(updated);
@@ -252,6 +191,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(idx == -1)
 			return;
 
+		final DefaultListModel<String> listModel = (DefaultListModel<String>)list.getModel();
 		final int confirm = JOptionPane.showConfirmDialog(parent,
 			"Are you sure you want to remove this item?"
 				+ StringUtils.LF + listModel.get(idx),
@@ -311,7 +251,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 */
 	public final void clear(){
 		items.clear();
-		listModel.clear();
+		((DefaultListModel<String>)list.getModel())
+			.clear();
 	}
 
 	/**
@@ -367,7 +308,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	private void addElement(final T newItem){
 		if(!items.contains(newItem)){
 			items.add(newItem);
-			listModel.addElement(getDisplayText(newItem));
+			((DefaultListModel<String>)list.getModel())
+				.addElement(getDisplayText(newItem));
 		}
 	}
 

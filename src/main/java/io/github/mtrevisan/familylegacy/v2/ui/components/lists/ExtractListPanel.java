@@ -102,7 +102,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 				.append(locale)
 				.append("] ");
 		if(StringUtils.isNotEmpty(text))
-			sb.append(GUIHelper.limitTextLength(text));
+			sb.append(GUIHelper.limitTextLength(StringUtils.replaceChars(text, '\n', '|')));
 		else{
 			// First document_part
 			final FLEFRecord documentPart = FLEFRecordHelper.findChildren(record, TAG_DOCUMENT_PART).stream()
@@ -183,7 +183,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog,
 			() -> {
 				if(!validExtractData(dialog, documentPartPanel, textArea))
 					return;

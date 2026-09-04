@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
+import io.github.mtrevisan.familylegacy.v2.ui.components.individual.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
@@ -142,6 +143,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
+	private static final String ENUM_SEX_MALE = "male";
+	private static final String ENUM_SEX_FEMALE = "female";
+
 
 	private final RecordDialogComponents components;
 
@@ -167,7 +171,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		personalNamePanel = EntityListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.class);
 		sexCombo = new BoundComboBox<>(TAG_SEX, new String[]{
 			StringUtils.EMPTY,
-			"male", "female", "unknown"});
+			ENUM_SEX_MALE, ENUM_SEX_FEMALE, "unknown"});
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, TAG_INDIVIDUAL_ATTRIBUTE, "Individual Attributes")
@@ -270,7 +274,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createSourcesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
@@ -280,7 +284,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createNotesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
 
 		final JPanel notePanel = components.getPanel(PanelKey.NOTE);
 		GUIHelper.addComponent(panel, notePanel);
@@ -296,6 +300,16 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	@Override
 	protected JPanel createAuditPanel(){
 		return components.getPanel(PanelKey.AUDIT);
+	}
+
+
+	public IndividualRecordDialog witSex(final SexType sex){
+		if(sex != null){
+			sexCombo.setText(sex == SexType .MALE? ENUM_SEX_MALE: ENUM_SEX_FEMALE);
+			sexCombo.setEnabled(false);
+		}
+
+		return this;
 	}
 
 

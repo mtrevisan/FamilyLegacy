@@ -30,6 +30,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
+import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.ExtractListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceCitationHandler;
@@ -97,7 +98,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	private final JPanel propertiesPanel;
 
-	private final BoundTextField sourceField;
+	private final EntityField sourceField;
 	private final BoundTextField locatorField;
 	private final ExtractListPanel extractPanel;
 
@@ -116,7 +117,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
-		sourceField = new BoundTextField(TAG_SOURCE);
+		sourceField = EntityField.createForRecordFromReference(TAG_SOURCE, this, model, SourceHandler.class);
 		locatorField = new BoundTextField(TAG_LOCATOR);
 		extractPanel = new ExtractListPanel(TAG_EXTRACT, this, "Extracts", model);
 
@@ -127,7 +128,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 			.withComponent(PanelKey.PRIVACY, TAG_PRIVACY, null)
 			.build();
 
-		components.bind(sourceField);
 		components.bind(locatorField);
 
 
@@ -137,6 +137,9 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createPropertiesPanel(){
+		// source
+		GUIHelper.addLabeledComponent(propertiesPanel, "Source:", sourceField);
+
 		// locator
 		GUIHelper.addLabeledComponent(propertiesPanel, "Locator:", locatorField);
 
@@ -178,6 +181,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void loadData(){
+		sourceField.load(record);
+
 		components.load(record);
 
 		extractPanel.load(record);
@@ -198,6 +203,8 @@ public class SourceCitationDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
+		sourceField.saveReferences(record);
+
 		components.save(record);
 
 		extractPanel.save(record);

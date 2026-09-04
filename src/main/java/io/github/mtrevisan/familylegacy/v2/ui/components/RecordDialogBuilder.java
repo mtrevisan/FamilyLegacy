@@ -27,7 +27,6 @@ package io.github.mtrevisan.familylegacy.v2.ui.components;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
 import java.util.EnumMap;
 import java.util.Map;
@@ -63,8 +62,7 @@ public final class RecordDialogBuilder{
 	}
 
 
-	public <T extends Class<? extends RecordTypeHandler<?>>> RecordDialogBuilder withComponent(final PanelKey key,
-			final String tag, final String title){
+	public RecordDialogBuilder withComponent(final PanelKey key, final String tag, final String title){
 		configs.put(key, new EntityReferenceConfig(tag, title));
 
 		return this;

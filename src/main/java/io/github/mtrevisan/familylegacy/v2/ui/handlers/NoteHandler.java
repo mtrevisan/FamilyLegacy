@@ -74,9 +74,9 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
-		String value = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
+		final String value = FLEFRecordHelper.getChildValue(record, TAG_TEXT);
 		if(StringUtils.isNotEmpty(value))
-			return GUIHelper.limitTextLength(value);
+			return GUIHelper.limitTextLength(StringUtils.replaceChars(value, '\n', '|'));
 		return "...";
 	}
 

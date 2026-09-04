@@ -319,7 +319,7 @@ public final class FLEFRecordHelper{
 		if(parent == null || paths == null || paths.length == 0)
 			return result;
 
-		// 1. Build map: targetParent → set of expected tags
+		// Build map: targetParent → set of expected tags
 		final Map<FLEFRecord, Set<String>> targetMap = new HashMap<>();
 		for(final String path : paths){
 			if(StringUtils.isEmpty(path))
@@ -341,7 +341,7 @@ public final class FLEFRecordHelper{
 		if(targetMap.isEmpty())
 			return result;
 
-		// 2. Iterative pre‑order traversal (stack), tracking the parent of each node
+		// Iterative pre‑order traversal (stack), tracking the parent of each node
 		final Set<FLEFRecord> visited = new HashSet<>();
 		final Deque<AbstractMap.SimpleEntry<FLEFRecord, FLEFRecord>> stack = new ArrayDeque<>();
 		stack.push(new AbstractMap.SimpleEntry<>(parent, null));

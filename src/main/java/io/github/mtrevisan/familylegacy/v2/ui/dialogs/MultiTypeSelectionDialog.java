@@ -58,6 +58,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 
 /**
@@ -82,6 +83,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 	private final RecordTypeHandler<?> defaultType;
 
 	private Consumer<BaseRecordDialog> setupDialog;
+	private final Function<FLEFRecord, Boolean> fnFilter;
 
 	private final JComboBox<RecordTypeHandler<?>> typeCombo;
 	private final JTextField searchField;
@@ -107,17 +109,31 @@ public class MultiTypeSelectionDialog extends JDialog{
 	@SafeVarargs
 	public MultiTypeSelectionDialog(final Dialog parent, final FLEFModel model,
 			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+		this(parent, model, null, handlerTypes);
+	}
+
+	/**
+	 * Creates a MultiTypeSelectionDialog.
+	 *
+	 * @param parent	The parent dialog.
+	 * @param model	The FLEF model.
+	 * @param handlerTypes	The list of supported participant types.
+	 */
+	@SafeVarargs
+	public MultiTypeSelectionDialog(final Dialog parent, final FLEFModel model,
+			final Function<FLEFRecord, Boolean> fnFilter, final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		super(parent, "Select Participant", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;
 		defaultType = (handlerTypes.length == 1? HandlerRegistry.getHandler(handlerTypes[0]): null);
+		this.fnFilter = fnFilter;
 
 
 		// UI components (typeCombo may remain null if only one type)
 		typeCombo = (handlerTypes.length > 1? createTypeCombo(handlerTypes): null);
 		searchField = new JTextField(null);
 		listModel = new DefaultListModel<>();
-		list = new JList<>(listModel);
+		list = GUIHelper.createList(listModel);
 
 
 		initComponents();
@@ -251,7 +267,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 			return;
 		for(final FLEFRecord record : allRecords){
 			final String display = desc.getDisplayText(record, model);
-			if(display.toLowerCase().contains(text))
+			if(display.toLowerCase().contains(text) && (fnFilter == null || fnFilter.apply(record)))
 				filteredRecords.add(record);
 		}
 		filteredRecords.sort((a, b) -> {
@@ -265,6 +281,7 @@ public class MultiTypeSelectionDialog extends JDialog{
 
 	private void updateList(){
 		listModel.clear();
+
 		if(filteredRecords.isEmpty()){
 			listModel.addElement("[No matching records]");
 			list.setEnabled(false);

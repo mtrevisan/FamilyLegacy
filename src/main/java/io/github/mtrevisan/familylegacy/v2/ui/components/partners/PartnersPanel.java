@@ -47,6 +47,7 @@ import javax.swing.UIManager;
 import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Graphics;
@@ -60,7 +61,10 @@ import java.io.Serial;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
-
+/**
+ * Panel representing a couple (two partners) with their biological parent information.
+ * It displays two IndividualPanels side by side with a connector between them.
+ */
 public class PartnersPanel extends JPanel{
 
 	@Serial
@@ -138,11 +142,6 @@ public class PartnersPanel extends JPanel{
 	private final JLabel motherNextGroupLabel = new JLabel();
 	private JPanel arrowMotherPanel;
 
-/*	private final JMenuItem editGroupItem = new JMenuItem("Edit Group…", 'E');
-	private final JMenuItem addGroupItem = new JMenuItem("Add Group…", 'A');
-//	private final JMenuItem linkGroupItem = new JMenuItem("Link Group…", 'L');
-	private final JMenuItem removeGroupItem = new JMenuItem("Remove Group…", 'R');*/
-
 	private final BoxPanelType boxType;
 
 	private FLEFRecord individual;
@@ -181,9 +180,7 @@ public class PartnersPanel extends JPanel{
 		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
 
 		fatherPanel = IndividualPanel.create(boxType, model);
-//		EventBusService.subscribe(fatherPanel);
 		motherPanel = IndividualPanel.create(boxType, model);
-//		EventBusService.subscribe(motherPanel);
 
 		fatherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 		motherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
@@ -267,10 +264,6 @@ public class PartnersPanel extends JPanel{
 	}
 
 
-	private boolean isPrimaryBox(){
-		return (boxType == BoxPanelType.PRIMARY);
-	}
-
 	public final IndividualPanel getFatherPanel(){
 		return fatherPanel;
 	}
@@ -318,9 +311,21 @@ public class PartnersPanel extends JPanel{
 //			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
 //			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
 //		}
-
-//		refresh(ActionCommand.ACTION_COMMAND_GROUP);
 	}
+
+
+	/**
+	 * Finds the nearest PartnersPanel ancestor, if any.
+	 *
+	 * @param parent the component to start searching from
+	 * @return the PartnersPanel ancestor, or {@code null} if none
+	 */
+	public static PartnersPanel findContainingPartnersPanel(Component parent){
+		while(parent != null && !(parent instanceof PartnersPanel))
+			parent = parent.getParent();
+		return (PartnersPanel)parent;
+	}
+
 
 /*	public final void setGroupListener(final GroupListenerInterface groupListener){
 		if(groupListener != null){
@@ -701,8 +706,6 @@ public class PartnersPanel extends JPanel{
 			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
 		}
 
-		refresh(ActionCommand.ACTION_COMMAND_GROUP);
-
 		fatherPanel.repaint();
 		motherPanel.repaint();
 	}
@@ -900,6 +903,19 @@ public class PartnersPanel extends JPanel{
 	}
 
 
+	public Side getSideOf(final IndividualPanel panel){
+		if(panel == fatherPanel)
+			return Side.LEFT;
+		if(panel == motherPanel)
+			return Side.RIGHT;
+		return null;
+	}
+
+	public boolean isEmpty(){
+		return (father == null && mother == null);
+	}
+
+
 	public static void main(String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -917,118 +933,12 @@ public class PartnersPanel extends JPanel{
 		final FLEFParser parser = new FLEFParser();
 		final FLEFModel model = parser.parse(content);
 
-		final BoxPanelType boxType = BoxPanelType.PRIMARY;
-//		final BoxPanelType boxType = BoxPanelType.SECONDARY;
-
-//		final GroupListenerInterface groupListener = new GroupListenerInterface(){
-//			@Override
-//			public void onGroupEdit(final BiologicalParentsPanel groupPanel){
-//				final Map<String, Object> group = groupPanel.getGroup();
-//				System.out.println("onEditGroup " + extractRecordID(group));
-//			}
-//
-//			@Override
-//			public void onGroupAdd(final BiologicalParentsPanel groupPanel){
-//				System.out.println("onAddGroup");
-//			}
-//
-//			@Override
-//			public void onGroupLink(final BiologicalParentsPanel groupPanel){
-//				final PersonPanel father = groupPanel.getFatherPanel();
-//				final PersonPanel mother = groupPanel.getMotherPanel();
-//				final Map<String, Object> group = groupPanel.group;
-//				System.out.println("onLinkPersonToSiblingGroup (partner 1: " + extractRecordID(father.getPerson())
-//					+ ", partner 2: " + extractRecordID(mother.getPerson()) + ", group: " + extractRecordID(group));
-//			}
-//
-//			@Override
-//			public void onGroupRemove(final BiologicalParentsPanel groupPanel){
-//				final Map<String, Object> group = groupPanel.getGroup();
-//				System.out.println("onRemoveGroup " + extractRecordID(group));
-//			}
-//
-//			@Override
-//			public void onPersonChangeParents(final BiologicalParentsPanel groupPanel, final PersonPanel personPanel, final Map<String, Object> newParents){
-//				System.out.println("onGroupChangeParents person: " + extractRecordID(personPanel.getPerson())
-//					+ ", new parents: " + extractRecordID(newParents));
-//			}
-//
-//			@Override
-//			public void onPersonChangeGroup(final BiologicalParentsPanel groupPanel, final PersonPanel oldPartner, final Map<String, Object> newPartner,
-//					final Map<String, Object> newGroup){
-//				final Map<String, Object> oldGroup = groupPanel.getGroup();
-//				System.out.println("onPersonChangeGroup old partner: " + extractRecordID(oldPartner.getPerson())
-//					+ ", old group: " + oldGroup.get("id") + ", new partner: " + extractRecordID(newPartner)
-//					+ ", new group: " + extractRecordID(newGroup));
-//			}
-//		};
-//		final PersonListenerInterface personListener = new PersonListenerInterface(){
-//			@Override
-//			public void onPersonFocus(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onFocusPerson " + extractRecordID(person));
-//			}
-//
-//			@Override
-//			public void onPersonEdit(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onEditPerson " + extractRecordID(person));
-//			}
-//
-//			@Override
-//			public void onPersonLink(final PersonPanel personPanel){
-//				System.out.println("onLinkPerson");
-//			}
-//
-//			@Override
-//			public void onPersonAdd(final PersonPanel personPanel){
-//				System.out.println("onAddPerson");
-//			}
-//
-//			@Override
-//			public void onPersonRemove(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onRemovePerson " + extractRecordID(person));
-//			}
-//
-//			@Override
-//			public void onPersonUnlinkFromParentGroup(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onUnlinkPersonFromParentGroup " + extractRecordID(person));
-//			}
-//
-//			@Override
-//			public void onPersonAddToSiblingGroup(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onAddToSiblingGroupPerson " + extractRecordID(person));
-//			}
-//
-//			@Override
-//			public void onPersonUnlinkFromSiblingGroup(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onUnlinkPersonFromSiblingGroup " + extractRecordID(person));
-//			}
-//
-//			@Override
-//			public void onPersonAddPreferredImage(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onAddPreferredImage " + extractRecordID(person));
-//			}
-//
-//			@Override
-//			public void onPersonEditPreferredImage(final PersonPanel personPanel){
-//				final Map<String, Object> person = personPanel.getPerson();
-//				System.out.println("onEditPreferredImage " + extractRecordID(person));
-//			}
-//		};
-
 
 		EventQueue.invokeLater(() -> {
 			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, model);
 //			panel.withBiologicalParents(recordId);
 //			panel.setGroupListener(groupListener);
 //			panel.setPersonListener(personListener);
-//			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());

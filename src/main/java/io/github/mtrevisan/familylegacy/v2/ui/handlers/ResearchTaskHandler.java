@@ -77,7 +77,7 @@ public class ResearchTaskHandler extends AbstractRecordTypeHandler<ResearchTaskR
 		String description = FLEFRecordHelper.getChildValue(record, "DESCRIPTION");
 		String status = FLEFRecordHelper.getChildValue(record, "STATUS");
 		if(StringUtils.isNotEmpty(description)){
-			String display = GUIHelper.limitTextLength(description);
+			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(description, '\n', '|'));
 			if(StringUtils.isNotEmpty(status))
 				display += " [" + status + "]";
 			return display;

@@ -80,7 +80,7 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 		final String action = FLEFRecordHelper.getChildValue(record, TAG_ACTION);
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_ACTIVITY_TYPE);
 		if(StringUtils.isNotEmpty(action)){
-			String display = GUIHelper.limitTextLength(action);
+			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(action, '\n', '|'));
 			if(StringUtils.isNotEmpty(type))
 				display += " [" + type + "]";
 			return display;

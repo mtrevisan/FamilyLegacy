@@ -50,15 +50,17 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -1788729052005475640L;
 
 
+	private static final String DOT = ".";
+
 	private static final String TAG_URI = "URI";
 	private static final String TAG_CROP = "CROP";
 	private static final String TAG_X = "X";
 	private static final String TAG_Y = "Y";
 	private static final String TAG_WIDTH = "WIDTH";
 	private static final String TAG_HEIGHT = "HEIGHT";
-
 	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
+	private static final String TAG_DOCUMENT_URI = TAG_DOCUMENT + DOT + TAG_URI;
 
 
 	private final String path;
@@ -124,9 +126,13 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}
 		catch(final NumberFormatException ignored){}
-		final String documentId = documentPart.getId();
+		final String documentId = FLEFRecordHelper.findChild(documentPart, TAG_DOCUMENT)
+			.getValue();
 		final FLEFRecord document = model.getRecordById(documentId);
-		final String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
+		String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
+// TODO to be removed
+if(uri != null)
+	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
 
 		try{
 			cropDialog.loadData(uri, imageCropRect);

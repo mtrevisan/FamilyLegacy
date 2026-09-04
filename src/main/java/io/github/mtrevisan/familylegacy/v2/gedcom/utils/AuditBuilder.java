@@ -14,6 +14,10 @@ public class AuditBuilder{
 
 	private AuditBuilder(){}
 
+	public static FLEFRecord build(){
+		return build(null);
+	}
+
 	public static FLEFRecord build(GEDCOMNode node){
 		FLEFRecord audit = FLEFRecord.createChildWithTag("audit");
 		GEDCOMNode chanNode = (node != null) ? GEDCOMHelper.findFirstChild(node, "CHAN") : null;

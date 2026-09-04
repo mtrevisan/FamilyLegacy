@@ -93,7 +93,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 				.append(locale)
 				.append("] ");
 		if(StringUtils.isNotEmpty(text))
-			sb.append(GUIHelper.limitTextLength(text));
+			sb.append(GUIHelper.limitTextLength(StringUtils.replaceChars(text, '\n', '|')));
 		return sb.toString();
 	}
 
@@ -135,7 +135,7 @@ public class TranslationListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog,
 			() -> {
 				if(!validTranslationData(textArea))
 					return;

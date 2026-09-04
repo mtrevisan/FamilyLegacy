@@ -155,6 +155,7 @@ public class SiblingsPanel extends JPanel{
 			if(siblings.isEmpty()){
 				// Placeholder box to allow adding the first child
 				final IndividualPanel emptyBox = IndividualPanel.create(BoxPanelType.SECONDARY, model)
+					.withListener(listener)
 					.withParent(father, mother);
 				add(emptyBox);
 			}
@@ -165,8 +166,8 @@ public class SiblingsPanel extends JPanel{
 
 					final JPanel boxContainer = createSiblingContainer(hasDescendants);
 					final IndividualPanel siblingBox = IndividualPanel.create(boxType, model)
-						.withParent(father, mother)
 						.withListener(listener)
+						.withParent(father, mother)
 						.withIndividualData(siblingData);
 
 					boxContainer.add(siblingBox);
@@ -178,8 +179,8 @@ public class SiblingsPanel extends JPanel{
 		// Add empty placeholder box for adding a new sibling
 		final JPanel emptyBoxContainer = createSiblingContainer(false);
 		final IndividualPanel emptySiblingBox = IndividualPanel.create(boxType, model)
-			.withParent(father, mother)
-			.withListener(listener);
+			.withListener(listener)
+			.withParent(father, mother);
 		emptyBoxContainer.add(emptySiblingBox);
 		add(emptyBoxContainer);
 		siblingBoxes.add(emptySiblingBox);
@@ -215,6 +216,19 @@ public class SiblingsPanel extends JPanel{
 		}
 		return enterPoints;
 	}
+
+	/**
+	 * Finds the nearest SiblingsPanel ancestor, if any.
+	 *
+	 * @param parent the component to start searching from
+	 * @return the SiblingsPanel ancestor, or {@code null} if none
+	 */
+	public static SiblingsPanel findContainingSiblingsPanel(Component parent){
+		while(parent != null && !(parent instanceof SiblingsPanel))
+			parent = parent.getParent();
+		return (SiblingsPanel)parent;
+	}
+
 
 
 	public static void main(final String[] args) throws IOException{

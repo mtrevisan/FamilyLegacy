@@ -80,7 +80,7 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 		String question = FLEFRecordHelper.getChildValue(record, TAG_QUESTION);
 		String status = FLEFRecordHelper.getChildValue(record, TAG_STATUS);
 		if(StringUtils.isNotEmpty(question)){
-			String display = GUIHelper.limitTextLength(question);
+			String display = GUIHelper.limitTextLength(StringUtils.replaceChars(question, '\n', '|'));
 			if(StringUtils.isNotEmpty(status))
 				display += " [" + status + "]";
 			return display;

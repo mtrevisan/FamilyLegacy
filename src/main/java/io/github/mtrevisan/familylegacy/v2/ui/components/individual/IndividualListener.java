@@ -8,20 +8,28 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
  */
 public interface IndividualListener{
 
-	void onIndividualEdit(FLEFRecord individual);
-
-
 	void onIndividualSelected(FLEFRecord individual);
+
+	void onIndividualEdit(FLEFRecord individual);
 
 	void onIndividualRemove(FLEFRecord individual);
 
-	void onIndividualUnlinkFromParentGroup(FLEFRecord individual);
+	void onPanelSelected(IndividualPanel panel);
 
-	void onIndividualUnlinkFromPartner(FLEFRecord targetSibling);
+	void onIndividualAddOrLink(IndividualOperation operation, FLEFRecord father, FLEFRecord mother);
+
+	void showUnlinkDialog(FLEFRecord individual);
 
 
-	void onIndividualAdd(FLEFRecord father, FLEFRecord mother);
+	void onIndividualMove(FLEFRecord individual);
 
-	void onIndividualLink(FLEFRecord father, FLEFRecord mother);
+	/**
+	 * Pastes the individual from the clipboard into the current context.
+	 * The source individual is unlinked from all previous relationships.
+	 *
+	 * @param father the father record (if context is a child)
+	 * @param mother the mother record (if context is a child)
+	 */
+	void onIndividualPaste(FLEFRecord father, FLEFRecord mother);
 
 }

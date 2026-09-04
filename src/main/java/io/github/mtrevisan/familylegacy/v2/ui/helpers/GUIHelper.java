@@ -40,7 +40,11 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ActionMap;
+import javax.swing.DefaultListModel;
+import javax.swing.DropMode;
 import javax.swing.Icon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -60,6 +64,7 @@ import javax.swing.ListModel;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
+import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.text.JTextComponent;
 import java.awt.Color;
@@ -71,6 +76,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -563,10 +571,14 @@ public final class GUIHelper{
 	}
 
 
-	public static JPanel createSaveCancelButtonPanel(final JDialog dialog, final Runnable save,
-			final Runnable cancel){
-		final JButton saveButton = new JButton("Save");
-		final JButton cancelButton = new JButton("Cancel");
+	public static JPanel createButtonPanel(final JDialog dialog, final Runnable save, final Runnable cancel){
+		return createButtonPanel(dialog, "Save", save, "Cancel", cancel);
+	}
+
+	public static JPanel createButtonPanel(final JDialog dialog, final String saveLabel, final Runnable save,
+			final String cancelLabel, final Runnable cancel){
+		final JButton saveButton = new JButton(saveLabel);
+		final JButton cancelButton = new JButton(cancelLabel);
 
 		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);
@@ -658,6 +670,176 @@ public final class GUIHelper{
 		graphics2D.drawLine(enterPoint.x + 10, enterPoint.y - 10,
 			enterPoint.x - 10, enterPoint.y + 10);
 		graphics2D.setColor(Color.BLACK);
+	}
+
+
+	public static <E, T> void setupReorderingShortcuts(final JList<E> list, final List<T> items){
+		final InputMap inputMap = list.getInputMap(JComponent.WHEN_FOCUSED);
+		final ActionMap actionMap = list.getActionMap();
+
+		// Keybindings: CTRL + UP / CTRL + DOWN
+		inputMap.put(GUIHelper.CTRL_UP_STROKE, "moveUp");
+		inputMap.put(GUIHelper.CTRL_DOWN_STROKE, "moveDown");
+
+		actionMap.put("moveUp", new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = 1557398991645410075L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				moveSelectedItemUp(list, items);
+			}
+		});
+
+		actionMap.put("moveDown", new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -8473405355379714143L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				moveSelectedItemDown(list, items);
+			}
+		});
+	}
+
+	/**
+	 * Moves the currently selected item up by one position.
+	 */
+	public static <E, T> void moveSelectedItemUp(final JList<E> list, final List<T> items){
+		final int idx = list.getSelectedIndex();
+		if(idx > 0)
+			swapItems(list, items, idx, idx - 1);
+	}
+
+	/**
+	 * Moves the currently selected item down by one position.
+	 */
+	public static <E, T> void moveSelectedItemDown(final JList<E> list, final List<T> items){
+		final int idx = list.getSelectedIndex();
+		if(idx >= 0 && idx < items.size() - 1)
+			swapItems(list, items, idx, idx + 1);
+	}
+
+	private static <E, T> void swapItems(final JList<E> list, final List<T> items, final int index1, final int index2){
+		// Swap in underlying items list
+		final T tempRecord = items.get(index1);
+		items.set(index1, items.get(index2));
+		items.set(index2, tempRecord);
+
+		// Swap in GUI model
+		final DefaultListModel<E> listModel = (DefaultListModel<E>)list.getModel();
+		final E tempDisplay = listModel.get(index1);
+		listModel.set(index1, listModel.get(index2));
+		listModel.set(index2, tempDisplay);
+
+		// Keep the moved item selected and visible
+		list.setSelectedIndex(index2);
+		list.ensureIndexIsVisible(index2);
+	}
+
+	public static <E, T> void setupDragAndDrop(final JList<E> list, final List<T> items){
+		list.setDragEnabled(true);
+		list.setDropMode(DropMode.INSERT);
+
+		// Ensure selection on mouse press (if none selected)
+		list.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mousePressed(final MouseEvent e){
+				if(list.getSelectedIndex() < 0){
+					final int index = list.locationToIndex(e.getPoint());
+					if(index >= 0)
+						list.setSelectedIndex(index);
+				}
+			}
+		});
+
+		list.setTransferHandler(new TransferHandler(){
+			@Serial
+			private static final long serialVersionUID = 5054623014198954269L;
+
+			private int sourceIndex = -1;
+
+
+			@Override
+			public int getSourceActions(final JComponent c){
+				return MOVE;
+			}
+
+			@Override
+			protected Transferable createTransferable(final JComponent c){
+				sourceIndex = list.getSelectedIndex();
+				if(sourceIndex < 0)
+					return null;
+
+				// Export the index as a string; only the originator will use it
+				return new StringSelection(String.valueOf(sourceIndex));
+			}
+
+			@Override
+			public boolean canImport(final TransferSupport support){
+				// Accept drops from the same list only
+				if(!(support.getComponent() instanceof JList))
+					return false;
+
+				// Only accept string data (our own format)
+				return support.isDataFlavorSupported(DataFlavor.stringFlavor);
+			}
+
+			@Override
+			public boolean importData(final TransferSupport support){
+				if(!support.isDrop())
+					return false;
+				// Only accept drops from the same list
+				if(!(support.getComponent() instanceof JList))
+					return false;
+
+				final JList.DropLocation dropLocation = (JList.DropLocation)support.getDropLocation();
+				// index where the item would be inserted
+				final int dropIndex = dropLocation.getIndex();
+				if(dropIndex == -1)
+					return false;
+
+				// If sourceIndex is invalid, abort
+				if(sourceIndex < 0 || sourceIndex >= items.size())
+					return false;
+
+				// Adjust drop index when moving downwards: after removing the source,
+				// the target index shifts by one.
+				final int targetIndex = (dropIndex > sourceIndex? dropIndex - 1: dropIndex);
+				if(targetIndex == sourceIndex)
+					return false;
+
+				// Perform the move
+				final DefaultListModel<E> listModel = (DefaultListModel<E>)list.getModel();
+				moveItem(listModel, items, sourceIndex, targetIndex);
+				list.setSelectedIndex(targetIndex);
+				list.ensureIndexIsVisible(targetIndex);
+				return true;
+			}
+
+			@Override
+			protected void exportDone(final JComponent source, final Transferable data, final int action){
+				// Nothing else to clean up
+			}
+		});
+	}
+
+	/**
+	 * Moves an item from one index to another within the list.
+	 * Updates both the display model and the underlying items list.
+	 */
+	private static <E, T> void moveItem(final DefaultListModel<E> listModel, final List<T> items, final int fromIndex,
+			final int toIndex){
+		if(fromIndex == toIndex)
+			return;
+
+		// Remove from old position
+		final T item = items.remove(fromIndex);
+		final E display = listModel.remove(fromIndex);
+
+		// Insert at new position
+		items.add(toIndex, item);
+		listModel.add(toIndex, display);
 	}
 
 

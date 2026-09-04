@@ -5,6 +5,7 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
+import io.github.mtrevisan.familylegacy.v2.ui.components.individual.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsData;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
@@ -25,6 +26,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -46,9 +48,7 @@ public class BiologicalTreeService{
 
 	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
 	private static final String ENUM_TYPE_FAMILY = "family";
-	private static final String ENUM_TYPE_SPOUSE = "spouse";
-	private static final String ENUM_SEX_MALE = "male";
-	private static final String ENUM_SEX_FEMALE = "female";
+	private static final String ENUM_TYPE_PARTNER = "partner";
 
 
 	private final FLEFModel model;
@@ -92,12 +92,14 @@ public class BiologicalTreeService{
 		if(!partnerChildrenDataMap.isEmpty()){
 			//TODO choose partner and children
 			final Map.Entry<IndividualData, SiblingsData> partnerChildrenData = partnerChildrenDataMap.entrySet().stream()
-				.filter(entry -> hasSpouseRelationships(entry.getKey().getIndividualId()))
+				.filter(entry -> (entry.getKey() == null || hasPartnerRelationships(entry.getKey().getIndividualId())))
 				.findFirst()
 				.orElse(null);
 			if(partnerChildrenData != null){
 				final IndividualData partnerData = partnerChildrenData.getKey();
-				final FLEFRecord partner = model.getRecordById(partnerData.getIndividualId());
+				final FLEFRecord partner = (partnerData != null
+					? model.getRecordById(partnerData.getIndividualId())
+					: null);
 				final SiblingsData childrenData = partnerChildrenData.getValue();
 				rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
 			}
@@ -119,8 +121,8 @@ public class BiologicalTreeService{
 			final int nextGeneration = currentGeneration + 1;
 
 			final List<FLEFRecord> parents = getParents(currentIndividualId);
-			FLEFRecord father = extractParent(parents, ENUM_SEX_MALE);
-			FLEFRecord mother = extractParent(parents, ENUM_SEX_FEMALE);
+			FLEFRecord father = extractParent(parents, SexType.MALE);
+			FLEFRecord mother = extractParent(parents, SexType.FEMALE);
 			// fallback to random if sex is unknown
 			if(!parents.isEmpty() && father == null)
 				father = parents.removeFirst();
@@ -176,20 +178,21 @@ public class BiologicalTreeService{
 		return rootNode;
 	}
 
-	private boolean hasSpouseRelationships(final String spouseId){
+	private boolean hasPartnerRelationships(final String partnerId){
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		final List<FLEFRecord> spouseRelationships = new ArrayList<>();
+		final List<FLEFRecord> partnerRelationships = new ArrayList<>();
 		for(final FLEFRecord relationship : relationships){
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			if(type == null || !type.endsWith(ENUM_TYPE_PARTNER))
+				continue;
+
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
 			final String targetRefId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 
-			if(type != null && type.endsWith(ENUM_TYPE_SPOUSE)
-					&& (spouseId.equals(subjectId) || spouseId.equals(targetRefId))){
-				spouseRelationships.add(relationship);
-			}
+			if(partnerId.equals(subjectId) || partnerId.equals(targetRefId))
+				partnerRelationships.add(relationship);
 		}
-		return !spouseRelationships.isEmpty();
+		return !partnerRelationships.isEmpty();
 	}
 
 	/**
@@ -217,6 +220,7 @@ public class BiologicalTreeService{
 						break;
 					}
 
+			// if there are no other parent children must be returned anyway
 			childrenByOtherParentMap
 				.computeIfAbsent(otherParent, k -> new ArrayList<>())
 				.add(child);
@@ -288,14 +292,15 @@ public class BiologicalTreeService{
 		return parents;
 	}
 
-	private static FLEFRecord extractParent(final List<FLEFRecord> parents, final String sex){
+	FLEFRecord extractParent(final List<FLEFRecord> parents, final SexType sex){
 		FLEFRecord father = null;
 		final Iterator<FLEFRecord> itr = parents.iterator();
 		while(itr.hasNext()){
 			final FLEFRecord parent = itr.next();
-			final String parentSex = FLEFRecordHelper.getChildValue(parent, TAG_SEX);
+			final String rawSex = FLEFRecordHelper.getChildValue(parent, TAG_SEX);
+			final SexType parentSex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
 
-			if(sex.equals(parentSex)){
+			if(sex == parentSex){
 				itr.remove();
 				father = parent;
 
@@ -312,7 +317,7 @@ public class BiologicalTreeService{
 		if(!individualToParentsMap.isEmpty())
 			return;
 
-		// 1. Index parents and parent-child relationships
+		// Index parents and parent-child relationships
 		final Map<String, Set<String>> childToGroupIdsMap = new HashMap<>();
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		for(final FLEFRecord relationship : relationships){
@@ -345,7 +350,7 @@ public class BiologicalTreeService{
 			}
 		}
 
-//		// 2. Index family group records O(G)
+//		// Index family group records O(G)
 //		final List<FLEFRecord> groups = model.getRecordsByType(GroupHandler.TYPE);
 //		for(final FLEFRecord group : groups){
 //			final String type = FLEFRecordHelper.getChildValue(group, TAG_TYPE);
@@ -357,7 +362,7 @@ public class BiologicalTreeService{
 //					individualToFamilyMap.putIfAbsent(entry.getKey(), group);
 //		}
 
-		// 3. Index events O(E)
+		// Index events O(E)
 		final List<FLEFRecord> eventParticipations = model.getRecordsByType(EventParticipationHandler.TYPE);
 		for(final FLEFRecord eventParticipation : eventParticipations){
 			final FLEFRecord participant = FLEFRecordHelper.findChild(eventParticipation, TAG_PARTICIPANT);
