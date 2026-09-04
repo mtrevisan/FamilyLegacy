@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import net.miginfocom.swing.MigLayout;
 
 import javax.swing.BorderFactory;
@@ -67,6 +68,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -113,6 +115,8 @@ public class IndividualPanel extends JPanel{
 	private final JMenuItem editIndividualItem = new JMenuItem("Edit Individual…", 'E');
 	private final JMenuItem addIndividualItem = new JMenuItem("Add Individual…", 'A');
 	private final JMenuItem linkIndividualItem = new JMenuItem("Link Individual…", 'L');
+	private final JMenuItem moveIndividualItem = new JMenuItem("Move Individual", 'M');
+	private final JMenuItem copyIndividualItem = new JMenuItem("Copy Individual…", 'C');
 	private final JMenuItem removeIndividualItem = new JMenuItem("Remove Individual", 'R');
 	private final JMenuItem unlinkFromParentsItem = new JMenuItem("Unlink from parents", 'U');
 	private final JMenuItem unlinkFromPartnerItem = new JMenuItem("Unlink from partner", 'P');
@@ -314,9 +318,22 @@ public class IndividualPanel extends JPanel{
 		final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
 		final boolean hasParentGroup = (hasData && data.hasParents());
 		final boolean hasPartner = (hasData && data.hasPartner());
+		final boolean hasClippedRecord = RelationClipboard.getInstance().hasRecord();
+
+		// Update menu items labels based on clipboard state
+		if(hasClippedRecord){
+			final FLEFRecord clippedRecord = RelationClipboard.getInstance().getRecord();
+			final String clippedName = IndividualHandler.getInstance().getDisplayText(clippedRecord, model);
+			copyIndividualItem.setText("Copy " + clippedName + " Here");
+			copyIndividualItem.setEnabled(true);
+		}
+
+		// Enable or disable options depending on panel state and clipboard contents
 		editIndividualItem.setEnabled(hasData);
 		addIndividualItem.setEnabled(!hasData);
-		linkIndividualItem.setEnabled(!hasData && hasIndividuals);
+		// Allow linking either when the box is empty and candidates exist OR when pasting from clipboard
+		linkIndividualItem.setEnabled(!hasData && (hasIndividuals || hasClippedRecord));
+		moveIndividualItem.setEnabled(hasData);
 		removeIndividualItem.setEnabled(hasData);
 		unlinkFromParentsItem.setEnabled(hasData && hasParentGroup);
 		unlinkFromPartnerItem.setEnabled(hasData && hasPartner);
@@ -362,18 +379,26 @@ public class IndividualPanel extends JPanel{
 	private void attachPopupMenu(){
 		final JPopupMenu popup = new JPopupMenu();
 
+		final IndividualPanel self = this;
 		// Re-evaluate state right before opening the popup
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
+				if(listener != null)
+					listener.onPanelSelected(self);
+
 				updateIndividualMenu();
 			}
 		});
 
-		// Pass the current record (or parent context for target creation/linking)
+		// Pass the current record or context depending on the action
 		addMenuItem(popup, editIndividualItem, listener::onIndividualEdit);
-		addMenuItem(popup, addIndividualItem, record -> listener.onIndividualAdd(father, mother));
-		addMenuItem(popup, linkIndividualItem, record -> listener.onIndividualLink(father, mother));
+		// Add/Link delegation based on context (Child/Partner/Parent)
+		addMenuItem(popup, addIndividualItem, record
+			-> listener.onAddIndividual(IndividualOperation.ADD_CHILD, null, father, Collections.singletonMap("mother", mother)));
+		addMenuItem(popup, linkIndividualItem, record -> listener.onChildLink(father, mother));
+		addMenuItem(popup, moveIndividualItem, listener::onIndividualMove);
+//		addMenuItem(popup, copyIndividualItem, listener::onIndividualCopy);
 		addMenuItem(popup, removeIndividualItem, listener::onIndividualRemove);
 		popup.addSeparator();
 		addMenuItem(popup, unlinkFromParentsItem, listener::onIndividualUnlinkFromParentGroup);
@@ -386,6 +411,7 @@ public class IndividualPanel extends JPanel{
 
 	private static void attachMouseListenerRecursively(final Component component, final MouseListener listener){
 		component.addMouseListener(listener);
+
 		if(component instanceof Container container)
 			for(final Component child : container.getComponents())
 				attachMouseListenerRecursively(child, listener);
@@ -408,6 +434,10 @@ public class IndividualPanel extends JPanel{
 		return (data != null && data.getIndividualId() != null
 			? model.getRecordById(data.getIndividualId())
 			: null);
+	}
+
+	public IndividualData getData(){
+		return data;
 	}
 
 

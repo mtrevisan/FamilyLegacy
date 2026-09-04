@@ -900,6 +900,19 @@ public class PartnersPanel extends JPanel{
 	}
 
 
+	public Side getSideOf(final IndividualPanel panel){
+		if(panel == fatherPanel)
+			return Side.LEFT;
+		if(panel == motherPanel)
+			return Side.RIGHT;
+		return null;
+	}
+
+	public boolean isEmpty(){
+		return (father == null && mother == null);
+	}
+
+
 	public static void main(String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());

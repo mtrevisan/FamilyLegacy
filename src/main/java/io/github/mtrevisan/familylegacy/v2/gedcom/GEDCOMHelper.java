@@ -1461,7 +1461,7 @@ public class GEDCOMHelper{
 		if (role != null) {
 			participation.addChild(FLEFRecord.createChildWithTagAndValue("role", role));
 		}
-		participation.addChild(AuditBuilder.build(null));
+		participation.addChild(AuditBuilder.build());
 
 		Deduplicator.getDeduplicatedRecordId(model, participation);
 	}

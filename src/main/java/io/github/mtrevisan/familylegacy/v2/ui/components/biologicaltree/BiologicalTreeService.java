@@ -92,12 +92,14 @@ public class BiologicalTreeService{
 		if(!partnerChildrenDataMap.isEmpty()){
 			//TODO choose partner and children
 			final Map.Entry<IndividualData, SiblingsData> partnerChildrenData = partnerChildrenDataMap.entrySet().stream()
-				.filter(entry -> hasSpouseRelationships(entry.getKey().getIndividualId()))
+				.filter(entry -> (entry.getKey() == null || hasSpouseRelationships(entry.getKey().getIndividualId())))
 				.findFirst()
 				.orElse(null);
 			if(partnerChildrenData != null){
 				final IndividualData partnerData = partnerChildrenData.getKey();
-				final FLEFRecord partner = model.getRecordById(partnerData.getIndividualId());
+				final FLEFRecord partner = (partnerData != null
+					? model.getRecordById(partnerData.getIndividualId())
+					: null);
 				final SiblingsData childrenData = partnerChildrenData.getValue();
 				rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
 			}
@@ -217,6 +219,7 @@ public class BiologicalTreeService{
 						break;
 					}
 
+			//TODO if there are no other parent children must be returned anyway...
 			childrenByOtherParentMap
 				.computeIfAbsent(otherParent, k -> new ArrayList<>())
 				.add(child);

@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree;
 
+import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
@@ -182,29 +183,30 @@ public class AncestorTreeMutator{
 		invalidateAndNotifyTreeChanged(currentRootId);
 	}
 
+
 	/**
 	 * Adds a child to parent individuals by creating parent-child relationship records.
 	 *
 	 * @param fatherId    the ID of the male parent
 	 * @param motherId  the ID of the female parent
-	 * @param child           the child record to link
+	 * @param newChild           the child record to link
 	 * @param currentRootId   the active root ID
 	 */
-	public void addChildToParents(final String fatherId, final String motherId, final FLEFRecord child,
+	public void addChildToParents(final String fatherId, final String motherId, final FLEFRecord newChild,
 			final String currentRootId){
-		if(child == null)
+		if(newChild == null)
 			return;
 
 		// 1. Ensure child record exists in model
-		if(model.getRecordById(child.getId()) == null)
-			model.addRecord(child);
+		if(model.getRecordById(newChild.getId()) == null)
+			model.addRecord(newChild);
 
 		// 2. Create relationship record for father if present
 		if(fatherId != null){
 			final FLEFRecord relationship = FLEFRecord.createChildWithTag(RelationshipHandler.TYPE)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, ENUM_TYPE_CHILD))
 				.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
-					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, child.getId()))
+					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, newChild.getId()))
 				)
 				.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
 					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, fatherId))
@@ -217,7 +219,7 @@ public class AncestorTreeMutator{
 			final FLEFRecord relationship = FLEFRecord.createChildWithTag(RelationshipHandler.TYPE)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, ENUM_TYPE_CHILD))
 				.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
-					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, child.getId()))
+					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, newChild.getId()))
 				)
 				.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
 					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, motherId))
@@ -227,6 +229,108 @@ public class AncestorTreeMutator{
 
 		// 4. Refresh service state
 		invalidateAndNotifyTreeChanged(currentRootId);
+	}
+
+
+	/**
+	 * Adds or links a partner to a target individual.
+	 * Creates a spouse/partner relationship between the target and the new partner.
+	 *
+	 * @param partnerId     the ID of the individual to whom the partner will be added
+	 * @param newPartner    the partner record (may already exist in the model)
+	 * @param currentRootId the current root individual ID (used to refresh the tree)
+	 */
+	public void addPartnerToIndividual(final String partnerId, final FLEFRecord newPartner, final String currentRootId){
+		if(newPartner == null)
+			return;
+
+		// Get the target individual record
+		final FLEFRecord target = model.getRecordById(partnerId);
+		if(target == null)
+			throw new IllegalArgumentException("Target individual not found: " + partnerId);
+
+		// Create spouse relationships (bidirectional)
+		createRelationship(target, newPartner, "spouse");
+		createRelationship(newPartner, target, "spouse");
+
+		// Invalidate cached indices in the tree service and notify the listener to refresh the tree, keeping the
+		// current root
+		invalidateAndNotifyTreeChanged(currentRootId);
+	}
+
+	/**
+	 * Helper method to create a relationship record of the given type.
+	 * Assumes the model uses a record structure with "relationship" tag and
+	 * children: "type", "subject", "target" (each referencing an individual).
+	 *
+	 * @param subject the individual that is the subject of the relationship
+	 * @param target  the individual that is the target of the relationship
+	 * @param type    the type of relationship (e.g., "child", "spouse", "parent")
+	 */
+	private void createRelationship(final FLEFRecord subject, final FLEFRecord target, final String type){
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
+			.addChild(FLEFRecord.createChildWithTagAndValue("type", type))
+			.addChild(FLEFRecord.createChildWithTag("subject")
+				.addChild(FLEFRecord.createChildWithTagAndValue("individual", subject.getId()))
+			)
+			.addChild(FLEFRecord.createChildWithTag("target")
+				.addChild(FLEFRecord.createChildWithTagAndValue("individual", target.getId()))
+			)
+			.addChild(AuditBuilder.build());
+
+		model.addRecord(relationship);
+	}
+
+
+	/**
+	 * Adds or links a parent to a target child individual.
+	 */
+	public void addParentToChild(final String childId, final FLEFRecord newParent, final String currentRootId){
+//		if(parentRecord == null || childId == null)
+//			return;
+//
+//		if(model.getRecordById(parentRecord.getId()) == null)
+//			model.addRecord(parentRecord);
+//
+//		final String sex = IndividualHandler.getInstance()
+//			.getSex(parentRecord, model);
+//		if("female".equals(sex))
+//			addChildToParents(null, parentRecord.getId(), model.getRecordById(childId), currentRootId);
+//		else
+//			addChildToParents(parentRecord.getId(), null, model.getRecordById(childId), currentRootId);
+	}
+
+
+	/**
+	 * Unlinks an individual from their previous relations and connects them to new parents or partner.
+	 *
+	 * @param sourceRecord  the individual being moved
+	 * @param fatherId      the new father ID (can be null)
+	 * @param motherId      the new mother ID (can be null)
+	 * @param partnerId     the new partner ID (can be null)
+	 * @param currentRootId the active root ID
+	 */
+	public void moveAndLinkIndividual(final FLEFRecord sourceRecord, final String fatherId,
+			final String motherId, final String partnerId, final String currentRootId){
+//		if(sourceRecord == null)
+//			return;
+//
+//		// 1. Unlink from current parents and partner
+//		unlinkFromParents(sourceRecord, null);
+//		unlinkFromPartner(sourceRecord, null);
+//
+//		// 2. Link to new parents if specified
+//		if(fatherId != null || motherId != null){
+//			addChildToParents(fatherId, motherId, sourceRecord, null);
+//		}
+//
+//		// 3. Link to new partner if specified
+//		if(partnerId != null){
+//			addPartnerRelationship(sourceRecord.getId(), partnerId);
+//		}
+//
+//		// 4. Invalidate and refresh UI once
+//		invalidateAndNotifyTreeChanged(currentRootId);
 	}
 
 

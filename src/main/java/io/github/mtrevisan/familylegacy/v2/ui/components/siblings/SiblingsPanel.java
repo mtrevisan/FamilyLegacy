@@ -26,6 +26,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
@@ -155,6 +157,7 @@ public class SiblingsPanel extends JPanel{
 			if(siblings.isEmpty()){
 				// Placeholder box to allow adding the first child
 				final IndividualPanel emptyBox = IndividualPanel.create(BoxPanelType.SECONDARY, model)
+					.withListener(listener)
 					.withParent(father, mother);
 				add(emptyBox);
 			}
@@ -165,8 +168,8 @@ public class SiblingsPanel extends JPanel{
 
 					final JPanel boxContainer = createSiblingContainer(hasDescendants);
 					final IndividualPanel siblingBox = IndividualPanel.create(boxType, model)
-						.withParent(father, mother)
 						.withListener(listener)
+						.withParent(father, mother)
 						.withIndividualData(siblingData);
 
 					boxContainer.add(siblingBox);
@@ -178,8 +181,8 @@ public class SiblingsPanel extends JPanel{
 		// Add empty placeholder box for adding a new sibling
 		final JPanel emptyBoxContainer = createSiblingContainer(false);
 		final IndividualPanel emptySiblingBox = IndividualPanel.create(boxType, model)
-			.withParent(father, mother)
-			.withListener(listener);
+			.withListener(listener)
+			.withParent(father, mother);
 		emptyBoxContainer.add(emptySiblingBox);
 		add(emptyBoxContainer);
 		siblingBoxes.add(emptySiblingBox);

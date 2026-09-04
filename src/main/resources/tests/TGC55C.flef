@@ -39,7 +39,7 @@ INDIVIDUAL Records:
      Name: Chris Locked Torture
      Name: Sandy Privacy Torture
      Name: Pat Smith Torture
-          The three children in this file have unknown sex (no SEX tag). An ancestor tree from each should give five generations of ancestors.
+          The three children in this file have unknown side (no SEX tag). An ancestor tree from each should give five generations of ancestors.
 
      Name: Charlie Accented ANSEL
      Name: Lucy Special ANSEL
@@ -2735,7 +2735,7 @@ TEST #4: Blank lines
 				value Jones
 			}
 		}
-		sex female
+		side female
 		note {
 			text """
 Comments on "Mary First Jones" INDIVIDUAL Record.
@@ -2807,7 +2807,7 @@ These notes are embedded in the INDIVIDUAL record."""
 				value Smith
 			}
 		}
-		sex male
+		side male
 		source {
 			source SOURCE1
 			location 42
@@ -2886,7 +2886,7 @@ These notes also have a source citation to a SOURCE record. In GEDCOM this sourc
 				value Filelinks
 			}
 		}
-		sex male
+		side male
 		note {
 			text """
 Comments on "General Custom Filelinks" INDIVIDUAL Record.
@@ -2914,7 +2914,7 @@ What will a genealogy program do when it encounters such logical extensions to G
 				value Filelinks
 			}
 		}
-		sex female
+		side female
 		note {
 			text """
 Comments on "Nonstandard Multimedia Filelinks" INDIVIDUAL Record.
@@ -2950,7 +2950,7 @@ Some other possible multimedia file type not yet linked to this record are:
 				value ANSEL
 			}
 		}
-		sex female
+		side female
 		note {
 			text """
 Comments on "Lucy Special ANSEL" INDIVIDUAL Record.
@@ -3012,7 +3012,7 @@ CF es zet (̐�ư)"""
 				value Filelinks
 			}
 		}
-		sex female
+		side female
 		note {
 			text """
 Comments on "Extra URL Filelinks" INDIVIDUAL Record.
@@ -3042,7 +3042,7 @@ This extension of file links to URL links is non-standard GEDCOM. What will a ge
 				value Matriarch
 			}
 		}
-		sex female
+		side female
 		audit.creation.date 11 Jan 2001 16:01:59
 	}
 
@@ -3057,7 +3057,7 @@ This extension of file links to URL links is non-standard GEDCOM. What will a ge
 				value ANSEL
 			}
 		}
-		sex male
+		side male
 		note {
 			text """
 Comments on "Charlie Accented ANSEL" INDIVIDUAL Record.
@@ -3255,7 +3255,7 @@ code: FE (Unicode: comma above, 0313) high comma, centered
 				value Filelinks
 			}
 		}
-		sex male
+		side male
 		note {
 			text """
 Comments on "Standard GEDCOM Filelinks" INDIVIDUAL Record.
@@ -3301,7 +3301,7 @@ EMBEDDED Multimedia Object:
 				value Smith
 			}
 		}
-		sex female
+		side female
 		note {
 			text """
 Comments on "Elizabeth Second Smith" INDIVIDUAL Record.
@@ -3344,7 +3344,7 @@ The record simply provides a child to "Joseph Tag Torture" in his family with "M
 				value Caregiver
 			}
 		}
-		sex female
+		side female
 		note {
 			text """
 Comments on "Teresa Mary Caregiver" INDIVIDUAL Record.
@@ -3366,7 +3366,7 @@ This record is the adoptive mother of "Joseph Tag Torture". She is linked to a f
 				value Torture
 			}
 		}
-		sex male
+		side male
 		note {
 			text """
 Comments on "William Joseph Torture" INDIVIDUAL Record.

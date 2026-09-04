@@ -66,15 +66,11 @@ public class FLEFModel{
 
 	public void addRecord(final FLEFRecord record){
 		final String id = record.getId();
-		if(id != null){
-			record.setId(id);
+		if(recordsById.containsKey(id))
+			// Optionally remove existing record to allow replacement/update
+			removeRecord(id);
 
-			if(recordsById.containsKey(id))
-				// Optionally remove existing record to allow replacement/update
-				removeRecord(id);
-
-			recordsById.put(id, record);
-		}
+		recordsById.put(id, record);
 
 		records.add(record);
 		if(record.getTag() != null)

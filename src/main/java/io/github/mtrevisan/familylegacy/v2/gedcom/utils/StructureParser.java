@@ -561,7 +561,7 @@ public class StructureParser{
 		// Audit for the contact (required)
 		FLEFRecord audit = (parentNode != null)
 			? AuditBuilder.build(parentNode)
-			: AuditBuilder.build(null);
+			: AuditBuilder.build();
 		contact.addChild(audit);
 		return contact;
 	}

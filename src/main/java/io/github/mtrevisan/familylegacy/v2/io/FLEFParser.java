@@ -558,7 +558,7 @@ public class FLEFParser{
 			}
 			records {
 			  individual I1 {
-			    sex INVALID_VALUE
+			    side INVALID_VALUE
 			    audit.creation.date 2026-07-31
 			  }
 			  event_participation EP1 {
@@ -607,7 +607,7 @@ Bianchi
 ""\"
 			      }
 			    }
-			    sex MALE
+			    side MALE
              note {
                text Individuo presente nel registro di nascita.
                audit.creation.date 2026-07-31
