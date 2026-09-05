@@ -100,7 +100,7 @@ public class FLEFValidator{
 
 		final List<String> errors = new ArrayList<>();
 
-		// 1. Validate Header
+		// Validate Header
 		if(fileDef.headerField() != null && model.getHeader() != null){
 			final TypeDefinition headerType = grammar.getType(fileDef.headerField().type().getName());
 			if(headerType != null){
@@ -111,7 +111,7 @@ public class FLEFValidator{
 			}
 		}
 
-		// 2. Validate Records
+		// Validate Records
 		if(fileDef.recordsField() != null){
 			final TypeDefinition recordsType = grammar.getType(fileDef.recordsField().type().getName());
 			if(recordsType != null)
@@ -171,11 +171,11 @@ public class FLEFValidator{
 	public List<String> validateIntegrity(final FLEFModel model){
 		final List<String> errors = new ArrayList<>();
 
-		// 1. First Pass: Collect all declared record IDs and verify uniqueness
+		// First Pass: Collect all declared record IDs and verify uniqueness
 		final Set<String> declaredIds = new HashSet<>();
 		collectDeclaredIds(model, declaredIds, errors);
 
-		// 2. Second Pass: Verify cross-reference resolution against declared IDs
+		// Second Pass: Verify cross-reference resolution against declared IDs
 		verifyReferences(declaredIds, model, errors);
 
 		return errors;

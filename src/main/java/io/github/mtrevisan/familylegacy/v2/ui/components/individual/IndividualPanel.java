@@ -28,6 +28,7 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.components.TwoLineLabel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree.BiologicalTreePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
@@ -39,6 +40,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -68,7 +70,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -118,8 +119,10 @@ public class IndividualPanel extends JPanel{
 	private final JMenuItem moveIndividualItem = new JMenuItem("Move Individual", 'M');
 	private final JMenuItem copyIndividualItem = new JMenuItem("Copy Individual…", 'C');
 	private final JMenuItem removeIndividualItem = new JMenuItem("Remove Individual", 'R');
-	private final JMenuItem unlinkFromParentsItem = new JMenuItem("Unlink from parents", 'U');
-	private final JMenuItem unlinkFromPartnerItem = new JMenuItem("Unlink from partner", 'P');
+	private final JMenu unlinkIndividualMenu = new JMenu("Unlink Individual");
+	private final JMenuItem unlinkParentsItem = new JMenuItem("From all parents");
+	private final JMenuItem unlinkPartnerItem = new JMenuItem("From partner");
+	private final JMenuItem unlinkFromChildItem = new JMenuItem("From child");
 
 	// State
 	private FLEFRecord father;
@@ -134,6 +137,8 @@ public class IndividualPanel extends JPanel{
 
 	// Listener
 	private IndividualListener listener;
+
+	private PopupContext popupContext;
 
 
 	public static IndividualPanel create(final BoxPanelType boxType, final FLEFModel model){
@@ -150,6 +155,7 @@ public class IndividualPanel extends JPanel{
 
 		installMouseListeners();
 	}
+
 
 	private void initComponents(){
 		infoLabel.setForeground(BIRTH_DEATH_AGE_COLOR);
@@ -260,6 +266,16 @@ public class IndividualPanel extends JPanel{
 		return this;
 	}
 
+	/**
+	 * Sets the popup context for this panel.
+	 * This must be called once after the panel is created.
+	 */
+	public IndividualPanel withPopupContext(final PopupContext context){
+		this.popupContext = context;
+
+		return this;
+	}
+
 	private void setBoxPreferredSize(){
 		final Dimension size = (isPrimaryBox()
 			? new Dimension(270, 90)
@@ -316,9 +332,11 @@ public class IndividualPanel extends JPanel{
 	private void updateIndividualMenu(){
 		final boolean hasData = (data != null && !data.isEmpty());
 		final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
-		final boolean hasParentGroup = (hasData && data.hasParents());
+		final boolean hasParents = (hasData && data.hasParents());
 		final boolean hasPartner = (hasData && data.hasPartner());
-		final boolean hasClippedRecord = RelationClipboard.getInstance().hasRecord();
+		final boolean hasClippedRecord = RelationClipboard.getInstance()
+			.hasRecord();
+		final boolean isParentSlot = (hasData && popupContext != null && popupContext.isRootPanel());
 
 		// Update menu items labels based on clipboard state
 		if(hasClippedRecord){
@@ -335,8 +353,11 @@ public class IndividualPanel extends JPanel{
 		linkIndividualItem.setEnabled(!hasData && (hasIndividuals || hasClippedRecord));
 		moveIndividualItem.setEnabled(hasData);
 		removeIndividualItem.setEnabled(hasData);
-		unlinkFromParentsItem.setEnabled(hasData && hasParentGroup);
-		unlinkFromPartnerItem.setEnabled(hasData && hasPartner);
+		unlinkParentsItem.setEnabled(hasParents);
+		unlinkPartnerItem.setEnabled(hasPartner);
+		unlinkFromChildItem.setEnabled(isParentSlot);
+		unlinkIndividualMenu.setEnabled(unlinkParentsItem.isEnabled() || unlinkPartnerItem.isEnabled()
+			|| unlinkFromChildItem.isEnabled());
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -379,13 +400,12 @@ public class IndividualPanel extends JPanel{
 	private void attachPopupMenu(){
 		final JPopupMenu popup = new JPopupMenu();
 
-		final IndividualPanel self = this;
 		// Re-evaluate state right before opening the popup
 		popup.addPopupMenuListener(new PopupMenuAdapter(){
 			@Override
 			public void popupMenuWillBecomeVisible(final PopupMenuEvent e){
 				if(listener != null)
-					listener.onPanelSelected(self);
+					listener.onPanelSelected(IndividualPanel.this);
 
 				updateIndividualMenu();
 			}
@@ -394,19 +414,32 @@ public class IndividualPanel extends JPanel{
 		// Pass the current record or context depending on the action
 		addMenuItem(popup, editIndividualItem, listener::onIndividualEdit);
 		// Add/Link delegation based on context (Child/Partner/Parent)
-		addMenuItem(popup, addIndividualItem, record
-			-> listener.onAddIndividual(IndividualOperation.ADD_CHILD, null, father, Collections.singletonMap("mother", mother)));
-		addMenuItem(popup, linkIndividualItem, record -> listener.onChildLink(father, mother));
+		addMenuItem(popup, addIndividualItem,
+			record -> listener.onIndividualAddOrLink(IndividualOperation.ADD, father, mother));
+		addMenuItem(popup, linkIndividualItem,
+			record -> listener.onIndividualAddOrLink(IndividualOperation.LINK, father, mother));
 		addMenuItem(popup, moveIndividualItem, listener::onIndividualMove);
 //		addMenuItem(popup, copyIndividualItem, listener::onIndividualCopy);
 		addMenuItem(popup, removeIndividualItem, listener::onIndividualRemove);
-		popup.addSeparator();
-		addMenuItem(popup, unlinkFromParentsItem, listener::onIndividualUnlinkFromParentGroup);
-		popup.addSeparator();
-		addMenuItem(popup, unlinkFromPartnerItem, listener::onIndividualUnlinkFromPartner);
+//		popup.addSeparator();
+//		addMenuItem(popup, unlinkFromParentsItem, listener::onIndividualUnlinkFromParentGroup);
+//		popup.addSeparator();
+//		addMenuItem(popup, unlinkFromPartnerItem, listener::onIndividualUnlinkFromPartner);
+		addMenuItem(unlinkIndividualMenu, unlinkParentsItem,
+			record -> listener.onIndividualUnlink(IndividualOperation.REMOVE_FROM_ALL_PARENTS, record, null));
+		addMenuItem(unlinkIndividualMenu, unlinkPartnerItem,
+			record -> listener.onIndividualUnlink(IndividualOperation.REMOVE_FROM_PARTNER, record, null));
+		addMenuItem(unlinkIndividualMenu, unlinkFromChildItem,
+			record -> listener.onIndividualUnlink(IndividualOperation.REMOVE_FROM_CHILD, record, popupContext.getTreePanel().childrenPanel.getSiblingBoxes()));
+		popup.add(unlinkIndividualMenu);
+
 
 		// Register the popup listener recursively on this and all child components
 		attachMouseListenerRecursively(this, new PopupMouseAdapter(popup, this));
+	}
+
+	private BiologicalTreePanel getTreePanelFromContext(){
+		return (popupContext != null? popupContext.getTreePanel(): null);
 	}
 
 	private static void attachMouseListenerRecursively(final Component component, final MouseListener listener){
@@ -428,6 +461,16 @@ public class IndividualPanel extends JPanel{
 			}
 		});
 		popup.add(item);
+	}
+
+	private void addMenuItem(final JMenu menu, final JMenuItem item, final Consumer<FLEFRecord> action){
+		item.addActionListener(e -> {
+			if(listener != null){
+				final FLEFRecord record = getRecordFromData();
+				action.accept(record);
+			}
+		});
+		menu.add(item);
 	}
 
 	private FLEFRecord getRecordFromData(){

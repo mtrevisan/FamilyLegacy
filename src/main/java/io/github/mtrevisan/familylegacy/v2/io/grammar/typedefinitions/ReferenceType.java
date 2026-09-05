@@ -63,7 +63,7 @@ public final class ReferenceType extends TypeDefinition{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 			final FLEFGrammar grammar, final List<String> errors){
-		// 1. Syntactic validation: Check if node is a reference format
+		// Syntactic validation: Check if node is a reference format
 		final FLEFRecord referencedRecord = model.getRecordById(record.getValue());
 		if(referencedRecord == null){
 			errors.add(String.format("Expected cross-reference at '%s', record %s", contextPath, record));
@@ -71,7 +71,7 @@ public final class ReferenceType extends TypeDefinition{
 			return;
 		}
 
-		// 2. Syntactic validation: Check voidability
+		// Syntactic validation: Check voidability
 		// A valid VOID reference has no target ID to resolve
 		if(Strings.CI.equals(TAG_VOID, record.getTag()) && !voidable)
 			errors.add(String.format("Void reference not allowed at '%s', record %s", contextPath, record));

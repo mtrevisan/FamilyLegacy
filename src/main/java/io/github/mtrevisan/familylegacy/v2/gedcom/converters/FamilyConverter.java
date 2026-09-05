@@ -237,13 +237,6 @@ public class FamilyConverter{
 
 			// ---- Spouse relationship (Inter-individual) ----
 			if(link.husbandId != null && link.wifeId != null){
-				FLEFRecord relationship = FLEFRecord.createMainRecord(
-					IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE);
-				relationship.addChild(FLEFRecord.createChildWithTag("subject")
-					.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId)));
-				relationship.addChild(FLEFRecord.createChildWithTag("target")
-					.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId)));
-
 				// Determine spouse type from MARR.TYPE if present
 				String marriageType = null;
 				for(GEDCOMNode evt : link.eventNodes){
@@ -255,12 +248,41 @@ public class FamilyConverter{
 						break;
 					}
 				}
-				String typeValue = (marriageType == null)? "civil_spouse": marriageType + "_spouse";
-				relationship.addChild(FLEFRecord.createChildWithTagAndValue("type", typeValue));
-
 				// Status: if there is a DIV event, set ended
 				boolean hasDivorce = link.eventNodes.stream().anyMatch(e -> "DIV".equals(e.getTag()));
-				relationship.addChild(FLEFRecord.createChildWithTagAndValue("status", hasDivorce? "ended": "active"));
+
+				FLEFRecord relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+					.addChild(FLEFRecord.createChildWithTag("subject")
+						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId))
+					)
+					.addChild(FLEFRecord.createChildWithTag("target")
+						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId))
+					)
+					.addChild(FLEFRecord.createChildWithTagAndValue("type", ((marriageType == null)? "civil_spouse": marriageType + "_spouse")))
+					.addChild(FLEFRecord.createChildWithTagAndValue("status", (hasDivorce? "ended": "active")));
+
+				// Add date from MARR event (valid_from)
+				for(GEDCOMNode evt : link.eventNodes){
+					if("MARR".equals(evt.getTag())){
+						FLEFRecord dateStruct = structParser.parseDateStructure(evt);
+						if(dateStruct != null){
+							dateStruct.setTag("valid_from");
+							relationship.addChild(dateStruct);
+						}
+						break;
+					}
+				}
+				relationship.addChild(AuditBuilder.build(link.famNode));
+				Deduplicator.getDeduplicatedRecordId(model, relationship);
+
+				relationship = FLEFRecord.createMainRecord(IDGenerator.nextId(RelationshipHandler.ID_PREFIX), RelationshipHandler.TYPE)
+					.addChild(FLEFRecord.createChildWithTag("subject")
+						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.husbandId))
+					)
+					.addChild(FLEFRecord.createChildWithTag("target")
+						.addChild(FLEFRecord.createChildWithTagAndValue("individual", link.wifeId))
+					)
+					.addChild(FLEFRecord.createChildWithTagAndValue("type", "partner"));
 
 				// Add date from MARR event (valid_from)
 				for(GEDCOMNode evt : link.eventNodes){

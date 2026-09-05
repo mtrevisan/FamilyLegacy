@@ -435,7 +435,7 @@ public final class FLEFGrammarParser{
 	private Constraint parseConstraint(){
 		expect(TAG_REQUIRE);
 
-		// 1. require one_of(fieldA, fieldB, ...)
+		// require one_of(fieldA, fieldB, ...)
 		if(peekIs(TAG_ONE_OF_FN)){
 			next();
 
@@ -445,7 +445,7 @@ public final class FLEFGrammarParser{
 			return new OneOfConstraint(fields);
 		}
 
-		// 2. require at_least_one(fieldA, fieldB, ...)
+		// require at_least_one(fieldA, fieldB, ...)
 		if(peekIs(TAG_AT_LEAST_ONE_FN)){
 			next();
 
@@ -455,7 +455,7 @@ public final class FLEFGrammarParser{
 			return new AtLeastOneConstraint(fields);
 		}
 
-		// 3. require count(field) == value
+		// require count(field) == value
 		if(peekIs(TAG_COUNT)){
 			next();
 
@@ -480,7 +480,7 @@ public final class FLEFGrammarParser{
 			return new CountConstraint(firstFields.getFirst(), NumberUtils.createInteger(value));
 		}
 
-		// 4. require type(fieldA) == type(fieldB)
+		// require type(fieldA) == type(fieldB)
 		if(peekIs(TAG_TYPE_FN)){
 			next();
 
@@ -509,7 +509,7 @@ public final class FLEFGrammarParser{
 			return new EqualTypeConstraint(firstFields);
 		}
 
-		// 5. require if conditionField == conditionValue : requiredField, ...
+		// require if conditionField == conditionValue : requiredField, ...
 		if(peekIs(TAG_IF)){
 			next();
 
@@ -525,7 +525,7 @@ public final class FLEFGrammarParser{
 			return new ConditionalRequireConstraint(conditionField, conditionValue, requiredFields);
 		}
 
-		// 6. require field in container
+		// require field in container
 		final String firstToken = parseFieldReference();
 		if(peekIs(TAG_IN)){
 			next();
@@ -533,14 +533,14 @@ public final class FLEFGrammarParser{
 			return new InConstraint(firstToken, container);
 		}
 
-		// 7. require field in container OR require field member_of container
+		// require field in container OR require field member_of container
 		if(peekIs(TAG_MEMBER_OF)){
 			next();
 			final String container = next();
 			return new MemberOfConstraint(firstToken, container);
 		}
 
-		// 8. require left operator right (operators: !=, ==, >, >=, <, <=)
+		// require left operator right (operators: !=, ==, >, >=, <, <=)
 		final String left = firstToken;
 		final String op = peek();
 		if(NOT_EQUALS.equals(op) || EQUALS.equals(op) || GREATER_THAN.equals(op) || GREATER_THAN_OR_EQUALS.equals(op)

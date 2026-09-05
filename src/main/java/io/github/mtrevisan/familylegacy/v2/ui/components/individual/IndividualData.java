@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.StringJoiner;
@@ -99,7 +100,7 @@ public final class IndividualData{
 
 
 	private final String individualId;
-	private final String individualSex;
+	private final SexType individualSex;
 	private final String individualNameText;
 	private String individualNameTooltip;
 	private boolean hasParents;
@@ -127,7 +128,8 @@ public final class IndividualData{
 			final FLEFModel model){
 		individualId = individual.getId();
 
-		individualSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
+		final String rawSex = FLEFRecordHelper.getChildValue(individual, TAG_SEX);
+		individualSex = (rawSex != null? Enum.valueOf(SexType.class, rawSex.toUpperCase(Locale.ROOT)): null);
 
 		final List<String> names = extractFullNames(individual);
 		if(!names.isEmpty()){
@@ -227,7 +229,7 @@ public final class IndividualData{
 		return individualId;
 	}
 
-	public String getIndividualSex(){
+	public SexType getIndividualSex(){
 		return individualSex;
 	}
 

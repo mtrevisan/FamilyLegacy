@@ -77,32 +77,32 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 
 		final StringBuilder sb = new StringBuilder();
 
-		// 1. Extract the context reference (oneof: CulturalNorm or HistoricEvent)
+		// Extract the context reference (oneof: CulturalNorm or HistoricEvent)
 		String contextDisplay = extractReferenceDisplay(record, model, TAG_CONTEXT);
 		if(StringUtils.isEmpty(contextDisplay))
 			contextDisplay = "Unknown Context";
 		sb.append(contextDisplay);
 
-		// 2. Extract the target reference (oneof: many possible types)
+		// Extract the target reference (oneof: many possible types)
 		String targetDisplay = extractReferenceDisplay(record, model, TAG_TARGET);
 		if(StringUtils.isEmpty(targetDisplay))
 			targetDisplay = "Unknown Target";
 		sb.append(" → ")
 			.append(targetDisplay);
 
-		// 3. Add an impact type if present
+		// Add an impact type if present
 		final String impactType = FLEFRecordHelper.getChildValue(record, TAG_IMPACT_TYPE);
 		if(StringUtils.isNotEmpty(impactType))
 			sb.append(" (")
 				.append(impactType)
 				.append(')');
 
-		// 4. Optionally add rationale (commented out to keep display concise)
+		// Optionally add rationale (commented out to keep display concise)
 		// final String rationale = FLEFRecordHelper.getChildValue(record, TAG_RATIONALE);
 		// if (StringUtils.isNotEmpty(rationale))
 		//     sb.append(" - ").append(rationale);
 
-		// 5. Append the record ID if present
+		// Append the record ID if present
 		final String id = record.getId();
 		if(StringUtils.isNotEmpty(id))
 			sb.append(" [")

@@ -130,8 +130,8 @@ public class IndividualConverter {
 			indiNode, noteRawMap, roots);
 
 		// ---- FAMS (spouse to family link) ----
-		GEDCOMHelper.attachSpouseToFamily(individual, model,
-			indiNode, noteRawMap);
+//		GEDCOMHelper.attachSpouseToFamily(individual, model,
+//			indiNode, noteRawMap);
 
 		// ---- Extra fields (REFN, RIN, ALIA, ASSO, ANCI, DESI) as inline notes ----
 		addExtraFields(indiNode);

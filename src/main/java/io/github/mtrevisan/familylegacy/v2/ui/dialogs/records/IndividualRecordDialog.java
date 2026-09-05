@@ -299,6 +299,14 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 
+	public IndividualRecordDialog witSexMale(final boolean male){
+		sexCombo.setText(male? "male": "female");
+		sexCombo.setEnabled(false);
+
+		return this;
+	}
+
+
 	@Override
 	protected void loadData(){
 		preferredImagePanel.load(record);

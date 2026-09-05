@@ -80,7 +80,7 @@ public class TwoLineLabel extends JTextArea{
 			return;
 		}
 
-		// 1. Construction ROW 1
+		// Construction ROW 1
 		final StringBuilder line1 = new StringBuilder();
 		int i = 0;
 		while(i < words.length){
@@ -101,7 +101,7 @@ public class TwoLineLabel extends JTextArea{
 			i = 1;
 		}
 
-		// 2. Construction ROW 2
+		// Construction ROW 2
 		final StringBuilder line2 = new StringBuilder();
 		while(i < words.length){
 			line2.append(line2.isEmpty()? StringUtils.EMPTY: StringUtils.SPACE)
@@ -110,7 +110,7 @@ public class TwoLineLabel extends JTextArea{
 			i ++;
 		}
 
-		// 3. Truncate LINE 2 if it exceeds the available space
+		// Truncate LINE 2 if it exceeds the available space
 		if(!line2.isEmpty()){
 			String candidateLine = line2.toString();
 			if(fm.stringWidth(candidateLine) > availWidth){

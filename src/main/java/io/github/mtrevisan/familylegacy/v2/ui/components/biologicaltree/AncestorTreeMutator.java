@@ -30,9 +30,10 @@ public class AncestorTreeMutator{
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_SUBJECT = "subject";
 	private static final String TAG_TARGET = "target";
+	private static final String TAG_SEX = "sex";
 
 	private static final String ENUM_TYPE_CHILD = "child";
-	private static final String ENUM_TYPE_SPOUSE = "spouse";
+	private static final String ENUM_TYPE_PARTNER = "partner";
 
 	private static final String RELATIONSHIP_TYPE = "relationship";
 	private static final String INDIVIDUAL_TYPE = "individual";
@@ -90,7 +91,7 @@ public class AncestorTreeMutator{
 
 		final String targetId = individual.getId();
 
-		// 1. Determine fallback root if removing current root
+		// Determine fallback root if removing current root
 		String newRootId = currentRootId;
 		if(targetId.equals(currentRootId)){
 			final Map<IndividualData, SiblingsData> childrenData = treeService.buildChildrenData(targetId);
@@ -105,7 +106,7 @@ public class AncestorTreeMutator{
 				newRootId = null;
 		}
 
-		// 2. Remove all relationships associated with this individual
+		// Remove all relationships associated with this individual
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		final List<FLEFRecord> relationshipsToRemove = new ArrayList<>();
 		for(final FLEFRecord relationship : relationships){
@@ -117,10 +118,10 @@ public class AncestorTreeMutator{
 		for(final FLEFRecord relationship : relationshipsToRemove)
 			model.removeRecord(relationship.getId());
 
-		// 3. Remove individual record itself
+		// Remove individual record itself
 		model.removeRecord(individual.getId());
 
-		// 4. Invalidate service cache & notify UI
+		// Invalidate service cache & notify UI
 		invalidateAndNotifyTreeChanged(newRootId);
 	}
 
@@ -128,9 +129,8 @@ public class AncestorTreeMutator{
 	 * Unlinks an individual from their parent relationships (removes 'child' relationships where subject is child).
 	 *
 	 * @param child         the child record to unlink
-	 * @param currentRootId the active root ID
 	 */
-	public void unlinkFromParents(final FLEFRecord child, final String currentRootId){
+	public void unlinkChildFromParents(final FLEFRecord child){
 		if(child == null)
 			return;
 
@@ -145,44 +145,74 @@ public class AncestorTreeMutator{
 				toRemove.add(relationship);
 		}
 
-		for(final FLEFRecord rel : toRemove)
-			model.removeRecord(rel.getId());
+		for(final FLEFRecord relationship : toRemove)
+			model.removeRecord(relationship.getId());
+	}
 
-		invalidateAndNotifyTreeChanged(currentRootId);
+	/**
+	 * Unlinks a specific parent from a child, removing only the relationship where the given child
+	 * is the subject and the given parent is the target.
+	 *
+	 * @param child         the child record (subject of the relationship)
+	 * @param father        the father record to unlink (target of the relationship)
+	 * @param mother        the mother record to unlink (target of the relationship)
+	 */
+	public void unlinkFromParent(final FLEFRecord child, final FLEFRecord father, final FLEFRecord mother){
+		if(child == null || father == null && mother == null)
+			return;
+
+		final String childId = child.getId();
+		final String fatherId = (father != null? father.getId(): null);
+		final String motherId = (mother != null? mother.getId(): null);
+
+		// Find all relationship records of type 'child' where subject = childId and target = parentId
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<FLEFRecord> toRemove = new ArrayList<>();
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+
+			if(type != null && type.endsWith(ENUM_TYPE_CHILD) && childId.equals(subjectId)
+					&& (targetId.equals(fatherId) || targetId.equals(motherId)))
+				toRemove.add(relationship);
+		}
+
+		// Remove the found relationships from the model
+		for(final FLEFRecord relationship : toRemove)
+			model.removeRecord(relationship.getId());
 	}
 
 	/**
 	 * Unlinks an individual from their partner/spouse.
 	 *
 	 * @param individual    the individual record to unlink
-	 * @param currentRootId the active root ID to maintain view focus
 	 */
-	public void unlinkFromPartner(final FLEFRecord individual, final String currentRootId){
+	public void unlinkFromPartner(final FLEFRecord individual){
 		if(individual == null)
 			return;
 
 		final String targetId = individual.getId();
 
-		// 1. Remove partner/marriage relationships involving this individual
+		// Remove partner/marriage relationships involving this individual
 		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
 		final List<FLEFRecord> toRemove = new ArrayList<>();
-		for(final FLEFRecord rel : relationships){
-			final String type = FLEFRecordHelper.getChildValue(rel, TAG_TYPE);
-			final String subjectId = rel.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
-			final String targetRefId = rel.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+			final String targetRefId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
 
-			if(type != null && type.endsWith(ENUM_TYPE_SPOUSE)
+			if(type != null && type.endsWith(ENUM_TYPE_PARTNER)
 					&& (targetId.equals(subjectId) || targetId.equals(targetRefId)))
-				toRemove.add(rel);
+				toRemove.add(relationship);
 		}
 
-		for(final FLEFRecord rel : toRemove)
-			model.removeRecord(rel.getId());
-
-		// 2. Invalidate cache & notify UI
-		invalidateAndNotifyTreeChanged(currentRootId);
+		for(final FLEFRecord relationship : toRemove)
+			model.removeRecord(relationship.getId());
 	}
 
+
+//---
 
 	/**
 	 * Adds a child to parent individuals by creating parent-child relationship records.
@@ -197,13 +227,9 @@ public class AncestorTreeMutator{
 		if(newChild == null)
 			return;
 
-		// 1. Ensure child record exists in model
-		if(model.getRecordById(newChild.getId()) == null)
-			model.addRecord(newChild);
-
-		// 2. Create relationship record for father if present
+		// Create relationship record for father if present
 		if(fatherId != null){
-			final FLEFRecord relationship = FLEFRecord.createChildWithTag(RelationshipHandler.TYPE)
+			final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, ENUM_TYPE_CHILD))
 				.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, newChild.getId()))
@@ -214,9 +240,9 @@ public class AncestorTreeMutator{
 			model.addRecord(relationship);
 		}
 
-		// 3. Create relationship record for mother if present
+		// Create relationship record for mother if present
 		if(motherId != null){
-			final FLEFRecord relationship = FLEFRecord.createChildWithTag(RelationshipHandler.TYPE)
+			final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
 				.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, ENUM_TYPE_CHILD))
 				.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
 					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, newChild.getId()))
@@ -227,8 +253,64 @@ public class AncestorTreeMutator{
 			model.addRecord(relationship);
 		}
 
-		// 4. Refresh service state
+		// Refresh service state
 		invalidateAndNotifyTreeChanged(currentRootId);
+	}
+
+
+	/**
+	 * Adds or links a parent to a target child individual.
+	 * If a parent of the same sex already exists, it is replaced.
+	 *
+	 * @param childId       the ID of the child
+	 * @param newParent     the parent record to add (must have sex defined)
+	 */
+	public void addParentToChild(final String childId, final FLEFRecord newParent){
+		if(newParent == null)
+			return;
+
+		// Get the target individual record
+		final FLEFRecord child = model.getRecordById(childId);
+		if(child == null)
+			throw new IllegalArgumentException("Child individual not found: " + childId);
+
+		// Ensure parent exists in model
+		if(!model.hasRecord(newParent.getId()))
+			model.addRecord(newParent);
+
+		// Get parent sex from the record
+		final String parentSex = FLEFRecordHelper.getChildValue(newParent, TAG_SEX);
+		if(parentSex != null){
+			// Find and remove existing parent of the same sex
+			final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+			final List<FLEFRecord> toRemove = new ArrayList<>();
+			for(final FLEFRecord relationship : relationships){
+				final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+				if(!ENUM_TYPE_CHILD.equals(type))
+					continue;
+
+				final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
+				if(!childId.equals(subjectId))
+					continue;
+
+				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+				if(targetId == null)
+					continue;
+
+				final FLEFRecord existingParent = model.getRecordById(targetId);
+				if(existingParent == null)
+					continue;
+
+				final String existingParentSex = FLEFRecordHelper.getChildValue(existingParent, TAG_SEX);
+				if(parentSex.equals(existingParentSex))
+					toRemove.add(relationship);
+			}
+			for(final FLEFRecord relationship : toRemove)
+				model.removeRecord(relationship.getId());
+		}
+
+		// Create new child relationship
+		createRelationship(child, newParent, ENUM_TYPE_CHILD);
 	}
 
 
@@ -238,9 +320,8 @@ public class AncestorTreeMutator{
 	 *
 	 * @param partnerId     the ID of the individual to whom the partner will be added
 	 * @param newPartner    the partner record (may already exist in the model)
-	 * @param currentRootId the current root individual ID (used to refresh the tree)
 	 */
-	public void addPartnerToIndividual(final String partnerId, final FLEFRecord newPartner, final String currentRootId){
+	public void addPartnerToIndividual(final String partnerId, final FLEFRecord newPartner){
 		if(newPartner == null)
 			return;
 
@@ -250,13 +331,12 @@ public class AncestorTreeMutator{
 			throw new IllegalArgumentException("Target individual not found: " + partnerId);
 
 		// Create spouse relationships (bidirectional)
-		createRelationship(target, newPartner, "spouse");
-		createRelationship(newPartner, target, "spouse");
-
-		// Invalidate cached indices in the tree service and notify the listener to refresh the tree, keeping the
-		// current root
-		invalidateAndNotifyTreeChanged(currentRootId);
+		createRelationship(target, newPartner, ENUM_TYPE_PARTNER);
+		createRelationship(newPartner, target, ENUM_TYPE_PARTNER);
 	}
+
+//---
+
 
 	/**
 	 * Helper method to create a relationship record of the given type.
@@ -269,35 +349,16 @@ public class AncestorTreeMutator{
 	 */
 	private void createRelationship(final FLEFRecord subject, final FLEFRecord target, final String type){
 		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
-			.addChild(FLEFRecord.createChildWithTagAndValue("type", type))
-			.addChild(FLEFRecord.createChildWithTag("subject")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", subject.getId()))
+			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
+			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subject.getId()))
 			)
-			.addChild(FLEFRecord.createChildWithTag("target")
-				.addChild(FLEFRecord.createChildWithTagAndValue("individual", target.getId()))
+			.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, target.getId()))
 			)
 			.addChild(AuditBuilder.build());
 
 		model.addRecord(relationship);
-	}
-
-
-	/**
-	 * Adds or links a parent to a target child individual.
-	 */
-	public void addParentToChild(final String childId, final FLEFRecord newParent, final String currentRootId){
-//		if(parentRecord == null || childId == null)
-//			return;
-//
-//		if(model.getRecordById(parentRecord.getId()) == null)
-//			model.addRecord(parentRecord);
-//
-//		final String sex = IndividualHandler.getInstance()
-//			.getSex(parentRecord, model);
-//		if("female".equals(sex))
-//			addChildToParents(null, parentRecord.getId(), model.getRecordById(childId), currentRootId);
-//		else
-//			addChildToParents(parentRecord.getId(), null, model.getRecordById(childId), currentRootId);
 	}
 
 
@@ -315,21 +376,21 @@ public class AncestorTreeMutator{
 //		if(sourceRecord == null)
 //			return;
 //
-//		// 1. Unlink from current parents and partner
+//		// Unlink from current parents and partner
 //		unlinkFromParents(sourceRecord, null);
 //		unlinkFromPartner(sourceRecord, null);
 //
-//		// 2. Link to new parents if specified
+//		// Link to new parents if specified
 //		if(fatherId != null || motherId != null){
 //			addChildToParents(fatherId, motherId, sourceRecord, null);
 //		}
 //
-//		// 3. Link to new partner if specified
+//		// Link to new partner if specified
 //		if(partnerId != null){
 //			addPartnerRelationship(sourceRecord.getId(), partnerId);
 //		}
 //
-//		// 4. Invalidate and refresh UI once
+//		// Invalidate and refresh UI once
 //		invalidateAndNotifyTreeChanged(currentRootId);
 	}
 
@@ -462,7 +523,7 @@ public class AncestorTreeMutator{
 			listener.onTreeStructureChanged(rootIndividualId);
 	}
 
-	private void invalidateAndNotifyTreeChanged(final String rootIndividualId){
+	void invalidateAndNotifyTreeChanged(final String rootIndividualId){
 		LOGGER.debug("Invalidate & Notify root changes to {}", rootIndividualId);
 
 		treeService.invalidateIndices();

@@ -181,9 +181,7 @@ public class PartnersPanel extends JPanel{
 		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
 
 		fatherPanel = IndividualPanel.create(boxType, model);
-//		EventBusService.subscribe(fatherPanel);
 		motherPanel = IndividualPanel.create(boxType, model);
-//		EventBusService.subscribe(motherPanel);
 
 		fatherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
 		motherArrowsSpacer.setPreferredSize(new Dimension(DESCENDANTS_ARROWS_WIDTH, 0));
@@ -1041,7 +1039,6 @@ public class PartnersPanel extends JPanel{
 //			panel.withBiologicalParents(recordId);
 //			panel.setGroupListener(groupListener);
 //			panel.setPersonListener(personListener);
-//			EventBusService.subscribe(panel);
 
 			final JFrame frame = new JFrame();
 			frame.setLayout(new BorderLayout());
