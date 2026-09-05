@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.TwoLineLabel;
-import io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree.BiologicalTreePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -42,7 +41,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -143,8 +141,6 @@ public class IndividualPanel extends JPanel{
 
 	// Listener
 	private IndividualListener listener;
-
-	private PopupContext popupContext;
 
 
 	public static IndividualPanel create(final BoxPanelType boxType, final FLEFModel model){
@@ -272,16 +268,6 @@ public class IndividualPanel extends JPanel{
 		return this;
 	}
 
-	/**
-	 * Sets the popup context for this panel.
-	 * This must be called once after the panel is created.
-	 */
-	public IndividualPanel withPopupContext(final PopupContext context){
-		this.popupContext = context;
-
-		return this;
-	}
-
 	private void setBoxPreferredSize(){
 		final Dimension size = (isPrimaryBox()
 			? new Dimension(270, 90)
@@ -331,8 +317,6 @@ public class IndividualPanel extends JPanel{
 		individualNameLabel.setVisible(hasData);
 		infoLabel.setVisible(hasData);
 		imageLabel.setVisible(hasData);
-
-//		refresh(ActionCommand.ACTION_COMMAND_PERSON);
 	}
 
 	private void updateIndividualMenu(){
@@ -384,10 +368,6 @@ public class IndividualPanel extends JPanel{
 	private static Font deriveInfoFont(final Font baseFont){
 		return baseFont.deriveFont(Font.PLAIN, baseFont.getSize() * INFO_FONT_SIZE_FACTOR);
 	}
-
-	// ------------------------------------------------------------------------
-	// Event handling
-	// ------------------------------------------------------------------------
 
 	private void installMouseListeners(){
 		if(boxType == BoxPanelType.SECONDARY){
@@ -450,10 +430,6 @@ public class IndividualPanel extends JPanel{
 		attachMouseListenerRecursively(this, new PopupMouseAdapter(popup, this));
 	}
 
-	private BiologicalTreePanel getTreePanelFromContext(){
-		return (popupContext != null? popupContext.getTreePanel(): null);
-	}
-
 	private static void attachMouseListenerRecursively(final Component component, final MouseListener listener){
 		component.addMouseListener(listener);
 
@@ -473,16 +449,6 @@ public class IndividualPanel extends JPanel{
 			}
 		});
 		popup.add(item);
-	}
-
-	private void addMenuItem(final JMenu menu, final JMenuItem item, final Consumer<FLEFRecord> action){
-		item.addActionListener(e -> {
-			if(listener != null){
-				final FLEFRecord record = getRecordFromData();
-				action.accept(record);
-			}
-		});
-		menu.add(item);
 	}
 
 	private FLEFRecord getRecordFromData(){

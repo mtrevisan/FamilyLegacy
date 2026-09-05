@@ -316,8 +316,6 @@ public class PartnersPanel extends JPanel{
 //			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
 //			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
 //		}
-
-//		refresh(ActionCommand.ACTION_COMMAND_GROUP);
 	}
 
 /*	public final void setGroupListener(final GroupListenerInterface groupListener){
@@ -698,8 +696,6 @@ public class PartnersPanel extends JPanel{
 			updatePreviousNextParentsIcons(father, fatherPreviousParentsLabel, fatherNextParentsLabel);
 			updatePreviousNextParentsIcons(mother, motherPreviousParentsLabel, motherNextParentsLabel);
 		}
-
-		refresh(ActionCommand.ACTION_COMMAND_GROUP);
 
 		fatherPanel.repaint();
 		motherPanel.repaint();
