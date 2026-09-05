@@ -20,6 +20,6 @@ public interface IndividualListener{
 
 	void onIndividualAddOrLink(IndividualOperation operation, FLEFRecord father, FLEFRecord mother);
 
-	void onIndividualUnlink(IndividualOperation operation, FLEFRecord individual, FLEFRecord child);
+	void showUnlinkDialog(FLEFRecord individual);
 
 }

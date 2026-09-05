@@ -126,6 +126,23 @@ public class AncestorTreeMutator{
 	}
 
 	/**
+	 * Removes a list of relationship records by their IDs and refreshes the tree.
+	 *
+	 * @param relationshipIds list of relationship record IDs to remove
+	 */
+	public void removeRelationships(final List<String> relationshipIds){
+		if(relationshipIds == null || relationshipIds.isEmpty())
+			return;
+
+		for(final String relationshipId : relationshipIds)
+			model.removeRecord(relationshipId);
+	}
+
+//---
+
+
+
+	/**
 	 * Unlinks an individual from their parent relationships (removes 'child' relationships where subject is child).
 	 *
 	 * @param child         the child record to unlink
@@ -210,9 +227,6 @@ public class AncestorTreeMutator{
 		for(final FLEFRecord relationship : toRemove)
 			model.removeRecord(relationship.getId());
 	}
-
-
-//---
 
 	/**
 	 * Adds a child to parent individuals by creating parent-child relationship records.

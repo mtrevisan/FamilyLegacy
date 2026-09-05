@@ -24,6 +24,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -36,6 +39,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dialog;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
@@ -51,6 +55,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -557,47 +562,143 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			treeMutator.invalidateAndNotifyTreeChanged(rootIndividualId);
 	}
 
+	/**
+	 * Shows a dialog allowing the user to select which relationships of the given individual to unlink.
+	 */
 	@Override
-	public void onIndividualUnlink(final IndividualOperation operation, final FLEFRecord individual,
-			final FLEFRecord child){
-		final String rootIndividualId = getRootIndividualId();
+	public void showUnlinkDialog(final FLEFRecord individual){
+		if(individual == null)
+			return;
 
-		if(operation == IndividualOperation.REMOVE_FROM_ALL_PARENTS){
-			// Unlinks the given individual from all its parents
-			treeMutator.unlinkChildFromParents(individual);
+		// Get all relationships involving this individual
+		final List<FLEFRecord> allRelationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		final List<RelationshipInfo> relationshipInfos = new ArrayList<>();
 
-			treeMutator.invalidateAndNotifyTreeChanged(rootIndividualId);
+		for(final FLEFRecord rel : allRelationships){
+			final String type = FLEFRecordHelper.getChildValue(rel, "type");
+			final String subjectId = rel.extractReferencedId("subject", IndividualHandler.TYPE);
+			final String targetId = rel.extractReferencedId("target", IndividualHandler.TYPE);
 
+			boolean involves = individual.getId().equals(subjectId) || individual.getId().equals(targetId);
+			if(!involves) continue;
+
+			// Determine the other individual
+			final String otherId = individual.getId().equals(subjectId)? targetId: subjectId;
+			FLEFRecord other = null;
+			if(otherId != null){
+				other = model.getRecordById(otherId);
+			}
+
+			// Build a human-readable description
+			String description = "";
+			if(type != null){
+				if(type.endsWith("child")){
+					// relationship: subject is child, target is parent
+					if(individual.getId().equals(subjectId)){
+						// individual is the child, other is parent
+						description = "Parent: " + (other != null? IndividualHandler.getInstance().getDisplayText(other, model): otherId);
+					}
+					else{
+						// individual is the parent, other is child
+						description = "Child: " + (other != null? IndividualHandler.getInstance().getDisplayText(other, model): otherId);
+					}
+				}
+				else if(type.endsWith("partner")){
+					description = "Partner: " + (other != null? IndividualHandler.getInstance().getDisplayText(other, model): otherId);
+				}
+				else{
+					description = type + " with " + (other != null? IndividualHandler.getInstance().getDisplayText(other, model): otherId);
+				}
+			}
+			else{
+				description = "Relationship with " + (other != null? IndividualHandler.getInstance().getDisplayText(other, model): otherId);
+			}
+
+			relationshipInfos.add(new RelationshipInfo(rel.getId(), description));
+		}
+
+		if(relationshipInfos.isEmpty()){
+			JOptionPane.showMessageDialog(this,
+				"This individual has no relationships to unlink.",
+				"No Relationships",
+				JOptionPane.INFORMATION_MESSAGE);
 			return;
 		}
 
+		// Create the dialog
+		final JDialog dialog = new JDialog(SwingUtilities.getWindowAncestor(this), "Unlink Relationships", Dialog.ModalityType.APPLICATION_MODAL);
+		dialog.setLayout(new BorderLayout());
 
-		if(operation == IndividualOperation.REMOVE_FROM_CHILD){
-			// Unlinks a specific parent (father or mother) from the child represented by the given PartnersPanel
-			Component parent = selectedPanel.getParent();
-			while(parent != null && !(parent instanceof SiblingsPanel))
-				parent = parent.getParent();
-			final boolean unlinkParent = (parent != null);
-
-			//TODO
-			// Retrieve the child ID from the AncestorNode that owns this PartnersPanel
-//			final String childId = nodeToPanelMap.entrySet().stream()
-//				.filter(entry -> entry.getValue() == partnerPanel)
-//				.findFirst()
-//				.map(Map.Entry::getKey)
-//				.map(AncestorNode::getIndividualId)
-//				.orElse(null);
-//			final FLEFRecord child = model.getRecordById(childId);
-//
-//			treeMutator.unlinkFromParent(child, father, mother);
+		// Panel with checkboxes
+		final JPanel checkBoxPanel = new JPanel(new MigLayout("wrap 1, ins 10", "[grow,fill]", "[]"));
+		final Map<JCheckBox, String> checkBoxToRelId = new LinkedHashMap<>();
+		for(final RelationshipInfo info : relationshipInfos){
+			final JCheckBox cb = new JCheckBox(info.description);
+			checkBoxPanel.add(cb);
+			checkBoxToRelId.put(cb, info.relationshipId);
 		}
-		else if(operation == IndividualOperation.REMOVE_FROM_PARTNER)
-			// Unlinks the given individual from its partner
-			treeMutator.unlinkFromPartner(individual);
 
-		// Invalidate cache and refresh
-		if(rootIndividualId != null)
-			treeMutator.invalidateAndNotifyTreeChanged(rootIndividualId);
+		final JScrollPane scrollPane = new JScrollPane(checkBoxPanel);
+		scrollPane.setPreferredSize(new Dimension(400, 300));
+		dialog.add(scrollPane, BorderLayout.CENTER);
+
+		// Buttons
+		final JPanel buttonPanel = new JPanel();
+		final JButton okButton = new JButton("OK");
+		final JButton cancelButton = new JButton("Cancel");
+		buttonPanel.add(okButton);
+		buttonPanel.add(cancelButton);
+		dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+		okButton.addActionListener(e -> {
+			final List<String> selectedIds = new ArrayList<>();
+			for(final Map.Entry<JCheckBox, String> entry : checkBoxToRelId.entrySet()){
+				if(entry.getKey().isSelected()){
+					selectedIds.add(entry.getValue());
+				}
+			}
+			if(selectedIds.isEmpty()){
+				JOptionPane.showMessageDialog(dialog,
+					"No relationships selected.",
+					"Selection Empty",
+					JOptionPane.WARNING_MESSAGE);
+				return;
+			}
+
+			// Confirm deletion
+			final int confirm = JOptionPane.showConfirmDialog(dialog,
+				"Are you sure you want to remove the selected relationships?",
+				"Confirm Unlink",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.WARNING_MESSAGE);
+			if(confirm == JOptionPane.YES_OPTION){
+				// Perform unlink
+				treeMutator.removeRelationships(selectedIds);
+
+				treeMutator.invalidateAndNotifyTreeChanged(getRootIndividualId());
+
+				dialog.dispose();
+			}
+		});
+
+		cancelButton.addActionListener(e -> dialog.dispose());
+
+		dialog.pack();
+		dialog.setLocationRelativeTo(this);
+		dialog.setVisible(true);
+	}
+
+	/**
+	 * Helper record to hold relationship ID and description.
+	 */
+	private static class RelationshipInfo{
+		final String relationshipId;
+		final String description;
+
+		RelationshipInfo(final String relationshipId, final String description){
+			this.relationshipId = relationshipId;
+			this.description = description;
+		}
 	}
 
 	/**

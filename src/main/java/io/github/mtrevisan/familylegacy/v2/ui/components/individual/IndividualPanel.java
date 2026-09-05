@@ -27,9 +27,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.individual;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.TwoLineLabel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree.BiologicalTreePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMenuAdapter;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.PopupMouseAdapter;
@@ -70,6 +72,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -107,6 +110,12 @@ public class IndividualPanel extends JPanel{
 	private static final Font FONT_SECONDARY = new Font("Tahoma", Font.PLAIN, 12);
 	private static final float INFO_FONT_SIZE_FACTOR = 0.8f;
 
+	private static final String TAG_TYPE = "type";
+	private static final String TAG_TARGET = "target";
+
+	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
+
+
 	// UI components
 	private final TwoLineLabel individualNameLabel = new TwoLineLabel();
 	private final JLabel infoLabel = new JLabel();
@@ -119,10 +128,7 @@ public class IndividualPanel extends JPanel{
 	private final JMenuItem moveIndividualItem = new JMenuItem("Move Individual", 'M');
 	private final JMenuItem copyIndividualItem = new JMenuItem("Copy Individual…", 'C');
 	private final JMenuItem removeIndividualItem = new JMenuItem("Remove Individual", 'R');
-	private final JMenu unlinkIndividualMenu = new JMenu("Unlink Individual");
-	private final JMenuItem unlinkParentsItem = new JMenuItem("From all parents");
-	private final JMenuItem unlinkPartnerItem = new JMenuItem("From partner");
-	private final JMenuItem unlinkFromChildItem = new JMenuItem("From child");
+	private final JMenuItem unlinkRelationshipsItem = new JMenuItem("Unlink Relationships…", 'U');
 
 	// State
 	private FLEFRecord father;
@@ -334,9 +340,10 @@ public class IndividualPanel extends JPanel{
 		final boolean hasIndividuals = model.hasRecordsByType(IndividualHandler.TYPE);
 		final boolean hasParents = (hasData && data.hasParents());
 		final boolean hasPartner = (hasData && data.hasPartner());
+		final boolean hasChildren = (hasData && hasChildren());
+		final boolean hasRelations = (hasParents || hasPartner || hasChildren);
 		final boolean hasClippedRecord = RelationClipboard.getInstance()
 			.hasRecord();
-		final boolean isParentSlot = (hasData && popupContext != null && popupContext.isRootPanel());
 
 		// Update menu items labels based on clipboard state
 		if(hasClippedRecord){
@@ -353,11 +360,25 @@ public class IndividualPanel extends JPanel{
 		linkIndividualItem.setEnabled(!hasData && (hasIndividuals || hasClippedRecord));
 		moveIndividualItem.setEnabled(hasData);
 		removeIndividualItem.setEnabled(hasData);
-		unlinkParentsItem.setEnabled(hasParents);
-		unlinkPartnerItem.setEnabled(hasPartner);
-		unlinkFromChildItem.setEnabled(isParentSlot);
-		unlinkIndividualMenu.setEnabled(unlinkParentsItem.isEnabled() || unlinkPartnerItem.isEnabled()
-			|| unlinkFromChildItem.isEnabled());
+		unlinkRelationshipsItem.setEnabled(hasRelations);
+	}
+
+	private boolean hasChildren(){
+		if(data == null || data.getIndividualId() == null)
+			return false;
+
+		final String individualId = data.getIndividualId();
+		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
+		for(final FLEFRecord relationship : relationships){
+			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
+			if(type != null && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD)){
+				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
+				if(individualId.equals(targetId)){
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static Font deriveInfoFont(final Font baseFont){
@@ -421,17 +442,8 @@ public class IndividualPanel extends JPanel{
 		addMenuItem(popup, moveIndividualItem, listener::onIndividualMove);
 //		addMenuItem(popup, copyIndividualItem, listener::onIndividualCopy);
 		addMenuItem(popup, removeIndividualItem, listener::onIndividualRemove);
-//		popup.addSeparator();
-//		addMenuItem(popup, unlinkFromParentsItem, listener::onIndividualUnlinkFromParentGroup);
-//		popup.addSeparator();
-//		addMenuItem(popup, unlinkFromPartnerItem, listener::onIndividualUnlinkFromPartner);
-		addMenuItem(unlinkIndividualMenu, unlinkParentsItem,
-			record -> listener.onIndividualUnlink(IndividualOperation.REMOVE_FROM_ALL_PARENTS, record, null));
-		addMenuItem(unlinkIndividualMenu, unlinkPartnerItem,
-			record -> listener.onIndividualUnlink(IndividualOperation.REMOVE_FROM_PARTNER, record, null));
-		addMenuItem(unlinkIndividualMenu, unlinkFromChildItem,
-			record -> listener.onIndividualUnlink(IndividualOperation.REMOVE_FROM_CHILD, record, popupContext.getTreePanel().childrenPanel.getSiblingBoxes()));
-		popup.add(unlinkIndividualMenu);
+		popup.addSeparator();
+		addMenuItem(popup, unlinkRelationshipsItem, listener::showUnlinkDialog);
 
 
 		// Register the popup listener recursively on this and all child components
