@@ -186,7 +186,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	 * Creates a non-scrollable panel for small sets (Parents / Partner).
 	 */
 	private JPanel createGroupPanel(final String title, final List<RelationshipInfo> infos){
-		final JPanel outer = new JPanel(new MigLayout("ins 5,wrap 1,fillx", "[grow,fill]", "[]"));
+		final JPanel outer = new JPanel(new MigLayout("ins 5,wrap 1,fillx,gapy 2", "[grow,fill]", "[]"));
 		outer.setBorder(BorderFactory.createTitledBorder(title));
 
 		for(final RelationshipInfo info : infos){
@@ -203,7 +203,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		final JPanel outer = new JPanel(new BorderLayout());
 		outer.setBorder(BorderFactory.createTitledBorder(title));
 
-		final JPanel inner = new JPanel(new MigLayout("ins 5,wrap 1,fillx,top", "[grow,fill]", "[]"));
+		final JPanel inner = new JPanel(new MigLayout("ins 5,wrap 1,fillx,top,gapy 2", "[grow,fill]", "[]"));
 		for(final RelationshipInfo info : infos){
 			final JPanel row = createWrappedCheckbox(info.relationshipId, info.entityId, info.description);
 			inner.add(row, "growx");
@@ -213,7 +213,6 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
-		scrollPane.setMinimumSize(new Dimension(0, 0));
 
 		final Font font = UIManager.getFont("CheckBox.font");
 		final int unitIncrement = (font != null
@@ -264,8 +263,6 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		textArea.setFont(cb.getFont());
 		textArea.setBorder(null);
 		textArea.setFocusable(false);
-		// Allow shrinking
-		textArea.setMinimumSize(new Dimension(10, 0));
 
 		textArea.setCaretPosition(0);
 
