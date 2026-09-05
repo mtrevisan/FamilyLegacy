@@ -219,7 +219,8 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		final int unitIncrement = (font != null
 			? outer.getFontMetrics(font).getHeight()
 			: 16);
-		scrollPane.getVerticalScrollBar().setUnitIncrement(unitIncrement);
+		scrollPane.getVerticalScrollBar()
+			.setUnitIncrement(unitIncrement);
 
 		SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
 
@@ -265,6 +266,8 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		textArea.setFocusable(false);
 		// Allow shrinking
 		textArea.setMinimumSize(new Dimension(10, 0));
+
+		textArea.setCaretPosition(0);
 
 		// ---- Indicate that the text is clickable ----
 		textArea.setCursor(HAND_CURSOR);
