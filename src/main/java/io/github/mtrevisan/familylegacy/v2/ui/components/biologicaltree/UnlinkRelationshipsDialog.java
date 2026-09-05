@@ -18,6 +18,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
@@ -84,7 +85,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		pack();
 		setMinimumSize(new Dimension(380, 150));
 
-		final int maxHeight = (int)(getGraphicsConfiguration().getBounds().getHeight() * 0.75);
+		final int maxHeight = (int)(getGraphicsConfiguration().getBounds().getHeight() * 0.45);
 		if(getHeight() > maxHeight)
 			setSize(getWidth(), maxHeight);
 
@@ -98,7 +99,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		// Main container:
 		// Rows: Parents (fixed), Partner (fixed), Children (fills remaining vertical space)
 		final JPanel contentPanel = new JPanel(new MigLayout(
-			"ins 10,gapy 10,fill",
+			"ins 5,gapy 5,fill",
 			"[grow,fill]",
 			"[grow 0,fill][grow 0,fill][grow 100,fill]"));
 
@@ -202,7 +203,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		final JPanel outer = new JPanel(new BorderLayout());
 		outer.setBorder(BorderFactory.createTitledBorder(title));
 
-		final JPanel inner = new JPanel(new MigLayout("ins 5,wrap 1,fillx", "[grow,fill]", "[]"));
+		final JPanel inner = new JPanel(new MigLayout("ins 5,wrap 1,fillx,top", "[grow,fill]", "[]"));
 		for(final RelationshipInfo info : infos){
 			final JPanel row = createWrappedCheckbox(info.relationshipId, info.entityId, info.description);
 			inner.add(row, "growx");
@@ -212,12 +213,15 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+		scrollPane.setMinimumSize(new Dimension(0, 0));
 
 		final Font font = UIManager.getFont("CheckBox.font");
 		final int unitIncrement = (font != null
 			? outer.getFontMetrics(font).getHeight()
 			: 16);
 		scrollPane.getVerticalScrollBar().setUnitIncrement(unitIncrement);
+
+		SwingUtilities.invokeLater(() -> scrollPane.getVerticalScrollBar().setValue(0));
 
 		outer.add(scrollPane, BorderLayout.CENTER);
 		return outer;
@@ -228,10 +232,29 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	 * The JTextArea shows the entity description and supports double-click to open the edit dialog.
 	 */
 	private JPanel createWrappedCheckbox(final String relationshipId, final String entityId, final String description){
-		final JPanel panel = new JPanel(new MigLayout("ins 0", "[]0[grow,fill,shrink]", "[]"));
+		final JPanel panel = new JPanel(new MigLayout("ins 2 0 2 0", "[]0[grow,fill,shrink]", "[]"));
 
 		final JCheckBox cb = new JCheckBox();
 
+		final JTextArea textArea = createTextArea(entityId, description, cb);
+
+		// Double-click on the text area opens the edit dialog for the entity
+		textArea.addMouseListener(new MouseAdapter(){
+			@Override
+			public void mouseClicked(final MouseEvent e){
+				if(e.getClickCount() == 2 && entityId != null)
+					editEntity(entityId);
+			}
+		});
+
+		panel.add(cb);
+		panel.add(textArea);
+
+		checkboxes.add(new RelationshipCheckbox(cb, relationshipId, entityId));
+		return panel;
+	}
+
+	private static JTextArea createTextArea(final String entityId, final String description, final JCheckBox cb){
 		final JTextArea textArea = new JTextArea(description);
 		textArea.setLineWrap(true);
 		textArea.setWrapStyleWord(true);
@@ -250,20 +273,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		if(entityId != null)
 			textArea.setToolTipText("Double-click to view");
 
-		// Double-click on the text area opens the edit dialog for the entity
-		textArea.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(final MouseEvent e){
-				if(e.getClickCount() == 2 && entityId != null)
-					editEntity(entityId);
-			}
-		});
-
-		panel.add(cb);
-		panel.add(textArea);
-
-		checkboxes.add(new RelationshipCheckbox(cb, relationshipId, entityId));
-		return panel;
+		return textArea;
 	}
 
 	/**
