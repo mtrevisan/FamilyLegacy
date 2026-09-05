@@ -129,7 +129,7 @@ public class BasicNoteListPanel extends AbstractListPanel<FLEFRecord>{
 
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog,
 			() -> {
 				if(!validNoteData(textArea))
 					return;

@@ -183,7 +183,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		initExtractComponents(dialog, documentPartPanel, textArea, typeCombo, localeCombo, basicNote);
 
 		final FLEFRecord[] result = {record};
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(dialog,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(dialog,
 			() -> {
 				if(!validExtractData(dialog, documentPartPanel, textArea))
 					return;

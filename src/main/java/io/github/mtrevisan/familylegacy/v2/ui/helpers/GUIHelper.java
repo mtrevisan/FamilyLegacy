@@ -563,10 +563,14 @@ public final class GUIHelper{
 	}
 
 
-	public static JPanel createSaveCancelButtonPanel(final JDialog dialog, final Runnable save,
-			final Runnable cancel){
-		final JButton saveButton = new JButton("Save");
-		final JButton cancelButton = new JButton("Cancel");
+	public static JPanel createButtonPanel(final JDialog dialog, final Runnable save, final Runnable cancel){
+		return createButtonPanel(dialog, "Save", save, "Cancel", cancel);
+	}
+
+	public static JPanel createButtonPanel(final JDialog dialog, final String saveLabel, final Runnable save,
+			final String cancelLabel, final Runnable cancel){
+		final JButton saveButton = new JButton(saveLabel);
+		final JButton cancelButton = new JButton(cancelLabel);
 
 		final JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 		buttonPanel.add(saveButton);

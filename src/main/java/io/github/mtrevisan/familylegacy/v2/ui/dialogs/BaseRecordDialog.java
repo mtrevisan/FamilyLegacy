@@ -82,8 +82,8 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected final JTabbedPane tabbedPane = new JTabbedPane();
 
 
-	protected <T extends Class<? extends RecordTypeHandler<?>>> BaseRecordDialog(final Dialog parent,
-			final FLEFModel model, final FLEFRecord record, final RecordTypeHandler<?> handler){
+	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final RecordTypeHandler<?> handler){
 		super(parent, ModalityType.APPLICATION_MODAL);
 
 		this.handler = handler;
@@ -376,7 +376,7 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		add(tabbedPane, "growx");
 
-		final JPanel buttonPanel = GUIHelper.createSaveCancelButtonPanel(this,
+		final JPanel buttonPanel = GUIHelper.createButtonPanel(this,
 			this::save,
 			() -> {
 				if(isNew)

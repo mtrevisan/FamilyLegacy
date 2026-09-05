@@ -63,8 +63,7 @@ public final class RecordDialogBuilder{
 	}
 
 
-	public <T extends Class<? extends RecordTypeHandler<?>>> RecordDialogBuilder withComponent(final PanelKey key,
-			final String tag, final String title){
+	public RecordDialogBuilder withComponent(final PanelKey key, final String tag, final String title){
 		configs.put(key, new EntityReferenceConfig(tag, title));
 
 		return this;
