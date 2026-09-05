@@ -119,9 +119,15 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, TextValueVariantStructureDialog::new);
 	}
 
+	public static TextValueVariantStructureDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, TextValueVariantStructureDialog::new);
+	}
 
-	private TextValueVariantStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, TextValueVariantHandler.getInstance());
+
+	private TextValueVariantStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, TextValueVariantHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]15[]5[]5[]5[]");
 

@@ -87,9 +87,14 @@ public class PartStructureDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, PartStructureDialog::new);
 	}
 
+	public static PartStructureDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createView(parent, model, record, PartStructureDialog::new);
+	}
 
-	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, PartHandler.getInstance());
+
+	private PartStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, PartHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(0, "[]10[]15[]");
 

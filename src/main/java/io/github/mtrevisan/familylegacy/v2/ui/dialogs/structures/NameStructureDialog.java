@@ -99,14 +99,18 @@ public class NameStructureDialog extends BaseRecordDialog{
 		return createNew(parent, model, NameStructureDialog::new);
 	}
 
-	public static NameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+	public static NameStructureDialog createEdit(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		return createEdit(parent, model, record, NameStructureDialog::new);
 	}
 
+	public static NameStructureDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createView(parent, model, record, NameStructureDialog::new);
+	}
 
-	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, NameHandler.getInstance());
+
+	private NameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, NameHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]15[]");
 

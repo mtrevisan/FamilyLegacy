@@ -110,9 +110,14 @@ public class SourceCitationDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, SourceCitationDialog::new);
 	}
 
+	public static SourceCitationDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createView(parent, model, record, SourceCitationDialog::new);
+	}
 
-	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, SourceCitationHandler.getInstance());
+
+	private SourceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, SourceCitationHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 

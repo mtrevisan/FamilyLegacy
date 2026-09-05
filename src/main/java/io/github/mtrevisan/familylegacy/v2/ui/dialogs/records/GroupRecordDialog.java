@@ -113,9 +113,14 @@ public class GroupRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, GroupRecordDialog::new);
 	}
 
+	public static GroupRecordDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createView(parent, model, record, GroupRecordDialog::new);
+	}
 
-	private GroupRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, GroupHandler.getInstance());
+
+	private GroupRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, GroupHandler.getInstance(), viewOnly);
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
 		namePanel = EntityListPanel.createForStructure(TAG_NAME, this, "Names", model, NameHandler.class);

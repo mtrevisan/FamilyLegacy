@@ -105,9 +105,15 @@ public class HistoricEventRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, HistoricEventRecordDialog::new);
 	}
 
+	public static HistoricEventRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, HistoricEventRecordDialog::new);
+	}
 
-	private HistoricEventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, HistoricEventHandler.getInstance());
+
+	private HistoricEventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, HistoricEventHandler.getInstance(), viewOnly);
 
 		typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			StringUtils.EMPTY,

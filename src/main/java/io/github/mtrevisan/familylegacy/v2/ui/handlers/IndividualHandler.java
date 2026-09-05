@@ -131,4 +131,9 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 		return IndividualRecordDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public IndividualRecordDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return IndividualRecordDialog.createView(parent, model, record);
+	}
+
 }

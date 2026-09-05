@@ -88,9 +88,15 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, RepositoryCitationDialog::new);
 	}
 
+	public static RepositoryCitationDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, RepositoryCitationDialog::new);
+	}
 
-	private RepositoryCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, RepositoryCitationHandler.getInstance());
+
+	private RepositoryCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, RepositoryCitationHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]");
 

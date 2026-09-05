@@ -100,4 +100,10 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 		return RepositoryRecordDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public RepositoryRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return RepositoryRecordDialog.createView(parent, model, record);
+	}
+
 }

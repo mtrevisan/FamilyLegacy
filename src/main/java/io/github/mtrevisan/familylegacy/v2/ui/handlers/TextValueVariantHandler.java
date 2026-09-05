@@ -127,4 +127,10 @@ public class TextValueVariantHandler extends AbstractRecordTypeHandler<TextValue
 		return TextValueVariantStructureDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public TextValueVariantStructureDialog createViewDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return TextValueVariantStructureDialog.createView(parent, model, record);
+	}
+
 }

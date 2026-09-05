@@ -95,4 +95,9 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 		return SourceRecordDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public SourceRecordDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return SourceRecordDialog.createView(parent, model, record);
+	}
+
 }

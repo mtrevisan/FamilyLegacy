@@ -86,9 +86,13 @@ public class NoteHandler extends AbstractRecordTypeHandler<NoteStructureDialog>{
 	}
 
 	@Override
-	public NoteStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+	public NoteStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		return NoteStructureDialog.createEdit(parent, model, record);
+	}
+
+	@Override
+	public NoteStructureDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return NoteStructureDialog.createView(parent, model, record);
 	}
 
 }

@@ -128,13 +128,19 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 	public static GroupAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, GroupAttributeRecordDialog::new);
 	}
 
+	public static GroupAttributeRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, GroupAttributeRecordDialog::new);
+	}
 
-	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, GroupAttributeHandler.getInstance());
+
+	private GroupAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, GroupAttributeHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 

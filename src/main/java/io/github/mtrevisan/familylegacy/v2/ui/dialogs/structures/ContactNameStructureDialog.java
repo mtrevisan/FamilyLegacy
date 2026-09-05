@@ -31,6 +31,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.SourceRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
@@ -80,9 +81,15 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, ContactNameStructureDialog::new);
 	}
 
+	public static ContactNameStructureDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, ContactNameStructureDialog::new);
+	}
 
-	private ContactNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ContactNameHandler.getInstance());
+
+	private ContactNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, ContactNameHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 

@@ -98,17 +98,24 @@ public class ResearchTaskRecordDialog extends BaseRecordDialog{
 	private final BoundTextArea outcomeArea;
 
 
-	public static ResearchTaskRecordDialog createNew(Dialog parent, FLEFModel model){
+	public static ResearchTaskRecordDialog createNew(final Dialog parent, final FLEFModel model){
 		return createNew(parent, model, ResearchTaskRecordDialog::new);
 	}
 
-	public static ResearchTaskRecordDialog createEdit(Dialog parent, FLEFModel model, FLEFRecord record){
+	public static ResearchTaskRecordDialog createEdit(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
 		return createEdit(parent, model, record, ResearchTaskRecordDialog::new);
 	}
 
+	public static ResearchTaskRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, ResearchTaskRecordDialog::new);
+	}
 
-	private ResearchTaskRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
-		super(parent, model, record, ResearchTaskHandler.getInstance());
+
+	private ResearchTaskRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, ResearchTaskHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 

@@ -105,4 +105,10 @@ public class RepositoryCitationHandler extends AbstractRecordTypeHandler<Reposit
 		return RepositoryCitationDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public RepositoryCitationDialog createViewDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return RepositoryCitationDialog.createView(parent, model, record);
+	}
+
 }

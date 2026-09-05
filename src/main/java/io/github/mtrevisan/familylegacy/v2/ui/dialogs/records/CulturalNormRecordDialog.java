@@ -128,9 +128,15 @@ public class CulturalNormRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, CulturalNormRecordDialog::new);
 	}
 
+	public static CulturalNormRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, CulturalNormRecordDialog::new);
+	}
 
-	private CulturalNormRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, CulturalNormHandler.getInstance());
+
+	private CulturalNormRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, CulturalNormHandler.getInstance(), viewOnly);
 
 		titleField = new BoundTextField(TAG_TITLE);
 		ruleTypeCombo = new BoundComboBox<>(TAG_RULE_TYPE, new String[]{

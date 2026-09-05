@@ -32,6 +32,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -89,9 +90,14 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, PlaceCitationDialog::new);
 	}
 
+	public static PlaceCitationDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createView(parent, model, record, PlaceCitationDialog::new);
+	}
 
-	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, PlaceCitationHandler.getInstance());
+
+	private PlaceCitationDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, PlaceCitationHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 

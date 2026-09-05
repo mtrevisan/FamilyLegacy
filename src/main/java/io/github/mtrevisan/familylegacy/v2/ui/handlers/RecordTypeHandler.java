@@ -108,4 +108,14 @@ public interface RecordTypeHandler<T extends BaseRecordDialog>{
 	 */
 	T createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record);
 
+	/**
+	 * Creates a dialog to view an existing record.
+	 *
+	 * @param parent	The parent frame.
+	 * @param model	The FLEF model.
+	 * @param record	The record to view.
+	 * @return	The dialog (already configured but not shown).
+	 */
+	T createViewDialog(Dialog parent, FLEFModel model, FLEFRecord record);
+
 }

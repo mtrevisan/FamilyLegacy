@@ -98,9 +98,14 @@ public class ContactStructureDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, ContactStructureDialog::new);
 	}
 
+	public static ContactStructureDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return createView(parent, model, record, ContactStructureDialog::new);
+	}
 
-	private ContactStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ContactHandler.getInstance());
+
+	private ContactStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, ContactHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]");
 

@@ -115,9 +115,15 @@ public class IdentityHypothesisRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, IdentityHypothesisRecordDialog::new);
 	}
 
+	public static IdentityHypothesisRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, IdentityHypothesisRecordDialog::new);
+	}
 
-	private IdentityHypothesisRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, IdentityHypothesisHandler.getInstance());
+
+	private IdentityHypothesisRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, IdentityHypothesisHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 

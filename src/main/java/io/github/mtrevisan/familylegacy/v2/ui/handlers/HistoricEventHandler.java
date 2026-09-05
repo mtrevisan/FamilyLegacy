@@ -85,8 +85,15 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	}
 
 	@Override
-	public HistoricEventRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public HistoricEventRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
 		return HistoricEventRecordDialog.createEdit(parent, model, record);
+	}
+
+	@Override
+	public HistoricEventRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return HistoricEventRecordDialog.createView(parent, model, record);
 	}
 
 }

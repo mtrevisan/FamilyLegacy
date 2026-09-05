@@ -33,6 +33,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.citations.SourceCitationDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -110,13 +111,19 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	}
 
 	public static ContextImpactRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, ContextImpactRecordDialog::new);
 	}
 
+	public static ContextImpactRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, ContextImpactRecordDialog::new);
+	}
 
-	private ContextImpactRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ContextImpactHandler.getInstance());
+
+	private ContextImpactRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, ContextImpactHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]");
 

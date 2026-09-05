@@ -105,4 +105,9 @@ public class EventHandler extends AbstractRecordTypeHandler<EventRecordDialog>{
 		return EventRecordDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public EventRecordDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return EventRecordDialog.createView(parent, model, record);
+	}
+
 }

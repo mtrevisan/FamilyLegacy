@@ -123,8 +123,15 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 	}
 
 	@Override
-	public RelationshipRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+	public RelationshipRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
 		return RelationshipRecordDialog.createEdit(parent, model, record);
+	}
+
+	@Override
+	public RelationshipRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return RelationshipRecordDialog.createView(parent, model, record);
 	}
 
 }

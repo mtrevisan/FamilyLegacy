@@ -118,4 +118,10 @@ public class ConclusionTargetHandler extends AbstractRecordTypeHandler<BaseRecor
 		return handler.createEditDialog(parent, model, record);
 	}
 
+	@Override
+	public BaseRecordDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		final RecordTypeHandler<?> handler = HandlerRegistry.getHandler(record.getTag());
+		return handler.createViewDialog(parent, model, record);
+	}
+
 }

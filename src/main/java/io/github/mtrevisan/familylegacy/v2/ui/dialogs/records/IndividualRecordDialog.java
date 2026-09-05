@@ -155,13 +155,19 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 	public static IndividualRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, IndividualRecordDialog::new);
 	}
 
+	public static IndividualRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, IndividualRecordDialog::new);
+	}
 
-	private IndividualRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, IndividualHandler.getInstance());
+
+	private IndividualRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, IndividualHandler.getInstance(), viewOnly);
 
 		preferredImagePanel = new PreferredImagePanel(TAG_PREFERRED_IMAGE, this);
 		personalNamePanel = EntityListPanel.createForStructure(TAG_PERSONAL_NAME, this, "Personal Names*", model, PersonalNameHandler.class);
@@ -325,7 +331,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		GUIHelper.launch(IndividualRecordDialog::createEdit, "/tests/test.flef", "I1");
+//		GUIHelper.launch(IndividualRecordDialog::createEdit, "/tests/test.flef", "I1");
+		GUIHelper.launch(IndividualRecordDialog::createView, "/tests/test.flef", "I1");
 	}
 
 }

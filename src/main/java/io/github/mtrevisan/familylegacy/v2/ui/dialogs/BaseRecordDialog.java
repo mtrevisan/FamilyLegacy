@@ -72,6 +72,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	protected final FLEFModel model;
 	protected final FLEFRecord record;
 	protected final boolean isNew;
+	protected final boolean viewOnly;
 	protected boolean isSaved;
 
 	private final UndoController undoController = new UndoController();
@@ -83,16 +84,18 @@ public abstract class BaseRecordDialog extends JDialog{
 
 
 	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final RecordTypeHandler<?> handler){
+			final RecordTypeHandler<?> handler, final boolean viewOnly){
 		super(parent, ModalityType.APPLICATION_MODAL);
 
 		this.handler = handler;
 		this.model = model;
 		this.record = (record != null? record: createNewRecord());
 		this.isNew = (record == null);
+		this.viewOnly = viewOnly;
 
 		setTitle(buildTitle(this.handler, (record == null)));
 	}
+
 
 	protected void finalizeDialog(final Dialog parent){
 		initComponents();
@@ -330,7 +333,7 @@ public abstract class BaseRecordDialog extends JDialog{
 	 */
 	protected static <T extends BaseRecordDialog> T createNew(final Dialog parent, final FLEFModel model,
 			final DialogFactory<T> factory){
-		return factory.create(parent, model, null);
+		return factory.create(parent, model, null, false);
 	}
 
 	/**
@@ -353,7 +356,14 @@ public abstract class BaseRecordDialog extends JDialog{
 			final FLEFRecord record, final DialogFactory<T> factory){
 		Objects.requireNonNull(record, "Record cannot be null");
 
-		return factory.create(parent, model, record);
+		return factory.create(parent, model, record, false);
+	}
+
+	protected static <T extends BaseRecordDialog> T createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record, final DialogFactory<T> factory){
+		Objects.requireNonNull(record, "Record cannot be null");
+
+		return factory.create(parent, model, record, true);
 	}
 
 

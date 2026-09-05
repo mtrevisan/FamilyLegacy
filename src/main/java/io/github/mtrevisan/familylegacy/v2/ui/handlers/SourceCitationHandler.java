@@ -105,4 +105,10 @@ public class SourceCitationHandler extends AbstractRecordTypeHandler<SourceCitat
 		return SourceCitationDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public SourceCitationDialog createViewDialog(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return SourceCitationDialog.createView(parent, model, record);
+	}
+
 }

@@ -112,4 +112,9 @@ public class GroupHandler extends AbstractRecordTypeHandler<GroupRecordDialog>{
 		return GroupRecordDialog.createEdit(parent, model, record);
 	}
 
+	@Override
+	public GroupRecordDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		return GroupRecordDialog.createView(parent, model, record);
+	}
+
 }

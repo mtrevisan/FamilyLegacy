@@ -121,9 +121,15 @@ public class EventParticipationRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, EventParticipationRecordDialog::new);
 	}
 
+	public static EventParticipationRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, EventParticipationRecordDialog::new);
+	}
 
-	private EventParticipationRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, EventParticipationHandler.getInstance());
+
+	private EventParticipationRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, EventParticipationHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]");
 

@@ -123,8 +123,9 @@ public class HeaderDialog extends BaseRecordDialog{
 	private final BoundTextArea scopeArea;
 
 
-	public HeaderDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, model.getHeader(), HeaderHandler.getInstance());
+	public HeaderDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, model.getHeader(), HeaderHandler.getInstance(), viewOnly);
 
 		final String sourceName = ProjectInfo.getAppName();
 		final String sourceVersion = ProjectInfo.getAppVersion();
@@ -224,7 +225,7 @@ public class HeaderDialog extends BaseRecordDialog{
 
 
 	public static void main(final String[] args) throws IOException{
-		GUIHelper.launch(HeaderDialog::new, "/tests/test.flef", null);
+		GUIHelper.launch((parent, model, record) -> new HeaderDialog(parent, model, record, false), "/tests/test.flef", null);
 	}
 
 }

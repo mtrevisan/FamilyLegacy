@@ -145,9 +145,15 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, ResearchQuestionRecordDialog::new);
 	}
 
+	public static ResearchQuestionRecordDialog createView(final Dialog parent, final FLEFModel model,
+			final FLEFRecord record){
+		return createView(parent, model, record, ResearchQuestionRecordDialog::new);
+	}
 
-	private ResearchQuestionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		super(parent, model, record, ResearchQuestionHandler.getInstance());
+
+	private ResearchQuestionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
+			final boolean viewOnly){
+		super(parent, model, record, ResearchQuestionHandler.getInstance(), viewOnly);
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]10[]10[]10[]");
 
