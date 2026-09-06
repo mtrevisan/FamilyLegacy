@@ -89,20 +89,13 @@ public class ResearchActivityHandler extends AbstractRecordTypeHandler<ResearchA
 	}
 
 	@Override
-	public ResearchActivityRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public ResearchActivityRecordDialog createNewDialog(Dialog parent, FLEFModel model){
 		return ResearchActivityRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public ResearchActivityRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+	public ResearchActivityRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return ResearchActivityRecordDialog.createEdit(parent, model, record);
-	}
-
-	@Override
-	public ResearchActivityRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ResearchActivityRecordDialog.createView(parent, model, record);
 	}
 
 }

@@ -149,15 +149,9 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, ResearchActivityRecordDialog::new);
 	}
 
-	public static ResearchActivityRecordDialog createView(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return createView(parent, model, record, ResearchActivityRecordDialog::new);
-	}
 
-
-	private ResearchActivityRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, ResearchActivityHandler.getInstance(), viewOnly);
+	private ResearchActivityRecordDialog(Dialog parent, FLEFModel model, FLEFRecord record){
+		super(parent, model, record, ResearchActivityHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 

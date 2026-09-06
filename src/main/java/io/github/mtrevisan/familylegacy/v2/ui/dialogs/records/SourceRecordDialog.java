@@ -115,14 +115,9 @@ public class SourceRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, SourceRecordDialog::new);
 	}
 
-	public static SourceRecordDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return createView(parent, model, record, SourceRecordDialog::new);
-	}
 
-
-	private SourceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, SourceHandler.getInstance(), viewOnly);
+	private SourceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, SourceHandler.getInstance());
 
 		titlePanel = EntityListPanel.createForStructure(TAG_TITLE, this, "Title*", model,
 			NameHandler.class);

@@ -118,15 +118,9 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, PersonalNameStructureDialog::new);
 	}
 
-	public static PersonalNameStructureDialog createView(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return createView(parent, model, record, PersonalNameStructureDialog::new);
-	}
 
-
-	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, PersonalNameHandler.getInstance(), viewOnly);
+	private PersonalNameStructureDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, PersonalNameHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]");
 
@@ -257,7 +251,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		final FLEFModel model = new FLEFModel();
 
 		SwingUtilities.invokeLater(() -> {
-			final PersonalNameStructureDialog dialog = new PersonalNameStructureDialog(null, model, null, false);
+			final PersonalNameStructureDialog dialog = new PersonalNameStructureDialog(null, model, null);
 			dialog.setVisible(true);
 		});
 	}

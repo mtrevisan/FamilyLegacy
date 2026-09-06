@@ -93,20 +93,13 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 	}
 
 	@Override
-	public IdentityHypothesisRecordDialog createNewDialog(final Dialog parent, final FLEFModel model){
+	public IdentityHypothesisRecordDialog createNewDialog(Dialog parent, FLEFModel model){
 		return IdentityHypothesisRecordDialog.createNew(parent, model);
 	}
 
 	@Override
-	public IdentityHypothesisRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+	public IdentityHypothesisRecordDialog createEditDialog(Dialog parent, FLEFModel model, FLEFRecord record){
 		return IdentityHypothesisRecordDialog.createEdit(parent, model, record);
-	}
-
-	@Override
-	public IdentityHypothesisRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return IdentityHypothesisRecordDialog.createView(parent, model, record);
 	}
 
 }

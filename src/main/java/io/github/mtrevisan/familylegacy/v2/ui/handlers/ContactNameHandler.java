@@ -111,9 +111,4 @@ public class ContactNameHandler extends AbstractRecordTypeHandler<ContactNameStr
 		return ContactNameStructureDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public ContactNameStructureDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return ContactNameStructureDialog.createView(parent, model, record);
-	}
-
 }

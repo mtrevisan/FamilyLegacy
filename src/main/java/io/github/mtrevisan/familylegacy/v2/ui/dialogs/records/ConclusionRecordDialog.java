@@ -129,15 +129,9 @@ public class ConclusionRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, ConclusionRecordDialog::new);
 	}
 
-	public static ConclusionRecordDialog createView(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return createView(parent, model, record, ConclusionRecordDialog::new);
-	}
 
-
-	private ConclusionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, ConclusionHandler.getInstance(), viewOnly);
+	private ConclusionRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, ConclusionHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 

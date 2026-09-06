@@ -155,14 +155,8 @@ public class ContextImpactHandler extends AbstractRecordTypeHandler<ContextImpac
 
 	@Override
 	public ContextImpactRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+		final FLEFRecord record){
 		return ContextImpactRecordDialog.createEdit(parent, model, record);
-	}
-
-	@Override
-	public ContextImpactRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ContextImpactRecordDialog.createView(parent, model, record);
 	}
 
 }

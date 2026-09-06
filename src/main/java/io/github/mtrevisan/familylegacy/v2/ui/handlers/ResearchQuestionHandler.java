@@ -99,10 +99,4 @@ public class ResearchQuestionHandler extends AbstractRecordTypeHandler<ResearchQ
 		return ResearchQuestionRecordDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public ResearchQuestionRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return ResearchQuestionRecordDialog.createView(parent, model, record);
-	}
-
 }

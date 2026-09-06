@@ -33,7 +33,7 @@ import java.awt.Dialog;
 /**
  * A reference to a record dialog's private constructor, used by {@link BaseRecordDialog#createNew(Dialog, FLEFModel, DialogFactory)}
  * and {@link BaseRecordDialog#createEdit(Dialog, FLEFModel, FLEFRecord, DialogFactory)} to collapse the identical
- * {@code createNew}/{@code createEdit}/{@code createView} boilerplate that used to be duplicated in every subclass.
+ * {@code createNew}/{@code createEdit} boilerplate that used to be duplicated in every subclass.
  * <p>
  * Every record dialog's private constructor already has the shape {@code (Dialog, FLEFModel, FLEFRecord)}, so a
  * method reference such as {@code NoteRecordDialog::new} satisfies this interface directly.
@@ -43,6 +43,6 @@ import java.awt.Dialog;
 @FunctionalInterface
 public interface DialogFactory<T extends BaseRecordDialog>{
 
-	T create(Dialog parent, FLEFModel model, FLEFRecord record, boolean viewOnly);
+	T create(Dialog parent, FLEFModel model, FLEFRecord record);
 
 }

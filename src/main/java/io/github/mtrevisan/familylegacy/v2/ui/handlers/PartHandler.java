@@ -125,9 +125,4 @@ public class PartHandler extends AbstractRecordTypeHandler<PartStructureDialog>{
 		return PartStructureDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public PartStructureDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return PartStructureDialog.createView(parent, model, record);
-	}
-
 }

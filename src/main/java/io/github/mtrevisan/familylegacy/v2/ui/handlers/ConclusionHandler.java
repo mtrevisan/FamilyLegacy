@@ -96,9 +96,4 @@ public class ConclusionHandler extends AbstractRecordTypeHandler<ConclusionRecor
 		return ConclusionRecordDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public ConclusionRecordDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return ConclusionRecordDialog.createView(parent, model, record);
-	}
-
 }

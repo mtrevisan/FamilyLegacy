@@ -103,14 +103,9 @@ public class RepositoryRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, RepositoryRecordDialog::new);
 	}
 
-	public static RepositoryRecordDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return createView(parent, model, record, RepositoryRecordDialog::new);
-	}
 
-
-	private RepositoryRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, RepositoryHandler.getInstance(), viewOnly);
+	private RepositoryRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, RepositoryHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]5[]10[]");
 

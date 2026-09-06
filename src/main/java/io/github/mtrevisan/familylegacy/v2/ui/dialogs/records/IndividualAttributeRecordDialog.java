@@ -124,15 +124,9 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, IndividualAttributeRecordDialog::new);
 	}
 
-	public static IndividualAttributeRecordDialog createView(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return createView(parent, model, record, IndividualAttributeRecordDialog::new);
-	}
 
-
-	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, IndividualAttributeHandler.getInstance(), viewOnly);
+	private IndividualAttributeRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, IndividualAttributeHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]10[]10[]");
 

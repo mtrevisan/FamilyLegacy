@@ -127,15 +127,8 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 	}
 
 	@Override
-	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+	public PersonalNameStructureDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		return PersonalNameStructureDialog.createEdit(parent, model, record);
-	}
-
-	@Override
-	public PersonalNameStructureDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return PersonalNameStructureDialog.createView(parent, model, record);
 	}
 
 }

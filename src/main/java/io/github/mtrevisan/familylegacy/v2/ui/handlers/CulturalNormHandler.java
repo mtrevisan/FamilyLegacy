@@ -91,10 +91,4 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 		return CulturalNormRecordDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public CulturalNormRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return CulturalNormRecordDialog.createView(parent, model, record);
-	}
-
 }

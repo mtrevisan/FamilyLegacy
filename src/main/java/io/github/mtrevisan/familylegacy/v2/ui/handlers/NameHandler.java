@@ -111,9 +111,4 @@ public class NameHandler extends AbstractRecordTypeHandler<NameStructureDialog>{
 		return NameStructureDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public NameStructureDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return NameStructureDialog.createView(parent, model, record);
-	}
-
 }

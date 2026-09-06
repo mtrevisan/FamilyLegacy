@@ -106,14 +106,9 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, DocumentRecordDialog::new);
 	}
 
-	public static DocumentRecordDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return createView(parent, model, record, DocumentRecordDialog::new);
-	}
 
-
-	private DocumentRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, DocumentHandler.getInstance(), viewOnly);
+	private DocumentRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, DocumentHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]");
 

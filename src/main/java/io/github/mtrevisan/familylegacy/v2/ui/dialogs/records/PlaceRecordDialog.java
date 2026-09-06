@@ -125,14 +125,9 @@ public class PlaceRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, PlaceRecordDialog::new);
 	}
 
-	public static PlaceRecordDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return createView(parent, model, record, PlaceRecordDialog::new);
-	}
 
-
-	private PlaceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, PlaceHandler.getInstance(), viewOnly);
+	private PlaceRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, PlaceHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]10[]10[]");
 

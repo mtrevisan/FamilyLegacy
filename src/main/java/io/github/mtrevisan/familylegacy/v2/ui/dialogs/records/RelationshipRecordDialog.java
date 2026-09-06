@@ -147,15 +147,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, RelationshipRecordDialog::new);
 	}
 
-	public static RelationshipRecordDialog createView(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return createView(parent, model, record, RelationshipRecordDialog::new);
-	}
 
-
-	private RelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, RelationshipHandler.getInstance(), viewOnly);
+	private RelationshipRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, RelationshipHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]5[]10[]5[]10[]10[]10[]");
 

@@ -141,14 +141,9 @@ public class EventRecordDialog extends BaseRecordDialog{
 		return createEdit(parent, model, record, EventRecordDialog::new);
 	}
 
-	public static EventRecordDialog createView(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return createView(parent, model, record, EventRecordDialog::new);
-	}
 
-
-	private EventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
-			final boolean viewOnly){
-		super(parent, model, record, EventHandler.getInstance(), viewOnly);
+	private EventRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
+		super(parent, model, record, EventHandler.getInstance());
 
 		propertiesPanel = GUIHelper.createLabelFieldPanel(10, "[]10[]15[]10[]15[]15[]15[]");
 

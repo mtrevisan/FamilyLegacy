@@ -100,15 +100,8 @@ public class PlaceRelationshipHandler extends AbstractRecordTypeHandler<PlaceRel
 	}
 
 	@Override
-	public PlaceRelationshipRecordDialog createEditDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
+	public PlaceRelationshipRecordDialog createEditDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
 		return PlaceRelationshipRecordDialog.createEdit(parent, model, record);
-	}
-
-	@Override
-	public PlaceRelationshipRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return PlaceRelationshipRecordDialog.createView(parent, model, record);
 	}
 
 }

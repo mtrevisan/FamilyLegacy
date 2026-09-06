@@ -105,9 +105,4 @@ public class DocumentHandler extends AbstractRecordTypeHandler<DocumentRecordDia
 		return DocumentRecordDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public DocumentRecordDialog createViewDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record){
-		return DocumentRecordDialog.createView(parent, model, record);
-	}
-
 }

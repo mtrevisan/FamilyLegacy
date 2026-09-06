@@ -123,10 +123,4 @@ public class EventParticipationHandler extends AbstractRecordTypeHandler<EventPa
 		return EventParticipationRecordDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public EventParticipationRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return EventParticipationRecordDialog.createView(parent, model, record);
-	}
-
 }

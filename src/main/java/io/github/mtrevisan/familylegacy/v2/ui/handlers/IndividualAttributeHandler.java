@@ -124,10 +124,4 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 		return IndividualAttributeRecordDialog.createEdit(parent, model, record);
 	}
 
-	@Override
-	public IndividualAttributeRecordDialog createViewDialog(final Dialog parent, final FLEFModel model,
-			final FLEFRecord record){
-		return IndividualAttributeRecordDialog.createView(parent, model, record);
-	}
-
 }
