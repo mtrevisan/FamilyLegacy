@@ -31,14 +31,11 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.imageio.ImageIO;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Color;
 import java.awt.Dialog;
 import java.awt.Dimension;
@@ -120,10 +117,10 @@ public class PreferredImagePanel extends JPanel{
 		imageButton.setToolTipText("Left-click to select an image, right-click for options");
 
 		GUIHelper.installBehavior(imageButton,
-			null, null,
+			this::setNewItem, null,
 			null, null,
 			builder -> {
-				builder.item("Create New…", this::createNewItem);
+				builder.item("Set…", this::setNewItem);
 				builder.separator();
 				builder.selectionSensitiveItem("Edit Crop…", this::editCrop);
 				builder.separator();
@@ -212,7 +209,7 @@ if(uri != null)
 	 */
 	private void editCrop(){
 		if(!hasImage()){
-			createNewItem();
+			setNewItem();
 
 			return;
 		}
@@ -239,25 +236,10 @@ if(uri != null)
 	/**
 	 * Opens a system file chooser to pick an image file and displays the {@link ImageCropDialog} to set the crop.
 	 */
-	private void createNewItem(){
-		final JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setDialogTitle("Select Image File");
-		final String[] extensions = ImageIO.getReaderFileSuffixes();
-		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
-		fileChooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
-		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
-		final int userSelection = fileChooser.showOpenDialog(parent);
-		if(userSelection != JFileChooser.APPROVE_OPTION)
+	private void setNewItem(){
+		final File selectedFile = GUIHelper.selectImageFile(parent, uri);
+		if(selectedFile == null)
 			return;
-
-		final File selectedFile = fileChooser.getSelectedFile();
-		if(selectedFile == null || !selectedFile.exists()){
-			JOptionPane.showMessageDialog(parent,
-				"Selected file does not exist.",
-				"Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
 
 		try{
 			cropDialog.loadData(selectedFile, null);

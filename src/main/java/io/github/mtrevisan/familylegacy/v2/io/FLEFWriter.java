@@ -325,7 +325,7 @@ public class FLEFWriter{
 		writeIndent(writer, indentLevel);
 
 		// Record tag/type – use tagOverride if provided
-		final String tag = (tagOverride != null) ? tagOverride : record.getTag();
+		final String tag = (tagOverride != null? tagOverride: record.getTag());
 		if(tag != null)
 			writer.write(tag);
 

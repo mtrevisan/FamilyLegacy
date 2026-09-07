@@ -87,8 +87,6 @@ public class IndividualPanel extends JPanel{
 	private static final long serialVersionUID = -300117824230109203L;
 
 
-	private static final String NO_DATA = "?";
-
 	// Colors
 	private static final Color BACKGROUND_COLOR_NO_INDIVIDUAL = Color.WHITE;
 	private static final Color BACKGROUND_COLOR_FADE_TO = Color.WHITE;
@@ -106,7 +104,7 @@ public class IndividualPanel extends JPanel{
 	private static final double IMAGE_ASPECT_RATIO = 4. / 3.;
 
 	private static final Dimension BOX_DIMENSION_PRIMARY = new Dimension(270, 90);
-	private static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 65);
+	private static final Dimension BOX_DIMENSION_SECONDARY = new Dimension(130, 66);
 
 	private static final int NAME_IMAGE_GAP = 5;
 
@@ -228,7 +226,7 @@ public class IndividualPanel extends JPanel{
 	}
 
 	private void pointTest(final Graphics2D g2){
-		final Point enterPoint = getPaintingEnterPoint();
+		final Point enterPoint = getPaintingVerticalEnterPoint();
 		GUIHelper.drawX(g2, enterPoint);
 	}
 
@@ -247,8 +245,12 @@ public class IndividualPanel extends JPanel{
 		return (boxType == BoxPanelType.PRIMARY);
 	}
 
-	public final Point getPaintingEnterPoint(){
+	public final Point getPaintingVerticalEnterPoint(){
 		return new Point(getWidth() / 2, 0);
+	}
+
+	public final Point getPaintingHorizontalEnterPoint(){
+		return new Point(0, (getHeight() - 1) / 2);
 	}
 
 
@@ -345,46 +347,19 @@ public class IndividualPanel extends JPanel{
 		final boolean hasPartner = (hasData && data.hasPartner());
 		final boolean hasChildren = (hasData && hasChildren());
 		final boolean hasRelations = (hasParents || hasPartner || hasChildren);
-		final boolean hasClippedRecord = RelationClipboard.getInstance()
-			.hasRecord();
 
-		// Update menu items labels based on clipboard state
-		pasteIndividualItem.setEnabled(false);
-		if(!hasData && hasClippedRecord){
+		// Update paste item
+		final boolean canPaste = (!hasData && isPasteAllowed());
+		if(canPaste){
 			final FLEFRecord clippedRecord = RelationClipboard.getInstance()
 				.getRecord();
-
-			// Check if we are in a PartnersPanel (and on which side)
-			final PartnersPanel partnersPanel = PartnersPanel.findContainingPartnersPanel(getParent());
-			boolean canPaste = (partnersPanel == null);
-			if(partnersPanel != null){
-				final Side side = partnersPanel.getSideOf(this);
-				if(side != null){
-					// Get the other side panel
-					final IndividualPanel otherPanel = (side == Side.LEFT
-						? partnersPanel.getMotherPanel()
-						: partnersPanel.getFatherPanel());
-					// If the other side contains an individual, check the gender
-					final IndividualData otherData = otherPanel.getData();
-					if(otherData != null && !otherData.isEmpty()){
-						final String otherSex = otherData.getIndividualSex().name().toLowerCase();
-						final String clippedSex = FLEFRecordHelper.getChildValue(clippedRecord, TAG_SEX);
-						// The gender required for the glued one is the opposite of the other
-						final String requiredSex = otherSex.equals("male")? "female": "male";
-						if(requiredSex.equals(clippedSex))
-							canPaste = true;
-					}
-					else
-						canPaste = true;
-				}
-			}
-			if(canPaste){
-				final String clippedName = IndividualHandler.getInstance()
-					.getDisplayText(clippedRecord, model);
-				pasteIndividualItem.setText("Paste " + clippedName + " Here");
-				pasteIndividualItem.setEnabled(true);
-			}
+			final String clippedName = IndividualHandler.getInstance()
+				.getDisplayText(clippedRecord, model);
+			pasteIndividualItem.setText("Paste " + clippedName + " Here");
+			pasteIndividualItem.setEnabled(true);
 		}
+		else
+			pasteIndividualItem.setEnabled(false);
 
 		// Enable or disable options depending on panel state and clipboard contents
 		editIndividualItem.setEnabled(hasData);
@@ -400,10 +375,9 @@ public class IndividualPanel extends JPanel{
 	 * Checks if pasting is allowed based on gender compatibility if inside a PartnersPanel.
 	 */
 	private boolean isPasteAllowed(){
-		final boolean hasData = (data != null && !data.isEmpty());
 		final boolean hasClippedRecord = RelationClipboard.getInstance()
 			.hasRecord();
-		if(!hasData && hasClippedRecord){
+		if(hasClippedRecord){
 			// Check if we are in a PartnersPanel (and on which side)
 			final PartnersPanel partnersPanel = PartnersPanel.findContainingPartnersPanel(getParent());
 			if(partnersPanel == null)

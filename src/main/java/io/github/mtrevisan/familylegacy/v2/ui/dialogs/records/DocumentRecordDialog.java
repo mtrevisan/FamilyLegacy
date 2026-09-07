@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
-import io.github.mtrevisan.familylegacy.v2.ui.components.ImagePreviewAccessory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
@@ -38,11 +37,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
-import javax.imageio.ImageIO;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.Dialog;
 import java.io.File;
 import java.io.IOException;
@@ -114,7 +109,7 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 
 		uriField = new BoundTextField(TAG_URI);
 		GUIHelper.installBehavior(uriField,
-			null, null,
+			this::setNewItem, null,
 			null, null,
 			builder -> {
 				builder.item("Set…", this::setNewItem);
@@ -146,26 +141,9 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	}
 
 	private void setNewItem(){
-		final JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setDialogTitle("Select Image File");
-		final String[] extensions = ImageIO.getReaderFileSuffixes();
-		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
-		fileChooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
-		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
-		final int userSelection = fileChooser.showOpenDialog(getParent());
-		if(userSelection != JFileChooser.APPROVE_OPTION)
-			return;
-
-		final File selectedFile = fileChooser.getSelectedFile();
-		if(selectedFile == null || !selectedFile.exists()){
-			JOptionPane.showMessageDialog(getParent(),
-				"Selected file does not exist.",
-				"Error", JOptionPane.ERROR_MESSAGE);
-
-			return;
-		}
-
-		uriField.setText(selectedFile.getAbsolutePath());
+		final File selectedFile = GUIHelper.selectImageFile(getParent(), uriField.getText());
+		if(selectedFile != null)
+			uriField.setText(selectedFile.getAbsolutePath());
 	}
 
 

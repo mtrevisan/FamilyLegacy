@@ -33,11 +33,14 @@ import io.github.mtrevisan.familylegacy.v2.io.grammar.FLEFGrammarValidator;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ImagePreviewAccessory;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
@@ -48,6 +51,7 @@ import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
@@ -66,6 +70,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.text.JTextComponent;
 import java.awt.Color;
 import java.awt.Component;
@@ -86,6 +91,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
@@ -840,6 +846,39 @@ public final class GUIHelper{
 		// Insert at new position
 		items.add(toIndex, item);
 		listModel.add(toIndex, display);
+	}
+
+
+	public static File selectImageFile(final Component parentComponent, final String currentUriPath){
+		final JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setDialogTitle("Select Image File");
+		final String[] extensions = ImageIO.getReaderFileSuffixes();
+		final String description = "Supported Images (" + String.join(", ", extensions) + ")";
+		fileChooser.setFileFilter(new FileNameExtensionFilter(description, extensions));
+		fileChooser.setAccessory(new ImagePreviewAccessory(fileChooser));
+
+		if(StringUtils.isNotEmpty(currentUriPath)){
+			final String dirPath = FilenameUtils.getFullPath(currentUriPath);
+			if(StringUtils.isNotEmpty(dirPath)){
+				final File parentDir = new File(dirPath);
+				if(parentDir.exists() && parentDir.isDirectory())
+					fileChooser.setCurrentDirectory(parentDir);
+			}
+		}
+
+		final int userSelection = fileChooser.showOpenDialog(parentComponent);
+		if(userSelection != JFileChooser.APPROVE_OPTION)
+			return null;
+
+		final File selectedFile = fileChooser.getSelectedFile();
+		if(selectedFile == null || !selectedFile.exists()){
+			JOptionPane.showMessageDialog(parentComponent,
+				"Selected file does not exist.",
+				"Error", JOptionPane.ERROR_MESSAGE);
+			return null;
+		}
+
+		return selectedFile;
 	}
 
 

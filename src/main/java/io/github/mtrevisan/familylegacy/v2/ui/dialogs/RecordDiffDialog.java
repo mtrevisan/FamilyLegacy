@@ -10,6 +10,7 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
@@ -167,17 +168,26 @@ public class RecordDiffDialog extends JDialog{
 	}
 
 	private void syncScrolling(final JScrollPane left, final JScrollPane right){
+		final JScrollBar leftVerticalScrollBar = left.getVerticalScrollBar();
+		final JScrollBar leftHorizontalScrollBar = left.getHorizontalScrollBar();
+		final JScrollBar rightVerticalScrollBar = right.getVerticalScrollBar();
+		final JScrollBar rightHorizontalScrollBar = right.getHorizontalScrollBar();
 		final AdjustmentListener listener = e -> {
-			if(e.getAdjustable() == left.getVerticalScrollBar())
-				right.getVerticalScrollBar().setValue(e.getValue());
-			else if(e.getAdjustable() == right.getVerticalScrollBar())
-				left.getVerticalScrollBar().setValue(e.getValue());
+			if(e.getAdjustable() == leftVerticalScrollBar)
+				rightVerticalScrollBar.setValue(e.getValue());
+			else if(e.getAdjustable() == rightVerticalScrollBar)
+				leftVerticalScrollBar.setValue(e.getValue());
+
+			if(e.getAdjustable() == leftHorizontalScrollBar)
+				rightHorizontalScrollBar.setValue(e.getValue());
+			else if(e.getAdjustable() == rightHorizontalScrollBar)
+				leftHorizontalScrollBar.setValue(e.getValue());
 		};
-		left.getVerticalScrollBar().addAdjustmentListener(listener);
-		right.getVerticalScrollBar().addAdjustmentListener(listener);
+		leftVerticalScrollBar.addAdjustmentListener(listener);
+		rightVerticalScrollBar.addAdjustmentListener(listener);
 		// Also sync horizontal scrolling
-		left.getHorizontalScrollBar().addAdjustmentListener(listener);
-		right.getHorizontalScrollBar().addAdjustmentListener(listener);
+		leftHorizontalScrollBar.addAdjustmentListener(listener);
+		rightHorizontalScrollBar.addAdjustmentListener(listener);
 	}
 
 	/**

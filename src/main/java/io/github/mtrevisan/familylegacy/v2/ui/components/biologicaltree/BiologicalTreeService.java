@@ -76,7 +76,8 @@ public class BiologicalTreeService{
 	 * @param maxGenerations depth limit (0-based: 0 = target only, 1 = target + parents, etc.)
 	 * @return the root {@link AncestorNode} of the constructed tree, or {@code null} if root is {@code null}
 	 */
-	public AncestorNode buildAncestorTree(final String rootIndividualId, final int maxGenerations){
+	public AncestorNode buildAncestorTree(final String rootIndividualId, final boolean showPartner,
+			final int maxGenerations){
 		if(StringUtils.isBlank(rootIndividualId))
 			return null;
 		final FLEFRecord rootIndividual = model.getRecordById(rootIndividualId);
@@ -88,20 +89,22 @@ public class BiologicalTreeService{
 
 		final IndividualData rootData = IndividualData.create(rootIndividual, individualToEventMap, model);
 		final AncestorNode rootNode = new AncestorNode(rootIndividual, rootData, 0);
-		final Map<IndividualData, SiblingsData> partnerChildrenDataMap = buildChildrenData(rootIndividualId);
-		if(!partnerChildrenDataMap.isEmpty()){
-			//TODO choose partner and children
-			final Map.Entry<IndividualData, SiblingsData> partnerChildrenData = partnerChildrenDataMap.entrySet().stream()
-				.filter(entry -> (entry.getKey() == null || hasPartnerRelationships(entry.getKey().getIndividualId())))
-				.findFirst()
-				.orElse(null);
-			if(partnerChildrenData != null){
-				final IndividualData partnerData = partnerChildrenData.getKey();
-				final FLEFRecord partner = (partnerData != null
-					? model.getRecordById(partnerData.getIndividualId())
-					: null);
-				final SiblingsData childrenData = partnerChildrenData.getValue();
-				rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
+		if(showPartner){
+			final Map<IndividualData, SiblingsData> partnerChildrenDataMap = buildChildrenData(rootIndividualId);
+			if(!partnerChildrenDataMap.isEmpty()){
+				//TODO choose partner and children
+				final Map.Entry<IndividualData, SiblingsData> partnerChildrenData = partnerChildrenDataMap.entrySet().stream()
+					.filter(entry -> (entry.getKey() == null || hasPartnerRelationships(entry.getKey().getIndividualId())))
+					.findFirst()
+					.orElse(null);
+				if(partnerChildrenData != null){
+					final IndividualData partnerData = partnerChildrenData.getKey();
+					final FLEFRecord partner = (partnerData != null
+						? model.getRecordById(partnerData.getIndividualId())
+						: null);
+					final SiblingsData childrenData = partnerChildrenData.getValue();
+					rootNode.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
+				}
 			}
 		}
 
@@ -408,7 +411,7 @@ public class BiologicalTreeService{
 
 
 		final BiologicalTreeService service = new BiologicalTreeService(model);
-		final AncestorNode root = service.buildAncestorTree(recordId, generations);
+		final AncestorNode root = service.buildAncestorTree(recordId, true, generations);
 		System.out.println(root);
 	}
 

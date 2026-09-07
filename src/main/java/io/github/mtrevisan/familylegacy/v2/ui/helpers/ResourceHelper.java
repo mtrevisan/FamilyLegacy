@@ -116,7 +116,7 @@ public final class ResourceHelper{
 
 	public static ImageIcon getResizedImageFromResource(final String filename, final Dimension newDimension){
 		final ImageIcon croppedImage = getCroppedImageFromResource(filename, null);
-		return resize(croppedImage, newDimension.width, newDimension.height);
+		return resizeForceEvenHeight(croppedImage, newDimension.width, newDimension.height);
 	}
 
 	public static ImageIcon getResizedImageFromResource(final String filename, final int width, final int height){
@@ -148,6 +148,28 @@ public final class ResourceHelper{
 				.size(width, height)
 				.keepAspectRatio(true)
 				.asBufferedImage();
+
+			return new ImageIcon(scaled);
+		}
+		catch(final Exception e){
+			LOGGER.error(null, e);
+		}
+		return null;
+	}
+
+	public static ImageIcon resizeForceEvenHeight(final ImageIcon icon, final int width, final int height){
+		try{
+			final BufferedImage original = toBufferedImage(icon);
+			BufferedImage scaled = Thumbnails.of(original)
+				.size(width, height)
+				.keepAspectRatio(true)
+				.asBufferedImage();
+
+			final int h = scaled.getHeight();
+			if((h & 1) != 0)
+				scaled = Thumbnails.of(scaled)
+					.forceSize(scaled.getWidth(), h + 1)
+					.asBufferedImage();
 
 			return new ImageIcon(scaled);
 		}

@@ -4,7 +4,6 @@ import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualListener;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualOperation;
@@ -18,43 +17,40 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDi
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
-import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.BorderFactory;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
-import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dialog;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.Toolkit;
 import java.awt.Window;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 
 /**
@@ -72,8 +68,6 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	private static final Color BACKGROUND_COLOR_APPLICATION = new Color(242, 238, 228);
 	private static final Color CONNECTION_LINE_COLOR = Color.BLACK;
 
-	private static final int GENERATION_SEPARATOR_SIZE = 36;
-
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_SUBJECT = "subject";
@@ -82,12 +76,8 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
 	private static final String ENUM_SEX_FEMALE = "female";
 
-
-	/**
-	 * Helper record to hold node layout metadata during BFS traversal.
-	 */
-	private record LayoutNodeItem(AncestorNode node, int depth, int col, int span){}
-
+	private TreeLayout treeLayout;
+	private boolean showPartner;
 
 	private final FLEFModel model;
 	private final BiologicalTreeService treeService;
@@ -102,19 +92,32 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 	// Children block (Generation 1)
 	private SiblingsPanel childrenPanel;
-	private JScrollPane childrenScrollPane;
 
 	private IndividualPanel selectedPanel;
 
 
-	public BiologicalTreePanel(final FLEFModel model){
+	public BiologicalTreePanel(final TreeLayout treeLayout, final FLEFModel model){
+		this.treeLayout = treeLayout;
+
 		this.model = model;
+
 		this.treeService = new BiologicalTreeService(model);
 		this.treeMutator = new AncestorTreeMutator(model, treeService, this);
 
 		setBackground(BACKGROUND_COLOR_APPLICATION);
 		setOpaque(true);
+
+
+		setupLayoutShortcut(this);
 	}
+
+
+	public BiologicalTreePanel withShowPartner(){
+		showPartner = true;
+
+		return this;
+	}
+
 
 	public void loadTree(final String rootIndividualId, final int maxGenerations){
 		this.currentRootIndividualId = rootIndividualId;
@@ -131,18 +134,21 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		}
 
 		// Build tree hierarchy from model
-		final AncestorNode rootIndividualNode = treeService.buildAncestorTree(currentRootIndividualId, currentMaxGenerations - 1 );
+		final AncestorNode rootIndividualNode = treeService.buildAncestorTree(currentRootIndividualId,
+			showPartner, currentMaxGenerations - 1);
 
 		// Clear previous UI sub-components
 		removeAll();
 		nodeToPanelMap.clear();
 
-		// Render node components and bind click listeners
-		if(rootIndividualNode != null){
+		rootNode = rootIndividualNode;
+		if(rootIndividualNode != null && showPartner){
 			final IndividualData partnerData = rootIndividualNode.getPartnerData();
 			final String partnerId = (partnerData != null? partnerData.getIndividualId(): null);
-			final AncestorNode partnerNode = treeService.buildAncestorTree(partnerId, currentMaxGenerations - 1);
-			final SexType sex = rootIndividualNode.getIndividualData().getIndividualSex();
+			final AncestorNode partnerNode = treeService.buildAncestorTree(partnerId, showPartner,
+				currentMaxGenerations - 1);
+			final SexType sex = rootIndividualNode.getIndividualData()
+				.getIndividualSex();
 
 			rootNode = new AncestorNode(rootIndividualNode.getBiologicalChildrenData());
 			if(sex == SexType.FEMALE){
@@ -153,9 +159,9 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 				rootNode.setFather(rootIndividualNode);
 				rootNode.setMother(partnerNode);
 			}
-
-			buildLayout();
 		}
+
+		buildLayout();
 
 		// Force Swing repaint and recalculate layout
 		revalidate();
@@ -167,141 +173,10 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	 * Each node represents a couple (individual + partner).
 	 */
 	private void buildLayout(){
-		final int ancestorLevels = Math.max(1, currentMaxGenerations - 1);
-		final int maxDepth = ancestorLevels - 1;
-		final int maxLeafColumns = 1 << maxDepth;
+		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(this, rootNode,
+			showPartner, currentMaxGenerations, model, nodeToPanelMap, this, treeMutator, treeLayout);
 
-		// Constructing MigLayout constraints
-		final StringBuilder colConstraints = new StringBuilder();
-		for(int i = 0; i < maxLeafColumns; i ++){
-			if(i > 0)
-				colConstraints.append(PartnersPanel.GROUP_SEPARATION);
-			colConstraints.append("[grow,center]");
-		}
-
-		// Rows: ascending levels (excluding root) + root
-		final StringBuilder rowConstraints = new StringBuilder();
-		for(int i = 0; i <= maxDepth; i ++){
-			if(i > 0)
-				rowConstraints.append(GENERATION_SEPARATOR_SIZE);
-			rowConstraints.append("[]");
-		}
-		// children row
-		rowConstraints.append(GENERATION_SEPARATOR_SIZE).append("[]");
-
-		setLayout(new MigLayout("ins 0", colConstraints.toString(), rowConstraints.toString()));
-
-		final Deque<LayoutNodeItem> stack = new ArrayDeque<>();
-		stack.push(new LayoutNodeItem(rootNode, 0, 0, maxLeafColumns));
-		while(!stack.isEmpty()){
-			final LayoutNodeItem item = stack.pop();
-
-			final AncestorNode node = item.node;
-			final int depth = item.depth;
-			final int col = item.col;
-			final int span = item.span;
-
-			final int row = maxDepth - depth;
-
-			// PRUNING RULE: Do not render upper empty ancestor slots if node is null
-			if(node == null && depth > 0)
-				continue;
-
-			// Create a panel for this node (or an empty placeholder if node is null)
-			final PartnersPanel panel = createPanelForNode(node,
-				(depth == 0? BoxPanelType.PRIMARY: BoxPanelType.SECONDARY));
-			if(node != null)
-				nodeToPanelMap.put(node, panel);
-
-			// Add the panel at the computed cell
-			add(panel, "cell " + col + " " + row + ", span " + span + ", grow");
-
-			// Push parents onto stack ONLY if the current node exists
-			// NOTE: Push MOTHER first, then FATHER, so that FATHER is processed first (LIFO order).
-			if(depth < maxDepth && node != null){
-				final int nextDepth = depth + 1;
-				final int halfSpan = span >> 1;
-
-				final AncestorNode motherNode = node.getMother();
-				stack.push(new LayoutNodeItem(motherNode, nextDepth, col + halfSpan, halfSpan));
-
-				final AncestorNode fatherNode = node.getFather();
-				stack.push(new LayoutNodeItem(fatherNode, nextDepth, col, halfSpan));
-			}
-		}
-
-		// Extract root parent records for children panel
-		final FLEFRecord father = (rootNode != null && rootNode.getFather() != null
-			? rootNode.getFather().getIndividual()
-			: null);
-		final FLEFRecord mother = (rootNode != null && rootNode.getMother() != null
-			? rootNode.getMother().getIndividual()
-			: null);
-
-		// Add children (below)
-		childrenPanel = createChildrenPanel(father, mother);
-		childrenScrollPane = createChildrenScrollPane(childrenPanel);
-		add(childrenScrollPane, "cell 0 " + (maxDepth + 1) + ",span " + maxLeafColumns + ",center");
-	}
-
-	private PartnersPanel createPanelForNode(final AncestorNode node, final BoxPanelType type){
-		final PartnersPanel panel = PartnersPanel.create(type, model)
-			.withListener(this);
-		panel.addMouseListener(new MouseAdapter(){
-			@Override
-			public void mouseClicked(final MouseEvent e){
-				final String clickedId = node.getIndividualId();
-				if(clickedId != null)
-					treeMutator.navigateToRoot(clickedId);
-			}
-		});
-
-		if(node != null){
-			final AncestorNode fatherNode = node.getFather();
-			final AncestorNode motherNode = node.getMother();
-			final AncestorNode fatherFather = (fatherNode != null? fatherNode.getFather(): null);
-			final AncestorNode fatherMother = (fatherNode != null? fatherNode.getMother(): null);
-			final AncestorNode motherFather = (motherNode != null? motherNode.getFather(): null);
-			final AncestorNode motherMother = (motherNode != null? motherNode.getMother(): null);
-			panel.getFatherPanel()
-				.withParent((fatherFather != null? fatherFather.getIndividual(): null),
-					(fatherMother != null? fatherMother.getIndividual(): null));
-			panel.getMotherPanel()
-				.withParent((motherFather != null? motherFather.getIndividual(): null),
-					(motherMother != null? motherMother.getIndividual(): null));
-
-			final AncestorNode father = node.getFather();
-			final AncestorNode mother = node.getMother();
-			final IndividualData fatherData = (father != null? father.getIndividualData(): null);
-			final IndividualData motherData = (mother != null? mother.getIndividualData(): null);
-			panel.withBiologicalParents(fatherData, motherData);
-		}
-		return panel;
-	}
-
-	private SiblingsPanel createChildrenPanel(final FLEFRecord father, final FLEFRecord mother){
-		final SiblingsPanel panel = SiblingsPanel.create(father, mother, BoxPanelType.SECONDARY, model)
-			.withListener(this);
-		if(rootNode != null)
-			panel.withSiblingsData(rootNode.getBiologicalChildrenData());
-		return panel;
-	}
-
-	private JScrollPane createChildrenScrollPane(final JPanel content){
-		final JScrollPane scrollPane = new JScrollPane(content);
-		scrollPane.setOpaque(false);
-		scrollPane.getViewport()
-			.setOpaque(false);
-		scrollPane.setBorder(null);
-		scrollPane.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
-
-		// Dynamically compute horizontal scrollbar height to avoid overlapping children panels
-		final JScrollBar horizontalScrollBar = scrollPane.getHorizontalScrollBar();
-		final int scrollBarHeight = horizontalScrollBar.getPreferredSize()
-			.height;
-		content.setBorder(BorderFactory.createEmptyBorder(0, 0, scrollBarHeight, 0));
-
-		return scrollPane;
+		this.childrenPanel = result.childrenPanel();
 	}
 
 	@Override
@@ -315,82 +190,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			g2.setColor(CONNECTION_LINE_COLOR);
 			g2.setStroke(PartnersPanel.CONNECTION_STROKE);
 
-			drawTreeConnections(g2);
-			drawChildrenConnections(g2);
-		}
-	}
-
-	/**
-	 * Iteratively traverses all tree nodes using a Queue (BFS) to draw connection lines between parents and children.
-	 */
-	private void drawTreeConnections(final Graphics2D g2){
-		if(rootNode == null)
-			return;
-
-		final Queue<AncestorNode> queue = new ArrayDeque<>();
-		queue.add(rootNode);
-		while(!queue.isEmpty()){
-			final AncestorNode node = queue.poll();
-			final PartnersPanel nodePanel = nodeToPanelMap.get(node);
-
-			final AncestorNode father = node.getFather();
-			if(father != null){
-				final PartnersPanel fatherPanel = nodeToPanelMap.get(father);
-				if(fatherPanel != null && nodePanel != null){
-					Point enter = nodePanel.getPaintingFatherEnterPoint();
-					enter = SwingUtilities.convertPoint(nodePanel, enter, this);
-					connectParentToChild(fatherPanel, enter, g2);
-				}
-				queue.add(father);
-			}
-
-			final AncestorNode mother = node.getMother();
-			if(mother != null){
-				final PartnersPanel motherPanel = nodeToPanelMap.get(mother);
-				if(motherPanel != null && nodePanel != null){
-					Point enter = nodePanel.getPaintingMotherEnterPoint();
-					enter = SwingUtilities.convertPoint(nodePanel, enter, this);
-					connectParentToChild(motherPanel, enter, g2);
-				}
-				queue.add(mother);
-			}
-		}
-	}
-
-	private void connectParentToChild(final PartnersPanel parentGroupPanel, final Point childEnterPoint,
-			final Graphics2D g2){
-		Point parentExit = parentGroupPanel.getPaintingExitPoint();
-		parentExit = SwingUtilities.convertPoint(parentGroupPanel, parentExit, this);
-
-		// Vertical line extending out from parent group
-		final int midY = (childEnterPoint.y + parentExit.y + PartnersPanel.GROUP_EXITING_HEIGHT) / 2;
-		g2.drawLine(parentExit.x, parentExit.y,
-			parentExit.x, midY);
-
-		// Vertical line entering into child panel
-		g2.drawLine(childEnterPoint.x, childEnterPoint.y,
-			childEnterPoint.x, midY);
-
-		// Horizontal connecting line
-		g2.drawLine(parentExit.x, midY,
-			childEnterPoint.x, midY);
-	}
-
-	private void drawChildrenConnections(final Graphics2D g2){
-		if(rootNode == null || childrenPanel == null)
-			return;
-
-		final PartnersPanel homePanel = nodeToPanelMap.get(rootNode);
-		final Point[] childEnterPoints = childrenPanel.getPaintingEnterPoints();
-
-		if(homePanel != null && childEnterPoints.length > 0){
-			Point homeExit = homePanel.getPaintingExitPoint();
-			homeExit = SwingUtilities.convertPoint(homePanel, homeExit, this);
-
-			// Vertical line exiting home group
-			final int connectY = childrenScrollPane.getY() + childEnterPoints[0].y - GENERATION_SEPARATOR_SIZE / 2;
-			g2.drawLine(homeExit.x, homeExit.y,
-				homeExit.x, connectY);
+			TreeRenderer.drawTree(g2, treeLayout, rootNode, nodeToPanelMap, childrenPanel, this);
 		}
 	}
 
@@ -402,7 +202,6 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	}
 
 
-	// NOTE: Operation handled ONLY by UI/Panel
 	@Override
 	public void onIndividualEdit(final FLEFRecord individual){
 		if(individual == null)
@@ -418,14 +217,12 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	}
 
 
-	// NOTE: Operation delegated to AncestorTreeMutator
 	@Override
 	public void onIndividualSelected(final FLEFRecord individual){
 		if(individual != null && individual.getId() != null)
 			treeMutator.navigateToRoot(individual.getId());
 	}
 
-	// NOTE: Operation delegated to AncestorTreeMutator
 	@Override
 	public void onIndividualRemove(final FLEFRecord individual){
 		if(individual == null)
@@ -460,71 +257,22 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			? this::showCreateIndividualDialog
 			: this::showSearchIndividualDialog);
 
-		final Component parent = SiblingsPanel.findContainingSiblingsPanel(selectedPanel.getParent());
-		final boolean addChild = (parent != null);
-
-		if(addChild){
-			// add child
-			final String fatherId = (father != null? father.getId(): null);
-			final String motherId = (mother != null? mother.getId(): null);
-			final FLEFRecord newChild = fnOperation.apply(null);
-			if(newChild == null)
-				return;
-
-			treeMutator.addChildToParents(fatherId, motherId, newChild);
-
-			// Invalidate cache and refresh
-			treeMutator.invalidateAndNotifyTreeChanged(rootIndividualId);
-
-			return;
-		}
-
-
-		final PartnersPanel partnerPanel = PartnersPanel.findContainingPartnersPanel(selectedPanel.getParent());
-		if(partnerPanel == null)
-			return;
-		final boolean addParent = partnerPanel.isEmpty();
-		final Side side = partnerPanel.getSideOf(selectedPanel);
-
-		final FLEFRecord newIndividual = fnOperation.apply(side == Side.LEFT? SexType.MALE: SexType.FEMALE);
-		if(newIndividual == null)
-			return;
-
-		if(addParent){
-			// add parent
-
-			// Retrieve the child ID from the AncestorNode that owns this PartnersPanel.
-			// The nodeToPanelMap maps each node to its UI panel.
-			final String childId = nodeToPanelMap.entrySet().stream()
-				.filter(entry -> entry.getValue() == partnerPanel)
-				.findFirst()
-				.map(Map.Entry::getKey)
-				.map(AncestorNode::getIndividualId)
-				.orElse(null);
-
-			// Establish the parent-child relationship in the model
-			treeMutator.addParentToChild(childId, newIndividual);
-		}
-		else{
-			// add partner
-			// Determine which side we are adding (male on the left, female on the right)
-			final boolean isFemale = (side == Side.RIGHT);
-			final String partnerId = (isFemale? partnerPanel.getFatherPanel(): partnerPanel.getMotherPanel())
-				.getData()
-				.getIndividualId();
-
-			// Before adding, find existing children of the partnerId
-			final List<FLEFRecord> children = findChildren(partnerId);
-
-			treeMutator.addPartnerToIndividual(partnerId, newIndividual);
-
-			// For each child, add relationship to new partner
-			for(final FLEFRecord child : children)
-				treeMutator.addParentToChild(child.getId(), newIndividual);
-		}
-
-		// Invalidate cache and refresh
-		treeMutator.invalidateAndNotifyTreeChanged(rootIndividualId);
+		performRelationOperation(
+			() -> {
+				// Determine sex from context (optional)
+				final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap);
+				SexType sex = null;
+				if(ctx != null && ctx.type == TreeContextHelper.Context.Type.PARENT)
+					sex = (ctx.side == Side.LEFT? SexType.MALE: SexType.FEMALE);
+				else if(ctx != null && ctx.type == TreeContextHelper.Context.Type.PARTNER)
+					sex = (ctx.side == Side.LEFT? SexType.FEMALE: SexType.MALE);
+				return fnOperation.apply(sex);
+			},
+			father, mother,
+			// not a paste
+			false,
+			rootIndividualId
+		);
 	}
 
 	/**
@@ -647,67 +395,61 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 			return;
 
 		final FLEFRecord source = clipboard.getRecord();
+		performRelationOperation(
+			() -> source,
+			father, mother,
+			// paste
+			true,
+			getRootIndividualId()
+		);
 
-		final String rootIndividualId = getRootIndividualId();
+		clipboard.clear();
+	}
 
-		final Component parent = SiblingsPanel.findContainingSiblingsPanel(selectedPanel.getParent());
-		final boolean addChild = (parent != null);
+	/**
+	 * Performs the core logic for adding, linking, or pasting an individual.
+	 *
+	 * @param individualSupplier provides the individual to be added/linked/pasted
+	 * @param father             the father record (may be null)
+	 * @param mother             the mother record (may be null)
+	 * @param isPaste            if true, the source individual will be unlinked from all previous relations
+	 * @param rootId             the current root id for refreshing the tree
+	 */
+	private void performRelationOperation(final Supplier<FLEFRecord> individualSupplier, final FLEFRecord father,
+			final FLEFRecord mother, final boolean isPaste, final String rootId){
+		final TreeContextHelper.Context ctx = TreeContextHelper.determineContext(selectedPanel, nodeToPanelMap);
+		if(ctx == null)
+			return;
 
-		// Disconnect the individual from all relationships
-		final List<String> relationshipIds = extractRelationships(source.getId());
-		treeMutator.removeRelationships(relationshipIds);
+		final FLEFRecord individual = individualSupplier.get();
+		if(individual == null)
+			return;
+
+		// If paste, unlink from all previous relations
+		if(isPaste){
+			final List<String> relIds = extractRelationships(individual.getId());
+			treeMutator.removeRelationships(relIds);
+		}
 
 		final String fatherId = (father != null? father.getId(): null);
 		final String motherId = (mother != null? mother.getId(): null);
 
-		if(addChild)
-			// Paste as child of the provided parents
-			treeMutator.addChildToParents(fatherId, motherId, source);
-		else{
-			final PartnersPanel partnerPanel = PartnersPanel.findContainingPartnersPanel(selectedPanel.getParent());
+		switch(ctx.type){
+			case CHILD:
+				treeMutator.addChildToParents(fatherId, motherId, individual);
+				break;
 
-			if(partnerPanel == null){
-				clipboard.clear();
+			case PARENT:
+				treeMutator.addParentToChild(ctx.childId, individual);
+				break;
 
-				// Invalidate cache and refresh
-				treeMutator.invalidateAndNotifyTreeChanged(rootIndividualId);
-
-				return;
-			}
-
-			final boolean addParent = partnerPanel.isEmpty();
-			final Side side = partnerPanel.getSideOf(selectedPanel);
-
-			if(addParent){
-				// Paste as parent of the child associated with this PartnersPanel
-				final String childId = nodeToPanelMap.entrySet().stream()
-					.filter(entry -> entry.getValue() == partnerPanel)
-					.findFirst()
-					.map(Map.Entry::getKey)
-					.map(AncestorNode::getIndividualId)
-					.orElse(null);
-				if(childId != null)
-					treeMutator.addParentToChild(childId, source);
-			}
-			else{
-				// Paste as a partner of the existing individual
-				final boolean isFemale = (side == Side.RIGHT);
-				final IndividualData partnerData = (isFemale? partnerPanel.getFatherPanel(): partnerPanel.getMotherPanel())
-					.getData();
-				final String partnerId = partnerData.getIndividualId();
-				if(partnerId != null){
-					final boolean isPartnerFemale = (partnerData.getIndividualSex() == SexType.FEMALE);
-					final boolean isSourceFemale = ENUM_SEX_FEMALE.equals(FLEFRecordHelper.getChildValue(source, TAG_SEX));
-					if(isPartnerFemale ^ isSourceFemale)
-						treeMutator.addPartnerToIndividual(partnerId, source);
-				}
-			}
+			case PARTNER:
+				// Optionally check gender compatibility here if needed
+				treeMutator.addPartnerToIndividual(ctx.targetId, individual);
 		}
 
-		// Clear the clipboard and update the tree
-		clipboard.clear();
-
-		treeMutator.invalidateAndNotifyTreeChanged(rootIndividualId);
+		// Invalidate cache and refresh tree
+		treeMutator.invalidateAndNotifyTreeChanged(rootId);
 	}
 
 	/**
@@ -746,6 +488,39 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	}
 
 
+	public void setupLayoutShortcut(final JComponent component){
+		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		final ActionMap actionMap = component.getActionMap();
+
+		final KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+
+		inputMap.put(keyStroke, "toggleTreeLayout");
+		actionMap.put("toggleTreeLayout", new AbstractAction(){
+			@Serial
+			private static final long serialVersionUID = -2768341528368853112L;
+
+			@Override
+			public void actionPerformed(final ActionEvent e){
+				toggleLayout();
+			}
+		});
+	}
+
+	private void toggleLayout(){
+		this.treeLayout = (this.treeLayout == TreeLayout.VERTICAL)
+			? TreeLayout.HORIZONTAL
+			: TreeLayout.VERTICAL;
+
+		refreshTree();
+
+		final Window window = SwingUtilities.getWindowAncestor(this);
+		if(window != null){
+			window.pack();
+			window.setLocationRelativeTo(null);
+		}
+	}
+
+
 	public static void main(final String[] args) throws IOException{
 		try{
 			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
@@ -765,7 +540,11 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		final FLEFModel model = parser.parse(content);
 
 		SwingUtilities.invokeLater(() -> {
-			final BiologicalTreePanel panel = new BiologicalTreePanel(model);
+			final BiologicalTreePanel panel = new BiologicalTreePanel(TreeLayout.VERTICAL, model)
+				//TODO con la riga commentata, se si naviga l'albero, non è possibile tornare indietro per la mancanza dei figli
+				//	come risolve gramps?
+				.withShowPartner()
+				;
 			panel.loadTree(rootIndividualId, maxGenerations);
 
 			final JFrame frame = new JFrame();

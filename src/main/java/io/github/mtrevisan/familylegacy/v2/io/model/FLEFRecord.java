@@ -163,7 +163,7 @@ public class FLEFRecord{
 	}
 
 	public FLEFRecord setTag(final String tag){
-		this.tag = (tag != null ? tag.toLowerCase(Locale.ROOT) : null);
+		this.tag = (tag != null? tag.toLowerCase(Locale.ROOT): null);
 
 		return this;
 	}

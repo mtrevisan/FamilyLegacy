@@ -12,12 +12,18 @@ import java.util.Set;
  */
 public final class SiblingsData{
 
+	// whether only the root should be visile
+	private final boolean onlyRoot;
 	private final List<IndividualData> siblings;
 	private final Set<String> siblingIdsWithDescendants;
 
 
 	public static SiblingsData create(final List<IndividualData> siblings, final Set<String> siblingIdsWithDescendants){
 		return new SiblingsData(siblings, siblingIdsWithDescendants);
+	}
+
+	public static SiblingsData createSingleChild(final IndividualData siblings){
+		return new SiblingsData(Collections.singletonList(siblings), null);
 	}
 
 
@@ -28,10 +34,19 @@ public final class SiblingsData{
 	 * @param siblingIdsWithDescendants     set of individual IDs that have descendants
 	 */
 	private SiblingsData(final List<IndividualData> siblings, final Set<String> siblingIdsWithDescendants){
-		this.siblings = (siblings != null? Collections.unmodifiableList(siblings): Collections.emptyList());
-		this.siblingIdsWithDescendants = siblingIdsWithDescendants;
+		onlyRoot = (siblingIdsWithDescendants == null);
+		this.siblings = (siblings != null
+			? Collections.unmodifiableList(siblings)
+			: Collections.emptyList());
+		this.siblingIdsWithDescendants = (siblingIdsWithDescendants != null
+			? siblingIdsWithDescendants
+			: Collections.emptySet());
 	}
 
+
+	public boolean isOnlyRoot(){
+		return onlyRoot;
+	}
 
 	public List<IndividualData> getSiblings(){
 		return siblings;

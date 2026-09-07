@@ -20,7 +20,7 @@ public class AuditBuilder{
 
 	public static FLEFRecord build(GEDCOMNode node){
 		FLEFRecord audit = FLEFRecord.createChildWithTag("audit");
-		GEDCOMNode chanNode = (node != null) ? GEDCOMHelper.findFirstChild(node, "CHAN") : null;
+		GEDCOMNode chanNode = (node != null? GEDCOMHelper.findFirstChild(node, "CHAN"): null);
 
 		// Extraction of CHAN -> DATE and TIME
 		String isoDateTime = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.DAYS));

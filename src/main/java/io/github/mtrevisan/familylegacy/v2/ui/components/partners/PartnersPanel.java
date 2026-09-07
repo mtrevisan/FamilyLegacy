@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.partners;
 import io.github.mtrevisan.familylegacy.v2.io.FLEFParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.ui.components.biologicaltree.TreeLayout;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.BoxPanelType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualListener;
@@ -63,7 +64,7 @@ import java.util.Objects;
 
 /**
  * Panel representing a couple (two partners) with their biological parent information.
- * It displays two IndividualPanels side by side with a connector between them.
+ * It displays two IndividualPanels side by side or vertically with a connector between them.
  */
 public class PartnersPanel extends JPanel{
 
@@ -82,7 +83,7 @@ public class PartnersPanel extends JPanel{
 		(int)(PREVIOUS_NEXT_WIDTH * PREVIOUS_NEXT_ASPECT_RATIO));
 	/** Height of the group line from the bottom of the individual panel [px]. */
 	private static final int GROUP_CONNECTION_HEIGHT = 15;
-	private static final Dimension GROUP_PANEL_DIMENSION = new Dimension(14, 12);
+	private static final Dimension GROUP_PANEL_DIMENSION = new Dimension(12, 12);
 	public static final int GROUP_EXITING_HEIGHT = GROUP_CONNECTION_HEIGHT - GROUP_PANEL_DIMENSION.height / 2;
 	private static final int HALF_PARTNER_SEPARATION = 6;
 	public static final int GROUP_SEPARATION = HALF_PARTNER_SEPARATION + GROUP_PANEL_DIMENSION.width
@@ -143,6 +144,7 @@ public class PartnersPanel extends JPanel{
 	private JPanel arrowMotherPanel;
 
 	private final BoxPanelType boxType;
+	private final TreeLayout treeLayout;
 
 	private FLEFRecord individual;
 	private FLEFRecord group;
@@ -157,13 +159,14 @@ public class PartnersPanel extends JPanel{
 	private IndividualListener listener;
 
 
-	public static PartnersPanel create(final BoxPanelType boxType, final FLEFModel model){
-		return new PartnersPanel(boxType, model);
+	public static PartnersPanel create(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
+		return new PartnersPanel(boxType, treeLayout, model);
 	}
 
 
-	private PartnersPanel(final BoxPanelType boxType, final FLEFModel model){
+	private PartnersPanel(final BoxPanelType boxType, final TreeLayout treeLayout, final FLEFModel model){
 		this.boxType = boxType;
+		this.treeLayout = treeLayout;
 
 		this.model = model;
 
@@ -176,6 +179,8 @@ public class PartnersPanel extends JPanel{
 
 
 	private void initComponents(){
+		groupPanel.setMinimumSize(GROUP_PANEL_DIMENSION);
+		groupPanel.setMaximumSize(GROUP_PANEL_DIMENSION);
 		groupPanel.setBackground(GROUP_BACKGROUND);
 		groupPanel.setBorder(BorderFactory.createDashedBorder(BORDER_COLOR));
 
@@ -217,12 +222,22 @@ public class PartnersPanel extends JPanel{
 		arrowMotherPanel.add(motherPanel, "left");
 		arrowMotherPanel.setOpaque(false);
 
-		setLayout(new MigLayout("ins 0",
-			"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
-			"[bottom]"));
-		add(arrowFatherPanel, "right,grow");
-		add(groupPanel, "gapbottom " + GROUP_EXITING_HEIGHT);
-		add(arrowMotherPanel, "left,grow");
+		if(treeLayout == TreeLayout.VERTICAL){
+			setLayout(new MigLayout("ins 0",
+				"[right,grow]" + HALF_PARTNER_SEPARATION + "[center,grow]" + HALF_PARTNER_SEPARATION + "[left,grow]",
+				"[bottom]"));
+			add(arrowFatherPanel, "right,grow");
+			add(groupPanel, "gapbottom " + GROUP_EXITING_HEIGHT);
+			add(arrowMotherPanel, "left,grow");
+		}
+		else{
+			setLayout(new MigLayout("ins 0",
+				"[left]",
+				"[bottom,grow]" + HALF_PARTNER_SEPARATION + "[center]" + HALF_PARTNER_SEPARATION + "[top,grow]"));
+			add(arrowFatherPanel, "wrap");
+			add(groupPanel, "gapleft " + GROUP_EXITING_HEIGHT + ",gaptop " + NAVIGATION_ARROW_HEIGHT + ",wrap");
+			add(arrowMotherPanel, "grow");
+		}
 
 		setOpaque(false);
 	}
@@ -237,12 +252,24 @@ public class PartnersPanel extends JPanel{
 
 			g2.setStroke(CONNECTION_STROKE);
 
-			final int xFrom = arrowFatherPanel.getX() + arrowFatherPanel.getWidth();
-			final int xTo = arrowMotherPanel.getX();
-			final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight() - GROUP_CONNECTION_HEIGHT;
-			//horizontal line between partners
-			g2.drawLine(xFrom, yFrom,
-				xTo, yFrom);
+			if(treeLayout == TreeLayout.VERTICAL){
+				final int xFrom = arrowFatherPanel.getX() + arrowFatherPanel.getWidth();
+				final int xTo = arrowMotherPanel.getX();
+				final int y = arrowFatherPanel.getY() + arrowFatherPanel.getHeight() - GROUP_CONNECTION_HEIGHT;
+
+				// Horizontal connection line between partners
+				g2.drawLine(xFrom, y,
+					xTo, y);
+			}
+			else{
+				final int x = arrowFatherPanel.getX() + GROUP_CONNECTION_HEIGHT;
+				final int yFrom = arrowFatherPanel.getY() + arrowFatherPanel.getHeight();
+				final int yTo = arrowMotherPanel.getY() + NAVIGATION_ARROW_HEIGHT;
+
+				// Vertical connection line between partners
+				g2.drawLine(x, yFrom,
+					x, yTo);
+			}
 
 			//for test purposes
 //			pointTest(g2);
@@ -253,7 +280,6 @@ public class PartnersPanel extends JPanel{
 
 	private void pointTest(final Graphics2D g2){
 		final Point enterPoint1 = getPaintingFatherEnterPoint();
-
 		GUIHelper.drawX(g2, enterPoint1);
 
 		final Point enterPoint2 = getPaintingMotherEnterPoint();
@@ -885,21 +911,36 @@ public class PartnersPanel extends JPanel{
 
 
 	public final Point getPaintingFatherEnterPoint(){
-		final Point p = fatherPanel.getPaintingEnterPoint();
+		final Point p;
+		if(treeLayout == TreeLayout.VERTICAL)
+			p = fatherPanel.getPaintingVerticalEnterPoint();
+		else
+			p = new Point(fatherPanel.getWidth() / 2, 0);
 		return SwingUtilities.convertPoint(fatherPanel, p, this);
 	}
 
 	public final Point getPaintingMotherEnterPoint(){
-		final Point p = motherPanel.getPaintingEnterPoint();
+		final Point p;
+		if(treeLayout == TreeLayout.VERTICAL)
+			p = motherPanel.getPaintingVerticalEnterPoint();
+		else
+			p = new Point(motherPanel.getWidth() / 2, motherPanel.getHeight() - 1);
 		return SwingUtilities.convertPoint(motherPanel, p, this);
 	}
 
 	public final Point getPaintingExitPoint(){
-		Point p1 = fatherPanel.getPaintingEnterPoint();
+		if(treeLayout == TreeLayout.VERTICAL){
+			Point p1 = fatherPanel.getPaintingVerticalEnterPoint();
+			p1 = SwingUtilities.convertPoint(fatherPanel, p1, this);
+			Point p2 = motherPanel.getPaintingVerticalEnterPoint();
+			p2 = SwingUtilities.convertPoint(motherPanel, p2, this);
+			return new Point((p1.x + p2.x) / 2, getHeight() - GROUP_EXITING_HEIGHT - 1);
+		}
+		Point p1 = fatherPanel.getPaintingHorizontalEnterPoint();
 		p1 = SwingUtilities.convertPoint(fatherPanel, p1, this);
-		Point p2 = motherPanel.getPaintingEnterPoint();
+		Point p2 = motherPanel.getPaintingHorizontalEnterPoint();
 		p2 = SwingUtilities.convertPoint(motherPanel, p2, this);
-		return new Point((p1.x + p2.x) / 2, getHeight() - GROUP_EXITING_HEIGHT);
+		return new Point(GROUP_EXITING_HEIGHT, (p1.y + p2.y - 1) / 2);
 	}
 
 
@@ -935,7 +976,7 @@ public class PartnersPanel extends JPanel{
 
 
 		EventQueue.invokeLater(() -> {
-			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, model);
+			final PartnersPanel panel = PartnersPanel.create(BoxPanelType.PRIMARY, TreeLayout.VERTICAL, model);
 //			panel.withBiologicalParents(recordId);
 //			panel.setGroupListener(groupListener);
 //			panel.setPersonListener(personListener);
