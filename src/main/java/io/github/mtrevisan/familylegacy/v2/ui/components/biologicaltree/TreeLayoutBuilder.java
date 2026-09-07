@@ -15,6 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingUtilities;
 import java.awt.ComponentOrientation;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -173,10 +174,12 @@ public final class TreeLayoutBuilder{
 			.withListener(listener);
 		panel.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final MouseEvent e){
-				final String clickedId = node.getIndividualId();
-				if(clickedId != null)
-					mutator.navigateToRoot(clickedId);
+			public void mousePressed(final MouseEvent e){
+				if(SwingUtilities.isLeftMouseButton(e)){
+					final String clickedId = node.getIndividualId();
+					if(clickedId != null)
+						mutator.navigateToRoot(clickedId);
+				}
 			}
 		});
 

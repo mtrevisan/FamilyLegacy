@@ -118,7 +118,10 @@ public final class GUIHelper{
 	public static final KeyStroke CTRL_DOWN_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, InputEvent.CTRL_DOWN_MASK);
 
 	public static final KeyStroke UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK);
+	public static final KeyStroke MAC_UNDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Z, KeyEvent.CTRL_DOWN_MASK | InputEvent.SHIFT_DOWN_MASK);
 	public static final KeyStroke REDO_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_Y, KeyEvent.CTRL_DOWN_MASK);
+
+	public static final KeyStroke CTRL_L_STROKE = KeyStroke.getKeyStroke(KeyEvent.VK_L, KeyEvent.CTRL_DOWN_MASK);
 
 	private static final Color COLOR_BACKGROUND = UIManager.getColor("TextField.background");
 	public static final Color COLOR_FOREGROUND_ENABLED = UIManager.getColor("TextField.foreground");
@@ -220,19 +223,15 @@ public final class GUIHelper{
 		// Mouse listener for popup trigger and double‑click
 		component.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final MouseEvent me){
-				if(me.getClickCount() == 2 && hasSelection.get()){
-					if(shiftDoubleClickAction != null && me.isShiftDown())
+			public void mousePressed(final MouseEvent e){
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && hasSelection.get()){
+					if(shiftDoubleClickAction != null && e.isShiftDown())
 						shiftDoubleClickAction.run();
 					else if(doubleClickAction != null)
 						doubleClickAction.run();
 				}
-			}
-
-			@Override
-			public void mousePressed(final MouseEvent me){
-				if(me.isPopupTrigger())
-					showPopup(me);
+				else if(e.isPopupTrigger())
+					showPopup(e);
 			}
 
 			@Override
@@ -279,8 +278,8 @@ public final class GUIHelper{
 		if(component instanceof JList<?> list)
 			return () -> (list.getSelectedIndex() != -1);
 
-		if(component instanceof JTextComponent textComp)
-			return () -> (StringUtils.isNotBlank(textComp.getText()) && !isPlaceholder(textComp.getText()));
+		if(component instanceof JTextComponent)
+			return () -> true;
 
 		if(component instanceof JButton button)
 			return () -> {
@@ -751,7 +750,7 @@ public final class GUIHelper{
 		list.addMouseListener(new MouseAdapter(){
 			@Override
 			public void mousePressed(final MouseEvent e){
-				if(list.getSelectedIndex() < 0){
+				if(list.getSelectedIndex() < 0 && SwingUtilities.isLeftMouseButton(e)){
 					final int index = list.locationToIndex(e.getPoint());
 					if(index >= 0)
 						list.setSelectedIndex(index);

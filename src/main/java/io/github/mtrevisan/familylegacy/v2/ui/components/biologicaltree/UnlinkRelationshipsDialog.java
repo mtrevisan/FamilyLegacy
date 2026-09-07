@@ -238,12 +238,14 @@ public class UnlinkRelationshipsDialog extends JDialog{
 		// Double-click on the text area opens the edit dialog for the entity
 		textArea.addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final MouseEvent e){
-				if (e.getClickCount() == 1)
-					// Toggle the checkbox on single click
-					cb.setSelected(!cb.isSelected());
-				else if(e.getClickCount() == 2 && entityId != null)
-					editEntity(entityId);
+			public void mousePressed(final MouseEvent e){
+				if(SwingUtilities.isLeftMouseButton(e)){
+					if(e.getClickCount() == 1)
+						// Toggle the checkbox on single click
+						cb.setSelected(!cb.isSelected());
+					else if(e.getClickCount() == 2 && entityId != null)
+						editEntity(entityId);
+				}
 			}
 		});
 

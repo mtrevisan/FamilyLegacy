@@ -127,14 +127,14 @@ public class SiblingsPanel extends JPanel{
 					final int lastChildX = enterPoints[enterPoints.length - 1].x;
 
 					// Horizontal line spanning from first to last child
-					g2.drawLine(firstChildX, 0,
-						lastChildX, 0);
+					g2.drawLine(firstChildX, 1,
+						lastChildX, 1);
 
 					// Vertical line connecting the children
 					for(int i = 0; i < enterPoints.length; i ++){
 						final Point point = enterPoints[i];
 						g2.drawLine(point.x, point.y,
-							point.x, 0);
+							point.x, 1);
 					}
 				}
 				else{

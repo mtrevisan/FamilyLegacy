@@ -102,9 +102,9 @@ public class IndividualAttributeHandler extends AbstractRecordTypeHandler<Indivi
 		final String value = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
 		final StringBuilder sb = new StringBuilder();
 		if(type != null)
-			sb.append('(')
+			sb.append('[')
 				.append(type)
-				.append(')');
+				.append(']');
 		if(StringUtils.isNotEmpty(value)){
 			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);

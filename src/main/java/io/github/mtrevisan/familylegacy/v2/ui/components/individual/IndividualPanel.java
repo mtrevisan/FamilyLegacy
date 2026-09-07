@@ -440,7 +440,7 @@ public class IndividualPanel extends JPanel{
 		if(boxType == BoxPanelType.SECONDARY){
 			final MouseAdapter selectedAdapter = new MouseAdapter(){
 				@Override
-				public void mouseClicked(final MouseEvent e){
+				public void mousePressed(final MouseEvent e){
 					if(SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
 						final FLEFRecord individual = getRecordFromData();
 						if(individual != null)
@@ -454,9 +454,8 @@ public class IndividualPanel extends JPanel{
 		// Double-click to edit
 		addMouseListener(new MouseAdapter(){
 			@Override
-			public void mouseClicked(final MouseEvent e){
-				if(e.getClickCount() == 2
-						&& SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
+			public void mousePressed(final MouseEvent e){
+				if(e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e) && listener != null && data != null){
 					final FLEFRecord individual = getRecordFromData();
 					if(individual != null)
 						listener.onIndividualEdit(individual);

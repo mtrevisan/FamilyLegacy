@@ -181,7 +181,10 @@ if(uri != null)
 			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
 			final FLEFRecord document = model.getRecordById(selectedRecord.getId());
 			if(document != null && !items.contains(document)){
-				final String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
+				String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
+// TODO to be removed
+if(uri != null)
+	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
 
 				try{
 					cropDialog.loadData(uri, null);

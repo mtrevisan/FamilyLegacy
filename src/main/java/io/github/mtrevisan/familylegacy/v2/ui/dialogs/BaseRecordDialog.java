@@ -42,17 +42,13 @@ import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
-import javax.swing.KeyStroke;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dialog;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
 import java.io.Serial;
 import java.util.List;
 import java.util.Objects;
@@ -192,11 +188,10 @@ public abstract class BaseRecordDialog extends JDialog{
 			final Component editorComp = comboBox.getEditor().getEditorComponent();
 			if(editorComp instanceof JTextComponent textComp){
 				// Remove local text component shortcuts
-				final int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 				final InputMap compInputMap = textComp.getInputMap(JComponent.WHEN_FOCUSED);
-				compInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, shortcutMask), "none");
-				compInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Y, shortcutMask), "none");
-				compInputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "none");
+				compInputMap.put(GUIHelper.UNDO_STROKE, "none");
+				compInputMap.put(GUIHelper.REDO_STROKE, "none");
+				compInputMap.put(GUIHelper.MAC_UNDO_STROKE, "none");
 
 				final EditableComboAdapter adapter = new EditableComboAdapter(comboBox, textComp, undoController);
 				textComp.addFocusListener(adapter);

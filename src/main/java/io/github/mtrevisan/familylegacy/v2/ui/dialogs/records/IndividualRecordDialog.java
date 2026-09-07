@@ -26,7 +26,9 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.records;
 
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
+import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCarouselPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PreferredImagePanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -36,13 +38,18 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.event.ListSelectionListener;
 import java.awt.Dialog;
 import java.io.IOException;
 import java.io.Serial;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /*
@@ -142,9 +149,11 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private static final String TAG_NOTE = "NOTE";
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
+	private static final String TAG_DOCUMENT = "DOCUMENT";
 
 	private static final String ENUM_SEX_MALE = "male";
 	private static final String ENUM_SEX_FEMALE = "female";
+	public static final String TAG_URI = "uri";
 
 
 	private final RecordDialogComponents components;
@@ -152,6 +161,9 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	private final PreferredImagePanel preferredImagePanel;
 	private final EntityListPanel personalNamePanel;
 	private final BoundComboBox<String> sexCombo;
+
+	private final ImageCarouselPanel imageCarouselPanel = new ImageCarouselPanel();
+	private ListSelectionListener sourceSelectionListener;
 
 
 	public static IndividualRecordDialog createNew(final Dialog parent, final FLEFModel model){
@@ -190,8 +202,25 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		components.bind(sexCombo);
 
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
 
 		finalizeDialog(parent);
+	}
+
+	/**
+	 * Sets up a listener on the source list to update the image carousel when a source is selected.
+	 */
+	private void setupSourceListSelection(){
+		// Find the JList inside the source panel (assume it's an EntityListPanel or a panel with a list)
+		final EntityListPanel sourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		final JList<?> sourceList = sourcePanel.getList();
+
+		sourceSelectionListener = e -> {
+			if(!e.getValueIsAdjusting())
+				updateCarouselFromSelectedSource();
+		};
+		sourceList.addListSelectionListener(sourceSelectionListener);
 	}
 
 
@@ -274,10 +303,14 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected JPanel createSourcesPanel(){
-		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]");
+		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
 
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
+
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
 
 		return panel;
 	}
@@ -319,6 +352,47 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 		personalNamePanel.load(record);
 
 		components.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
+	}
+
+	/**
+	 * Updates the image carousel based on the currently selected source citation.
+	 * Extracts URI from the selected source record's structure.
+	 */
+	private void updateCarouselFromSelectedSource(){
+		final EntityListPanel sourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		final FLEFRecord selected = sourcePanel.getSelectedItem();
+		List<String> uris = null;
+		if(selected != null)
+			uris = extractUrisFromSource(selected);
+		imageCarouselPanel.setImageUris(uris);
+	}
+
+	/**
+	 * Extracts image URIs from a source citation record.
+	 * Assumes the source record has children with tag "URI" or references a media record.
+	 */
+	private List<String> extractUrisFromSource(final FLEFRecord sourceCitation){
+		final List<String> uris = new ArrayList<>();
+
+		final String sourceId = FLEFRecordHelper.getChildValue(sourceCitation, SourceHandler.TYPE);
+		final FLEFRecord source = model.getRecordById(sourceId);
+		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(source, TAG_DOCUMENT);
+		for(final FLEFRecord documentRef : documents){
+			final String documentId = documentRef.getValue();
+			final FLEFRecord documentR = model.getRecordById(documentId);
+			String uri = FLEFRecordHelper.getChildValue(documentR, TAG_URI);
+// TODO to be removed
+if(uri != null)
+	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
+			if(StringUtils.isNotEmpty(uri))
+				uris.add(uri);
+		}
+
+		return uris;
 	}
 
 	@Override

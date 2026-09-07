@@ -16,6 +16,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.RelationClipboard;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,6 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
@@ -36,10 +36,8 @@ import java.awt.Dialog;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serial;
@@ -366,8 +364,9 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		final Dialog parent = (window instanceof Dialog dialog? dialog: null);
 
 		final FLEFRecord[] result = {null};
-		final Function<FLEFRecord, Boolean> fnFilter = record -> (sex == null || ENUM_SEX_FEMALE.equals(FLEFRecordHelper.getChildValue(record, TAG_SEX)) ^ (sex == SexType.MALE));
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, fnFilter,
+//		final Function<FLEFRecord, Boolean> fnFilter = record -> (sex == null || ENUM_SEX_FEMALE.equals(FLEFRecordHelper.getChildValue(record, TAG_SEX)) ^ (sex == SexType.MALE));
+		final Function<FLEFRecord, Boolean> fnFilter = record -> true;
+		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, fnFilter, null,
 			IndividualHandler.class);
 		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED,
 			e -> result[0] = dialog.getSelectedRecord());
@@ -492,9 +491,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		final InputMap inputMap = component.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		final ActionMap actionMap = component.getActionMap();
 
-		final KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-
-		inputMap.put(keyStroke, "toggleTreeLayout");
+		inputMap.put(GUIHelper.CTRL_L_STROKE, "toggleTreeLayout");
 		actionMap.put("toggleTreeLayout", new AbstractAction(){
 			@Serial
 			private static final long serialVersionUID = -2768341528368853112L;

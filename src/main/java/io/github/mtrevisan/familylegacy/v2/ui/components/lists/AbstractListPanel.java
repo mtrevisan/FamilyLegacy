@@ -255,6 +255,16 @@ public abstract class AbstractListPanel<T> extends JPanel{
 			.clear();
 	}
 
+	public JList<String> getList(){
+		return list;
+	}
+
+	public T getSelectedItem(){
+		final int idx = list.getSelectedIndex();
+		return (idx != -1? items.get(idx): null);
+
+	}
+
 	/**
 	 * Returns the number of items in the list.
 	 *

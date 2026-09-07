@@ -26,6 +26,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.helpers;
 
 import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
+import javax.swing.SwingUtilities;
 import java.awt.Component;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -45,8 +46,9 @@ public class PopupMouseAdapter extends MouseAdapter{
 
 
 	@Override
-	public void mouseClicked(final MouseEvent event){
-		processMouseEvent(event);
+	public void mousePressed(final MouseEvent event){
+		if(SwingUtilities.isLeftMouseButton(event))
+			processMouseEvent(event);
 	}
 
 	@Override

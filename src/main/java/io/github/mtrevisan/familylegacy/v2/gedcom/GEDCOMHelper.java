@@ -1243,16 +1243,14 @@ public class GEDCOMHelper{
 		}
 
 
+		String addr = (!fullAddr.isEmpty()? fullAddr.toString().replace(StringUtils.LF, ", "): placeName);
+		if(!addr.endsWith(placeName))
+			addr += ", " + placeName;
 		FLEFRecord place = FLEFRecord.createMainRecord(IDGenerator.nextId(PlaceHandler.ID_PREFIX), PlaceHandler.TYPE)
 			.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", placeName))
-			);
-		if(!fullAddr.isEmpty()){
-			place.addChild(FLEFRecord.createChildWithTag("name")
-				.addChild(FLEFRecord.createChildWithTagAndValue("value", fullAddr.toString()))
-			);
-		}
-		place.addChild(AuditBuilder.build(placNode));
+				.addChild(FLEFRecord.createChildWithTagAndValue("value", addr))
+			)
+			.addChild(AuditBuilder.build(placNode));
 
 		// ---- MAP (coordinates) ----
 		GEDCOMNode mapNode = findFirstChild(placNode, "MAP");
