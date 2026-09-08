@@ -7,97 +7,92 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 
-/* TODO */
 /**
  * Search strategy for Conclusion records.
- * Supports filtering by confidence level, target individual, and associated research question.
+ * Supports filtering by issue, proof status, narrative text, and linked research questions.
  */
 public class ConclusionSearchStrategy implements SearchStrategy{
 
-	private static final String DOT = ".";
-
-	private static final String TAG_CONFIDENCE = "confidence";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_INDIVIDUAL = "individual";
-	private static final String TAG_QUESTION = "question";
-
-	private static final String TAG_TARGET_INDIVIDUAL = TAG_TARGET + DOT + TAG_INDIVIDUAL;
-	private static final String TAG_QUESTION_QUESTION = TAG_QUESTION + DOT + TAG_QUESTION;
+	private static final String TAG_ISSUE = "issue";
+	private static final String TAG_PROOF_STATUS = "proof_status";
+	private static final String TAG_NARRATIVE = "narrative";
+	private static final String TAG_RESEARCH = "research";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
 	private static final ConclusionHandler HANDLER = ConclusionHandler.getInstance();
 
-	private String confidence;
-	private String targetIndividualContains;
-	private String researchQuestionContains;
+	private String issue;
+	private String proofStatus;
+	private String narrative;
+	private String researchQuestion;
 	private boolean fuzzy;
 	private boolean wholeWord;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		confidence = criteria.getFilterFor("confidence");
-		targetIndividualContains = criteria.getFilterFor("targetIndividualContains");
-		researchQuestionContains = criteria.getFilterFor("researchQuestionContains");
+		issue = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_ISSUE);
+		proofStatus = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_PROOF_STATUS);
+		narrative = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_NARRATIVE);
+		researchQuestion = criteria.getFilterFor(ConclusionFilterPanel.FILTER_KEY_RESEARCH_QUESTION);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
 
 		return conclusion -> {
-			// Confidence filter
-			if(StringUtils.isNotEmpty(confidence)){
-				final String recordConfidence = FLEFRecordHelper.getChildValue(conclusion, TAG_CONFIDENCE);
-				if(!confidence.equalsIgnoreCase(recordConfidence)){
+			// Issue filter
+			if(StringUtils.isNotEmpty(issue)){
+				final String recordIssue = FLEFRecordHelper.getChildValue(conclusion, TAG_ISSUE);
+				if(!TextSearchHelper.matchesText(recordIssue, issue, fuzzy, wholeWord, FUZZY_THRESHOLD))
 					return false;
-				}
 			}
 
-			// Target Individual filter
-			if(StringUtils.isNotEmpty(targetIndividualContains)){
-				final String individualRef = FLEFRecordHelper.getChildValue(conclusion, TAG_TARGET_INDIVIDUAL);
-				if(individualRef != null){
-					final FLEFRecord indRecord = model.getRecordById(individualRef);
-					if(indRecord != null){
-						final String indDisplayText = IndividualHandler.getInstance().getDisplayText(indRecord, model);
-						if(!TextSearchHelper.matchesText(indDisplayText, targetIndividualContains, fuzzy, wholeWord, FUZZY_THRESHOLD)){
-							return false;
-						}
-					}
-					else{
-						return false;
-					}
-				}
-				else{
+			// Proof Status filter
+			if(StringUtils.isNotEmpty(proofStatus)){
+				final String recordStatus = FLEFRecordHelper.getChildValue(conclusion, TAG_PROOF_STATUS);
+				if(!proofStatus.equalsIgnoreCase(recordStatus))
 					return false;
-				}
 			}
 
-			// Associated Research Question filter
-			if(StringUtils.isNotEmpty(researchQuestionContains)){
-				final String questionRef = FLEFRecordHelper.getChildValue(conclusion, TAG_QUESTION_QUESTION);
-				if(questionRef != null){
+			// Narrative filter
+			if(StringUtils.isNotEmpty(narrative)){
+				final String recordNarrative = FLEFRecordHelper.getChildValue(conclusion, TAG_NARRATIVE);
+				if(!TextSearchHelper.matchesText(recordNarrative, narrative, fuzzy, wholeWord, FUZZY_THRESHOLD))
+					return false;
+			}
+
+			// Linked Research Questions filter
+			if(StringUtils.isNotEmpty(researchQuestion)){
+				final List<FLEFRecord> researchRefs = FLEFRecordHelper.findChildren(conclusion, TAG_RESEARCH);
+				boolean matched = false;
+				for(final FLEFRecord researchRef : researchRefs){
+					final String questionRef = researchRef.getValue();
+					if(questionRef != null)
+						continue;
+
 					final FLEFRecord questionRecord = model.getRecordById(questionRef);
-					if(questionRecord != null){
-						final String questionDisplayText = ResearchQuestionHandler.getInstance().getDisplayText(questionRecord, model);
-						if(!TextSearchHelper.matchesText(questionDisplayText, researchQuestionContains, fuzzy, wholeWord, FUZZY_THRESHOLD)){
-							return false;
-						}
-					}
-					else{
-						return false;
+					if(questionRecord == null)
+						continue;
+
+					final String questionDisplayText = ResearchQuestionHandler.getInstance()
+						.getDisplayText(questionRecord, model);
+					if(TextSearchHelper.matchesText(questionDisplayText, researchQuestion, fuzzy, wholeWord,
+							FUZZY_THRESHOLD)){
+						matched = true;
+
+						break;
 					}
 				}
-				else{
+				if(!matched)
 					return false;
-				}
 			}
 
 			return true;
@@ -108,14 +103,16 @@ public class ConclusionSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String confidenceVal = FLEFRecordHelper.getChildValue(record, TAG_CONFIDENCE);
+		final String issue = FLEFRecordHelper.getChildValue(record, TAG_ISSUE);
+		final String status = FLEFRecordHelper.getChildValue(record, TAG_PROOF_STATUS);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
-		if(StringUtils.isNotEmpty(confidenceVal)){
-			details.add("Confidence: " + confidenceVal);
-		}
+		if(StringUtils.isNotEmpty(issue))
+			details.add("Issue: " + issue);
+		if(StringUtils.isNotEmpty(status))
+			details.add("Status: " + status);
 
 		return baseDisplayText + details;
 	}

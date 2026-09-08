@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import net.miginfocom.swing.MigLayout;
 
@@ -10,6 +11,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 
@@ -17,7 +20,7 @@ import java.util.function.Consumer;
 /**
  * Filter panel for Source records: medium, repository, and author.
  */
-public class SourceFilterPanel extends JPanel{
+public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JComboBox<String> mediumCombo = new JComboBox<>(new String[]{
 		"Any", "audio", "book", "card", "electronic", "fiche", "film", "magazine",
@@ -78,6 +81,15 @@ public class SourceFilterPanel extends JPanel{
 		if(onChanged != null){
 			onChanged.accept(null);
 		}
+	}
+
+	@Override
+	public Map<String, String> getFilters(){
+		final Map<String, String> filters = new HashMap<>();
+//		filters.put("documentType", getDocumentType());
+//		filters.put("repositoryContains", getRepositoryContains());
+//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		return filters;
 	}
 
 	public String getMedium(){

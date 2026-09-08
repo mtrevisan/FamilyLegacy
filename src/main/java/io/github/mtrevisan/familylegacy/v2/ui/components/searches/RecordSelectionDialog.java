@@ -120,15 +120,15 @@ public class RecordSelectionDialog extends JDialog{
 
 	@SuppressWarnings("unchecked")
 	public static RecordSelectionDialog create(final Dialog parent, final FLEFModel model,
-		final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
-		final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
+			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		return new RecordSelectionDialog(parent, model, onSelect, handlerTypes);
 	}
 
 	@SuppressWarnings("unchecked")
 	public static RecordSelectionDialog createWithAllowRecordCreation(final Dialog parent, final FLEFModel model,
-		final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
-		final Class<? extends RecordTypeHandler<?>>... handlerTypes){
+			final BiConsumer<FLEFRecord, RecordTypeHandler<?>> onSelect,
+			final Class<? extends RecordTypeHandler<?>>... handlerTypes){
 		return new RecordSelectionDialog(parent, model, onSelect, true, handlerTypes);
 	}
 
@@ -394,13 +394,9 @@ public class RecordSelectionDialog extends JDialog{
 		initialFilters.forEach(criteria::withFilter);
 
 		if(filterPanelHolder.getComponentCount() > 0
-				&& filterPanelHolder.getComponent(0) instanceof IndividualFilterPanel ifp)
-			criteria
-				.withFilter("sex", ifp.getSex())
-				.withFilter("eventType", ifp.getEventType())
-				.withFilter("dateFrom", ifp.getDateFrom())
-				.withFilter("dateTo", ifp.getDateTo())
-				.withFilter("locationContains", ifp.getLocationContains());
+				&& filterPanelHolder.getComponent(0) instanceof RecordFilterPanel filterPanel)
+			filterPanel.getFilters()
+				.forEach(criteria::withFilter);
 
 		statusLabel.setText("Searching…");
 		progressBar.setValue(0);
@@ -485,9 +481,9 @@ public class RecordSelectionDialog extends JDialog{
 			}
 
 			resultList.setEnabled(true);
-
-			statusLabel.setText("Found " + items.size() + " records");
 		}
+
+		statusLabel.setText("Found " + items.size() + " records");
 	}
 
 	private void createNewRecord(){
@@ -575,8 +571,10 @@ public class RecordSelectionDialog extends JDialog{
 //			final RecordSelectionDialog dialog = createWithAllowRecordCreation(null, model,
 				(record, handler) -> System.out.println(record),
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler.class);
-				io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class);
-//				io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler.class);
+				io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class);
 			dialog.setVisible(true);
 		});
 	}

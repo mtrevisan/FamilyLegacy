@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import net.miginfocom.swing.MigLayout;
 
@@ -10,6 +11,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 
@@ -17,7 +20,7 @@ import java.util.function.Consumer;
 /**
  * Filter panel for Group records: group type and member name.
  */
-public class GroupFilterPanel extends JPanel{
+public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JComboBox<String> groupTypeCombo = new JComboBox<>(new String[]{
 		"Any", "family", "household", "religious_community", "military_unit",
@@ -74,6 +77,15 @@ public class GroupFilterPanel extends JPanel{
 		if(onChanged != null){
 			onChanged.accept(null);
 		}
+	}
+
+	@Override
+	public Map<String, String> getFilters(){
+		final Map<String, String> filters = new HashMap<>();
+//		filters.put("documentType", getDocumentType());
+//		filters.put("repositoryContains", getRepositoryContains());
+//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		return filters;
 	}
 
 	public String getGroupType(){

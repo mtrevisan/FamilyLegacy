@@ -13,62 +13,57 @@ import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 
-/* TODO */
 /**
  * Search strategy for Document records.
- * Supports filtering by format, mime type, and file location/path.
+ * Supports filtering by description, mapping projection, and URI path.
  */
 public class DocumentSearchStrategy implements SearchStrategy{
 
-	private static final String DOT = ".";
-
-	private static final String TAG_FORMAT = "format";
-	private static final String TAG_MIME_TYPE = "mime_type";
-	private static final String TAG_LOCATION = "location";
-	private static final String TAG_VALUE = "value";
+	private static final String TAG_DESCRIPTION = "description";
+	private static final String TAG_MAPPING = "mapping";
+	private static final String TAG_URI = "uri";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
+
 	private static final DocumentHandler HANDLER = DocumentHandler.getInstance();
 
-	private String format;
-	private String mimeType;
-	private String locationContains;
+
+	private String description;
+	private String mapping;
+	private String uri;
 	private boolean fuzzy;
 	private boolean wholeWord;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		format = criteria.getFilterFor("format");
-		mimeType = criteria.getFilterFor("mimeType");
-		locationContains = criteria.getFilterFor("locationContains");
+		description = criteria.getFilterFor(DocumentFilterPanel.FILTER_KEY_DESCRIPTION);
+		mapping = criteria.getFilterFor(DocumentFilterPanel.FILTER_KEY_MAPPING);
+		uri = criteria.getFilterFor(DocumentFilterPanel.FILTER_KEY_URI);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
 
 		return document -> {
-			// Format filter (digital vs physical)
-			if(StringUtils.isNotEmpty(format)){
-				final String recordFormat = FLEFRecordHelper.getChildValue(document, TAG_FORMAT);
-				if(!format.equalsIgnoreCase(recordFormat)){
+			// Description filter
+			if(StringUtils.isNotEmpty(description)){
+				final String description = FLEFRecordHelper.getChildValue(document, TAG_DESCRIPTION);
+				if(!TextSearchHelper.matchesText(description, this.description, fuzzy, wholeWord, FUZZY_THRESHOLD))
 					return false;
-				}
 			}
 
-			// MIME type filter
-			if(StringUtils.isNotEmpty(mimeType)){
-				final String recordMime = FLEFRecordHelper.getChildValue(document, TAG_MIME_TYPE);
-				if(!TextSearchHelper.matchesText(recordMime, mimeType, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+			// Mapping filter
+			if(StringUtils.isNotEmpty(mapping)){
+				final String recordMapping = FLEFRecordHelper.getChildValue(document, TAG_MAPPING);
+				if(!mapping.equalsIgnoreCase(recordMapping))
 					return false;
-				}
 			}
 
-			// File location / URL / URI filter
-			if(StringUtils.isNotEmpty(locationContains)){
-				final String recordLocation = FLEFRecordHelper.getChildValue(document, TAG_LOCATION + DOT + TAG_VALUE);
-				if(!TextSearchHelper.matchesText(recordLocation, locationContains, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+			// URI filter
+			if(StringUtils.isNotEmpty(uri)){
+				final String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
+				if(!TextSearchHelper.matchesText(uri, this.uri, fuzzy, wholeWord, FUZZY_THRESHOLD))
 					return false;
-				}
 			}
 
 			return true;
@@ -79,18 +74,16 @@ public class DocumentSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String formatVal = FLEFRecordHelper.getChildValue(record, TAG_FORMAT);
-		final String mimeVal = FLEFRecordHelper.getChildValue(record, TAG_MIME_TYPE);
+		final String description = FLEFRecordHelper.getChildValue(record, TAG_DESCRIPTION);
+		final String mappingVal = FLEFRecordHelper.getChildValue(record, TAG_MAPPING);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
-		if(StringUtils.isNotEmpty(formatVal)){
-			details.add(formatVal);
-		}
-		if(StringUtils.isNotEmpty(mimeVal)){
-			details.add(mimeVal);
-		}
+		if(StringUtils.isNotEmpty(mappingVal))
+			details.add("(" + mappingVal + ")");
+		if(StringUtils.isNotEmpty(description) && !baseDisplayText.contains(description))
+			details.add(description);
 
 		return baseDisplayText + details;
 	}

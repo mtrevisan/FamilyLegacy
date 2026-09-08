@@ -7,105 +7,120 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 
-/* TODO */
 /**
  * Search strategy for CulturalNorm records.
- * Supports filtering by norm type, associated location/region, and time period.
+ * Supports filtering by title, rule type, location, and validity date range.
  */
 public class CulturalNormSearchStrategy implements SearchStrategy{
 
-	private static final String DOT = ".";
-
-	private static final String TAG_TYPE = "type";
+	private static final String TAG_TITLE = "title";
+	private static final String TAG_RULE_TYPE = "rule_type";
 	private static final String TAG_PLACE = "place";
-	private static final String TAG_TIME_PERIOD = "time_period";
-	private static final String TAG_VALUE = "value";
-
-	private static final String TAG_PLACE_PLACE = TAG_PLACE + DOT + TAG_PLACE;
+	private static final String TAG_DATE = "date";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
+
 	private static final CulturalNormHandler HANDLER = CulturalNormHandler.getInstance();
 
-	private String normType;
-	private String locationContains;
-	private String timePeriodContains;
+	private String title;
+	private String ruleType;
+	private String place;
+	private String validFrom;
+	private String calendarFrom;
+	private String validTo;
+	private String calendarTo;
 	private boolean fuzzy;
 	private boolean wholeWord;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		normType = criteria.getFilterFor("normType");
-		locationContains = criteria.getFilterFor("locationContains");
-		timePeriodContains = criteria.getFilterFor("timePeriodContains");
+		title = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_TITLE);
+		ruleType = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_RULE_TYPE);
+		place = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_PLACE);
+		validFrom = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_VALID_FROM);
+		calendarFrom = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_CALENDAR_FROM);
+		validTo = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_VALID_TO);
+		calendarTo = criteria.getFilterFor(CulturalNormFilterPanel.FILTER_KEY_CALENDAR_FROM);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
 
-		return norm -> {
-			// Norm type filter
-			if(StringUtils.isNotEmpty(normType)){
-				final String recordType = FLEFRecordHelper.getChildValue(norm, TAG_TYPE);
-				if(!normType.equalsIgnoreCase(recordType)){
+		return culturalNorm -> {
+			// Title filter
+			if(StringUtils.isNotEmpty(title)){
+				final String title = FLEFRecordHelper.getChildValue(culturalNorm, TAG_TITLE);
+				if(!TextSearchHelper.matchesText(title, this.title, fuzzy, wholeWord, FUZZY_THRESHOLD))
 					return false;
-				}
 			}
 
-			// Location / Region filter
-			if(StringUtils.isNotEmpty(locationContains)){
-				final String placeRef = FLEFRecordHelper.getChildValue(norm, TAG_PLACE_PLACE);
-				if(placeRef != null){
-					final FLEFRecord placeRecord = model.getRecordById(placeRef);
-					if(placeRecord != null){
-						final String placeDisplayText = PlaceHandler.getInstance().getDisplayText(placeRecord, model);
-						if(!TextSearchHelper.matchesText(placeDisplayText, locationContains, fuzzy, wholeWord, FUZZY_THRESHOLD)){
-							return false;
-						}
-					}
-					else{
+			// Rule Type filter
+			if(StringUtils.isNotEmpty(ruleType)){
+				final String recordRuleType = FLEFRecordHelper.getChildValue(culturalNorm, TAG_RULE_TYPE);
+				if(!ruleType.equalsIgnoreCase(recordRuleType))
+					return false;
+			}
+
+			// Place filter
+			if(StringUtils.isNotEmpty(place)){
+				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(culturalNorm, TAG_PLACE);
+				if(placeCitation != null){
+					final String placeId = placeCitation.getTheOnlyChild().getValue();
+					final FLEFRecord placeRecord = model.getRecordById(placeId);
+					final String place = PlaceHandler.getInstance()
+						.getDisplayText(placeRecord, model);
+					if(!TextSearchHelper.matchesText(place, place, fuzzy, wholeWord, FUZZY_THRESHOLD))
 						return false;
-					}
-				}
-				else{
-					return false;
 				}
 			}
 
-			// Time period text filter
-			if(StringUtils.isNotEmpty(timePeriodContains)){
-				final String periodVal = FLEFRecordHelper.getChildValue(norm, TAG_TIME_PERIOD + DOT + TAG_VALUE);
-				if(!TextSearchHelper.matchesText(periodVal, timePeriodContains, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+			// Date range
+			if(StringUtils.isNotEmpty(validFrom) || StringUtils.isNotEmpty(validTo)){
+				final FLEFRecord validRecord = FLEFRecordHelper.findChild(culturalNorm, TAG_DATE);
+				final Integer fromYear = (StringUtils.isNotEmpty(validFrom)
+					? SearchHelper.extractYear(validFrom, calendarFrom)
+					: null);
+				final Integer toYear = (StringUtils.isNotEmpty(validTo)
+					? SearchHelper.extractYear(validTo, calendarTo)
+					: null);
+				if(!SearchHelper.isDateInRange(validRecord, null, null, fromYear, toYear))
 					return false;
-				}
 			}
 
 			return true;
 		};
 	}
 
+
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
-		final String period = FLEFRecordHelper.getChildValue(record, TAG_TIME_PERIOD + DOT + TAG_VALUE);
+		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
+		final String ruleType = FLEFRecordHelper.getChildValue(record, TAG_RULE_TYPE);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
-		if(StringUtils.isNotEmpty(type)){
-			details.add(type);
-		}
-		if(StringUtils.isNotEmpty(period)){
-			details.add("🕒 " + period);
-		}
+		if(StringUtils.isNotEmpty(title))
+			details.add(title);
+		if(StringUtils.isNotEmpty(ruleType))
+			details.add("Type: " + ruleType);
 
 		return baseDisplayText + details;
 	}

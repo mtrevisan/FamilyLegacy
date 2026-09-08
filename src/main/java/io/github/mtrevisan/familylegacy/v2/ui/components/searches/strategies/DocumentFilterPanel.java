@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import net.miginfocom.swing.MigLayout;
 
@@ -10,20 +11,32 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 
-/* TODO */
 /**
- * Filter panel for Document records: format, mime type, and location.
+ * Filter panel for Document records based on description, mapping projection, and URI.
  */
-public class DocumentFilterPanel extends JPanel{
+public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> formatCombo = new JComboBox<>(new String[]{
-		"Any", "digital", "physical", "unknown"
+	public static final String FILTER_KEY_DESCRIPTION = "description";
+	public static final String FILTER_KEY_MAPPING = "mapping";
+	public static final String FILTER_KEY_URI = "uri";
+
+
+	private final JTextField descriptionField = new JTextField(20);
+	private final JComboBox<String> mappingCombo = new JComboBox<>(new String[]{
+		"Any",
+		"planar",
+		"spherical_equirectangular",
+		"spherical_uv",
+		"cubemap",
+		"cylindrical_equirectangular_horizontal",
+		"cylindrical_equirectangular_vertical"
 	});
-	private final JTextField mimeTypeField = new JTextField(20);
-	private final JTextField locationField = new JTextField(20);
+	private final JTextField uriField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -41,16 +54,16 @@ public class DocumentFilterPanel extends JPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder("Document Filters"));
 
-		add(new JLabel("Format:"));
-		add(formatCombo, "growx");
-		add(new JLabel("MIME type:"));
-		add(mimeTypeField, "growx");
-		add(new JLabel("Location:"));
-		add(locationField, "growx");
+		add(new JLabel("Description:"));
+		add(descriptionField, "growx");
+		add(new JLabel("Mapping:"));
+		add(mappingCombo, "growx");
+		add(new JLabel("URI / Path:"));
+		add(uriField, "growx");
 	}
 
 	private void setupListeners(){
-		formatCombo.addActionListener(e -> fireChanged());
+		mappingCombo.addActionListener(e -> fireChanged());
 
 		final DocumentListener docListener = new DocumentListener(){
 			@Override
@@ -69,26 +82,34 @@ public class DocumentFilterPanel extends JPanel{
 			}
 		};
 
-		mimeTypeField.getDocument().addDocumentListener(docListener);
-		locationField.getDocument().addDocumentListener(docListener);
+		descriptionField.getDocument().addDocumentListener(docListener);
+		uriField.getDocument().addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
-		if(onChanged != null){
+		if(onChanged != null)
 			onChanged.accept(null);
-		}
 	}
 
-	public String getFormat(){
-		return (formatCombo.getSelectedIndex() == 0 ? null : (String)formatCombo.getSelectedItem());
+	@Override
+	public Map<String, String> getFilters(){
+		final Map<String, String> filters = new HashMap<>();
+		filters.put(FILTER_KEY_DESCRIPTION, getDescription());
+		filters.put(FILTER_KEY_MAPPING, getMapping());
+		filters.put(FILTER_KEY_URI, getUri());
+		return filters;
 	}
 
-	public String getMimeType(){
-		return mimeTypeField.getText().trim();
+	public String getDescription(){
+		return descriptionField.getText().trim();
 	}
 
-	public String getLocationContains(){
-		return locationField.getText().trim();
+	public String getMapping(){
+		return (mappingCombo.getSelectedIndex() == 0? null: (String)mappingCombo.getSelectedItem());
+	}
+
+	public String getUri(){
+		return uriField.getText().trim();
 	}
 
 }

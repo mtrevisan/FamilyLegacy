@@ -1,5 +1,6 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordFilterPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import net.miginfocom.swing.MigLayout;
 
@@ -10,6 +11,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Consumer;
 
 
@@ -17,7 +20,7 @@ import java.util.function.Consumer;
 /**
  * Filter panel for ResearchTask records: status, priority, and target repository.
  */
-public class ResearchTaskFilterPanel extends JPanel{
+public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel{
 
 	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{
 		"Any", "todo", "in_progress", "completed", "cancelled", "unknown"
@@ -79,6 +82,15 @@ public class ResearchTaskFilterPanel extends JPanel{
 		if(onChanged != null){
 			onChanged.accept(null);
 		}
+	}
+
+	@Override
+	public Map<String, String> getFilters(){
+		final Map<String, String> filters = new HashMap<>();
+//		filters.put("documentType", getDocumentType());
+//		filters.put("repositoryContains", getRepositoryContains());
+//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		return filters;
 	}
 
 	public String getStatus(){
