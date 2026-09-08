@@ -573,7 +573,10 @@ public class RecordSelectionDialog extends JDialog{
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler.class);
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler.class);
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler.class);
-				io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler.class);
+				io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler.class);
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class);
 			dialog.setVisible(true);
 		});

@@ -16,17 +16,28 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-/* TODO */
 /**
- * Filter panel for Group records: group type and member name.
+ * Filter panel for Group records: group name and type.
  */
 public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> groupTypeCombo = new JComboBox<>(new String[]{
-		"Any", "family", "household", "religious_community", "military_unit",
-		"guild", "organization", "crew", "expedition", "unknown"
+	static final String FILTER_KEY_NAME = "name";
+	static final String FILTER_KEY_TYPE = "type";
+
+
+	private final JTextField nameField = new JTextField(20);
+	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
+		"Any",
+		"family",
+		"household",
+		"neighborhood",
+		"fraternity",
+		"club",
+		"literary_society",
+		"association",
+		"organization",
+		"tribe"
 	});
-	private final JTextField memberNameField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -44,14 +55,14 @@ public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder("Group Filters"));
 
+		add(new JLabel("Name:"));
+		add(nameField, "growx");
 		add(new JLabel("Type:"));
-		add(groupTypeCombo, "growx");
-		add(new JLabel("Member name:"));
-		add(memberNameField, "growx");
+		add(typeCombo, "growx");
 	}
 
 	private void setupListeners(){
-		groupTypeCombo.addActionListener(e -> fireChanged());
+		typeCombo.addActionListener(e -> fireChanged());
 
 		final DocumentListener docListener = new DocumentListener(){
 			@Override
@@ -70,30 +81,28 @@ public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		memberNameField.getDocument().addDocumentListener(docListener);
+		nameField.getDocument().addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
-		if(onChanged != null){
+		if(onChanged != null)
 			onChanged.accept(null);
-		}
 	}
 
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-//		filters.put("documentType", getDocumentType());
-//		filters.put("repositoryContains", getRepositoryContains());
-//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		filters.put(FILTER_KEY_NAME, getGroupName());
+		filters.put(FILTER_KEY_TYPE, getType());
 		return filters;
 	}
 
-	public String getGroupType(){
-		return (groupTypeCombo.getSelectedIndex() == 0 ? null : (String)groupTypeCombo.getSelectedItem());
+	public String getGroupName(){
+		return nameField.getText().trim();
 	}
 
-	public String getMemberName(){
-		return memberNameField.getText().trim();
+	public String getType(){
+		return (typeCombo.getSelectedIndex() == 0? null: (String)typeCombo.getSelectedItem());
 	}
 
 }

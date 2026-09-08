@@ -44,6 +44,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		type = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_TYPE);
 		title = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_TITLE);
 		date = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_DATE);
+		calendar = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_CALENDAR);
 		place = criteria.getFilterFor(HistoricEventFilterPanel.FILTER_KEY_PLACE);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
@@ -97,7 +98,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, TAG_DATE);
-//		final String date = FLEFRecordHelper.getDateText(dateRecord, TAG_DATE);
+		final String date = SearchHelper.extractDate(dateRecord);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
@@ -106,8 +107,8 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 			details.add(title);
 		if(StringUtils.isNotEmpty(type))
 			details.add("Type: " + type);
-//		if(StringUtils.isNotEmpty(date))
-//			details.add(date);
+		if(StringUtils.isNotEmpty(date))
+			details.add(date);
 
 		return baseDisplayText + details;
 	}

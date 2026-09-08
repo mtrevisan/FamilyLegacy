@@ -7,128 +7,81 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 
-/* TODO */
 /**
  * Search strategy for Group records.
- * Supports filtering by group type and member individual.
+ * Supports filtering by group name and type.
  */
 public class GroupSearchStrategy implements SearchStrategy{
 
-	private static final String DOT = ".";
-
+	private static final String TAG_NAME = "name";
+	private static final String TAG_VALUE = "value";
 	private static final String TAG_TYPE = "type";
-	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_TARGET = "target";
-	private static final String TAG_GROUP = "group";
-	private static final String TAG_INDIVIDUAL = "individual";
-
-	private static final String TAG_SUBJECT_INDIVIDUAL = TAG_SUBJECT + DOT + TAG_INDIVIDUAL;
-	private static final String TAG_TARGET_GROUP = TAG_TARGET + DOT + TAG_GROUP;
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
+
 	private static final GroupHandler HANDLER = GroupHandler.getInstance();
 
-	private String groupType;
-	private String memberName;
+
+	private String name;
+	private String type;
 	private boolean fuzzy;
 	private boolean wholeWord;
-
-	private FLEFModel model;
-
-	// Cache group ID -> list of member individual IDs
-	private final Map<String, List<String>> groupMembersMap = new HashMap<>();
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		groupType = criteria.getFilterFor("groupType");
-		memberName = criteria.getFilterFor("memberName");
+		name = criteria.getFilterFor(GroupFilterPanel.FILTER_KEY_NAME);
+		type = criteria.getFilterFor(GroupFilterPanel.FILTER_KEY_TYPE);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
 
-		this.model = model;
-
-		if(StringUtils.isNotEmpty(memberName)){
-			precomputeGroupMemberships();
-		}
-
 		return group -> {
-			// Group type filter
-			if(StringUtils.isNotEmpty(groupType)){
-				final String recordType = FLEFRecordHelper.getChildValue(group, TAG_TYPE);
-				if(!groupType.equalsIgnoreCase(recordType)){
-					return false;
+			// Name filter
+			if(StringUtils.isNotEmpty(name)){
+				final List<FLEFRecord> names = FLEFRecordHelper.findChildren(group, TAG_NAME);
+				boolean matched = false;
+				for(final FLEFRecord nameStruct : names){
+					final String nameValue = FLEFRecordHelper.getChildValue(nameStruct, TAG_VALUE);
+					if(TextSearchHelper.matchesText(nameValue, name, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+						matched = true;
+
+						break;
+					}
 				}
+				if(!matched)
+					return false;
 			}
 
-			// Member name filter
-			if(StringUtils.isNotEmpty(memberName)){
-				if(!matchesMemberName(group.getId())){
+			// Type filter
+			if(StringUtils.isNotEmpty(type)){
+				final String groupType = FLEFRecordHelper.getChildValue(group, TAG_TYPE);
+				if(!type.equalsIgnoreCase(groupType))
 					return false;
-				}
 			}
 
 			return true;
 		};
 	}
 
-	private void precomputeGroupMemberships(){
-		groupMembersMap.clear();
-
-		final List<FLEFRecord> relationships = model.getRecordsByType(RelationshipHandler.TYPE);
-		for(final FLEFRecord rel : relationships){
-			final String memberId = rel.extractReferencedId(TAG_SUBJECT_INDIVIDUAL, IndividualHandler.TYPE);
-			final String groupId = rel.extractReferencedId(TAG_TARGET_GROUP, GroupHandler.TYPE);
-
-			if(memberId != null && groupId != null){
-				groupMembersMap.computeIfAbsent(groupId, k -> new ArrayList<>())
-					.add(memberId);
-			}
-		}
-	}
-
-	private boolean matchesMemberName(final String groupId){
-		final List<String> memberIds = groupMembersMap.get(groupId);
-		if(memberIds == null || memberIds.isEmpty()){
-			return false;
-		}
-
-		for(final String memberId : memberIds){
-			final FLEFRecord memberRecord = model.getRecordById(memberId);
-			if(memberRecord != null){
-				final String memberDisplayText = IndividualHandler.getInstance().getDisplayText(memberRecord, model);
-				if(TextSearchHelper.matchesText(memberDisplayText, memberName, fuzzy, wholeWord, FUZZY_THRESHOLD)){
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	@Override
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
-		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+
+		final String typeVal = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
-		if(StringUtils.isNotEmpty(type)){
-			details.add(type);
-		}
+		if(StringUtils.isNotEmpty(typeVal))
+			details.add("Type: " + typeVal);
 
 		return baseDisplayText + details;
 	}
