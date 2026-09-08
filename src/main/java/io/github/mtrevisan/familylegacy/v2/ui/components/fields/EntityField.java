@@ -28,8 +28,8 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HandlerRegistry;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -170,6 +170,11 @@ public class EntityField extends BoundTextField{
 					final RecordTypeHandler<?> handler = findHandler(entity.getTag());
 					value = handler.getDisplayText(entity, model);
 				}
+				else{
+					final String entityRefTag = entityRef.getTag();
+					final RecordTypeHandler<?> entityRefHandler = HandlerRegistry.getHandler(entityRefTag);
+					value = entityRefHandler.getDisplayText(entityRef, model);
+				}
 			}
 		}
 		setText(value);
@@ -228,9 +233,22 @@ public class EntityField extends BoundTextField{
 	 * @param record	the entity record (it may be {@code null})
 	 */
 	public void setEntity(final FLEFRecord record){
-		entityRef = record;
+		final boolean match = isInHandlerTypes(record);
+		if(match)
+			entityRef = record;
 
 		firePropertyChange(PROPERTY_ENTITY_CHANGED, null, null);
+	}
+
+	private boolean isInHandlerTypes(final FLEFRecord record){
+		if(record == null)
+			return false;
+
+		final String recordTag = record.getTag();
+		for(final RecordTypeHandler<?> handler : handlers)
+			if(handler.getType().equalsIgnoreCase(recordTag))
+				return true;
+		return false;
 	}
 
 	/**
@@ -270,7 +288,10 @@ public class EntityField extends BoundTextField{
 			entity = FLEFRecordHelper.extractRecordFromReference(record, path, model);
 		else if(type == EntityType.ONEOF_REFERENCE){
 			final List<FLEFRecord> entities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, path, model);
-			entity = (!entities.isEmpty()? entities.get(index): record);
+			if(!entities.isEmpty())
+				entity = entities.get(index);
+			else if(isInHandlerTypes(record))
+				entity = record;
 		}
 		else if(type == EntityType.CITATION_WRAPPER)
 			entity = FLEFRecordHelper.extractStructureWithReference(record, path);
@@ -329,30 +350,28 @@ public class EntityField extends BoundTextField{
 
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
 		@SuppressWarnings("unchecked")
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model,
-			cleaned.toArray(Class[]::new));
-		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
-			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
-			if(type == EntityType.CITATION_WRAPPER){
-				final String selectedRecordId = selectedRecord.getId();
-				final String entityRefTag = entityRef.getTag();
-				final FLEFRecord citation = FLEFRecord.createChildWithTag(entityRefTag);
-				FLEFRecordHelper.updateChildValue(citation, path, selectedRecordId);
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
+			(record, handler) -> {
+				if(type == EntityType.CITATION_WRAPPER){
+					final String selectedRecordId = record.getId();
+					final String entityRefTag = entityRef.getTag();
+					final FLEFRecord citation = FLEFRecord.createChildWithTag(entityRefTag);
+					FLEFRecordHelper.updateChildValue(citation, path, selectedRecordId);
 
-				final RecordTypeHandler<?> handler = findHandler(entityRefTag);
-				final BaseRecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
-				citationDialog.setVisible(true);
+					final BaseRecordDialog citationDialog = handler.createEditDialog(parent, model, citation);
+					citationDialog.setVisible(true);
 
-				if(citationDialog.isSaved()){
-					final FLEFRecord newCitationRecord = citationDialog.getRecord();
-					setEntity(newCitationRecord);
+					if(citationDialog.isSaved()){
+						final FLEFRecord newCitationRecord = citationDialog.getRecord();
+						setEntity(newCitationRecord);
+					}
+					else
+						model.removeRecord(selectedRecordId);
 				}
 				else
-					model.removeRecord(selectedRecordId);
-			}
-			else
-				setEntity(selectedRecord);
-		});
+					setEntity(record);
+			},
+			cleaned.toArray(Class[]::new));
 		dialog.setVisible(true);
 	}
 

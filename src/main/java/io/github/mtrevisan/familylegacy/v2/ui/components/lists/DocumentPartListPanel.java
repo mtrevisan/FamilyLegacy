@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.ImageCropDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 
@@ -176,43 +176,44 @@ if(uri != null)
 	@Override
 	protected FLEFRecord showAddDialog(){
 		final FLEFRecord[] result = {null};
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, DocumentHandler.class);
-		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
-			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
-			final FLEFRecord document = model.getRecordById(selectedRecord.getId());
-			if(document != null && !items.contains(document)){
-				String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
+			(record, handler) -> {
+				final FLEFRecord document = model.getRecordById(record.getId());
+				if(document != null && !items.contains(document)){
+					String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
 // TODO to be removed
 if(uri != null)
 	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
 
-				try{
-					cropDialog.loadData(uri, null);
-					cropDialog.setVisible(true);
+					try{
+						cropDialog.loadData(uri, null);
+						cropDialog.setVisible(true);
 
-					if(cropDialog.isSaved()){
-						final Rectangle documentCropRect = cropDialog.getCrop();
-						if(documentCropRect != null && !documentCropRect.isEmpty()){
-							// temporarily save under DOCUMENT
-							final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(selectedRecord, TAG_CROP);
-							FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
-							FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
-							FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
-							FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
+						if(cropDialog.isSaved()){
+							final Rectangle documentCropRect = cropDialog.getCrop();
+							if(documentCropRect != null && !documentCropRect.isEmpty()){
+								// temporarily save under DOCUMENT
+								final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_CROP);
+								FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
+								FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
+								FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
+								FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
+							}
 						}
 					}
-				}
-				catch(final IOException ioe){
-					ioe.printStackTrace();
+					catch(final IOException ioe){
+						ioe.printStackTrace();
 
-					JOptionPane.showMessageDialog(parent,
-						"Error loading image for cropping: " + ioe.getMessage(),
-						"Error", JOptionPane.ERROR_MESSAGE);
-				}
+						JOptionPane.showMessageDialog(parent,
+							"Error loading image for cropping: " + ioe.getMessage(),
+							"Error", JOptionPane.ERROR_MESSAGE);
+					}
 
-				result[0] = document;
-			}
-		});
+					result[0] = document;
+				}
+			},
+			DocumentHandler.class);
 		dialog.setVisible(true);
 
 		return result[0];

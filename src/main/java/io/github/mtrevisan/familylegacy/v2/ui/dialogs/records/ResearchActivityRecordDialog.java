@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -123,8 +122,6 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 	private static final String TAG_AUDIT = "AUDIT";
 
 
-	private final RecordDialogComponents components;
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> activityTypeCombo;
@@ -209,6 +206,9 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		components.bind(conclusionArea);
 		components.bind(conclusionConfidenceCombo);
 
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
 
 		finalizeDialog(parent);
 	}
@@ -297,6 +297,10 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
 		return panel;
 	}
 
@@ -317,6 +321,10 @@ public class ResearchActivityRecordDialog extends BaseRecordDialog{
 
 		targetField.load(record);
 		parentActivityField.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
 	}
 
 	@Override

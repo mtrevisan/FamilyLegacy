@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
@@ -96,8 +95,6 @@ public class SourceRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
-
-	private final RecordDialogComponents components;
 
 	private final EntityListPanel titlePanel;
 	private final BoundTextField authorField;

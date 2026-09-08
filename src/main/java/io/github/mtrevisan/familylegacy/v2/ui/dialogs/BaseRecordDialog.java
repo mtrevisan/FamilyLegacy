@@ -28,7 +28,12 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
+import io.github.mtrevisan.familylegacy.v2.ui.components.ImageCarouselPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
+import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
+import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
@@ -39,9 +44,11 @@ import javax.swing.InputMap;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.event.UndoableEditListener;
 import javax.swing.text.JTextComponent;
 import java.awt.BorderLayout;
@@ -50,6 +57,7 @@ import java.awt.Container;
 import java.awt.Dialog;
 import java.awt.event.ActionEvent;
 import java.io.Serial;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -64,6 +72,10 @@ public abstract class BaseRecordDialog extends JDialog{
 	private static final long serialVersionUID = 6460878052412992481L;
 
 
+	private static final String TAG_DOCUMENT = "DOCUMENT";
+	private static final String TAG_URI = "uri";
+
+
 	protected final RecordTypeHandler<?> handler;
 	protected final FLEFModel model;
 	protected final FLEFRecord record;
@@ -75,7 +87,11 @@ public abstract class BaseRecordDialog extends JDialog{
 
 	protected BoundTextField parentEntity;
 
+	protected RecordDialogComponents components;
+
 	protected final JTabbedPane tabbedPane = new JTabbedPane();
+
+	protected final ImageCarouselPanel imageCarouselPanel = new ImageCarouselPanel();
 
 
 	protected BaseRecordDialog(final Dialog parent, final FLEFModel model, final FLEFRecord record,
@@ -366,7 +382,6 @@ public abstract class BaseRecordDialog extends JDialog{
 	 *
 	 * @param tabbedPane	The dialog's fully populated tabbed pane.
 	 */
-	@SuppressWarnings("DataFlowIssue")
 	protected void finalizeLayout(final JTabbedPane tabbedPane){
 		setLayout(new MigLayout("ins 10,fillx,top"));
 
@@ -381,6 +396,59 @@ public abstract class BaseRecordDialog extends JDialog{
 				dispose();
 			});
 		add(buttonPanel, BorderLayout.SOUTH);
+	}
+
+
+	/**
+	 * Sets up a listener on the source list to update the image carousel when a source is selected.
+	 */
+	protected void setupSourceListSelection(){
+		// Find the JList inside the source panel (assume it's an EntityListPanel or a panel with a list)
+		final EntityListPanel sourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		final JList<?> sourceList = sourcePanel.getList();
+
+		final ListSelectionListener sourceSelectionListener = e -> {
+			if(!e.getValueIsAdjusting())
+				updateCarouselFromSelectedSource();
+		};
+		sourceList.addListSelectionListener(sourceSelectionListener);
+	}
+
+	/**
+	 * Updates the image carousel based on the currently selected source citation.
+	 * Extracts URI from the selected source record's structure.
+	 */
+	protected void updateCarouselFromSelectedSource(){
+		final EntityListPanel sourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
+		final FLEFRecord selected = sourcePanel.getSelectedItem();
+		List<String> uris = null;
+		if(selected != null)
+			uris = extractUrisFromSource(selected);
+		imageCarouselPanel.setImageUris(uris);
+	}
+
+	/**
+	 * Extracts image URIs from a source citation record.
+	 * Assumes the source record has children with tag "URI" or references a media record.
+	 */
+	private List<String> extractUrisFromSource(final FLEFRecord sourceCitation){
+		final List<String> uris = new ArrayList<>();
+
+		final String sourceId = FLEFRecordHelper.getChildValue(sourceCitation, SourceHandler.TYPE);
+		final FLEFRecord source = model.getRecordById(sourceId);
+		final List<FLEFRecord> documents = FLEFRecordHelper.findChildren(source, TAG_DOCUMENT);
+		for(final FLEFRecord documentRef : documents){
+			final String documentId = documentRef.getValue();
+			final FLEFRecord documentR = model.getRecordById(documentId);
+			String uri = FLEFRecordHelper.getChildValue(documentR, TAG_URI);
+// TODO to be removed
+if(uri != null)
+	uri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + uri;
+			if(StringUtils.isNotEmpty(uri))
+				uris.add(uri);
+		}
+
+		return uris;
 	}
 
 

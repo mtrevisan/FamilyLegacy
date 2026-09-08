@@ -11,8 +11,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualPa
 import io.github.mtrevisan.familylegacy.v2.ui.components.individual.SexType;
 import io.github.mtrevisan.familylegacy.v2.ui.components.partners.PartnersPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.partners.Side;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.components.siblings.SiblingsPanel;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IndividualRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RelationshipHandler;
@@ -281,8 +281,10 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		if(individual == null)
 			return;
 
-		final Window owner = SwingUtilities.getWindowAncestor(this);
-		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(owner, model, individual.getId());
+		final Window window = SwingUtilities.getWindowAncestor(this);
+		final Dialog parent = (window instanceof Dialog dialog? dialog: null);
+
+		final UnlinkRelationshipsDialog dialog = new UnlinkRelationshipsDialog(parent, model, individual.getId());
 		dialog.setVisible(true);
 
 		final List<String> selectedIds = dialog.getSelectedRelationshipIds();
@@ -364,12 +366,12 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		final Dialog parent = (window instanceof Dialog dialog? dialog: null);
 
 		final FLEFRecord[] result = {null};
-//		final Function<FLEFRecord, Boolean> fnFilter = record -> (sex == null || ENUM_SEX_FEMALE.equals(FLEFRecordHelper.getChildValue(record, TAG_SEX)) ^ (sex == SexType.MALE));
-		final Function<FLEFRecord, Boolean> fnFilter = record -> true;
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, fnFilter, null,
-			IndividualHandler.class);
-		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED,
-			e -> result[0] = dialog.getSelectedRecord());
+		@SuppressWarnings("unchecked")
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
+				(record, handler) -> result[0] = record,
+				IndividualHandler.class);
+		if(sex != null)
+			dialog.withFilter("sex", sex.name().toLowerCase());
 		dialog.setVisible(true);
 
 		return result[0];

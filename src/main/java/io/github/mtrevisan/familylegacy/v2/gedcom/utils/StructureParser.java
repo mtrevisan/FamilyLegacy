@@ -46,7 +46,7 @@ public class StructureParser{
 	 * @return a FLEF record with the tag "NOTE" and a value + audit child, or {@code null} if the text is blank
 	 */
 	public FLEFRecord createNoteStruct(String text, GEDCOMNode sourNode){
-		if(StringUtils.isBlank(text)){
+		if(StringUtils.isEmpty(text)){
 			return null;
 		}
 		FLEFRecord note = FLEFRecord.createChildWithTag("note")

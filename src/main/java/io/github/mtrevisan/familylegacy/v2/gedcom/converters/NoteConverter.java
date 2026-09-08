@@ -110,14 +110,14 @@ public class NoteConverter{
 			String tag = child.getTag();
 			if("CONC".equals(tag) || "CONT".equals(tag)){
 				if(child.getValue() != null){
-					if("CONT".equals(tag) && sb.length() > 0){
+					if("CONT".equals(tag) && !sb.isEmpty()){
 						sb.append('\n');
 					}
 					sb.append(child.getValue());
 				}
 			}
 		}
-		return sb.length() > 0? sb.toString(): null;
+		return !sb.isEmpty() ? sb.toString(): null;
 	}
 
 	/**

@@ -14,7 +14,7 @@ public final class GEDCOMDateParser{
 
 	private static final Pattern DATE_PATTERN = Pattern.compile(
 		"^(?:(?<qualifier>ABT|CAL|EST|BEF|AFT|BET|FROM|TO)\\s+)?" +
-			"(?<from>.+?)(?:\\s+AND\\s+(?<to>.+))?$",
+			"(?<from>.+?)(?:\\s+(?:AND|TO)\\s+(?<to>.+))?$",
 		Pattern.CASE_INSENSITIVE
 	);
 

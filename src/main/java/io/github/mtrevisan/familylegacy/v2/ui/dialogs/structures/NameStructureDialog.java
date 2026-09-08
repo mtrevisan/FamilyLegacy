@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
@@ -84,8 +83,6 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 
@@ -149,6 +146,9 @@ public class NameStructureDialog extends BaseRecordDialog{
 		components.bind(localeCombo);
 
 
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
 		finalizeDialog(parent);
 	}
 
@@ -177,6 +177,10 @@ public class NameStructureDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
 		return panel;
 	}
 
@@ -196,6 +200,10 @@ public class NameStructureDialog extends BaseRecordDialog{
 		components.load(record);
 
 		variantPanel.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
 	}
 
 	@Override

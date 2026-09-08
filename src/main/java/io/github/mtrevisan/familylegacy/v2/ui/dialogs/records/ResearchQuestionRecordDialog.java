@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.ResearchQuestionStatusPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
@@ -122,8 +121,6 @@ public class ResearchQuestionRecordDialog extends BaseRecordDialog{
 	private static final String TAG_RESEARCH_TASK = "RESEARCH_TASK";
 	private static final String TAG_CONCLUSION = "CONCLUSION";
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 

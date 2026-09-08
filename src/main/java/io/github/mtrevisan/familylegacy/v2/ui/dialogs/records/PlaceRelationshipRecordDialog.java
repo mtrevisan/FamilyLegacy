@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
@@ -94,8 +93,6 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 
 	private final JPanel propertiesPanel;
-
-	private final RecordDialogComponents components;
 
 	private final EntityField subjectField;
 	private final EntityField targetField;
@@ -207,6 +204,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
 		return panel;
 	}
 
@@ -273,6 +274,10 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		validFromField.load(record);
 		validToField.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
 	}
 
 	@Override

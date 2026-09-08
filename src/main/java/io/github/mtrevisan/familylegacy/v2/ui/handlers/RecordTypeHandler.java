@@ -40,6 +40,12 @@ import java.util.List;
  */
 public interface RecordTypeHandler<T extends BaseRecordDialog>{
 
+	@SuppressWarnings("unchecked")
+	default Class<? extends RecordTypeHandler<T>> getClassType(){
+		return (Class<? extends RecordTypeHandler<T>>)getClass();
+	}
+
+
 	default boolean isTopLevelEntity(){
 		return true;
 	}

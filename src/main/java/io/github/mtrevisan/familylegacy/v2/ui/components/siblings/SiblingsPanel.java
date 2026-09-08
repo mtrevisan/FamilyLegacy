@@ -131,8 +131,7 @@ public class SiblingsPanel extends JPanel{
 						lastChildX, 1);
 
 					// Vertical line connecting the children
-					for(int i = 0; i < enterPoints.length; i ++){
-						final Point point = enterPoints[i];
+					for(final Point point : enterPoints){
 						g2.drawLine(point.x, point.y,
 							point.x, 1);
 					}

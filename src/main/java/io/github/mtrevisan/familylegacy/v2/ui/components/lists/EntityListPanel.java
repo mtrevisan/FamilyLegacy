@@ -27,8 +27,8 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.lists;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.RecordSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
-import io.github.mtrevisan.familylegacy.v2.ui.dialogs.MultiTypeSelectionDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.EventParticipationRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.IdentityHypothesisRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.records.PlaceRelationshipRecordDialog;
@@ -269,16 +269,16 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		final List<Class<? extends RecordTypeHandler<?>>> cleaned = extractParentHandlers();
 		@SuppressWarnings("unchecked")
-		final MultiTypeSelectionDialog dialog = new MultiTypeSelectionDialog(parent, model, cleaned.toArray(Class[]::new))
+		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
+				(record, handler) -> {
+					// For citation wrapper, we need to create a citation around the selected entity.
+					if(type == ListType.CITATION_WRAPPER)
+						addExistingCitation(record);
+					else
+						addItemDirectly(record);
+				},
+				cleaned.toArray(Class[]::new))
 			.withSetupDialog(getDialogSetup());
-		dialog.addPropertyChangeListener(MultiTypeSelectionDialog.PROPERTY_TYPE_SELECTED, e -> {
-			final FLEFRecord selectedRecord = dialog.getSelectedRecord();
-			// For citation wrapper, we need to create a citation around the selected entity.
-			if(type == ListType.CITATION_WRAPPER)
-				addExistingCitation(selectedRecord);
-			else
-				addItemDirectly(selectedRecord);
-		});
 		dialog.setVisible(true);
 
 		// Result is handled via listener
@@ -311,28 +311,16 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			}
 			else{
 				// Multiple types: show selection dialog and then create based on selection
+				final FLEFRecord[] result = {null};
 				@SuppressWarnings("unchecked")
-				final MultiTypeSelectionDialog selectionDialog = new MultiTypeSelectionDialog(parent, model,
+				final RecordSelectionDialog selectionDialog = RecordSelectionDialog.createWithAllowRecordCreation(parent,
+						model,
+						(record, handler) -> result[0] = record,
 						handlerTypes.toArray(Class[]::new))
 					.withSetupDialog(getDialogSetup());
 				selectionDialog.setVisible(true);
 
-				final FLEFRecord selected = selectionDialog.getSelectedRecord();
-				if(selected != null){
-					// The selected record might be a new one created via the dialog? Actually the dialog only selects existing.
-					// For creation, we need to create a new one of the chosen type.
-					// But the selection dialog returns an existing record, not a new one.
-					// So we need to show a creation dialog for the chosen type.
-					// However, the MultiTypeSelectionDialog is for selecting existing records.
-					// So this flow is not fully correct. The original code uses showCreateNewDialog to create a new record,
-					// not to select existing. In EntityListPanel, showCreateNewDialog uses the first handler or selection dialog?
-					// Actually in EntityListPanel, showCreateNewDialog: if one handler, create; if multiple, show selection dialog? But that selection dialog is for picking a type, then create new.
-					// So we should handle that properly.
-				}
-				// For now, we'll just create using the first handler if multiple, but we need a better selection dialog.
-				// We'll handle it similarly to EntityListPanel: if multiple handlers, show a type selection dialog (not MultiTypeSelectionDialog which selects records, but a dialog that lets the user pick a type, then we open the creation dialog for that type).
-				// We'll implement a simple type selection dialog via JOptionPane.
-				return createNewWithTypeSelection();
+				return result[0];
 			}
 		}
 	}

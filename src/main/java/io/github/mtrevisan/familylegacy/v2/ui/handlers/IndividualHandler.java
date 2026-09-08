@@ -87,11 +87,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 			}
 
 		final String id = record.getId();
-		if(StringUtils.isNotEmpty(formattedName))
-			return formattedName + (StringUtils.isNotEmpty(id)? " [" + id + "]": StringUtils.EMPTY);
-
-		// Fallback to the record ID
-		return "[" + id + "]";
+		return (StringUtils.isNotEmpty(formattedName)? formattedName: "--") + " [" + id + "]";
 	}
 
 	/**

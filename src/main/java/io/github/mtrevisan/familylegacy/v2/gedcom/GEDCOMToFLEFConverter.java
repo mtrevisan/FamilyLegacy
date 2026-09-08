@@ -148,9 +148,7 @@ public class GEDCOMToFLEFConverter {
 
 			final List<FLEFRecord> children = current.getChildren();
 
-			for(int i = 0; i < children.size(); i++){
-				final FLEFRecord child = children.get(i);
-
+			for(final FLEFRecord child : children){
 				if("note".equalsIgnoreCase(child.getTag())){
 					String childValue = FLEFRecordHelper.getChildValuesAsString(child, "value");
 

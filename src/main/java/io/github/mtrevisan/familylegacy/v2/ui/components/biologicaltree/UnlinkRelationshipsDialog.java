@@ -22,9 +22,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;
 import java.awt.Cursor;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.Serial;
@@ -74,7 +74,7 @@ public class UnlinkRelationshipsDialog extends JDialog{
 	private boolean confirmed;
 
 
-	public UnlinkRelationshipsDialog(final Window parent, final FLEFModel model, final String individualId){
+	public UnlinkRelationshipsDialog(final Dialog parent, final FLEFModel model, final String individualId){
 		super(parent, "Unlink Relationships", ModalityType.APPLICATION_MODAL);
 
 		this.model = model;

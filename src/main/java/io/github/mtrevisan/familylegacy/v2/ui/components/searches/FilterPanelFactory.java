@@ -1,5 +1,7 @@
 package io.github.mtrevisan.familylegacy.v2.ui.components.searches;
 
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies.IndividualFilterPanel;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RecordTypeHandler;
 
 import javax.swing.JPanel;
@@ -19,13 +21,12 @@ public class FilterPanelFactory{
 	 * @param onChanged callback to update the search criteria
 	 * @return a JPanel containing the filters
 	 */
-	public static JPanel createPanel(final RecordTypeHandler<?> handler,
-		final Consumer<SearchCriteria> onChanged){
+	public static JPanel createPanel(final RecordTypeHandler<?> handler, final Consumer<SearchCriteria> onChanged){
 		// Based on handler type, return appropriate panel.
 		// For simplicity, we'll implement only for Individual.
-		if(handler.getType().equals("individual")){
+		if(handler.getType().equals(IndividualHandler.TYPE))
 			return new IndividualFilterPanel(onChanged);
-		}
+
 		// Add other types similarly.
 		return new JPanel(); // empty
 	}

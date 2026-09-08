@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -83,8 +82,6 @@ public class DocumentRecordDialog extends BaseRecordDialog{
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 

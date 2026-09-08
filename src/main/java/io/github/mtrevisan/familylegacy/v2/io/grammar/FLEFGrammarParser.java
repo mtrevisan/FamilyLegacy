@@ -489,7 +489,7 @@ public final class FLEFGrammarParser{
 			if(firstFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
-					"Expected one field in type(...), found [" + StringUtils.join(firstFields, ", ") + "]",
+					"Expected one field in type(…), found [" + StringUtils.join(firstFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
 			expect(TAG_CLOSE_PARENTHESIS);
@@ -500,7 +500,7 @@ public final class FLEFGrammarParser{
 			if(secondFields.size() != 1){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
-					"Expected one field in second type(...), found [" + StringUtils.join(secondFields, ", ") + "]",
+					"Expected one field in second type(…), found [" + StringUtils.join(secondFields, ", ") + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
 			expect(TAG_CLOSE_PARENTHESIS);
@@ -569,7 +569,7 @@ public final class FLEFGrammarParser{
 			if(!NumberUtils.isParsable(index)){
 				final Token t = (position < tokens.size()? tokens.get(position): null);
 				throw new FLEFGrammarParseException(
-					"Expected an integer index in '" + name + "[...]', found [" + index + "]",
+					"Expected an integer index in '" + name + "[…]', found [" + index + "]",
 					(t != null? t.line(): (tokens.isEmpty()? 0: tokens.getLast().line())));
 			}
 			expect(TAG_CLOSE_SQUARE_BRACKET);

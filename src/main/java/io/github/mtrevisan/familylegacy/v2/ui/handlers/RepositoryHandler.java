@@ -85,9 +85,7 @@ public class RepositoryHandler extends AbstractRecordTypeHandler<RepositoryRecor
 		// Locate the first populated NAME structure
 		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
 
-		if(StringUtils.isNotEmpty(name))
-			return name + " [" + id + "]";
-		return "[" + id + "]";
+		return (StringUtils.isNotEmpty(name)? name: "--") + " [" + id + "]";
 	}
 
 	@Override

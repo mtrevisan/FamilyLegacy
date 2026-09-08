@@ -54,23 +54,20 @@ public final class TrustScorer{
 		double score = 0.5; // base
 
 		// Audit creation date: more recent = higher trust
-		final FLEFRecord audit = FLEFRecordHelper.findChild(record, "audit");
-		if(audit != null){
-			final FLEFRecord creation = FLEFRecordHelper.findChild(audit, "creation");
-			if(creation != null){
-				final String dateStr = FLEFRecordHelper.getChildValue(creation, "date");
-				if(dateStr != null){
-					try{
-						final LocalDate ld = LocalDate.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-						final long days = ChronoUnit.DAYS.between(ld, LocalDate.now());
-						if(days < 30)
-							score += 0.4;
-						else if(days < 365)
-							score += 0.2;
-						// else no bonus
-					}
-					catch(final Exception ignored){}
+		final FLEFRecord creation = FLEFRecordHelper.findChild(record, "audit" + "." + "creation");
+		if(creation != null){
+			final String dateStr = FLEFRecordHelper.getChildValue(creation, "date");
+			if(dateStr != null){
+				try{
+					final LocalDate ld = LocalDate.parse(dateStr, DateTimeFormatter.ISO_OFFSET_DATE_TIME);
+					final long days = ChronoUnit.DAYS.between(ld, LocalDate.now());
+					if(days < 30)
+						score += 0.4;
+					else if(days < 365)
+						score += 0.2;
+					// else no bonus
 				}
+				catch(final Exception ignored){}
 			}
 		}
 

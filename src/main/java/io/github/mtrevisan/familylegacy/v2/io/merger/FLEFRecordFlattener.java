@@ -201,6 +201,7 @@ public class FLEFRecordFlattener{
 				if(eventType.equalsIgnoreCase(type)){
 					final FLEFRecord date = FLEFRecordHelper.findChild(child, "date");
 					if(date != null)
+						//FIXME
 						return FLEFRecordHelper.getChildValue(date, "value.point.full_date.value");
 				}
 			}

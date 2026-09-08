@@ -84,7 +84,8 @@ public class ApproximatePanel extends JPanel{
 	public ApproximatePanel(String path, Dialog parent, FLEFModel model){
 		this.path = path;
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.class);
+		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms",
+			model, CulturalNormHandler.class);
 
 
 		initComponents();

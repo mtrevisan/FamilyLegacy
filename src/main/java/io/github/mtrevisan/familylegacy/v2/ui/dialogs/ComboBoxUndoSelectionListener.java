@@ -39,7 +39,7 @@ class ComboBoxUndoSelectionListener implements ActionListener{
 			undoController.addEdit(new DirectComboEdit(this, oldVal, newVal));
 			this.lastValidValue = currentValue;
 		}
-		else if(lastValidValue == null && currentValue != null){
+		else if(lastValidValue == null){
 			this.lastValidValue = currentValue;
 		}
 	}

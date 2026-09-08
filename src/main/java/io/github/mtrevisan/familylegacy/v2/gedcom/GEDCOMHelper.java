@@ -46,6 +46,13 @@ public class GEDCOMHelper{
 		.ofPattern("uuuu-MM-dd")
 		.withResolverStyle(ResolverStyle.STRICT);
 
+	// Formato data GEDCOM: [GG ]MMM[ AAAA] oppure AAAA
+	private static final String GEDCOM_MONTHS = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC";
+	private static final Pattern FORMAL_GEDCOM_DATE_PATTERN = Pattern.compile(
+		"^(?:(?:\\d{1,2}\\s+)?(?:" + GEDCOM_MONTHS + ")(?:\\s+\\d{1,4})?|\\d{1,4})$",
+		Pattern.CASE_INSENSITIVE
+	);
+
 
 	private GEDCOMHelper(){}
 
@@ -546,10 +553,6 @@ public class GEDCOMHelper{
 			}
 			attachQuay(source, node);
 
-			if(event != null){
-				event.addChild(sourceCitation);
-			}
-
 			parent.addChild(sourceCitation);
 		}
 		else{
@@ -640,7 +643,6 @@ public class GEDCOMHelper{
 			if(rawObjeNode != null){
 				// Recursively parse the raw OBJE record to process its FILE/TITL/etc. components
 				attachMultimediaLink(parent, model, rawObjeNode, objeRawMap);
-				return;
 			}
 		}
 		else{
@@ -1043,7 +1045,7 @@ public class GEDCOMHelper{
 		// role (mappato)
 		if(role != null){
 			String mappedRole = GEDCOMMapper.mapRole(role, role);
-			eventParticipation.addChild(FLEFRecord.createChildWithTagAndValue("role", (mappedRole != null? role: mappedRole)));
+			eventParticipation.addChild(FLEFRecord.createChildWithTagAndValue("role", (mappedRole != null? role: null)));
 		}
 
 		if(entityAge != null){
@@ -1066,6 +1068,15 @@ public class GEDCOMHelper{
 			FLEFRecord dateValue = FLEFRecord.createChildWithTag("value");
 			switch(dateInfo.getType()){
 				case POINT -> {
+					if(dateInfo.getValue() != null && !FORMAL_GEDCOM_DATE_PATTERN.matcher(dateInfo.getValue()).matches()){
+						// Fallback: If parsing fails, save the raw date text as a note
+						FLEFRecord note = createNoteStruct(date, null);
+						if(note != null){
+							parent.addChild(note);
+						}
+						return;
+					}
+
 					FLEFRecord valuePoint = FLEFRecord.createChildWithTag("point");
 					FLEFRecord valuePointFullDate = FLEFRecord.createChildWithTag("full_date");
 					valuePointFullDate.addChild(FLEFRecord.createChildWithTagAndValue("value", dateInfo.getValue()));
@@ -1086,6 +1097,16 @@ public class GEDCOMHelper{
 					dateValue.addChild(valuePoint);
 				}
 				case BOUNDED -> {
+					if(dateInfo.getNotBefore() != null && !FORMAL_GEDCOM_DATE_PATTERN.matcher(dateInfo.getNotBefore()).matches()
+							|| dateInfo.getNotAfter() != null && !FORMAL_GEDCOM_DATE_PATTERN.matcher(dateInfo.getNotAfter()).matches()){
+						// Fallback: If parsing fails, save the raw date text as a note
+						FLEFRecord note = createNoteStruct(date, null);
+						if(note != null){
+							parent.addChild(note);
+						}
+						return;
+					}
+
 					FLEFRecord boundedRec = FLEFRecord.createChildWithTag("bounded");
 					if(dateInfo.getNotBefore() != null){
 						FLEFRecord nb = buildQualifiedDate(dateInfo.getNotBefore());
@@ -1112,6 +1133,16 @@ public class GEDCOMHelper{
 					dateValue.addChild(boundedRec);
 				}
 				case SPANNING -> {
+					if(dateInfo.getFrom() != null && !FORMAL_GEDCOM_DATE_PATTERN.matcher(dateInfo.getFrom()).matches()
+							|| dateInfo.getTo() != null && !FORMAL_GEDCOM_DATE_PATTERN.matcher(dateInfo.getTo()).matches()){
+						// Fallback: If parsing fails, save the raw date text as a note
+						FLEFRecord note = createNoteStruct(date, null);
+						if(note != null){
+							parent.addChild(note);
+						}
+						return;
+					}
+
 					FLEFRecord spanningRec = FLEFRecord.createChildWithTag("spanning");
 					if(dateInfo.getFrom() != null){
 						FLEFRecord from = buildQualifiedDate(dateInfo.getFrom());

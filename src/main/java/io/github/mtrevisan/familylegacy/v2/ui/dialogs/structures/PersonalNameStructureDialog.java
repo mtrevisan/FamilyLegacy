@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
@@ -99,8 +98,6 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private static final String TAG_NOTE = "NOTE";
 
 
-	private final RecordDialogComponents components;
-
 	private final JPanel propertiesPanel;
 
 	private final BoundComboBox<String> typeCombo;
@@ -145,7 +142,8 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		});
 		localeCombo.setEditable(true);
 
-		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms", model, CulturalNormHandler.class);
+		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms",
+			model, CulturalNormHandler.class);
 
 		// Build common panels using the builder
 		components = new RecordDialogBuilder(this, model, record)
@@ -156,6 +154,9 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		components.bind(typeCombo);
 		components.bind(localeCombo);
 
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
 
 		finalizeDialog(parent);
 	}
@@ -192,6 +193,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
 		return panel;
 	}
 
@@ -213,6 +218,10 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		partPanel.load(record);
 
 		culturalNormPanel.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
 	}
 
 	@Override

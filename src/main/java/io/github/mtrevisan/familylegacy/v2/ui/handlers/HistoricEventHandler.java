@@ -74,9 +74,7 @@ public class HistoricEventHandler extends AbstractRecordTypeHandler<HistoricEven
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
 		final String id = record.getId();
-		if(StringUtils.isNotEmpty(title))
-			return title + " [" + id + "]";
-		return "[" + id + "]";
+		return (StringUtils.isNotEmpty(title)? title: "--") + " [" + id + "]";
 	}
 
 	@Override

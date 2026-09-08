@@ -31,7 +31,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TranslationListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
@@ -40,7 +39,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
 import java.awt.Dialog;
-import java.io.IOException;
 import java.io.Serial;
 
 
@@ -86,8 +84,6 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	private static final String TAG_PRIVACY = "PRIVACY";
 	private static final String TAG_AUDIT = "AUDIT";
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 
@@ -137,6 +133,9 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		components.bind(localeCombo);
 
 
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
+
 		finalizeDialog(parent);
 	}
 
@@ -168,6 +167,10 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
 		return panel;
 	}
 
@@ -187,6 +190,10 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		components.load(record);
 
 		translationPanel.load(record);
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
 	}
 
 	@Override
@@ -210,7 +217,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	}
 
 
-	public static void main(final String[] args) throws IOException{
+	public static void main(final String[] args){
 		GUIHelper.launch(NoteStructureDialog::createNew);
 	}
 

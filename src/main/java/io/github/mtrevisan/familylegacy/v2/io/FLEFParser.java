@@ -59,15 +59,7 @@ public class FLEFParser{
 	/**
 	 * Helper to hold both the root and the deepest node of a nested chain.
 	 */
-	private static class NestedPair{
-		final FLEFRecord root;
-		final FLEFRecord current;
-
-		NestedPair(final FLEFRecord root, final FLEFRecord current){
-			this.root = root;
-			this.current = current;
-		}
-	}
+	private record NestedPair(FLEFRecord root, FLEFRecord current){}
 
 
 	private String text;

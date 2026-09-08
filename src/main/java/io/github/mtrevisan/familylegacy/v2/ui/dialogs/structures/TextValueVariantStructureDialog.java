@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.TextValueVariantHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
@@ -98,8 +97,6 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 	private static final String TAG_TRANSCRIPTION_TYPE = TAG_TRANSCRIPTION + DOT + TAG_TYPE;
 	private static final String TAG_TRANSCRIPTION_VALUE = TAG_TRANSCRIPTION + DOT + TAG_VALUE;
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 

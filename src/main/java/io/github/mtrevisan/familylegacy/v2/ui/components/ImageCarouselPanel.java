@@ -181,26 +181,17 @@ public class ImageCarouselPanel extends JPanel{
 		return new ImageIcon(img);
 	}
 
-	private static class ThumbnailInfo{
-		final String uri;
-		final ImageIcon icon;
-
-		ThumbnailInfo(final String uri, final ImageIcon icon){
-			this.uri = uri;
-			this.icon = icon;
-		}
-	}
+	private record ThumbnailInfo(String uri, ImageIcon icon){}
 
 	private static class ThumbnailCellRenderer extends DefaultListCellRenderer{
 		@Serial
-		private static final long serialVersionUID = 1L;
+		private static final long serialVersionUID = 8155363623055502967L;
 
 		@Override
 		public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
 				final boolean isSelected, final boolean cellHasFocus){
 			final JLabel label = (JLabel)super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			if(value instanceof ThumbnailInfo){
-				final ThumbnailInfo info = (ThumbnailInfo)value;
+			if(value instanceof ThumbnailInfo info){
 				label.setIcon(info.icon);
 				label.setText(null);
 				label.setHorizontalAlignment(SwingConstants.CENTER);

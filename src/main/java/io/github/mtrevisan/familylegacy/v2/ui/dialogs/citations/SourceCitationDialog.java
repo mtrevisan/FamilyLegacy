@@ -29,7 +29,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.ExtractListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
@@ -93,8 +92,6 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	private static final String TAG_EVIDENCE = "EVIDENCE";
 	private static final String TAG_PRIVACY = "PRIVACY";
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 

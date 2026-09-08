@@ -111,7 +111,7 @@ public class PersonalNameHandler extends AbstractRecordTypeHandler<PersonalNameS
 
 		String result = fullName.toString();
 		if(result.isBlank())
-			return "[" + record.getId() + "]";
+			return "-- [" + record.getId() + "]";
 
 		result = GUIHelper.limitTextLength(result);
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);

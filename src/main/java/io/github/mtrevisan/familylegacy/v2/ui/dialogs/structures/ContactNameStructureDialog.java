@@ -28,7 +28,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactNameHandler;
@@ -62,8 +61,6 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VARIANT = "VARIANT";
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 

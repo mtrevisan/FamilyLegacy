@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.DateField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.fields.EntityField;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
@@ -125,8 +124,6 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 	private static final List<String> GROUP_TO_INDIVIDUAL_TYPES = Collections.emptyList();
 
 
-	private final RecordDialogComponents components;
-
 	private final JPanel propertiesPanel;
 
 	private final EntityField subjectField;
@@ -190,6 +187,9 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		components.bind(subjectRoleField);
 		components.bind(statusCombo);
 
+
+		// Set up the image carousel selection listener on the source list
+		setupSourceListSelection();
 
 		finalizeDialog(parent);
 	}
@@ -292,6 +292,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		final JPanel sourcePanel = components.getPanel(PanelKey.SOURCE);
 		GUIHelper.addComponent(panel, sourcePanel);
 
+		// Image carousel below the source list
+		// It will be hidden if no images are found
+		GUIHelper.addComponent(panel, imageCarouselPanel);
+
 		return panel;
 	}
 
@@ -365,6 +369,10 @@ public class RelationshipRecordDialog extends BaseRecordDialog{
 		validToField.load(record);
 
 		updateTypeCombo();
+
+
+		// Initially, update carousel based on the first selected source (if any)
+		updateCarouselFromSelectedSource();
 	}
 
 	@Override

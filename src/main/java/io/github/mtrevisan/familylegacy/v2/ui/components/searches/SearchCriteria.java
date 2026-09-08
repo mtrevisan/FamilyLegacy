@@ -13,24 +13,26 @@ import java.util.Map;
  */
 public class SearchCriteria{
 
-	private final RecordTypeHandler<?> handlerType;
+	private final RecordTypeHandler<?> handler;
+
 	private final String searchText;
 	private final boolean fuzzy;
 	private final boolean wholeWord;
+
 	private final Map<String, Object> specificFilters = new HashMap<>();
 
-	public SearchCriteria(final RecordTypeHandler<?> handlerType,
-		final String searchText,
-		final boolean fuzzy,
-		final boolean wholeWord){
-		this.handlerType = handlerType;
+
+	public SearchCriteria(final RecordTypeHandler<?> handler, final String searchText, final boolean fuzzy,
+			final boolean wholeWord){
+		this.handler = handler;
+
 		this.searchText = searchText;
 		this.fuzzy = fuzzy;
 		this.wholeWord = wholeWord;
 	}
 
-	public RecordTypeHandler<?> getHandlerType(){
-		return handlerType;
+	public RecordTypeHandler<?> getHandler(){
+		return handler;
 	}
 
 	public String getSearchText(){
@@ -54,6 +56,7 @@ public class SearchCriteria{
 	 */
 	public SearchCriteria withFilter(final String key, final Object value){
 		specificFilters.put(key, value);
+
 		return this;
 	}
 
@@ -65,7 +68,7 @@ public class SearchCriteria{
 	 * @return the value, or null if not present
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T getFilter(final String key){
+	public <T> T getFilterFor(final String key){
 		return (T)specificFilters.get(key);
 	}
 

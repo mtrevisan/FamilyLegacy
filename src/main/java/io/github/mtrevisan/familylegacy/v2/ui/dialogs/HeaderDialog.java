@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HeaderHandler;
@@ -103,8 +102,6 @@ public class HeaderDialog extends BaseRecordDialog{
 	private static final String PROTOCOL_NAME = "Family LEgacy Format";
 	private static final String PROTOCOL_VERSION = "0.1.2";
 	private static final String SOURCE_ORGANIZATION = "Mauro Trevisan";
-
-	private final RecordDialogComponents components;
 
 	private final BoundTextField protocolNameField;
 	private final BoundTextField protocolVersionField;

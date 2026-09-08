@@ -5,10 +5,13 @@ import com.ibm.icu.util.ChineseCalendar;
 import com.ibm.icu.util.HebrewCalendar;
 import com.ibm.icu.util.IndianCalendar;
 import com.ibm.icu.util.TimeZone;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.threeten.extra.chrono.CopticChronology;
 import org.threeten.extra.chrono.EthiopicChronology;
 import org.threeten.extra.chrono.JulianChronology;
 
+import java.text.ParsePosition;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.Year;
@@ -27,56 +30,107 @@ import java.util.Objects;
 
 
 /**
- * Service to parse partial or full date strings into GenealogicalDate objects.
+ * Generic service to parse partial or full date strings into GenealogicalDate objects.
+ * Supports standard date pattern formats as well as GEDCOM-style date strings.
  */
 public final class UniversalDateConverter{
 
-	private record PatternMatch(String pattern, ParsedGenealogicalDate.DatePrecision precision, boolean hasDay,
-										 boolean hasMonth, boolean hasYear){}
+	private static final String[] GEDCOM_PREFIXES = {
+		"ABT", "CAL", "EST", "BEFORE", "BEF", "AFTER", "AFT", "FROM", "TO", "BET", "AND", "INT"
+	};
+
+
+	private record PatternMatch(DateTimeFormatter formatter, ParsedGenealogicalDate.DatePrecision precision, boolean hasDay,
+		boolean hasMonth, boolean hasYear){}
 
 
 	private static final PatternMatch[] PATTERNS = new PatternMatch[]{
-		new PatternMatch("d MMMM uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		new PatternMatch("d MMM uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		new PatternMatch("d M uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
-		new PatternMatch("MMMM uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		new PatternMatch("MMM uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		new PatternMatch("M uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
-		new PatternMatch("d MMMM", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
-		new PatternMatch("d MMM", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
-		new PatternMatch("d M", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
-		new PatternMatch("uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_ONLY, false, false, true)
+		createPattern("d MMMM uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d MMM uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d M uuuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("MMMM uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("MMM uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("M uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("uuuu", ParsedGenealogicalDate.DatePrecision.YEAR_ONLY, false, false, true),
+		createPattern("d MMMM uuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d MMM uuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("d M uuu", ParsedGenealogicalDate.DatePrecision.EXACT, true, true, true),
+		createPattern("MMMM uuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("MMM uuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("M uuu", ParsedGenealogicalDate.DatePrecision.YEAR_MONTH, false, true, true),
+		createPattern("uuu", ParsedGenealogicalDate.DatePrecision.YEAR_ONLY, false, false, true),
+		createPattern("d MMMM", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
+		createPattern("d MMM", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false),
+		createPattern("d M", ParsedGenealogicalDate.DatePrecision.MONTH_DAY, true, true, false)
 	};
+
+	private static PatternMatch createPattern(final String pattern,
+		final ParsedGenealogicalDate.DatePrecision precision, final boolean hasDay, final boolean hasMonth,
+		final boolean hasYear) {
+		final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
+			.parseCaseInsensitive()
+			.appendPattern(pattern)
+			.parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
+			.parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
+			.parseDefaulting(ChronoField.YEAR, Year.now().getValue())
+			.toFormatter(Locale.ENGLISH);
+		return new PatternMatch(dtf, precision, hasDay, hasMonth, hasYear);
+	}
 
 	public static ParsedGenealogicalDate parse(final String calendarCode, final String rawDate){
 		final CalendarType type = CalendarType.fromCode(calendarCode);
 
-		final boolean isApproximate = Objects.requireNonNull(rawDate, "rawDate cannot be null")
-			.toLowerCase(Locale.ENGLISH)
-			.matches(".*(" + ParsedGenealogicalDate.APPROXIMATION_REGEX + ").*");
-
-		final String cleanedDate = rawDate.trim()
-			.replaceAll(ParsedGenealogicalDate.APPROXIMATION_REGEX, " ")
-			.replaceAll("[/.\\-]", " ")
-			.replaceAll("\\s+", " ")
+		String workingDate = Objects.requireNonNull(rawDate, "rawDate cannot be null")
 			.trim();
+		if(workingDate.isEmpty())
+			throw new IllegalArgumentException("Date string cannot be empty");
 
+		// Strip embedded calendar escape tags (e.g. @#DGREGORIAN@)
+		if(workingDate.startsWith("@#") && workingDate.contains("@")){
+			workingDate = StringUtils.substringAfter(workingDate, "@")
+				.trim();
+			if(workingDate.startsWith("#"))
+				workingDate = StringUtils.substringAfter(workingDate, "@")
+					.trim();
+		}
+
+		boolean isApproximate = false;
+		for(final String prefix : GEDCOM_PREFIXES)
+			if(Strings.CI.startsWith(workingDate, prefix)){
+				isApproximate = true;
+				workingDate = StringUtils.stripStart(workingDate.substring(prefix.length()), null);
+
+				break;
+			}
+
+		// Replace standard GEDCOM / date delimiters ('/', '.', '-') with spaces
+		workingDate = StringUtils.replaceChars(workingDate, "/.-", "   ");
+		final String cleanedDate = StringUtils.normalizeSpace(workingDate);
+		final ParsePosition pos = new ParsePosition(0);
 		for(final PatternMatch pm : PATTERNS){
 			try{
+				pos.setIndex(0);
+				pos.setErrorIndex(-1);
+				final TemporalAccessor accessor = pm.formatter()
+					.parse(cleanedDate, pos);
+				// Accept match only if parsing succeeded AND consumed the entire string
+				if(pos.getErrorIndex() != -1 || pos.getIndex() != cleanedDate.length())
+					continue;
+
 				final LocalDate resultIso = switch(type){
-					case GREGORIAN -> parseJsr310(IsoChronology.INSTANCE, cleanedDate, pm);
-					case JULIAN -> parseJsr310(JulianChronology.INSTANCE, cleanedDate, pm);
-					case ISLAMIC -> parseJsr310(HijrahChronology.INSTANCE, cleanedDate, pm);
-					case BUDDHIST -> parseJsr310(ThaiBuddhistChronology.INSTANCE, cleanedDate, pm);
-					case COPTIC -> parseJsr310(CopticChronology.INSTANCE, cleanedDate, pm);
-					case ETHIOPIAN -> parseJsr310(EthiopicChronology.INSTANCE, cleanedDate, pm);
+					case GREGORIAN -> parseJsr310(IsoChronology.INSTANCE, accessor, pm);
+					case JULIAN -> parseJsr310(JulianChronology.INSTANCE, accessor, pm);
+					case ISLAMIC -> parseJsr310(HijrahChronology.INSTANCE, accessor, pm);
+					case BUDDHIST -> parseJsr310(ThaiBuddhistChronology.INSTANCE, accessor, pm);
+					case COPTIC -> parseJsr310(CopticChronology.INSTANCE, accessor, pm);
+					case ETHIOPIAN -> parseJsr310(EthiopicChronology.INSTANCE, accessor, pm);
 
-					case HEBREW -> parseIcu4j(new HebrewCalendar(), cleanedDate, pm);
-					case CHINESE -> parseIcu4j(new ChineseCalendar(), cleanedDate, pm);
-					case INDIAN -> parseIcu4j(new IndianCalendar(), cleanedDate, pm);
+					case HEBREW -> parseIcu4j(new HebrewCalendar(), accessor, pm);
+					case CHINESE -> parseIcu4j(new ChineseCalendar(), accessor, pm);
+					case INDIAN -> parseIcu4j(new IndianCalendar(), accessor, pm);
 
-					case FRENCH_REPUBLICAN -> parseFrenchRepublican(cleanedDate, pm);
-					case SOVIET_ETERNAL -> parseSovietEternal(cleanedDate, pm);
+					case FRENCH_REPUBLICAN -> parseFrenchRepublican(accessor, pm);
+					case SOVIET_ETERNAL -> parseSovietEternal(accessor, pm);
 					case MAYAN -> parseMayanLongCount(cleanedDate);
 				};
 
@@ -89,29 +143,17 @@ public final class UniversalDateConverter{
 	}
 
 
-	private static LocalDate parseJsr310(final Chronology chrono, final String input, final PatternMatch pm){
-		final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
-			.parseCaseInsensitive()
-			.appendPattern(pm.pattern())
-			.parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
-			.parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
-			.parseDefaulting(ChronoField.YEAR, Year.now().getValue())
-			.toFormatter(Locale.ENGLISH);
+	private static LocalDate parseJsr310(final Chronology chrono, final TemporalAccessor accessor,
+			final PatternMatch pm){
+		final int year = (pm.hasYear()? accessor.get(ChronoField.YEAR): Year.now().getValue());
+		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR): 1);
+		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 
-		final ChronoLocalDate cld = chrono.date(dtf.parse(input));
+		final ChronoLocalDate cld = chrono.date(year, month, day);
 		return LocalDate.from(cld);
 	}
 
-	private static LocalDate parseIcu4j(final Calendar cal, final String input, final PatternMatch pm){
-		final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
-			.parseCaseInsensitive()
-			.appendPattern(pm.pattern())
-			.parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
-			.parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
-			.parseDefaulting(ChronoField.YEAR, Year.now().getValue())
-			.toFormatter(Locale.ENGLISH);
-
-		final TemporalAccessor accessor = dtf.parse(input);
+	private static LocalDate parseIcu4j(final Calendar cal, final TemporalAccessor accessor, final PatternMatch pm){
 		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR) - 1: 0);
 		final int year = (pm.hasYear()? accessor.get(ChronoField.YEAR): Year.now().getValue());
@@ -122,22 +164,12 @@ public final class UniversalDateConverter{
 		cal.set(Calendar.MONTH, month);
 		cal.set(Calendar.DAY_OF_MONTH, day);
 
-		final long millis = cal.getTimeInMillis();
-		return Instant.ofEpochMilli(millis)
+		return Instant.ofEpochMilli(cal.getTimeInMillis())
 			.atZone(ZoneOffset.UTC)
 			.toLocalDate();
 	}
 
-	private static LocalDate parseFrenchRepublican(final String input, final PatternMatch pm){
-		final DateTimeFormatter dtf = new DateTimeFormatterBuilder()
-			.parseCaseInsensitive()
-			.appendPattern(pm.pattern())
-			.parseDefaulting(ChronoField.DAY_OF_MONTH, 1)
-			.parseDefaulting(ChronoField.MONTH_OF_YEAR, 1)
-			.parseDefaulting(ChronoField.YEAR, 1)
-			.toFormatter(Locale.ENGLISH);
-
-		final TemporalAccessor accessor = dtf.parse(input);
+	private static LocalDate parseFrenchRepublican(final TemporalAccessor accessor, final PatternMatch pm){
 		final int day = (pm.hasDay()? accessor.get(ChronoField.DAY_OF_MONTH): 1);
 		final int month = (pm.hasMonth()? accessor.get(ChronoField.MONTH_OF_YEAR): 1);
 		final int year = (pm.hasYear()? accessor.get(ChronoField.YEAR): 1);
@@ -147,15 +179,15 @@ public final class UniversalDateConverter{
 		return epoch.plusDays(daysToAdd);
 	}
 
-	private static LocalDate parseSovietEternal(final String input, final PatternMatch pm){
+	private static LocalDate parseSovietEternal(final TemporalAccessor accessor, final PatternMatch pm){
 		// Soviet Revolutionary Calendar (1929-1940): 12 months of 30 days each + 5/6 holidays without a month.
 		// The months are numbered according to the Julian/Gregorian calendar.
-		return parseJsr310(IsoChronology.INSTANCE, input, pm);
+		return parseJsr310(IsoChronology.INSTANCE, accessor, pm);
 	}
 
 	private static LocalDate parseMayanLongCount(final String input){
-		// Mayan format: Baktun.Katun.Tun.Uinal.Kin (es. 13.0.0.0.0)
-		final String[] parts = input.split("\\s+");
+		// Mayan format: Baktun.Katun.Tun.Uinal.Kin (e.g. 13.0.0.0.0)
+		final String[] parts = StringUtils.split(input, ' ');
 		if(parts.length < 5)
 			throw new IllegalArgumentException("Invalid Mayan date. Requested format: 'Baktun Katun Tun Uinal Kin'");
 

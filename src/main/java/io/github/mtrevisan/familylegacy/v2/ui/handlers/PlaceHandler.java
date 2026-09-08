@@ -82,9 +82,7 @@ public class PlaceHandler extends AbstractRecordTypeHandler<PlaceRecordDialog>{
 				.getDisplayText(record, model);
 
 		final String value = FLEFRecordHelper.getChildValue(record, TAG_NAME_VALUE);
-		if(StringUtils.isNotEmpty(value))
-			return value.replace(StringUtils.LF, ", ") + " [" + id + "]";
-		return "[" + id + "]";
+		return (StringUtils.isNotEmpty(value)? value.replace(StringUtils.LF, ", "): "--") + " [" + id + "]";
 	}
 
 	@Override

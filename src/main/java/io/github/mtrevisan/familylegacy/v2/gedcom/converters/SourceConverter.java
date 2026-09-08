@@ -240,7 +240,7 @@ public class SourceConverter {
 				}
 			}
 
-			FLEFRecord document = null;
+			FLEFRecord document;
 			if(objXref != null){
 				// Cerca il DocumentRecord nella mappa
 				document = multimediaMap.get(objXref);

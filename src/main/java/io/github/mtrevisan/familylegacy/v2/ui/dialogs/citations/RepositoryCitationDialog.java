@@ -30,7 +30,6 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
-import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogComponents;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryCitationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
@@ -70,8 +69,6 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	private static final String TAG_LOCATOR = "LOCATOR";
 	private static final String TAG_NOTE = "NOTE";
 
-
-	private final RecordDialogComponents components;
 
 	private final JPanel propertiesPanel;
 

@@ -80,10 +80,8 @@ public class SourceHandler extends AbstractRecordTypeHandler<SourceRecordDialog>
 			return SourceCitationHandler.getInstance()
 				.getDisplayText(record, model);
 
-		String title = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
-		if(StringUtils.isNotEmpty(title))
-			return title + " [" + id + "]";
-		return "[" + id + "]";
+		final String title = FLEFRecordHelper.getChildValue(record, TAG_VALUE);
+		return (StringUtils.isNotEmpty(title)? title: "--") + " [" + id + "]";
 	}
 
 	@Override
