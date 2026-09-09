@@ -64,6 +64,7 @@ public class AuditPanel extends JPanel{
 	@Serial
 	private static final long serialVersionUID = -8538135290834556766L;
 
+
 	private static final String DOT = ".";
 
 	private static final String TAG_AUDIT = "AUDIT";
@@ -145,7 +146,7 @@ public class AuditPanel extends JPanel{
 	public void save(final FLEFRecord record){
 		// creation.date
 		final FLEFRecord creation = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_AUDIT_CREATION);
-		if(StringUtils.isBlank(creationDate))
+		if(StringUtils.isEmpty(creationDate))
 			creationDate = DateTimeFormatter.ISO_INSTANT.format(Instant.now().truncatedTo(ChronoUnit.SECONDS));
 		FLEFRecordHelper.addChildValue(creation, TAG_DATE, creationDate);
 

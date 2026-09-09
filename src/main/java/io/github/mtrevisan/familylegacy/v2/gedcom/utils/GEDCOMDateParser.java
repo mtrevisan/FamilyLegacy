@@ -27,7 +27,8 @@ public final class GEDCOMDateParser{
 	}
 
 	public static DateInfo parse(String dateStr){
-		if(StringUtils.isBlank(dateStr)) return null;
+		if(StringUtils.isEmpty(dateStr))
+			return null;
 
 		String trimmed = dateStr.trim();
 		DateInfo.Builder builder = new DateInfo.Builder();

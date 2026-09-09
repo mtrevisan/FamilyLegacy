@@ -74,7 +74,6 @@ public class CulturalNormHandler extends AbstractRecordTypeHandler<CulturalNormR
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String title = FLEFRecordHelper.getChildValue(record, TAG_TITLE);
 		final String id = record.getId();
-
 		return (StringUtils.isNotEmpty(title)? title: "--") + " [" + id + "]";
 	}
 

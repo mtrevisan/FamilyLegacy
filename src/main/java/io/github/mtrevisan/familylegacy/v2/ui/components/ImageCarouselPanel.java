@@ -129,7 +129,7 @@ public class ImageCarouselPanel extends JPanel{
 			@Override
 			protected void process(final List<ThumbnailInfo> chunks){
 				for(final ThumbnailInfo info : chunks)
-					for(int i = 0; i < model.size(); i ++){
+					for(int i = 0, size = model.size(); i < size; i ++){
 						final ThumbnailInfo existing = model.get(i);
 						if(existing.uri.equals(info.uri)){
 							model.set(i, info);

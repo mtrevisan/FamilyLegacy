@@ -3,6 +3,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.partners;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.individual.IndividualData;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashSet;
@@ -19,20 +20,11 @@ public final class PartnersData{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_NAME = "name";
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
 	private static final String TAG_VALUE = "value";
 	private static final String TAG_POINT = "point";
 	private static final String TAG_FULL_DATE = "full_date";
-	private static final String TAG_PARTICIPANT = "participant";
-	private static final String TAG_EVENT = "event";
-	private static final String TAG_TYPE = "type";
 	private static final String TAG_DATE_VALUE_POINT_FULL_DATE = TAG_DATE + DOT + TAG_VALUE + DOT + TAG_POINT + DOT + TAG_FULL_DATE;
-	private static final String TAG_NAME_VALUE = TAG_NAME + DOT + TAG_VALUE;
-	private static final String TAG_PLACE_PLACE = TAG_PLACE + DOT + TAG_PLACE;
-
-	private static final String EVENT_TYPE_MARRIAGE = "marriage";
 
 	private static final String TAG_HTML_OPEN = "<html>";
 	private static final String TAG_HTML_CLOSE = "</html>";
@@ -91,7 +83,7 @@ public final class PartnersData{
 		// Extract marriage date and place from marriageEventRecord
 		if(marriageEvent != null){
 			final String dateStr = extractFullDate(marriageEvent);
-			final String place = extractPlace(marriageEvent, model);
+			final String place = IndividualData.extractPlace(marriageEvent, model);
 
 			final StringJoiner toolTipSJ = new StringJoiner(StringUtils.EMPTY);
 			if(place != null){
@@ -148,20 +140,6 @@ public final class PartnersData{
 			return null;
 
 		return FLEFRecordHelper.getChildValue(fullDate, TAG_VALUE);
-	}
-
-	private String extractPlace(final FLEFRecord event, final FLEFModel model){
-		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE_PLACE);
-		if(placeId == null)
-			return null;
-
-		// Try to get the place record via xref
-		final FLEFRecord place = model.getRecordById(placeId);
-		// get first name value
-		for(final FLEFRecord name : FLEFRecordHelper.findChildren(place, TAG_NAME_VALUE))
-			if(name != null)
-				return name.getValue();
-		return null;
 	}
 
 }

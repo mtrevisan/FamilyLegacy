@@ -337,13 +337,8 @@ public final class GUIHelper{
 			component.setForeground(COLOR_FOREGROUND_DISABLED);
 		}
 
-		Container parent = component.getParent();
-		while(parent != null){
-			parent.revalidate();
-			parent.repaint();
-
-			parent = parent.getParent();
-		}
+		component.revalidate();
+		component.repaint();
 	}
 
 	public static void updateDisplay(final JTextComponent component, final Supplier<Boolean> hasData,
@@ -658,7 +653,7 @@ public final class GUIHelper{
 	 */
 	private record MenuEntry(String label, Runnable action, Supplier<Boolean> enabledCondition, boolean isSeparator){
 		private static MenuEntry createEntry(final String label, final Runnable action,
-			final Supplier<Boolean> enabledCondition){
+				final Supplier<Boolean> enabledCondition){
 			return new MenuEntry(label, action, enabledCondition, false);
 		}
 
@@ -678,7 +673,7 @@ public final class GUIHelper{
 	}
 
 
-	public static <E, T> void setupReorderingShortcuts(final JList<E> list, final List<T> items){
+	public static <T> void setupReorderingShortcuts(final JList<T> list, final DefaultListModel<T> listModel){
 		final InputMap inputMap = list.getInputMap(JComponent.WHEN_FOCUSED);
 		final ActionMap actionMap = list.getActionMap();
 
@@ -692,7 +687,7 @@ public final class GUIHelper{
 
 			@Override
 			public void actionPerformed(final ActionEvent e){
-				moveSelectedItemUp(list, items);
+				moveSelectedItemUp(list, listModel);
 			}
 		});
 
@@ -702,7 +697,7 @@ public final class GUIHelper{
 
 			@Override
 			public void actionPerformed(final ActionEvent e){
-				moveSelectedItemDown(list, items);
+				moveSelectedItemDown(list, listModel);
 			}
 		});
 	}
@@ -710,30 +705,30 @@ public final class GUIHelper{
 	/**
 	 * Moves the currently selected item up by one position.
 	 */
-	public static <E, T> void moveSelectedItemUp(final JList<E> list, final List<T> items){
+	public static <T> void moveSelectedItemUp(final JList<T> list, final DefaultListModel<T> listModel){
 		final int idx = list.getSelectedIndex();
 		if(idx > 0)
-			swapItems(list, items, idx, idx - 1);
+			swapItems(list, listModel, idx, idx - 1);
 	}
 
 	/**
 	 * Moves the currently selected item down by one position.
 	 */
-	public static <E, T> void moveSelectedItemDown(final JList<E> list, final List<T> items){
+	public static <T> void moveSelectedItemDown(final JList<T> list, final DefaultListModel<T> listModel){
 		final int idx = list.getSelectedIndex();
-		if(idx >= 0 && idx < items.size() - 1)
-			swapItems(list, items, idx, idx + 1);
+		if(idx >= 0 && idx < listModel.size() - 1)
+			swapItems(list, listModel, idx, idx + 1);
 	}
 
-	private static <E, T> void swapItems(final JList<E> list, final List<T> items, final int index1, final int index2){
+	private static <T> void swapItems(final JList<T> list, final DefaultListModel<T> listModel, final int index1,
+			final int index2){
 		// Swap in underlying items list
-		final T tempRecord = items.get(index1);
-		items.set(index1, items.get(index2));
-		items.set(index2, tempRecord);
+		final T tempRecord = listModel.get(index1);
+		listModel.set(index1, listModel.get(index2));
+		listModel.set(index2, tempRecord);
 
 		// Swap in GUI model
-		final DefaultListModel<E> listModel = (DefaultListModel<E>)list.getModel();
-		final E tempDisplay = listModel.get(index1);
+		final T tempDisplay = listModel.get(index1);
 		listModel.set(index1, listModel.get(index2));
 		listModel.set(index2, tempDisplay);
 
@@ -742,7 +737,7 @@ public final class GUIHelper{
 		list.ensureIndexIsVisible(index2);
 	}
 
-	public static <E, T> void setupDragAndDrop(final JList<E> list, final List<T> items){
+	public static <E, T> void setupDragAndDrop(final JList<E> list, final DefaultListModel<T> listModel){
 		list.setDragEnabled(true);
 		list.setDropMode(DropMode.INSERT);
 
@@ -805,7 +800,7 @@ public final class GUIHelper{
 					return false;
 
 				// If sourceIndex is invalid, abort
-				if(sourceIndex < 0 || sourceIndex >= items.size())
+				if(sourceIndex < 0 || sourceIndex >= listModel.size())
 					return false;
 
 				// Adjust drop index when moving downwards: after removing the source,
@@ -815,8 +810,7 @@ public final class GUIHelper{
 					return false;
 
 				// Perform the move
-				final DefaultListModel<E> listModel = (DefaultListModel<E>)list.getModel();
-				moveItem(listModel, items, sourceIndex, targetIndex);
+				moveItem(listModel, sourceIndex, targetIndex);
 				list.setSelectedIndex(targetIndex);
 				list.ensureIndexIsVisible(targetIndex);
 				return true;
@@ -833,17 +827,17 @@ public final class GUIHelper{
 	 * Moves an item from one index to another within the list.
 	 * Updates both the display model and the underlying items list.
 	 */
-	private static <E, T> void moveItem(final DefaultListModel<E> listModel, final List<T> items, final int fromIndex,
+	private static <T> void moveItem(final DefaultListModel<T> listModel, final int fromIndex,
 			final int toIndex){
 		if(fromIndex == toIndex)
 			return;
 
 		// Remove from old position
-		final T item = items.remove(fromIndex);
-		final E display = listModel.remove(fromIndex);
+		final T item = listModel.remove(fromIndex);
+		final T display = listModel.remove(fromIndex);
 
 		// Insert at new position
-		items.add(toIndex, item);
+		listModel.add(toIndex, item);
 		listModel.add(toIndex, display);
 	}
 

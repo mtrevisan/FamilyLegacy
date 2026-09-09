@@ -125,8 +125,8 @@ public class GroupRecordDialog extends BaseRecordDialog{
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.GROUP_ATTRIBUTE, TAG_GROUP_ATTRIBUTE, "Group Attributes")
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Members")
-			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Relationships")
+			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Relationships / Group Memberships")
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Inverse Relationships")
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations")
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
@@ -180,11 +180,11 @@ public class GroupRecordDialog extends BaseRecordDialog{
 	protected JPanel createRelationshipsPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
 
-		final JPanel memberPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
-		GUIHelper.addComponent(panel, memberPanel);
+		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
+		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
 
-		final JPanel relationshipPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
-		GUIHelper.addComponent(panel, relationshipPanel);
+		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
+		GUIHelper.addComponent(panel, relationshipAsTargetPanel);
 
 		return panel;
 	}

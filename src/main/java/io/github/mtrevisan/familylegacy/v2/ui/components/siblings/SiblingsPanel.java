@@ -144,7 +144,7 @@ public class SiblingsPanel extends JPanel{
 						enterPoints[0].x, lastChildY);
 
 					// Horizontal line connecting each child to the vertical bar
-					for(int i = 0; i < enterPoints.length; i ++){
+					for(int i = 0, length = enterPoints.length; i < length; i ++){
 						final Component comp = ((Container)getComponent(i))
 							.getComponent(0);
 

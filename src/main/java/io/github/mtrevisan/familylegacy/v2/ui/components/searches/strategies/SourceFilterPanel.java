@@ -16,18 +16,27 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-/* TODO */
 /**
- * Filter panel for Source records: medium, repository, and author.
+ * Filter panel for Source records: title, author, publisher, media type, and place.
  */
 public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> mediumCombo = new JComboBox<>(new String[]{
-		"Any", "audio", "book", "card", "electronic", "fiche", "film", "magazine",
-		"manuscript", "map", "newspaper", "photo", "tombstone", "video", "other", "unknown"
-	});
-	private final JTextField repositoryField = new JTextField(20);
+	static final String FILTER_KEY_TITLE = "title";
+	static final String FILTER_KEY_AUTHOR = "author";
+	static final String FILTER_KEY_PUBLISHER = "publisher";
+	static final String FILTER_KEY_MEDIA_TYPE = "mediaType";
+	static final String FILTER_KEY_PLACE = "place";
+
+
+	private final JTextField titleField = new JTextField(20);
 	private final JTextField authorField = new JTextField(20);
+	private final JTextField publisherField = new JTextField(20);
+	private final JComboBox<String> mediaTypeCombo = new JComboBox<>(new String[]{
+		"Any",
+		"audio", "book", "card", "electronic", "fiche", "film",
+		"magazine", "manuscript", "map", "newspaper", "photo", "tombstone", "video"
+	});
+	private final JTextField placeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -45,16 +54,20 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder("Source Filters"));
 
-		add(new JLabel("Medium:"));
-		add(mediumCombo, "growx");
-		add(new JLabel("Repository:"));
-		add(repositoryField, "growx");
+		add(new JLabel("Title:"));
+		add(titleField, "growx");
 		add(new JLabel("Author:"));
 		add(authorField, "growx");
+		add(new JLabel("Publisher:"));
+		add(publisherField, "growx");
+		add(new JLabel("Media Type:"));
+		add(mediaTypeCombo, "growx");
+		add(new JLabel("Place:"));
+		add(placeField, "growx");
 	}
 
 	private void setupListeners(){
-		mediumCombo.addActionListener(e -> fireChanged());
+		mediaTypeCombo.addActionListener(e -> fireChanged());
 
 		final DocumentListener docListener = new DocumentListener(){
 			@Override
@@ -73,35 +86,50 @@ public class SourceFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		repositoryField.getDocument().addDocumentListener(docListener);
-		authorField.getDocument().addDocumentListener(docListener);
+		titleField.getDocument()
+			.addDocumentListener(docListener);
+		authorField.getDocument()
+			.addDocumentListener(docListener);
+		publisherField.getDocument()
+			.addDocumentListener(docListener);
+		placeField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
-		if(onChanged != null){
+		if(onChanged != null)
 			onChanged.accept(null);
-		}
 	}
 
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-//		filters.put("documentType", getDocumentType());
-//		filters.put("repositoryContains", getRepositoryContains());
-//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		filters.put(FILTER_KEY_TITLE, getTitle());
+		filters.put(FILTER_KEY_AUTHOR, getAuthor());
+		filters.put(FILTER_KEY_PUBLISHER, getPublisher());
+		filters.put(FILTER_KEY_MEDIA_TYPE, getMediaType());
+		filters.put(FILTER_KEY_PLACE, getPlace());
 		return filters;
 	}
 
-	public String getMedium(){
-		return (mediumCombo.getSelectedIndex() == 0 ? null : (String)mediumCombo.getSelectedItem());
-	}
-
-	public String getRepository(){
-		return repositoryField.getText().trim();
+	public String getTitle(){
+		return titleField.getText().trim();
 	}
 
 	public String getAuthor(){
 		return authorField.getText().trim();
+	}
+
+	public String getPublisher(){
+		return publisherField.getText().trim();
+	}
+
+	public String getMediaType(){
+		return (mediaTypeCombo.getSelectedIndex() == 0? null: (String)mediaTypeCombo.getSelectedItem());
+	}
+
+	public String getPlace(){
+		return placeField.getText().trim();
 	}
 
 }

@@ -6,85 +6,94 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
 
-/* TODO */
 /**
  * Search strategy for Source records.
- * Supports filtering by medium, repository, and author.
+ * Supports filtering by title, author, publisher, media type, and place.
  */
 public class SourceSearchStrategy implements SearchStrategy{
 
 	private static final String DOT = ".";
 
-	private static final String TAG_MEDIUM = "medium";
-	private static final String TAG_AUTHOR = "author";
-	private static final String TAG_REPOSITORY = "repository";
+	private static final String TAG_TITLE = "title";
 	private static final String TAG_VALUE = "value";
-
-	private static final String TAG_REPOSITORY_REPOSITORY = TAG_REPOSITORY + DOT + TAG_REPOSITORY;
+	private static final String TAG_TITLE_VALUE = TAG_TITLE + DOT + TAG_VALUE;
+	private static final String TAG_AUTHOR = "author";
+	private static final String TAG_PUBLISHER = "publisher";
+	private static final String TAG_MEDIA_TYPE = "media_type";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
+
 	private static final SourceHandler HANDLER = SourceHandler.getInstance();
 
-	private String medium;
-	private String repository;
+
+	private String title;
 	private String author;
+	private String publisher;
+	private String mediaType;
+	private String place;
 	private boolean fuzzy;
 	private boolean wholeWord;
 
 
 	@Override
 	public Predicate<FLEFRecord> buildPredicate(final SearchCriteria criteria, final FLEFModel model){
-		medium = criteria.getFilterFor("medium");
-		repository = criteria.getFilterFor("repository");
-		author = criteria.getFilterFor("author");
+		title = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_TITLE);
+		author = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_AUTHOR);
+		publisher = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_PUBLISHER);
+		mediaType = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_MEDIA_TYPE);
+		place = criteria.getFilterFor(SourceFilterPanel.FILTER_KEY_PLACE);
 		fuzzy = criteria.isFuzzy();
 		wholeWord = criteria.isWholeWord();
 
 		return source -> {
-			// Medium filter
-			if(StringUtils.isNotEmpty(medium)){
-				final String recordMedium = FLEFRecordHelper.getChildValue(source, TAG_MEDIUM);
-				if(!medium.equalsIgnoreCase(recordMedium)){
-					return false;
+			// Title filter
+			if(StringUtils.isNotEmpty(title)){
+				final List<FLEFRecord> titles = FLEFRecordHelper.findChildren(source, TAG_TITLE_VALUE);
+				boolean matched = false;
+				for(final FLEFRecord title : titles){
+					if(TextSearchHelper.matchesText(title.getValue(), this.title, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+						matched = true;
+
+						break;
+					}
 				}
+				if(!matched)
+					return false;
 			}
 
 			// Author filter
 			if(StringUtils.isNotEmpty(author)){
-				final String recordAuthor = FLEFRecordHelper.getChildValue(source, TAG_AUTHOR + DOT + TAG_VALUE);
-				if(!TextSearchHelper.matchesText(recordAuthor, author, fuzzy, wholeWord, FUZZY_THRESHOLD)){
+				final String author = FLEFRecordHelper.getChildValue(source, TAG_AUTHOR);
+				if(!TextSearchHelper.matchesText(author, this.author, fuzzy, wholeWord, FUZZY_THRESHOLD))
 					return false;
-				}
 			}
 
-			// Repository filter
-			if(StringUtils.isNotEmpty(repository)){
-				final String repositoryRef = FLEFRecordHelper.getChildValue(source, TAG_REPOSITORY_REPOSITORY);
-				if(repositoryRef != null){
-					final FLEFRecord repositoryRecord = model.getRecordById(repositoryRef);
-					if(repositoryRecord != null){
-						final String repoDisplayText = RepositoryHandler.getInstance().getDisplayText(repositoryRecord, model);
-						if(!TextSearchHelper.matchesText(repoDisplayText, repository, fuzzy, wholeWord, FUZZY_THRESHOLD)){
-							return false;
-						}
-					}
-					else{
-						return false;
-					}
-				}
-				else{
+			// Publisher filter
+			if(StringUtils.isNotEmpty(publisher)){
+				final String publisher = FLEFRecordHelper.getChildValue(source, TAG_PUBLISHER);
+				if(!TextSearchHelper.matchesText(publisher, this.publisher, fuzzy, wholeWord, FUZZY_THRESHOLD))
 					return false;
-				}
 			}
+
+			// Media Type filter
+			if(StringUtils.isNotEmpty(mediaType)){
+				final String recordMediaType = FLEFRecordHelper.getChildValue(source, TAG_MEDIA_TYPE);
+				if(!mediaType.equalsIgnoreCase(recordMediaType))
+					return false;
+			}
+
+			// Place filter
+			if(!SearchHelper.matchesPlace(source, place, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				return false;
 
 			return true;
 		};
@@ -94,18 +103,16 @@ public class SourceSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String authorVal = FLEFRecordHelper.getChildValue(record, TAG_AUTHOR + DOT + TAG_VALUE);
-		final String mediumVal = FLEFRecordHelper.getChildValue(record, TAG_MEDIUM);
+		final String authorVal = FLEFRecordHelper.getChildValue(record, TAG_AUTHOR);
+		final String mediaTypeVal = FLEFRecordHelper.getChildValue(record, TAG_MEDIA_TYPE);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
-		if(StringUtils.isNotEmpty(authorVal)){
-			details.add("by " + authorVal);
-		}
-		if(StringUtils.isNotEmpty(mediumVal)){
-			details.add(mediumVal);
-		}
+		if(StringUtils.isNotEmpty(authorVal))
+			details.add(authorVal);
+		if(StringUtils.isNotEmpty(mediaTypeVal))
+			details.add(mediaTypeVal);
 
 		return baseDisplayText + details;
 	}

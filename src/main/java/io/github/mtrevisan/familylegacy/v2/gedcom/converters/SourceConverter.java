@@ -6,10 +6,10 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDNormalizer;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler;
 import org.apache.commons.lang3.StringUtils;
 
@@ -34,18 +34,13 @@ public class SourceConverter {
 	 *
 	 * @param model         the FLEF model
 	 * @param sourceMap     map of source IDs to FLEF records
-	 * @param repositoryMap map of repository IDs to FLEF records
 	 * @param multimediaMap map of document IDs to FLEF records
-	 * @param placeCache    cache for place records
 	 */
 	public SourceConverter(FLEFModel model,
 		Map<String, GEDCOMNode> noteRawMap,
-		Map<String, GEDCOMNode> sourRawMap,
 		Map<String, FLEFRecord> sourceMap,
 		Map<String, GEDCOMNode> objeRawMap,
-		Map<String, FLEFRecord> repositoryMap,
-		Map<String, FLEFRecord> multimediaMap,
-		PlaceCache placeCache) {
+		Map<String, FLEFRecord> multimediaMap) {
 		this.model = model;
 		this.noteRawMap = noteRawMap;
 		this.sourceMap = sourceMap;
@@ -173,7 +168,7 @@ public class SourceConverter {
 				// check for duplicates before adding
 				Deduplicator.getDeduplicatedRecordId(model, repository);
 
-				repositoryCitation.addChild(FLEFRecord.createChildWithTagAndValue("repository", repositoryId));
+				repositoryCitation.addChild(FLEFRecord.createChildWithTagAndValue(RepositoryHandler.TYPE, repositoryId));
 			}
 
 			// 8a. CALN (call number) with optional MEDI

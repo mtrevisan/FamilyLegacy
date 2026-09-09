@@ -102,7 +102,7 @@ public class RelationshipHandler extends AbstractRecordTypeHandler<RelationshipR
 
 		final StringBuilder sb = new StringBuilder();
 		sb.append(subjectDisplayText);
-		if(StringUtils.isNotBlank(role))
+		if(StringUtils.isNotEmpty(role))
 			sb.append(" is ")
 				.append(role)
 				.append(" w.r.t. ");

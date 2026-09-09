@@ -98,31 +98,30 @@ public class SearchService{
 	 * @return a list of search results
 	 */
 	public List<FLEFRecord> search(final SearchCriteria criteria, final Consumer<Integer> progressCallback){
-		final List<FLEFRecord> results = new ArrayList<>();
-
 		if(criteria == null || criteria.getHandler() == null)
-			return results;
+			return List.of();
 
 		strategy = REGISTRY.get(criteria.getHandler().getClassType());
-		if(strategy == null)
-			// Fallback: use generic text matching only
-			return searchWithGenericText(criteria, progressCallback);
 
 		// Build predicate using the strategy
-		final Predicate<FLEFRecord> predicate = strategy.buildPredicate(criteria, model);
-
 		// Apply text matching first (for performance)
-		final Predicate<FLEFRecord> textPredicate = buildTextPredicate(criteria);
-		final Predicate<FLEFRecord> finalPredicate = textPredicate.and(predicate);
+		final Predicate<FLEFRecord> predicate = buildTextPredicate(criteria)
+			.and(strategy.buildPredicate(criteria, model));
 
 		final List<FLEFRecord> records = model.getRecordsByType(criteria.getHandler().getType());
+		return executeSearch(records, predicate, progressCallback);
+	}
+
+	private static List<FLEFRecord> executeSearch(final List<FLEFRecord> records,
+			final Predicate<FLEFRecord> predicate, final Consumer<Integer> progressCallback){
+		final List<FLEFRecord> results = new ArrayList<>();
 		final int totalRecords = records.size();
 		for(int i = 0; i < totalRecords; i ++){
 			if(Thread.currentThread().isInterrupted())
 				break;
 
 			final FLEFRecord record = records.get(i);
-			if(finalPredicate.test(record))
+			if(predicate.test(record))
 				results.add(record);
 
 			if(progressCallback != null){
@@ -146,27 +145,6 @@ public class SearchService{
 			criteria.isWholeWord(),
 			fuzzyThreshold
 		);
-	}
-
-	private List<FLEFRecord> searchWithGenericText(final SearchCriteria criteria, final Consumer<Integer> progressCallback){
-		final List<FLEFRecord> results = new ArrayList<>();
-		final Predicate<FLEFRecord> predicate = buildTextPredicate(criteria);
-		final List<FLEFRecord> records = model.getRecordsByType(criteria.getHandler().getType());
-		final int totalRecords = records.size();
-		for(int i = 0; i < totalRecords; i ++){
-			if(Thread.currentThread().isInterrupted())
-				break;
-
-			final FLEFRecord record = records.get(i);
-			if(predicate.test(record))
-				results.add(record);
-
-			if(progressCallback != null){
-				final int progressPercent = (int)(((i + 1) / (double)totalRecords) * 100);
-				progressCallback.accept(progressPercent);
-			}
-		}
-		return results;
 	}
 
 

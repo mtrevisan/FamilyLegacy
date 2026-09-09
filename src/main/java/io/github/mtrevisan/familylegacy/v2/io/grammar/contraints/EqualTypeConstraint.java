@@ -55,22 +55,12 @@ public final class EqualTypeConstraint extends Constraint{
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 			final List<String> errors){
-		FLEFRecord field1 = FLEFRecordHelper.findChild(record, fields.get(0));
-		if(field1.getChildren().size() != 1 || field1.getTheOnlyChild().isEmpty()){
-			errors.add(String.format("Constraint violation at '%s': field '%s' is empty",
-				contextPath, field1));
-
+		final FLEFRecord field1 = extractOnlyChild(record, fields.get(0), contextPath, errors);
+		if(field1 == null)
 			return;
-		}
-		field1 = field1.getTheOnlyChild();
-		FLEFRecord field2 = FLEFRecordHelper.findChild(record, fields.get(1));
-		if(field2.getChildren().size() != 1 || field2.getTheOnlyChild().isEmpty()){
-			errors.add(String.format("Constraint violation at '%s': field '%s' is empty",
-				contextPath, field2));
-
+		final FLEFRecord field2 = extractOnlyChild(record, fields.get(1), contextPath, errors);
+		if(field2 == null)
 			return;
-		}
-		field2 = field2.getTheOnlyChild();
 
 		final String ref1 = field1.getValue();
 		final String ref2 = field2.getValue();
@@ -92,6 +82,17 @@ public final class EqualTypeConstraint extends Constraint{
 			errors.add(String.format(
 				"Constraint violation at '%s': %s (%s) and %s (%s) must be of the same type",
 				contextPath, fields.get(0), type1, fields.get(1), type2));
+	}
+
+	private static FLEFRecord extractOnlyChild(final FLEFRecord record, final String fieldName, final String contextPath,
+			final List<String> errors){
+		final FLEFRecord parentField = FLEFRecordHelper.findChild(record, fieldName);
+		if(parentField == null || parentField.getChildren().size() != 1 || parentField.getTheOnlyChild().isEmpty()){
+			errors.add(String.format("Constraint violation at '%s': field '%s' is empty", contextPath, fieldName));
+
+			return null;
+		}
+		return parentField.getTheOnlyChild();
 	}
 
 	@Override

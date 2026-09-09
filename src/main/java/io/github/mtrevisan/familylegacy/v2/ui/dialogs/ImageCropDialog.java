@@ -185,10 +185,6 @@ public class ImageCropDialog extends JDialog{
 		// Apply the size to the dialog
 		setSize(dialogWidth, dialogHeight);
 
-		// Optionally revalidate/repaint to refresh layout
-		revalidate();
-		repaint();
-
 		// Ensure the dialog is not larger than the screen bounds (safety)
 		if(getWidth() > screenBounds.width || getHeight() > screenBounds.height)
 			setSize(Math.min(getWidth(), screenBounds.width),

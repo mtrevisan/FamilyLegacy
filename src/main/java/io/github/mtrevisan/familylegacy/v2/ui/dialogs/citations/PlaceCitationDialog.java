@@ -162,7 +162,7 @@ public class PlaceCitationDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(placeField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Place cannot be empty.",
+				"Place is required.",
 				tabbedPane, propertiesPanel, placeField);
 
 			return false;

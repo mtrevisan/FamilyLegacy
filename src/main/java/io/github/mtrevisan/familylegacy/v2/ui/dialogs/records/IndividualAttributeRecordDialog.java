@@ -265,8 +265,8 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	private void refreshLayout(){
 		if(isShowing()){
-			propertiesPanel.revalidate();
-			propertiesPanel.repaint();
+			revalidate();
+			repaint();
 
 			pack();
 		}
@@ -277,8 +277,10 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		// load parent individual reference
 		final String individualId = FLEFRecordHelper.getChildValue(record, TAG_INDIVIDUAL);
-		final FLEFRecord temporary = FLEFRecord.createMainRecord(individualId, IndividualHandler.TYPE);
-		withParentEntity(temporary);
+		if(StringUtils.isNotEmpty(individualId)){
+			final FLEFRecord temporary = FLEFRecord.createMainRecord(individualId, IndividualHandler.TYPE);
+			withParentEntity(temporary);
+		}
 
 
 		validFromField.load(record);
@@ -304,7 +306,7 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Type cannot be empty.",
+				"Type is required.",
 				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;
@@ -315,6 +317,8 @@ public class IndividualAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
+		record.getChildren()
+			.removeIf(child -> TAG_INDIVIDUAL.equalsIgnoreCase(child.getTag()));
 		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
 
 

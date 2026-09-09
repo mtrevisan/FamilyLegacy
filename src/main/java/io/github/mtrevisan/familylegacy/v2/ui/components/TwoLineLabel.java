@@ -49,8 +49,6 @@ public class TwoLineLabel extends JTextArea{
 		this.maxWidth = maxWidth;
 
 		updateFormattedText();
-		revalidate();
-		repaint();
 	}
 
 

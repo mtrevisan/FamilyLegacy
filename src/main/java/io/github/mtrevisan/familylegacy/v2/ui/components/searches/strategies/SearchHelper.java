@@ -3,9 +3,11 @@ package io.github.mtrevisan.familylegacy.v2.ui.components.searches.strategies;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
+import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
@@ -123,7 +125,7 @@ public class SearchHelper{
 				final String centuryOrdinal = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_CENTURY_ORDINAL);
 				if(centuryOrdinal != null && !centuryOrdinal.isBlank()){
 					final String part = FLEFRecordHelper.getChildValue(record, basePath + DOT + TAG_CENTURY_PART);
-					dateStr = (part != null ? part.replace('_', ' ') + " " : "") + centuryOrdinal + "th century";
+					dateStr = (part != null? part.replace('_', ' ') + " ": "") + centuryOrdinal + "th century";
 				}
 			}
 		}
@@ -209,6 +211,49 @@ public class SearchHelper{
 	}
 
 
+	public static boolean matchesName(final FLEFRecord place, final String name, final boolean fuzzy,
+			final boolean wholeWord, final double fuzzyThreshold){
+		if(StringUtils.isEmpty(name))
+			return true;
+
+		final List<FLEFRecord> names = FLEFRecordHelper.findChildren(place, TAG_NAME);
+		boolean matched = false;
+		for(final FLEFRecord nameStruct : names){
+			final String nameValue = FLEFRecordHelper.getChildValue(nameStruct, TAG_VALUE);
+			if(TextSearchHelper.matchesText(nameValue, name, fuzzy, wholeWord, fuzzyThreshold)){
+				matched = true;
+
+				break;
+			}
+		}
+		return matched;
+	}
+
+	public static boolean matchesDate(final FLEFRecord event, final String date, final String calendar){
+		if(StringUtils.isEmpty(date))
+			return true;
+
+		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, TAG_DATE);
+		final Integer year = SearchHelper.extractYear(date, calendar);
+		return SearchHelper.isDateInRange(dateRecord, null, null, year, year);
+	}
+
+	public static boolean matchesPlace(final FLEFRecord event, final String targetPlace, final FLEFModel model,
+		final boolean fuzzy, final boolean wholeWord, final double fuzzyThreshold){
+		if(StringUtils.isEmpty(targetPlace))
+			return true;
+
+		final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, TAG_PLACE);
+		if(placeCitation == null)
+			return true;
+
+		final String placeId = placeCitation.getTheOnlyChild().getValue();
+		final FLEFRecord placeRecord = model.getRecordById(placeId);
+		final String place = PlaceHandler.getInstance()
+			.getDisplayText(placeRecord, model);
+		return TextSearchHelper.matchesText(place, targetPlace, fuzzy, wholeWord, fuzzyThreshold);
+	}
+
 	static boolean isDateInRange(final FLEFRecord dateRecord, final Integer birthYear, final Integer deathYear,
 			final Integer fromYear, final Integer toYear){
 		if(dateRecord == null)
@@ -257,14 +302,7 @@ public class SearchHelper{
 		if(boundedRecord != null){
 			final FLEFRecord notBefore = FLEFRecordHelper.findChild(boundedRecord, TAG_NOT_BEFORE);
 			final FLEFRecord notAfter = FLEFRecordHelper.findChild(boundedRecord, TAG_NOT_AFTER);
-
-			final Integer[] minRange = (notBefore != null? extractYearRangeFromSingleDate(notBefore): null);
-			final Integer[] maxRange = (notAfter != null? extractYearRangeFromSingleDate(notAfter): null);
-
-			final int min = (minRange != null? minRange[0]: Integer.MIN_VALUE);
-			final int max = (maxRange != null? maxRange[1]: Integer.MAX_VALUE);
-
-			return (min != Integer.MIN_VALUE || max != Integer.MAX_VALUE? new Integer[]{min, max}: null);
+			return extractYearRangeFromBoundPair(notBefore, notAfter);
 		}
 
 		// 3. SpanningDate (from / to)
@@ -272,18 +310,21 @@ public class SearchHelper{
 		if(spanningRecord != null){
 			final FLEFRecord fromRecord = FLEFRecordHelper.findChild(spanningRecord, TAG_FROM);
 			final FLEFRecord toRecord = FLEFRecordHelper.findChild(spanningRecord, TAG_TO);
-
-			final Integer[] minRange = (fromRecord != null? extractYearRangeFromSingleDate(fromRecord): null);
-			final Integer[] maxRange = (toRecord != null? extractYearRangeFromSingleDate(toRecord): null);
-
-			final int min = (minRange != null? minRange[0]: Integer.MIN_VALUE);
-			final int max = (maxRange != null? maxRange[1]: Integer.MAX_VALUE);
-
-			return (min != Integer.MIN_VALUE || max != Integer.MAX_VALUE? new Integer[]{min, max}: null);
+			return extractYearRangeFromBoundPair(fromRecord, toRecord);
 		}
 
 		// Direct SingleDate fallback
 		return extractYearRangeFromSingleDate(target);
+	}
+
+	private static Integer[] extractYearRangeFromBoundPair(final FLEFRecord lowerRecord, final FLEFRecord upperRecord){
+		final Integer[] minRange = (lowerRecord != null? extractYearRangeFromSingleDate(lowerRecord): null);
+		final Integer[] maxRange = (upperRecord != null? extractYearRangeFromSingleDate(upperRecord): null);
+
+		final int min = (minRange != null? minRange[0]: Integer.MIN_VALUE);
+		final int max = (maxRange != null? maxRange[1]: Integer.MAX_VALUE);
+
+		return (min != Integer.MIN_VALUE || max != Integer.MAX_VALUE? new Integer[]{min, max}: null);
 	}
 
 	/**
@@ -296,9 +337,9 @@ public class SearchHelper{
 		// Variant A: full_date
 		final FLEFRecord fullDateRecord = FLEFRecordHelper.findChild(singleDateRecord, TAG_FULL_DATE);
 		if(fullDateRecord != null){
-			final String dateVal = FLEFRecordHelper.getChildValue(fullDateRecord, TAG_VALUE);
+			final String date = FLEFRecordHelper.getChildValue(fullDateRecord, TAG_VALUE);
 			final String calendar = FLEFRecordHelper.getChildValue(fullDateRecord, TAG_CALENDAR);
-			final Integer year = extractYear(dateVal, calendar);
+			final Integer year = extractYear(date, calendar);
 			return (year != null? new Integer[]{year, year}: null);
 		}
 

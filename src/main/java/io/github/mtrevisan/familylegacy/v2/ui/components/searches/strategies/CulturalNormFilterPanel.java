@@ -124,10 +124,14 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 			}
 		};
 
-		titleField.getDocument().addDocumentListener(docListener);
-		locationField.getDocument().addDocumentListener(docListener);
-		dateFromField.getDocument().addDocumentListener(docListener);
-		dateToField.getDocument().addDocumentListener(docListener);
+		titleField.getDocument()
+			.addDocumentListener(docListener);
+		locationField.getDocument()
+			.addDocumentListener(docListener);
+		dateFromField.getDocument()
+			.addDocumentListener(docListener);
+		dateToField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
@@ -149,7 +153,8 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	}
 
 	public String getTitle(){
-		return titleField.getText().trim();
+		return titleField.getText()
+			.trim();
 	}
 
 	public String getRuleType(){
@@ -157,11 +162,13 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	}
 
 	public String getPlace(){
-		return locationField.getText().trim();
+		return locationField.getText()
+			.trim();
 	}
 
 	public String getValidFrom(){
-		return dateFromField.getText().trim();
+		return dateFromField.getText()
+			.trim();
 	}
 
 	public String getCalendarFrom(){
@@ -169,7 +176,8 @@ public class CulturalNormFilterPanel extends JPanel implements RecordFilterPanel
 	}
 
 	public String getValidTo(){
-		return dateToField.getText().trim();
+		return dateToField.getText()
+			.trim();
 	}
 
 	public String getCalendarTo(){

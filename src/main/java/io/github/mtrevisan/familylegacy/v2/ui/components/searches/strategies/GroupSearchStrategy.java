@@ -5,11 +5,9 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
-import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.List;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -20,8 +18,6 @@ import java.util.function.Predicate;
  */
 public class GroupSearchStrategy implements SearchStrategy{
 
-	private static final String TAG_NAME = "name";
-	private static final String TAG_VALUE = "value";
 	private static final String TAG_TYPE = "type";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
@@ -45,20 +41,8 @@ public class GroupSearchStrategy implements SearchStrategy{
 
 		return group -> {
 			// Name filter
-			if(StringUtils.isNotEmpty(name)){
-				final List<FLEFRecord> names = FLEFRecordHelper.findChildren(group, TAG_NAME);
-				boolean matched = false;
-				for(final FLEFRecord nameStruct : names){
-					final String nameValue = FLEFRecordHelper.getChildValue(nameStruct, TAG_VALUE);
-					if(TextSearchHelper.matchesText(nameValue, name, fuzzy, wholeWord, FUZZY_THRESHOLD)){
-						matched = true;
-
-						break;
-					}
-				}
-				if(!matched)
-					return false;
-			}
+			if(!SearchHelper.matchesName(group, name, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				return false;
 
 			// Type filter
 			if(StringUtils.isNotEmpty(type)){
@@ -75,13 +59,13 @@ public class GroupSearchStrategy implements SearchStrategy{
 	public String getDisplayText(final FLEFRecord record, final FLEFModel model){
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
-		final String typeVal = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
+		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
-		if(StringUtils.isNotEmpty(typeVal))
-			details.add("Type: " + typeVal);
+		if(StringUtils.isNotEmpty(type))
+			details.add("Type: " + type);
 
 		return baseDisplayText + details;
 	}

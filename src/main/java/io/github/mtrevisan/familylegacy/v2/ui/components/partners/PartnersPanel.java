@@ -124,8 +124,6 @@ public class PartnersPanel extends JPanel{
 	private static final Dimension NEXT_PREVIOUS_GROUP_PREFERRED_SIZE = new Dimension(ICON_UNION_PREVIOUS_ENABLED.getIconWidth(),
 		ICON_UNION_PREVIOUS_ENABLED.getIconHeight());
 
-	private static final String KEY_ENABLED = "enabled";
-
 	// State
 	private final JPanel groupPanel = new JPanel();
 	private IndividualPanel fatherPanel;
@@ -384,6 +382,7 @@ public class PartnersPanel extends JPanel{
 							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i > 0)
 									newGroupID = groupsIDs.get(i - 1);
+
 								break;
 							}
 
@@ -411,6 +410,7 @@ public class PartnersPanel extends JPanel{
 							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i + 1 < parentsCount)
 									newGroupID = groupsIDs.get(i + 1);
+
 								break;
 							}
 
@@ -439,6 +439,7 @@ public class PartnersPanel extends JPanel{
 							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
 								if(i > 0)
 									newGroupID = otherPartnerGroupIDs.get(i - 1);
+
 								break;
 							}
 
@@ -453,6 +454,7 @@ public class PartnersPanel extends JPanel{
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
 									if(i > 0)
 										newPartner = individuals.get(newIndividualIDs.get(i - 1));
+
 									break;
 								}
 						}
@@ -480,6 +482,7 @@ public class PartnersPanel extends JPanel{
 							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
 								if(i + 1 < otherPartnerGroupsCount)
 									newGroupID = otherPartnerGroupIDs.get(i + 1);
+
 								break;
 							}
 
@@ -494,6 +497,7 @@ public class PartnersPanel extends JPanel{
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
 									if(i + 1 < otherPartnerGroupsCount)
 										newPartner = individuals.get(newIndividualIDs.get(i + 1));
+
 									break;
 								}
 						}
@@ -520,6 +524,7 @@ public class PartnersPanel extends JPanel{
 							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i > 0)
 									newGroupID = groupsIDs.get(i - 1);
+
 								break;
 							}
 
@@ -547,6 +552,7 @@ public class PartnersPanel extends JPanel{
 							if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 								if(i + 1 < parentsCount)
 									newGroupID = groupsIDs.get(i + 1);
+
 								break;
 							}
 
@@ -573,6 +579,7 @@ public class PartnersPanel extends JPanel{
 						for(int i = 0; i < otherPartnerGroupsCount; i ++)
 							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
 								newGroupID = otherPartnerGroupIDs.get(i - 1);
+
 								break;
 							}
 
@@ -587,6 +594,7 @@ public class PartnersPanel extends JPanel{
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
 									if(i > 0)
 										newPartner = individuals.get(newIndividualIDs.get(i - 1));
+
 									break;
 								}
 						}
@@ -613,6 +621,7 @@ public class PartnersPanel extends JPanel{
 							if(Objects.equals(groupID, otherPartnerGroupIDs.get(i))){
 								if(i + 1 < otherPartnerGroupsCount)
 									newGroupID = otherPartnerGroupIDs.get(i + 1);
+
 								break;
 							}
 
@@ -627,6 +636,7 @@ public class PartnersPanel extends JPanel{
 								if(newIndividualIDs.get(i).equals(otherPartnerID)){
 									if(i + 1 < otherPartnerGroupsCount)
 										newPartner = individuals.get(newIndividualIDs.get(i + 1));
+
 									break;
 								}
 						}
@@ -787,6 +797,7 @@ public class PartnersPanel extends JPanel{
 
 			if(Objects.equals(groupID, otherGroupID)){
 				currentGroupIndex = i;
+
 				break;
 			}
 		}
@@ -821,6 +832,7 @@ public class PartnersPanel extends JPanel{
 		for(int i = 0; i < parentsCount; i ++)
 			if(Objects.equals(partnerParentsID, groupsIDs.get(i))){
 				currentGroupIndex = i;
+
 				break;
 			}
 

@@ -5,8 +5,6 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMHelper;
 import io.github.mtrevisan.familylegacy.v2.gedcom.GEDCOMNode;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.AuditBuilder;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
-import io.github.mtrevisan.familylegacy.v2.gedcom.utils.StructureParser;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
@@ -26,23 +24,18 @@ public class MultimediaConverter{
 	private final FLEFModel model;
 	private final Map<String, FLEFRecord> multimediaMap;
 	private final Map<String, GEDCOMNode> noteRawMap;
-	private final Map<String, GEDCOMNode> sourRawMap;
 	private final Map<String, GEDCOMNode> objeRawMap;
-	private final StructureParser structParser;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param model         the FLEF model
 	 * @param multimediaMap map of document IDs to FLEF records
-	 * @param placeCache    cache for place records (may be null if not needed)
 	 */
-	public MultimediaConverter(FLEFModel model, Map<String, FLEFRecord> multimediaMap, PlaceCache placeCache, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap){
+	public MultimediaConverter(FLEFModel model, Map<String, FLEFRecord> multimediaMap, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap){
 		this.model = model;
 		this.multimediaMap = multimediaMap;
-		this.structParser = new StructureParser(placeCache);
 		this.noteRawMap = noteRawMap;
-		this.sourRawMap = sourRawMap;
 		this.objeRawMap = objeRawMap;
 	}
 
@@ -175,7 +168,7 @@ public class MultimediaConverter{
 		// ---- Sources (SOUR) ----
 		for (GEDCOMNode sourNode : GEDCOMHelper.findChildren(objNode, "SOUR")) {
 			GEDCOMHelper.attachSource(document, model,
-				sourNode, noteRawMap, sourRawMap, objeRawMap);
+				sourNode, noteRawMap, objeRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----

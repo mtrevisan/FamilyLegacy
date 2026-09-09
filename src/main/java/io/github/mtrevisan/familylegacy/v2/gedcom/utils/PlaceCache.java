@@ -25,7 +25,8 @@ public class PlaceCache{
 	 */
 	public FLEFRecord getOrCreatePlace(GEDCOMNode placNode){
 		String placeName = placNode.getValue();
-		if(StringUtils.isBlank(placeName)) return null;
+		if(StringUtils.isEmpty(placeName))
+			return null;
 
 		return cache.computeIfAbsent(placeName, name -> {
 			FLEFRecord place = FLEFRecord.createMainRecord(IDGenerator.nextId(PlaceHandler.ID_PREFIX), PlaceHandler.TYPE)

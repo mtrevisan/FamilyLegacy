@@ -255,7 +255,7 @@ public class FLEFParser{
 		final String[] segments = StringUtils.split(tagPath, '.');
 		final FLEFRecord root = FLEFRecord.createChildWithTag(segments[0]);
 		FLEFRecord current = root;
-		for(int i = 1; i < segments.length; i ++){
+		for(int i = 1, length = segments.length; i < length; i ++){
 			final FLEFRecord child = FLEFRecord.createChildWithTag(segments[i]);
 			current.addChild(child);
 
@@ -381,7 +381,7 @@ public class FLEFParser{
 
 		// Step 5: Strip the minimum indentation from each line
 		final StringBuilder result = new StringBuilder();
-		for(int i = 0; i < lines.length; i ++){
+		for(int i = 0, length = lines.length; i < length; i ++){
 			final String line = lines[i];
 			if(i > 0)
 				result.append('\n');
@@ -405,7 +405,7 @@ public class FLEFParser{
 	 */
 	private int countLeadingWhitespace(final String str){
 		int count = 0;
-		for(int i = 0; i < str.length(); i ++){
+		for(int i = 0, length = str.length(); i < length; i ++){
 			char c = str.charAt(i);
 			if(c == ' ' || c == '\t')
 				count ++;
@@ -427,7 +427,7 @@ public class FLEFParser{
 	 */
 	private String translateEscapes(final String input){
 		final StringBuilder sb = new StringBuilder();
-		for(int i = 0; i < input.length(); i ++){
+		for(int i = 0, length = input.length(); i < length; i ++){
 			final char c = input.charAt(i);
 			if(c == '\\' && i + 1 < input.length()){
 				char next = input.charAt(i + 1);

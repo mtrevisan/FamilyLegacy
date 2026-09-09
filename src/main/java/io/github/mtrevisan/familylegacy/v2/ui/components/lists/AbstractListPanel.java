@@ -31,12 +31,14 @@ import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
 import net.miginfocom.swing.MigLayout;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
+import java.awt.Component;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -63,13 +65,32 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	private static final long serialVersionUID = -2135553287905371181L;
 
 
+	private class ItemCellRenderer extends DefaultListCellRenderer{
+		@Override
+		public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+				final boolean isSelected, final boolean cellHasFocus){
+			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+			if(value != null){
+				@SuppressWarnings("unchecked")
+				final T item = (T)value;
+				setText(getDisplayText(item));
+			}
+			else
+				setText("--");
+			return this;
+		}
+
+	}
+
+
 	protected final Dialog parent;
 	private final String title;
 
 	protected final FLEFModel model;
 
-	protected JList<String> list;
-	protected final List<T> items = new ArrayList<>();
+	protected JList<T> list;
+	protected final DefaultListModel<T> listModel = new DefaultListModel<>();
 
 
 	/**
@@ -102,15 +123,16 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(title != null)
 			setBorder(new TitledBorder(title));
 
-		list = GUIHelper.createList(new DefaultListModel<>());
+		list = GUIHelper.createList(listModel);
 		list.setVisibleRowCount(getListVisibleRowCount());
 		list.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 
+		list.setCellRenderer(new ItemCellRenderer());
+
 		add(GUIHelper.createScrollPane(list), "growx");
 
-		GUIHelper.setupReorderingShortcuts(list, items);
-
-		GUIHelper.setupDragAndDrop(list, items);
+		GUIHelper.setupReorderingShortcuts(list, listModel);
+		GUIHelper.setupDragAndDrop(list, listModel);
 	}
 
 	protected int getListVisibleRowCount(){
@@ -157,26 +179,20 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(idx == -1)
 			return;
 
-		final T current = items.get(idx);
+		final T current = listModel.get(idx);
 		final T updated = showEditDialog(current);
-		final DefaultListModel<String> listModel = (DefaultListModel<String>)list.getModel();
 		if(updated != null){
 			// find the new index (if changed)
-			final int newIdx = items.indexOf(updated);
-			if(newIdx >= 0){
-				items.set(newIdx, updated);
-				listModel.set(newIdx, getDisplayText(updated));
-			}
-			else{
+			final int newIdx = listModel.indexOf(updated);
+			if(newIdx >= 0)
+				listModel.set(newIdx, updated);
+			else
 				// add as last item if not found
-				items.add(updated);
-				listModel.addElement(getDisplayText(updated));
-			}
+				listModel.addElement(updated);
 		}
 		else{
 			// The item has been removed; we remove it from the list
-			items.remove(current);
-			listModel.removeElement(getDisplayText(current));
+			listModel.removeElement(current);
 
 			list.clearSelection();
 		}
@@ -191,16 +207,13 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		if(idx == -1)
 			return;
 
-		final DefaultListModel<String> listModel = (DefaultListModel<String>)list.getModel();
 		final int confirm = JOptionPane.showConfirmDialog(parent,
 			"Are you sure you want to remove this item?"
 				+ StringUtils.LF + listModel.get(idx),
 			"Confirm Removal",
 			JOptionPane.YES_NO_OPTION);
-		if(confirm == JOptionPane.YES_OPTION){
-			items.remove(idx);
+		if(confirm == JOptionPane.YES_OPTION)
 			listModel.remove(idx);
-		}
 	}
 
 
@@ -234,34 +247,22 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 */
 	protected abstract T showEditDialog(T record);
 
-	/**
-	 * Validates an item. Default implementation returns {@code true}.
-	 * Override to add custom validation.
-	 *
-	 * @param item	The item to validate.
-	 * @return	Whether it is valid.
-	 */
-	protected boolean validateItem(final T item){
-		return true;
-	}
 
 
 	/**
 	 * Clears all items from the list.
 	 */
 	public final void clear(){
-		items.clear();
-		((DefaultListModel<String>)list.getModel())
-			.clear();
+		listModel.clear();
 	}
 
-	public JList<String> getList(){
+	public JList<T> getList(){
 		return list;
 	}
 
 	public T getSelectedItem(){
 		final int idx = list.getSelectedIndex();
-		return (idx != -1? items.get(idx): null);
+		return (idx != -1? listModel.get(idx): null);
 
 	}
 
@@ -271,7 +272,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @return	The item count.
 	 */
 	public final int getItemCount(){
-		return items.size();
+		return listModel.size();
 	}
 
 	/**
@@ -280,7 +281,7 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @return	Whether it is empty.
 	 */
 	public final boolean isEmpty(){
-		return items.isEmpty();
+		return listModel.isEmpty();
 	}
 
 	/**
@@ -289,6 +290,10 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * @return	The items.
 	 */
 	public final List<T> getItems(){
+		final int size = listModel.getSize();
+		final List<T> items = new ArrayList<>();
+		for(int i = 0; i < size; i ++)
+			items.add(listModel.elementAt(i));
 		return items;
 	}
 
@@ -300,10 +305,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	public final void setItems(final List<T> newItems){
 		clear();
 
-		if(newItems != null)
-			for(final T item : newItems)
-				if(item != null)
-					addElement(item);
+		if(newItems != null && !newItems.isEmpty())
+			listModel.addAll(newItems);
 	}
 
 	/**
@@ -316,11 +319,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	}
 
 	private void addElement(final T newItem){
-		if(!items.contains(newItem)){
-			items.add(newItem);
-			((DefaultListModel<String>)list.getModel())
-				.addElement(getDisplayText(newItem));
-		}
+		if(!listModel.contains(newItem))
+			listModel.addElement(newItem);
 	}
 
 
@@ -328,13 +328,13 @@ public abstract class AbstractListPanel<T> extends JPanel{
 	 * Saves list elements into a target FLEFRecord path when {@code T} is {@code FLEFRecord}.
 	 */
 	public final void save(final FLEFRecord record, final String path){
-		if(items.isEmpty())
+		if(listModel.isEmpty())
 			return;
 
-		@SuppressWarnings("unchecked")
-		final List<FLEFRecord> recordItems = (List<FLEFRecord>)items;
+		final List<T> items = getItems();
 		if(StringUtils.isEmpty(path)){
-			record.addChildren(recordItems);
+			for(final T item : items)
+				record.addChild((FLEFRecord)item);
 
 			return;
 		}
@@ -344,7 +344,8 @@ public abstract class AbstractListPanel<T> extends JPanel{
 		final String lastChildTag = (lastDotIndex >= 0? path.substring(lastDotIndex + 1): path);
 
 		final FLEFRecord parent = FLEFRecordHelper.getOrCreateTargetNode(record, parentPath);
-		parent.addChildrenWithTag(lastChildTag, recordItems);
+		for(final T item : items)
+			parent.addChildWithTag(lastChildTag, (FLEFRecord)item);
 	}
 
 }

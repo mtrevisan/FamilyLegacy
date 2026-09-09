@@ -189,7 +189,7 @@ public class SourceCitationDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(sourceField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Source cannot be empty.",
+				"Source is required.",
 				tabbedPane, propertiesPanel, sourceField);
 
 			return false;

@@ -194,7 +194,7 @@ public final class FLEFGrammarValidator{
 		}
 		int i = 0;
 		for(final TypeDefinition alternative : alt.getAlternatives())
-			validateTypeUsage(alternative, context + " (alt " + (i++) + ")");
+			validateTypeUsage(alternative, context + " (alt " + (i ++) + ")");
 	}
 
 	private void checkTypeReference(final String name, final String context){

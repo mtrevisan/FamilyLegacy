@@ -111,7 +111,7 @@ public class IndividualHandler extends AbstractRecordTypeHandler<IndividualRecor
 		for(final FLEFRecord textValueChild : partRecord.getChildren())
 			if(Strings.CI.equals(TAG_VALUE, textValueChild.getTag())){
 				final String val = textValueChild.getValue();
-				if(StringUtils.isNotBlank(val))
+				if(StringUtils.isNotEmpty(val))
 					return val.trim();
 			}
 		return null;

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
@@ -34,6 +35,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TextValueVariantL
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -89,7 +91,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 	private final BoundTextField valueField;
 	private final BoundComboBox<String> typeCombo;
 	private final TextValueVariantListPanel variantPanel;
-	private final BoundComboBox<String> localeCombo;
+	private final BoundFilteredComboBox<String> localeCombo;
 
 
 	public static NameStructureDialog createNew(final Dialog parent, final FLEFModel model){
@@ -97,7 +99,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 	}
 
 	public static NameStructureDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, NameStructureDialog::new);
 	}
 
@@ -129,10 +131,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 		});
 		typeCombo.setEditable(true);
 		variantPanel = new TextValueVariantListPanel(TAG_VARIANT, this, "Variant", model);
-		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
-			StringUtils.EMPTY,
-			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
-		});
+		localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
 		// Build common panels using the builder
@@ -210,7 +209,7 @@ public class NameStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Name value cannot be empty.",
+				"Name value is required.",
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

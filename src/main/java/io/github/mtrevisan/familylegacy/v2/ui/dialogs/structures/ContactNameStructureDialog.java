@@ -120,7 +120,7 @@ public class ContactNameStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Name value cannot be empty.",
+				"Name value is required.",
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

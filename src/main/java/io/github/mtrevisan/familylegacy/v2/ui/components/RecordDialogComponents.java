@@ -30,6 +30,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.bindings.BindingManager;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.PathBound;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.DirectRelationshipCellRenderer;
+import io.github.mtrevisan.familylegacy.v2.ui.dialogs.InverseRelationshipCellRenderer;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ConclusionHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.ContextImpactHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler;
@@ -96,7 +98,8 @@ public final class RecordDialogComponents{
 			// RelationshipRecord (subject = this group)
 			case RELATIONSHIP_ON_SUBJECT ->
 				createOneOfReferencePanel(cfg, model, EntityListPanel.ActorType.SUBJECT, record,
-					RelationshipHandler.class);
+						RelationshipHandler.class)
+					.withCellRenderer(new DirectRelationshipCellRenderer(model));
 
 			// PlaceRelationshipRecord (subject = this place)
 			case PLACE_RELATIONSHIP_ON_SUBJECT ->
@@ -107,7 +110,8 @@ public final class RecordDialogComponents{
 			// RelationshipRecord (target = this group)
 			case RELATIONSHIP_ON_TARGET ->
 				createOneOfReferencePanel(cfg, model, EntityListPanel.ActorType.OBJECT, record,
-					RelationshipHandler.class);
+						RelationshipHandler.class)
+					.withCellRenderer(new InverseRelationshipCellRenderer(model));
 			// PlaceRelationshipRecord (target = this place)
 			case PLACE_RELATIONSHIP_ON_TARGET ->
 				createOneOfReferencePanel(cfg, model, EntityListPanel.ActorType.OBJECT, record,

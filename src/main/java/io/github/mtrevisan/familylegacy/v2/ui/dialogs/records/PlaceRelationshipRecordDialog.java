@@ -188,9 +188,11 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	protected JPanel createResearchPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]10[]");
 
+		// conclusion
 		final JPanel conclusionPanel = components.getPanel(PanelKey.CONCLUSION_ON_RESOLVES);
 		GUIHelper.addComponent(panel, conclusionPanel);
 
+		// research question
 		final JPanel researchQuestionPanel = components.getPanel(PanelKey.RESEARCH_QUESTION_ON_TARGET);
 		GUIHelper.addComponent(panel, researchQuestionPanel);
 
@@ -284,7 +286,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(!subjectField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Subject cannot be empty.",
+				"Subject is required.",
 				tabbedPane, propertiesPanel, subjectField);
 
 			return false;
@@ -292,7 +294,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		if(!targetField.hasData()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Object cannot be empty.",
+				"Object is required.",
 				tabbedPane, propertiesPanel, targetField);
 
 			return false;
@@ -300,7 +302,7 @@ public class PlaceRelationshipRecordDialog extends BaseRecordDialog{
 
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Type cannot be empty.",
+				"Type is required.",
 				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;

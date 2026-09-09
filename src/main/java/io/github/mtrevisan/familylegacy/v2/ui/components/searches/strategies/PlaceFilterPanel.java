@@ -16,18 +16,22 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-/* TODO */
 /**
- * Filter panel for Place records: place type and parent jurisdiction.
+ * Filter panel for Place records: place name and type.
  */
 public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 
-	private final JComboBox<String> placeTypeCombo = new JComboBox<>(new String[]{
-		"Any", "address", "building", "street", "hamlet", "village", "town", "municipality", "city",
+	static final String FILTER_KEY_NAME = "name";
+	static final String FILTER_KEY_TYPE = "type";
+
+
+	private final JTextField nameField = new JTextField(20);
+	private final JComboBox<String> typeCombo = new JComboBox<>(new String[]{
+		"Any",
+		"address", "building", "street", "hamlet", "village", "town", "municipality", "city",
 		"metropolitan_area", "county", "province", "department", "district", "region",
 		"macro_region", "country", "empire", "parish", "diocese", "cemetery", "archive", "unknown"
 	});
-	private final JTextField parentJurisdictionField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -45,14 +49,14 @@ public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder("Place Filters"));
 
+		add(new JLabel("Name:"));
+		add(nameField, "growx");
 		add(new JLabel("Type:"));
-		add(placeTypeCombo, "growx");
-		add(new JLabel("Part of (Jurisdiction):"));
-		add(parentJurisdictionField, "growx");
+		add(typeCombo, "growx");
 	}
 
 	private void setupListeners(){
-		placeTypeCombo.addActionListener(e -> fireChanged());
+		typeCombo.addActionListener(e -> fireChanged());
 
 		final DocumentListener docListener = new DocumentListener(){
 			@Override
@@ -71,31 +75,30 @@ public class PlaceFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		parentJurisdictionField.getDocument().addDocumentListener(docListener);
+		nameField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
-		if(onChanged != null){
+		if(onChanged != null)
 			onChanged.accept(null);
-		}
 	}
 
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-//		filters.put("documentType", getDocumentType());
-//		filters.put("repositoryContains", getRepositoryContains());
-//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		filters.put(FILTER_KEY_NAME, getPlaceName());
+		filters.put(FILTER_KEY_TYPE, getType());
 		return filters;
 	}
 
-	// Getters for parent to read criteria
-	public String getPlaceType(){
-		return (placeTypeCombo.getSelectedIndex() == 0 ? null : (String)placeTypeCombo.getSelectedItem());
+	public String getPlaceName(){
+		return nameField.getText()
+			.trim();
 	}
 
-	public String getParentJurisdiction(){
-		return parentJurisdictionField.getText().trim();
+	public String getType(){
+		return (typeCombo.getSelectedIndex() == 0? null: (String)typeCombo.getSelectedItem());
 	}
 
 }

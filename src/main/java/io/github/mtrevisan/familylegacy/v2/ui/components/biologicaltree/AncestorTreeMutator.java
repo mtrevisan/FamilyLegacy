@@ -75,30 +75,35 @@ public class AncestorTreeMutator{
 			return;
 
 		// Create relationship record for father if present
-		if(fatherId != null){
-			final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
-				.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, ENUM_TYPE_CHILD))
-				.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
-					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, newChild.getId()))
-				)
-				.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
-					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, fatherId))
-				);
-			model.addRecord(relationship);
-		}
+		if(fatherId != null)
+			createRelationship(fatherId, newChild.getId(), ENUM_TYPE_CHILD);
 
 		// Create relationship record for mother if present
-		if(motherId != null){
-			final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
-				.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, ENUM_TYPE_CHILD))
-				.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
-					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, newChild.getId()))
-				)
-				.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
-					.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, motherId))
-				);
-			model.addRecord(relationship);
-		}
+		if(motherId != null)
+			createRelationship(motherId, newChild.getId(), ENUM_TYPE_CHILD);
+	}
+
+	/**
+	 * Helper method to create a relationship record of the given type.
+	 * Assumes the model uses a record structure with "relationship" tag and
+	 * children: "type", "subject", "target" (each referencing an individual).
+	 *
+	 * @param subjectId the individual id that is the subject of the relationship
+	 * @param targetId  the individual id that is the target of the relationship
+	 * @param type      the type of relationship (e.g., "child", "spouse", "parent")
+	 */
+	private void createRelationship(final String subjectId, final String targetId, final String type){
+		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
+			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
+			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subjectId))
+			)
+			.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
+				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, targetId))
+			)
+			.addChild(AuditBuilder.build());
+
+		model.addRecord(relationship);
 	}
 
 	/**
@@ -153,7 +158,7 @@ public class AncestorTreeMutator{
 		}
 
 		// Create new child relationship
-		createRelationship(child, newParent, ENUM_TYPE_CHILD);
+		createRelationship(child.getId(), newParent.getId(), ENUM_TYPE_CHILD);
 	}
 
 	/**
@@ -173,8 +178,8 @@ public class AncestorTreeMutator{
 			throw new IllegalArgumentException("Target individual not found: " + partnerId);
 
 		// Create spouse relationships (bidirectional)
-		createRelationship(target, newPartner, ENUM_TYPE_PARTNER);
-		createRelationship(newPartner, target, ENUM_TYPE_PARTNER);
+		createRelationship(target.getId(), newPartner.getId(), ENUM_TYPE_PARTNER);
+		createRelationship(newPartner.getId(), target.getId(), ENUM_TYPE_PARTNER);
 	}
 
 
@@ -252,29 +257,6 @@ public class AncestorTreeMutator{
 			model.removeRecord(relationshipId);
 	}
 
-
-	/**
-	 * Helper method to create a relationship record of the given type.
-	 * Assumes the model uses a record structure with "relationship" tag and
-	 * children: "type", "subject", "target" (each referencing an individual).
-	 *
-	 * @param subject the individual that is the subject of the relationship
-	 * @param target  the individual that is the target of the relationship
-	 * @param type    the type of relationship (e.g., "child", "spouse", "parent")
-	 */
-	private void createRelationship(final FLEFRecord subject, final FLEFRecord target, final String type){
-		final FLEFRecord relationship = FLEFRecord.createMainRecord(RelationshipHandler.TYPE, model)
-			.addChild(FLEFRecord.createChildWithTagAndValue(TAG_TYPE, type))
-			.addChild(FLEFRecord.createChildWithTag(TAG_SUBJECT)
-				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, subject.getId()))
-			)
-			.addChild(FLEFRecord.createChildWithTag(TAG_TARGET)
-				.addChild(FLEFRecord.createChildWithTagAndValue(IndividualHandler.TYPE, target.getId()))
-			)
-			.addChild(AuditBuilder.build());
-
-		model.addRecord(relationship);
-	}
 
 	private void notifyTreeChanged(final String rootIndividualId){
 		LOGGER.debug("Notify root changes to {}", rootIndividualId);

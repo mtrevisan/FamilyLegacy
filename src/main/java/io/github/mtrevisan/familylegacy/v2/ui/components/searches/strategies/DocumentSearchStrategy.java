@@ -75,13 +75,13 @@ public class DocumentSearchStrategy implements SearchStrategy{
 		final String baseDisplayText = HANDLER.getDisplayText(record, model);
 
 		final String description = FLEFRecordHelper.getChildValue(record, TAG_DESCRIPTION);
-		final String mappingVal = FLEFRecordHelper.getChildValue(record, TAG_MAPPING);
+		final String mapping = FLEFRecordHelper.getChildValue(record, TAG_MAPPING);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
 
-		if(StringUtils.isNotEmpty(mappingVal))
-			details.add("(" + mappingVal + ")");
+		if(StringUtils.isNotEmpty(mapping))
+			details.add("(" + mapping + ")");
 		if(StringUtils.isNotEmpty(description) && !baseDisplayText.contains(description))
 			details.add(description);
 

@@ -67,8 +67,10 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 			}
 		};
 
-		candidateField.getDocument().addDocumentListener(docListener);
-		commentField.getDocument().addDocumentListener(docListener);
+		candidateField.getDocument()
+			.addDocumentListener(docListener);
+		commentField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
@@ -85,11 +87,13 @@ public class IdentityHypothesisFilterPanel extends JPanel implements RecordFilte
 	}
 
 	public String getCandidate(){
-		return candidateField.getText().trim();
+		return candidateField.getText()
+			.trim();
 	}
 
 	public String getComment(){
-		return commentField.getText().trim();
+		return commentField.getText()
+			.trim();
 	}
 
 }

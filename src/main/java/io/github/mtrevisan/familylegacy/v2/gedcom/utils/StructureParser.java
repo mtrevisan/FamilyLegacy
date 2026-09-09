@@ -63,7 +63,7 @@ public class StructureParser{
 			return null;
 		}
 		String text = GEDCOMHelper.extractFullText(noteNode);
-		if(StringUtils.isBlank(text)){
+		if(StringUtils.isEmpty(text)){
 			return null;
 		}
 		return createNoteStruct(text, noteNode);
@@ -78,7 +78,7 @@ public class StructureParser{
 			return null;
 		}
 		String gedcomDate = dateNode.getValue();
-		if(StringUtils.isBlank(gedcomDate)){
+		if(StringUtils.isEmpty(gedcomDate)){
 			return null;
 		}
 		if(gedcomDate.equalsIgnoreCase("N")){
@@ -186,7 +186,7 @@ public class StructureParser{
 	 */
 	private FLEFRecord buildQualifiedDate(String isoDate){
 		// Ensure we have a non‑empty date string; fallback to a default if missing
-		if(StringUtils.isBlank(isoDate)){
+		if(StringUtils.isEmpty(isoDate)){
 			isoDate = "1900-01-01";
 		}
 		FLEFRecord fullDate = FLEFRecord.createChildWithTag("full_date");
@@ -231,7 +231,7 @@ public class StructureParser{
 			return null;
 		}
 		String placeName = placNode.getValue();
-		if(StringUtils.isBlank(placeName)){
+		if(StringUtils.isEmpty(placeName)){
 			return null;
 		}
 
@@ -489,7 +489,7 @@ public class StructureParser{
 
 		// Multimedia (OBJE) collegati alla citazione
 		for(GEDCOMNode objNode : GEDCOMHelper.findChildren(sourNode, "OBJE")){
-			FLEFRecord multimediaLink = parseMultimediaLink(objNode, model);
+			FLEFRecord multimediaLink = parseMultimediaLink(objNode);
 			if(multimediaLink != null && !multimediaLink.getChildren().isEmpty()){
 				sourceCitation.addChild(multimediaLink);
 			}
@@ -502,7 +502,7 @@ public class StructureParser{
 	// MultimediaLink (Xref<DocumentRecord>)
 	// ------------------------------------------------------------------------
 
-	public FLEFRecord parseMultimediaLink(GEDCOMNode objNode, FLEFModel model){
+	public FLEFRecord parseMultimediaLink(GEDCOMNode objNode){
 		if(objNode == null){
 			return null;
 		}

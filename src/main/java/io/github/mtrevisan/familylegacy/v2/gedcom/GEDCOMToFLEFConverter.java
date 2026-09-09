@@ -4,10 +4,8 @@ import io.github.mtrevisan.familylegacy.v2.gedcom.converters.FamilyConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.HeaderConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.IndividualConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.MultimediaConverter;
-import io.github.mtrevisan.familylegacy.v2.gedcom.converters.NoteConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.RepositoryConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.converters.SourceConverter;
-import io.github.mtrevisan.familylegacy.v2.gedcom.converters.SubmitterConverter;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.IDGenerator;
 import io.github.mtrevisan.familylegacy.v2.gedcom.utils.PlaceCache;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
@@ -76,11 +74,11 @@ public class GEDCOMToFLEFConverter {
 		HeaderConverter headerConverter = new HeaderConverter(model);
 		IndividualConverter individualConverter = new IndividualConverter(model, individualMap, noteRawMap, sourRawMap, objeRawMap, sourceMap, multimediaMap, placeCache);
 		FamilyConverter familyConverter = new FamilyConverter(model, familyMap, individualMap, sourceMap, multimediaMap, noteRawMap, sourRawMap, objeRawMap, placeCache);
-		SourceConverter sourceConverter = new SourceConverter(model, noteRawMap, sourRawMap, sourceMap, objeRawMap, repositoryMap, multimediaMap, placeCache);
+		SourceConverter sourceConverter = new SourceConverter(model, noteRawMap, sourceMap, objeRawMap, multimediaMap);
 		RepositoryConverter repositoryConverter = new RepositoryConverter(repositoryMap, noteRawMap);
-		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, placeCache, noteRawMap, sourRawMap, objeRawMap);
-		SubmitterConverter submitterConverter = new SubmitterConverter(model, submitterMap, placeCache);
-		NoteConverter noteConverter = new NoteConverter(model, noteMap, noteRawMap);
+		MultimediaConverter multimediaConverter = new MultimediaConverter(model, multimediaMap, noteRawMap, objeRawMap);
+//		SubmitterConverter submitterConverter = new SubmitterConverter(model, submitterMap, placeCache);
+//		NoteConverter noteConverter = new NoteConverter(model, noteMap, noteRawMap);
 
 		// ---- 3. First pass: parse all records ----
 		for (GEDCOMNode node : roots) {
@@ -99,7 +97,7 @@ public class GEDCOMToFLEFConverter {
 		}
 
 		// ---- 4. Second pass: resolve family links ----
-		familyConverter.resolveLinks(roots);
+		familyConverter.resolveLinks();
 
 		// ---- 6. Add all records to the model ----
 		individualMap.values().forEach(model::addRecord);

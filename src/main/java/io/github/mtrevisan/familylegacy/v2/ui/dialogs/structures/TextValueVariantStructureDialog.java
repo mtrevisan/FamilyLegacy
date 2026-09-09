@@ -239,7 +239,7 @@ public class TextValueVariantStructureDialog extends BaseRecordDialog{
 
 		if(transcriptionRadio.isSelected() && !transcriptionSystemCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"System cannot be empty.",
+				"System is required.",
 				tabbedPane, propertiesPanel, transcriptionSystemCombo);
 
 			return false;

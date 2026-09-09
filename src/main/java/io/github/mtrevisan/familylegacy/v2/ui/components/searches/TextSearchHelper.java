@@ -45,7 +45,7 @@ public final class TextSearchHelper{
 	public static Set<String> getTrigrams(final String text){
 		final Set<String> trigrams = new HashSet<>();
 		final String padded = "  " + text + "  ";
-		for(int i = 0; i < padded.length() - 2; i ++)
+		for(int i = 0, length = padded.length() - 2; i < length; i ++)
 			trigrams.add(padded.substring(i, i + 3));
 		return trigrams;
 	}

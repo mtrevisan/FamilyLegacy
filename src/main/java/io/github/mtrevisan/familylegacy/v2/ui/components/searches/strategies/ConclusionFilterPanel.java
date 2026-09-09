@@ -84,9 +84,12 @@ public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		issueField.getDocument().addDocumentListener(docListener);
-		narrativeField.getDocument().addDocumentListener(docListener);
-		researchQuestionField.getDocument().addDocumentListener(docListener);
+		issueField.getDocument()
+			.addDocumentListener(docListener);
+		narrativeField.getDocument()
+			.addDocumentListener(docListener);
+		researchQuestionField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
@@ -105,7 +108,8 @@ public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	public String getIssue(){
-		return issueField.getText().trim();
+		return issueField.getText()
+			.trim();
 	}
 
 	public String getProofStatus(){
@@ -113,11 +117,13 @@ public class ConclusionFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	public String getNarrative(){
-		return narrativeField.getText().trim();
+		return narrativeField.getText()
+			.trim();
 	}
 
 	public String getResearchQuestion(){
-		return researchQuestionField.getText().trim();
+		return researchQuestionField.getText()
+			.trim();
 	}
 
 }

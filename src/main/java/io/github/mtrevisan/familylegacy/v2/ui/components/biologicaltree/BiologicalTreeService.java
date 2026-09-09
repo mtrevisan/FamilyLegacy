@@ -78,7 +78,7 @@ public class BiologicalTreeService{
 	 */
 	public AncestorNode buildAncestorTree(final String rootIndividualId, final boolean showPartner,
 			final int maxGenerations){
-		if(StringUtils.isBlank(rootIndividualId))
+		if(StringUtils.isEmpty(rootIndividualId))
 			return null;
 		final FLEFRecord rootIndividual = model.getRecordById(rootIndividualId);
 		if(rootIndividual == null || maxGenerations < 0)
@@ -142,36 +142,19 @@ public class BiologicalTreeService{
 //				fatherEvents = individualToEventMap.get(father.getId());
 
 				final AncestorNode fatherNode = new AncestorNode(father, fatherData, nextGeneration);
-				if(mother != null){
-					final Map<IndividualData, SiblingsData> motherChildrenDataMap = buildChildrenData(father.getId());
-					final String motherId = mother.getId();
-					final SiblingsData childrenData = motherChildrenDataMap.entrySet().stream()
-						.filter(entry -> entry.getKey().getIndividualId().equals(motherId))
-						.map(Map.Entry::getValue)
-						.findFirst()
-						.orElse(null);
-					fatherNode.setPartnerAndBiologicalChildren(mother, motherData, childrenData);
-				}
+				setPartnerData(fatherNode, mother, motherData);
 				currentNode.setFather(fatherNode);
 
 				queue.add(fatherNode);
 			}
+
 			// Process Mother
 //			List<FLEFRecord> motherEvents = Collections.emptyList();
 			if(mother != null){
 //				motherEvents = individualToEventMap.get(mother.getId());
 
 				final AncestorNode motherNode = new AncestorNode(mother, motherData, nextGeneration);
-				if(father != null){
-					final Map<IndividualData, SiblingsData> fatherChildrenDataMap = buildChildrenData(mother.getId());
-					final String fatherId = father.getId();
-					final SiblingsData childrenData = fatherChildrenDataMap.entrySet().stream()
-						.filter(entry -> entry.getKey().getIndividualId().equals(fatherId))
-						.map(Map.Entry::getValue)
-						.findFirst()
-						.orElse(null);
-					motherNode.setPartnerAndBiologicalChildren(father, fatherData, childrenData);
-				}
+				setPartnerData(motherNode, father, fatherData);
 				currentNode.setMother(motherNode);
 
 				queue.add(motherNode);
@@ -179,6 +162,21 @@ public class BiologicalTreeService{
 		}
 
 		return rootNode;
+	}
+
+	private void setPartnerData(final AncestorNode node, final FLEFRecord partner, final IndividualData partnerData){
+		if(partner == null)
+			return;
+
+		final Map<IndividualData, SiblingsData> childrenDataMap = buildChildrenData(node.getIndividualId());
+		final String partnerId = partner.getId();
+		final SiblingsData childrenData = childrenDataMap.entrySet().stream()
+			.filter(entry -> entry.getKey() != null && partnerId.equals(entry.getKey().getIndividualId()))
+			.map(Map.Entry::getValue)
+			.findFirst()
+			.orElse(null);
+
+		node.setPartnerAndBiologicalChildren(partner, partnerData, childrenData);
 	}
 
 	private boolean hasPartnerRelationships(final String partnerId){
@@ -191,7 +189,6 @@ public class BiologicalTreeService{
 
 			final String subjectId = relationship.extractReferencedId(TAG_SUBJECT, IndividualHandler.TYPE);
 			final String targetRefId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-
 			if(partnerId.equals(subjectId) || partnerId.equals(targetRefId))
 				partnerRelationships.add(relationship);
 		}

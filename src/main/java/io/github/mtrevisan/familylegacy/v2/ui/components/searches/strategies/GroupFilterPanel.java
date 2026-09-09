@@ -81,7 +81,8 @@ public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		nameField.getDocument().addDocumentListener(docListener);
+		nameField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
@@ -98,7 +99,8 @@ public class GroupFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	public String getGroupName(){
-		return nameField.getText().trim();
+		return nameField.getText()
+			.trim();
 	}
 
 	public String getType(){

@@ -638,7 +638,7 @@ public final class FLEFRecordHelper{
 
 	private static FLEFRecord navigateToParent(final FLEFRecord root, final String[] segments){
 		FLEFRecord current = root;
-		for(int i = 0; i < segments.length - 1; i ++){
+		for(int i = 0, length = segments.length - 1; i < length; i ++){
 			if(current == null)
 				return null;
 
@@ -653,7 +653,7 @@ public final class FLEFRecordHelper{
 
 	private static FLEFRecord navigateToParentAndCreate(final FLEFRecord parent, final String[] segments){
 		FLEFRecord current = parent;
-		for(int i = 0; i < segments.length - 1; i ++){
+		for(int i = 0, length = segments.length - 1; i < length; i ++){
 			if(current == null)
 				return null;
 

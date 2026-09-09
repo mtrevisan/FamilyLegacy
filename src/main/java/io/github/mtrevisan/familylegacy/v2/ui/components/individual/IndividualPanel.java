@@ -424,9 +424,8 @@ public class IndividualPanel extends JPanel{
 			final String type = FLEFRecordHelper.getChildValue(relationship, TAG_TYPE);
 			if(type != null && type.endsWith(ENUM_TYPE_ENDS_WITH_CHILD)){
 				final String targetId = relationship.extractReferencedId(TAG_TARGET, IndividualHandler.TYPE);
-				if(individualId.equals(targetId)){
+				if(individualId.equals(targetId))
 					return true;
-				}
 			}
 		}
 		return false;

@@ -194,7 +194,7 @@ public class FamilyConverter{
 
 		// Sources (SOUR) – attach directly to group
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(famNode, "SOUR")){
-			GEDCOMHelper.attachSource(group, model, sourNode, noteRawMap, sourRawMap, objeRawMap);
+			GEDCOMHelper.attachSource(group, model, sourNode, noteRawMap, objeRawMap);
 		}
 
 		// Notes – inline structs
@@ -220,7 +220,7 @@ public class FamilyConverter{
 	/**
 	 * Second pass: resolve all links, create relationships, events, attributes, and OBJE handling.
 	 */
-	public void resolveLinks(List<GEDCOMNode> roots){
+	public void resolveLinks(){
 		for(FamilyLink link : familyLinks){
 			FLEFRecord group = familyMap.get(link.familyId);
 			if(group == null) continue;
@@ -242,9 +242,9 @@ public class FamilyConverter{
 				for(GEDCOMNode evt : link.eventNodes){
 					if("MARR".equals(evt.getTag())){
 						GEDCOMNode typeNode = GEDCOMHelper.findFirstChild(evt, "TYPE");
-						if(typeNode != null && typeNode.getValue() != null){
+						if(typeNode != null && typeNode.getValue() != null)
 							marriageType = typeNode.getValue().trim();
-						}
+
 						break;
 					}
 				}
@@ -269,6 +269,7 @@ public class FamilyConverter{
 							dateStruct.setTag("valid_from");
 							relationship.addChild(dateStruct);
 						}
+
 						break;
 					}
 				}
@@ -292,6 +293,7 @@ public class FamilyConverter{
 							dateStruct.setTag("valid_from");
 							relationship.addChild(dateStruct);
 						}
+
 						break;
 					}
 				}
@@ -314,22 +316,22 @@ public class FamilyConverter{
 			// ---- Process actual family events (MARR, DIV, ENGA, etc.) ----
 			for(GEDCOMNode evtNode : link.eventNodes){
 				String eventFlefId = createAndAddEventRecord(
-					evtNode, noteRawMap, sourRawMap, objeRawMap, model
+					evtNode, noteRawMap, objeRawMap, model
 				);
 				if(eventFlefId != null){
 					// Attach Group as participant (role "family")
 					GEDCOMHelper.attachEventParticipation(
-						roots, eventFlefId, "group", group.getId(), "family", model
+						eventFlefId, "group", group.getId(), "family", model
 					);
 					// Attach Husband and Wife if present
 					if(link.husbandId != null){
 						GEDCOMHelper.attachEventParticipation(
-							roots, eventFlefId, "individual", link.husbandId, "husband", model
+							eventFlefId, "individual", link.husbandId, "husband", model
 						);
 					}
 					if(link.wifeId != null){
 						GEDCOMHelper.attachEventParticipation(
-							roots, eventFlefId, "individual", link.wifeId, "wife", model
+							eventFlefId, "individual", link.wifeId, "wife", model
 						);
 					}
 				}
@@ -337,7 +339,7 @@ public class FamilyConverter{
 
 			// ---- Process family attributes (RESI) ----
 			for(GEDCOMNode attrNode : link.attributeNodes){
-				createGroupAttribute(attrNode, group, link.husbandId, link.wifeId, model);
+				createGroupAttribute(attrNode, group, model);
 			}
 
 			// ---- Process OBJE nodes ----
@@ -372,7 +374,6 @@ public class FamilyConverter{
 	 */
 	private String createAndAddEventRecord(GEDCOMNode eventNode,
 		Map<String, GEDCOMNode> noteRawMap,
-		Map<String, GEDCOMNode> sourRawMap,
 		Map<String, GEDCOMNode> objeRawMap,
 		FLEFModel model){
 		if(eventNode == null) return null;
@@ -435,7 +436,7 @@ public class FamilyConverter{
 
 		// Sources
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(eventNode, "SOUR")){
-			GEDCOMHelper.attachSource(eventRecord, model, sourNode, noteRawMap, sourRawMap, objeRawMap);
+			GEDCOMHelper.attachSource(eventRecord, model, sourNode, noteRawMap, objeRawMap);
 		}
 
 		// Multimedia
@@ -459,8 +460,6 @@ public class FamilyConverter{
 	 */
 	private void createGroupAttribute(GEDCOMNode attrNode,
 		FLEFRecord group,
-		String husbandId,
-		String wifeId,
 		FLEFModel model){
 		if(attrNode == null) return;
 
@@ -500,7 +499,7 @@ public class FamilyConverter{
 
 		// Sources
 		for(GEDCOMNode sourNode : GEDCOMHelper.findChildren(attrNode, "SOUR")){
-			GEDCOMHelper.attachSource(groupAttribute, model, sourNode, noteRawMap, sourRawMap, objeRawMap);
+			GEDCOMHelper.attachSource(groupAttribute, model, sourNode, noteRawMap, objeRawMap);
 		}
 
 		// Multimedia

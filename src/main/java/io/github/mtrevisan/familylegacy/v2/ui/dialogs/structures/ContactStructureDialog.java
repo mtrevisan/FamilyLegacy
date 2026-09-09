@@ -164,7 +164,7 @@ public class ContactStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Address cannot be empty.",
+				"Address is required.",
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

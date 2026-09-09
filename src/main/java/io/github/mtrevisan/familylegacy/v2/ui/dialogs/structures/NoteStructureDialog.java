@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextField;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
@@ -35,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.lists.TranslationListPa
 import io.github.mtrevisan.familylegacy.v2.ui.dialogs.BaseRecordDialog;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.NoteHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -90,7 +92,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 	private final BoundTextField titleField;
 	private final BoundTextArea textArea;
 	private final BoundComboBox<String> mimeCombo;
-	private final BoundComboBox<String> localeCombo;
+	private final BoundFilteredComboBox<String> localeCombo;
 	private final TranslationListPanel translationPanel;
 
 
@@ -114,9 +116,7 @@ public class NoteStructureDialog extends BaseRecordDialog{
 		mimeCombo = new BoundComboBox<>(TAG_MIME, new String[]{
 			StringUtils.EMPTY,
 			"text/plain", "text/html", "text/markdown"});
-		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
-			StringUtils.EMPTY,
-			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 		translationPanel = new TranslationListPanel(TAG_TRANSLATION, this, "Translations");
 

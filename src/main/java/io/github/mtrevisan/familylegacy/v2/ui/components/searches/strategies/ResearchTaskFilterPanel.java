@@ -16,19 +16,32 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-/* TODO */
 /**
- * Filter panel for ResearchTask records: status, priority, and target repository.
+ * Filter panel for ResearchTask records: description, status, priority, and outcome text.
  */
 public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel{
 
+	static final String FILTER_KEY_DESCRIPTION = "description";
+	static final String FILTER_KEY_STATUS = "status";
+	static final String FILTER_KEY_PRIORITY = "priority";
+	static final String FILTER_KEY_OUTCOME = "outcome";
+
+
+	private final JTextField descriptionField = new JTextField(20);
 	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{
-		"Any", "todo", "in_progress", "completed", "cancelled", "unknown"
+		"Any",
+		"open",
+		"in_progress",
+		"completed",
+		"abandoned"
 	});
 	private final JComboBox<String> priorityCombo = new JComboBox<>(new String[]{
-		"Any", "low", "medium", "high", "critical", "unknown"
+		"Any",
+		"low",
+		"normal",
+		"high"
 	});
-	private final JTextField repositoryField = new JTextField(20);
+	private final JTextField outcomeField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -46,12 +59,14 @@ public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder("Research Task Filters"));
 
+		add(new JLabel("Description:"));
+		add(descriptionField, "growx");
 		add(new JLabel("Status:"));
 		add(statusCombo, "growx");
 		add(new JLabel("Priority:"));
 		add(priorityCombo, "growx");
-		add(new JLabel("Repository:"));
-		add(repositoryField, "growx");
+		add(new JLabel("Outcome:"));
+		add(outcomeField, "growx");
 	}
 
 	private void setupListeners(){
@@ -75,34 +90,41 @@ public class ResearchTaskFilterPanel extends JPanel implements RecordFilterPanel
 			}
 		};
 
-		repositoryField.getDocument().addDocumentListener(docListener);
+		descriptionField.getDocument()
+			.addDocumentListener(docListener);
+		outcomeField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
-		if(onChanged != null){
+		if(onChanged != null)
 			onChanged.accept(null);
-		}
 	}
 
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-//		filters.put("documentType", getDocumentType());
-//		filters.put("repositoryContains", getRepositoryContains());
-//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		filters.put(FILTER_KEY_DESCRIPTION, getDescription());
+		filters.put(FILTER_KEY_STATUS, getStatus());
+		filters.put(FILTER_KEY_PRIORITY, getPriority());
+		filters.put(FILTER_KEY_OUTCOME, getOutcome());
 		return filters;
 	}
 
+	public String getDescription(){
+		return descriptionField.getText().trim();
+	}
+
 	public String getStatus(){
-		return (statusCombo.getSelectedIndex() == 0 ? null : (String)statusCombo.getSelectedItem());
+		return (statusCombo.getSelectedIndex() == 0? null: (String)statusCombo.getSelectedItem());
 	}
 
 	public String getPriority(){
-		return (priorityCombo.getSelectedIndex() == 0 ? null : (String)priorityCombo.getSelectedItem());
+		return (priorityCombo.getSelectedIndex() == 0? null: (String)priorityCombo.getSelectedItem());
 	}
 
-	public String getRepositoryContains(){
-		return repositoryField.getText().trim();
+	public String getOutcome(){
+		return outcomeField.getText().trim();
 	}
 
 }

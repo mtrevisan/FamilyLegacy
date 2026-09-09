@@ -221,9 +221,6 @@ public class SingleDatePanel extends JPanel{
 		cardPanel.setPreferredSize(new Dimension(cardPanel.getPreferredSize().width, maxHeight));
 		cardPanel.setMinimumSize(new Dimension(cardPanel.getMinimumSize().width, maxHeight));
 		cardPanel.setMaximumSize(new Dimension(cardPanel.getMaximumSize().width, maxHeight));
-
-		cardPanel.revalidate();
-		cardPanel.repaint();
 	}
 
 	public void load(final FLEFRecord record){

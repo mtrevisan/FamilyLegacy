@@ -83,7 +83,7 @@ public final class UniversalDateConverter{
 		String workingDate = Objects.requireNonNull(rawDate, "rawDate cannot be null")
 			.trim();
 		if(workingDate.isEmpty())
-			throw new IllegalArgumentException("Date string cannot be empty");
+			throw new IllegalArgumentException("Date string is required");
 
 		// Strip embedded calendar escape tags (e.g. @#DGREGORIAN@)
 		if(workingDate.startsWith("@#") && workingDate.contains("@")){

@@ -120,6 +120,9 @@ public abstract class BaseRecordDialog extends JDialog{
 
 		pack();
 
+		revalidate();
+		repaint();
+
 		setLocationRelativeTo(parent);
 	}
 
@@ -211,7 +214,8 @@ public abstract class BaseRecordDialog extends JDialog{
 
 				final EditableComboAdapter adapter = new EditableComboAdapter(comboBox, textComp, undoController);
 				textComp.addFocusListener(adapter);
-				textComp.getDocument().addDocumentListener(adapter);
+				textComp.getDocument()
+					.addDocumentListener(adapter);
 				comboBox.addActionListener(adapter);
 			}
 		}
@@ -406,7 +410,6 @@ public abstract class BaseRecordDialog extends JDialog{
 		// Find the JList inside the source panel (assume it's an EntityListPanel or a panel with a list)
 		final EntityListPanel sourcePanel = (EntityListPanel)components.getPanel(PanelKey.SOURCE);
 		final JList<?> sourceList = sourcePanel.getList();
-
 		final ListSelectionListener sourceSelectionListener = e -> {
 			if(!e.getValueIsAdjusting())
 				updateCarouselFromSelectedSource();
@@ -425,6 +428,9 @@ public abstract class BaseRecordDialog extends JDialog{
 		if(selected != null)
 			uris = extractUrisFromSource(selected);
 		imageCarouselPanel.setImageUris(uris);
+
+		imageCarouselPanel.revalidate();
+		imageCarouselPanel.repaint();
 	}
 
 	/**
@@ -523,27 +529,6 @@ if(uri != null)
 		FLEFRecordHelper.addChildValue(record, tag, value);
 	}
 
-
-	protected void removeChildren(final String tag){
-		FLEFRecordHelper.removeChildren(record, tag);
-	}
-
-
-	protected void showError(final String title, final String message){
-		JOptionPane.showMessageDialog(this, message, title, JOptionPane.ERROR_MESSAGE);
-	}
-
-	protected void showInfo(final String title, final String message){
-		JOptionPane.showMessageDialog(this, message, title, JOptionPane.INFORMATION_MESSAGE);
-	}
-
-	protected boolean showConfirm(final String title, final String message){
-		final int selectedOption = JOptionPane.showConfirmDialog(this,
-			message,
-			title,
-			JOptionPane.YES_NO_OPTION);
-		return (selectedOption == JOptionPane.YES_OPTION);
-	}
 
 	public boolean isSaved(){
 		return isSaved;

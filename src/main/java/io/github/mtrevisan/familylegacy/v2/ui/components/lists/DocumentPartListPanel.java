@@ -50,8 +50,6 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final long serialVersionUID = -1788729052005475640L;
 
 
-	private static final String DOT = ".";
-
 	private static final String TAG_URI = "URI";
 	private static final String TAG_CROP = "CROP";
 	private static final String TAG_X = "X";
@@ -60,7 +58,6 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 	private static final String TAG_HEIGHT = "HEIGHT";
 	private static final String TAG_DOCUMENT = "DOCUMENT";
 	private static final String TAG_DOCUMENT_PART = "DOCUMENT_PART";
-	private static final String TAG_DOCUMENT_URI = TAG_DOCUMENT + DOT + TAG_URI;
 
 
 	private final String path;
@@ -115,15 +112,16 @@ public class DocumentPartListPanel extends AbstractListPanel<FLEFRecord>{
 			return;
 
 
-		final FLEFRecord documentPart = items.get(itemIndex);
-		final FLEFRecord imageCrop = FLEFRecordHelper.findChild(documentPart, TAG_CROP);
+		final FLEFRecord documentPart = listModel.get(itemIndex);
 		Rectangle imageCropRect = null;
 		try{
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(imageCrop, TAG_HEIGHT));
-			imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
+		final FLEFRecord crop = FLEFRecordHelper.findChild(documentPart, TAG_CROP);
+			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
+			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
+			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
+			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
+			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
+				imageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}
 		catch(final NumberFormatException ignored){}
 		final String documentId = FLEFRecordHelper.findChild(documentPart, TAG_DOCUMENT)
@@ -138,17 +136,8 @@ if(uri != null)
 			cropDialog.loadData(uri, imageCropRect);
 			cropDialog.setVisible(true);
 
-			if(cropDialog.isSaved()){
-				final Rectangle documentCropRect = cropDialog.getCrop();
-				if(documentCropRect != null && !documentCropRect.isEmpty()){
-					// temporarily save under DOCUMENT
-					final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, TAG_CROP);
-					FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
-					FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
-					FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
-					FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
-				}
-			}
+			if(cropDialog.isSaved())
+				extractCrop(documentPart);
 		}
 		catch(final IOException ioe){
 			ioe.printStackTrace();
@@ -180,7 +169,7 @@ if(uri != null)
 		final RecordSelectionDialog dialog = RecordSelectionDialog.createWithAllowRecordCreation(parent, model,
 			(record, handler) -> {
 				final FLEFRecord document = model.getRecordById(record.getId());
-				if(document != null && !items.contains(document)){
+				if(document != null && !listModel.contains(document)){
 					String uri = FLEFRecordHelper.getChildValue(document, TAG_URI);
 // TODO to be removed
 if(uri != null)
@@ -190,17 +179,8 @@ if(uri != null)
 						cropDialog.loadData(uri, null);
 						cropDialog.setVisible(true);
 
-						if(cropDialog.isSaved()){
-							final Rectangle documentCropRect = cropDialog.getCrop();
-							if(documentCropRect != null && !documentCropRect.isEmpty()){
-								// temporarily save under DOCUMENT
-								final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(record, TAG_CROP);
-								FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
-								FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
-								FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
-								FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
-							}
-						}
+						if(cropDialog.isSaved())
+							extractCrop(record);
 					}
 					catch(final IOException ioe){
 						ioe.printStackTrace();
@@ -217,6 +197,18 @@ if(uri != null)
 		dialog.setVisible(true);
 
 		return result[0];
+	}
+
+	private void extractCrop(final FLEFRecord documentPart){
+		final Rectangle documentCropRect = cropDialog.getCrop();
+		if(documentCropRect != null && !documentCropRect.isEmpty()){
+			// temporarily save under DOCUMENT
+			final FLEFRecord crop = FLEFRecordHelper.getOrCreateTargetNode(documentPart, TAG_CROP);
+			FLEFRecordHelper.updateChildValue(crop, TAG_X, String.valueOf(documentCropRect.x));
+			FLEFRecordHelper.updateChildValue(crop, TAG_Y, String.valueOf(documentCropRect.y));
+			FLEFRecordHelper.updateChildValue(crop, TAG_WIDTH, String.valueOf(documentCropRect.width));
+			FLEFRecordHelper.updateChildValue(crop, TAG_HEIGHT, String.valueOf(documentCropRect.height));
+		}
 	}
 
 	@Override

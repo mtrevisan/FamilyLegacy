@@ -162,11 +162,9 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 			return;
 		}
 
-		for(int i = 0; i < getItemCount(); i ++){
+		for(int i = 0, count = getItemCount(); i < count; i ++){
 			final E item = getItemAt(i);
-
-			final String display = (item != null? item.toString(): StringUtils.EMPTY);
-			if(display.equals(value)){
+			if(item != null && value.equals(item.toString())){
 				setSelectedIndex(i);
 
 				return;
@@ -272,7 +270,7 @@ public class BoundComboBox<E> extends JComboBox<E> implements PathBound{
 	 */
 	private E isEmptyItemPresent(){
 		final ComboBoxModel<E> model = getModel();
-		for(int i = 0; i < model.getSize(); i ++){
+		for(int i = 0, size = model.getSize(); i < size; i ++){
 			final E element = model.getElementAt(i);
 			if(element != null && StringUtils.EMPTY.equals(element.toString()))
 				return element;

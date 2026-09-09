@@ -79,13 +79,13 @@ public class ContactHandler extends AbstractRecordTypeHandler<ContactStructureDi
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final String name = FLEFRecordHelper.getChildValue(record, TAG_NAME);
 		final StringBuilder sb = new StringBuilder();
-		if(StringUtils.isNotBlank(name))
+		if(StringUtils.isNotEmpty(name))
 			sb.append(name)
 				.append(':')
 				.append(StringUtils.SPACE);
-		if(StringUtils.isNotBlank(value))
+		if(StringUtils.isNotEmpty(value))
 			sb.append(value);
-		if(StringUtils.isNotBlank(type)){
+		if(StringUtils.isNotEmpty(type)){
 			if(!sb.isEmpty())
 				sb.append(StringUtils.SPACE);
 			sb.append('(')

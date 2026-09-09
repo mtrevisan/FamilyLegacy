@@ -6,16 +6,15 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -62,6 +61,7 @@ public class IndividualSearchStrategy implements SearchStrategy{
 
 	private final Map<String, Integer> birthYears = new HashMap<>();
 	private final Map<String, Integer> deathYears = new HashMap<>();
+	private final Map<String, List<FLEFRecord>> eventsByIndividual = new HashMap<>();
 
 
 	@Override
@@ -79,6 +79,16 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		this.model = model;
 
 		SearchHelper.precomputeLifeBounds(birthYears, deathYears, model);
+		for(final FLEFRecord participation : model.getRecordsByType(EventParticipationHandler.TYPE)){
+			final String participantRef = FLEFRecordHelper.getChildValue(participation, TAG_PARTICIPANT_INDIVIDUAL);
+			final String eventRef = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
+			if(participantRef != null && eventRef != null){
+				final FLEFRecord event = model.getRecordById(eventRef);
+				if(event != null)
+					eventsByIndividual.computeIfAbsent(participantRef, k -> new ArrayList<>())
+						.add(event);
+			}
+		}
 
 		final boolean hasEventFilters = (StringUtils.isNotEmpty(eventType) || StringUtils.isNotEmpty(eventDateFrom)
 			|| StringUtils.isNotEmpty(eventDateTo) || StringUtils.isNotEmpty(eventLocation));
@@ -103,24 +113,10 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		final Integer birthYear = birthYears.get(individualId);
 		final Integer deathYear = deathYears.get(individualId);
 
-		// Iterate over event participations where this individual is the participant
-		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		for(final FLEFRecord participation : participations){
-			final String participantId = participation.extractReferencedId(TAG_PARTICIPANT, IndividualHandler.TYPE);
-			if(!individual.getId().equals(participantId))
-				continue;
-
-			final String eventId = FLEFRecordHelper.getChildValue(participation, EventHandler.TYPE);
-			if(eventId == null)
-				continue;
-
-			final FLEFRecord event = model.getRecordById(eventId);
-			if(event == null)
-				continue;
-
+		final List<FLEFRecord> events = eventsByIndividual.getOrDefault(individualId, List.of());
+		for(final FLEFRecord event : events)
 			if(matchesEvent(event, birthYear, deathYear))
 				return true;
-		}
 		return false;
 	}
 
@@ -179,18 +175,8 @@ public class IndividualSearchStrategy implements SearchStrategy{
 		String deathDate = null;
 		String deathPlace = null;
 
-		final String individualId = record.getId();
-		final List<FLEFRecord> participations = model.getRecordsByType(EventParticipationHandler.TYPE);
-		for(final FLEFRecord participation : participations){
-			final String participantRef = FLEFRecordHelper.getChildValue(participation, TAG_PARTICIPANT_INDIVIDUAL);
-			if(!Objects.equals(participantRef, individualId))
-				continue;
-
-			final String eventRef = FLEFRecordHelper.getChildValue(participation, TAG_EVENT);
-			final FLEFRecord event = model.getRecordById(eventRef);
-			if(event == null)
-				continue;
-
+		final List<FLEFRecord> events = eventsByIndividual.getOrDefault(record.getId(), List.of());
+		for(final FLEFRecord event : events){
 			final String eventType = FLEFRecordHelper.getChildValue(event, TAG_TYPE);
 			if(ENUM_TYPE_BIRTH.equalsIgnoreCase(eventType)){
 				if(birthDate == null)
@@ -204,6 +190,9 @@ public class IndividualSearchStrategy implements SearchStrategy{
 				if(deathPlace == null)
 					deathPlace = SearchHelper.extractPlace(event, model);
 			}
+
+			if(birthDate != null && birthPlace != null && deathDate != null && deathPlace != null)
+				break;
 		}
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");

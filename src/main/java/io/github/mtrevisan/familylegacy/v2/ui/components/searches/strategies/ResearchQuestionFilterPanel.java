@@ -16,19 +16,32 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-/* TODO */
 /**
- * Filter panel for ResearchQuestion records: status, priority, and focus individual.
+ * Filter panel for ResearchQuestion records: title, question text, status, and confidence.
  */
 public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterPanel{
 
+	static final String FILTER_KEY_TITLE = "title";
+	static final String FILTER_KEY_QUESTION = "question";
+	static final String FILTER_KEY_STATUS = "status";
+	static final String FILTER_KEY_CONFIDENCE = "confidence";
+
+
+	private final JTextField titleField = new JTextField(20);
+	private final JTextField questionField = new JTextField(20);
 	private final JComboBox<String> statusCombo = new JComboBox<>(new String[]{
-		"Any", "open", "in_progress", "resolved", "abandoned", "unknown"
+		"Any",
+		"open",
+		"on_hold",
+		"resolved",
+		"disproven"
 	});
-	private final JComboBox<String> priorityCombo = new JComboBox<>(new String[]{
-		"Any", "low", "medium", "high", "critical", "unknown"
+	private final JComboBox<String> confidenceCombo = new JComboBox<>(new String[]{
+		"Any",
+		"low",
+		"medium",
+		"high"
 	});
-	private final JTextField focusIndividualField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -46,17 +59,19 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder("Research Question Filters"));
 
+		add(new JLabel("Title:"));
+		add(titleField, "growx");
+		add(new JLabel("Question:"));
+		add(questionField, "growx");
 		add(new JLabel("Status:"));
 		add(statusCombo, "growx");
-		add(new JLabel("Priority:"));
-		add(priorityCombo, "growx");
-		add(new JLabel("Focus individual:"));
-		add(focusIndividualField, "growx");
+		add(new JLabel("Confidence:"));
+		add(confidenceCombo, "growx");
 	}
 
 	private void setupListeners(){
 		statusCombo.addActionListener(e -> fireChanged());
-		priorityCombo.addActionListener(e -> fireChanged());
+		confidenceCombo.addActionListener(e -> fireChanged());
 
 		final DocumentListener docListener = new DocumentListener(){
 			@Override
@@ -75,34 +90,41 @@ public class ResearchQuestionFilterPanel extends JPanel implements RecordFilterP
 			}
 		};
 
-		focusIndividualField.getDocument().addDocumentListener(docListener);
+		titleField.getDocument()
+			.addDocumentListener(docListener);
+		questionField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
-		if(onChanged != null){
+		if(onChanged != null)
 			onChanged.accept(null);
-		}
 	}
 
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-//		filters.put("documentType", getDocumentType());
-//		filters.put("repositoryContains", getRepositoryContains());
-//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		filters.put(FILTER_KEY_TITLE, getTitle());
+		filters.put(FILTER_KEY_QUESTION, getQuestion());
+		filters.put(FILTER_KEY_STATUS, getStatus());
+		filters.put(FILTER_KEY_CONFIDENCE, getConfidence());
 		return filters;
 	}
 
+	public String getTitle(){
+		return titleField.getText().trim();
+	}
+
+	public String getQuestion(){
+		return questionField.getText().trim();
+	}
+
 	public String getStatus(){
-		return (statusCombo.getSelectedIndex() == 0 ? null : (String)statusCombo.getSelectedItem());
+		return (statusCombo.getSelectedIndex() == 0? null: (String)statusCombo.getSelectedItem());
 	}
 
-	public String getPriority(){
-		return (priorityCombo.getSelectedIndex() == 0 ? null : (String)priorityCombo.getSelectedItem());
-	}
-
-	public String getFocusIndividual(){
-		return focusIndividualField.getText().trim();
+	public String getConfidence(){
+		return (confidenceCombo.getSelectedIndex() == 0? null: (String)confidenceCombo.getSelectedItem());
 	}
 
 }

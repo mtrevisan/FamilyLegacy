@@ -63,7 +63,6 @@ public class PartStructureDialog extends BaseRecordDialog{
 	private static final long serialVersionUID = 3227495851403391698L;
 
 
-	private static final String TAG_PART = "PART";
 	private static final String TAG_TYPE = "TYPE";
 	private static final String TAG_VALUE = "VALUE";
 	private static final String TAG_VARIANT = "VARIANT";
@@ -141,7 +140,7 @@ public class PartStructureDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(valueField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Value cannot be empty.",
+				"Value is required.",
 				tabbedPane, propertiesPanel, valueField);
 
 			return false;

@@ -27,6 +27,7 @@ package io.github.mtrevisan.familylegacy.v2.ui.dialogs.structures;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.components.PanelKey;
 import io.github.mtrevisan.familylegacy.v2.ui.components.RecordDialogBuilder;
 import io.github.mtrevisan.familylegacy.v2.ui.components.lists.EntityListPanel;
@@ -35,6 +36,7 @@ import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PartHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.PersonalNameHandler;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JPanel;
@@ -93,7 +95,6 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 	private static final String TAG_PART = "PART";
 	private static final String TAG_LOCALE = "LOCALE";
 	private static final String TAG_CULTURAL_NORM = "CULTURAL_NORM";
-	private static final String TAG_CONTEXT_IMPACT = "CONTEXT_IMPACT";
 	private static final String TAG_SOURCE = "SOURCE";
 	private static final String TAG_NOTE = "NOTE";
 
@@ -102,7 +103,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 
 	private final BoundComboBox<String> typeCombo;
 	private final EntityListPanel partPanel;
-	private final BoundComboBox<String> localeCombo;
+	private final BoundFilteredComboBox<String> localeCombo;
 	private final EntityListPanel culturalNormPanel;
 
 
@@ -136,10 +137,7 @@ public class PersonalNameStructureDialog extends BaseRecordDialog{
 		});
 		typeCombo.setEditable(true);
 		partPanel = EntityListPanel.createForStructure(TAG_PART, this, "Parts*", model, PartHandler.class);
-		localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
-			StringUtils.EMPTY,
-			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"
-		});
+		localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 
 		culturalNormPanel = EntityListPanel.createForEntityReference(TAG_CULTURAL_NORM, parent, "Cultural Norms",

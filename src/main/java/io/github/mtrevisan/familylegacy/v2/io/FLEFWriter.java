@@ -212,7 +212,7 @@ public class FLEFWriter{
 			writer.write(StringUtils.SPACE);
 			writer.write(TAG_OPEN_CURLY_BRACE);
 			writer.write(StringUtils.LF);
-			for(int i = 0; i < records.size(); i ++){
+			for(int i = 0, size = records.size(); i < size; i ++){
 				final FLEFRecord record = records.get(i);
 
 				writeRecord(record, writer, 1);
@@ -259,19 +259,7 @@ public class FLEFWriter{
 		final Deque<Frame> stack = new ArrayDeque<>();
 
 		// For the root, compute effective record and path if compact mode is enabled
-		if(compactMode){
-			final Effective effective = getEffectiveRecord(rootRecord);
-			// Write the header with the compressed path
-			writeRecordHeader(effective.record, writer, indentLevel, effective.path);
-			if(effective.record.hasChildren())
-				stack.push(new Frame(effective.record, indentLevel + 1, effective.path));
-		}
-		else{
-			// Expanded mode: just write the root header normally
-			writeRecordHeader(rootRecord, writer, indentLevel, null);
-			if(rootRecord.hasChildren())
-				stack.push(new Frame(rootRecord, indentLevel + 1));
-		}
+		processRecordNode(rootRecord, writer, indentLevel, stack);
 
 		while(!stack.isEmpty()){
 			final Frame current = stack.peek();
@@ -283,19 +271,7 @@ public class FLEFWriter{
 
 				if(child != null && (StringUtils.isNotEmpty(child.getTag()) || child.hasData())){
 					final int nextIndent = current.indentLevel;
-					if(compactMode){
-						// In compact mode, check if the child is compressible
-						final Effective effective = getEffectiveRecord(child);
-						writeRecordHeader(effective.record, writer, nextIndent, effective.path);
-						if(effective.record.hasChildren())
-							stack.push(new Frame(effective.record, nextIndent + 1, effective.path));
-					}
-					else{
-						// Expanded mode: write the child as a separate block
-						writeRecordHeader(child, writer, nextIndent, null);
-						if(child.hasChildren())
-							stack.push(new Frame(child, nextIndent + 1));
-					}
+					processRecordNode(child, writer, nextIndent, stack);
 				}
 			}
 			else{
@@ -308,6 +284,33 @@ public class FLEFWriter{
 
 				stack.pop();
 			}
+		}
+	}
+
+	/**
+	 * Processes a record node by determining its effective structure (based on compact mode),
+	 * writing its header, and pushing it onto the traversal stack if it has children.
+	 *
+	 * @param record      the record to process
+	 * @param indentLevel current indentation level
+	 * @param writer      the target output writer
+	 * @param stack       the stack tracking traversal frames
+	 * @throws IOException if writing fails
+	 */
+	private void processRecordNode(final FLEFRecord record, final Writer writer, final int indentLevel,
+			final Deque<Frame> stack) throws IOException{
+		if(compactMode){
+			// In compact mode, check if the child is compressible
+			final Effective effective = getEffectiveRecord(record);
+			writeRecordHeader(effective.record, writer, indentLevel, effective.path);
+			if(effective.record.hasChildren())
+				stack.push(new Frame(effective.record, indentLevel + 1, effective.path));
+		}
+		else{
+			// Expanded mode: write the child as a separate block
+			writeRecordHeader(record, writer, indentLevel, null);
+			if(record.hasChildren())
+				stack.push(new Frame(record, indentLevel + 1));
 		}
 	}
 

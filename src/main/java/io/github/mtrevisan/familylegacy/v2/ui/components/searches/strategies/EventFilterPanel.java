@@ -103,11 +103,16 @@ public class EventFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		descriptionField.getDocument().addDocumentListener(docListener);
-		dateField.getDocument().addDocumentListener(docListener);
-		locationField.getDocument().addDocumentListener(docListener);
-		agencyField.getDocument().addDocumentListener(docListener);
-		causeReasonField.getDocument().addDocumentListener(docListener);
+		descriptionField.getDocument()
+			.addDocumentListener(docListener);
+		dateField.getDocument()
+			.addDocumentListener(docListener);
+		locationField.getDocument()
+			.addDocumentListener(docListener);
+		agencyField.getDocument()
+			.addDocumentListener(docListener);
+		causeReasonField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){

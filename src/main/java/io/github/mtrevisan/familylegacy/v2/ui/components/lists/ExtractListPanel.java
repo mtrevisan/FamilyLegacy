@@ -28,9 +28,11 @@ import io.github.mtrevisan.familylegacy.v2.io.model.FLEFModel;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecord;
 import io.github.mtrevisan.familylegacy.v2.io.model.FLEFRecordHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundComboBox;
+import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundFilteredComboBox;
 import io.github.mtrevisan.familylegacy.v2.ui.bindings.BoundTextArea;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.FileHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.helpers.GUIHelper;
+import io.github.mtrevisan.familylegacy.v2.ui.helpers.LocaleHelper;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.swing.JDialog;
@@ -115,11 +117,11 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 				if(document != null){
 					final String description = FLEFRecordHelper.getChildValue(document, TAG_DESCRIPTION);
 
-					if(StringUtils.isNotBlank(description))
+					if(StringUtils.isNotEmpty(description))
 						sb.append(description);
 					else{
 						final String uri = FLEFRecordHelper.getChildValue(document, TAG_FILE);
-						if(StringUtils.isNotBlank(uri))
+						if(StringUtils.isNotEmpty(uri))
 							sb.append(FileHelper.getFilename(uri));
 						else
 							sb.append('[')
@@ -169,9 +171,7 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 		final BoundTextArea textArea = new BoundTextArea(TAG_TEXT, 3, 25);
 		final BoundComboBox<String> typeCombo = new BoundComboBox<>(TAG_TYPE, new String[]{
 			"verbatim", "summarized", "translated", "normalized"});
-		final BoundComboBox<String> localeCombo = new BoundComboBox<>(TAG_LOCALE, new String[]{
-			StringUtils.EMPTY,
-			"en", "en-US", "en-GB", "it", "fr", "de", "es", "pt", "la", "zh", "ja", "ru"});
+		final BoundFilteredComboBox<String> localeCombo = new BoundFilteredComboBox<>(TAG_LOCALE, LocaleHelper.getAvailableLanguageTags());
 		localeCombo.setEditable(true);
 		final BasicNoteListPanel basicNote = new BasicNoteListPanel(TAG_NOTE, parent, "Notes", TAG_NOTE);
 
@@ -220,8 +220,8 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private static void initExtractComponents(final JDialog dialog, final DocumentPartListPanel documentPartPanel,
-			final BoundTextArea textArea, final BoundComboBox<String> typeCombo, final BoundComboBox<String> localeCombo,
-			final BasicNoteListPanel basicNote){
+			final BoundTextArea textArea, final BoundComboBox<String> typeCombo,
+			final BoundFilteredComboBox<String> localeCombo, final BasicNoteListPanel basicNote){
 		dialog.setLayout(GUIHelper.createLabelFieldLayout(10, "[]10[]"));
 
 		GUIHelper.addComponent(dialog, documentPartPanel);
@@ -236,8 +236,8 @@ public class ExtractListPanel extends AbstractListPanel<FLEFRecord>{
 	}
 
 	private static void loadExtractData(final FLEFRecord record, final DocumentPartListPanel documentPartPanel,
-			final BoundTextArea textArea, final BoundComboBox<String> typeCombo, final BoundComboBox<String> localeCombo,
-			final BasicNoteListPanel basicNote){
+			final BoundTextArea textArea, final BoundComboBox<String> typeCombo,
+			final BoundFilteredComboBox<String> localeCombo, final BasicNoteListPanel basicNote){
 		if(record == null)
 			return;
 

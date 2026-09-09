@@ -179,7 +179,7 @@ public final class FLEFGrammarParser{
 
 
 		final List<Token> result = new ArrayList<>();
-		for(int lineIdx = 0; lineIdx < lines.length; lineIdx ++){
+		for(int lineIdx = 0, linesCount = lines.length; lineIdx < linesCount; lineIdx ++){
 			String line = lines[lineIdx];
 			final int commentIdx = line.indexOf(TAG_COMMENT);
 			if(commentIdx != -1)

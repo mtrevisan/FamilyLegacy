@@ -7,17 +7,8 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.CulturalNormHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventParticipationHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.ParsedGenealogicalDate;
-import io.github.mtrevisan.familylegacy.v2.ui.helpers.UniversalDateConverter;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.StringJoiner;
 import java.util.function.Predicate;
 
@@ -30,7 +21,6 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 
 	private static final String TAG_TITLE = "title";
 	private static final String TAG_RULE_TYPE = "rule_type";
-	private static final String TAG_PLACE = "place";
 	private static final String TAG_DATE = "date";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
@@ -77,17 +67,8 @@ public class CulturalNormSearchStrategy implements SearchStrategy{
 			}
 
 			// Place filter
-			if(StringUtils.isNotEmpty(place)){
-				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(culturalNorm, TAG_PLACE);
-				if(placeCitation != null){
-					final String placeId = placeCitation.getTheOnlyChild().getValue();
-					final FLEFRecord placeRecord = model.getRecordById(placeId);
-					final String place = PlaceHandler.getInstance()
-						.getDisplayText(placeRecord, model);
-					if(!TextSearchHelper.matchesText(place, place, fuzzy, wholeWord, FUZZY_THRESHOLD))
-						return false;
-				}
-			}
+			if(!SearchHelper.matchesPlace(culturalNorm, place, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				return false;
 
 			// Date range
 			if(StringUtils.isNotEmpty(validFrom) || StringUtils.isNotEmpty(validTo)){

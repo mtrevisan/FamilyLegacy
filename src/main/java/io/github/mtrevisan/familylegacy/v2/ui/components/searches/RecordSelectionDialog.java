@@ -70,6 +70,8 @@ public class RecordSelectionDialog extends JDialog{
 	private static final long serialVersionUID = -9150455030962766194L;
 
 
+	private static final String NO_MATCHING_RECORDS = "[No matching records]";
+
 	private static final int DEBOUNCE_TIME = 400;
 
 	public static final String PROPERTY_TYPE_SELECTED = "type-selected";
@@ -98,13 +100,12 @@ public class RecordSelectionDialog extends JDialog{
 
 	private final JPanel filterPanelHolder = new JPanel(new BorderLayout());
 
-	private final DefaultListModel<String> listModel = new DefaultListModel<>();
-	private final JList<String> resultList = GUIHelper.createList(listModel);
+	private final DefaultListModel<DisplayItem> listModel = new DefaultListModel<>();
+	private final JList<DisplayItem> resultList = GUIHelper.createList(listModel);
 	private final JLabel statusLabel = new JLabel(" ");
 	private final JProgressBar progressBar = new JProgressBar(0, 100);
 
 	// Services & Async tasks
-	private List<FLEFRecord> filteredRecords;
 	private final SearchService searchService;
 	private final Debouncer<String> searchDebouncer = new Debouncer<>(key -> performSearch(), DEBOUNCE_TIME);
 	private SwingWorker<List<DisplayItem>, Integer> currentWorker;
@@ -194,7 +195,7 @@ public class RecordSelectionDialog extends JDialog{
 
 	private JComboBox<RecordTypeHandler<?>> createTypeCombo(final Class<? extends RecordTypeHandler<?>>[] handlerTypes){
 		final RecordTypeHandler<?>[] handlers = new RecordTypeHandler[handlerTypes.length];
-		for(int i = 0; i < handlerTypes.length; i ++)
+		for(int i = 0, length = handlerTypes.length; i < length; i ++)
 			handlers[i] = HandlerRegistry.getHandler(handlerTypes[i]);
 
 		final JComboBox<RecordTypeHandler<?>> combo = new JComboBox<>(handlers);
@@ -253,6 +254,20 @@ public class RecordSelectionDialog extends JDialog{
 
 		// Results Panel
 		resultList.setFixedCellHeight(22);
+		resultList.setCellRenderer(new DefaultListCellRenderer(){
+			@Serial
+			private static final long serialVersionUID = 695210076800270818L;
+
+			@Override
+			public Component getListCellRendererComponent(final JList<?> list, final Object value, final int index,
+					final boolean isSelected, final boolean cellHasFocus){
+				super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+				if(value instanceof DisplayItem item)
+					setText(item.displayText());
+				return this;
+			}
+		});
 		final JScrollPane scrollPane = GUIHelper.createScrollPane(resultList);
 		scrollPane.setBorder(BorderFactory.createTitledBorder("Results"));
 		scrollPane.setPreferredSize(SCROLL_PANE_PREFERRED_SIZE);
@@ -388,7 +403,8 @@ public class RecordSelectionDialog extends JDialog{
 		if(currentWorker != null && !currentWorker.isDone())
 			currentWorker.cancel(true);
 
-		criteria = new SearchCriteria(handler, searchField.getText().trim(),
+		criteria = new SearchCriteria(handler, searchField.getText()
+			.trim(),
 			fuzzyCheckBox.isSelected(), wholeWordCheckBox.isSelected());
 
 		initialFilters.forEach(criteria::withFilter);
@@ -451,7 +467,6 @@ public class RecordSelectionDialog extends JDialog{
 					statusLabel.setText("Error during search");
 					LOGGER.error("Error during search", e);
 
-					filteredRecords = null;
 					listModel.clear();
 					resultList.setEnabled(false);
 				}
@@ -467,18 +482,12 @@ public class RecordSelectionDialog extends JDialog{
 		listModel.clear();
 
 		if(items.isEmpty()){
-			filteredRecords = null;
-
-			listModel.addElement("[No matching records]");
+			listModel.addElement(new DisplayItem(null, NO_MATCHING_RECORDS));
 
 			resultList.setEnabled(false);
 		}
 		else{
-			filteredRecords = new ArrayList<>(items.size());
-			for(final DisplayItem item : items){
-				filteredRecords.add(item.record());
-				listModel.addElement(item.displayText());
-			}
+			listModel.addAll(items);
 
 			resultList.setEnabled(true);
 		}
@@ -514,11 +523,11 @@ public class RecordSelectionDialog extends JDialog{
 	}
 
 	private void selectResult(){
-		final int idx = resultList.getSelectedIndex();
-		if(idx >= 0 && filteredRecords != null && idx < filteredRecords.size()){
+		final DisplayItem selectedItem = resultList.getSelectedValue();
+		if(selectedItem != null && selectedItem.record() != null){
 			final RecordTypeHandler<?> handler = getSelectedHandler();
 			if(handler != null){
-				selectedRecord = filteredRecords.get(idx);
+				selectedRecord = selectedItem.record();
 				selectedType = handler.getType();
 				confirmed = true;
 
@@ -575,9 +584,14 @@ public class RecordSelectionDialog extends JDialog{
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.DocumentHandler.class);
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler.class);
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.GroupHandler.class);
-				io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler.class);
 //				io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler.class);
-//				io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.IdentityHypothesisHandler.class);
+				io.github.mtrevisan.familylegacy.v2.ui.handlers.IndividualHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.RepositoryHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchActivityHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.ResearchQuestionHandler.class);
+//				io.github.mtrevisan.familylegacy.v2.ui.handlers.SourceHandler.class);
 			dialog.setVisible(true);
 		});
 	}

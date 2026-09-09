@@ -157,11 +157,11 @@ public final class DiffUtils{
 				merged.add(new DiffEntry(Operation.MODIFIED, deletes.get(k).leftLine(), inserts.get(k).rightLine()));
 
 			// Any leftover deletes (more deletes than inserts) stay as DELETE
-			for(int k = pairedCount; k < deletes.size(); k ++)
+			for(int k = pairedCount, deletesSize = deletes.size(); k < deletesSize; k ++)
 				merged.add(deletes.get(k));
 
 			// Any leftover inserts (more inserts than deletes) stay as INSERT
-			for(int k = pairedCount; k < inserts.size(); k ++)
+			for(int k = pairedCount, insertsSize = inserts.size(); k < insertsSize; k ++)
 				merged.add(inserts.get(k));
 
 			index = hunkEnd;

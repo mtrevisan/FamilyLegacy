@@ -21,9 +21,9 @@ import java.util.function.Consumer;
  */
 public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 
-	public static final String FILTER_KEY_DESCRIPTION = "description";
-	public static final String FILTER_KEY_MAPPING = "mapping";
-	public static final String FILTER_KEY_URI = "uri";
+	static final String FILTER_KEY_DESCRIPTION = "description";
+	static final String FILTER_KEY_MAPPING = "mapping";
+	static final String FILTER_KEY_URI = "uri";
 
 
 	private final JTextField descriptionField = new JTextField(20);
@@ -82,8 +82,10 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		descriptionField.getDocument().addDocumentListener(docListener);
-		uriField.getDocument().addDocumentListener(docListener);
+		descriptionField.getDocument()
+			.addDocumentListener(docListener);
+		uriField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
@@ -101,7 +103,8 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	public String getDescription(){
-		return descriptionField.getText().trim();
+		return descriptionField.getText()
+			.trim();
 	}
 
 	public String getMapping(){
@@ -109,7 +112,8 @@ public class DocumentFilterPanel extends JPanel implements RecordFilterPanel{
 	}
 
 	public String getUri(){
-		return uriField.getText().trim();
+		return uriField.getText()
+			.trim();
 	}
 
 }

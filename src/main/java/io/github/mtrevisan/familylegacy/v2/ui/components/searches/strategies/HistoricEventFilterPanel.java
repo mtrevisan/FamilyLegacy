@@ -99,9 +99,12 @@ public class HistoricEventFilterPanel extends JPanel implements RecordFilterPane
 			}
 		};
 
-		titleField.getDocument().addDocumentListener(docListener);
-		dateField.getDocument().addDocumentListener(docListener);
-		locationField.getDocument().addDocumentListener(docListener);
+		titleField.getDocument()
+			.addDocumentListener(docListener);
+		dateField.getDocument()
+			.addDocumentListener(docListener);
+		locationField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){

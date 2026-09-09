@@ -44,10 +44,6 @@ public final class AtLeastOneConstraint extends Constraint{
 	}
 
 
-	public List<String> getFields(){
-		return fields;
-	}
-
 	@Override
 	public void validate(final String contextPath, final FLEFRecord record, final FLEFModel model,
 			final List<String> errors){

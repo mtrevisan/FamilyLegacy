@@ -125,7 +125,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	}
 
 	public static GroupAttributeRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, GroupAttributeRecordDialog::new);
 	}
 
@@ -274,8 +274,8 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	private void refreshLayout(){
 		if(isShowing()){
-			propertiesPanel.revalidate();
-			propertiesPanel.repaint();
+			revalidate();
+			repaint();
 
 			pack();
 		}
@@ -286,8 +286,10 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 	protected void loadData(){
 		// load parent group reference
 		final String groupId = FLEFRecordHelper.getChildValue(record, TAG_GROUP);
-		final FLEFRecord temporary = FLEFRecord.createMainRecord(groupId, GroupHandler.TYPE);
-		withParentEntity(temporary);
+		if(StringUtils.isNotEmpty(groupId)){
+			final FLEFRecord temporary = FLEFRecord.createMainRecord(groupId, GroupHandler.TYPE);
+			withParentEntity(temporary);
+		}
 
 
 		validFromField.load(record);
@@ -313,7 +315,7 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 		if(!typeCombo.isValued()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Type cannot be empty.",
+				"Type is required.",
 				tabbedPane, propertiesPanel, typeCombo);
 
 			return false;
@@ -324,6 +326,8 @@ public class GroupAttributeRecordDialog extends BaseRecordDialog{
 
 	@Override
 	protected void saveData(){
+		record.getChildren()
+			.removeIf(child -> TAG_GROUP.equalsIgnoreCase(child.getTag()));
 		record.addChild(FLEFRecord.createChildWithTagAndValue(parentEntity.getPath(), parentEntity.getText()));
 
 

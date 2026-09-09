@@ -24,7 +24,8 @@ public final class IDGenerator{
 		String clean = id.replace("@", StringUtils.EMPTY);
 		// Extract prefix (one or more letters) and trailing digits
 		int i = 0;
-		while(i < clean.length() && Character.isLetter(clean.charAt(i))) i++;
+		while(i < clean.length() && Character.isLetter(clean.charAt(i)))
+			i ++;
 		if(i == 0 || i == clean.length()) return; // must have both letters and digits
 		String prefix = clean.substring(0, i);
 		String numStr = clean.substring(i);

@@ -60,7 +60,10 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 	private static final String PROPERTY_DEBOUNCER = "search";
 
 
-	private final List<E> originalItems = new ArrayList<>();
+	private record FilterItem<E>(E item, String displayLower){}
+
+
+	private final List<FilterItem<E>> filterCache = new ArrayList<>();
 	private final DefaultComboBoxModel<E> model;
 	private JTextComponent editorComponent;
 	private boolean isFiltering;
@@ -83,15 +86,6 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 
 		if(items != null)
 			setItems(items);
-
-
-		// Find the element with the longest string and use it as a prototype
-		if(!originalItems.isEmpty()){
-			final E longest = originalItems.stream()
-				.max(Comparator.comparingInt(e -> e.toString().length()))
-				.orElse(null);
-			setPrototypeDisplayValue(longest);
-		}
 	}
 
 
@@ -101,9 +95,20 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 	 * @param items	The new list of items.
 	 */
 	public void setItems(final List<E> items){
-		this.originalItems.clear();
+		this.filterCache.clear();
 		if(items != null)
-			this.originalItems.addAll(items);
+			for(final E item : items){
+				final String display = (item != null? item.toString(): StringUtils.EMPTY);
+				this.filterCache.add(new FilterItem<>(item, display.toLowerCase()));
+			}
+
+		if(!filterCache.isEmpty()){
+			final FilterItem<E> longest = filterCache.stream()
+				.max(Comparator.comparingInt(e -> e.displayLower().length()))
+				.orElse(null);
+			if(longest != null)
+				setPrototypeDisplayValue(longest.item());
+		}
 
 		refilter(getText());
 	}
@@ -143,10 +148,7 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		if(isFiltering)
 			return;
 
-		SwingUtilities.invokeLater(() -> {
-			final String currentText = getText();
-			refilter(currentText);
-		});
+		SwingUtilities.invokeLater(() -> refilter(getText()));
 	}
 
 	private synchronized void refilter(final String textToMatch){
@@ -158,29 +160,25 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		final int caretPosition = editorComponent.getCaretPosition();
 		final String searchText = (textToMatch == null? StringUtils.EMPTY: textToMatch.trim().toLowerCase());
 
-		model.removeAllElements();
-
+		final List<E> matches = new ArrayList<>();
 		if(searchText.isEmpty()){
-			// Restore all items if text is empty
-			for(final E item : originalItems)
-				model.addElement(item);
-
-			hidePopup();
+			for(final FilterItem<E> wrapper : filterCache)
+				matches.add(wrapper.item());
 		}
 		else{
-			// Filter items based on containment (case-insensitive)
-			int matchCount = 0;
-			for(final E item : originalItems)
-				if(item != null && item.toString().toLowerCase().contains(searchText)){
-					model.addElement(item);
-					matchCount ++;
-				}
-
-			if(matchCount <= 0)
-				hidePopup();
-			else if(!isPopupVisible())
-				showPopup();
+			for(final FilterItem<E> wrapper : filterCache)
+				if(wrapper.displayLower().contains(searchText))
+					matches.add(wrapper.item());
 		}
+
+		model.removeAllElements();
+		if(!matches.isEmpty())
+			model.addAll(matches);
+
+		if(matches.isEmpty() || searchText.isEmpty())
+			hidePopup();
+		else if(!isPopupVisible())
+			showPopup();
 
 		// Restore editor text and cursor position without resetting user input
 		editorComponent.setText(textToMatch);
@@ -204,8 +202,8 @@ public class FilteredComboBox<E> extends JComboBox<E>{
 		final TreeSet<String> languageCodes = new TreeSet<>(Comparator.naturalOrder());
 		for(final Locale locale : Locale.getAvailableLocales()){
 			final String tag = locale.toLanguageTag();
-			final String displayName = locale.getDisplayName(Locale.ENGLISH);
 			if(!tag.equals("und") && !tag.isBlank()){
+				final String displayName = locale.getDisplayName(Locale.ENGLISH);
 				if(!displayName.isBlank())
 					languageCodes.add(tag + " - " + displayName);
 				else

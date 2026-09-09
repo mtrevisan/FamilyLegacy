@@ -7,7 +7,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.EventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -25,7 +24,6 @@ public class EventSearchStrategy implements SearchStrategy{
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_DESCRIPTION = "description";
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
 	private static final String TAG_AGENCY = "agency";
 	private static final String TAG_CAUSE = "cause";
 	private static final String TAG_REASON = "reason";
@@ -76,27 +74,12 @@ public class EventSearchStrategy implements SearchStrategy{
 			}
 
 			// Date filter
-			if(StringUtils.isNotEmpty(date)){
-				final FLEFRecord dateRecord = FLEFRecordHelper.findChild(event, TAG_DATE);
-				final Integer year = (StringUtils.isNotEmpty(date)
-					? SearchHelper.extractYear(date, calendar)
-					: null);
-				if(!SearchHelper.isDateInRange(dateRecord, null, null, year, year))
-					return false;
-			}
+			if(!SearchHelper.matchesDate(event, date, calendar))
+				return false;
 
 			// Location filter
-			if(StringUtils.isNotEmpty(location)){
-				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(event, TAG_PLACE);
-				if(placeCitation != null){
-					final String placeId = placeCitation.getTheOnlyChild().getValue();
-					final FLEFRecord placeRecord = model.getRecordById(placeId);
-					final String place = PlaceHandler.getInstance()
-						.getDisplayText(placeRecord, model);
-					if(!TextSearchHelper.matchesText(place, place, fuzzy, wholeWord, FUZZY_THRESHOLD))
-						return false;
-				}
-			}
+			if(!SearchHelper.matchesPlace(event, location, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				return false;
 
 			// Agency filter
 			if(StringUtils.isNotEmpty(agency)){

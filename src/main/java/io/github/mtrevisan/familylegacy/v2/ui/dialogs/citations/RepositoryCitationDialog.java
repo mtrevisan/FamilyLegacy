@@ -138,12 +138,10 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	}
 
 	private void refreshLayout(){
-		if(isShowing()){
-			propertiesPanel.revalidate();
-			propertiesPanel.repaint();
+		propertiesPanel.revalidate();
+		propertiesPanel.repaint();
 
-			pack();
-		}
+		pack();
 	}
 
 
@@ -156,7 +154,7 @@ public class RepositoryCitationDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(repositoryField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Repository cannot be empty.",
+				"Repository is required.",
 				tabbedPane, propertiesPanel, repositoryField);
 
 			return false;

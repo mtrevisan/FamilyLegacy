@@ -81,11 +81,9 @@ public class BoundFilteredComboBox<E> extends FilteredComboBox<E> implements Pat
 			return;
 		}
 
-		for(int i = 0; i < getItemCount(); i ++){
+		for(int i = 0, count = getItemCount(); i < count; i ++){
 			final E item = getItemAt(i);
-
-			final String display = (item != null? item.toString(): StringUtils.EMPTY);
-			if(display.equals(value)){
+			if(item != null && value.equals(item.toString())){
 				setSelectedIndex(i);
 
 				return;

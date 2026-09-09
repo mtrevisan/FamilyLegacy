@@ -368,7 +368,7 @@ public final class IndividualData{
 		return FLEFRecordHelper.getChildValue(fullDate, TAG_CALENDAR);
 	}
 
-	private String extractPlace(final FLEFRecord event, final FLEFModel model){
+	public static String extractPlace(final FLEFRecord event, final FLEFModel model){
 		final String placeId = FLEFRecordHelper.getChildValue(event, TAG_PLACE_PLACE);
 		if(placeId == null)
 			return null;
@@ -398,14 +398,15 @@ public final class IndividualData{
 // TODO to be removed
 if(preferredImageUri != null)
 	preferredImageUri = "C:\\mauro\\heritage\\My Genealogy Projects\\Trevisan (Dorato)-Gallinaro-Masutti (Manfrin)-Zaros (Basso)" + preferredImageUri;
-		final FLEFRecord preferredImageCrop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
 		preferredImageCropRect = null;
 		try{
-			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImageCrop, TAG_X));
-			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImageCrop, TAG_Y));
-			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImageCrop, TAG_WIDTH));
-			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(preferredImageCrop, TAG_HEIGHT));
-			preferredImageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
+			final FLEFRecord crop = FLEFRecordHelper.findChild(record, TAG_PREFERRED_IMAGE_CROP);
+			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
+			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
+			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
+			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
+			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
+				preferredImageCropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}
 		catch(final Exception ignored){}
 

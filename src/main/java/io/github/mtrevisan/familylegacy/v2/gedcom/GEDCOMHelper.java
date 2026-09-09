@@ -213,10 +213,17 @@ public class GEDCOMHelper{
 	}
 
 	public static String cleanId(String id){
-		if(id != null && id.startsWith("@") && id.endsWith("@")){
+		if(id != null && id.startsWith("@") && id.endsWith("@"))
 			return IDNormalizer.clean(id);
-		}
-		return null;
+		return (isUppercaseLettersThenNumbers(id)? id: null);
+	}
+
+	/**
+	 * Returns true if the string starts with one or more uppercase letters
+	 * followed by one or more digits, and contains nothing else.
+	 */
+	public static boolean isUppercaseLettersThenNumbers(String value){
+		return value != null && value.matches("^[A-Z]+\\d+$");
 	}
 
 	/**
@@ -238,9 +245,8 @@ public class GEDCOMHelper{
 	}
 
 	public static List<GEDCOMNode> findChildren(GEDCOMNode node, String tag){
-		if(node == null){
+		if(node == null)
 			return Collections.emptyList();
-		}
 		return node.getChildren().stream()
 			.filter(c -> c.getTag().equals(tag))
 			.toList();
@@ -301,7 +307,7 @@ public class GEDCOMHelper{
 
 			return true;
 		}
-		catch(Exception e){
+		catch(final Exception e){
 			return false;
 		}
 	}
@@ -349,7 +355,7 @@ public class GEDCOMHelper{
 	 * (GIVN, SURN, NPFX, NSFX, SPFX, NICK), inline sources, and notes with CONC/CONT.
 	 */
 	public static void attachPersonalNameStructure(FLEFRecord parent,
-			GEDCOMNode nameNode, FLEFModel model, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap){
+			GEDCOMNode nameNode, FLEFModel model, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap){
 		if(nameNode == null){
 			return;
 		}
@@ -417,7 +423,7 @@ public class GEDCOMHelper{
 
 		for (GEDCOMNode sourNode : findChildren(nameNode, "SOUR")) {
 			attachSource(parent, model,
-				sourNode, noteRawMap, sourRawMap, objeRawMap);
+				sourNode, noteRawMap, objeRawMap);
 		}
 
 		for (GEDCOMNode noteNode : findChildren(nameNode, "NOTE")) {
@@ -481,7 +487,7 @@ public class GEDCOMHelper{
 	]
 	 */
 	public static void attachSource(FLEFRecord parent, FLEFModel model,
-			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap){
+			GEDCOMNode node, Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap){
 		if(node == null)
 			return;
 
@@ -589,7 +595,7 @@ public class GEDCOMHelper{
 	}
 
 	public static FLEFRecord createNoteStruct(String text, GEDCOMNode sourNode){
-		if(StringUtils.isBlank(text)){
+		if(StringUtils.isEmpty(text)){
 			return null;
 		}
 		FLEFRecord note = FLEFRecord.createChildWithTag("note")
@@ -774,7 +780,7 @@ public class GEDCOMHelper{
 			event.addChild(FLEFRecord.createChildWithTagAndValue("description", eventValue));
 		}
 
-		attachEventOrFactDetail(parent, event, model, node, noteRawMap, sourRawMap, objeRawMap, roots);
+		attachEventOrFactDetail(parent, event, model, node, noteRawMap, objeRawMap, roots);
 	}
 
 
@@ -802,11 +808,11 @@ public class GEDCOMHelper{
 		attachDate(individualAttribute, "valid_from", getDateTime(dateNode));
 		attachDate(individualAttribute, "valid_to", getDateTime(dateNode));
 
-		attachEventOrFactDetail(parent, individualAttribute, model, node, noteRawMap, sourRawMap, objeRawMap, roots);
+		attachEventOrFactDetail(parent, individualAttribute, model, node, noteRawMap, objeRawMap, roots);
 	}
 
 	private static void attachEventOrFactDetail(FLEFRecord parent, FLEFRecord record, FLEFModel model, GEDCOMNode node,
-			Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> sourRawMap, Map<String, GEDCOMNode> objeRawMap, List<GEDCOMNode> roots){
+			Map<String, GEDCOMNode> noteRawMap, Map<String, GEDCOMNode> objeRawMap, List<GEDCOMNode> roots){
 		// Place
 		GEDCOMNode placNode = findFirstChild(node, "PLAC");
 		GEDCOMNode addrNode = findFirstChild(node, "ADDR");
@@ -828,7 +834,7 @@ public class GEDCOMHelper{
 		// ---- Sources (SOUR) ----
 		for (GEDCOMNode sourNode : findChildren(node, "SOUR")) {
 			attachSource(record, model,
-				sourNode, noteRawMap, sourRawMap, objeRawMap);
+				sourNode, noteRawMap, objeRawMap);
 		}
 
 		// ---- Notes (GEDCOM NOTE) – inline structs ----
@@ -1023,7 +1029,7 @@ public class GEDCOMHelper{
 		attachDate(groupAttribute, "valid_from", getDateTime(dateNode));
 		attachDate(groupAttribute, "valid_to", getDateTime(dateNode));
 
-		attachEventOrFactDetail(parent, groupAttribute, model, node, noteRawMap, sourRawMap, objeRawMap, roots);
+		attachEventOrFactDetail(parent, groupAttribute, model, node, noteRawMap, objeRawMap, roots);
 
 		// Link participants
 		if(husbandId != null){
@@ -1180,7 +1186,7 @@ public class GEDCOMHelper{
 	 */
 	private static FLEFRecord buildQualifiedDate(String isoDate){
 		// Ensure we have a non‑empty date string; fallback to a default if missing
-		if(StringUtils.isBlank(isoDate)){
+		if(StringUtils.isEmpty(isoDate)){
 			isoDate = "1900-01-01";
 		}
 		FLEFRecord fullDate = FLEFRecord.createChildWithTag("full_date");
@@ -1194,9 +1200,8 @@ public class GEDCOMHelper{
 	 * If the year is before 1582, returns "julian", otherwise "gregorian".
 	 */
 	private static String getCalendarForDate(String isoDate){
-		if(isoDate == null){
+		if(isoDate == null)
 			return "gregorian";
-		}
 		int year;
 		try{
 			if(isoDate.contains("-")){
@@ -1224,7 +1229,7 @@ public class GEDCOMHelper{
 		}
 
 		String placeName = placNode.getValue();
-		if(StringUtils.isBlank(placeName)){
+		if(StringUtils.isEmpty(placeName)){
 			return;
 		}
 
@@ -1416,14 +1421,11 @@ public class GEDCOMHelper{
 	 */
 	public static String createAndAddEventRecord(
 		GEDCOMNode eventNode,
-		List<GEDCOMNode> roots, // O List<FLEFRecord> roots a seconda della firma utilizzata
 		Map<String, GEDCOMNode> noteRawMap,
-		Map<String, GEDCOMNode> sourRawMap,
 		Map<String, GEDCOMNode> objeRawMap, FLEFModel model) {
 
-		if (eventNode == null) {
+		if (eventNode == null)
 			return null;
-		}
 
 		String eventFlefId = IDGenerator.nextId(EventHandler.ID_PREFIX);
 		FLEFRecord eventRecord = FLEFRecord.createMainRecord(eventFlefId, EventHandler.TYPE);
@@ -1454,7 +1456,7 @@ public class GEDCOMHelper{
 
 		// Inline Sources
 		for (GEDCOMNode sourNode : findChildren(eventNode, "SOUR")) {
-			attachSource(eventRecord, model, sourNode, noteRawMap, sourRawMap, objeRawMap);
+			attachSource(eventRecord, model, sourNode, noteRawMap, objeRawMap);
 		}
 
 		// Se roots gestisce gli FLEFRecord principali
@@ -1471,7 +1473,6 @@ public class GEDCOMHelper{
 	 * Attaches an EventParticipationRecord linking an individual or group to an EventRecord.
 	 */
 	public static void attachEventParticipation(
-		List<GEDCOMNode> roots,
 		String eventId,
 		String entityType,
 		String entityId,

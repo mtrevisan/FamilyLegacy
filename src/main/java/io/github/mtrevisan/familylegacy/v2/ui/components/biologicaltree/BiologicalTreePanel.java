@@ -69,10 +69,9 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_TARGET = "target";
 	private static final String TAG_SUBJECT = "subject";
-	private static final String TAG_SEX = "sex";
 
 	private static final String ENUM_TYPE_ENDS_WITH_CHILD = "child";
-	private static final String ENUM_SEX_FEMALE = "female";
+
 
 	private TreeLayout treeLayout;
 	private boolean showPartner;
@@ -161,14 +160,18 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 		buildLayout();
 
-		// Force Swing repaint and recalculate layout
+		// Force Swing recalculate layout and repaint (including parent context if available)
 		revalidate();
 		repaint();
+		if(getParent() != null){
+			getParent().revalidate();
+			getParent().repaint();
+		}
 	}
 
 	/**
 	 * Builds the dynamic layout using cell placement.
-	 * Each node represents a couple (individual + partner).
+	 * Each node represents a couple (individual and partner).
 	 */
 	private void buildLayout(){
 		final TreeLayoutBuilder.LayoutResult result = TreeLayoutBuilder.buildLayout(this, rootNode,
@@ -438,10 +441,12 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 		switch(ctx.type){
 			case CHILD:
 				treeMutator.addChildToParents(fatherId, motherId, individual);
+
 				break;
 
 			case PARENT:
 				treeMutator.addParentToChild(ctx.childId, individual);
+
 				break;
 
 			case PARTNER:
@@ -540,10 +545,7 @@ public class BiologicalTreePanel extends JPanel implements BiologicalTreeChangeL
 
 		SwingUtilities.invokeLater(() -> {
 			final BiologicalTreePanel panel = new BiologicalTreePanel(TreeLayout.VERTICAL, model)
-				//TODO con la riga commentata, se si naviga l'albero, non è possibile tornare indietro per la mancanza dei figli
-				//	come risolve gramps?
-				.withShowPartner()
-				;
+				.withShowPartner();
 			panel.loadTree(rootIndividualId, maxGenerations);
 
 			final JFrame frame = new JFrame();

@@ -15,14 +15,19 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 
-/* TODO */
 /**
- * Filter panel for Repository records: location and contact details.
+ * Filter panel for Repository records: repository name, custodian reference, and location.
  */
 public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 
+	static final String FILTER_KEY_NAME = "name";
+	static final String FILTER_KEY_CUSTODIAN = "custodian";
+	static final String FILTER_KEY_LOCATION = "location";
+
+
+	private final JTextField nameField = new JTextField(20);
+	private final JTextField custodianField = new JTextField(20);
 	private final JTextField locationField = new JTextField(20);
-	private final JTextField emailField = new JTextField(20);
 
 	private final Consumer<SearchCriteria> onChanged;
 
@@ -40,10 +45,12 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 		setLayout(new MigLayout("wrap 2,gap 5", "[][grow,fill]", "[]"));
 		setBorder(BorderFactory.createTitledBorder("Repository Filters"));
 
+		add(new JLabel("Name:"));
+		add(nameField, "growx");
+		add(new JLabel("Custodian:"));
+		add(custodianField, "growx");
 		add(new JLabel("Location:"));
 		add(locationField, "growx");
-		add(new JLabel("Email:"));
-		add(emailField, "growx");
 	}
 
 	private void setupListeners(){
@@ -64,31 +71,41 @@ public class RepositoryFilterPanel extends JPanel implements RecordFilterPanel{
 			}
 		};
 
-		locationField.getDocument().addDocumentListener(docListener);
-		emailField.getDocument().addDocumentListener(docListener);
+		nameField.getDocument()
+			.addDocumentListener(docListener);
+		custodianField.getDocument()
+			.addDocumentListener(docListener);
+		locationField.getDocument()
+			.addDocumentListener(docListener);
 	}
 
 	private void fireChanged(){
-		if(onChanged != null){
+		if(onChanged != null)
 			onChanged.accept(null);
-		}
 	}
 
 	@Override
 	public Map<String, String> getFilters(){
 		final Map<String, String> filters = new HashMap<>();
-//		filters.put("documentType", getDocumentType());
-//		filters.put("repositoryContains", getRepositoryContains());
-//		filters.put("referenceNumberContains", getReferenceNumberContains());
+		filters.put(FILTER_KEY_NAME, getRepositoryName());
+		filters.put(FILTER_KEY_CUSTODIAN, getCustodian());
+		filters.put(FILTER_KEY_LOCATION, getRepositoryLocation());
 		return filters;
 	}
 
-	public String getLocationContains(){
-		return locationField.getText().trim();
+	public String getRepositoryName(){
+		return nameField.getText()
+			.trim();
 	}
 
-	public String getEmailContains(){
-		return emailField.getText().trim();
+	public String getCustodian(){
+		return custodianField.getText()
+			.trim();
+	}
+
+	public String getRepositoryLocation(){
+		return locationField.getText()
+			.trim();
 	}
 
 }

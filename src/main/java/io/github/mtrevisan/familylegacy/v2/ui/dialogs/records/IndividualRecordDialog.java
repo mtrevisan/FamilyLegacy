@@ -156,7 +156,7 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	}
 
 	public static IndividualRecordDialog createEdit(final Dialog parent, final FLEFModel model,
-		final FLEFRecord record){
+			final FLEFRecord record){
 		return createEdit(parent, model, record, IndividualRecordDialog::new);
 	}
 
@@ -172,8 +172,8 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 
 		components = new RecordDialogBuilder(this, model, record)
 			.withComponent(PanelKey.INDIVIDUAL_ATTRIBUTE, TAG_INDIVIDUAL_ATTRIBUTE, "Individual Attributes")
-			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Relationships")
-			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Members")
+			.withComponent(PanelKey.RELATIONSHIP_ON_SUBJECT, TAG_RELATIONSHIP, "Relationships / Group Memberships")
+			.withComponent(PanelKey.RELATIONSHIP_ON_TARGET, TAG_RELATIONSHIP, "Inverse Relationships")
 			.withComponent(PanelKey.EVENT_PARTICIPATION_ON_PARTICIPANT, TAG_EVENT_PARTICIPATION, "Participations")
 			.withComponent(PanelKey.CONTEXT_IMPACT_ON_TARGET, TAG_CONTEXT_IMPACT, "Context Impacts")
 			.withComponent(PanelKey.CONCLUSION_ON_RESOLVES, TAG_CONCLUSION, "Conclusions")
@@ -227,11 +227,13 @@ public class IndividualRecordDialog extends BaseRecordDialog{
 	protected JPanel createRelationshipsPanel(){
 		final JPanel panel = GUIHelper.createLabelFieldPanel(10, "[]15[]");
 
+		// Relationships in which this individual is the subject (Parents, Guardians, Groups)
 		final JPanel relationshipAsSubjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_SUBJECT);
 		GUIHelper.addComponent(panel, relationshipAsSubjectPanel);
 
-		final JPanel relationshipAsObjectPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
-		GUIHelper.addComponent(panel, relationshipAsObjectPanel);
+		// Relationships in which this individual is the target (biological/adopted children, dependents)
+		final JPanel relationshipAsTargetPanel = components.getPanel(PanelKey.RELATIONSHIP_ON_TARGET);
+		GUIHelper.addComponent(panel, relationshipAsTargetPanel);
 
 		return panel;
 	}

@@ -209,7 +209,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 	protected boolean validData(){
 		if(contextField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Context cannot be empty.",
+				"Context is required.",
 				tabbedPane, propertiesPanel, contextField);
 
 			return false;
@@ -217,7 +217,7 @@ public class ContextImpactRecordDialog extends BaseRecordDialog{
 
 		if(targetField.isEmpty()){
 			GUIHelper.showValidationErrorAndFocus(this,
-				"Target cannot be empty.",
+				"Target is required.",
 				tabbedPane, propertiesPanel, targetField);
 
 			return false;

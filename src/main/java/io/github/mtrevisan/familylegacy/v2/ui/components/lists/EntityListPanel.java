@@ -41,6 +41,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Strings;
 
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
 import java.awt.Dialog;
 import java.io.Serial;
 import java.util.ArrayList;
@@ -73,6 +75,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 	@Serial
 	private static final long serialVersionUID = 8040533307824167492L;
+
 
 	private static final String TAG_RESOLVES = "RESOLVES";
 
@@ -176,6 +179,19 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		this.handlerTypes = List.of(handlerTypes);
 
 		initComponents();
+
+		return this;
+	}
+
+	/**
+	 * Sets a custom cell renderer for the underlying list component.
+	 *
+	 * @param renderer the cell renderer to use
+	 * @return this panel (for chaining)
+	 */
+	public JPanel withCellRenderer(final ListCellRenderer<? super FLEFRecord> renderer){
+		if(renderer != null)
+			list.setCellRenderer(renderer);
 
 		return this;
 	}
@@ -446,7 +462,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 			}
 
 			// Check if the record is still in the list; if not, it was removed.
-			if(!items.contains(record))
+			if(!listModel.contains(record))
 				return null;
 		}
 
@@ -462,7 +478,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		if(index < 0)
 			return;
 
-		final FLEFRecord citation = items.get(index);
+		final FLEFRecord citation = listModel.get(index);
 		final RecordTypeHandler<?> citationHandler = findHandler(citation);
 		final String targetId = FLEFRecordHelper.getChildValue(citation, citationHandler.getCitedType());
 		if(targetId == null){
@@ -587,7 +603,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 							continue;
 
 						for(final FLEFRecord actor : actors){
-							final String tag = actor.getTag();
+//							final String tag = actor.getTag();
 							final String id = actor.getId();
 							if(/*Strings.CI.equals(parentEntityTag, tag) &&*/ recordId.equals(id))
 								return true;
@@ -726,13 +742,13 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 
 		if(type == ListType.ENTITY_REFERENCE){
 			// Simple: add each item's ID as a child with the given path
-			for(final FLEFRecord item : items)
+			for(final FLEFRecord item : getItems())
 				FLEFRecordHelper.addChildValue(record, path, item.getFormattedId());
 		}
 		else if(type == ListType.ONEOF_REFERENCE){
 			// One‑of: add a node with a child that has tag and value
 			if(hasData())
-				for(final FLEFRecord item : items)
+				for(final FLEFRecord item : getItems())
 					record.addChild(FLEFRecord.createChildWithTag(path)
 						.addChild(FLEFRecord.createChildWithTagAndValue(item.getTag(), item.getFormattedId()))
 					);
@@ -829,7 +845,7 @@ public class EntityListPanel extends AbstractListPanel<FLEFRecord>{
 		return "EntityListPanel{"
 			+ "path = '" + path + '\''
 			+ ", type = " + type
-			+ ", items = " + items.size()
+			+ ", items = " + listModel.size()
 			+ '}';
 	}
 

@@ -75,20 +75,22 @@ public class IdentityHypothesisHandler extends AbstractRecordTypeHandler<Identit
 		if(record == null)
 			return "--";
 
-		String identity1Id = null;
-		String identity2Id = null;
+		String identity1Text = null;
+		String identity2Text = null;
 
 		final List<FLEFRecord> identities = FLEFRecordHelper.extractRecordsFromOneOfReference(record, TAG_IDENTITY, model);
 		final FLEFRecord identity1 = identities.get(0);
 		if(identity1 != null)
-			identity1Id = identity1.getId();
+			identity1Text = HandlerRegistry.getHandler(identity1.getTag())
+				.getDisplayText(identity1, model);
 
 		final FLEFRecord identity2 = identities.get(1);
 		if(identity2 != null)
-			identity2Id = identity2.getId();
+			identity2Text = HandlerRegistry.getHandler(identity2.getTag())
+				.getDisplayText(identity2, model);
 
-		if(identity1Id != null && identity2Id != null)
-			return identity1Id + " ↔ " + identity2Id;
+		if(identity1Text != null && identity2Text != null)
+			return identity1Text + " ↔ " + identity2Text;
 		return (record.getId() != null? record.getId(): "(unnamed)");
 	}
 

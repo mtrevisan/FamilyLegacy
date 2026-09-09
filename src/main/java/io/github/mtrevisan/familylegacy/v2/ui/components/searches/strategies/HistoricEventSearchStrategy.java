@@ -7,7 +7,6 @@ import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchCriteria
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.SearchStrategy;
 import io.github.mtrevisan.familylegacy.v2.ui.components.searches.TextSearchHelper;
 import io.github.mtrevisan.familylegacy.v2.ui.handlers.HistoricEventHandler;
-import io.github.mtrevisan.familylegacy.v2.ui.handlers.PlaceHandler;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.StringJoiner;
@@ -23,7 +22,6 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 	private static final String TAG_TYPE = "type";
 	private static final String TAG_TITLE = "title";
 	private static final String TAG_DATE = "date";
-	private static final String TAG_PLACE = "place";
 
 	private static final double FUZZY_THRESHOLD = 0.05;
 
@@ -65,27 +63,12 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 			}
 
 			// Date filter
-			if(StringUtils.isNotEmpty(date)){
-				final FLEFRecord dateRecord = FLEFRecordHelper.findChild(historicEvent, TAG_DATE);
-				final Integer year = (StringUtils.isNotEmpty(date)
-					? SearchHelper.extractYear(date, calendar)
-					: null);
-				if(!SearchHelper.isDateInRange(dateRecord, null, null, year, year))
-					return false;
-			}
+			if(!SearchHelper.matchesDate(historicEvent, date, calendar))
+				return false;
 
 			// Place filter
-			if(StringUtils.isNotEmpty(place)){
-				final FLEFRecord placeCitation = FLEFRecordHelper.findChild(historicEvent, TAG_PLACE);
-				if(placeCitation != null){
-					final String placeId = placeCitation.getTheOnlyChild().getValue();
-					final FLEFRecord placeRecord = model.getRecordById(placeId);
-					final String place = PlaceHandler.getInstance()
-						.getDisplayText(placeRecord, model);
-					if(!TextSearchHelper.matchesText(place, place, fuzzy, wholeWord, FUZZY_THRESHOLD))
-						return false;
-				}
-			}
+			if(!SearchHelper.matchesPlace(historicEvent, place, model, fuzzy, wholeWord, FUZZY_THRESHOLD))
+				return false;
 
 			return true;
 		};
@@ -99,6 +82,7 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 		final String type = FLEFRecordHelper.getChildValue(record, TAG_TYPE);
 		final FLEFRecord dateRecord = FLEFRecordHelper.findChild(record, TAG_DATE);
 		final String date = SearchHelper.extractDate(dateRecord);
+		final String place = SearchHelper.extractPlace(record, model);
 
 		final StringJoiner details = new StringJoiner(", ", " (", ")");
 		details.setEmptyValue(StringUtils.EMPTY);
@@ -109,6 +93,8 @@ public class HistoricEventSearchStrategy implements SearchStrategy{
 			details.add("Type: " + type);
 		if(StringUtils.isNotEmpty(date))
 			details.add(date);
+		if(StringUtils.isNotEmpty(place))
+			details.add(" (" + place + ")");
 
 		return baseDisplayText + details;
 	}

@@ -165,12 +165,12 @@ if(uri != null)
 		cropRect = null;
 		try{
 			final FLEFRecord crop = FLEFRecordHelper.findChild(preferredImage, TAG_CROP);
-			final int x = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
-			final int y = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
-			final int width = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
-			final int height = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
-			if(x >= 0 && y >= 0 && width >= 0 && height >= 0)
-				cropRect = new Rectangle(x, y, width, height);
+			final int cropX = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_X));
+			final int cropY = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_Y));
+			final int cropWidth = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_WIDTH));
+			final int cropHeight = Integer.parseInt(FLEFRecordHelper.getChildValue(crop, TAG_HEIGHT));
+			if(cropX >= 0 && cropY >= 0 && cropWidth >= 0 && cropHeight >= 0)
+				cropRect = new Rectangle(cropX, cropY, cropWidth, cropHeight);
 		}
 		catch(final Exception ignored){}
 	}
