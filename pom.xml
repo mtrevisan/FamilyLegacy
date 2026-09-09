@@ -105,6 +105,10 @@
 		<!-- https://mvnrepository.com/artifact/org.jgrapht/jgrapht-core -->
 		<org.jgrapht.version>1.5.3</org.jgrapht.version>
 
+		<!-- https://mvnrepository.com/artifact/org.graphstream/gs-core -->
+		<!-- https://mvnrepository.com/artifact/org.graphstream/gs-ui-swing -->
+		<org.graphstream-core.version>2.0</org.graphstream-core.version>
+
 		<!-- MigLayout -->
 		<!-- https://mvnrepository.com/artifact/com.miglayout/miglayout-swing -->
 		<miglayout-swing.version>11.4.3</miglayout-swing.version>
@@ -432,13 +436,6 @@
 			<version>${h2.version}</version>
 		</dependency>
 
-		<!-- Image processing -->
-		<dependency>
-			<groupId>org.bytedeco</groupId>
-			<artifactId>opencv</artifactId>
-			<version>${bytedeco.opencv.version}</version>
-		</dependency>
-
 		<dependency>
 			<groupId>org.jgrapht</groupId>
 			<artifactId>jgrapht-core</artifactId>
@@ -493,6 +490,21 @@
 			<groupId>com.twelvemonkeys.imageio</groupId>
 			<artifactId>imageio-tiff</artifactId>
 			<version>${twelvemonkeys.imageio-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.bytedeco</groupId>
+			<artifactId>opencv</artifactId>
+			<version>${bytedeco.opencv.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.graphstream</groupId>
+			<artifactId>gs-core</artifactId>
+			<version>${org.graphstream-core.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.graphstream</groupId>
+			<artifactId>gs-ui-swing</artifactId>
+			<version>${org.graphstream-core.version}</version>
 		</dependency>
 
 		<!-- JSON -->
